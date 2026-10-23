@@ -30,32 +30,32 @@ export const ALERT_EXAMPLES: readonly AlertExample[] = [
   {
     name: "Tones",
     html: row(
-      `          <alert role="status" variant="accent">accent</alert>
-          <alert role="status" variant="success">success</alert>
-          <alert role="status" variant="warning">warning</alert>
-          <alert role="alert" variant="danger">danger</alert>
-          <alert role="status" variant="primary">primary</alert>
-          <alert role="status" variant="secondary">secondary</alert>
-          <alert role="status" variant="neutral">neutral</alert>`,
+      `          <alert role="status" variant="accent">Canary is at 10% of traffic</alert>
+          <alert role="status" variant="success">Deploy #4821 finished in 4m 12s</alert>
+          <alert role="status" variant="warning">p95 latency is 812 ms in eu-west-1</alert>
+          <alert role="alert" variant="danger">Deploy #4820 failed 4 health checks</alert>
+          <alert role="status" variant="primary">Maintenance window at 02:00 UTC</alert>
+          <alert role="status" variant="secondary">v4.11.2 is ready to roll back to</alert>
+          <alert role="status" variant="neutral">3 regions are running v4.12.0</alert>`,
     ),
   },
   {
     name: "Muted tones",
     html: row(
-      `          <alert role="status" variant="accent-muted">accent</alert>
-          <alert role="status" variant="success-muted">success</alert>
-          <alert role="status" variant="warning-muted">warning</alert>
-          <alert role="alert" variant="danger-muted">danger</alert>
-          <alert role="status" variant="primary-muted">primary</alert>
-          <alert role="status" variant="secondary-muted">secondary</alert>
-          <alert role="status" variant="neutral-muted">neutral</alert>`,
+      `          <alert role="status" variant="accent-muted">Canary is at 10% of traffic</alert>
+          <alert role="status" variant="success-muted">Deploy #4821 finished in 4m 12s</alert>
+          <alert role="status" variant="warning-muted">p95 latency is 812 ms in eu-west-1</alert>
+          <alert role="alert" variant="danger-muted">Deploy #4820 failed 4 health checks</alert>
+          <alert role="status" variant="primary-muted">Maintenance window at 02:00 UTC</alert>
+          <alert role="status" variant="secondary-muted">v4.11.2 is ready to roll back to</alert>
+          <alert role="status" variant="neutral-muted">3 regions are running v4.12.0</alert>`,
     ),
   },
   {
     name: "Roles",
     html: row(
-      `          <alert role="status">status</alert>
-          <alert role="alert">alert</alert>`,
+      `          <alert role="status">The rollout is at 10% of traffic</alert>
+          <alert role="alert">checkout-api is returning 503</alert>`,
     ),
   },
   {

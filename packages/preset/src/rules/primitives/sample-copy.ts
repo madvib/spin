@@ -9,9 +9,16 @@
  *
  * This is one concrete subject rendered plainly, so a card and an alert and a
  * table are parts of one site rather than one demo each. Concrete beats
- * abstract: `foo` and `Item` teach nothing about measure, weight, or rhythm,
+ * abstract: `foo` and `Item` teach nothing about measure, weight, or spacing,
  * while a real paragraph tells you whether your h3 actually reads as a step
  * down from h2.
+ *
+ * The subject is Lodestar, a deployment console: the kind of tool a team
+ * ships software with, so its vocabulary is services, releases, regions and
+ * on-call engineers, and its numbers are the ones such a tool shows. The
+ * numbers are real-shaped — a duration, a share of traffic, a count of
+ * instances — because a specimen that says "42%" teaches less than one that
+ * says "0.42%".
  *
  * The voice is documentation, not marketing. Plain, factual, no flourish —
  * the same register a good reference page uses for its examples. A subject
@@ -20,66 +27,67 @@
 
 /** One concrete subject, described plainly. */
 export const sample = {
-  // A small roastery: ordinary enough to stay out of the way, specific enough
-  // to show real numbers, lengths, and names.
-  name: "Halden Roe Coffee Roasters",
-  established: "2019",
+  // A deployment console: ordinary enough to stay out of the way, specific
+  // enough to show real numbers, lengths, and names.
+  name: "Lodestar",
+  established: "2021",
 
-  product: {
-    name: "Ethiopia Guji",
-    origin: "Guji, Ethiopia",
-    altitude: "1,950m",
-    process: "Washed, dried on raised beds",
-    notes: "Apricot, jasmine, black tea",
-    price: "$22",
-    weight: "250g",
+  service: {
+    name: "checkout-api",
+    owner: "Payments",
+    instances: "12",
+    regions: "3",
+    version: "v4.12.0",
+    status: "healthy",
   },
 
-  order: {
-    id: "4021",
-    placed: "14 October 2025",
-    total: "$44.00",
-    items: 2,
-    status: "Roasting",
+  release: {
+    id: "4821",
+    version: "v4.12.0",
+    author: "Tomas Berg",
+    started: "19 October 2026, 09:14 UTC",
+    duration: "4m 12s",
+    traffic: "10%",
+    status: "Running",
   },
 
-  member: {
-    name: "Ada Okonjo",
-    email: "ada@example.com",
-    plan: "Every two weeks",
-    since: "2024",
+  engineer: {
+    name: "Priya Raman",
+    email: "priya@lodestar.dev",
+    role: "Platform engineer",
+    since: "2023",
   },
 
   article: {
-    title: "Roast schedule",
+    title: "Rolling back a release",
     standfirst:
-      "Roasts are Tuesdays, shipping Wednesdays. Orders placed before Monday are in the following week's batch.",
+      "A rollback sends every instance back to the previous release. It takes under two minutes, and it keeps the failed release in the history.",
     paragraphs: [
-      "Coffee is most generous between four and fourteen days off the roaster. Before four it is still releasing carbon dioxide; after fourteen the aromatics begin to fade. A weekly roast keeps most bags inside that window for most of their shelf life.",
-      "The constraint is not the roast day but the batch size. Bags that age past two weeks are discounted and marked with their roast date rather than blended away.",
+      "A release is promoted by traffic, not by a switch. Ten per cent goes to the new version first, and the share only grows while the health checks stay green.",
+      "When the checks fail, the rollout stops where it is rather than starting again. The instances already on the new version are replaced, and the share returns to the previous release.",
     ],
   },
 
   note: {
-    title: "Next box ships Wednesday",
+    title: "Deploy #4821 is running",
     body:
-      "Two bags of Ethiopia Guji, ground for pour-over. Changes can be made until Tuesday.",
+      "Ten per cent of traffic is on v4.12.0 in eu-west-1. Health checks pass; the share grows in five minutes.",
   },
 
   nav: {
-    shop: "Shop",
-    section: "Single origin",
-    current: "Ethiopia Guji",
+    app: "Lodestar",
+    section: "checkout-api",
+    current: "Deploy #4821",
   },
 
   actions: {
-    primary: "Add to box",
-    secondary: "Save",
+    primary: "Deploy",
+    secondary: "Roll back",
     dismiss: "Dismiss",
   },
 
   figure: {
-    caption: "Drying beds, Guji zone",
+    caption: "Deploy #4821, eu-west-1",
   },
 } as const;
 

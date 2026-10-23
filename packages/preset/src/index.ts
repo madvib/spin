@@ -32,16 +32,17 @@
  */
 
 import { definePreset } from "@unocss/core";
-import type { Preset } from "@unocss/core";
+import type { Preset, UserShortcuts } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
 import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
-import { hasOverlay, resolveThemes } from "./session.ts";
+import { resolveThemes } from "./session.ts";
 import type { ThemeDocument, TokenTree } from "@spin/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
+import { transitionDurations } from "./rules/transitions.ts";
 import { spinShortcuts } from "./shortcuts.ts";
 import {
   classObjectExtractor,
@@ -50,7 +51,8 @@ import {
   variantExtractor,
 } from "./extractors.ts";
 import { themeRef } from "@spin/theme";
-import { wind4Layers, type Wind4Options } from "./wind4.ts";
+import type { ThemeRef } from "@spin/theme";
+import { wind4Layers, type Wind4Options, wind4Theme } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
 export { describeCatalog } from "./catalog.ts";
@@ -66,6 +68,7 @@ export {
   setOverlay,
 } from "./session.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
+export { spinShortcuts } from "./shortcuts.ts";
 export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
 export { overlayContract, overlayRouter } from "./overlay.ts";
@@ -83,17 +86,34 @@ export type { ThemeDocument } from "@spin/theme";
 // because a description of a rule belongs next to the rule — and the manifest
 // they read is DERIVED from those rules, so it cannot disagree with them.
 export type {
-  CharacterToken,
+  ComponentToken,
   PrimitiveComponent,
   PrimitiveContract,
 } from "./rules/primitives/manifest.ts";
 export {
   claimedElements,
+  paintedElements,
+  primitiveCategories,
   primitiveComponents,
   primitiveContracts,
+  primitiveElements,
   primitiveReadsByGroup,
   primitiveVariants,
 } from "./rules/primitives/manifest.ts";
+export type {
+  PrimitiveCategory,
+  PrimitiveElement,
+} from "./rules/primitives/categories.ts";
+/**
+ * The decisions an element's look is made of, and the property each one is
+ * read from.
+ *
+ * The vocabulary belongs to the primitives: the manifest's scope table is
+ * written in these words, and a consumer that reads the manifest has to be
+ * able to say which decision a CSS property belongs to without keeping a
+ * second list of its own.
+ */
+export { type PaintKey, paintKeyOf } from "./rules/primitives/scope.ts";
 
 /** Options for {@link spinPreset}. */
 export interface SpinPresetOptions {
@@ -153,6 +173,22 @@ export interface SpinPresetOptions {
    * otherwise scope itself to a class a spin document never carries.
    */
   wind4?: boolean | Wind4Options;
+  /**
+   * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
+   *
+   * A shortcut is a named composition: one class that stands for a set of
+   * utilities. Spin does not forbid a project from composing its own
+   * vocabulary — the layout an app repeats is the app's decision, not the
+   * framework's — and the VALUES still come from the theme: a shortcut that
+   * spends `gap-4` spends the theme's spacing step, so a theme that prefers
+   * roomier sections sets it once and every shortcut follows.
+   *
+   * The product's own compositions — `stack`, `row`, `split`, `panel`,
+   * `overline` and their steps — ship with the preset. A project's shortcuts
+   * are layered on top, so a name can be specialised but never has to be
+   * restated.
+   */
+  readonly shortcuts?: UserShortcuts;
 }
 
 /**
@@ -209,16 +245,17 @@ const factory = definePreset(
       assertComplete(name, parsed.tree, requiredRolesFor());
       trees[name] = parsed.tree;
     }
-    // The uno theme is the only name table. Values are references, so a rule
-    // reads one and returns it: no path to join, no variable to spell.
-    // Component roots come from the manifest, so a component's character
-    // tokens are reachable as `theme[root][step]` — the same change that
-    // enables a component makes its tokens spendable.
+    // The uno theme is the only name table, and the names ARE the custom
+    // properties: one flat map, every token. A rule reads `spacing-4` and
+    // gets the reference; there is no exposure decision to make, so there is
+    // no row to forget. wind4's nested vocabulary is spread on top of the
+    // same object — see `wind4Theme` for why that seam and only that seam
+    // exists.
     const componentRoots = enabled ?? Object.keys(primitiveContracts);
-    const theme = themeRef(
+    const vars = themeRef(
       Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
-      componentRoots,
     );
+    const theme = { ...vars, ...wind4Theme(vars) } as unknown as ThemeRef;
     // Breakpoint VALUES, resolved: a media query cannot read a custom
     // property, so the variant needs the literal width the theme declared.
     const edges = breakpointEdges(Object.values(trees));
@@ -228,6 +265,12 @@ const factory = definePreset(
       name: "spin",
       theme,
       variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
+      // The product's own compositions, and the project's on top. The
+      // standard ones — `stack`, `row`, `split`, `panel`, `overline` — are
+      // the preset's vocabulary, so every app that draws a page reads the
+      // same set whether or not its config names them. A project's own ride
+      // the preset too, so everything that wires spin carries them.
+      shortcuts: { ...spinShortcuts, ...options.shortcuts },
       // The element extractor turns `<button>` into the token `button`, so a
       // classless primitive is styled by its tag. It ships with the preset
       // because a classless primitive needs it; it never touches classes.
@@ -252,8 +295,10 @@ const factory = definePreset(
       // (-50) → utilities (default 0). Without this, unregistered layer
       // names fall to 0 and localeCompare re-sorts, so primitives CSS lands
       // after utilities and `.secondary` can override `bg-primary` at equal
-      // specificity. Components come first so utilities win ties.
-      layers: { theme: -90, primitives: -50 },
+      // specificity. Components come first so utilities win ties. The reset
+      // is named here too: a layer with no order is not a layer that sorts
+      // first, it is a layer that sorts last.
+      layers: { reset: -100, theme: -90, primitives: -50 },
       autocomplete: {
         templates: [
           "bg-$colors",
@@ -273,15 +318,17 @@ const factory = definePreset(
           "shadow-$shadow",
         ],
         shorthands: {
-          colors: orGroup(theme, "colors"),
+          colors: orGroup(theme, "color"),
           spacing: orGroup(theme, "spacing"),
+          opacity: orGroup(theme, "opacity"),
+          letterSpacing: orGroup(theme, "font-letter-spacing"),
           breakpoint: orGroup(theme, "breakpoint"),
-          zIndex: orGroup(theme, "zIndex"),
-          motionDuration: orGroup(theme, "motionDuration"),
-          motionEasing: orGroup(theme, "motionEasing"),
-          fontSize: orGroup(theme, "fontSize"),
-          fontFamily: orGroup(theme, "fontFamily"),
-          fontWeight: orGroup(theme, "fontWeight"),
+          zIndex: orGroup(theme, "z-index"),
+          motionDuration: "(" + transitionDurations(theme).join("|") + ")",
+          motionEasing: orGroup(theme, "motion-easing"),
+          fontSize: orGroup(theme, "font-size"),
+          fontFamily: orGroup(theme, "font-family"),
+          fontWeight: orGroup(theme, "font-weight"),
           radius: orGroup(theme, "radius"),
           shadow: orGroup(theme, "shadow"),
         },

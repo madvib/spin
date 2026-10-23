@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { token } from "../../utils/lookup.ts";
+import { claim, disabledPosture, type Mode } from "./shared.ts";
 
 /**
  * Mode switch — one button that cycles a theme's modes.
@@ -30,9 +30,8 @@ function modeBase(mode: Mode): Rule {
   return [
     /^mode$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-      const icon = t?.icon?.["md"];
-      const gap = t?.spacing?.["2"];
+      const icon = token(ctx, "icon.md");
+      const gap = token(ctx, "spacing.2");
       yield {
         [ctx.symbols.selector]: () => `${claim(mode, "button")}.mode`,
         // The face is the theme's icon step, not the button's type: a glyph
@@ -52,18 +51,18 @@ function modeDisabled(mode: Mode): Rule {
   return [
     /^mode$/,
     function* (_m, ctx) {
-      void ctx;
       yield {
         [ctx.symbols.selector]: () =>
           `${claim(mode, "button")}.mode:disabled, ${
             claim(mode, "button")
           }.mode[aria-disabled="true"]`,
         // A disabled switcher is a statement, not a control: the theme
-        // serves one mode, so there is nothing to cycle. Opacity says
-        // inert, the a11y layer's cursor says unusable, and the element
-        // stays in the tree for a reader who tabs to it and wants to know
-        // why it does nothing.
-        opacity: "0.4",
+        // serves one mode, so there is nothing to cycle. It wears the
+        // posture every dead control wears — the theme's disabled fill and
+        // the ink that reads on it — and the a11y layer's cursor says
+        // unusable, and the element stays in the tree for a reader who tabs
+        // to it and wants to know why it does nothing.
+        ...disabledPosture(ctx),
       };
     },
     { layer: "primitives", autocomplete: "mode" },

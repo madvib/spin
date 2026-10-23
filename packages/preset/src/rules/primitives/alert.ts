@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
+import { claim, type Mode, withFallback } from "./shared.ts";
 
 /**
  * Alert — `<alert role="status">` and `<alert role="alert">`.
@@ -33,18 +33,20 @@ export function alertRules(roots: readonly string[], mode: Mode): Rule[] {
   return [alertBase(mode), ...alertTones(mode)];
 }
 
-function alertTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function alertTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing?.["2"],
-    spacing4: t?.spacing?.["4"],
-    radius: t?.radius?.["md"],
-    text: t?.colors?.["text"],
-    raised: t?.colors?.["surface-raised"],
-    border: t?.colors?.["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    fontSize: t?.fontSize?.["sm"],
-    weight: t?.fontWeight?.["medium"],
+    spacing2: withFallback(ctx, "alert.padding", "spacing.2"),
+    spacing4: withFallback(ctx, "alert.padding-inline", "spacing.4"),
+    radius: withFallback(ctx, "alert.radius", "radius.md"),
+    text: token(ctx, "color.text"),
+    raised: token(ctx, "color.surface-raised"),
+    // The hairline the alert wears on every side. The tone variants
+    // recolour the leading edge alone, so this is the quiet frame around
+    // them — and it is the alert's own ink, falling back to the page's.
+    border: withFallback(ctx, "alert.edge", "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    fontSize: token(ctx, "font.size.sm"),
+    weight: token(ctx, "font.weight.medium"),
   };
 }
 
@@ -65,6 +67,13 @@ function alertBase(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () => alert,
         display: "block",
+        // The alert is a block, so this says nothing on its own — but the
+        // moment a consumer lays an alert out as a ROW (`class="flex
+        // items-center gap-2"`, the horizontal form the examples show), the
+        // row it becomes has to wrap. A row of alert content that cannot
+        // wrap pushes its content out of the alert, and an alert that has
+        // lost its content is not a message.
+        "flex-wrap": "wrap",
         ...(t.spacing2 !== undefined
           ? {
             "padding-block-start": t.spacing2,
@@ -84,7 +93,8 @@ function alertBase(mode: Mode): Rule {
         // The surface stays the surface: a hairline on every side. The tone
         // variants recolour only the inline-start edge, and the role states
         // how heavy that edge is — so the colour and the weight are separate
-        // decisions.
+        // decisions. The hairline's own ink is the alert's (`alert.edge`),
+        // which falls back to the page's.
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { border: `${t.borderWidth} solid ${t.border}` }
           : {}),
@@ -150,8 +160,9 @@ function alertTones(mode: Mode): Rule[] {
       [
         new RegExp(`^alert-${name}$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const color = edge !== undefined ? colors?.[edge] : colors?.[fill];
+          const color = edge !== undefined
+            ? named(ctx, "color", edge)
+            : named(ctx, "color", fill);
           yield {
             [ctx.symbols.selector]: () =>
               `${alert}.alert-${name}, ${alert}[variant~="${name}"]`,
@@ -166,11 +177,11 @@ function alertTones(mode: Mode): Rule[] {
       [
         new RegExp(`^alert-${name}-muted$`),
         function* (_m, ctx) {
-          const colors = themeOf(ctx)?.colors;
-          const surface = colors?.["surface-raised"] ?? colors?.["surface"];
+          const surface = named(ctx, "color", "surface-raised") ??
+            named(ctx, "color", "surface");
           const toneColour = edge !== undefined
-            ? colors?.[edge]
-            : colors?.[fill];
+            ? named(ctx, "color", edge)
+            : named(ctx, "color", fill);
           yield {
             [ctx.symbols.selector]: () =>
               `${alert}.alert-${name}-muted, ${alert}[variant~="${name}-muted"]`,

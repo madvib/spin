@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /**
@@ -37,19 +37,18 @@ import type { Mode } from "./shared.ts";
  * empty star is `text-muted`, the colour a caption takes, because an unrated
  * star is a placeholder for a mark.
  */
-export function ratingRules(roots: readonly string[], mode: Mode): Rule[] {
+export function ratingRules(roots: readonly string[], _mode: Mode): Rule[] {
   if (!roots.includes("rating")) return [];
   return [ratingContainer(), ratingStar()];
 }
 
 /** The theme values a rating spends, resolved once per rule. */
-function ratingTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function ratingTokens(ctx: ThemeContext | undefined) {
   return {
-    gap: t?.spacing?.["1"],
-    size: groupOf(ctx, "icon")["md"],
-    muted: t?.colors?.["text-muted"],
-    warning: t?.colors?.["semantic-warning"],
+    gap: token(ctx, "spacing.1"),
+    size: named(ctx, "icon", "md"),
+    muted: token(ctx, "color.text-muted"),
+    warning: token(ctx, "color.semantic.warning"),
   };
 }
 

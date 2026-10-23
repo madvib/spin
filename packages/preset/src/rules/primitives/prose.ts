@@ -1,10 +1,4 @@
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  rhythm,
-  type Tokens,
-} from "./shared.ts";
+import { claim, type Mode } from "./shared.ts";
 
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.
@@ -15,19 +9,23 @@ import {
  * Two decisions the reference could not state, because a stylesheet has no
  * switch:
  *
- *   **The tags are styled globally.** `<h1>` is a heading, `<blockquote>` is a
+ *   **The typography is global.** `<h1>` is a heading, `<blockquote>` is a
  *   quotation; the element is the contract, exactly as it is for the table and
- *   the disclosure. A page that wants the tags left alone turns the component
- *   off — `spinPreset({ primitives: ["button"] })` — the same escape hatch
- *   every primitive has.
+ *   the disclosure. The type and the spacing are the theme's, and they are
+ *   spent wherever the element is written — a paragraph outside a document
+ *   column reads the same as a paragraph inside one. A page that wants the
+ *   tags left alone turns the component off — `spinPreset({ primitives:
+ *   ["button"] })` — the same escape hatch every primitive has.
  *
- *   **`<prose>` constrains the measure and closes the rhythm.** The bare tags
- *   are what a document already writes; `<prose>` is the opt-in column around
- *   them, capping the line length and dropping the leading and trailing margins
- *   so the block sits flush in its container.
+ *   **`<prose>` adds the document's furniture.** The column caps the measure,
+ *   drops the leading and trailing margins so the block sits flush in its
+ *   container, and — this is what it is FOR — paints the furniture of a
+ *   long-form read: the quotation's inset, the media's box, the code block's
+ *   chrome, the highlight, the inserted and deleted runs. The furniture
+ *   belongs to the document that makes it.
  *
  * Every rule is keyed on the tag it claims, so the whole vocabulary shakes: a
- * document with only `<p>` and `<h2>` emits only those two rules. The rhythm
+ * document with only `<p>` and `<h2>` emits only those two rules. The spacing
  * is stated per element rather than as a shared block, because a shared rule
  * would have to be keyed on one tag and would drag every other tag's rule in
  * with it.
@@ -64,7 +62,7 @@ export function proseRules(roots: readonly string[], mode: Mode): Rule[] {
   ];
 }
 
-/** The opt-in column: a measure, and a rhythm that sits flush at its edges. */
+/** The opt-in column: a measure, and a spacing that sits flush at its edges. */
 function proseContainerRule(mode: Mode): Rule {
   const prose = claim(mode, "prose");
   return [
@@ -77,7 +75,7 @@ function proseContainerRule(mode: Mode): Rule {
         // body face keeps the line length it meant.
         "max-width": "65ch",
       };
-      // The rhythm is stated between blocks, not around them: the first block
+      // The spacing is stated between blocks, not around them: the first block
       // starts flush with the container and the last ends flush with it.
       yield {
         [ctx.symbols.selector]: () => `${prose} > :first-child`,

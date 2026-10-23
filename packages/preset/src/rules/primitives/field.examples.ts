@@ -28,28 +28,28 @@ export const INPUT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Input · states",
     html: row(
-      `          <label><input type="text" placeholder="Empty"><span>Empty</span></label>
-          <label><input type="text" value="Hello"><span>Filled</span></label>
-          <label><input type="text" value="Cannot touch" disabled><span>Disabled</span></label>
-          <label><input type="text" value="Read only" readonly><span>Readonly</span></label>`,
+      `          <label><input type="text" placeholder="Search services"><span>Search</span></label>
+          <label><input type="text" value="checkout-api"><span>Service name</span></label>
+          <label><input type="text" value="payments-worker" disabled><span>Locked by policy</span></label>
+          <label><input type="text" value="v4.12.0" readonly><span>Version</span></label>`,
     ),
   },
   {
     name: "Input · validity",
     html: row(
-      `          <label><input type="text" aria-invalid value="x"><span>Unjudged</span></label>
-          <label><input type="text" aria-invalid="false" value="x"><span>Passed</span></label>
-          <label><input type="text" aria-invalid="true" value="x"><span>Failed</span></label>`,
+      `          <label><input type="text" aria-invalid value="v4.12"><span>Unjudged</span></label>
+          <label><input type="text" aria-invalid="false" value="v4.12.0"><span>Passed</span></label>
+          <label><input type="text" aria-invalid="true" value="v4.12.0-rc1"><span>Failed</span></label>`,
     ),
   },
   {
     name: "Input · types",
     html: row(
-      `          <label><input type="email" placeholder="you@example.com"><span>Email</span></label>
+      `          <label><input type="email" placeholder="priya@lodestar.dev"><span>Email</span></label>
           <label><input type="password" placeholder="••••••"><span>Password</span></label>
-          <label><input type="search" placeholder="Find"><span>Search</span></label>
-          <label><input type="number" value="42"><span>Number</span></label>
-          <label><input type="date"><span>Date</span></label>`,
+          <label><input type="search" placeholder="Find a service"><span>Search</span></label>
+          <label><input type="number" value="12"><span>Instances</span></label>
+          <label><input type="date" value="2026-10-19"><span>Date</span></label>`,
     ),
   },
 ];
@@ -61,34 +61,34 @@ export const SELECT_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Select",
     html: row(
-      `          <label><select><option>One</option><option>Two</option></select><span>One choice</span></label>
-          <label><select disabled><option>Unavailable</option></select><span>Disabled</span></label>`,
+      `          <label><select><option>production</option><option>staging</option></select><span>Target</span></label>
+          <label><select disabled><option>preview</option></select><span>Locked by policy</span></label>`,
     ),
   },
   {
     name: "Select · validity",
     html: row(
-      `          <label><select><option>Unjudged</option></select><span>Unjudged</span></label>
-          <label><select aria-invalid="false"><option>Passed</option></select><span>Passed</span></label>
-          <label><select aria-invalid="true"><option>Failed</option></select><span>Failed</span></label>`,
+      `          <label><select aria-invalid><option>v4.12.0</option></select><span>Unjudged</span></label>
+          <label><select aria-invalid="false"><option>v4.12.0</option></select><span>Passed</span></label>
+          <label><select aria-invalid="true"><option>v4.12.0-rc1</option></select><span>Failed</span></label>`,
     ),
   },
   {
     name: "Select · grouped options",
     html: row(
       `          <label><select>
-            <optgroup label="Fruit"><option>Apple</option><option>Pear</option></optgroup>
-            <optgroup label="Vegetable"><option>Beet</option></optgroup>
-          </select><span>Groups are the platform's</span></label>`,
+            <optgroup label="Regions"><option>eu-west-1</option><option>us-east-2</option></optgroup>
+            <optgroup label="Services"><option>checkout-api</option></optgroup>
+          </select><span>Regions and services</span></label>`,
     ),
   },
   {
     name: "Select · multiple",
     html: row(
       `          <label><select multiple size="4">
-            <option selected>Alpha</option><option>Bravo</option>
-            <option>Charlie</option><option>Delta</option>
-          </select><span>Size, not classes</span></label>`,
+            <option selected>eu-west-1</option><option>us-east-2</option>
+            <option>ap-south-1</option><option>sa-east-1</option>
+          </select><span>Regions</span></label>`,
     ),
   },
 ];
@@ -100,21 +100,21 @@ export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
   {
     name: "Textarea",
     html: row(
-      `          <label><textarea rows="2" placeholder="Multi-line"></textarea><span>Default</span></label>
+      `          <label><textarea rows="2" placeholder="Why are you rolling back?"></textarea><span>Reason</span></label>
           <label><textarea aria-invalid="true" rows="2"></textarea><span>Invalid</span></label>
-          <label><textarea rows="2" disabled>Cannot touch</textarea><span>Disabled</span></label>`,
+          <label><textarea rows="2" disabled>Deploy blocked by failing health checks</textarea><span>Locked by policy</span></label>`,
     ),
   },
   {
     name: "Textarea · readonly",
     html: row(
-      `          <label><textarea rows="2" readonly>Cannot touch</textarea><span>Read only, still selectable</span></label>`,
+      `          <label><textarea rows="2" readonly>Deployed at 09:14 UTC by Tomas Berg</textarea><span>Deployed by</span></label>`,
     ),
   },
   {
     name: "Textarea · one line at rest",
     html: row(
-      `          <label><textarea rows="1" placeholder="Grows by the author's drag, never by content"></textarea><span>Min height keeps it a textarea</span></label>`,
+      `          <label><textarea rows="1" placeholder="What went wrong?"></textarea><span>Reason</span></label>`,
     ),
   },
 ];

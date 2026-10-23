@@ -1,29 +1,28 @@
 import { resolve } from "node:path";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
-import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
 
 /**
- * `spin.vite` is the whole toolchain: it globs, generates, and safelists
+ * `spin.vite` is the whole toolchain: it globs, generates, safelists
  * the catalog so the utilities the pages choose from the catalog at
- * runtime still have a rule to demonstrate them with.
+ * runtime still have a rule to demonstrate them with, and carries the
+ * specifier table — no app keeps a copy of the resolution.
  */
 
 export default defineConfig({
   plugins: [
-    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
     spin.vite({
-      // No `themes`: the project owns them. `spin/*.json` at this root —
-      // the same files the studio edits — so a theme change in the studio
-      // re-themes this app and nothing has to be re-imported.
-
+      // No `themes`: the app serves the shipped starters, forked by
+      // `spin/*.json` at this root — the same files the studio edits — so a
+      // theme change in the studio re-themes this app and nothing has to be
+      // re-imported. This project defines no themes of its own.
       presets: [presetIcons({ collections: { lucide } as never })],
       // The studio bundle, built by `apps/studio/deno task build`. Absent
       // until built — the mount skips it rather than failing the server.
@@ -40,122 +39,25 @@ export default defineConfig({
             here,
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
+          // The taxonomy names the glyph each element wears. The icon preset
+          // generates a rule for a name that is written down and for no name
+          // that is not, so a row whose glyph lives only in the taxonomy would
+          // draw nothing at all.
           resolve(
             here,
-            "../../packages/components/src/spin-*/examples/*.html",
+            "../../packages/preset/src/rules/primitives/categories.ts",
           ),
-          resolve(
-            here,
-            "../../packages/components/src/spin-*/spin-*.html",
-          ),
+          // The kit's shared components: the section, the specimen, the theme
+          // picker. Their classes are part of this app's content.
+          resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
           resolve(here, "src/**/*.{tsx,ts}"),
         ],
         pipeline: {
           include: [
-            /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
+            /\.(tsx?|html)($|\?)/,
           ],
         },
       },
     }),
   ],
-  resolve: {
-    alias: [
-      {
-        find: "@spin/theme/base",
-        replacement: resolve(
-          here,
-          "../../packages/theme/src/base/index.ts",
-        ),
-      },
-      {
-        find: /^@spin\/theme\/(.+)$/,
-        replacement: resolve(here, "../../packages/theme/src/$1"),
-      },
-      {
-        find: "@spin/theme",
-        replacement: resolve(
-          here,
-          "../../packages/theme/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/animation",
-        replacement: resolve(
-          here,
-          "../../packages/animation/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/primitives-procedures",
-        replacement: resolve(
-          here,
-          "../../packages/preset/src/primitives-procedures.ts",
-        ),
-      },
-      {
-        find: /^@spin\/preset\/(.+)$/,
-        replacement: resolve(here, "../../packages/preset/src/$1"),
-      },
-      {
-        find: "@spin/preset",
-        replacement: resolve(
-          here,
-          "../../packages/preset/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/components/procedures",
-        replacement: resolve(
-          here,
-          "../../packages/components/src/components-procedures.ts",
-        ),
-      },
-      {
-        find: "@spin/components",
-        replacement: resolve(
-          here,
-          "../../packages/components/src/index.ts",
-        ),
-      },
-      {
-        find: "@spin/runtime/props",
-        replacement: resolve(
-          here,
-          "../../packages/runtime/src/props.ts",
-        ),
-      },
-      {
-        find: "@spin/runtime/fsm",
-        replacement: resolve(
-          here,
-          "../../packages/runtime/src/machine/fsm/machine.ts",
-        ),
-      },
-      {
-        find: "@spin/runtime",
-        replacement: resolve(
-          here,
-          "../../packages/runtime/src/index.ts",
-        ),
-      },
-      { find: /^npm:(.+)$/, replacement: "$1" },
-      {
-        find: "@unocss/core",
-        replacement: resolve(
-          here,
-          "../../node_modules/@unocss/core/dist/index.mjs",
-        ),
-      },
-    ],
-  },
-  server: {
-    fs: {
-      allow: [
-        searchForWorkspaceRoot(process.cwd()),
-        "/__uno.css",
-        "/__uno.css?inline",
-        "/@unocss",
-      ],
-    },
-  },
 });

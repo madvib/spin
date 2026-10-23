@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -31,17 +31,15 @@ function meterRule(mode: Mode): Rule {
   return [
     /^meter$/,
     function* (_m, ctx) {
-      const t = themeOf(ctx);
-
       // The element itself: the platform draws the frame, so this spends
       // nothing but the type the gauge's fallback text is read in.
       yield {
         [ctx.symbols.selector]: () => meter,
-        ...(t?.fontFamily?.["sans"] !== undefined
-          ? { "font-family": t.fontFamily["sans"] }
+        ...(token(ctx, "font.family.sans") !== undefined
+          ? { "font-family": token(ctx, "font.family.sans") }
           : {}),
-        ...(t?.fontSize?.["sm"] !== undefined
-          ? { "font-size": t.fontSize["sm"] }
+        ...(token(ctx, "font.size.sm") !== undefined
+          ? { "font-size": token(ctx, "font.size.sm") }
           : {}),
       };
 
@@ -51,17 +49,19 @@ function meterRule(mode: Mode): Rule {
       // painted the page's colour reads as a hole, not a channel.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-webkit-meter-bar`,
-        ...(t?.colors?.["field"] !== undefined
-          ? { "background-color": t.colors["field"] }
+        ...(token(ctx, "color.field") !== undefined
+          ? { "background-color": token(ctx, "color.field") }
           : {}),
-        ...(t?.borderWidth?.["width"] !== undefined &&
-            t?.colors?.["border"] !== undefined
+        ...(token(ctx, "border.width") !== undefined &&
+            token(ctx, "color.border") !== undefined
           ? {
-            border: `${t.borderWidth["width"]} solid ${t.colors["border"]}`,
+            border: `${token(ctx, "border.width")} solid ${
+              token(ctx, "color.border")
+            }`,
           }
           : {}),
-        ...(t?.radius?.["sm"] !== undefined
-          ? { "border-radius": t.radius["sm"] }
+        ...(token(ctx, "radius.sm") !== undefined
+          ? { "border-radius": token(ctx, "radius.sm") }
           : {}),
       };
 
@@ -74,24 +74,24 @@ function meterRule(mode: Mode): Rule {
       // that does not know one selector in it.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-webkit-meter-optimum-value`,
-        ...(t?.colors?.["semantic-success"] !== undefined
-          ? { "background-color": t.colors["semantic-success"] }
+        ...(token(ctx, "color.semantic.success") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.success") }
           : {}),
         "-webkit-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}::-webkit-meter-suboptimum-value`,
-        ...(t?.colors?.["semantic-warning"] !== undefined
-          ? { "background-color": t.colors["semantic-warning"] }
+        ...(token(ctx, "color.semantic.warning") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.warning") }
           : {}),
         "-webkit-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}::-webkit-meter-even-less-good-value`,
-        ...(t?.colors?.["semantic-error"] !== undefined
-          ? { "background-color": t.colors["semantic-error"] }
+        ...(token(ctx, "color.semantic.error") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.error") }
           : {}),
         "-webkit-appearance": "none",
       };
@@ -99,8 +99,8 @@ function meterRule(mode: Mode): Rule {
       // Gecko's one bar pseudo carries the success fill, its only band.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-moz-meter-bar`,
-        ...(t?.colors?.["semantic-success"] !== undefined
-          ? { "background-color": t.colors["semantic-success"] }
+        ...(token(ctx, "color.semantic.success") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.success") }
           : {}),
         "-moz-appearance": "none",
       };
@@ -111,7 +111,7 @@ function meterRule(mode: Mode): Rule {
       // not a design value.
       yield {
         [ctx.symbols.selector]: () => `${meter}:disabled`,
-        opacity: t?.opacity?.["50"] ?? 0.55,
+        opacity: token(ctx, "opacity.50") ?? 0.55,
       };
     },
     { layer: "primitives", autocomplete: "meter" },

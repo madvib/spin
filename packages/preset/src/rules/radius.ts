@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 import { CORNER_LOGICAL } from "../utils/vocabulary.ts";
 
 /**
@@ -46,5 +46,5 @@ function radiusOf(
   name: string,
   ctx?: ThemeContext,
 ): string | undefined {
-  return tokenOf(ctx, "radius", name, "borderRadius");
+  return named(ctx, "radius", name);
 }

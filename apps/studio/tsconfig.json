@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
@@ -25,8 +25,35 @@
       "@spin/theme": [
         "../../packages/theme/src/index.ts"
       ],
+      "@spin/theme/themes": [
+        "../../packages/theme/src/themes/index.ts"
+      ],
+      "@spin/theme/theme-types": [
+        "../../packages/theme/src/theme-types.d.ts"
+      ],
+      "@spin/kit": [
+        "../../packages/kit/src/index.ts"
+      ],
+      "@spin/api/client": [
+        "../../packages/api/src/client.ts"
+      ],
+      "@spin/api": [
+        "../../packages/api/src/index.ts"
+      ],
+      "@spin/project": [
+        "../../packages/project/src/index.ts"
+      ],
+      "@spin/project/sync": [
+        "../../packages/project/src/sync.ts"
+      ],
+      "@spin/diagnostics": [
+        "../../packages/diagnostics/src/index.ts"
+      ],
       "@spin/preset": [
         "../../packages/preset/src/index.ts"
+      ],
+      "@spin/preset/config": [
+        "../../packages/preset/src/config.ts"
       ],
       "@spin/solid": [
         "../../packages/preset/src/solid.d.ts"
@@ -49,5 +76,12 @@
     "src",
     "../../packages/preset/src/solid.d.ts",
     "vite.config.ts"
+  ],
+  "exclude": [
+    // Deno's own tests: they run under `deno test`, which type-checks them
+    // against Deno's types and the import map. tsc has neither, so including
+    // them here would fail the build on `Deno.test` while proving nothing the
+    // test task does not already prove.
+    "src/**/*.test.ts"
   ]
 }

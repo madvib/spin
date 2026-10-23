@@ -12,6 +12,13 @@
  * than defining a second, dead variable. Light/dark are modes on a theme, not
  * themes: no `dark:` variant exists, and nothing sets `data-theme="dark"`.
  * Its tokens are not repeated in the base block.
+ *
+ * The light mode is the same idea on the other side of the axis: a token that
+ * carries a `$modes.light` value emits it under
+ * `<selector>[data-mode="light"]`, and a top-level group named `light` says
+ * it the old way. A theme whose own face is its DARK face — a terminal
+ * palette, a console — restates its light mode the same way it restates its
+ * dark one, and both blocks sit beside the base rather than replacing it.
  */
 
 import {
@@ -24,6 +31,9 @@ import type { CssOptions, TokenLeaf, TokenNode, TokenTree } from "./types.ts";
 
 /** Name of the group that holds dark overrides. */
 const DARK_GROUP = "dark";
+
+/** Name of the group that holds light overrides. */
+const LIGHT_GROUP = "light";
 
 interface Block {
   selector: string;
@@ -61,42 +71,50 @@ function valueAsCss(
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
   // A boolean is a switch the rules read, not a value CSS consumes: `true`
-  // emits as the flag `1` and `false` emits as nothing. A false flag is
-  // absence — the same shape a missing token has — which is what lets a rule
-  // ask `is this declared?` and get a per-theme answer.
-  if (typeof value === "boolean") return value ? "1" : "";
+  // projects as the flag `1` and `false` projects as `0` — not silence.
+  // Custom properties inherit, and the boot deck's token set stands at
+  // `:root`, so an omitted answer would inherit that deck's truth instead
+  // of carrying the no the theme gave. A declared `false` is the deck's
+  // own answer and overrides it; only an undeclared flag is absent, which
+  // is what lets a rule ask `is this decided?` and get a per-theme answer.
+  if (typeof value === "boolean") return value ? "1" : "0";
   return JSON.stringify(value);
 }
 
-/** Split a tree into its base block and its dark override block. */
+/** Split a tree into its base block and its two mode blocks. */
 function collectBlocks(
   tree: TokenTree,
   selector: string,
   prefix: string | undefined,
   darkSelector: string,
+  lightSelector: string,
 ): Block[] {
   const index = indexTree(tree);
   const base: Block = { selector, declarations: [] };
+  const light: Block = { selector: lightSelector, declarations: [] };
   const dark: Block = { selector: darkSelector, declarations: [] };
 
   for (const node of tree) {
-    const isDarkRoot = node.kind === "group" &&
-      node.name.toLowerCase() === DARK_GROUP;
+    const name = node.kind === "group" ? node.name.toLowerCase() : "";
+    const isDarkRoot = name === DARK_GROUP;
+    const isLightRoot = name === LIGHT_GROUP;
     // The `dark` root is a VARIANT, not a namespace: strip its own segment so
     // `dark.color.brand` lands on the same property as `color.brand`. A token
     // carrying its own `$modes` does the same job from inside itself, so both
-    // spellings emit identical CSS — which is the migration's contract.
+    // spellings emit identical CSS — which is the migration's contract. The
+    // light root is the same idea on the other side of the axis.
     collectLeaves(
       node,
       index,
       prefix,
-      isDarkRoot ? dark : base,
+      isDarkRoot ? dark : isLightRoot ? light : base,
+      light,
       dark,
-      isDarkRoot,
+      isDarkRoot || isLightRoot,
     );
   }
 
-  return [base, dark];
+  return [base, light, dark];
 }
 
 function collectLeaves(
@@ -104,6 +122,7 @@ function collectLeaves(
   index: TokenIndex,
   prefix: string | undefined,
   into: Block,
+  light: Block | undefined,
   dark: Block | undefined,
   stripRoot: boolean,
 ): void {
@@ -116,19 +135,27 @@ function collectLeaves(
     // A token's own mode values land in the mode block beside its base, which
     // is what lets the `dark` group go away without changing a byte of
     // emitted CSS.
-    if (node.modes !== undefined && dark !== undefined) {
-      const value = node.modes[DARK_GROUP];
-      if (value !== undefined) {
+    if (node.modes !== undefined) {
+      const name = cssVarName(path, prefix);
+      const lightValue = node.modes[LIGHT_GROUP];
+      if (lightValue !== undefined && light !== undefined) {
+        light.declarations.push([
+          name,
+          valueAsCss(lightValue, index, prefix),
+        ]);
+      }
+      const darkValue = node.modes[DARK_GROUP];
+      if (darkValue !== undefined && dark !== undefined) {
         dark.declarations.push([
-          cssVarName(path, prefix),
-          valueAsCss(value, index, prefix),
+          name,
+          valueAsCss(darkValue, index, prefix),
         ]);
       }
     }
     return;
   }
   for (const child of node.children) {
-    collectLeaves(child, index, prefix, into, dark, stripRoot);
+    collectLeaves(child, index, prefix, into, light, dark, stripRoot);
   }
 }
 
@@ -143,9 +170,11 @@ function renderBlock(block: Block, indent: string): string {
 /**
  * Generate the stylesheet for one token tree.
  *
- * Emits the base block under `opts.selector` (default `:root`) and, when the
- * tree has a top-level `dark` group, an override block under
- * `<selector>[data-mode="dark"]`. Empty blocks are omitted.
+ * Emits the base block under `opts.selector` (default `:root`), and beside it
+ * the mode blocks: `<selector>[data-mode="light"]` for the values a token
+ * restates for the light mode, `<selector>[data-mode="dark"]` for the dark
+ * ones. Empty blocks are omitted, so a document that restates nothing for a
+ * mode ships no block for it.
  */
 export function generateCss(tree: TokenTree, opts: CssOptions = {}): string {
   const indent = opts.indent ?? "  ";
@@ -155,6 +184,7 @@ export function generateCss(tree: TokenTree, opts: CssOptions = {}): string {
     selector,
     opts.prefix,
     `${selector}[data-mode="dark"]`,
+    `${selector}[data-mode="light"]`,
   );
   const tokenCss = blocks
     .filter((block) => block.declarations.length > 0)
@@ -179,13 +209,22 @@ export function generateThemeCss(
 
   // The root theme first, so a later scoped block overrides it: the same
   // specificity rule that makes a theme swap a selector swap.
+  //
+  // And the root theme's blocks are DEFAULTS — `:where()`, so they carry no
+  // specificity of their own. A theme in force must beat them, or a project
+  // theme's base loses to the root theme's dark block (which is a selector
+  // and an attribute, and so is stronger than a bare attribute selector) and
+  // the project theme renders the starter's palette instead of its own. With
+  // the root theme as a default, the rule holds for every theme: a mode a
+  // theme serves but does not override falls back to that theme's own base.
   if (opts.rootTheme !== undefined && themes[opts.rootTheme] !== undefined) {
     for (
       const block of collectBlocks(
         themes[opts.rootTheme] as TokenTree,
-        ":root",
+        ":where(:root)",
         opts.prefix,
-        ':root[data-mode="dark"]',
+        ':where(:root[data-mode="dark"])',
+        ':where(:root[data-mode="light"])',
       )
     ) {
       if (block.declarations.length === 0) continue;
@@ -201,6 +240,7 @@ export function generateThemeCss(
       selector,
       opts.prefix,
       `${selector}[data-mode="dark"]`,
+      `${selector}[data-mode="light"]`,
     );
     for (const block of blocks) {
       if (block.declarations.length === 0) continue;
@@ -212,18 +252,20 @@ export function generateThemeCss(
 }
 
 /**
- * Every base leaf of a tree, i.e. everything except the top-level `dark`
- * variant subtree.
+ * Every base leaf of a tree, i.e. everything except the top-level mode
+ * variant subtrees.
  *
  * `dark.color.brand` re-declares the SAME token as `color.brand` for another
  * mode; it is not a second token, and listing it would both duplicate a key
  * and advertise a custom property (`--dark-color-brand`) that never exists.
+ * The light group is the same idea on the other side of the axis.
  */
 function baseLeaves(tree: TokenTree): TokenLeaf[] {
   const out: TokenLeaf[] = [];
   for (const node of tree) {
-    if (node.kind === "group" && node.name.toLowerCase() === DARK_GROUP) {
-      continue;
+    if (node.kind === "group") {
+      const name = node.name.toLowerCase();
+      if (name === DARK_GROUP || name === LIGHT_GROUP) continue;
     }
     collectLeafNodes(node, out);
   }
@@ -267,6 +309,9 @@ export function generateTypes(tree: TokenTree): string {
   const dark = tree.some((node) =>
     node.kind === "group" && node.name.toLowerCase() === DARK_GROUP
   );
+  const light = tree.some((node) =>
+    node.kind === "group" && node.name.toLowerCase() === LIGHT_GROUP
+  );
 
   return [
     "// Generated by @spin/theme. Do not edit by hand.",
@@ -281,6 +326,16 @@ export function generateTypes(tree: TokenTree): string {
         "/**",
         " * These same tokens are re-declared for dark mode under",
         ' * `[data-mode="dark"]`; the path and custom property are unchanged, only',
+        " * the resolved value differs.",
+        " */",
+      ]
+      : []),
+    ...(light
+      ? [
+        "",
+        "/**",
+        " * These same tokens are re-declared for light mode under",
+        ' * `[data-mode="light"]`; the path and custom property are unchanged, only',
         " * the resolved value differs.",
         " */",
       ]

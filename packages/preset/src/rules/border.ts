@@ -50,7 +50,10 @@ export function borderRules(): Rule[] {
       BORDER_SIDE_PATTERN,
       ([, side, width]: string[]) => {
         if (side === undefined && width === undefined) {
-          return { "border-width": BORDER_WIDTHS[""] };
+          return {
+            "border-width": BORDER_WIDTHS[""],
+            "border-style": "solid",
+          };
         }
         const prop = BORDER_SIDES[side ?? ""];
         const value = BORDER_WIDTHS[width ?? ""];

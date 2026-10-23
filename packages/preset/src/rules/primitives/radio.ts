@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
+import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
  * Radio — a drawn control, not a themed `accent-color`.
@@ -26,17 +27,14 @@ export function radioRules(roots: readonly string[]): Rule[] {
     [
       /^radio$/,
       function* (_m, ctx) {
-        const t = themeOf(ctx);
-        const size = t?.spacing?.["4"];
-        const borderWidth = t?.borderWidth?.["width"];
-        const border = t?.colors?.["border"];
-        const field = t?.colors?.["field"];
-        const primary = t?.colors?.["primary"];
-        const duration = t?.motionDuration?.["fast"];
-        const easing = t?.motionEasing?.["standard"];
-        const focusWidth = t?.focusWidth?.["width"];
-        const focusRing = t?.colors?.["focus-ring"];
-        const focusOffset = t?.focusOffset?.["offset"];
+        const size = token(ctx, "spacing.4");
+        const borderWidth = token(ctx, "border.width");
+        const border = token(ctx, "color.border");
+        const field = token(ctx, "color.field");
+        const primary = token(ctx, "color.primary");
+        const duration = token(ctx, "motion.duration.fast");
+        const easing = token(ctx, "motion.easing.standard");
+        const ring = focusRing(ctx);
 
         const shell: Record<string, string | undefined> = {
           appearance: "none",
@@ -45,6 +43,9 @@ export function radioRules(roots: readonly string[]): Rule[] {
           "vertical-align": "middle",
           cursor: "pointer",
           flex: "none",
+          // The field box's control-height floor is for text: a radio is a
+          // circle of its own size, and the floor would stretch it.
+          "min-height": "0",
           // A circle, from its own box: half the size. `radius.md` on a 20px
           // control is a squircle.
           ...(size !== undefined
@@ -140,22 +141,33 @@ export function radioRules(roots: readonly string[]): Rule[] {
           [ctx.symbols.selector]: () => 'input[type="radio"]:checked',
           ...(primary !== undefined ? { "border-color": primary } : {}),
         };
+        // The ring, drawn on focus-visible so a mouse press leaves none. And
+        // the ring IS the control's edge: the radio's own border takes the
+        // ring's ink while it is focused, so the reader sees one edge in the
+        // theme's focus colour rather than the ring's edge with a second band
+        // beside it. It is stated after the checked state, because a focused
+        // control says where it is before it says what it is.
         yield {
           [ctx.symbols.selector]: () => 'input[type="radio"]:focus-visible',
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          ...focusPaint(ring),
         };
         yield {
-          [ctx.symbols.selector]: () => 'input[type="radio"]:disabled',
+          [ctx.symbols.selector]: () =>
+            'input[type="radio"]:is(:disabled, [aria-disabled="true"])',
           cursor: "not-allowed",
           // Flatten with the checkbox: a control you cannot press should
           // not carry the shadows that say it can be.
           "box-shadow": "none",
-          opacity: "0.4",
+          // A dead control wears a posture, not a dim: the theme's disabled
+          // fill and the ink that reads on it.
+          ...disabledPosture(ctx),
+        };
+        // And the dot wears that ink with the ring: a dead radio is dead all
+        // the way through, and a live dot on a dead ring says otherwise.
+        yield {
+          [ctx.symbols.selector]: () =>
+            'input[type="radio"]:is(:disabled, [aria-disabled="true"])::after',
+          "background-color": "currentColor",
         };
       },
       { layer: "primitives", autocomplete: "radio" },

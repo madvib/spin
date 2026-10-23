@@ -11,7 +11,6 @@
  * needs every backtick doubled, and doing that inline made the outer string
  * impossible to read or repair.
  */
-
 export const OVERLAY_SCRIPT =
   `export function spinOverlay(base = "/__spin/rpc", studio) {
   // Where the studio runs. Mounted, it is built and served beside the API on
@@ -22,72 +21,104 @@ export const OVERLAY_SCRIPT =
   const studioPath = studio === undefined
     ? base.replace(/\\/rpc$/, "") + "/studio/"
     : studio.replace(/\\/$/, "") + "/";
-  const css = [
-    ".spin-fab{position:fixed;right:16px;bottom:16px;z-index:2147483646;",
-    "display:flex;align-items:center;gap:8px;padding:10px 14px;",
-    "border:none;border-radius:999px;background:var(--color-primary,#3f3f46);",
-    "color:var(--color-on-primary,#fff);box-shadow:0 4px 16px rgba(0,0,0,.28);",
-    "cursor:pointer;font:500 13px/1.4 system-ui,sans-serif;}",
-    ".spin-fab:hover{filter:brightness(1.12);}",
-    ".spin-fab-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;",
-    "border-radius:999px;background:#b91c1c;border:2px solid var(--color-surface,#fff);display:none;}",
-    ".spin-fab-dot[data-dirty='true']{display:block;}",
-    ".spin-host{position:fixed;inset:10px;z-index:2147483645;display:none;",
-    "border-radius:12px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.45);",
-    "border:1px solid var(--color-border,#e5e7eb);background:var(--color-surface,#fff);}",
-    ".spin-host[data-mode='drawer']{inset:0 0 0 auto;width:30%;min-width:340px;",
-    "border-radius:0;border-right:none;}",
-    ".spin-host[data-open='true']{display:block;}",
-    ".spin-host iframe{width:100%;height:100%;border:none;display:block;}",
-    ".spin-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:10;}",
-    ".spin-toolbar button{width:32px;height:32px;border-radius:8px;",
-    "border:1px solid var(--color-border,#e5e7eb);background:var(--color-surface-raised,#fff);",
-    "color:var(--color-text,#111);cursor:pointer;display:inline-flex;",
-    "align-items:center;justify-content:center;font-size:14px;}",
-  ].join("\\n");
-
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  const dot = document.createElement("span");
-  dot.className = "spin-fab-dot";
+  // The chrome is utilities, not authored CSS: the classes resolve against
+  // the user's own sheet, so the launcher reads the theme it edits and no
+  // hex value lives here to drift from it. The safelist in spin() keeps
+  // these emitted even though no project file names them.
+  // Every class below is provable against the generator: token steps the
+  // theme guarantees (rounded-full, shadow-lg, h-8), static keywords
+  // (fixed, border-none, cursor-pointer), and bracket literals only
+  // where the grammar forbids a token (w-30pct). A class the theme does
+  // not declare emits nothing, so the script names nothing unprovable.
+  // Positioning only: three fixed elements the user's sheet never has to
+  // know. Everything the eye sees — the toggles, the chrome — lives in the
+  // studio frame, where utilities resolve.
   const fab = document.createElement("button");
   fab.type = "button";
-  fab.className = "spin-fab";
+  fab.setAttribute(
+    "style",
+    "position:fixed;right:16px;bottom:16px;z-index:50;display:flex;" +
+      "align-items:center;gap:8px;padding:8px 16px;border:none;border-radius:999px;" +
+      "font:inherit;cursor:pointer;",
+  );
   fab.setAttribute("aria-label", "Open the theme studio");
   fab.setAttribute("aria-expanded", "false");
-  fab.innerHTML = '<span aria-hidden="true">&#10024;</span><span>Theme</span>';
+  fab.textContent = "Theme";
+
+  const dot = document.createElement("span");
+  dot.setAttribute(
+    "style",
+    "display:none;width:8px;height:8px;border-radius:999px;background:#b91c1c;",
+  );
   fab.appendChild(dot);
 
   const host = document.createElement("div");
-  host.className = "spin-host";
-  host.dataset.open = "false";
+  host.setAttribute(
+    "style",
+    "position:fixed;inset:8px;z-index:50;display:none;overflow:hidden;",
+  );
   host.dataset.mode = "modal";
   host.innerHTML = [
-    '<div class="spin-toolbar">',
-    '<button type="button" data-act="mode" title="Drawer (30% width)">&#9702;</button>',
-    '<button type="button" data-act="close" title="Close the studio">&times;</button>',
-    "</div>",
-    '<iframe title="Spin theme studio" src="' + studioPath +
+    '<iframe title="Spin theme studio" data-spin-studio ' +
+      'style="display:block;width:100%;height:100%;border:none" src="' + studioPath +
       (studioPath.indexOf("?") === -1 ? "?" : "&") + "app=" +
-      encodeURIComponent(location.origin) + '"></iframe>',
+      encodeURIComponent(location.origin) + "&mode=" + host.dataset.mode + '"></iframe>',
   ].join("");
 
   let open = false;
   function setOpen(next) {
     open = next;
-    host.dataset.open = String(next);
+    host.style.display = next ? "block" : "none";
+    fab.style.display = next ? "none" : "flex";
     fab.setAttribute("aria-expanded", String(next));
   }
-  fab.addEventListener("click", function () { setOpen(!open); });
-  host.querySelector('[data-act="close"]').addEventListener("click", function () { setOpen(false); });
-  host.querySelector('[data-act="mode"]').addEventListener("click", function () {
-    const drawer = host.dataset.mode !== "drawer";
-    host.dataset.mode = drawer ? "drawer" : "modal";
-    host.querySelector('[data-act="mode"]').title =
-      drawer ? "Modal (full screen)" : "Drawer (30% width)";
+  let side = "right";
+  try {
+    side = localStorage.getItem("spin-dock-side") === "left" ? "left" : "right";
+  } catch {
+    // Private mode keeps the default.
+  }
+  function setMode(mode) {
+    host.dataset.mode = mode;
+    const edge = side === "left"
+      ? "top:0;left:0;bottom:0;"
+      : "top:0;right:0;bottom:0;";
+    host.setAttribute(
+      "style",
+      mode === "drawer"
+        ? "position:fixed;" + edge + "z-index:50;width:38%;" +
+          "min-width:480px;display:" + (open ? "block" : "none") + ";overflow:hidden;"
+        : "position:fixed;inset:8px;z-index:50;display:" + (open ? "block" : "none") +
+          ";overflow:hidden;",
+    );
+    const frame = host.querySelector("[data-spin-studio]");
+    if (frame) {
+      frame.contentWindow?.postMessage(
+        "spin:mode-" + host.dataset.mode,
+        "*",
+      );
+    }
+  }
+  function setSide(next) {
+    side = next;
+    setMode(host.dataset.mode);
+  }
+  // The studio owns its toggles and talks back: close and mode switch
+  // arrive on the window (postMessage never fires on the document), and
+  // the shell obeys without chrome of its own. No iframe reload — the
+  // studio re-branches its own layout on the mode message.
+  window.addEventListener("message", function (event) {
+    if (event.source === host.querySelector("[data-spin-studio]")?.contentWindow) {
+      if (event.data === "spin:close") setOpen(false);
+      if (event.data === "spin:drawer" || event.data === "spin:modal") {
+        setMode(event.data === "spin:drawer" ? "drawer" : "modal");
+      }
+      if (event.data === "spin:side-left" || event.data === "spin:side-right") {
+        setSide(event.data === "spin:side-left" ? "left" : "right");
+      }
+    }
   });
+  fab.addEventListener("click", function () { setOpen(!open); });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && open) setOpen(false);
   });
@@ -103,7 +134,7 @@ export const OVERLAY_SCRIPT =
       });
       const body = await res.json();
       const dirty = body && body.json ? body.json.dirty : [];
-      dot.dataset.dirty = String(dirty.length > 0);
+      dot.style.display = dirty.length === 0 ? "none" : "block";
       fab.title = dirty.length > 0
         ? "Unsaved theme changes: " + dirty.join(", ")
         : "Open the theme studio";

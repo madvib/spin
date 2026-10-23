@@ -1,10 +1,12 @@
 import { assert, assertEquals } from "@std/assert";
-import { parseTokens, treeToJson } from "@spin/theme";
+import { parseTokens, setToken, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
-  componentsContract,
-  componentsRouter,
   createSpinClient,
+  findingsContract,
+  findingsRouter,
+  iconsContract,
+  iconsRouter,
   presetContract,
   presetRouter,
   previewContract,
@@ -69,6 +71,7 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     "project",
     [
       "project.detect",
+      "project.current",
       "project.init",
       "project.themes.list",
       "project.themes.read",
@@ -89,16 +92,37 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     primitivesContract,
     primitivesRouter,
   ],
-  ["preset", ["preset.catalog"], presetContract, presetRouter],
   [
-    "components",
+    "preset",
+    ["preset.catalog", "preset.organization"],
+    presetContract,
+    presetRouter,
+  ],
+  [
+    "icons",
     [
-      "components.list",
-      "components.examples",
-      "components.copy",
+      "icons.catalog",
+      "icons.body",
+      "icons.collections",
+      "icons.saved.list",
+      "icons.saved.read",
+      "icons.saved.save",
+      "icons.saved.remove",
     ],
-    componentsContract,
-    componentsRouter,
+    iconsContract,
+    iconsRouter,
+  ],
+  [
+    "findings",
+    [
+      "findings.list",
+      "findings.fix",
+      "findings.corpus",
+      "findings.order",
+      "findings.shortcut",
+    ],
+    findingsContract,
+    findingsRouter,
   ],
 ];
 
@@ -240,6 +264,104 @@ Deno.test("preset catalog reports unparseable input", async () => {
     const out = await client.preset.catalog({ text: "{nope" });
     assert(out.error !== null, "expected a parse error");
     assertEquals(out.sections, []);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("a mode override lands in $modes and leaves the base value", async () => {
+  const { server, client } = serve();
+  try {
+    const text = treeToJson(scaffold());
+    const before = JSON.parse(text) as {
+      color: { primary: { $value: unknown } };
+    };
+    const mutated = await client.theme.tokens.set({
+      text,
+      path: ["color", "primary"],
+      value: "#8db9fa",
+      mode: "dark",
+    });
+    assertEquals(mutated.error, null);
+    const doc = JSON.parse(mutated.text ?? "") as {
+      color: { primary: { $value: unknown; $modes: Record<string, unknown> } };
+    };
+    assertEquals(doc.color.primary.$modes.dark, "#8db9fa");
+    assertEquals(doc.color.primary.$value, before.color.primary.$value);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("a mutation refusal carries its code over the wire", async () => {
+  const { server, client } = serve();
+  try {
+    const refused = await client.theme.tokens.remove({
+      text: treeToJson(scaffold()),
+      path: ["color", "primary"],
+    });
+    assert(refused.error !== null, "expected a required-token refusal");
+    assertEquals(refused.code, "required-token");
+    assertEquals(refused.text, null);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("analyze reports a value written for a mode the theme does not serve", async () => {
+  const { server, client } = serve();
+  try {
+    // A theme that serves light and carries a dark value: the value is never
+    // shown, and the analyzer says so. The other direction is fine — a theme
+    // that serves a mode it does not override simply renders its base values
+    // there.
+    const moded = setToken(
+      scaffold(),
+      ["color", "primary"],
+      "#8db9fa",
+      undefined,
+      "dark",
+    );
+    assert(moded.ok, "the fixture override holds");
+    const analysis = await client.theme.analyze({
+      text: treeToJson(moded.tree),
+      modes: ["light"],
+    });
+    assertEquals(analysis.error, null);
+    assert(
+      analysis.issues.some((issue) =>
+        issue.path === "color.primary" &&
+        issue.message.includes("does not serve")
+      ),
+      `no dead-override issue: ${JSON.stringify(analysis.issues)}`,
+    );
+  } finally {
+    await server.shutdown();
+  }
+});
+
+Deno.test("the organization lists the catalog under reader intent", async () => {
+  const { server, client } = serve();
+  try {
+    const text = treeToJson(scaffold());
+    const catalog = await client.preset.catalog({ text });
+    const organization = await client.preset.organization({ text });
+    assertEquals(organization.error, null);
+    // Lossless by construction: every utility the catalog emits is claimed by
+    // exactly one section, so a reader can always find what they saw.
+    assertEquals(
+      organization.sections.flatMap((s) => s.utilities).sort(),
+      catalog.sections.flatMap((s) => s.utilities).sort(),
+    );
+    const colors = organization.sections.find((s) => s.id === "colors");
+    assert(
+      (colors?.utilities.length ?? 0) > 0,
+      "role colors resolve to background utilities",
+    );
+    assert(
+      organization.sections.every((s) => s.blurb.length > 0),
+      "every section explains itself",
+    );
   } finally {
     await server.shutdown();
   }

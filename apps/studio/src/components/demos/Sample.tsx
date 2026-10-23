@@ -22,7 +22,7 @@ export default function Sample(props: { section: string; utility: string }) {
       >
         <span class={u()}>The quick brown fox jumps.</span>
       </Match>
-      {/* Type needs a sentence, not a chip, to show rhythm. */}
+      {/* Type needs a sentence, not a chip, to show spacing. */}
       <Match when={props.section === "type-size" || props.section === "font"}>
         <span class={u()}>Agile foxes jump quickly.</span>
       </Match>
@@ -77,7 +77,7 @@ export default function Sample(props: { section: string; utility: string }) {
       {/* Overflow needs long content in a short box. */}
       <Match when={props.section === "overflow"}>
         <div class={`h-16 overflow-hidden border border-border ${u()}`}>
-          <div class="h-32 bg-surface">tall content</div>
+          <div class="h-[8rem] bg-surface">tall content</div>
         </div>
       </Match>
       {/* Visibility and display need presence toggles, not styling. */}

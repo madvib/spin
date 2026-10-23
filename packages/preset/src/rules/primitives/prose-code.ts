@@ -1,5 +1,12 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  spacing,
+  statedType,
+} from "./shared.ts";
+import { painted } from "./scope.ts";
 
 /**
  * The code family: `code`, `samp`, `pre`.
@@ -9,6 +16,10 @@ import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
  * separates it from the paragraph. Separate from `prose.ts` because none of
  * them shares a state with a heading or a list; what they share is typography,
  * and that is what `proseTokens` is for.
+ *
+ * The theme may set the run of code's type for itself — the face, the size and
+ * the weight are the theme's to say — and what it leaves out is the ladder's
+ * and the mono's.
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
@@ -17,10 +28,14 @@ function codeRule(mode: Mode): Rule {
     /^code$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "code");
+      const family = own.family ?? t.mono;
+      const size = own.size ?? t.sizeSm;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "code"),
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),
@@ -49,21 +64,36 @@ function sampRule(mode: Mode): Rule {
   ];
 }
 
-/** A code block. The inline chip is undone inside it. */
+/**
+ * A code block.
+ *
+ * Two treatments, and they belong to different owners.
+ *
+ * The block's TYPE — the mono face and the spacing it sits in — is
+ * typography, and typography is the theme's everywhere: a code block in a
+ * panel reads like a code block in a document.
+ *
+ * The block's CHROME — the padding, the raised surface, the corner — is the
+ * document's furniture, and the inline chip is undone inside it: a block is
+ * not a stack of chips.
+ */
 function preRule(mode: Mode): Rule {
-  const pre = claim(mode, "pre");
+  const chrome = painted(mode, "prose", "descendant", "pre");
   return [
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => pre,
+        [ctx.symbols.selector]: () => claim(mode, "pre"),
         // The mono face is what makes a block code; the SIZE is the author's.
         // A pinned font-size here beat every text utility on the same element
         // at equal specificity, so a consumer could not size their own code
         // block — the ladder exists so the app can spend it.
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...rhythm(t),
+        ...spacing(t),
+      };
+      yield {
+        [ctx.symbols.selector]: () => chrome,
         ...(t.spacing2 !== undefined && t.spacing4 !== undefined
           ? { padding: `${t.spacing2} ${t.spacing4}` }
           : {}),
@@ -78,7 +108,7 @@ function preRule(mode: Mode): Rule {
       };
       // A block is not a stack of inline chips.
       yield {
-        [ctx.symbols.selector]: () => `${pre} ${claim(mode, "code")}`,
+        [ctx.symbols.selector]: () => `${chrome} :is(${claim(mode, "code")})`,
         padding: "0",
         "background-color": "transparent",
       };

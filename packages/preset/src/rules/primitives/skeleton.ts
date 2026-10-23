@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
+import { type Mode, withFallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
@@ -15,18 +15,21 @@ export function skeletonRules(roots: readonly string[], _mode: Mode): Rule[] {
 }
 
 /** The theme values a skeleton spends, resolved once per rule. */
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    field: t?.colors?.["field"],
-    radiusSm: t?.radius?.["sm"],
-    radiusFull: t?.radius?.["full"],
-    spacing2: t?.spacing?.["2"],
-    textSize: t?.fontSize?.["sm"],
+    field: token(ctx, "color.field"),
+    radiusSm: token(ctx, "radius.sm"),
+    radiusFull: token(ctx, "radius.full"),
+    spacing2: token(ctx, "spacing.2"),
+    textSize: token(ctx, "font.size.sm"),
     // A disc placeholder is a face, so its edge is the avatar ladder's.
-    avatar: groupOf(ctx, "avatar")["md"],
-    duration: t?.motionDuration?.["slow"],
-    easing: t?.motionEasing?.["standard"],
+    avatar: named(ctx, "avatar", "md"),
+    // The LOOP step, not the slowest transition: a loader is watched rather
+    // than reacted to, so its period is a step of its own. A theme that
+    // declares no loop falls back to its slowest transition, which is the
+    // answer the system had before the loop step existed.
+    duration: withFallback(ctx, "motion.duration.loop", "motion.duration.slow"),
+    easing: token(ctx, "motion.easing.standard"),
   };
 }
 
@@ -49,9 +52,9 @@ function block(): Rule {
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         // Both halves of the timing come from the motion scale, so a theme
         // without motion has a skeleton that holds still rather than one
-        // animating at a duration no theme chose. `slow` because a loader
-        // is watched, not reacted to: `fast` is a control's response time
-        // and at 150ms the pulse reads as a flicker.
+        // animating at a duration no theme chose. The period is the LOOP
+        // step: a loader is watched, not reacted to, and at 150ms the pulse
+        // reads as a flicker.
         ...(t.duration !== undefined && t.easing !== undefined
           ? {
             animation: `spin-skeleton-pulse ${t.duration} ${t.easing} infinite`,
@@ -69,7 +72,7 @@ function block(): Rule {
  * The height is the size of the text it stands in for, so a loading paragraph
  * occupies the line boxes the paragraph will occupy and the page does not
  * reflow when the words land. The full radius keeps a 14px bar a bar, and the
- * trailing space is the theme's own, so stacked lines carry the rhythm the
+ * trailing space is the theme's own, so stacked lines carry the spacing the
  * real text will carry.
  */
 function textLine(): Rule {

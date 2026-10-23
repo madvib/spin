@@ -5,6 +5,7 @@ import { validateTokens } from "../pipeline/validate.ts";
 import { scaffoldTheme } from "./scaffold.ts";
 import { removeToken, renameToken, setToken, treeToJson } from "./mutate.ts";
 import { requiredPaths } from "../contract/roles.ts";
+import { indexTree } from "../pipeline/resolve.ts";
 
 function treeOf(text: string) {
   const parsed = parseTokens(text);
@@ -172,4 +173,94 @@ Deno.test("every refusal code is reachable from a public mutation", () => {
     "type-mismatch",
     "type-required",
   ]);
+});
+
+/**
+ * `$modes` and the mutations.
+ *
+ * A shipped theme carries its dark values as `$modes.dark` beside each base
+ * value, so any mutation that clones and serialises the tree must carry the
+ * slots through untouched. The failure this guards is silent: the edit
+ * succeeds, the file saves, and every dark value in the document is gone —
+ * the theme builds, it is just light-only from then on.
+ */
+const MODED = JSON.stringify({
+  color: {
+    $type: "color",
+    primary: { $value: "#111111", $modes: { dark: "#eeeeee" } },
+    secondary: { $value: "#222222", $modes: { dark: "#dddddd" } },
+  },
+});
+
+function leafAt(text: string, path: string) {
+  const parsed = parseTokens(text);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const node = indexTree(parsed.tree).nodes[path];
+  if (node === undefined || node.kind !== "token") {
+    throw new Error(`no token at ${path}`);
+  }
+  return node;
+}
+
+Deno.test("editing a base value keeps every $modes slot in the document", () => {
+  const result = setToken(treeOf(MODED), ["color", "primary"], "#ff0000");
+  assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
+  if (!result.ok) return;
+  const text = treeToJson(result.tree);
+  assertEquals(leafAt(text, "color.primary").value, "#ff0000");
+  assertEquals(leafAt(text, "color.primary").modes, { dark: "#eeeeee" });
+  assertEquals(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
+});
+
+Deno.test("setToken writes a mode override beside an unchanged base value", () => {
+  const result = setToken(
+    treeOf(MODED),
+    ["color", "primary"],
+    "#aaaaaa",
+    undefined,
+    "dark",
+  );
+  assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
+  if (!result.ok) return;
+  const text = treeToJson(result.tree);
+  assertEquals(leafAt(text, "color.primary").value, "#111111");
+  assertEquals(leafAt(text, "color.primary").modes, { dark: "#aaaaaa" });
+});
+
+Deno.test("a mode value equal to the base is stored as no override", () => {
+  const result = setToken(
+    treeOf(MODED),
+    ["color", "primary"],
+    "#111111",
+    undefined,
+    "dark",
+  );
+  assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
+  if (!result.ok) return;
+  const text = treeToJson(result.tree);
+  assertEquals(leafAt(text, "color.primary").modes, undefined);
+  assertEquals(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
+});
+
+Deno.test("a mode override needs an existing token to override", () => {
+  const result = setToken(
+    treeOf(MODED),
+    ["color", "tertiary"],
+    "#ffffff",
+    "color",
+    "dark",
+  );
+  assert(!result.ok, "expected a missing-token refusal");
+  assertEquals(result.code, "missing-token");
+});
+
+Deno.test("renameToken carries $modes to the new path", () => {
+  const result = renameToken(treeOf(MODED), ["color", "primary"], [
+    "color",
+    "brand",
+  ]);
+  assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
+  if (!result.ok) return;
+  const text = treeToJson(result.tree);
+  assertEquals(leafAt(text, "color.brand").modes, { dark: "#eeeeee" });
 });

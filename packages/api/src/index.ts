@@ -2,16 +2,15 @@
  * @spin/api — transport for module-owned procedures.
  *
  * Each module owns its contract and its handler (`themeContract` /
- * `themeRouter` live in `@spin/theme` because the theme implements them).
+ * `themeRouter` live in `@spin/theme` because the theme implements them;
+ * `projectContract` lives here because the wire shape of a project is the
+ * daemon's, while the operations over one live in `@spin/project`).
  * This package owns nothing procedural: it mounts routers on handlers,
  * builds the typed client the studio and CLI use, and names the daemon's
  * single router. Transport, not definition.
  */
 
 import { RPCHandler } from "@orpc/server/fetch";
-import type { RouterClient } from "@orpc/server";
-import { RPCLink } from "@orpc/client/fetch";
-import { createORPCClient } from "@orpc/client";
 import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
@@ -21,6 +20,8 @@ import { presetRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
+import { iconsRouter } from "./icons-procedures.ts";
+import { findingsRouter } from "./findings-procedures.ts";
 import { overlayRouter } from "@spin/preset";
 import { componentsRouter } from "@spin/components/procedures";
 
@@ -28,12 +29,7 @@ export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
 export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
-export {
-  initFiles,
-  isWired,
-  PROJECT_DIR,
-  projectContract,
-} from "./project-contract.ts";
+export { projectContract } from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
 export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
 export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
@@ -41,6 +37,11 @@ export { presetRouter } from "@spin/preset";
 export { componentsRouter } from "@spin/components/procedures";
 export { componentsContract } from "@spin/components/procedures";
 export { presetContract } from "@spin/preset";
+export { iconsContract } from "./icons-procedures.ts";
+export { iconsRouter } from "./icons-procedures.ts";
+export { findingsContract } from "./findings-procedures.ts";
+export { findingsRouter } from "./findings-procedures.ts";
+export { createSpinClient, type SpinClient } from "./client.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */
 export const router = {
@@ -52,17 +53,11 @@ export const router = {
   ...previewRouter,
   ...overlayRouter,
   ...fontsRouter,
+  ...iconsRouter,
+  ...findingsRouter,
 };
 
 export const rpcHandler = new RPCHandler(router);
-
-/** Typed client over a fetch link. The studio and CLI use this, never raw fetch. */
-export type SpinClient = RouterClient<typeof router>;
-
-export function createSpinClient(url: string): SpinClient {
-  const link = new RPCLink({ url });
-  return createORPCClient(link);
-}
 
 /**
  * Mount the router on a Fetch-API host (Deno.serve, vent, Hono via the fetch

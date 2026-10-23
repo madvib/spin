@@ -33,13 +33,13 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-header>
-              <card-title>${sample.product.name}</card-title>
-              <card-description>${sample.product.notes}</card-description>
-              <card-action>In season</card-action>
+              <card-title>${sample.service.name}</card-title>
+              <card-description>${sample.service.instances} instances across ${sample.service.regions} regions</card-description>
+              <card-action>${sample.service.status}</card-action>
             </card-header>
             <card-content>
-              <p>${sample.product.origin}. ${sample.product.process}. Roasted
-              this week and shipped the next.</p>
+              <p>Running ${sample.service.version} since 09:14 UTC. p95 latency is
+              214 ms and the error rate is 0.42%.</p>
             </card-content>
             <card-footer>
               <button>${sample.actions.primary}</button><button class="ghost">${sample.actions.secondary}</button>
@@ -67,24 +67,24 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: `<div class="flex flex-wrap items-center gap-8">
           <card class="card-narrow">
             <card-header>
-              <card-title>Narrow</card-title>
-              <card-description>24rem — a column card</card-description>
+              <card-title>Service</card-title>
+              <card-description>24rem wide</card-description>
             </card-header>
-            <card-content><p>Sidebars, rails, tight grids.</p></card-content>
+            <card-content><p>A service card in a sidebar.</p></card-content>
           </card>
           <card class="card-default">
             <card-header>
-              <card-title>Default</card-title>
-              <card-description>32rem — the page measure</card-description>
+              <card-title>Release</card-title>
+              <card-description>32rem wide</card-description>
             </card-header>
-            <card-content><p>Dialogs, settings panels, forms.</p></card-content>
+            <card-content><p>A release card in the main column.</p></card-content>
           </card>
           <card class="card-wide">
             <card-header>
-              <card-title>Wide</card-title>
-              <card-description>48rem — a spanning card</card-description>
+              <card-title>Deploy</card-title>
+              <card-description>48rem wide</card-description>
             </card-header>
-            <card-content><p>Dashboards, tables, galleries.</p></card-content>
+            <card-content><p>A deploy card with its build log.</p></card-content>
           </card>
         </div>`,
   },
@@ -93,8 +93,8 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-header>
-              <card-title>Title</card-title>
-              <card-action>Action</card-action>
+              <card-title>${sample.service.name}</card-title>
+              <card-action>${sample.service.status}</card-action>
             </card-header>
           </card>`,
     ),
@@ -103,10 +103,10 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     name: "Footer actions",
     html: row(
       `          <card class="card-narrow">
-            <card-content><p>Actions live in the footer.</p></card-content>
+            <card-content><p>Approve the release, or send it back to the author.</p></card-content>
             <card-footer>
               <button class="ghost">Cancel</button>
-              <button>Save</button>
+              <button>Approve</button>
             </card-footer>
           </card>`,
     ),
@@ -116,13 +116,13 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-figure>
-              <img src="https://picsum.photos/400/200" alt="A placeholder photograph" class="block w-full">
+              <img src="https://picsum.photos/400/200" alt="Deploy #4821 in eu-west-1" class="block w-full">
             </card-figure>
             <card-header>
-              <card-title>Card Title</card-title>
+              <card-title>Deploy #4821</card-title>
             </card-header>
             <card-content>
-              <p>The figure bleeds to the surface edge; the corners hold.</p>
+              <p>Ten per cent of traffic is on v4.12.0. The share grows in five minutes.</p>
             </card-content>
           </card>`,
     ),
@@ -132,10 +132,11 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-ghost">
             <card-header>
-              <card-title>Ungrouped</card-title>
+              <card-title>Release notes</card-title>
             </card-header>
             <card-content>
-              <p>Grouping without a box: no border, no surface, no shadow.</p>
+              <p>Deploy #4821 runs v4.12.0 in production: twelve instances, three
+              regions, no failed health checks.</p>
             </card-content>
           </card>`,
     ),

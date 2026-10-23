@@ -2,50 +2,64 @@
 
 /** Every token in the document, by DTCG path, with the value CSS resolves to. */
 export interface ThemeTokens {
-  "color.primary": "#2563eb";
-  "color.secondary": "#6d28d9";
-  "color.accent": "#0f766e";
-  "color.neutral.50": "#f8fafc";
-  "color.neutral.100": "#f1f5f9";
-  "color.neutral.200": "#e2e8f0";
-  "color.neutral.300": "#cbd5e1";
-  "color.neutral.400": "#94a3b8";
-  "color.neutral.500": "#64748b";
-  "color.neutral.600": "#475569";
-  "color.neutral.700": "#334155";
-  "color.neutral.800": "#1e293b";
-  "color.neutral.900": "#0f172a";
-  "color.semantic.success": "#15803d";
-  "color.semantic.warning": "#a16207";
-  "color.semantic.error": "#b91c1c";
-  "color.semantic.info": "#0369a1";
+  "color.primary": "#1c62c2";
+  "color.secondary": "#1a2434";
+  "color.accent": "#006974";
+  "color.neutral.50": "#f7f8fb";
+  "color.neutral.100": "#f1f4f8";
+  "color.neutral.200": "#e4e8ef";
+  "color.neutral.300": "#cfd5de";
+  "color.neutral.400": "#a6afbb";
+  "color.neutral.500": "#78818f";
+  "color.neutral.600": "#525c6a";
+  "color.neutral.700": "#333e4d";
+  "color.neutral.800": "#1a2434";
+  "color.neutral.900": "#050d1c";
+  "color.semantic.success": "#26753e";
+  "color.semantic.warning": "#886108";
+  "color.semantic.error": "#a6312b";
+  "color.semantic.info": "#0e629a";
   "color.surface": "{color.neutral.50}";
   "color.surface-sunken": "{color.neutral.100}";
   "color.surface-raised": "#ffffff";
   "color.text": "{color.neutral.900}";
   "color.text-muted": "{color.neutral.600}";
   "color.border": "{color.neutral.200}";
+  "color.scrim": "rgb(15 19 30 / 45%)";
   "color.on-primary": "#ffffff";
-  "color.on-danger": "#ffffff";
-  "color.focus-ring": "{color.primary}";
-  "color.link": "{color.primary}";
+  "color.focus-ring": "#1c62c2";
+  "color.link": "#1c62c2";
   "color.on-secondary": "#ffffff";
   "color.on-accent": "#ffffff";
   "color.on-semantic-success": "#ffffff";
   "color.on-semantic-warning": "#ffffff";
   "color.field": "#ffffff";
-  "color.border-strong": "#94a3b8";
+  "color.border-strong": "#a6afbb";
   "color.on-semantic-error": "#ffffff";
+  "color.on-danger": "{color.on-semantic-error}";
   "color.on-semantic-info": "#ffffff";
+  "color.disabled": "{color.neutral.200}";
+  "color.on-disabled": "{color.neutral.600}";
   "spacing.0": "0";
   "spacing.1": "0.25rem";
   "spacing.2": "0.5rem";
+  "spacing.3": "0.75rem";
   "spacing.4": "1rem";
+  "spacing.5": "1.25rem";
+  "spacing.6": "1.5rem";
+  "spacing.7": "1.75rem";
   "spacing.8": "2rem";
+  "spacing.10": "2.5rem";
+  "spacing.12": "3.0rem";
   "spacing.16": "4rem";
+  "spacing.20": "5.0rem";
+  "spacing.24": "6.0rem";
   "font.family.sans": "Inter, ui-sans-serif, system-ui, sans-serif";
+  "font.family.heading": "{font.family.sans}";
+  "font.family.body": "{font.family.sans}";
   "font.family.serif": "ui-serif, Georgia, Cambria, serif";
   "font.family.mono": "ui-monospace, SFMono-Regular, Menlo, monospace";
+  "font.family.brand": "Space Grotesk, ui-sans-serif, system-ui, sans-serif";
   "font.size.2xs": "0.625rem";
   "font.size.xs": "0.75rem";
   "font.size.sm": "0.875rem";
@@ -65,9 +79,9 @@ export interface ThemeTokens {
   "font.letter-spacing.wider": "0.05em";
   "font.letter-spacing.widest": "0.1em";
   "radius.none": "0";
-  "radius.sm": "0.125rem";
-  "radius.md": "0.25rem";
-  "radius.lg": "0.5rem";
+  "radius.sm": "0.25rem";
+  "radius.md": "0.5rem";
+  "radius.lg": "0.875rem";
   "radius.full": "9999px";
   "opacity.0": 0;
   "opacity.10": 0.1;
@@ -80,9 +94,9 @@ export interface ThemeTokens {
   "opacity.80": 0.8;
   "opacity.90": 0.9;
   "opacity.100": 1;
-  "shadow.sm": "0 1px 2px 0 rgba(15, 23, 42, 0.06)";
-  "shadow.md": "0 4px 12px -2px rgba(15, 23, 42, 0.10)";
-  "shadow.lg": "0 12px 32px -8px rgba(15, 23, 42, 0.16)";
+  "shadow.sm": "0 1px 2px -1px rgb(15 19 30 / 0.08), 0 1px 3px 0 rgb(15 19 30 / 0.06)";
+  "shadow.md": "0 4px 8px -2px rgb(15 19 30 / 0.10), 0 2px 4px -2px rgb(15 19 30 / 0.06)";
+  "shadow.lg": "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)";
   "breakpoint.sm": "40rem";
   "breakpoint.md": "48rem";
   "breakpoint.lg": "64rem";
@@ -94,6 +108,7 @@ export interface ThemeTokens {
   "motion.duration.fast": "150ms";
   "motion.duration.base": "250ms";
   "motion.duration.slow": "400ms";
+  "motion.duration.loop": "1.2s";
   "motion.easing.linear": "linear";
   "motion.easing.standard": "cubic-bezier(0.2, 0, 0, 1)";
   "motion.easing.decelerate": "cubic-bezier(0, 0, 0, 1)";
@@ -101,17 +116,17 @@ export interface ThemeTokens {
   "button.weight": "600";
   "button.case": "none";
   "button.tracking": "-0.01em";
-  "button.shadow": "0 1px 2px 0 rgba(15, 23, 42, 0.08)";
-  "button.shadow-hover": "0 4px 12px -2px rgba(15, 23, 42, 0.14)";
+  "button.shadow": "0 1px 2px 0 rgb(15 19 30 / 0.08)";
+  "button.shadow-hover": "0 4px 12px -2px rgb(15 19 30 / 0.14)";
   "border.width": "1px";
   "border.width-2": "2px";
   "border.width-4": "4px";
   "border.width-8": "8px";
-  "focus.width": "1px";
+  "focus.width": "2px";
   "focus.offset": "2px";
-  "icon.sm": "0.875em";
-  "icon.md": "1em";
-  "icon.lg": "1.25em";
+  "icon.sm": "0.875rem";
+  "icon.md": "1.125rem";
+  "icon.lg": "1.5rem";
   "badge.edge": "{border.width}";
   "badge.pill": unknown;
   "checkbox.depth": 1.5;
@@ -119,250 +134,27 @@ export interface ThemeTokens {
   "avatar.sm": "1.5rem";
   "avatar.md": "2.5rem";
   "avatar.lg": "4rem";
+  "card.radius": "{radius.lg}";
+  "card.padding": "{spacing.4}";
+  "card.border": "{color.border}";
+  "card.elevation": "{shadow.md}";
+  "alert.radius": "{radius.md}";
+  "alert.padding": "{spacing.2}";
+  "alert.padding-inline": "{spacing.4}";
+  "alert.edge": "{color.border}";
+  "field.radius": "{radius.md}";
+  "field.border": "{color.border-strong}";
+  "stat.value-size": "{font.size.2xl}";
+  "stat.value-weight": "{font.weight.semibold}";
+  "stat.value-family": "{font.family.mono}";
+  "table.header-weight": "{font.weight.semibold}";
+  "table.rule": "{color.border}";
+  "table.zebra": "{color.surface-sunken}";
+  "link.underline": "0.0625em";
 }
 
-/**
- * These same tokens are re-declared for dark mode under
- * `[data-mode="dark"]`; the path and custom property are unchanged, only
- * the resolved value differs.
- */
-
 /** DTCG paths of every token — the keys of `ThemeTokens`. */
-export type ThemeTokenPath =
-  | "color.primary"
-  | "color.secondary"
-  | "color.accent"
-  | "color.neutral.50"
-  | "color.neutral.100"
-  | "color.neutral.200"
-  | "color.neutral.300"
-  | "color.neutral.400"
-  | "color.neutral.500"
-  | "color.neutral.600"
-  | "color.neutral.700"
-  | "color.neutral.800"
-  | "color.neutral.900"
-  | "color.semantic.success"
-  | "color.semantic.warning"
-  | "color.semantic.error"
-  | "color.semantic.info"
-  | "color.surface"
-  | "color.surface-sunken"
-  | "color.surface-raised"
-  | "color.text"
-  | "color.text-muted"
-  | "color.border"
-  | "color.on-primary"
-  | "color.on-danger"
-  | "color.focus-ring"
-  | "color.link"
-  | "color.on-secondary"
-  | "color.on-accent"
-  | "color.on-semantic-success"
-  | "color.on-semantic-warning"
-  | "color.field"
-  | "color.border-strong"
-  | "color.on-semantic-error"
-  | "color.on-semantic-info"
-  | "spacing.0"
-  | "spacing.1"
-  | "spacing.2"
-  | "spacing.4"
-  | "spacing.8"
-  | "spacing.16"
-  | "font.family.sans"
-  | "font.family.serif"
-  | "font.family.mono"
-  | "font.size.2xs"
-  | "font.size.xs"
-  | "font.size.sm"
-  | "font.size.md"
-  | "font.size.lg"
-  | "font.size.xl"
-  | "font.size.2xl"
-  | "font.size.3xl"
-  | "font.weight.regular"
-  | "font.weight.medium"
-  | "font.weight.semibold"
-  | "font.weight.bold"
-  | "font.letter-spacing.tighter"
-  | "font.letter-spacing.tight"
-  | "font.letter-spacing.normal"
-  | "font.letter-spacing.wide"
-  | "font.letter-spacing.wider"
-  | "font.letter-spacing.widest"
-  | "radius.none"
-  | "radius.sm"
-  | "radius.md"
-  | "radius.lg"
-  | "radius.full"
-  | "opacity.0"
-  | "opacity.10"
-  | "opacity.20"
-  | "opacity.30"
-  | "opacity.40"
-  | "opacity.50"
-  | "opacity.60"
-  | "opacity.70"
-  | "opacity.80"
-  | "opacity.90"
-  | "opacity.100"
-  | "shadow.sm"
-  | "shadow.md"
-  | "shadow.lg"
-  | "breakpoint.sm"
-  | "breakpoint.md"
-  | "breakpoint.lg"
-  | "breakpoint.xl"
-  | "z-index.base"
-  | "z-index.dropdown"
-  | "z-index.modal"
-  | "z-index.toast"
-  | "motion.duration.fast"
-  | "motion.duration.base"
-  | "motion.duration.slow"
-  | "motion.easing.linear"
-  | "motion.easing.standard"
-  | "motion.easing.decelerate"
-  | "motion.easing.accelerate"
-  | "button.weight"
-  | "button.case"
-  | "button.tracking"
-  | "button.shadow"
-  | "button.shadow-hover"
-  | "border.width"
-  | "border.width-2"
-  | "border.width-4"
-  | "border.width-8"
-  | "focus.width"
-  | "focus.offset"
-  | "icon.sm"
-  | "icon.md"
-  | "icon.lg"
-  | "badge.edge"
-  | "badge.pill"
-  | "checkbox.depth"
-  | "switch.depth"
-  | "avatar.sm"
-  | "avatar.md"
-  | "avatar.lg";
+export type ThemeTokenPath = "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.16" | "spacing.20" | "spacing.24" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.letter-spacing.tighter" | "font.letter-spacing.tight" | "font.letter-spacing.normal" | "font.letter-spacing.wide" | "font.letter-spacing.wider" | "font.letter-spacing.widest" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "shadow.sm" | "shadow.md" | "shadow.lg" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "button.weight" | "button.case" | "button.tracking" | "button.shadow" | "button.shadow-hover" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "focus.width" | "focus.offset" | "icon.sm" | "icon.md" | "icon.lg" | "badge.edge" | "badge.pill" | "checkbox.depth" | "switch.depth" | "avatar.sm" | "avatar.md" | "avatar.lg" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "field.radius" | "field.border" | "stat.value-size" | "stat.value-weight" | "stat.value-family" | "table.header-weight" | "table.rule" | "table.zebra" | "link.underline"
 
 /** CSS custom properties every token is readable through. */
-export type ThemeCssVar =
-  | "--color-primary"
-  | "--color-secondary"
-  | "--color-accent"
-  | "--color-neutral-50"
-  | "--color-neutral-100"
-  | "--color-neutral-200"
-  | "--color-neutral-300"
-  | "--color-neutral-400"
-  | "--color-neutral-500"
-  | "--color-neutral-600"
-  | "--color-neutral-700"
-  | "--color-neutral-800"
-  | "--color-neutral-900"
-  | "--color-semantic-success"
-  | "--color-semantic-warning"
-  | "--color-semantic-error"
-  | "--color-semantic-info"
-  | "--color-surface"
-  | "--color-surface-sunken"
-  | "--color-surface-raised"
-  | "--color-text"
-  | "--color-text-muted"
-  | "--color-border"
-  | "--color-on-primary"
-  | "--color-on-danger"
-  | "--color-focus-ring"
-  | "--color-link"
-  | "--color-on-secondary"
-  | "--color-on-accent"
-  | "--color-on-semantic-success"
-  | "--color-on-semantic-warning"
-  | "--color-field"
-  | "--color-border-strong"
-  | "--color-on-semantic-error"
-  | "--color-on-semantic-info"
-  | "--spacing-0"
-  | "--spacing-1"
-  | "--spacing-2"
-  | "--spacing-4"
-  | "--spacing-8"
-  | "--spacing-16"
-  | "--font-family-sans"
-  | "--font-family-serif"
-  | "--font-family-mono"
-  | "--font-size-2xs"
-  | "--font-size-xs"
-  | "--font-size-sm"
-  | "--font-size-md"
-  | "--font-size-lg"
-  | "--font-size-xl"
-  | "--font-size-2xl"
-  | "--font-size-3xl"
-  | "--font-weight-regular"
-  | "--font-weight-medium"
-  | "--font-weight-semibold"
-  | "--font-weight-bold"
-  | "--font-letter-spacing-tighter"
-  | "--font-letter-spacing-tight"
-  | "--font-letter-spacing-normal"
-  | "--font-letter-spacing-wide"
-  | "--font-letter-spacing-wider"
-  | "--font-letter-spacing-widest"
-  | "--radius-none"
-  | "--radius-sm"
-  | "--radius-md"
-  | "--radius-lg"
-  | "--radius-full"
-  | "--opacity-0"
-  | "--opacity-10"
-  | "--opacity-20"
-  | "--opacity-30"
-  | "--opacity-40"
-  | "--opacity-50"
-  | "--opacity-60"
-  | "--opacity-70"
-  | "--opacity-80"
-  | "--opacity-90"
-  | "--opacity-100"
-  | "--shadow-sm"
-  | "--shadow-md"
-  | "--shadow-lg"
-  | "--breakpoint-sm"
-  | "--breakpoint-md"
-  | "--breakpoint-lg"
-  | "--breakpoint-xl"
-  | "--z-index-base"
-  | "--z-index-dropdown"
-  | "--z-index-modal"
-  | "--z-index-toast"
-  | "--motion-duration-fast"
-  | "--motion-duration-base"
-  | "--motion-duration-slow"
-  | "--motion-easing-linear"
-  | "--motion-easing-standard"
-  | "--motion-easing-decelerate"
-  | "--motion-easing-accelerate"
-  | "--button-weight"
-  | "--button-case"
-  | "--button-tracking"
-  | "--button-shadow"
-  | "--button-shadow-hover"
-  | "--border-width"
-  | "--border-width-2"
-  | "--border-width-4"
-  | "--border-width-8"
-  | "--focus-width"
-  | "--focus-offset"
-  | "--icon-sm"
-  | "--icon-md"
-  | "--icon-lg"
-  | "--badge-edge"
-  | "--badge-pill"
-  | "--checkbox-depth"
-  | "--switch-depth"
-  | "--avatar-sm"
-  | "--avatar-md"
-  | "--avatar-lg";
+export type ThemeCssVar = "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-letter-spacing-tighter" | "--font-letter-spacing-tight" | "--font-letter-spacing-normal" | "--font-letter-spacing-wide" | "--font-letter-spacing-wider" | "--font-letter-spacing-widest" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--shadow-sm" | "--shadow-md" | "--shadow-lg" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--button-weight" | "--button-case" | "--button-tracking" | "--button-shadow" | "--button-shadow-hover" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--focus-width" | "--focus-offset" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--badge-edge" | "--badge-pill" | "--checkbox-depth" | "--switch-depth" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--field-radius" | "--field-border" | "--stat-value-size" | "--stat-value-weight" | "--stat-value-family" | "--table-header-weight" | "--table-rule" | "--table-zebra" | "--link-underline"

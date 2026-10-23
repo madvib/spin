@@ -1,5 +1,11 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
+import {
+  disabledPosture,
+  focusPaint,
+  focusRing,
+  withFallback,
+} from "./shared.ts";
 
 /**
  * The tokens a field box spends. Absent ones drop their declaration rather
@@ -8,6 +14,10 @@ import { themeOf } from "../../utils/lookup.ts";
  * Shared by every text-like field — input, select, textarea — because they
  * are one box with three contents. That shared box is `shared.ts`; what is
  * here is only what belongs to `<input>` itself.
+ *
+ * The focus ring is not here: it is the ring every interactive element
+ * shares, and it is read through `shared.ts` so the field and the button
+ * cannot paint two different rings.
  */
 export interface FieldTokens {
   readonly spacing2: string | undefined;
@@ -20,8 +30,6 @@ export interface FieldTokens {
   readonly edge: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
-  readonly focusWidth: string | undefined;
-  readonly focusRing: string | undefined;
   readonly duration: string | undefined;
   readonly easing: string | undefined;
   readonly primary: string | undefined;
@@ -29,31 +37,43 @@ export interface FieldTokens {
   readonly error: string | undefined;
 }
 
-export function fieldTokens(ctx: Parameters<typeof themeOf>[0]): FieldTokens {
-  const t = themeOf(ctx);
+export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   return {
-    spacing2: t?.spacing?.["2"],
-    radius: t?.radius?.["md"],
-    fontFamily: t?.fontFamily?.["sans"],
-    fontSize: t?.fontSize?.["md"],
-    text: t?.colors?.["text"],
-    muted: t?.colors?.["text-muted"],
-    field: t?.colors?.["field"],
-    edge: t?.colors?.["border-strong"],
-    border: t?.colors?.["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    focusWidth: t?.focusWidth?.["width"],
-    focusRing: t?.colors?.["focus-ring"],
-    duration: t?.motionDuration?.["fast"],
-    easing: t?.motionEasing?.["standard"],
-    primary: t?.colors?.["primary"],
-    success: t?.colors?.["semantic-success"],
-    error: t?.colors?.["semantic-error"],
+    spacing2: token(ctx, "spacing.2"),
+    radius: withFallback(ctx, "field.radius", "radius.md"),
+    fontFamily: token(ctx, "font.family.sans"),
+    fontSize: token(ctx, "font.size.md"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    field: token(ctx, "color.field"),
+    // The field's own edge. A control must read as a control, so the line
+    // it wears is the field's own ink (`field.border`), falling back to the
+    // role the system keeps for it: one step stronger than a divider.
+    edge: withFallback(ctx, "field.border", "color.border-strong"),
+    border: token(ctx, "color.border"),
+    borderWidth: token(ctx, "border.width"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
+    primary: token(ctx, "color.primary"),
+    success: token(ctx, "color.semantic.success"),
+    error: token(ctx, "color.semantic.error"),
   };
 }
 
 /** Every control that renders a field box: the three text-like elements. */
 export const FIELDS = ":is(input, select, textarea)";
+
+/**
+ * The fields that are one line of text and therefore one control height.
+ *
+ * A textarea is a box of prose and grows with its lines; a checkbox, radio
+ * and range are drawn controls with sizes of their own; a submit, reset,
+ * button, file, image or hidden input is not a text field at all. What is
+ * left is the set whose height is the button's: one line, one padding step,
+ * one border.
+ */
+export const CONTROL_FIELDS =
+  ':is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="file"]):not([type="image"]):not([type="hidden"]), select)';
 
 /**
  * The types that need opting out of the field box entirely.
@@ -99,14 +119,13 @@ export function fieldBox(): Rule {
         field,
         border,
         borderWidth,
-        focusWidth,
-        focusRing,
         duration,
         easing,
         primary,
         success,
         error,
       } = fieldTokens(context);
+      const ring = focusRing(context);
 
       const box: Record<string, string | undefined> = {
         "font-family": fontFamily,
@@ -115,6 +134,16 @@ export function fieldBox(): Rule {
         "background-color": field,
         "border-radius": radius,
         width: "100%",
+        // The control-height floor, from the same three theme values the
+        // button derives it from: a field beside a button is the same object
+        // at the same height, in every starter, whatever the theme's leading.
+        ...(fontSize !== undefined && spacing2 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            "min-height":
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
       };
       // The border shorthand is stated only when both halves resolve, so a
       // theme missing either states no border rather than an incomplete one.
@@ -124,8 +153,9 @@ export function fieldBox(): Rule {
       // A control must read as a control. `color.border` is a hairline meant
       // for dividing content, and at 1px on a white field it is close to
       // invisible — which is how a textarea ends up on screen and still looks
-      // like nothing. So a field states its own edge, one step stronger than a
-      // divider, spent AFTER the shorthand so the colour is the one that wins.
+      // like nothing. So a field states its own edge (`field.border`), one
+      // step stronger than a divider by default, spent AFTER the shorthand so
+      // the colour is the one that wins.
       if (edge !== undefined) {
         Object.assign(box, { "border-color": edge });
       }
@@ -141,14 +171,35 @@ export function fieldBox(): Rule {
         Object.assign(box, {
           "transition-duration": duration,
           "transition-timing-function": easing ?? "linear",
+          // The ring is painted with `outline`, so `outline` is what moves —
+          // and the edge, which takes the ring's ink while the field is
+          // focused, moves with it.
           "transition-property":
-            "color, background-color, border-color, box-shadow",
+            "color, background-color, border-color, outline",
         });
       }
 
       yield {
         [context.symbols.selector]: () => FIELDS,
         ...box,
+      };
+
+      // The single-line fields set their own leading and their own height. A
+      // control's line box is the control's, not the document's: inherited
+      // leading made an input taller than every button beside it. `height`
+      // rather than `min-height`, because a text input's inner editor keeps a
+      // floor of its own font metrics even when the line box is smaller — the
+      // one declaration that makes the box the height the theme asked for.
+      yield {
+        [context.symbols.selector]: () => CONTROL_FIELDS,
+        "line-height": "1",
+        ...(fontSize !== undefined && spacing2 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            height:
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
       };
 
       // The box types lay out their own contents and must not be padded or
@@ -167,19 +218,32 @@ export function fieldBox(): Rule {
         opacity: "1",
       };
 
-      // Focus replaces the border rather than sitting beside it, so the ring
-      // never changes the field's size.
+      // The ring is the field's edge.
+      //
+      // The border takes the ring's ink, and the ring itself is an OUTLINE:
+      // painted outside the field's box, so it never changes the field's
+      // size and focusing a field never nudges the page. It stands off the
+      // border by the theme's offset, so what the reader sees is ONE edge in
+      // the theme's focus colour — a border in one colour with a ring in
+      // another, sitting beside it, is a doubled edge that reads as a broken
+      // border rather than as focus.
       yield {
-        [context.symbols.selector]: () => `${FIELDS}:focus`,
-        outline: "none",
-        ...(primary !== undefined ? { "border-color": primary } : {}),
-        ...(focusWidth !== undefined && focusRing !== undefined
-          ? { "box-shadow": `0 0 0 ${focusWidth} ${focusRing}` }
-          : {}),
+        [context.symbols.selector]: () => `${FIELDS}:focus-visible`,
+        ...focusPaint(ring),
       };
+      // A pointer that lands on a field leaves no ring: the browser's own is
+      // not the theme's, so it goes.
       yield {
         [context.symbols.selector]: () => `${FIELDS}:focus:not(:focus-visible)`,
-        "box-shadow": "none",
+        outline: "none",
+      };
+      // The same ring for engines without :focus-visible. A rule cannot be
+      // wrapped in `@supports` from its body, so the parent symbol carries
+      // the at-rule and the selector symbol the fallback selector.
+      yield {
+        [context.symbols.parent]: "@supports not selector(:focus-visible)",
+        [context.symbols.selector]: () => `${FIELDS}:focus`,
+        ...focusPaint(ring),
       };
 
       // An unjudged field: attention without judgement.
@@ -195,6 +259,17 @@ export function fieldBox(): Rule {
       yield {
         [context.symbols.selector]: () => `${FIELDS}[aria-invalid="true"]`,
         ...(error !== undefined ? { "border-color": error } : {}),
+      };
+
+      // A dead field wears the posture: the theme's disabled fill and the
+      // ink that reads on it. A field is a control like any other, and a
+      // dimmed one dims the text a reader is meant to transcribe — the one
+      // thing a field that cannot be typed into still has to be good for.
+      yield {
+        [context.symbols.selector]: () =>
+          `${FIELDS}:is(:disabled, [aria-disabled="true"])`,
+        ...disabledPosture(context),
+        cursor: "not-allowed",
       };
     },
     { layer: "primitives", autocomplete: "field" },

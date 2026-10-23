@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { token } from "../../utils/lookup.ts";
 
 /**
  * Textarea — a field box that wraps and can be resized by the author.
@@ -16,8 +16,8 @@ export function textareaRules(roots: readonly string[]): Rule[] {
     [
       /^textarea$/,
       function* (_m, ctx) {
-        const spacing16 = themeOf(ctx)?.spacing?.["16"];
-        const spacing4 = themeOf(ctx)?.spacing?.["4"];
+        const spacing16 = token(ctx, "spacing.16");
+        const spacing4 = token(ctx, "spacing.4");
         yield {
           [ctx.symbols.selector]: () => "textarea",
           display: "block",

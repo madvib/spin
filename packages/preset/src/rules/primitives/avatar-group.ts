@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { groupOf, themeOf } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
+import { type Mode, withFallback } from "./shared.ts";
 
 /**
  * Avatar group — a stack of faces, each later one overlapping the last.
@@ -41,21 +41,20 @@ import type { Mode } from "./shared.ts";
  */
 export function avatarGroupRules(
   roots: readonly string[],
-  mode: Mode,
+  _mode: Mode,
 ): Rule[] {
   if (!roots.includes("avatar-group")) return [];
   return [avatarGroup()];
 }
 
 /** The theme values a group spends, resolved once per rule. */
-function groupTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function groupTokens(ctx: ThemeContext | undefined) {
   return {
-    face: groupOf(ctx, "avatar")["md"],
-    ringWidth: t?.borderWidth?.["width"],
+    face: withFallback(ctx, "avatar.md", "spacing.10"),
+    ringWidth: token(ctx, "border.width"),
     // The colour behind the group, because a ring is a cut through to whatever
     // the group is sitting on — and the theme's name for that is `surface`.
-    ringColor: t?.colors?.["surface"],
+    ringColor: token(ctx, "color.surface"),
   };
 }
 

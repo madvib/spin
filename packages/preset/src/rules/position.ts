@@ -2,7 +2,7 @@ import type { Rule } from "@unocss/core";
 import { POSITION_UTILITIES } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { insetRule, staticRules } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 
 export const POSITION_NAMES: readonly string[] = Object.keys(
   POSITION_UTILITIES,
@@ -41,8 +41,8 @@ export function positionRules(): Rule[] {
     insetRule(/^end-(.+)$/, ["inset-inline-end"], "inset-$spacing"),
     [
       /^z-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) => {
-        const token = tokenOf(ctx, "zIndex", name);
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const token = named(ctx, "z-index", name);
         if (token) return { "z-index": token };
         return undefined;
       },

@@ -25,15 +25,15 @@ export const KBD_EXAMPLES: readonly KbdExample[] = [
   },
   {
     name: "Kbd · combination",
-    html: `<kbd>Ctrl</kbd> + <kbd>C</kbd>`,
+    html: `<kbd>Ctrl</kbd> + <kbd>Enter</kbd>`,
   },
   {
     name: "Kbd · inline in prose",
-    html: `<p>Press <kbd>Enter</kbd> to submit the form.</p>`,
+    html: `<p>Press <kbd>Enter</kbd> to deploy to production.</p>`,
   },
   {
     name: "Kbd · beside a control",
     html:
-      `<label><kbd>⌘</kbd> <input type="text" placeholder="Search"></label>`,
+      `<label><kbd>⌘</kbd> <input type="text" placeholder="Search services"></label>`,
   },
 ];

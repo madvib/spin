@@ -1,15 +1,41 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "jsPlugins": [
-    "./packages/lint/src/index.ts"
+    "./packages/diagnostics/src/index.ts"
   ],
   "rules": {
-    "spin/no-utilities-on-semantic": "error",
+    "spin/no-redundant-class": "error",
+    "spin/prefer-theme-value": "error",
+    "spin/prefer-element": "warn",
     "spin/closed-vocabulary": "error",
-    "spin/no-raw-colors": "error",
-    "spin/no-handwritten-tokens": "error"
+    "spin/no-handwritten-tokens": "error",
+    "spin/no-unpaired-ink": "error"
   },
   "overrides": [
+    {
+      "files": [
+        "apps/studio/src/**/*.ts",
+        "apps/studio/src/**/*.tsx",
+        "apps/docs/src/**/*.ts",
+        "apps/docs/src/**/*.tsx",
+        "apps/reference/src/**/*.ts",
+        "apps/reference/src/**/*.tsx",
+        "packages/kit/src/**/*.ts",
+        "packages/kit/src/**/*.tsx"
+      ],
+      "rules": {
+        "no-unassigned-vars": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/studio/src/spin-elements.d.ts",
+        "apps/reference/src/spin-elements.d.ts"
+      ],
+      "rules": {
+        "typescript/triple-slash-reference": "off"
+      }
+    },
     {
       "files": [
         "packages/theme/src/**/*.ts"
@@ -22,7 +48,7 @@
               {
                 "group": [
                   "@spin/preset",
-                  "@spin/lint",
+                  "@spin/diagnostics",
                   "@spin/api",
                   "@spin/animation"
                 ],
@@ -42,7 +68,34 @@
     },
     {
       "files": [
-        "packages/primitives/src/**/*.ts",
+        "packages/preset/src/rules/primitives/**/*.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@spin/preset"
+                ],
+                "message": "the element rules live in the preset: importing the package they are part of makes a cycle"
+              },
+              {
+                "group": [
+                  "@spin/diagnostics",
+                  "@spin/api",
+                  "@spin/mcp"
+                ],
+                "message": "components spend tokens; they do not know what reads them"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
         "packages/animation/src/**/*.ts"
       ],
       "rules": {
@@ -53,7 +106,7 @@
               {
                 "group": [
                   "@spin/preset",
-                  "@spin/lint",
+                  "@spin/diagnostics",
                   "@spin/api"
                 ],
                 "message": "components spend tokens; they do not know how tokens become utilities"

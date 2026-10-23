@@ -30,9 +30,9 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
     name: "Join · three buttons",
     html: row(
       `          <div class="join">
-            <button class="join-item">Cut</button>
-            <button class="join-item secondary">Copy</button>
-            <button class="join-item ghost">Paste</button>
+            <button class="join-item">Deploy</button>
+            <button class="join-item secondary">Schedule</button>
+            <button class="join-item ghost">Discard</button>
           </div>`,
     ),
   },
@@ -40,7 +40,7 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
     name: "Join · search and submit",
     html: row(
       `          <div class="join">
-            <input class="join-item" type="search" placeholder="Search packages" aria-label="Search packages">
+            <input class="join-item" type="search" placeholder="Search services" aria-label="Search services">
             <button class="join-item" type="submit">Search</button>
           </div>`,
     ),
@@ -52,7 +52,7 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
             <select class="join-item" aria-label="Sort by">
               <option>Newest</option>
               <option>Oldest</option>
-              <option>Title</option>
+              <option>Duration</option>
             </select>
             <button class="join-item secondary">Apply</button>
           </div>`,
@@ -62,10 +62,10 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
     name: "Join · beside a paragraph",
     html: `        <div class="flex items-center gap-2">
           <div class="join">
-            <button class="join-item">Save</button>
-            <button class="join-item secondary">Save and close</button>
+            <button class="join-item">Deploy</button>
+            <button class="join-item secondary">Deploy and watch</button>
           </div>
-          <p>Inline, not a block: the join hugs its contents and the text flows beside it.</p>
+          <p>The build log streams while the deploy runs.</p>
         </div>`,
   },
 ];

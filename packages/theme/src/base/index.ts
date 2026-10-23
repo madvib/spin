@@ -11,6 +11,7 @@
 import { documentDefaults } from "./css.ts";
 import { fontFaces, readFonts } from "./fonts.ts";
 
+export { documentDefaults } from "./css.ts";
 export { fontFaces, readFonts } from "./fonts.ts";
 export type { FontDeclaration, FontResult } from "./fonts.ts";
 

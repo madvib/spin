@@ -1,32 +1,46 @@
-import { formatExampleHtml, tokenizeHtml } from "@spin/runtime";
-import type { CodeTokenType } from "@spin/runtime";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  onCleanup,
-  Show,
-} from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
-import { describeCatalog } from "@spin/preset";
+import {
+  describeCatalog,
+  primitiveCategories,
+  primitiveElements,
+} from "@spin/preset";
 import { parseTokens } from "@spin/theme";
-import { starterThemes, themeModes } from "@spin/theme/themes";
-import { CATEGORIES, PRIMITIVE_ICONS, PRIMITIVES } from "./primitives.ts";
-import { COMPONENT_GROUPS, COMPONENT_ICONS, COMPONENTS, componentRequirement } from "./components.ts";
+import { starterThemes } from "@spin/theme/themes";
+import {
+  createThemeState,
+  Logo,
+  Specimen,
+  ThemePicker,
+  type ThemeState,
+  Web,
+} from "@spin/kit";
+import { MontagePage } from "./montage.tsx";
+import { PRIMITIVES } from "./primitives.ts";
+import { MONTAGE_ROUTE } from "./routes.ts";
+import { themeDocuments } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
 import type { Accessor } from "solid-js";
 import type { TokenTree } from "@spin/theme";
 
-const THEMES = Object.keys(starterThemes);
+/**
+ * The glyph each element wears, keyed by the element's name.
+ *
+ * The taxonomy lives with the elements it files, in the preset: the studio's
+ * rail and the docs' gallery read the same one, so a row cannot be drawn
+ * here with one glyph and drawn elsewhere with another.
+ */
+const ICONS: Readonly<Record<string, string>> = Object.fromEntries(
+  primitiveElements.map((element) => [element.name, element.icon]),
+);
 
 let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -34,68 +48,27 @@ function themeTreeOrParse(): TokenTree {
   return themeTree;
 }
 
-function useTheme() {
-  const [theme, setTheme] = createSignal(
-    localStorage.getItem("spin-theme") ?? "default",
-  );
-  const doc = () =>
-    (starterThemes as unknown as Record<string, unknown>)[theme()] as never;
-  const modes = () => [...themeModes(doc())];
-  // The mode the theme actually serves, in preference order: a theme with no
-  // dark group has one rendering, so it never reads "dark"; a theme whose
-  // base is light never reads "system" as dark-first.
-  const resolved = (requested: string): string => {
-    if (requested === "system") {
-      return modes().includes("dark")
-        ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "base")
-        : "base";
-    }
-    if (requested === "dark" && !modes().includes("dark")) return "base";
-    if (requested === "light") return "base";
-    return requested === "base" ? "base" : requested;
-  };
-  const [want, setWant] = createSignal(
-    localStorage.getItem("spin-mode") ?? "system",
-  );
-  // A theme switch can strand the want: neobrut never serves dark, so a
-  // reader arriving from a dark default theme with "dark" wanted must land
-  // on its base instead of a mode that renders nothing different.
-  const wantFor = (t: string): string => {
-    const stored = t === theme()
-      ? localStorage.getItem("spin-mode") ?? "system"
-      : "system";
-    const m = [...themeModes(
-      (starterThemes as unknown as Record<string, unknown>)[t] as never,
-    )];
-    if (stored === "dark" && !m.includes("dark")) return "base";
-    return stored;
-  };
-  const wrappedSetTheme = (t: string) => {
-    setTheme(t);
-    setWant(wantFor(t));
-  };
-  const mode = () => resolved(want());
-  const setMode = (next: string) => setWant(next);
-  createEffect(() => {
-    document.documentElement.dataset.theme = theme();
-    document.documentElement.dataset.mode = mode();
-    localStorage.setItem("spin-theme", theme());
-    localStorage.setItem("spin-mode", want());
+/**
+ * The app's theme state.
+ *
+ * The behaviour is the kit's: one signal pair, one document-element effect,
+ * one persistence pair, and a stored choice clamped to a theme that exists.
+ * The app brings only the documents it serves — the starters plus the
+ * project's own `spin/*.json`.
+ */
+function useTheme(): ThemeState {
+  return createThemeState({
+    documents: themeDocuments,
+    initialTheme: "silk",
+    initialMode: "system",
+    storage: { theme: "spin-theme", mode: "spin-mode" },
+    followSystem: true,
   });
-  // The platform preference is live: a reader on "system" whose OS flips
-  // must see the page follow without touching the control again.
-  createEffect(() => {
-    const mql = matchMedia("(prefers-color-scheme: dark)");
-    const sync = () => setWant((w) => w);
-    mql.addEventListener("change", sync);
-    onCleanup(() => mql.removeEventListener("change", sync));
-  });
-  return { theme, setTheme: wrappedSetTheme, mode, setMode, want, modes };
 }
 
 /**
- * The utilities/primitives switch, and the specimen's segmented toggle. Both
- * are one shape: a bordered group of two, where unselected is a hole —
+ * The utilities/primitives/themes switch, and the specimen's segmented
+ * toggle. Both are one shape: a bordered group, where unselected is a hole —
  * transparent edge, transparent fill, muted ink — so the selected one is the
  * only thing drawn: raised surface, strong edge, full ink and a step of
  * weight. A hover that painted the text token would put text on text in
@@ -176,47 +149,10 @@ const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
 
 /**
  * The sub-heading every section of a page carries. Same rule as the rail's:
- * never smaller than the items under it, so the size matches the prose it
- * captains and the hierarchy is carried by weight and ink alone.
+ * never smaller than the items under it — and it is the theme's own step, so
+ * the ladder does the sizing and the weight and the ink carry the rest.
  */
-const SUBHEAD =
-  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
-
-/**
- * The spin mark: a spinnaker in full hoist.
- *
- * A spinnaker is the balloon sail — a rounded head at the tack, a long curve
- * out to the clew, a straight luff back down to the throat. The shape is the
- * whole mark, so it is drawn as that: one filled path for the cloth, one line
- * for the luff that keeps it reading as a sail rather than a blob.
- *
- * It animates on hover only. A brand that moves on its own is a brand that
- * competes with the page for attention — a loader's job — so at rest it is
- * still, and the pointer asking about it is what fills the cloth. The wind is
- * the theme's own motion tokens, so a theme with no motion ships a mark that
- * simply doesn't animate.
- */
-function BrandMark() {
-  return (
-    <svg
-      class="group/mark block h-[1.25rem] w-[1.25rem] shrink-0 text-primary"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        class="fill-current transition-transform duration-slow ease-standard origin-bottom group-hover/mark:-translate-y-px"
-        d="M5 4 C 12 4 19 9 20 20 L 5 20 Z"
-      />
-      <path
-        class="stroke-current transition-opacity duration-slow ease-standard opacity-0 group-hover/mark:opacity-100"
-        d="M5 4 L5 20"
-        stroke-width="1.25"
-        stroke-linecap="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
+const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
 
 /**
  * The search field the rail is filtered through, and the input in it: one
@@ -229,17 +165,6 @@ const SEARCH_FIELD =
 // its border and its padding here, and the field it sits in supplies both.
 const SEARCH_INPUT =
   "w-full border-transparent bg-transparent p-0 text-xs text-text";
-
-/** The theme picker: a real form control, named by the label that wraps it. */
-const SELECT_LABEL = "shrink-0 text-xs font-medium text-text-muted";
-const SELECT =
-  "min-w-0 flex-1 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
-
-/** The mode switch: one button, one icon, and the label it answers to. */
-
-/** The copy, within the revealed block: it acts on the code beside it. */
-const COPY_BUTTON =
-  "absolute end-2 top-2 inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
@@ -258,48 +183,8 @@ const QUIET_BUTTON =
 const SPECIMEN_PANEL =
   "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-6 shadow-sm";
 
-/**
- * The code block of a specimen. It is ALWAYS in the flow — never a box the
- * component is laid over — so the section's height is decided by measurement
- * rather than by whichever view happens to be showing.
- *
- * It WRAPS. The primitive layer already pins `overflow-x` on a bare `<pre>`,
- * which is what let an example's inline data URI — a 4KB face as one unbroken
- * token — widen the page to seven thousand pixels instead of scrolling in
- * its own box: a scroller only contains what it is GIVEN, and a min-content
- * chain with one unbreakable line refuses to shrink. So the block takes
- * `whitespace-pre-wrap` and the tokens `break-all`, and the scrollbar has
- * nothing left to do — it stays as the floor for the one line that somehow
- * still cannot break.
- */
-const CODE_PRE =
-  "max-w-full whitespace-pre-wrap overflow-x-auto rounded-md border border-dashed border-solid border-border bg-surface p-4 font-mono text-text shadow-sm";
-
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
-
-
-/**
- * The ink each token of the code viewer wears.
- *
- * Every one is a theme token and every one was MEASURED against the panel it
- * sits on, in all three starter themes and both modes: the hues that read as
- * syntax in one palette are illegible in another — `semantic-success` is a
- * 3.3:1 slab on neobrut's white — so this is the set that clears 4.5:1
- * everywhere rather than the set that looks most like someone else's editor.
- * Tag and attribute are the two that carry the structure, so they take the
- * two brand inks; a string is the one value a reader copies, and the muted
- * step is the ink comments and punctuation are written in.
- */
-const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
-  tag: "text-semantic-error",
-  attr: "text-primary",
-  string: "text-semantic-warning",
-  comment: "text-text-muted",
-  punct: "text-text-muted",
-  expr: "text-semantic-success",
-  text: "text-text",
-};
 
 /**
  * The three specimens the landing shows. Each is the example that shows the
@@ -308,172 +193,37 @@ const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
  */
 const FEATURED: readonly string[] = ["button", "card", "alert"];
 
-/**
- * One example of one primitive: the component, or its markup — one or the
- * other, never both. A stacked pair put the markup between every two
- * specimens, which turns a page of components into a page of code with
- * components in the gaps; the toggle puts the choice where it belongs, on the
- * specimen, and leaves the page a single surface at a time.
- *
- * The two views are TWO BOXES, not two surfaces over one box — an overlay
- * preview had to clip, because the panel could only be as tall as the code
- * that framed it. Both live in the flow now, in the SAME cell of a one-cell
- * grid: the cell is as tall as the taller of the two, so the section reserves
- * the max of the code's height and the component's, the view that is not
- * showing is `invisible` — out of sight, still in flow — and switching tabs
- * moves nothing under the reader. Neither view scrolls inside its own box
- * and neither is ever clipped: the tall specimens are the ones a reader most
- * needs all of, so the page grows to fit them.
- */
-function ExampleSection(props: {
-  name: string;
-  html: string;
-  source?: string;
-  onLoad?: string;
-}) {
-  let pre!: HTMLPreElement;
-  const [tab, setTab] = createSignal<"component" | "code">("component");
-  const [copied, setCopied] = createSignal(false);
-  createEffect(() => {
-    if (props.onLoad) new Function(props.onLoad)();
-  });
-  const copy = async () => {
-    try {
-      // The exact source, never the elided display text.
-      await navigator.clipboard.writeText(shown());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable: no-op */
-    }
-  };
-  // The source is what the reader copies; the mounted tag is what they see.
-  const shown = () => props.source ?? props.html;
-  // The panel decides the room the specimen gets, and the markup says which
-  // room it is: a page header is a page-width thing, and the md measure —
-  // where the page's own prose reads — squeezes a header until its trail
-  // wraps into a column of links. Everything else reads at the measure.
-  const measure = shown().trimStart().startsWith("<header")
-    ? ""
-    : SPECIMEN_MEASURE;
-  const tokens = createMemo(() => tokenizeHtml(formatExampleHtml(shown())));
-  return (
-    <section class="mb-8">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-text">
-          <span class="block h-1 w-4 rounded-full bg-primary" />
-          {props.name}
-        </h3>
-        <div class={SEGMENT_GROUP}>
-          <button
-            type="button"
-            onClick={() => setTab("component")}
-            aria-current={tab() === "component" || undefined}
-            class={SURFACE_LINK}
-          >
-            <i class="i-lucide-eye icon-md" />
-            component
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("code")}
-            aria-current={tab() === "code" || undefined}
-            class={SURFACE_LINK}
-          >
-            <i class="i-lucide-code-xml icon-md" />
-            code
-          </button>
-        </div>
-      </div>
-      <div class="relative grid">
-        {
-          /* The face the code reads at is spent on the tokens, not on the
-            block: a bare `<pre>` is claimed by the primitive layer, which
-            pins the block's own size, so the step a reader sees is the one the
-            text carries. This is also the step that makes the specimens
-            bigger — the code reads a size up from the demos around it, and
-            `break-all` spends the theme's break on the one token that is
-            wider than the view: a 4KB data URI has no space in it, and a
-            token that cannot break is a token that widens the page. */
-        }
-        <pre
-          ref={pre}
-          class={`${CODE_PRE} col-start-1 row-start-1 max-h-[32rem] overflow-auto ${
-            tab() === "code" ? "" : "invisible"
-          }`}
-          aria-hidden={tab() === "code" ? undefined : "true"}
-        >
-          <span class="text-lg break-all">
-            <For each={tokens()}>
-              {(token) => (
-                <span class={CODE_INK[token.type]}>{token.value}</span>
-              )}
-            </For>
-          </span>
-        </pre>
-        <button type="button" onClick={copy} class={COPY_BUTTON}>
-          <i class="i-lucide-copy icon-md" />
-          {copied() ? "copied" : "copy"}
-        </button>
-        {
-          /* The demo is the markup exactly as a consumer writes it, in the
-            flow beside the code rather than over it: the same cell, the same
-            surface, the same edges — so the visible view is the whole box
-            and the swap is a change of content and not a change of page. */
-        }
-        <div
-          class={`${SPECIMEN_PANEL} col-start-1 row-start-1 ${
-            tab() === "component" ? "" : "invisible"
-          }`}
-          aria-hidden={tab() === "component" ? undefined : "true"}
-        >
-          <div class={measure} innerHTML={props.html} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function PrimitivePage(props: { id: string; onLoad?: string }) {
-  const fixture = createMemo(() =>
-    PRIMITIVES.find((r) => r.id === props.id) ??
-    COMPONENTS.find((r) => r.id === props.id)
-  );
+  const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id));
   return (
     <Show when={fixture()} fallback={<p>Not found</p>}>
       {(f) => (
         <>
           <header class="mb-8 flex items-start justify-between gap-4">
             <div class="flex items-start gap-2">
-              <i class={`${PRIMITIVE_ICONS[f().id] ?? "i-lucide-cog"} ${TITLE_ICON}`} />
+              <i class={`${ICONS[f().id]} ${TITLE_ICON}`} />
               <div>
-                <h2 class="m-0 text-2xl font-bold tracking-tight">
+                <h2>
                   {f().title}
                 </h2>
                 <div class="font-mono text-xs text-text-muted">
                   {f().kind}
                 </div>
-                <Show when={f().id.startsWith("component-")}>
-                  <div class="mt-1 text-xs text-text-muted">
-                    {componentRequirement(f().id)}
-                  </div>
-                </Show>
               </div>
             </div>
-            <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+            <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
               {f().examples.length} examples
             </span>
           </header>
-          <p class="mb-8 max-w-screen-md text-md text-text-muted">
+          <p class="max-w-screen-md text-md text-text-muted">
             {f().note}
           </p>
           <For each={[...f().examples]}>
             {(e) => (
-              <ExampleSection
+              <Specimen
                 name={e.name}
                 html={e.html}
-                {...(e.source !== undefined ? { source: e.source } : {})}
-                {...(e.onLoad ?? f().onLoad ?? props.onLoad ? { onLoad: (e.onLoad ?? f().onLoad ?? props.onLoad) as string } : {})}
+                onLoad={f().onLoad ?? props.onLoad}
               />
             )}
           </For>
@@ -490,19 +240,15 @@ const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
 /** One specimen on the landing: a component, as a consumer writes it. */
 function FeaturedSpecimen(props: { id: string }) {
   const page = PAGE_BY_ID[props.id];
-  if (page === undefined) return null;
-  const first = page.examples[0];
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <i class={`${PRIMITIVE_ICONS[props.id]} icon-md text-text-muted`} />
-        <h4 class="m-0 text-sm font-semibold text-text">{page.title}</h4>
+        <i class={`${ICONS[props.id]} icon-md text-text-muted`} />
+        <h4 class="text-text">{page.title}</h4>
       </div>
-      {first !== undefined ? (
       <div class={SPECIMEN_PANEL}>
-        <div class={SPECIMEN_MEASURE} innerHTML={first.html} />
+        <div class={SPECIMEN_MEASURE} innerHTML={page.examples[0].html} />
       </div>
-      ) : null}
       <button
         type="button"
         onClick={() => (location.hash = `#/components/${props.id}`)}
@@ -524,15 +270,14 @@ function FeaturedSpecimen(props: { id: string }) {
  */
 function IndexRow(props: { id: string }) {
   const page = PAGE_BY_ID[props.id];
-  if (page === undefined) return null;
   return (
     <button
       type="button"
       onClick={() => (location.hash = `#/components/${props.id}`)}
-      class="flex w-full items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2 text-left shadow-sm hover:border-border-strong"
+      class="secondary s-sm flex w-full items-center gap-2 text-left hover:border-border-strong"
     >
       <i
-        class={`${PRIMITIVE_ICONS[props.id]} icon-md shrink-0 text-text-muted`}
+        class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
       />
       <span class="min-w-0 flex-1 truncate text-sm text-text">
         {page.title}
@@ -560,13 +305,13 @@ function LandingPage() {
     <>
       <header class="mb-8">
         <div class="flex items-center gap-3">
-          <BrandMark />
-          <h2 class="m-0 text-2xl font-bold tracking-tight">Primitives</h2>
+          <Web class="h-5 w-5 shrink-0 text-primary" />
+          <h2>Primitives</h2>
         </div>
         <div class="font-mono text-xs text-text-muted">
-          spin reference · {PRIMITIVES.length + COMPONENTS.length} components
+          spin reference · {PRIMITIVES.length} components
         </div>
-        <p class="mt-4 max-w-screen-md text-md text-text-muted">
+        <p class="max-w-screen-md text-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
           the component and the theme is the only value source: nothing in this
           app carries a color, a space or a radius that is not a token.
@@ -575,7 +320,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           Three of the{" "}
           {PRIMITIVES.length}, rendered from the markup a consumer writes — no
           wrapper, no adapter, the rules beside the rule they came from.
@@ -589,7 +334,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Index</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           Every component, alphabetical, with the number of examples each one
           carries.
         </p>
@@ -624,71 +369,20 @@ function LandingPage() {
  * to get back has to aim at a 74-pixel target in the corner of a 224-pixel
  * column. A word that cannot be clicked is a word that can be given room.
  */
-function AppHeader(props: {
-  theme: Accessor<string>;
-  setTheme: (theme: string) => void;
-  mode: Accessor<string>;
-  setMode: (mode: string) => void;
-  want: Accessor<string>;
-  modes: Accessor<readonly string[]>;
-}) {
-  // The cycle the reader walks: light -> dark -> system. A theme with one
-  // rendering disables the control rather than cycling to somewhere that
-  // does not exist: an enabled switcher on neobrut promises a dark
-  // rendering neobrut never ships.
-  const single = () => props.modes().length <= 1;
-  const next = (): string => {
-    const want = props.want();
-    if (single()) return want;
-    return want === "light" ? "dark" : want === "dark" ? "system" : "light";
-  };
-  const glyph = (): string => {
-    if (single()) return "i-lucide-minus icon-md";
-    const want = props.want();
-    if (want === "light") return "i-lucide-sun icon-md";
-    if (want === "dark") return "i-lucide-moon icon-md";
-    return "i-lucide-monitor icon-md";
-  };
-  const label = (): string => {
-    if (single()) return "This theme serves one mode";
-    const want = props.want();
-    if (want === "light") return "Use dark mode";
-    if (want === "dark") return "Follow the system";
-    return "Use light mode";
-  };
+function AppHeader(props: { state: ThemeState }) {
   return (
     <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
       <div class="flex items-center gap-2 py-4">
-        <BrandMark />
-        <span class="text-lg font-bold tracking-tight text-text">spin</span>
+        <Logo size="sm" />
       </div>
       <div class="flex items-center gap-2">
-        <label class="flex min-w-0 flex-1 items-center gap-1">
-          <span class={SELECT_LABEL}>theme</span>
-          <select
-            class={SELECT}
-            onChange={(event) => props.setTheme(event.currentTarget.value)}
-          >
-            <For each={THEMES}>
-              {(t) => (
-                <option value={t} selected={t === props.theme()}>
-                  {t}
-                </option>
-              )}
-            </For>
-          </select>
-        </label>
-        <button
-          type="button"
-          class="mode"
-          onClick={() => props.setMode(next())}
-          aria-label={label()}
-          title={label()}
-          disabled={single() || undefined}
-          aria-disabled={single() || undefined}
-        >
-          <i class={glyph()} />
-        </button>
+        <span class="shrink-0 text-xs font-medium text-text-muted">theme</span>
+        <ThemePicker
+          state={props.state}
+          system
+          class="min-w-0 flex-1"
+          triggerClass="w-full justify-between"
+        />
       </div>
     </div>
   );
@@ -725,20 +419,18 @@ function Rail(props: {
   query: Accessor<string>;
   setQuery: (query: string) => void;
   catalog: Accessor<readonly CatalogSection[]>;
-  theme: Accessor<string>;
-  setTheme: (theme: string) => void;
-  mode: Accessor<string>;
-  setMode: (mode: string) => void;
-  want: Accessor<string>;
-  modes: Accessor<readonly string[]>;
+  state: ThemeState;
 }) {
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
+  // The montage is a page of the app, not a surface of components: it holds
+  // every theme side by side, so the rail's list has nothing to say about it
+  // and the switch is the only thing that moves.
+  const montage = () => props.route().startsWith(MONTAGE_ROUTE);
 
   const components = createMemo(() =>
-    [...PRIMITIVES, ...COMPONENTS].filter((page) =>
-      page.title.toLowerCase().includes(needle())
-    ).sort((a, b) => a.title.localeCompare(b.title))
+    PRIMITIVES.filter((page) => page.title.toLowerCase().includes(needle()))
+      .sort((a, b) => a.title.localeCompare(b.title))
   );
 
   const sections = createMemo(() =>
@@ -748,7 +440,6 @@ function Rail(props: {
   const shown = () => utilities() ? sections().length : components().length;
   const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length;
 
-  
   const byId = createMemo(
     () => new Map(components().map((page) => [page.id, page])),
   );
@@ -775,59 +466,26 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : [
-        ...CATEGORIES
-          .map((cat) => ({
-            label: cat.label,
-            rows: cat.members
-              .map((id) => byId().get(id))
-              .filter((page) => page !== undefined)
-              .map((page): RailRow => ({
-                id: page.id,
-                title: page.title,
-                ...(PRIMITIVE_ICONS[page.id] !== undefined
-                  ? { icon: PRIMITIVE_ICONS[page.id] as string }
-                  : { icon: "i-lucide-cog" }),
-              })),
-          }))
-          .filter((group) => group.rows.length > 0),
-        ...COMPONENT_GROUPS
-          .map((group) => ({
-            label: group.label,
-            rows: COMPONENTS
-              .filter((page) =>
-                (group.members as readonly string[]).includes(
-                  page.id.startsWith("component-")
-                    ? page.id.slice("component-".length)
-                    : page.id,
-                ) &&
-                page.title.toLowerCase().includes(
-                  props.query().trim().toLowerCase(),
-                )
-              )
-              .map((page) => ({
-                id: page.id,
-                title: page.title,
-                icon: COMPONENT_ICONS[page.id.startsWith("component-")
-                  ? page.id.slice("component-".length)
-                  : page.id] ?? "i-lucide-cog",
-              })),
-          }))
-          .filter((group) => group.rows.length > 0),
-      ].filter((group) => group.rows.length > 0)
+      : primitiveCategories
+        .map((cat) => ({
+          label: cat.label,
+          rows: primitiveElements
+            .filter((element) => element.category === cat.id)
+            .map((element) => byId().get(element.name))
+            .filter((page) => page !== undefined)
+            .map((page) => ({
+              id: page.id,
+              title: page.title,
+              icon: ICONS[page.id],
+            })),
+        }))
+        .filter((group) => group.rows.length > 0)
   );
 
   return (
     <nav class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col border-e border-solid border-border">
       <div class="shrink-0 px-4 pt-4 pb-3">
-        <AppHeader
-          theme={props.theme}
-          setTheme={props.setTheme}
-          mode={props.mode}
-          setMode={props.setMode}
-          want={props.want}
-          modes={props.modes}
-        />
+        <AppHeader state={props.state} />
         <div class={SEGMENT_GROUP}>
           <button
             type="button"
@@ -840,37 +498,55 @@ function Rail(props: {
           <button
             type="button"
             onClick={() => (location.hash = "#/components")}
-            aria-current={!utilities() || undefined}
+            aria-current={!utilities() && !montage() || undefined}
             class={SURFACE_LINK}
           >
             primitives
           </button>
+          <button
+            type="button"
+            onClick={() => (location.hash = `#${MONTAGE_ROUTE}`)}
+            aria-current={montage() || undefined}
+            class={SURFACE_LINK}
+          >
+            themes
+          </button>
         </div>
-        <label class={SEARCH_FIELD}>
-          <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
-          <input
-            type="search"
-            value={props.query()}
-            onInput={(event) => props.setQuery(event.currentTarget.value)}
-            aria-label="Filter the rail"
-            class={SEARCH_INPUT}
-          />
-        </label>
+        <Show when={!montage()}>
+          <label class={SEARCH_FIELD}>
+            <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+            <input
+              type="search"
+              value={props.query()}
+              onInput={(event) => props.setQuery(event.currentTarget.value)}
+              aria-label="Filter the rail"
+              class={SEARCH_INPUT}
+            />
+          </label>
+        </Show>
       </div>
       <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         <div class={RAIL_HEAD}>
-          <span>{utilities() ? "sections" : "components"}</span>
+          <span>
+            {montage() ? "themes" : utilities() ? "sections" : "components"}
+          </span>
           <span class="font-mono text-xs font-regular">
-            {needle() === "" ? `${total()}` : `${shown()} of ${total()}`}
+            {montage()
+              ? `${THEMES.length}`
+              : needle() === ""
+              ? `${total()}`
+              : `${shown()} of ${total()}`}
           </span>
         </div>
         <Show
-          when={groups().length > 0}
+          when={!montage() && groups().length > 0}
           fallback={
             <p class={RAIL_EMPTY}>
-              {`No ${
-                utilities() ? "section" : "component"
-              } matches “${props.query()}”.`}
+              {montage()
+                ? "Every starter theme, side by side. The page compares them."
+                : `No ${
+                  utilities() ? "section" : "component"
+                } matches “${props.query()}”.`}
             </p>
           }
         >
@@ -951,7 +627,7 @@ function routeSection(route: string): string {
 }
 
 export default function App() {
-  const { theme, setTheme, mode, setMode, want, modes } = useTheme();
+  const state = useTheme();
   const [query, setQuery] = createSignal("");
   const [route, setRoute] = createSignal(
     location.hash.slice(1) || "/components",
@@ -971,8 +647,9 @@ export default function App() {
   });
   const utilities = createMemo(() => route().startsWith("/utilities"));
   const sectionId = createMemo(() => routeSection(route()));
+  const montage = createMemo(() => route().startsWith(MONTAGE_ROUTE));
   const landing = createMemo(
-    () => primitiveId() === undefined && !utilities(),
+    () => primitiveId() === undefined && !utilities() && !montage(),
   );
 
   return (
@@ -991,12 +668,7 @@ export default function App() {
           query={query}
           setQuery={setQuery}
           catalog={catalog}
-          theme={theme}
-          setTheme={setTheme}
-          mode={mode}
-          setMode={setMode}
-          want={want}
-          modes={modes}
+          state={state}
         />
         <main class="min-w-0 flex-1 p-8 pb-16">
           <Show when={primitiveId()} keyed>
@@ -1009,6 +681,9 @@ export default function App() {
             <Show when={sectionId() !== ""} fallback={<UtilitiesLanding />}>
               <UtilitiesPage group={sectionId()} />
             </Show>
+          </Show>
+          <Show when={montage()}>
+            <MontagePage />
           </Show>
         </main>
       </div>

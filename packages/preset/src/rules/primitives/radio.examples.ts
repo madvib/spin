@@ -26,34 +26,34 @@ export const radioFixtureNote =
 export const RADIO_EXAMPLES: readonly RadioExample[] = [
   {
     name: "A group",
-    html: `        <div role="radiogroup" aria-label="Choice">
-          <label><input type="radio" name="choice" checked> First</label>
-          <label><input type="radio" name="choice"> Second</label>
-          <label><input type="radio" name="choice" disabled> Disabled</label>
+    html: `        <div role="radiogroup" aria-label="Target environment">
+          <label><input type="radio" name="choice" checked> production</label>
+          <label><input type="radio" name="choice"> staging</label>
+          <label><input type="radio" name="choice" disabled> preview</label>
         </div>`,
   },
   {
     name: "States",
     html: row(
-      `          <label><input type="radio" name="s" checked> Checked</label>
-          <label><input type="radio" name="s"> Unchecked</label>
-          <label><input type="radio" name="s" disabled> Disabled</label>`,
+      `          <label><input type="radio" name="s" checked> production</label>
+          <label><input type="radio" name="s"> staging</label>
+          <label><input type="radio" name="s" disabled> preview</label>`,
     ),
   },
   {
     name: "Stacked",
     html:
       `        <div role="radiogroup" aria-label="Stacked" class="flex flex-col items-start gap-2">
-          <label><input type="radio" name="stack" checked> First</label>
-          <label><input type="radio" name="stack"> Second</label>
-          <label><input type="radio" name="stack"> Third</label>
+          <label><input type="radio" name="stack" checked> production</label>
+          <label><input type="radio" name="stack"> staging</label>
+          <label><input type="radio" name="stack"> preview</label>
         </div>`,
   },
   {
     name: "Disabled",
     html: row(
-      `          <label><input type="radio" name="d" checked disabled> Disabled, checked</label>
-          <label><input type="radio" name="d" disabled> Disabled</label>`,
+      `          <label><input type="radio" name="d" checked disabled> production</label>
+          <label><input type="radio" name="d" disabled> staging</label>`,
     ),
   },
 ];

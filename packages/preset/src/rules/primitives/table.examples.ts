@@ -24,20 +24,20 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
   {
     name: "Figures align",
     html: `<table>
-          <caption>Q3 by region</caption>
+          <caption>Deploys by service, last 7 days</caption>
           <thead>
             <tr>
-              <th scope="col">Region</th>
-              <th scope="col">Units</th>
-              <th scope="col">Revenue</th>
+              <th scope="col">Service</th>
+              <th scope="col">Deploys</th>
+              <th scope="col">p95 (ms)</th>
               <th scope="col">Change</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>North</td><td>1,204</td><td>18,400</td><td>+12%</td></tr>
-            <tr><td>South</td><td>987</td><td>14,910</td><td>+4%</td></tr>
-            <tr><td>East</td><td>2,310</td><td>35,120</td><td>-3%</td></tr>
-            <tr><td>West</td><td>744</td><td>10,880</td><td>+21%</td></tr>
+            <tr><td>checkout-api</td><td>128</td><td>214</td><td>+12%</td></tr>
+            <tr><td>payments-worker</td><td>96</td><td>198</td><td>+4%</td></tr>
+            <tr><td>search-indexer</td><td>61</td><td>176</td><td>-3%</td></tr>
+            <tr><td>webhooks-relay</td><td>24</td><td>203</td><td>+21%</td></tr>
           </tbody>
         </table>`,
   },
@@ -46,16 +46,16 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
     html: `<div class="h-16 overflow-auto">
           <table>
             <thead>
-              <tr><th scope="col">Unit</th><th scope="col">ms</th></tr>
+              <tr><th scope="col">Stage</th><th scope="col">ms</th></tr>
             </thead>
             <tbody>
-              <tr><td>parse</td><td>2.1</td></tr>
-              <tr><td>resolve</td><td>0.8</td></tr>
-              <tr><td>generate</td><td>4.6</td></tr>
-              <tr><td>emit</td><td>1.2</td></tr>
-              <tr><td>link</td><td>9.3</td></tr>
-              <tr><td>minify</td><td>3.7</td></tr>
-              <tr><td>ship</td><td>0.4</td></tr>
+              <tr><td>build</td><td>18</td></tr>
+              <tr><td>test</td><td>42</td></tr>
+              <tr><td>push</td><td>7</td></tr>
+              <tr><td>canary</td><td>12</td></tr>
+              <tr><td>promote</td><td>3</td></tr>
+              <tr><td>verify</td><td>9</td></tr>
+              <tr><td>notify</td><td>1</td></tr>
             </tbody>
           </table>
         </div>`,
@@ -64,13 +64,13 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
     name: "Striped rows",
     html: `<table class="striped">
           <thead>
-            <tr><th scope="col">Region</th><th scope="col">Units</th></tr>
+            <tr><th scope="col">Service</th><th scope="col">Deploys</th></tr>
           </thead>
           <tbody>
-            <tr><td>North</td><td>1,204</td></tr>
-            <tr><td>South</td><td>987</td></tr>
-            <tr><td>East</td><td>2,310</td></tr>
-            <tr><td>West</td><td>744</td></tr>
+            <tr><td>checkout-api</td><td>128</td></tr>
+            <tr><td>payments-worker</td><td>96</td></tr>
+            <tr><td>search-indexer</td><td>61</td></tr>
+            <tr><td>webhooks-relay</td><td>24</td></tr>
           </tbody>
         </table>`,
   },

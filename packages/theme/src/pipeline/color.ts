@@ -79,7 +79,10 @@ export function parseColor(input: string): Rgb {
       r: clampByte(parseChannel(r)),
       g: clampByte(parseChannel(g)),
       b: clampByte(parseChannel(b)),
-      a: parts.length > 3 ? clampAlpha(parseChannel(parts[3] as string)) : 1,
+      // The alpha is an ALPHA, not a channel: CSS writes it as a fraction
+      // (`0.45`) or as a percentage (`45%`), and reading a percentage as a
+      // byte made every translucent colour opaque.
+      a: parts.length > 3 ? parseAlpha(parts[3], input) : 1,
     };
   }
 
@@ -237,6 +240,30 @@ export function isColor(input: unknown): input is string {
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * A colour as hex, whatever the document wrote.
+ *
+ * A theme may spell a colour `#1c62c2`, `oklch(55% 0.15 258)`,
+ * `rgb(28 98 194)` or `color(display-p3 …)`. An author who wants the value
+ * out of the tool wants the hex: it is the one spelling every stylesheet,
+ * every design tool and every message takes. So the conversion lives here,
+ * where the colour spaces are known, rather than in each consumer that
+ * needs a hex.
+ *
+ * `undefined` for a value that is not a colour: a reference the caller
+ * failed to resolve, a keyword, a number. Alpha is kept when the colour
+ * carries any, so a translucent token is `#rrggbbaa` rather than a hex that
+ * quietly dropped it.
+ */
+export function toHex(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    return formatHex(parseColor(value), true);
+  } catch {
+    return undefined;
   }
 }
 

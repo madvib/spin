@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { deriveRuleContract } from "./derive.ts";
 import { primitiveVariants } from "./manifest.ts";
 import { STAT_EXAMPLES } from "./stat.examples.ts";
 
@@ -32,6 +33,10 @@ describe("stat examples resolve", () => {
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
       const known = new Set([
         ...primitiveVariants(),
+        // The classes the RULES define, which is the vocabulary itself: the
+        // manifest is a checked-in copy of it, and a class a rule ships
+        // resolves whether or not that copy has been regenerated yet.
+        ...deriveRuleContract("stat").variants,
         ...Object.keys(STRUCTURAL),
       ]);
       for (const cls of classes) {

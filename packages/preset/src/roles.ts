@@ -4,10 +4,10 @@ import type { TokenTree } from "@spin/theme";
 /**
  * The roles a theme must declare: the base roles from `@spin/theme`.
  *
- * A component's character tokens are deliberately not among them. They are a
+ * A component's own tokens are deliberately not among them. They are a
  * customisation a theme opts into — the preflight emits whatever a document
  * declares — so a theme that declares no `button` group is complete and
- * valid, and a theme that wants to restyle a component's character says so
+ * valid, and a theme that wants to restyle a component's own tokens says so
  * in its own document.
  */
 export function requiredRolesFor(): string[] {

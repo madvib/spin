@@ -231,6 +231,14 @@
         "dark": "#475569"
       }
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(28 25 23 / 50%)",
+      "$description": "A modal closes over warm ink, the way the lights lower in a roastery rather than switching off.",
+      "$modes": {
+        "dark": "rgb(12 10 9 / 65%)"
+      }
+    },
     "on-semantic-error": {
       "$type": "color",
       "$value": "#ffffff",
@@ -245,6 +253,21 @@
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
       "$modes": {
         "dark": "#0b1120"
+      }
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: the ramp one step off the page, so a control that cannot be pressed still reads as a control.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. Dimming the control instead would dim this with it, which is how a dead button becomes an unreadable one.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
       }
     }
   },
@@ -503,17 +526,17 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. Unhurried, like a door with a good closer: nothing hurries, nothing jerks.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "200ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "320ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "560ms"
       }
     },
     "easing": {
@@ -522,7 +545,7 @@
         "$value": "linear"
       },
       "standard": {
-        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+        "$value": "cubic-bezier(0.22, 0.61, 0.36, 1)"
       },
       "decelerate": {
         "$value": "cubic-bezier(0, 0, 0, 1)"
@@ -534,7 +557,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -612,7 +635,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",

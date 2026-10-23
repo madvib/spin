@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { strict as assert } from "node:assert";
-import { chromium } from "npm:playwright-core";
+import { chromium } from "playwright-core";
 
 const SHELL =
   `${homedir()}/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell`;

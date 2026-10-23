@@ -8,7 +8,9 @@
     "./content": "./src/content.ts",
     "./rules/primitives/manifest.ts": "./src/rules/primitives/manifest.ts",
     "./rules/primitives/derive.ts": "./src/rules/primitives/derive.ts",
+    "./rules/primitives/examples-index.ts": "./src/rules/primitives/examples-index.ts",
     "./organization.ts": "./src/organization.ts",
+    "./primitives-procedures.ts": "./src/primitives-procedures.ts",
     "./reference/build.ts": "./src/reference/build.ts",
     "./reference/surface.ts": "./src/reference/surface.ts",
     "./reference/scale.ts": "./src/reference/scale.ts",
@@ -41,7 +43,6 @@
     "./rules/primitives/hr.examples.ts": "./src/rules/primitives/hr.examples.ts",
     "./rules/primitives/icon.examples.ts": "./src/rules/primitives/icon.examples.ts",
     "./rules/primitives/table.examples.ts": "./src/rules/primitives/table.examples.ts",
-    "./rules/primitives/tabs.examples.ts": "./src/rules/primitives/tabs.examples.ts",
     "./config": "./src/config.ts",
     "./solid": "./src/solid.d.ts"
   },

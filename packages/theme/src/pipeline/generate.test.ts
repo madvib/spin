@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { generateCss, generateThemeCss, generateTypes } from "./generate.ts";
 import { parseTokens } from "./parse.ts";
+import { silkTheme } from "../themes/index.ts";
 import type { TokenTree } from "./types.ts";
 
 interface CssBlock {
@@ -218,9 +219,12 @@ Deno.test("a token's per-mode values emit the same CSS as a dark group", () => {
   }
 });
 
-Deno.test("a boolean token emits its flag when on and nothing when off", () => {
-  // The flag is the whole mechanism: a rule asks whether the theme declared
-  // it, and a false flag is the same answer as no declaration at all.
+Deno.test("a boolean token emits its answer loudly: 1 when on, 0 when off", () => {
+  // The flag is a switch a rule reads through the sheet, and custom
+  // properties inherit: the boot deck's full token set stands at `:root`,
+  // so silence would inherit that deck's answer instead of carrying the
+  // no. A declared `false` is the deck's own answer — it projects `0` and
+  // overrides the inherited one. Only an UNdeclared flag is absent.
   const tree = treeOf(parseTokens({
     badge: {
       $type: "boolean",
@@ -229,8 +233,8 @@ Deno.test("a boolean token emits its flag when on and nothing when off", () => {
     },
   }));
   const css = generateCss(tree);
-  assert(css.includes("--badge-pill: 1;"), "a true flag emits 1");
-  assert(!css.includes("--badge-sharp"), "a false flag emits nothing at all");
+  assert(css.includes("--badge-pill: 1"), "a true flag emits 1");
+  assert(css.includes("--badge-sharp: 0"), "a false flag emits the no it gave");
 });
 
 Deno.test("generateCss honours a custom prefix on every property name", () => {
@@ -276,6 +280,50 @@ Deno.test("generateCss gives the dark block the same property names as the base 
       `"${property}" only exists in the dark block, so it would not override anything`,
     );
   }
+});
+
+Deno.test("a token's light value lands in the light block, and the base keeps its own", () => {
+  // The light mode is the other side of the same axis as the dark one: a
+  // theme whose own face is its dark face restates its light mode the same
+  // way, and the restatement lands in its own block rather than over the
+  // base.
+  const doc = {
+    color: {
+      $type: "color",
+      brand: { $value: "#101820", $modes: { light: "#f8f8ff" } },
+      accent: { $value: "#00a0ff" },
+    },
+  };
+  const css = generateCss(treeOf(parseTokens(JSON.stringify(doc))));
+
+  assertEquals(
+    blockWithSelector(css, ":root").declarations["--color-brand"],
+    "#101820",
+  );
+  assertEquals(
+    blockWithSelector(css, ':root[data-mode="light"]').declarations[
+      "--color-brand"
+    ],
+    "#f8f8ff",
+  );
+  // A token the light mode does not restate is not restated: the block
+  // carries only what the mode says, and the base answers the rest.
+  assertEquals(
+    blockWithSelector(css, ':root[data-mode="light"]').declarations[
+      "--color-accent"
+    ],
+    undefined,
+  );
+});
+
+Deno.test("a document with no light restatement ships no light block", () => {
+  // A block nobody asked for is a block that can disagree with the base.
+  const css = generateCss(LIGHT);
+
+  assertEquals(
+    blocks(css).some((block) => block.selector.includes('data-mode="light"')),
+    false,
+  );
 });
 
 Deno.test("generateCss emits an alias token as a reference to its target variable", () => {
@@ -432,4 +480,33 @@ Deno.test("every shipped theme declares the whole spacing scale", () => {
     const missing = REQUIRED.filter((step) => !declared.includes(step));
     assertEquals(missing, [], `${name} is missing spacing steps`);
   }
+});
+
+Deno.test("a theme in force beats the root theme's dark block", () => {
+  // The bug this covers: the root theme's dark block was `:root[data-mode="dark"]`
+  // — a pseudo-class and an attribute — while a project's theme block was a bare
+  // `[data-theme="x"]`. The dark block won, so a project theme rendered the
+  // starter's palette in dark mode, and the rule "a mode you serve but do not
+  // override falls back to your base" was false for every theme but the first.
+  const starter = parseTokens(silkTheme);
+  assert(starter.ok);
+  const css = generateThemeCss(
+    { starter: starter.tree, project: starter.tree },
+    { rootTheme: "starter" },
+  );
+
+  // The root theme's blocks are defaults: no specificity of their own, so any
+  // theme in force beats them.
+  assert(
+    css.includes(":where(:root) {") &&
+      css.includes(':where(:root[data-mode="dark"]) {'),
+    "the root theme's blocks carry no specificity",
+  );
+  // A project's own block is a bare attribute selector, and it is written after
+  // the defaults, so a token both declare resolves to the project's.
+  assert(
+    css.includes('[data-theme="project"] {') &&
+      css.indexOf('[data-theme="project"] {') > css.indexOf(":where(:root) {"),
+    "a theme in force is written after the defaults",
+  );
 });

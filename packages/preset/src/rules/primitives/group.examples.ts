@@ -30,9 +30,9 @@ export const GROUP_EXAMPLES: readonly GroupExample[] = [
     name: "Joined",
     html: row(
       `          <span role="group">
-            <button>First</button>
-            <button class="secondary">Second</button>
-            <button class="secondary">Third</button>
+            <button>All</button>
+            <button class="secondary">Running</button>
+            <button class="secondary">Failed</button>
           </span>`,
     ),
   },
@@ -40,11 +40,11 @@ export const GROUP_EXAMPLES: readonly GroupExample[] = [
     name: "A wrapping group opts out of the seam",
     html: row(
       `          <span role="group" data-wrap>
-            <button>One</button>
-            <button class="secondary">Two</button>
-            <button class="secondary">Three</button>
-            <button class="secondary">Four</button>
-            <button class="secondary">Five</button>
+            <button>All</button>
+            <button class="secondary">production</button>
+            <button class="secondary">staging</button>
+            <button class="secondary">preview</button>
+            <button class="secondary">paused</button>
           </span>`,
     ),
   },

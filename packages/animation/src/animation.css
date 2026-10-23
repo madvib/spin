@@ -23,7 +23,13 @@
  * Theming:
  *   spent bindings  `--motion-duration-*` and `--motion-easing-*`. No token is
  *                   minted: a theme moves every animation by moving the scale.
- *   character       None. Motion is not a decision a theme gets to author per
+ *                   The endless utilities spend the LOOP step
+ *                   (`--motion-duration-loop`), because a loop is watched
+ *                   rather than reacted to and a theme that wants a slow
+ *                   pulse should not have to make its slowest transition
+ *                   slow; a theme that declares no loop falls back to its
+ *                   slowest transition.
+ *   component       None. Motion is not a decision a theme gets to author per
  *                   component — it is one feel, expressed once.
  *
  * States: none. These run, they do not respond.
@@ -87,18 +93,18 @@
 /* ---------- utilities ---------- */
 
 .animate-spin {
-  animation: spin var(--motion-duration-slow) var(--motion-easing-linear)
-    infinite;
+  animation: spin var(--motion-duration-loop, var(--motion-duration-slow))
+    var(--motion-easing-linear) infinite;
 }
 
 .animate-ping {
-  animation: ping var(--motion-duration-slow) var(--motion-easing-linear)
-    infinite;
+  animation: ping var(--motion-duration-loop, var(--motion-duration-slow))
+    var(--motion-easing-linear) infinite;
 }
 
 .animate-pulse {
-  animation: pulse var(--motion-duration-slow) var(--motion-easing-standard)
-    infinite;
+  animation: pulse var(--motion-duration-loop, var(--motion-duration-slow))
+    var(--motion-easing-standard) infinite;
 }
 
 .animate-fade-in {

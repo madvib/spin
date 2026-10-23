@@ -20,7 +20,7 @@ import {
  */
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/default.json",
+  "../../theme/src/themes/silk.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
@@ -173,11 +173,11 @@ Deno.test("the scaffold assembles without any scale", async () => {
   );
 });
 
-Deno.test("character tokens are optional, so requiring them narrows nothing", () => {
+Deno.test("component tokens are optional, so requiring them narrows nothing", () => {
   const roles = requiredRolesFor();
   assert(
     !roles.some((role) => role.startsWith("button.")),
-    "a component's character is a customisation, not a requirement",
+    "a component's own tokens are a customisation, not a requirement",
   );
   assert(roles.includes("color.primary"), "the base roles are still required");
 });
@@ -186,7 +186,10 @@ Deno.test("a theme's tokens and extensions come from one parse", () => {
   const parsed = parseDocument(theme);
   assert(parsed.ok, `the example parses: ${JSON.stringify(parsed)}`);
   const spin = parsed.extensions["spin"] as Record<string, unknown>;
-  assertEquals(spin?.["id"], "spin-light");
+  // The extension the system reads is the fonts: the faces a theme declares
+  // are the faces the sheet loads.
+  const fonts = spin?.["fonts"] as { family?: string }[] | undefined;
+  assertEquals(fonts?.[0]?.family, "Inter");
   const css = generateCss(parsed.tree);
   assert(css.includes("--color-primary"), "the tree emits its variables");
 });

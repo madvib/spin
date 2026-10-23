@@ -1,17 +1,17 @@
 import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
-import type { ThemeRef, ThemeRefGroup } from "@spin/theme";
-import { extendedTheme, lengthOf, type ThemeContext } from "./lookup.ts";
+import type { ThemeRef } from "@spin/theme";
+import { named, namesIn, type ThemeContext } from "./lookup.ts";
+import { carriesRawColor } from "./color.ts";
 
 /**
- * An alternation of a group's names, for autocomplete templates.
+ * An alternation of a family's names, for autocomplete templates.
  *
- * Read from the same theme object the rules resolve against, so a suggestion
- * can never name something the theme does not carry.
+ * Read from the same map the rules resolve against, so a suggestion can never
+ * name something the theme does not carry.
  */
-export function orGroup(theme: ThemeRef, group: string): string {
-  const entries = (theme[group] ?? {}) as ThemeRefGroup;
-  return "(" + Object.keys(entries).join("|") + ")";
+export function orGroup(theme: ThemeRef, family: string): string {
+  return "(" + namesIn(theme, family).join("|") + ")";
 }
 
 export function staticRules(
@@ -30,9 +30,9 @@ export function spacingRule(
 ): Rule {
   return [
     pattern,
-    ([, name = ""]: string[], ctx?: ThemeContext) => {
-      const ref = lengthOf(ctx, name);
-      if (ref === undefined) return undefined;
+    ([, name]: string[], ctx?: ThemeContext) => {
+      const ref = named(ctx, "spacing", name);
+      if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },
     { autocomplete },
@@ -145,6 +145,13 @@ export function arbitraryValue(name: string): string | undefined {
   if (wrapped === null) return undefined;
   const source = (wrapped[1] as string).replace(/_/g, " ").trim();
   if (source === "") return undefined;
+  // A raw colour is a design decision, and a design decision in this system
+  // is a TOKEN. The hatch is for numbers — a length, a percentage, a time,
+  // an expression of those — and a colour is not one of them: it belongs to
+  // the theme's palette. So the hatch refuses it, and the class that
+  // carried it is DEAD ON ARRIVAL: it produces no CSS at all, and the
+  // ordinary vocabulary rule catches it the way it catches a typo.
+  if (carriesRawColor(source)) return undefined;
   // A fraction is the scale's own vocabulary spelled inside brackets, so it
   // resolves through the same table `w-1/2` reads rather than emitting `1/2`,
   // which is not a width.
@@ -170,19 +177,19 @@ export function insetRule(
 ): Rule {
   return [
     pattern,
-    ([, name = ""]: string[], ctx?: ThemeContext) => {
-      // The ONE place a hardcoded literal is correct. Every other value an
-      // inset resolves is a theme token — spacing, a fraction, a keyword — and
-      // one the theme does not carry means the rule omits itself. An arbitrary
-      // value is the CALLER supplying the number, which is the escape hatch's
-      // entire purpose, so it is emitted as written or not at all.
+    ([, name]: string[], ctx?: ThemeContext) => {
+      // The ONE place a hardcoded literal is correct. Every other value the
+      // inset resolves is a theme token — spacing, a fraction, a keyword —
+      // and one the theme does not carry means the rule omits itself. An
+      // arbitrary value is the CALLER supplying the number, which is the
+      // escape hatch's entire purpose, so it is emitted as written or not at
+      // all.
       const literal = arbitraryValue(name);
       if (literal !== undefined) {
         return Object.fromEntries(props.map((prop) => [prop, literal]));
       }
-      const token = lengthOf(ctx, name);
-      const ref = token ? token : FRACTIONS[name] ?? INSET_KEYWORDS[name] ??
-        extendedTheme(ctx, ["spacing"], name);
+      const ref = named(ctx, "spacing", name) ?? FRACTIONS[name] ??
+        INSET_KEYWORDS[name];
       if (!ref) return undefined;
       return Object.fromEntries(props.map((prop) => [prop, ref]));
     },

@@ -3,7 +3,8 @@
  *
  * Each entry below carries everything a role is: the path that names it, the
  * type it must have, the value a scaffold writes for it, the documentation an
- * editor shows, and the contrast floor it owes. Everything else derives:
+ * editor shows, and the contrast floors it owes — one, or more where a role is
+ * read against more than one surface. Everything else derives:
  * `requiredPaths()` for validation, `themeSchema()` for the JSON Schema, and
  * `scaffoldTheme()` for a minimal document.
  */
@@ -12,6 +13,9 @@ import { Type } from "@sinclair/typebox";
 import type { TSchema } from "@sinclair/typebox";
 import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
+import { ELEMENT_ROLES } from "./elements.ts";
+import { ELEMENT_TYPE_ROLES } from "./typography.ts";
+import type { ElementTypeDeclaration } from "./typography.ts";
 
 /** A contrast requirement between two roles, in WCAG terms. */
 export interface LegibilityFloor {
@@ -29,44 +33,98 @@ export interface RoleDeclaration {
   /** What a scaffold writes. Valid, legible, and obviously unfinished. */
   readonly value: string;
   readonly doc: string;
+  /**
+   * Every contrast floor this role owes.
+   *
+   * More than one, because a role is read against more than one surface: body
+   * ink is read on the page AND on the raised sheet above it, and the floor
+   * that holds it there is the same promise asked twice. A role with no floors
+   * owes none.
+   */
+  readonly floors?: readonly LegibilityFloor[];
+  /**
+   * The role's headline floor: the first of the floors it owes.
+   *
+   * Derived from `floors`, so the two cannot disagree, and kept because it is
+   * the one a reader asks for — "what does this role owe?".
+   */
   readonly floor?: LegibilityFloor;
 }
 
-const SURFACE: LegibilityFloor = {
+/** Body ink on the page. */
+const TEXT_ON_SURFACE: LegibilityFloor = {
   fg: "color.text",
   bg: "color.surface",
   min: 4.5,
 };
-const MUTED: LegibilityFloor = {
+/**
+ * Body ink on the raised sheet above the page.
+ *
+ * The same promise asked again: a card is a surface the reader reads on, and
+ * a theme whose ink holds on the page but not on the card has a card nobody
+ * can read.
+ */
+const TEXT_ON_RAISED: LegibilityFloor = {
+  fg: "color.text",
+  bg: "color.surface-raised",
+  min: 4.5,
+};
+/** The second voice on the page. */
+const MUTED_ON_SURFACE: LegibilityFloor = {
   fg: "color.text-muted",
   bg: "color.surface",
   min: 3,
 };
-const INDICATOR: LegibilityFloor = {
-  fg: "color.semantic.error",
-  bg: "color.surface",
+/** The second voice on the raised sheet above the page. */
+const MUTED_ON_RAISED: LegibilityFloor = {
+  fg: "color.text-muted",
+  bg: "color.surface-raised",
   min: 3,
 };
+
+/**
+ * A status colour on the page.
+ *
+ * The floor is the TEXT one, not the non-text one, because a status colour is
+ * worn as ink as often as it is worn as a fill: an error message in the
+ * prose, a warning beside a field, a success beside a number. Read as a
+ * slab on the page it only has to be visible; read as a word it has to be
+ * legible, so it owes four and a half to one.
+ */
+function statusFloor(name: string): LegibilityFloor {
+  return { fg: `color.semantic.${name}`, bg: "color.surface", min: 4.5 };
+}
+
+/**
+ * The ink on a fill, and the floor that holds it there.
+ *
+ * Both sides are dotted paths under `color`: the ink is a role of its own
+ * (`on-semantic-error`) and the fill is the token it sits on
+ * (`semantic.error`).
+ */
+function inkFloor(ink: string, fill: string): LegibilityFloor {
+  return { fg: `color.${ink}`, bg: `color.${fill}`, min: 4.5 };
+}
 
 /**
  * Roles a theme must declare regardless of which components it enables: the
  * palette, the contrast floors that make a palette usable, and the focus ring
  * every interactive element shares.
  */
-export const BASE_ROLES: readonly RoleDeclaration[] = [
+const DECLARED_ROLES: readonly Omit<RoleDeclaration, "floor">[] = [
   {
     path: "color.text",
     type: "color",
     value: "#111111",
     doc: "Default body text.",
-    floor: SURFACE,
+    floors: [TEXT_ON_SURFACE, TEXT_ON_RAISED],
   },
   {
     path: "color.text-muted",
     type: "color",
     value: "#555555",
     doc: "Secondary text.",
-    floor: MUTED,
+    floors: [MUTED_ON_SURFACE, MUTED_ON_RAISED],
   },
   {
     path: "color.surface",
@@ -94,51 +152,55 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     // A filled button is the densest text-on-color pairing in the system and
     // the one most often authored wrong: a bright primary needs a dark
     // foreground, a near-black primary needs a light one.
-    floor: {
-      fg: "color.on-primary",
-      bg: "color.primary",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-primary", "primary")],
   },
   {
     path: "color.secondary",
     type: "color",
     value: "#444444",
     doc: "Secondary actions.",
+    // The secondary fill is a fill like any other, and the badge spends it as
+    // a pill with a word on it. Without an ink of its own the label is
+    // whatever the browser paints.
+    floors: [inkFloor("on-secondary", "secondary")],
   },
   {
     path: "color.accent",
     type: "color",
     value: "#555555",
     doc: "Supporting emphasis.",
+    // The accent fill is the badge's third tone and the one most often left
+    // to chance: an accent is a bright colour by definition, and a bright
+    // fill with the wrong ink is a badge nobody can read.
+    floors: [inkFloor("on-accent", "accent")],
   },
   {
     path: "color.semantic.success",
     type: "color",
     value: "#1a7f37",
     doc: "Success status.",
-    floor: INDICATOR,
+    floors: [statusFloor("success")],
   },
   {
     path: "color.semantic.warning",
     type: "color",
     value: "#9a6700",
     doc: "Warning status.",
-    floor: { ...INDICATOR, fg: "color.semantic.warning" },
+    floors: [statusFloor("warning")],
   },
   {
     path: "color.semantic.error",
     type: "color",
     value: "#b42318",
     doc: "Error status.",
-    floor: INDICATOR,
+    floors: [statusFloor("error")],
   },
   {
     path: "color.semantic.info",
     type: "color",
     value: "#175cd3",
     doc: "Info status.",
-    floor: { ...INDICATOR, fg: "color.semantic.info" },
+    floors: [statusFloor("info")],
   },
   {
     path: "color.on-primary",
@@ -147,20 +209,79 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     doc: "Text on a primary fill.",
   },
   {
+    path: "color.on-secondary",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a secondary fill.",
+  },
+  {
+    path: "color.on-accent",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on an accent fill.",
+  },
+  {
     // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
     // second `on-danger` for the same red made two answers to one question
-    // while the starters disagreed on which was right. `color.on-danger` is
-    // therefore a legacy alias a theme may keep declaring; the domain's
-    // answer for "what goes on this fill?" is the `on-semantic-*` step.
+    // while the starters disagreed on which was right. The danger button and
+    // the danger badge spend THIS role, so the ink a scaffold writes is the
+    // ink the surfaces wear. `color.on-danger` is a legacy alias a theme may
+    // keep declaring; nothing reads it.
     path: "color.on-semantic-error",
     type: "color",
     value: "#ffffff",
     doc: "Text on an error fill.",
-    floor: {
-      fg: "color.on-semantic-error",
-      bg: "color.semantic.error",
-      min: 4.5,
-    },
+    floors: [inkFloor("on-semantic-error", "semantic.error")],
+  },
+  {
+    // The ink on the success fill, and the floor that holds it there.
+    //
+    // The badge spends this pairing: a success badge is a filled pill with a
+    // word on it, and the word is unreadable if the ink is not chosen for the
+    // fill. A theme that pairs the ink loosely ships a badge nobody can read,
+    // and the floor is what says so before the badge is drawn.
+    path: "color.on-semantic-success",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a success fill.",
+    floors: [inkFloor("on-semantic-success", "semantic.success")],
+  },
+  {
+    // The ink on the warning fill. A warning is the one badge whose fill is
+    // usually the palest in the palette, so it is the one whose ink is
+    // usually chosen wrong: white on a pale amber measures under 2:1.
+    path: "color.on-semantic-warning",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a warning fill.",
+    floors: [inkFloor("on-semantic-warning", "semantic.warning")],
+  },
+  {
+    // The ink on the info fill.
+    path: "color.on-semantic-info",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on an info fill.",
+    floors: [inkFloor("on-semantic-info", "semantic.info")],
+  },
+  {
+    // The fill a dead control wears, and the ink that reads on it. A
+    // disabled control is not a dimmer control: dimming spends opacity on
+    // the WHOLE element, so the ink dims with the fill and a white label on
+    // a blue button lands at 1.56:1 — a button nobody can read. The pair
+    // keeps a dead control legible, which is the whole point of pairing
+    // every fill with an ink.
+    path: "color.disabled",
+    type: "color",
+    value: "#e0e0e0",
+    doc: "The fill a dead control wears.",
+    floors: [inkFloor("on-disabled", "disabled")],
+  },
+  {
+    path: "color.on-disabled",
+    type: "color",
+    value: "#3a3a3a",
+    doc: "The ink on a dead control's fill.",
   },
   {
     // Non-text indicator, so it needs the 3:1 floor rather than the text floor
@@ -169,7 +290,7 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#333333",
     doc: "Focus indicator.",
-    floor: { fg: "color.focus-ring", bg: "color.surface", min: 3 },
+    floors: [{ fg: "color.focus-ring", bg: "color.surface", min: 3 }],
   },
   {
     // A control's fill color is not a usable link color: a theme whose primary
@@ -179,6 +300,9 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
     type: "color",
     value: "#175cd3",
     doc: "Prose links.",
+    // The role's warning made mechanical: a link that cannot be read on the
+    // page it sits on fails validation like any other text.
+    floors: [{ fg: "color.link", bg: "color.surface", min: 4.5 }],
   },
   {
     path: "font.family.sans",
@@ -202,14 +326,35 @@ export const BASE_ROLES: readonly RoleDeclaration[] = [
   },
 ];
 
+/**
+ * The roles a theme must declare, each with its headline floor derived from
+ * the floors it owes.
+ *
+ * The floor is derived rather than written twice, so the list and the headline
+ * cannot drift apart: a role that owes two floors has a headline, and a role
+ * that owes none has none.
+ */
+export const BASE_ROLES: readonly RoleDeclaration[] = DECLARED_ROLES.map(
+  (role) => ({
+    ...role,
+    ...(role.floors?.[0] === undefined ? {} : { floor: role.floors[0] }),
+  }),
+);
 /** The paths every theme must declare. */
 export function requiredPaths(): readonly string[] {
   return BASE_ROLES.map((role) => role.path);
 }
 
-/** The contrast floors, attached to the roles that owe them. */
+/**
+ * The contrast floors, attached to the roles that owe them.
+ *
+ * A role owes every floor it declares: the ink on a fill, the body ink on
+ * the page AND on the raised sheet above it. The list is flat because the
+ * gate asks one question of one pair at a time — "does this foreground hold
+ * on this background?" — and a role that owes two answers is two answers.
+ */
 export function legibilityFloors(): LegibilityFloor[] {
-  return BASE_ROLES.flatMap((role) => (role.floor ? [role.floor] : []));
+  return BASE_ROLES.flatMap((role) => [...(role.floors ?? [])]);
 }
 
 /**
@@ -244,14 +389,14 @@ const TokenTypeSchema = Type.Union(
 );
 
 /** One declared token: a value, optionally typed at the group level. */
-function leafSchema(role: RoleDeclaration) {
+function leafSchema(doc: string) {
   return Type.Object(
     {
       $value: Type.Unknown(),
       $type: Type.Optional(TokenTypeSchema),
       $description: Type.Optional(Type.String()),
     },
-    { additionalProperties: true, description: role.doc },
+    { additionalProperties: true, description: doc },
   );
 }
 
@@ -266,8 +411,42 @@ function leafSchema(role: RoleDeclaration) {
  */
 export function themeSchema(): Record<string, unknown> {
   const properties: Record<string, TSchema> = {};
-  for (const [group, paths] of Object.entries(groupedPaths())) {
-    properties[group] = groupSchema(paths);
+  // The groups, each carrying the paths it holds and which of them a theme
+  // must declare. The three lists are gathered together because a group can
+  // hold more than one kind of token: `font` carries the base face AND the
+  // per-element typography, and a group written twice would leave the second
+  // writing over the first.
+  const groups = new Map<string, { paths: string[]; required: Set<string> }>();
+  const gather = (group: string, path: string, required: boolean): void => {
+    const entry = groups.get(group) ??
+      { paths: [], required: new Set<string>() };
+    entry.paths.push(path);
+    if (required) entry.required.add(path);
+    groups.set(group, entry);
+  };
+  for (const role of BASE_ROLES) {
+    gather(role.path.split(".")[0] as string, role.path, true);
+  }
+  // The per-element groups are known to the contract, so the schema says what
+  // they hold — but they are OPTIONAL: a theme that declares none of them is
+  // complete, and the rules fall back to the shared scales. What the schema
+  // must not do is require a group nothing demands, or make a theme that
+  // omits one invalid for the sake of a decision it never made.
+  for (const role of ELEMENT_ROLES) gather(role.group, role.path, false);
+  // The per-element typography is optional for the same reason: a theme that
+  // says nothing about a heading gets the system's answer.
+  for (const role of ELEMENT_TYPE_ROLES) {
+    gather(role.path.split(".")[0] as string, role.path, false);
+  }
+  for (const [group, entry] of groups) {
+    const schema = groupSchema(entry.paths, entry.required);
+    // A group a theme does not have to declare is OPTIONAL in the schema:
+    // the per-element groups and the per-element typography are decisions a
+    // theme MAY make, and a document that omits them is complete. Saying
+    // otherwise would make a scaffolded theme — which carries neither — fail
+    // the schema that describes it.
+    const must = entry.paths.some((path) => entry.required.has(path));
+    properties[group] = must ? schema : Type.Optional(schema);
   }
   // `modes` is document metadata, not a token: it sits at the root beside
   // the groups and no emitter reads it. `additionalProperties` would already
@@ -275,7 +454,8 @@ export function themeSchema(): Record<string, unknown> {
   // listed — and constrained to the two modes the pipeline understands.
   properties["modes"] = Type.Optional(
     Type.Array(Type.Union([Type.Literal("light"), Type.Literal("dark")]), {
-      description: "The modes this theme serves.",
+      description:
+        "The modes this theme serves. A mode the theme serves but does not override falls back to the base values.",
     }),
   );
   return {
@@ -286,43 +466,72 @@ export function themeSchema(): Record<string, unknown> {
   };
 }
 
-/** Role paths grouped by their top-level token group. */
-function groupedPaths(): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const role of BASE_ROLES) {
-    const group = role.path.split(".")[0] as string;
-    (out[group] ??= []).push(role.path);
-  }
-  return out;
-}
-
 /**
  * A group before conversion: either a nested group or a finished leaf.
  *
  * Building the nested shape first and converting once at the end keeps every
  * step typed — an accumulator of `TSchema` means the leaves are known to be
  * schemas and the compiler checks the assembly.
+ *
+ * A nested group carries whether a theme MUST declare it: a group that holds
+ * a required role is required, and a group that holds only optional ones is
+ * not. The same rule decides the leaves, so the two cannot disagree.
  */
-type GroupShape = { [segment: string]: TSchema | GroupShape };
+interface ShapeGroup {
+  /** Whether the group must be declared. */
+  readonly required: boolean;
+  readonly children: GroupShape;
+}
+
+type GroupShape = { [segment: string]: TSchema | ShapeGroup };
 
 /** The nested schema for one token group, built from its role paths. */
-function groupSchema(paths: string[]): TSchema {
+function groupSchema(
+  paths: string[],
+  required: ReadonlySet<string>,
+): TSchema {
   const byRole = new Map(BASE_ROLES.map((role) => [role.path, role]));
+  const byElement = new Map(ELEMENT_ROLES.map((role) => [role.path, role]));
+  const byType = new Map<string, ElementTypeDeclaration>(
+    ELEMENT_TYPE_ROLES.map((role) => [role.path, role]),
+  );
+  // Which groups hold a required role: a group a theme must declare is the
+  // one with something required under it.
+  const holds = new Map<string, boolean>();
+  for (const path of paths) {
+    const segments = path.split(".");
+    for (let depth = 1; depth < segments.length; depth++) {
+      const prefix = segments.slice(0, depth).join(".");
+      holds.set(
+        prefix,
+        (holds.get(prefix) ?? false) || required.has(path),
+      );
+    }
+  }
   const shape: GroupShape = {};
   for (const path of paths) {
     const segments = path.split(".");
     let level = shape;
-    for (const segment of segments.slice(1, -1)) {
+    for (let depth = 1; depth < segments.length - 1; depth++) {
+      const segment = segments[depth] as string;
+      const prefix = segments.slice(0, depth + 1).join(".");
       const child = level[segment];
-      level = typeof child === "object" && child !== null &&
-          !("type" in child)
-        ? child as GroupShape
-        : (level[segment] = {}) as GroupShape;
+      level = typeof child === "object" && child !== null && !isLeaf(child)
+        ? (child as ShapeGroup).children
+        : (level[segment] = {
+          required: holds.get(prefix) ?? false,
+          children: {},
+        }).children;
     }
     const role = byRole.get(path);
-    if (role) {
-      level[segments[segments.length - 1] as string] = leafSchema(role);
-    }
+    const element = byElement.get(path);
+    const type = byType.get(path);
+    const doc = role?.doc ?? element?.doc ?? type?.doc;
+    if (doc === undefined) continue;
+    const leaf = leafSchema(doc);
+    level[segments[segments.length - 1] as string] = required.has(path)
+      ? leaf
+      : Type.Optional(leaf);
   }
   return toSchema(shape);
 }
@@ -333,12 +542,19 @@ function toSchema(shape: GroupShape): TSchema {
   for (const [key, value] of Object.entries(shape)) {
     // A leaf already carries its schema; anything without a `type` is a group
     // that still needs converting.
-    properties[key] = isLeaf(value) ? value : toSchema(value as GroupShape);
+    if (isLeaf(value)) {
+      properties[key] = value;
+      continue;
+    }
+    const group = toSchema((value as ShapeGroup).children);
+    properties[key] = (value as ShapeGroup).required
+      ? group
+      : Type.Optional(group);
   }
   return Type.Object(properties, { additionalProperties: true });
 }
 
 /** True when a value is a finished schema rather than an unconverted group. */
-function isLeaf(value: TSchema | GroupShape): value is TSchema {
+function isLeaf(value: TSchema | ShapeGroup): value is TSchema {
   return typeof value === "object" && value !== null && "type" in value;
 }

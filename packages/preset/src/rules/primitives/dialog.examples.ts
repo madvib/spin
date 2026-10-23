@@ -38,20 +38,27 @@ const close =
 export const dialogFixtureNote =
   "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
+/**
+ * `data-open="id"` names the dialog a row opens; a native dialog only opens
+ * from `showModal()`, so the fixture ships the line that calls it.
+ */
+export const dialogOnLoad =
+  "document.querySelectorAll('[data-open]').forEach((el) => el.addEventListener('click', () => document.querySelector('#' + el.dataset.open)?.showModal()));";
+
 export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {
     name: "Modal",
     html: row(
-      `          <button data-open="confirm">Open a dialog</button>
+      `          <button data-open="confirm">Roll back</button>
           <dialog id="confirm">
             <header>
-              <h2>Delete this file?</h2>
+              <h2>Roll back to v4.11.2?</h2>
               ${close}
             </header>
-            <p>The file and its history will be removed. This cannot be undone.</p>
+            <p>Traffic returns to the previous release within 90 seconds. Deploy #4821 stays in the history.</p>
             <footer>
               <button class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
-              <button class="danger">Delete</button>
+              <button class="danger">Roll back</button>
             </footer>
           </dialog>`,
     ),
@@ -59,34 +66,34 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {
     name: "Without a footer",
     html: row(
-      `          <button data-open="info">Open a dialog</button>
+      `          <button data-open="info">Details</button>
           <dialog id="info">
             <header>
-              <h2>About this file</h2>
+              <h2>About checkout-api</h2>
               ${close}
             </header>
-            <p>This file was created on 2024-01-15 and last modified on 2024-03-22.</p>
+            <p>The service was created on 15 March 2024 and last deployed on 19 October 2026 at 09:14 UTC.</p>
           </dialog>`,
     ),
   },
   {
     name: "With a form",
     html: row(
-      `          <button data-open="rename">Rename</button>
+      `          <button data-open="rename">Rename service</button>
           <dialog id="rename">
             <header>
-              <h2>Rename file</h2>
+              <h2>Rename service</h2>
               ${close}
             </header>
             <form>
               <label>
-                Name
-                <input type="text" value="document.txt" />
+                Service name
+                <input type="text" value="checkout-api" />
               </label>
             </form>
             <footer>
               <button class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
-              <button class="secondary">Rename</button>
+              <button class="secondary">Save</button>
             </footer>
           </dialog>`,
     ),

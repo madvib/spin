@@ -11,7 +11,7 @@ import {
   generateThemeCss,
   generateTypes,
 } from "../pipeline/generate.ts";
-import { parseTokens } from "../pipeline/parse.ts";
+import { parseDocument, parseTokens } from "../pipeline/parse.ts";
 import {
   removeToken,
   renameToken,
@@ -21,23 +21,38 @@ import {
 import type { MutationResult } from "../authoring/mutate.ts";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
 import { requiredPaths } from "./roles.ts";
-import { validateLegibility } from "./schema.ts";
-import { validateTokens } from "../pipeline/validate.ts";
+import type { Mode } from "../modes.ts";
 import type { TokenTree } from "../pipeline/types.ts";
 import { themeContract } from "./contract.ts";
+import { validateTheme } from "./validate-theme.ts";
 
 const os = implement(themeContract);
 
-function analyze(text: string, required?: readonly string[]) {
-  const parsed = parseTokens(text);
-  if (!parsed.ok) return { error: parsed.error, issues: [], tree: null };
-  const report = validateTokens(parsed.tree, {
+/**
+ * The daemon's answer to "what is wrong with this theme?".
+ *
+ * The judgement is the module's: `validateTheme` owns the required roles, the
+ * value rules and the contrast floors, so the daemon and the studio that
+ * asks it in the browser cannot answer differently. What the handler adds is
+ * the claim: the modes the document serves are its own (the root `modes`
+ * field), a caller may state them instead, and a caller that says nothing
+ * gets the document's answer.
+ */
+function analyze(
+  text: string,
+  required?: readonly string[],
+  modes?: readonly Mode[],
+) {
+  const declared = parseDocument(text);
+  const served = modes ?? (declared.ok ? declared.modes : undefined) ?? [];
+  const report = validateTheme(text, {
     required: required ?? requiredPaths(),
+    modes: served,
   });
   return {
-    error: null,
-    issues: [...report.issues, ...validateLegibility(parsed.tree)],
-    tree: parsed.tree,
+    error: report.error ?? null,
+    issues: [...report.issues],
+    tree: report.tree ?? null,
   };
 }
 
@@ -46,21 +61,23 @@ function mutate(
   op: (tree: TokenTree) => MutationResult,
 ) {
   const parsed = parseTokens(text);
-  if (!parsed.ok) return { error: parsed.error, text: null };
+  if (!parsed.ok) return { error: parsed.error, code: null, text: null };
   const result = op(parsed.tree);
-  // A refusal carries its code and path; the wire shape is still one string so
-  // the contract stays stable, and the code is what a client should branch on.
+  // The refusal carries its code, path and detail; the wire keeps all three
+  // now — an agent branches on the code, and `error` stays the sentence a
+  // studio renders.
   if (!result.ok) {
     return {
       error: result.path ? `${result.path}: ${result.detail}` : result.detail,
+      code: result.code,
       text: null,
     };
   }
-  return { error: null, text: treeToJson(result.tree) };
+  return { error: null, code: null, text: treeToJson(result.tree) };
 }
 
 const analyzeTheme = os.theme.analyze.handler(({ input }) =>
-  analyze(input.text, input.required)
+  analyze(input.text, input.required, input.modes)
 );
 
 const themeCss = os.theme.css.handler(({ input }) => {
@@ -98,6 +115,7 @@ const setTokenValue = os.theme.tokens.set.handler(({ input }) =>
       input.path,
       input.value,
       input.type,
+      input.mode,
     ))
 );
 

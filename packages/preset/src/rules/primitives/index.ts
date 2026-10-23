@@ -31,7 +31,6 @@ import { selectRules } from "./select.ts";
 import { skeletonRules } from "./skeleton.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
-import { tabsRules } from "./tabs.ts";
 import { textareaRules } from "./textarea.ts";
 
 /**
@@ -88,7 +87,6 @@ export function primitiveRules(
     ...skeletonRules(roots, mode),
     ...statRules(roots, mode),
     ...tableRules(roots, mode),
-    ...tabsRules(roots, mode),
     ...textareaRules(roots),
     ...radioRules(roots),
   ];

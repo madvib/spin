@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
+import { claim, type Mode, withFallback } from "./shared.ts";
 
 /**
  * Table — the first primitive with a strong opinion, and deliberately so.
@@ -21,6 +21,12 @@ import { claim, type Mode } from "./shared.ts";
  * **Rules, not boxes.** Cells are separated by a rule that does not shout. A
  * grid of bordered cells is a spreadsheet; a table is a document, and the
  * difference is whether the eye can follow a row across the page.
+ *
+ * **A column is never crushed.** The table carries a minimum, and a cell does
+ * not re-wrap its content to fit a column that is too narrow: a name that
+ * cannot break is not broken. A table that cannot fit its container is wider
+ * than it, and the container scrolls it — the same arrangement the sticky
+ * header wants, since a header that stays put is a header inside a scroller.
  *
  * A consumer who disagrees does not reach for a class — they turn the
  * primitive off. `spinPreset({ primitives: ["button"] })` is the escape hatch,
@@ -44,26 +50,35 @@ export function tableRules(roots: readonly string[], mode: Mode): Rule[] {
   ];
 }
 
-function tableTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tableTokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing?.["2"],
-    text: t?.colors?.["text"],
-    muted: t?.colors?.["text-muted"],
-    border: t?.colors?.["border"],
-    raised: t?.colors?.["surface-raised"],
-    sunken: t?.colors?.["surface-sunken"],
-    fontFamily: t?.fontFamily?.["sans"],
-    fontSize: t?.fontSize?.["sm"],
-    sizeMd: t?.fontSize?.["md"],
-    sizeXs: t?.fontSize?.["xs"],
-    borderWidth: t?.borderWidth?.["width"],
-    weightSemibold: t?.fontWeight?.["semibold"],
+    spacing2: token(ctx, "spacing.2"),
+    text: token(ctx, "color.text"),
+    muted: token(ctx, "color.text-muted"),
+    // The rule under a row, and the fill a striped row wears: the table's
+    // own decisions, each falling back to the scale it would otherwise
+    // wear — the page's hairline and the page's sunken step.
+    rule: withFallback(ctx, "table.rule", "color.border"),
+    zebra: withFallback(ctx, "table.zebra", "color.surface-sunken"),
+    raised: token(ctx, "color.surface-raised"),
+    fontFamily: token(ctx, "font.family.sans"),
+    fontSize: token(ctx, "font.size.sm"),
+    sizeMd: token(ctx, "font.size.md"),
+    sizeXs: token(ctx, "font.size.xs"),
+    borderWidth: token(ctx, "border.width"),
+    weightSemibold: token(ctx, "font.weight.semibold"),
+    // The weight of a column's heading: the table's own, because a heading
+    // that weighs like its rows is a heading nobody finds.
+    headerWeight: withFallback(
+      ctx,
+      "table.header-weight",
+      "font.weight.semibold",
+    ),
   };
 }
 
 /**
- * The table itself: the surface, the rhythm, and the containment.
+ * The table itself: the surface, the spacing, and the containment.
  *
  * `border-collapse: collapse` because a separated-border model puts a gap
  * between cells that the row rules then have to cross, and a collapsed model
@@ -80,6 +95,15 @@ function tableRule(mode: Mode): Rule {
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         width: "100%",
+        // The table's MINIMUM, and the fix for a table that decided its own
+        // layout: `width: 100%` with automatic columns lets the browser
+        // crush a column until its content fits, so a long cell word — a
+        // service name like `checkout-api` — is broken across two lines to
+        // make room. The table is never narrower than the content it holds,
+        // so a table that cannot fit its container is WIDER than it: the
+        // container scrolls it, and every column keeps the width its content
+        // asked for.
+        "min-width": "max-content",
         "border-collapse": "collapse",
         "border-spacing": "0",
         // Numeric cells align on the digit. Without this a column of figures
@@ -116,8 +140,14 @@ function cellRule(mode: Mode): Rule {
             "padding-inline-end": t.spacing2,
           }
           : {}),
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { "border-bottom": `${t.borderWidth} solid ${t.border}` }
+        // A cell holds data, and data is not prose: it does not re-wrap
+        // because the column it sits in is narrow. A word that cannot break
+        // does not break — `checkout-api` stays one name on one line — and
+        // the cell either fits or the table is wider than its container and
+        // the container scrolls it.
+        "white-space": "nowrap",
+        ...(t.borderWidth !== undefined && t.rule !== undefined
+          ? { "border-bottom": `${t.borderWidth} solid ${t.rule}` }
           : {}),
       };
       // The last row has nothing beneath it to separate from. The position
@@ -140,8 +170,8 @@ function cellRule(mode: Mode): Rule {
       // says nothing.
       yield {
         [ctx.symbols.selector]: () => `tfoot > tr > ${cell}`,
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { "border-top": `${t.borderWidth} solid ${t.border}` }
+        ...(t.borderWidth !== undefined && t.rule !== undefined
+          ? { "border-top": `${t.borderWidth} solid ${t.rule}` }
           : {}),
         "border-bottom": "none",
         ...(t.weightSemibold !== undefined
@@ -168,8 +198,8 @@ function headerRule(mode: Mode): Rule {
         [ctx.symbols.selector]: () => claim(mode, "th"),
         ...(t.fontSize !== undefined ? { "font-size": t.fontSize } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
-        ...(t.weightSemibold !== undefined
-          ? { "font-weight": t.weightSemibold }
+        ...(t.headerWeight !== undefined
+          ? { "font-weight": t.headerWeight }
           : {}),
         "text-align": "start",
         // `collapse` clips a sticky cell's background, so the header needs its
@@ -186,10 +216,10 @@ function headerRule(mode: Mode): Rule {
       // own weight so it reads stronger than the row rules beneath it.
       yield {
         [ctx.symbols.selector]: () => claim(mode, "th"),
-        ...(t.borderWidth !== undefined && t.border !== undefined
+        ...(t.borderWidth !== undefined && t.rule !== undefined
           ? {
-            "border-bottom": `${t.borderWidth} solid ${t.border}`,
-            "border-bottom-color": t.muted ?? t.border,
+            "border-bottom": `${t.borderWidth} solid ${t.rule}`,
+            "border-bottom-color": t.muted ?? t.rule,
           }
           : {}),
       };
@@ -236,9 +266,9 @@ function captionRule(mode: Mode): Rule {
  * thing a cell is. Zebra striping helps a reader hold their place; it is also
  * the most common table preference to disagree with, so it is opt-in.
  *
- * The stripe sits on `surface-sunken`, one step below the page: a theme's
- * notion of depth under a surface, which a raised card or a field cannot
- * supply.
+ * The stripe sits on the table's own `table.zebra`, which falls back to the
+ * theme's notion of depth under a surface (`surface-sunken`) — one step
+ * below the page, which a raised card or a field cannot supply.
  */
 function stripedRule(mode: Mode): Rule {
   return [
@@ -248,7 +278,7 @@ function stripedRule(mode: Mode): Rule {
       yield {
         [ctx.symbols.selector]: () =>
           `${claim(mode, "table")}.striped tbody > tr:nth-of-type(odd) > *`,
-        ...(t.sunken !== undefined ? { "background-color": t.sunken } : {}),
+        ...(t.zebra !== undefined ? { "background-color": t.zebra } : {}),
       };
     },
     { layer: "primitives", autocomplete: "striped" },

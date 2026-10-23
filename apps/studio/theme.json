@@ -8,10 +8,10 @@
     "$type": "color",
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
-      "$value": "#3f3f46",
+      "$value": "#c8102e",
       "$description": "Brand accent: primary actions, links, focus rings.",
       "$modes": {
-        "dark": "#e4e4e7"
+        "dark": "#ff5a63"
       }
     },
     "secondary": {
@@ -246,6 +246,22 @@
       "$modes": {
         "dark": "#0b1120"
       }
+    },
+    "disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: the ramp one step off the page, so a control that cannot be pressed still reads as a control rather than as a hole in the layout.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. Dimming the control instead would dim this with it, which is how a dead button becomes an unreadable one.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
     }
   },
   "spacing": {
@@ -311,8 +327,8 @@
         "$description": "Code, identifiers, tabular figures."
       },
       "heading": {
-        "$value": "Georgia, ui-serif, Cambria, serif",
-        "$description": "Headings, and anything that leads the document."
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Headings, and anything that leads the document. The tool speaks in one voice: a serif here made every heading in the chrome a different typeface from the body."
       }
     },
     "size": {
@@ -530,7 +546,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -608,7 +624,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",

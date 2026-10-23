@@ -28,52 +28,52 @@ export const BADGE_EXAMPLES: readonly BadgeExample[] = [
   {
     name: "Tones",
     html: row(
-      `          <badge variant="accent">accent</badge>
-          <badge variant="success">success</badge>
-          <badge variant="warning">warning</badge>
-          <badge variant="danger">danger</badge>
-          <badge variant="primary">primary</badge>
-          <badge variant="secondary">secondary</badge>
-          <badge variant="neutral">neutral</badge>`,
+      `          <badge variant="accent">beta</badge>
+          <badge variant="success">passing</badge>
+          <badge variant="warning">degraded</badge>
+          <badge variant="danger">failing</badge>
+          <badge variant="primary">production</badge>
+          <badge variant="secondary">staging</badge>
+          <badge variant="neutral">paused</badge>`,
     ),
   },
   {
     name: "Muted tones",
     html: row(
-      `          <badge variant="accent-muted">accent</badge>
-          <badge variant="success-muted">success</badge>
-          <badge variant="warning-muted">warning</badge>
-          <badge variant="danger-muted">danger</badge>
-          <badge variant="primary-muted">primary</badge>
-          <badge variant="secondary-muted">secondary</badge>
-          <badge variant="neutral-muted">neutral</badge>`,
+      `          <badge variant="accent-muted">beta</badge>
+          <badge variant="success-muted">passing</badge>
+          <badge variant="warning-muted">degraded</badge>
+          <badge variant="danger-muted">failing</badge>
+          <badge variant="primary-muted">production</badge>
+          <badge variant="secondary-muted">staging</badge>
+          <badge variant="neutral-muted">paused</badge>`,
     ),
   },
   {
     name: "Sizes",
     html: row(
-      `          <badge class="badge-sm">small</badge>
-          <badge>medium</badge>
-          <badge class="badge-lg">large</badge>`,
+      `          <badge class="badge-sm">canary</badge>
+          <badge>canary</badge>
+          <badge class="badge-lg">canary</badge>`,
     ),
   },
   {
     name: "By class",
     html: row(
-      `          <badge class="badge-primary">primary</badge>
-          <badge class="badge-accent">accent</badge>
-          <badge class="badge-success">success</badge>
-          <badge class="badge-warning">warning</badge>
-          <badge class="badge-danger">danger</badge>
-          <badge class="badge-neutral">neutral</badge>
-          <badge class="badge-secondary">secondary</badge>`,
+      `          <badge class="badge-primary">production</badge>
+          <badge class="badge-accent">beta</badge>
+          <badge class="badge-success">passing</badge>
+          <badge class="badge-warning">degraded</badge>
+          <badge class="badge-danger">failing</badge>
+          <badge class="badge-neutral">paused</badge>
+          <badge class="badge-secondary">staging</badge>`,
     ),
   },
   {
     name: "With content",
     html: row(
-      `          <badge>New</badge>
-          <badge class="badge-accent">3 items</badge>`,
+      `          <badge>required</badge>
+          <badge class="badge-accent">canary at 10% of traffic</badge>`,
     ),
   },
   {
@@ -86,31 +86,31 @@ export const BADGE_EXAMPLES: readonly BadgeExample[] = [
   {
     name: "With a remove action",
     html: row(
-      `          <badge>Item <button class="badge-close" aria-label="remove">×</button></badge>
-          <badge class="badge-accent">Tag <button class="badge-close" aria-label="remove">×</button></badge>`,
+      `          <badge>canary <button class="badge-close" aria-label="remove">×</button></badge>
+          <badge class="badge-accent">preview <button class="badge-close" aria-label="remove">×</button></badge>`,
     ),
   },
   {
     name: "Close on a muted badge",
     html: row(
-      `          <badge class="badge-accent-muted">Tag <button class="badge-close" aria-label="remove">×</button></badge>
-          <badge class="badge-danger-muted">Tag <button class="badge-close" aria-label="remove">×</button></badge>`,
+      `          <badge class="badge-accent-muted">canary <button class="badge-close" aria-label="remove">×</button></badge>
+          <badge class="badge-danger-muted">failed <button class="badge-close" aria-label="remove">×</button></badge>`,
     ),
   },
   {
     name: "With an icon",
     html: row(
-      `          <badge><i class="i-lucide-bell"></i>Notifications</badge>
-          <badge class="badge-accent"><i class="i-lucide-check"></i>Done</badge>`,
+      `          <badge><i class="i-lucide-bell"></i>3 alerts</badge>
+          <badge class="badge-accent"><i class="i-lucide-check"></i>Passed</badge>`,
     ),
   },
   {
     name: "In text",
     html:
-      `<p>Press the <badge class="badge-primary">New</badge> button to continue.</p>`,
+      `<p>Every <badge class="badge-primary">required</badge> check must pass before the release continues.</p>`,
   },
   {
     name: "In a button",
-    html: `<button>Inbox <badge class="badge-accent">3</badge></button>`,
+    html: `<button>Alerts <badge class="badge-accent">3</badge></button>`,
   },
 ];

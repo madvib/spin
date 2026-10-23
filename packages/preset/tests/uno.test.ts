@@ -74,3 +74,20 @@ Deno.test("toUnoTheme keeps base values when a dark group exists", () => {
   assertEquals(theme.colors.primary, "#111");
   assertEquals("dark" in theme.colors, false);
 });
+
+Deno.test("the loop is not a transition duration in the Uno theme", () => {
+  // The Uno shape has no slot for the period of an endless animation, and a
+  // loop where a transition's duration goes is how `duration-loop` became a
+  // transition. The loop is spent off the custom property instead.
+  const theme = toUnoTheme(treeOf({
+    motion: {
+      duration: {
+        $type: "duration",
+        base: { $value: "9ms" },
+        loop: { $value: "1.2s" },
+      },
+    },
+  }));
+  assertEquals(theme.transitionDuration["base"], "9ms");
+  assertEquals("loop" in theme.transitionDuration, false);
+});

@@ -50,6 +50,23 @@ function workingTreeDocument(): ThemeDocument {
 }
 
 /**
+ * The working fixture with one group's tokens extended.
+ *
+ * The shared fixture stays silent on the component token groups on purpose —
+ * the fallback tests below depend on it — so a test that needs a theme to
+ * STATE a step builds its own document from this, rather than teaching the
+ * fixture a step and flipping half the suite.
+ */
+function withGroup(
+  group: string,
+  tokens: Record<string, unknown>,
+): ThemeDocument {
+  const base = workingTreeDocument() as Record<string, unknown>;
+  const existing = (base[group] ?? {}) as Record<string, unknown>;
+  return { ...base, [group]: { ...existing, ...tokens } } as ThemeDocument;
+}
+
+/**
  * A generator with wind4 layered beneath our own rules, the way a real build
  * is wired. Without the layer a wind4-sourced utility emits nothing at all,
  * so a test that never asks for one cannot tell "works" from "unreachable".
@@ -111,6 +128,19 @@ function valueFor(
 /** Whether a value defers to the browser by reading a custom property. */
 function readsAToken(value: string): boolean {
   return /var\(\s*--/.test(value);
+}
+
+/**
+ * The fraction a theme-aware utility falls back to when the theme states no
+ * step — the second argument of its `var()` read. Read off the declaration
+ * rather than asserted against a sheet, because a shipped theme already
+ * supplies the variable and only a theme that states nothing reaches the
+ * fallback.
+ */
+function fallbackOf(value: string | undefined): string | undefined {
+  return value === undefined
+    ? undefined
+    : /,\s*([^,()]+)\)\s*$/.exec(value)?.[1];
 }
 
 /**
@@ -359,7 +389,14 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#444" },
       },
       "on-primary": { $value: "#fff" },
+      "on-secondary": { $value: "#fff" },
+      "on-accent": { $value: "#fff" },
+      "on-semantic-success": { $value: "#fff" },
+      "on-semantic-warning": { $value: "#fff" },
       "on-semantic-error": { $value: "#fff" },
+      "on-semantic-info": { $value: "#fff" },
+      disabled: { $value: "#eee" },
+      "on-disabled": { $value: "#333" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },
@@ -417,7 +454,14 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
         info: { $value: "#38bdf8" },
       },
       "on-primary": { $value: "#000" },
+      "on-secondary": { $value: "#000" },
+      "on-accent": { $value: "#000" },
+      "on-semantic-success": { $value: "#000" },
+      "on-semantic-warning": { $value: "#000" },
       "on-semantic-error": { $value: "#000" },
+      "on-semantic-info": { $value: "#000" },
+      disabled: { $value: "#222" },
+      "on-disabled": { $value: "#94a3b8" },
       "focus-ring": { $value: "{color.primary}" },
       "link": { $value: "{color.primary}" },
     },
@@ -477,12 +521,34 @@ Deno.test("hidden resolves to display none", async () => {
   assertSets(await cssFor("hidden"), "hidden", "display", "none");
 });
 
-Deno.test("opacity-50 resolves to half opacity", async () => {
-  assertSets(await cssFor("opacity-50"), "opacity-50", "opacity", "0.5");
+Deno.test("opacity-50 defers to the theme, falling back to half", async () => {
+  const value = valueFor(await cssFor("opacity-50"), "opacity-50", "opacity");
+  assert(
+    value !== undefined && readsAToken(value),
+    `opacity-50 must read the theme's step, got: ${value}`,
+  );
+  assertEquals(fallbackOf(value), "0.5");
 });
 
-Deno.test("opacity-100 resolves to full opacity", async () => {
-  assertSets(await cssFor("opacity-100"), "opacity-100", "opacity", "1");
+Deno.test("opacity-100 defers to the theme, falling back to full", async () => {
+  const value = valueFor(await cssFor("opacity-100"), "opacity-100", "opacity");
+  assert(
+    value !== undefined && readsAToken(value),
+    `opacity-100 must read the theme's step, got: ${value}`,
+  );
+  assertEquals(fallbackOf(value), "1");
+});
+
+Deno.test("tracking-wide spends the theme's ramp when the theme states one", async () => {
+  const uno = await generatorFor({
+    themes: {
+      default: withGroup("font", {
+        "letter-spacing": { $type: "dimension", wide: { $value: "0.4em" } },
+      }),
+    },
+  });
+  const { css } = await uno.generate("tracking-wide");
+  assertTokenDriven(css, "tracking-wide", "letter-spacing");
 });
 
 Deno.test("w-4 resolves to the spacing token variable", async () => {
@@ -626,6 +692,35 @@ Deno.test("duration-base resolves to the duration token variable", async () => {
   assertTokenDriven(css, "duration-base", "transition-duration");
 });
 
+Deno.test("duration-loop is not a transition", async () => {
+  // The loop step is the period of an endless animation — the skeleton's
+  // pulse, the spinner — and a transition that takes as long as a pulse is
+  // not what a transition is. So the class is refused: the endless
+  // animations read the loop off the custom property, and nothing spends it
+  // as a duration.
+  const uno = await generatorFor({
+    themes: {
+      default: withGroup("motion", {
+        duration: {
+          $type: "duration",
+          base: { $value: "200ms" },
+          loop: { $value: "1.2s" },
+        },
+      }),
+    },
+  });
+  const { css } = await uno.generate("duration-loop duration-base");
+  assertEquals(
+    valueFor(css, "duration-loop", "transition-duration"),
+    undefined,
+    `the loop step must not be spendable as a transition:\n${css}`,
+  );
+  assertEquals(
+    valueFor(css, "duration-base", "transition-duration"),
+    "var(--motion-duration-base)",
+  );
+});
+
 Deno.test("ease-standard resolves to the easing token variable", async () => {
   const css = await cssFor("ease-standard");
   assertTokenDriven(css, "ease-standard", "transition-timing-function");
@@ -685,10 +780,10 @@ Deno.test("extendTheme names resolve as closed utilities", async () => {
   const uno = await createGenerator({
     presets: [spinPreset()],
     extendTheme: (theme) => {
-      (theme as Record<string, unknown>).colors = {
-        ...((theme as Record<string, Record<string, string>>).colors ?? {}),
-        brand: "#bada55",
-      };
+      // The extension writes the name the utilities resolve: the flat map is
+      // keyed by custom property name, so a colour added here is reachable
+      // as `bg-brand` under the same spelling the sheet defines.
+      (theme as Record<string, unknown>)["color-brand"] = "#bada55";
     },
   });
   const { css } = await uno.generate("bg-brand");
@@ -702,19 +797,30 @@ Deno.test("the preset theme publishes references, not literals", () => {
   // The engine must resolve at the browser: a rule emits a `var(…)` reference
   // and the stylesheet supplies the value, so switching themes is a selector
   // swap rather than a rebuild. Literals exist for tooling, and only there.
-  const theme = spinPreset().theme as Record<
-    string,
-    Record<string, unknown>
-  >;
-  for (const [family, group] of Object.entries(theme)) {
-    for (const [name, value] of Object.entries(group)) {
-      if (typeof value !== "string") continue;
-      assert(
-        readsAToken(value),
-        `theme.${family}.${name} is the literal \`${value}\`; a rule reading it would freeze the token into the sheet`,
-      );
+  // The map is flat, with wind4's nested vocabulary on top, so both shapes
+  // are walked.
+  const theme = spinPreset().theme as Record<string, unknown>;
+  const offenders: string[] = [];
+  for (const [name, value] of Object.entries(theme)) {
+    if (typeof value === "string") {
+      if (!readsAToken(value)) offenders.push(name);
+      continue;
+    }
+    if (typeof value === "object" && value !== null) {
+      for (
+        const [step, ref] of Object.entries(value as Record<string, unknown>)
+      ) {
+        if (typeof ref === "string" && !readsAToken(ref)) {
+          offenders.push(`${name}.${step}`);
+        }
+      }
     }
   }
+  assertEquals(
+    offenders,
+    [],
+    `these publish literals: ${offenders.join(", ")}`,
+  );
 });
 
 Deno.test("the primitives layer is emitted by default", async () => {

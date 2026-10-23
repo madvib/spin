@@ -1,22 +1,21 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import type { Mode } from "./shared.ts";
 
 /** Join — adjacent controls merged into one object, by class. */
 export function joinRules(
   roots: readonly string[],
-  mode: Mode,
+  _mode: Mode,
 ): Rule[] {
   if (!roots.includes("join")) return [];
   return [joinContainer(), joinItem()];
 }
 
 /** The theme values join spends: the outer corner and the shared edge. */
-function joinTokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function joinTokens(ctx: ThemeContext | undefined) {
   return {
-    radius: t?.radius?.["md"],
-    borderWidth: t?.borderWidth?.["width"],
+    radius: token(ctx, "radius.md"),
+    borderWidth: token(ctx, "border.width"),
   };
 }
 

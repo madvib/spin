@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import { withFallback } from "./shared.ts";
 
 /**
  * The icon sizes, as generated rules.
@@ -33,13 +34,19 @@ import { themeOf } from "../../utils/lookup.ts";
 /** The size steps the `icon` group declares, smallest first. */
 const STEPS = ["sm", "md", "lg"] as const;
 
+const ICON_FALLBACK: Readonly<Record<"sm" | "md" | "lg", ThemeTokenPath>> = {
+  sm: "font.size.sm",
+  md: "font.size.md",
+  lg: "font.size.xl",
+};
+
 export function iconRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("icon")) return [];
   return STEPS.map((step): Rule[] => [
     [
       new RegExp(`^icon-${step}$`),
       (_m, ctx) => {
-        const size = themeOf(ctx)?.icon?.[step];
+        const size = withFallback(ctx, `icon.${step}`, ICON_FALLBACK[step]);
         return {
           [ctx.symbols.selector]: () => `.icon-${step}`,
           // An icon class from `preset-icons` sizes the glyph `1em` square

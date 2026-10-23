@@ -1,6 +1,15 @@
 import type { Rule } from "@unocss/core";
-import { type ThemeContext, themeOf } from "../../utils/lookup.ts";
-import { type Entry, spend, spentEntries } from "./shared.ts";
+import { named, type ThemeContext, token } from "../../utils/lookup.ts";
+import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import {
+  ALIVE,
+  disabledPosture,
+  type Entry,
+  focusPaint,
+  focusRing,
+  spend,
+  spentEntries,
+} from "./shared.ts";
 
 /**
  * The button as generated rules.
@@ -9,7 +18,7 @@ import { type Entry, spend, spentEntries } from "./shared.ts";
  * own contract. The manifest is DERIVED from the rules — it records what they
  * claim and what they spend, so it cannot disagree with them.
  * `tags` decide which element rules exist, its `variants` decide which variant
- * rules exist, and its `character` decides which tokens the rules spend. The
+ * rules exist, and its `component` decides which tokens the rules spend. The
  * declarations themselves are the component's behaviour, authored here.
  *
  * The element extractor (registered beside this preset) turns a `<button>` tag
@@ -56,8 +65,8 @@ const CONTRAST =
 /** The group container a joined control lives in. */
 const GROUP = 'span[role="group"]';
 
-/** The property each character token step sets. */
-const CHARACTER_PROPERTY: Record<string, string> = {
+/** The property each component token step sets. */
+const COMPONENT_PROPERTY: Record<string, string> = {
   weight: "font-weight",
   case: "text-transform",
   tracking: "letter-spacing",
@@ -66,28 +75,31 @@ const CHARACTER_PROPERTY: Record<string, string> = {
 };
 
 /**
- * The character tokens this component OWNS, and which rule spends each.
+ * The component tokens this component OWNS, and which rule spends each.
  *
  * Declared here rather than read from the manifest, for two reasons. The
  * manifest is derived FROM this file, so reading it back is circular — a
- * variant or a character step that the manifest happened to omit would then
+ * variant or a component step that the manifest happened to omit would then
  * delete the rule that declared it, silently. And the split below is a
  * decision about which rule spends what: the base spends everything but the
  * hover shadow, hover spends the hover shadow alone, and the resting shadow is
- * re-spent by the pressed and disabled states. Deriving that by filtering a
- * flat list is how it ends up meaning three different things in three places.
+ * re-spent by the pressed state. Deriving that by filtering a flat list is how
+ * it ends up meaning three different things in three places.
+ *
+ * The dead state spends NO component token: a control that cannot be pressed
+ * wears no elevation, and a shadow is the shape of a control that can be.
  *
  * A union, so a step that is not declared cannot be spent, and adding one here
  * is a compile error rather than a silent omission from the contract.
  */
-type CharacterStep =
+type ComponentStep =
   | "weight"
   | "case"
   | "tracking"
   | "shadow"
   | "shadow-hover";
 
-const CHARACTER_STEPS: readonly CharacterStep[] = [
+const COMPONENT_STEPS: readonly ComponentStep[] = [
   "weight",
   "case",
   "tracking",
@@ -95,29 +107,33 @@ const CHARACTER_STEPS: readonly CharacterStep[] = [
   "shadow-hover",
 ];
 
-/**
- * The character steps that are TYPE, not paint: the weight, case and tracking
- * that make a control read as a control. These live on the base rule, because
- * they are not a look a document opts into — a `<button>` is a control whether
- * or not it is painted, and a recipe that paints itself with utilities rather
- * than with a variant still has to look like a button.
- */
-const TYPE_CHARACTER = CHARACTER_STEPS.filter((step) =>
-  step === "weight" || step === "case" || step === "tracking"
+/** The component step the base rule spends — all but the hover shadow. */
+const BASE_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
+  step !== "shadow-hover"
 );
 
-/**
- * The character steps that are PAINT: the resting and hovered elevations.
- * These travel with the paint, because a shadow on a control that asked for no
- * fill is a box hanging off an invisible button, and in a theme whose shadow is
- * a hard offset that is exactly what it looks like.
- */
-const SHADOW_CHARACTER = CHARACTER_STEPS.filter((step) => step === "shadow");
-
-/** The character step the hover rule spends. */
-const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
+/** The component step the hover rule spends. */
+const HOVER_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
   step === "shadow-hover"
 );
+
+/** The resting shadow step, re-spent by the active rule. */
+const SHADOW_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
+  step === "shadow"
+);
+
+/**
+ * The shared scale a component step falls back to when a theme omits it.
+ *
+ * The weight is the one that matters: a control that inherits the browser's
+ * button weight is a control that reads as body copy, and the theme's own
+ * type scale has the answer. The rest — the case, the tracking, the resting
+ * elevation — are already the browser's defaults, so falling back to them
+ * costs nothing and the theme's silence is honest.
+ */
+const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
+  weight: "font.weight.semibold",
+};
 
 /**
  * The variant names, in the order they are offered.
@@ -128,7 +144,7 @@ const HOVER_CHARACTER = CHARACTER_STEPS.filter((step) =>
  * another, which is the whole point of deriving rather than listing.
  */
 const VARIANT_NAMES = [
-  "filled",
+  "bare",
   "secondary",
   "outline",
   "ghost",
@@ -151,36 +167,106 @@ type VariantName = (typeof VARIANT_NAMES)[number];
 /** The icon slot's name. A class on a CHILD, so it has no VARIANTS entry. */
 const ICON_SLOT = "button-icon" satisfies VariantName;
 
-/** The variant declarations, keyed by variant name. */
-const VARIANTS: Record<PaintedVariant, {
-  selector: string;
-  body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
-}> = {
-  filled: {
-    selector: `${BUTTON}.filled, ${BUTTON}[variant~="filled"]`,
-    body: (ctx) => ({
-      // Only the PAINT travels here — the type character (weight, case,
-      // tracking) is on the base rule, because it is what makes a control
-      // read as a control and a recipe painting itself with utilities still
-      // needs it.
-      ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
-      "background-color": themeOf(ctx)?.colors?.["primary"],
-      // The ink sits in the base's ink slot rather than `color`, so a filled
-      // control keeps the on-primary ink a hover utility may otherwise beat.
-      color: themeOf(ctx)?.colors?.["on-primary"],
-      "border-color": themeOf(ctx)?.colors?.["on-primary"],
+/**
+ * A variant's shape: the group it paints, the class an author writes, and
+ * what it states.
+ *
+ * The class is the ordinary way in; the attribute is the same opt-in for a
+ * document that carries its variants as data. Both spellings are the SAME
+ * variant, so every rule a variant states has to reach both — including the
+ * one it states for a dead control.
+ */
+interface VariantShape {
+  /** The element group the variant paints. */
+  readonly group: string;
+  /** The class an author writes. */
+  readonly name: string;
+  /**
+   * True when the variant states a colour of its own.
+   *
+   * Such a variant has to say what a dead version of itself wears: the base
+   * paints the posture for a dead control, but a variant's own ink would win
+   * over it — a dead outline button would keep its accent ink, which is the
+   * one thing the posture exists to replace.
+   */
+  readonly inked: boolean;
+  readonly body: (
+    ctx: ThemeContext | undefined,
+  ) => Record<string, string | undefined>;
+}
+
+/** A variant's selector: the class, and the attribute form of the same. */
+function variantSelector(variant: VariantShape): string {
+  return `${variant.group}.${variant.name}, ${variant.group}[variant~="${variant.name}"]`;
+}
+
+/**
+ * The same variant, in the state a dead control is in.
+ *
+ * The dead state is its own selector rather than a suffix on the variant's:
+ * a suffix appended to a comma list reaches only the last alternative, so
+ * `A, B:disabled` would style B when it is disabled and A always.
+ */
+function deadVariantSelector(variant: VariantShape): string {
+  const dead = ':is(:disabled, [aria-disabled="true"])';
+  return `${variant.group}.${variant.name}${dead}, ${variant.group}[variant~="${variant.name}"]${dead}`;
+}
+
+/**
+ * The variant declarations, keyed by variant name.
+ */
+const VARIANTS: Record<PaintedVariant, VariantShape> = {
+  bare: {
+    group: BUTTON,
+    name: "bare",
+    inked: false,
+    body: () => ({
+      background: "none",
+      border: "none",
+      padding: "0",
+      "box-shadow": "none",
+      cursor: "pointer",
+      // The component tokens are part of the paint, so the opt-out takes them
+      // back: without these resets a bare button still reads as its theme's
+      // control — bold, tracked, uppercase in the loud starters — while
+      // looking like chrome.
+      "font-weight": "normal",
+      "text-transform": "none",
+      "letter-spacing": "normal",
+      // The base states a minimum height for the control's touch target;
+      // a bare button is chrome — a link that happens to be a button — and
+      // a 34px floor on every chrome control is a tax the app pays for a
+      // default it did not choose.
+      "min-height": "0",
+      // No `font: inherit`, no `color: inherit`: the selector is
+      // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
+      // single class utility — the opt-out would freeze the ink and the face
+      // of the very control that opts out to paint itself. Dropping them
+      // leaves the paint-free base (no fill, no edge, no shadow, no padding)
+      // and lets utilities decide the rest; an author who wants the page's
+      // ink spells `text-text`.
     }),
   },
   secondary: {
-    selector: `${BUTTON}.secondary, ${BUTTON}[variant~="secondary"]`,
+    group: BUTTON,
+    name: "secondary",
+    inked: true,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors?.["surface-raised"],
-      "border-color": themeOf(ctx)?.colors?.["border"],
-      color: themeOf(ctx)?.colors?.["text"],
+      "background-color": token(ctx, "color.surface-raised"),
+      "border-color": token(ctx, "color.border"),
+      // The fill is a surface, so the base's resting shadow is a surface
+      // floating on itself — and that shadow is the loud variant's shout
+      // (in neobrut, the hard offset that makes a quiet fill read as a
+      // second primary action). The hover still spends the theme's hovered
+      // elevation: the theme keeps saying how loud a hover is.
+      "box-shadow": "none",
+      color: token(ctx, "color.text"),
     }),
   },
   ghost: {
-    selector: `${BUTTON}.ghost, ${BUTTON}[variant~="ghost"]`,
+    group: BUTTON,
+    name: "ghost",
+    inked: true,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
@@ -189,43 +275,61 @@ const VARIANTS: Record<PaintedVariant, {
       // a hard offset — a ghost carrying it is a black box floating over an
       // empty button.
       "box-shadow": "none",
-      color: themeOf(ctx)?.colors?.["text"],
+      color: token(ctx, "color.text"),
     }),
   },
   danger: {
-    selector: `${BUTTON}.danger, ${BUTTON}[variant~="danger"]`,
+    group: BUTTON,
+    name: "danger",
+    inked: true,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors?.["semantic-error"],
-      color: themeOf(ctx)?.colors?.["on-danger"],
+      "background-color": token(ctx, "color.semantic.error"),
+      // The ink on the error fill is `on-semantic-error`: the role the
+      // contract requires and the floor it owes. A second name for the same
+      // ink (`on-danger`) was a second answer to one question, and the
+      // danger button wore one while the contract floored the other.
+      color: token(ctx, "color.on-semantic-error"),
     }),
   },
   contrast: {
-    selector: `${CONTRAST}.contrast, ${CONTRAST}[variant~="contrast"]`,
+    group: CONTRAST,
+    name: "contrast",
+    inked: true,
     body: (ctx) => ({
-      "background-color": themeOf(ctx)?.colors?.["text"],
-      "border-color": themeOf(ctx)?.colors?.["text"],
-      color: themeOf(ctx)?.colors?.["surface"],
+      "background-color": token(ctx, "color.text"),
+      "border-color": token(ctx, "color.text"),
+      color: token(ctx, "color.surface"),
     }),
   },
   outline: {
-    selector: `${BUTTON}.outline, ${BUTTON}[variant~="outline"]`,
+    group: BUTTON,
+    name: "outline",
+    inked: true,
     body: (ctx) => ({
       "background-color": "transparent",
       // An outline is an edge and nothing else: no fill, so no shadow — the
       // same reason ghost spends none. Without this the theme's shadow hangs
       // off an empty box (a hard offset in neobrut).
       "box-shadow": "none",
-      "border-color": themeOf(ctx)?.colors?.["accent"],
-      color: themeOf(ctx)?.colors?.["primary"],
+      // The edge is the theme's accent: the mark. The LABEL is the page's
+      // ink, because an accent is a FILL — it is legible with its own ink on
+      // it, and not legible as a word on the page (neobrut's amber measures
+      // 1.76:1 on its own sky). Every variant with no fill wears the page's
+      // ink; this one wore a fill colour, which is a pairing the contract
+      // does not promise.
+      "border-color": token(ctx, "color.accent"),
+      color: token(ctx, "color.text"),
     }),
   },
   "s-sm": {
-    selector: `${BUTTON}.s-sm, ${BUTTON}[variant~="s-sm"]`,
+    group: BUTTON,
+    name: "s-sm",
+    inked: false,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize?.["sm"];
-      const spacing1 = themeOf(ctx)?.spacing?.["1"];
-      const spacing2 = themeOf(ctx)?.spacing?.["2"];
-      const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+      const fontSize = token(ctx, "font.size.sm");
+      const spacing1 = token(ctx, "spacing.1");
+      const spacing2 = token(ctx, "spacing.2");
+      const borderWidth = token(ctx, "border.width");
       return {
         "padding-inline-start": spacing2,
         "padding-inline-end": spacing2,
@@ -243,12 +347,14 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   "s-lg": {
-    selector: `${BUTTON}.s-lg, ${BUTTON}[variant~="s-lg"]`,
+    group: BUTTON,
+    name: "s-lg",
+    inked: false,
     body: (ctx) => {
-      const fontSize = themeOf(ctx)?.fontSize?.["lg"];
-      const spacing4 = themeOf(ctx)?.spacing?.["4"];
-      const spacing8 = themeOf(ctx)?.spacing?.["8"];
-      const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+      const fontSize = token(ctx, "font.size.lg");
+      const spacing4 = token(ctx, "spacing.4");
+      const spacing8 = token(ctx, "spacing.8");
+      const borderWidth = token(ctx, "border.width");
       return {
         "padding-inline-start": spacing8,
         "padding-inline-end": spacing8,
@@ -266,7 +372,9 @@ const VARIANTS: Record<PaintedVariant, {
     },
   },
   icon: {
-    selector: `${BUTTON}.icon, ${BUTTON}[variant~="icon"]`,
+    group: BUTTON,
+    name: "icon",
+    inked: false,
     body: () => ({
       width: "auto",
       "padding-inline": "0",
@@ -289,22 +397,59 @@ const VARIANT_HOVER: Record<string, {
     // object to lift, so its hover states the same shadow it rests with. The
     // base selector cannot be narrowed from here, so the opt-out repeats it
     // and adds the one thing it is entitled to change.
-    selector: `${BUTTON}.ghost:hover:not(:disabled):not([aria-busy="true"])`,
+    selector: `${BUTTON}.ghost:hover${ALIVE}:not([aria-busy="true"])`,
     body: (ctx) => ({
       "background-color": "transparent",
       "border-color": "transparent",
       "box-shadow": "none",
-      color: themeOf(ctx)?.colors?.["text"],
+      color: token(ctx, "color.text"),
     }),
   },
   outline: {
-    selector: `${BUTTON}.outline:hover:not(:disabled):not([aria-busy="true"])`,
+    selector: `${BUTTON}.outline:hover${ALIVE}:not([aria-busy="true"])`,
+    // The hover answers the accent: the edge fills in and the label takes the
+    // accent's OWN ink, which is the pairing the contract floors. A hover
+    // that put a fill colour on the page as a word would fail the same way
+    // the resting label did.
     body: (ctx) => ({
-      "background-color": "transparent",
+      "background-color": token(ctx, "color.accent"),
       "box-shadow": "none",
-      "border-color": themeOf(ctx)?.colors?.["accent"],
-      color: themeOf(ctx)?.colors?.["primary"],
+      "border-color": token(ctx, "color.accent"),
+      color: token(ctx, "color.on-accent"),
     }),
+  },
+  bare: {
+    // The base's hover spends the theme's lift — the button's movement, and
+    // part of its component tokens the same way the shadow is. The opt-out
+    // takes those tokens back with the paint: chrome around a control does not
+    // move when it is pointed at, and a bare button that hops is a link
+    // wearing a button's gesture.
+    selector: `${BUTTON}.bare:hover${ALIVE}:not([aria-busy="true"])`,
+    body: () => ({
+      "box-shadow": "none",
+      background: "none",
+      border: "none",
+      transform: "none",
+    }),
+  },
+};
+
+/**
+ * The variant-specific focus rules.
+ *
+ * A variant that owns its own EDGE has to say what that edge wears while the
+ * control is focused. The base's focus rule gives every control the ring's
+ * ink, which is right for a control whose edge is its own — but a ghost has
+ * no edge of its own: it is paint-free, and a ring-coloured border beside the
+ * ring would be the second edge the ring exists to replace.
+ */
+const VARIANT_FOCUS: Record<string, {
+  selector: string;
+  body: (ctx: ThemeContext | undefined) => Record<string, string | undefined>;
+}> = {
+  ghost: {
+    selector: `${BUTTON}.ghost:focus-visible${ALIVE}`,
+    body: () => ({ "border-color": "transparent" }),
   },
 };
 
@@ -326,29 +471,19 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The base's tokens, read from the theme. One the theme omits reads
         // as undefined: the engine drops a single-token declaration, and a
         // compound one states itself only when every token in it resolves.
-        const spacing2 = themeOf(ctx)?.spacing?.["2"];
-        const spacing4 = themeOf(ctx)?.spacing?.["4"];
-        const fontFamily = themeOf(ctx)?.fontFamily?.["sans"];
-        const fontSize = themeOf(ctx)?.fontSize?.["md"];
-        const radius = themeOf(ctx)?.radius?.["md"];
-        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
-        const duration = themeOf(ctx)?.motionDuration?.["fast"];
-        const easing = themeOf(ctx)?.motionEasing?.["standard"];
+        const spacing2 = token(ctx, "spacing.2");
+        const spacing4 = token(ctx, "spacing.4");
+        const fontFamily = token(ctx, "font.family.sans");
+        const fontSize = token(ctx, "font.size.md");
+        const radius = token(ctx, "radius.md");
+        const borderWidth = token(ctx, "border.width");
+        const primary = token(ctx, "color.primary");
+        const onPrimary = token(ctx, "color.on-primary");
+        const duration = token(ctx, "motion.duration.fast");
+        const easing = token(ctx, "motion.easing.standard");
         // The base. An array body because the rule states `transition-property`
         // three times and the last one wins; reproducing it keeps the computed
         // value (transform only) rather than "fixing" it into a colour transition.
-        //
-        // The base is PAINT-FREE: no fill, no edge, no ink, no character and no
-        // minimum height. A raw `<button>` is chrome — the element a document
-        // already has — so the default book a UA stylesheet would give it is
-        // kept, and paint is asked for: `filled` for the theme's primary,
-        // `secondary`/`outline`/`ghost` for the quieter looks, or utilities for
-        // anything else. A control that reaches for paint gets a hover utility
-        // like `hover:bg-surface` for free, because a class now outranks a
-        // state rule rather than being outranked by the opt-out's reset.
-        //
-        // `[type="reset"]` still paints `secondary` by what the browser means
-        // by a reset button, and `filled` beats it on specificity.
         yield [
           [ctx.symbols.selector, () => BUTTON],
           ["align-items", "center"],
@@ -378,8 +513,19 @@ export function buttonRules(roots: readonly string[]): Rule[] {
             ]] as Entry[])
             : []),
           ...spentEntries(
-            spend(ctx, "button", CHARACTER_PROPERTY, ...TYPE_CHARACTER),
+            spend(
+              ctx,
+              "button",
+              COMPONENT_PROPERTY,
+              COMPONENT_FALLBACK,
+              ...BASE_COMPONENT_STEPS,
+            ),
           ),
+          ...(borderWidth !== undefined && onPrimary !== undefined
+            ? ([["border", `${borderWidth} solid ${onPrimary}`]] as Entry[])
+            : []),
+          ["background-color", primary],
+          ["color", onPrimary],
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           [
@@ -391,18 +537,22 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["transition-duration", duration],
           ["transition-timing-function", easing],
         ];
-        // Hover is theme-defined feedback: the opt-in lift, and nothing else.
-        // The hovered shadow is NOT here — a shadow on a control that asked
-        // for no paint is a box hanging off an invisible button, and it is
-        // spent by the painted variants instead, where it belongs.
+        // Hover is theme-defined feedback: the shadow step and the opt-in lift.
         // A theme that states no lift gets no transform — the no-movement
         // default the variable fallbacks declared, kept by omission rather
         // than by spelling zero.
-        const liftX = themeOf(ctx)?.button?.["hover-lift-x"];
-        const liftY = themeOf(ctx)?.button?.["hover-lift-y"];
+        const liftX = named(ctx, "button", "hover-lift-x");
+        const liftY = named(ctx, "button", "hover-lift-y");
         yield {
           [ctx.symbols.selector]: () =>
-            `${BUTTON}:hover:not(:disabled):not([aria-busy="true"])`,
+            `${BUTTON}:hover${ALIVE}:not([aria-busy="true"])`,
+          ...spend(
+            ctx,
+            "button",
+            COMPONENT_PROPERTY,
+            COMPONENT_FALLBACK,
+            ...HOVER_COMPONENT_STEPS,
+          ),
           ...(liftX !== undefined && liftY !== undefined
             ? { transform: `translate(${liftX}, ${liftY})` }
             : {}),
@@ -410,23 +560,28 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // Active cancels the hover lift so the control reads as pushed in.
         yield {
           [ctx.symbols.selector]: () =>
-            `${BUTTON}:active:not(:disabled):not([aria-busy="true"])`,
+            `${BUTTON}:active${ALIVE}:not([aria-busy="true"])`,
+          ...spend(
+            ctx,
+            "button",
+            COMPONENT_PROPERTY,
+            COMPONENT_FALLBACK,
+            ...SHADOW_COMPONENT_STEPS,
+          ),
           transform: "translate(0, 0)",
         };
         // The ring, drawn on focus-visible so a mouse press leaves none. Its
         // width and offset come from the theme's focus scale; a theme that
         // states none gets no ring rather than an outline of undefined width.
-        const focusWidth = themeOf(ctx)?.focusWidth?.["width"];
-        const focusRing = themeOf(ctx)?.colors?.["focus-ring"];
-        const focusOffset = themeOf(ctx)?.focusOffset?.["offset"];
+        //
+        // And the ring is the control's edge: the button's own border takes
+        // the ring's ink while it is focused, so the reader sees one edge in
+        // the theme's focus colour rather than the button's own edge with a
+        // second band beside it.
+        const ring = focusRing(ctx);
         yield {
-          [ctx.symbols.selector]: () => `${BUTTON}:focus-visible`,
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          [ctx.symbols.selector]: () => `${BUTTON}:focus-visible${ALIVE}`,
+          ...focusPaint(ring),
         };
         // Remove the UA default ring only where :focus-visible is supported.
         yield {
@@ -438,19 +593,25 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // the at-rule and the selector symbol the fallback selector.
         yield {
           [ctx.symbols.parent]: "@supports not selector(:focus-visible)",
-          [ctx.symbols.selector]: () => "button:focus",
-          ...(focusWidth !== undefined && focusRing !== undefined
-            ? { outline: `${focusWidth} solid ${focusRing}` }
-            : {}),
-          ...(focusOffset !== undefined
-            ? { "outline-offset": focusOffset }
-            : {}),
+          [ctx.symbols.selector]: () => `button:focus${ALIVE}`,
+          ...focusPaint(ring),
         };
-        // Disabled dims and freezes the control.
+        // A dead control wears a posture, not a dim.
+        //
+        // Dimming spent opacity on the WHOLE control, so the ink dimmed with
+        // the fill: a white label on a blue button measured 1.56:1 — a button
+        // nobody can read, in the one state a reader is most likely to reach
+        // for by mistake. The posture is a PAIR the theme states, so a dead
+        // control is muted and still legible.
+        //
+        // And it is dead: no shadow (the theme's resting elevation is the
+        // shape of a control that can be pressed), no lift (the hover rule
+        // leaves dead controls alone), and no ring.
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:disabled, ${BUTTON}[aria-disabled="true"]`,
-          opacity: 0.55,
+          ...disabledPosture(ctx),
+          "box-shadow": "none",
           cursor: "not-allowed",
           transform: "none",
         };
@@ -485,21 +646,25 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // selector is specific enough to beat the base rule.
         yield {
           [ctx.symbols.selector]: () => '[type="reset"]',
-          "background-color": themeOf(ctx)?.colors?.["surface-raised"],
-          "border-color": themeOf(ctx)?.colors?.["border"],
-          color: themeOf(ctx)?.colors?.["text"],
+          "background-color": token(ctx, "color.surface-raised"),
+          "border-color": token(ctx, "color.border"),
+          // The secondary's resting posture as well as its look: a reset
+          // button's fill is a surface, and the base's resting shadow is the
+          // loud variant's shout — a surface-filled button floating on
+          // itself reads as a second primary action in a hard-edged theme.
+          "box-shadow": "none",
+          color: token(ctx, "color.text"),
         };
         yield {
           [ctx.symbols.selector]: () => '[type="reset"].outline',
           "background-color": "transparent",
-          "border-color": themeOf(ctx)?.colors?.["accent"],
-          color: themeOf(ctx)?.colors?.["primary"],
+          "border-color": token(ctx, "color.accent"),
+          color: token(ctx, "color.primary"),
         };
         yield {
-          [ctx.symbols.selector]: () =>
-            '[type="reset"].outline:hover:not(:disabled)',
-          "background-color": themeOf(ctx)?.colors?.["primary"],
-          color: themeOf(ctx)?.colors?.["on-primary"],
+          [ctx.symbols.selector]: () => `[type="reset"].outline:hover${ALIVE}`,
+          "background-color": token(ctx, "color.primary"),
+          color: token(ctx, "color.on-primary"),
         };
       },
       { layer: "primitives", autocomplete: "button" },
@@ -522,7 +687,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               // the font-size is the one declaration that reaches the glyph. In
               // `em`, so the glyph tracks the button's font-size across all
               // three of its sizes — the slot's sizing is a token now.
-              const size = themeOf(ctx)?.icon?.["md"];
+              const size = token(ctx, "icon.md");
               return {
                 [ctx.symbols.selector]: () => ".button-icon",
                 display: "inline-block",
@@ -540,27 +705,47 @@ export function buttonRules(roots: readonly string[]): Rule[] {
       // can miss is a lookup that can silently drop a variant.
       const def = VARIANTS[variant];
       const hover = VARIANT_HOVER[variant];
+      const focus = VARIANT_FOCUS[variant];
       const rule: Rule = [
         new RegExp(`^${variant}$`),
         function* (_m, ctx) {
-          // The resting elevation travels with the paint. The type character
-          // does not — it is on the base rule, so a control painted with
-          // utilities instead of a variant still reads as a control.
           yield {
-            [ctx.symbols.selector]: () => def.selector,
-            ...spend(ctx, "button", CHARACTER_PROPERTY, ...SHADOW_CHARACTER),
+            [ctx.symbols.selector]: () => variantSelector(def),
             ...def.body(ctx),
           };
-          // The hovered elevation, likewise. Where a variant restates the
-          // whole hover it wins — ghost and outline re-spend the shadow as
-          // none, because their paints ask for no elevation.
-          yield {
-            [ctx.symbols.selector]: () =>
-              hover?.selector ??
-              `${def.selector}:hover:not(:disabled):not([aria-busy="true"])`,
-            ...spend(ctx, "button", CHARACTER_PROPERTY, ...HOVER_CHARACTER),
-            ...hover?.body(ctx),
-          };
+          // A dead variant wears the posture: the same fill and the same ink
+          // whatever it was. The rule is its own rather than the base's,
+          // because a variant's own ink is as specific as the base's dead
+          // rule and would win over it — a dead outline button would keep
+          // its accent ink, which is the one thing the posture replaces.
+          if (def.inked) {
+            yield {
+              [ctx.symbols.selector]: () => deadVariantSelector(def),
+              ...disabledPosture(ctx),
+            };
+          }
+          if (hover !== undefined) {
+            yield {
+              [ctx.symbols.selector]: () => hover.selector,
+              ...hover.body(ctx),
+            };
+          }
+          // A variant whose edge is its own says what that edge wears while
+          // the control is focused.
+          if (focus !== undefined) {
+            yield {
+              [ctx.symbols.selector]: () => focus.selector,
+              ...focus.body(ctx),
+            };
+            // And the same for engines without :focus-visible, where the
+            // base's fallback puts the ring's ink on the edge.
+            yield {
+              [ctx.symbols.parent]: "@supports not selector(:focus-visible)",
+              [ctx.symbols.selector]: () =>
+                `${BUTTON}.${def.name}:focus${ALIVE}`,
+              ...focus.body(ctx),
+            };
+          }
         },
         { layer: "primitives", autocomplete: variant },
       ];
@@ -574,7 +759,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
     [
       /^span$/,
       function* (_m, ctx) {
-        const borderWidth = themeOf(ctx)?.borderWidth?.["width"];
+        const borderWidth = token(ctx, "border.width");
         yield {
           [ctx.symbols.selector]: () => GROUP,
           display: "inline-flex",
@@ -590,13 +775,13 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:first-child`,
           "margin-inline-start": 0,
-          "border-start-start-radius": themeOf(ctx)?.radius?.["md"],
-          "border-end-start-radius": themeOf(ctx)?.radius?.["md"],
+          "border-start-start-radius": token(ctx, "radius.md"),
+          "border-end-start-radius": token(ctx, "radius.md"),
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:last-child`,
-          "border-start-end-radius": themeOf(ctx)?.radius?.["md"],
-          "border-end-end-radius": themeOf(ctx)?.radius?.["md"],
+          "border-start-end-radius": token(ctx, "radius.md"),
+          "border-end-end-radius": token(ctx, "radius.md"),
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:hover`,
@@ -605,9 +790,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${GROUP} > button[aria-pressed="true"]`,
-          "background-color": themeOf(ctx)?.colors?.["primary"],
-          color: themeOf(ctx)?.colors?.["on-primary"],
-          "border-color": themeOf(ctx)?.colors?.["on-primary"],
+          "background-color": token(ctx, "color.primary"),
+          color: token(ctx, "color.on-primary"),
+          "border-color": token(ctx, "color.on-primary"),
           "z-index": 1,
         };
       },

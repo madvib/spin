@@ -28,23 +28,23 @@ export const LABEL_EXAMPLES: readonly LabelExample[] = [
   {
     name: "Naming a control",
     html: row(
-      `          <label><input type="text" placeholder="you@example.com"><span>Email address</span></label>
-          <label><input type="text" value="Hello"><span>Name</span></label>
-          <label><input type="text" value="Cannot touch" disabled><span>Disabled</span></label>`,
+      `          <label><input type="text" placeholder="v4.12.0"><span>Release tag</span></label>
+          <label><input type="text" value="checkout-api"><span>Service name</span></label>
+          <label><input type="text" value="payments-worker" disabled><span>Locked by policy</span></label>`,
     ),
   },
   {
     name: "With a select",
     html: row(
-      `          <label><select><option>One</option><option>Two</option></select><span>Choice</span></label>
-          <label><select disabled><option>Unavailable</option></select><span>Disabled</span></label>`,
+      `          <label><select><option>production</option><option>staging</option></select><span>Target</span></label>
+          <label><select disabled><option>preview</option></select><span>Locked by policy</span></label>`,
     ),
   },
   {
     name: "With a textarea",
     html: row(
-      `          <label><textarea rows="2" placeholder="Multi-line"></textarea><span>Message</span></label>
-          <label><textarea rows="2" disabled>Cannot touch</textarea><span>Disabled</span></label>`,
+      `          <label><textarea rows="2" placeholder="Why are you rolling back?"></textarea><span>Reason</span></label>
+          <label><textarea rows="2" disabled>Deploy blocked by failing health checks</textarea><span>Locked by policy</span></label>`,
     ),
   },
 ];

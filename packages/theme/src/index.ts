@@ -51,6 +51,18 @@ export {
   everyTokenTypeIsDecided,
   validateTokens,
 } from "./pipeline/validate.ts";
+export { validateTheme } from "./contract/validate-theme.ts";
+export type {
+  ThemeReport,
+  ValidateThemeOptions,
+} from "./contract/validate-theme.ts";
+export { GATES, themeGate, themeGates } from "./contract/battery.ts";
+export type {
+  BatteryOptions,
+  BatteryReport,
+  GateName,
+  GateResult,
+} from "./contract/battery.ts";
 export {
   BASE_ROLES,
   inkTokens,
@@ -58,7 +70,37 @@ export {
   requiredPaths,
   themeSchema,
 } from "./contract/roles.ts";
+export { contractGroups, themeGroups } from "./contract/groups.ts";
+export {
+  ELEMENT_ROLES,
+  elementFallback,
+  elementPaths,
+  elementRole,
+} from "./contract/elements.ts";
+export type { ElementDeclaration } from "./contract/elements.ts";
+export {
+  ELEMENT_TYPE_ROLES,
+  elementTypeElements,
+  elementTypeFallback,
+  elementTypeFields,
+  elementTypePaths,
+  elementTypeRole,
+  FACE_CHAINS,
+} from "./contract/typography.ts";
+export type {
+  ElementTypeDeclaration,
+  ElementTypeField,
+  ElementTypeFields,
+  ElementTypePath,
+  GlobalTypePath,
+} from "./contract/typography.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
+export {
+  LOOP_DURATION,
+  LOOP_FALLBACK,
+  LOOP_STEP,
+  STROBE_FLOOR_MS,
+} from "./contract/motion.ts";
 export type { LegibilityFloor, RoleDeclaration } from "./contract/roles.ts";
 
 // Authoring: changing and creating themes.
@@ -83,8 +125,8 @@ export {
 } from "./pipeline/generate.ts";
 
 // The uno theme: names derived from paths, values as references.
-export { REF_SPECS, refFamilies, themeRef } from "./uno-ref.ts";
-export type { ThemeRef, ThemeRefGroup } from "./uno-ref.ts";
+export { themeKey, themeRef } from "./uno-ref.ts";
+export type { ThemeRef } from "./uno-ref.ts";
 
 // Procedures: the typed interface, owned by the module that implements it.
 export { themeContract } from "./contract/contract.ts";
@@ -99,9 +141,17 @@ export {
   parseColor,
   relativeLuminance,
   type Rgb,
+  toHex,
 } from "./pipeline/color.ts";
 
 // Colour authoring — the toolbox for composing new colours.
 export { generateScale, invertColor, mixColors } from "./authoring/color.ts";
 
-export { supportsDark, themeModes, valuesInMode } from "./modes.ts";
+export {
+  MODES,
+  supportsDark,
+  themeModes,
+  treeInMode,
+  valuesInMode,
+} from "./modes.ts";
+export type { Mode } from "./modes.ts";

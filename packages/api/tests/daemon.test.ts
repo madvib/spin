@@ -34,7 +34,7 @@ describe("daemon project.themes over HTTP", () => {
   let daemon: ReturnType<typeof startDaemon>;
   let client: SpinClient;
 
-  before(async () => {
+  before(() => {
     // The daemon reads themes from `<root>/spin`, so the fixture is
     // copied into a temp dir shaped like a project: root with a themes/
     // directory inside it. The product's own themes are never touched.
@@ -47,7 +47,7 @@ describe("daemon project.themes over HTTP", () => {
     client = createSpinClient(daemon.url);
   });
 
-  after(async () => {
+  after(() => {
     // close() removes the discovery document too, which is half of what it
     // exists to be tested for.
     daemon.close();
@@ -59,7 +59,8 @@ describe("daemon project.themes over HTTP", () => {
     // existed, so a dark-mode edit in the studio showed the light value while
     // it wrote the override. A guard, because a stale fixture is exactly the
     // kind of thing that passes every other test.
-    const listed = await client.project.themes.list({});
+    const listed = (await client.project.themes.list({}))
+      .filter((theme) => theme.file !== null);
     for (const theme of listed) {
       const doc = JSON.parse(theme.text) as Record<string, unknown>;
       assertEquals(
@@ -84,27 +85,69 @@ describe("daemon project.themes over HTTP", () => {
     }
   });
 
-  it("lists the fixture themes", async () => {
+  it("lists the shipped starters beside the project's files", async () => {
     const listed = await client.project.themes.list({});
-    const names = listed.map((t) => t.name).sort();
-    assertEquals(names, ["acme", "starter"]);
+    assertEquals(
+      listed.map((t) => [t.name, t.file]),
+      [
+        ["acme", "spin/acme.json"],
+        ["console", null],
+        ["neobrut", null],
+        ["silk", null],
+        ["spin", null],
+        ["starter", "spin/starter.json"],
+        ["synthwave", null],
+      ],
+      "a file carries its path; an unforked starter carries none",
+    );
     // Project-relative, never absolute: a path a developer sees carries no
     // machine with it — no screenshot, log line, or issue report says where
     // the files live on someone's disk.
     assertEquals(
-      listed.every((t) => !t.file.startsWith("/") && !t.file.includes(":\\")),
+      listed.every((t) =>
+        t.file === null ||
+        (!t.file.startsWith("/") && !t.file.includes(":\\"))
+      ),
       true,
       "a reported path is relative to its project, not to a machine",
     );
+  });
+
+  it("serves a shipped starter until a write forks it", async () => {
+    const shipped = await client.project.themes.read({ name: "silk" });
+    const doc = JSON.parse(shipped.text ?? "{}") as {
+      color: { primary: { $value: string } };
+    };
     assertEquals(
-      listed.map((t) => t.file).sort(),
-      ["spin/acme.json", "spin/starter.json"],
-      "the path is the project's own layout",
+      typeof doc.color.primary.$value,
+      "string",
+      "the unforked starter reads as its document",
+    );
+    doc.color.primary.$value = "#ff0000";
+    const written = await client.project.themes.write({
+      name: "silk",
+      text: JSON.stringify(doc, null, 2),
+    });
+    assertEquals(written.error, null, "the save forks the starter");
+    assertEquals(
+      (await client.project.themes.list({})).find((t) => t.name === "silk")
+        ?.file,
+      "spin/silk.json",
+      "the fork is the project's own file",
     );
     assertEquals(
-      listed.every((t) => t.file.endsWith(".json")),
+      (await client.project.themes.read({ name: "silk" })).text?.includes(
+        "#ff0000",
+      ),
       true,
-      "every entry names the file on disk it came from",
+      "and shadows the shipped document",
+    );
+    const removed = await client.project.themes.remove({ name: "silk" });
+    assertEquals(removed.error, null, "the fork is removable");
+    assertEquals(
+      (await client.project.themes.read({ name: "silk" })).text,
+      shipped.text,
+      "and removing it puts the shipped document back",
     );
   });
 
@@ -135,6 +178,17 @@ describe("daemon project.themes over HTTP", () => {
     rmSync(bare, { recursive: true, force: true });
   });
 
+  it("reports the project it was started with", async () => {
+    // `current` is `detect` without the question: the daemon already knows
+    // which root it serves, and a client that dialed a port — the studio, an
+    // MCP client — has no other way to learn it. `detect` stays for roots the
+    // caller names.
+    const report = await client.project.current({});
+    assertEquals(report.root, dir);
+    assertEquals(report.spin, true);
+    assertEquals(report.themes, ["acme.json", "starter.json"]);
+  });
+
   it("serves two projects from one daemon, named per call", async () => {
     // One process, many projects: a client names the root it means. Two
     // daemons in one process used to stomp on each other, which is exactly
@@ -147,10 +201,22 @@ describe("daemon project.themes over HTTP", () => {
       join(other, "spin", "solo.json"),
     );
     const theirs = await client.project.themes.list({ root: other });
-    assertEquals(theirs.map((t) => t.name), ["solo"]);
+    assertEquals(
+      theirs.map((t) => t.name),
+      ["console", "neobrut", "silk", "solo", "spin", "synthwave"],
+      "the named root's own file plus the shipped starters",
+    );
     // The daemon's own project is unchanged, which is the point.
     const mine = await client.project.themes.list({});
-    assertEquals(mine.map((t) => t.name).sort(), ["acme", "starter"]);
+    assertEquals(mine.map((t) => t.name), [
+      "acme",
+      "console",
+      "neobrut",
+      "silk",
+      "spin",
+      "starter",
+      "synthwave",
+    ]);
     rmSync(other, { recursive: true, force: true });
   });
 
@@ -162,7 +228,7 @@ describe("daemon project.themes over HTTP", () => {
     const init = await client.project.init({
       root: fresh,
       name: "first",
-      starter: "default",
+      starter: "silk",
     });
     assertEquals(init.error, null);
     const detect = await client.project.detect({ root: fresh });
@@ -185,7 +251,11 @@ describe("daemon project.themes over HTTP", () => {
       "with the spin config, not raw uno",
     );
     const listed = await client.project.themes.list({ root: fresh });
-    assertEquals(listed.map((t) => t.name), ["first"]);
+    assertEquals(
+      listed.map((t) => t.name),
+      ["console", "first", "neobrut", "silk", "spin", "synthwave"],
+      "the seeded theme joins the shipped starters",
+    );
     const seeded = await client.project.themes.read({
       name: "first",
       root: fresh,
@@ -195,6 +265,24 @@ describe("daemon project.themes over HTTP", () => {
       true,
       "the seeded theme is a real document, not an empty file",
     );
+    rmSync(fresh, { recursive: true, force: true });
+  });
+
+  it("a write creates the themes directory a fresh project lacks", async () => {
+    // The first write into a project that has never held a theme: `spin/` is
+    // made on the way rather than demanded of the caller — the failure this
+    // replaces was an ENOENT surfacing as a dialog on a fresh checkout.
+    const fresh = mkdtempSync(join(tmpdir(), "spin-write-"));
+    const source = await client.project.themes.read({ name: "starter" });
+    const written = await client.project.themes.write({
+      name: "first",
+      text: source.text as string,
+      root: fresh,
+    });
+    assertEquals(written.error, null);
+    assertEquals(readdirSync(join(fresh, "spin")), ["first.json"]);
+    const detected = await client.project.detect({ root: fresh });
+    assertEquals(detected.spin, true, "the write made the project");
     rmSync(fresh, { recursive: true, force: true });
   });
 

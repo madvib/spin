@@ -17,7 +17,7 @@
  *   and passes it in as `required`; theme stays generic and never imports
  *   preset or primitives. Absent `required` means the base surface
  *   (`BASE_ROLES`): the palette and contrast floors, not the component
- *   character tokens. Theme owns placeholder tables for base roles only, so
+ *   tokens. Theme owns placeholder tables for base roles only, so
  *   a `required` list containing component roles throws by design — callers
  *   needing component roles must go through preset `scaffold()` /
  *   `requiredRolesFor`, which own the composition tables. A theme that is
@@ -29,6 +29,8 @@ import { oc } from "@orpc/contract";
 import * as v from "valibot";
 
 import { TOKEN_TYPES } from "../pipeline/types.ts";
+import { MUTATION_ERROR_CODES } from "../authoring/mutate.ts";
+import { MODES } from "../modes.ts";
 const ThemeText = v.pipe(
   v.string(),
   v.description("A DTCG theme document as JSON text."),
@@ -67,6 +69,13 @@ const CssOutput = v.object({
 
 const MutationOutput = v.object({
   error: v.nullable(v.string()),
+  /**
+   * The refusal's code from the closed {@link MUTATION_ERROR_CODES} set, for
+   * a client that branches — `required-token` reads differently from
+   * `type-mismatch`. Null on success. The studio renders `error`; an agent
+   * branches here.
+   */
+  code: v.nullable(v.picklist(MUTATION_ERROR_CODES)),
   /** The mutated document as JSON text. Null when the mutation was refused. */
   text: v.nullable(v.string()),
 });
@@ -80,6 +89,14 @@ export const analyzeTheme = oc
     v.object({
       text: ThemeText,
       required: v.optional(v.array(v.string())),
+      /**
+       * The modes the document serves, e.g. `["dark"]`. A mode the theme
+       * serves but does not override falls back to the base values, so
+       * serving one costs nothing; the check that follows is the other
+       * direction — a value written for a mode the theme does not serve is
+       * never shown. Absent, the document's own root `modes` field is read.
+       */
+      modes: v.optional(v.array(v.picklist(MODES))),
     }),
   )
   .output(Analysis)
@@ -121,7 +138,7 @@ export const themesCss = oc
     summary: "Generate CSS variables for named themes",
   });
 
-/** Set a token's `$value`, creating it (with `$type`) when absent. */
+/** Set a token's base `$value` (or a mode override), creating it when absent. */
 export const setToken = oc
   .input(
     v.object({
@@ -129,6 +146,11 @@ export const setToken = oc
       path: DottedPath,
       value: v.unknown(),
       type: v.optional(TokenType),
+      /**
+       * Write the value as this mode's override (`$modes.<mode>`) instead of
+       * the base `$value`. A value equal to the base removes the override.
+       */
+      mode: v.optional(v.picklist(MODES)),
     }),
   )
   .output(MutationOutput)

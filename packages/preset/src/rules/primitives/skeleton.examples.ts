@@ -31,7 +31,7 @@ export const SKELETON_EXAMPLES: readonly SkeletonExample[] = [
         </div>`,
   },
   {
-    name: "Skeleton · text lines and their rhythm",
+    name: "Skeleton · text lines and their spacing",
     html: `        <div>
           <div class="skeleton skeleton-text"></div>
           <div class="skeleton skeleton-text"></div>

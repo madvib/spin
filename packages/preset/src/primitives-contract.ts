@@ -25,6 +25,8 @@ const ExampleRow = v.object({
 
 const ComponentExamples = v.object({
   note: v.string(),
+  /** The script that finishes an example markup alone cannot finish. */
+  onLoad: v.optional(v.string()),
   rows: v.array(ExampleRow),
 });
 
@@ -54,7 +56,7 @@ const ContractOutput = v.object({
   tags: v.array(v.string()),
   variants: v.array(v.string()),
   reads: v.array(v.string()),
-  character: v.array(v.object({
+  component: v.array(v.object({
     path: v.string(),
     type: v.string(),
     value: v.string(),

@@ -1,5 +1,12 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
+import {
+  claim,
+  type Mode,
+  proseTokens,
+  spacing,
+  statedType,
+} from "./shared.ts";
+import { painted } from "./scope.ts";
 
 /**
  * Embedded media: `figure`, `figcaption`, the raster and vector elements, and
@@ -7,16 +14,32 @@ import { claim, type Mode, proseTokens, rhythm } from "./shared.ts";
  *
  * The only part of prose that brings its own box. Everything else is a run of
  * text inside the reader's column; a figure has edges, a caption has its own
- * rhythm, and an embed has a size the document does not otherwise impose.
+ * spacing, and an embed has a size the document does not otherwise impose.
  */
 
+/**
+ * A figure.
+ *
+ * Two treatments, and they belong to different owners.
+ *
+ * The figure's RHYTHM — the gap it leaves in the flow — is typography, and
+ * typography is the theme's everywhere.
+ *
+ * The figure's BOX — the media it holds and the caption under it — is the
+ * document's furniture: the document says how a figure is set, and a figure
+ * outside a document column is only a block of flow.
+ */
 function figureRule(mode: Mode): Rule {
   return [
     /^figure$/,
     function* (_m, ctx) {
       yield {
         [ctx.symbols.selector]: () => claim(mode, "figure"),
-        ...rhythm(proseTokens(ctx)),
+        ...spacing(proseTokens(ctx)),
+      };
+      yield {
+        [ctx.symbols.selector]: () =>
+          painted(mode, "prose", "descendant", "figure"),
         "margin-inline": "0",
       };
     },
@@ -24,18 +47,37 @@ function figureRule(mode: Mode): Rule {
   ];
 }
 
+/**
+ * A caption.
+ *
+ * Its TYPE — the small muted line it reads in — is typography, and the
+ * theme's everywhere: a caption is a caption wherever it sits.
+ *
+ * Its PLACE — centred under the figure it belongs to — is the document's
+ * furniture, because a caption is centred in a column and nowhere else.
+ */
 function figcaptionRule(mode: Mode): Rule {
   return [
     /^figcaption$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "figcaption");
+      const size = own.size ?? t.sizeSm;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "figcaption"),
+        // The gap the caption leaves under the figure it belongs to: the
+        // caption's own spacing, and the theme's.
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
+      };
+      yield {
+        [ctx.symbols.selector]: () =>
+          painted(mode, "prose", "descendant", "figcaption"),
         "text-align": "center",
       };
     },
@@ -50,7 +92,7 @@ function mediaRule(mode: Mode, tag: string): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => painted(mode, "prose", "descendant", tag),
         display: "block",
         "max-width": "100%",
         height: "auto",
@@ -69,7 +111,7 @@ function embeddedRule(mode: Mode, tag: string): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => painted(mode, "prose", "descendant", tag),
         display: "block",
         "max-width": "100%",
         ...(t.borderWidth !== undefined && t.border !== undefined

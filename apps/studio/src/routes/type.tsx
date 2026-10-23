@@ -1,95 +1,189 @@
 /**
- * Type — the first surface in the studio designed as a product rather than
- * assembled from token rows.
+ * Type — the faces a theme uses, the scale it sets, and the element map.
  *
  * A token list answers "what is `font-size-lg` worth". A type surface has to
  * answer the questions a theme author actually has:
  *
- *   **What does each face look like, and which slot claims it?** `body`,
- *   `heading`, `serif`, `mono` — each a live specimen, not a CSS stack in a
- *   text field. A stack string is the value, not the thing.
+ *   **What does each face look like, and what is it for?** `body`, `heading`,
+ *   `serif`, `mono` — each a live specimen, the stack it resolves to, and
+ *   the place the family is loaded from. A stack string is the value; the
+ *   face is the thing.
  *
  *   **Does the scale read as a scale?** Nine sizes in a list are nine
  *   numbers; nine sizes in a ramp are a decision. The ramp is rendered at
  *   size, largest first, with the token and the computed value beside it.
  *
- *   **Which face does each element claim?** `<h1>`–`<h6>` claiming `heading`
- *   and `<p>` claiming `body` is a mapping, and it should be legible at a
- *   glance rather than inferred from which specimens happened to be on screen.
+ *   **Which face does each element read?** That is the theme's answer, and
+ *   this page edits it. `font.element.<tag>.<field>` is a decision a theme
+ *   may make about ONE element — its face, its size, its weight — and the
+ *   map at the end is where that decision is made. A row the theme says
+ *   nothing about reads the ladder.
  *
- * The specimens are the roastery copy, the same concrete subject the
- * primitives use: a real paragraph at real size says whether the h3 reads as
- * a step down from the h2, which `Agile foxes jump quickly` cannot.
+ * The specimens are the studio's own neutral copy, the same in every
+ * project, so two themes are compared on the same reading rather than on
+ * whoever wrote the sample.
  */
 
-import { createMemo, For, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
+import { Dynamic } from "solid-js/web";
+import {
+  elementTypeElements,
+  elementTypeFields,
+  FACE_CHAINS,
+  resolveAliases,
+  treeInMode,
+} from "@spin/theme";
+import type { TokenTree } from "@spin/theme";
 import { analyzeTheme } from "../lib/theme.ts";
 import { activeMode, themeText } from "../lib/store.ts";
-import FontPicker from "../components/FontPicker.tsx";
-import { groupTokens, type TokenRow } from "../lib/tokens.ts";
-import { editToken } from "../lib/editing.ts";
+import { groupTokens, type TokenRow, toPx } from "../lib/tokens.ts";
+import {
+  DISPLAY,
+  HEADING,
+  MONOSPACE,
+  PARAGRAPH,
+  QUOTE,
+  SENTENCE,
+} from "../lib/specimen-copy.ts";
+import { editToken, removeToken, upsertToken } from "../lib/editing.ts";
+import { StepPicker } from "../components/demos/CompositeEditor.tsx";
+import ValueInput from "../components/demos/ValueInput.tsx";
+import LinkToggle from "../components/demos/LinkToggle.tsx";
+import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
+import {
+  ConcernPage,
+  Frame,
+  Section,
+  TokenLine,
+} from "../components/Concern.tsx";
+import { inDrawer } from "../lib/host.ts";
+import { type CatalogFont } from "../lib/fonts.ts";
+import { spinClient } from "../lib/client.ts";
 
-/** The four family slots, and the sentence that shows each one off. */
-const FAMILY_SLOTS = [
-  {
-    slot: "heading",
-    role: "Headings, and anything that leads",
-    sample: "A roast day is a constraint, not a preference",
-  },
-  {
-    slot: "body",
-    role: "Paragraphs, and UI copy",
-    sample:
-      "Roasts are Tuesdays, shipping Wednesdays. Orders placed before Monday are in the following week's batch.",
-  },
-  {
-    slot: "serif",
-    role: "Long-form editorial text",
-    sample: "The shop has cupped every Tuesday for eleven years.",
-  },
-  {
-    slot: "mono",
-    role: "Code, identifiers, tabular figures",
-    sample: "color.primary = #7c2d12",
-  },
-] as const;
-
-/** Which face each element claims. The assignment is the design decision. */
-const TAG_MAP = [
-  { tag: "h1", face: "heading", note: "the document's one opening claim" },
-  { tag: "h2", face: "heading", note: "a section" },
-  { tag: "h3", face: "heading", note: "a sub-section" },
-  { tag: "h4", face: "heading", note: "a group" },
-  { tag: "h5", face: "heading", note: "a sub-group" },
-  { tag: "h6", face: "heading", note: "a run of related items" },
-  { tag: "p", face: "body", note: "a paragraph" },
-  { tag: "blockquote", face: "serif", note: "quoted editorial text" },
-  { tag: "code", face: "mono", note: "inline code" },
-  { tag: "pre", face: "mono", note: "a block of code" },
-  { tag: "kbd", face: "mono", note: "a key the reader presses" },
-] as const;
-
-/** The scale, largest first, so it reads as a decision rather than a list. */
-const SCALE = ["3xl", "2xl", "xl", "lg", "md", "sm", "xs", "2xs"] as const;
+/** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
+function suffixOf(path: string): string {
+  return path.split(".").slice(2).join("-");
+}
 
 /**
- * The family and scale tokens the active theme declares, resolved live.
+ * What each family slot is for.
  *
- * Read from the editor's own document rather than from the shipped theme:
- * what this page draws is what a token edit produces, which is the whole
- * point of a studio. `valuesInMode` inside `groupTokens` keeps dark mode
- * honest — it used to edit the base value while writing the override.
+ * The slots are the theme's own names; the role is this page's word for what
+ * the slot does. A slot the map has never heard of is still a face the theme
+ * named, and it is filed as such rather than dropped.
  */
-function familyRows(): readonly TokenRow[] {
+const ROLES: Record<string, string> = {
+  heading: "display",
+  body: "body",
+  sans: "body",
+  serif: "editorial",
+  mono: "values",
+  brand: "brand",
+};
+
+/** The specimen each role is judged on: the face doing its own job. */
+const SPECIMENS: Record<string, string> = {
+  display: DISPLAY,
+  body: SENTENCE,
+  editorial: QUOTE,
+  values: MONOSPACE,
+  brand: PARAGRAPH,
+};
+
+/** What each element is for, in one line. */
+const NOTES: Record<string, string> = {
+  h1: "the document's one opening claim",
+  h2: "a section",
+  h3: "a sub-section",
+  h4: "a group",
+  h5: "a sub-group",
+  h6: "a run of related items",
+  p: "a paragraph",
+  blockquote: "quoted editorial text",
+  code: "inline code",
+  small: "a small label",
+  strong: "a strong run",
+  a: "a link",
+  figcaption: "the caption under a figure",
+};
+
+/**
+ * The theme's document as it reads, with its aliases resolved.
+ *
+ * A theme says what a face IS by pointing at another slot — silk's heading
+ * face is the sans — so a page that shows the raw document shows a reference
+ * where the reader expects a family. The aliases are followed here, once,
+ * and everything below reads the answer.
+ */
+function resolvedTree(): TokenTree | undefined {
   const tree = analyzeTheme(themeText()).tree;
+  if (tree === undefined) return undefined;
+  return resolveAliases(treeInMode(tree, activeMode())).tree;
+}
+
+/** Every token under `font`, resolved: the families, the scale, the weights. */
+function fontRows(): readonly TokenRow[] {
+  const tree = resolvedTree();
   if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "family"]], activeMode());
+  return groupTokens(tree, [["font"]], activeMode());
+}
+
+/** The rows of one group under `font`, by its path prefix. */
+function rowsUnder(prefix: string): readonly TokenRow[] {
+  return fontRows().filter((row) => row.path.startsWith(`${prefix}.`));
+}
+
+/** The family and scale tokens the active theme declares, resolved live. */
+function familyRows(): readonly TokenRow[] {
+  return rowsUnder("font.family");
 }
 
 function scaleRows(): readonly TokenRow[] {
-  const tree = analyzeTheme(themeText()).tree;
+  return rowsUnder("font.size");
+}
+
+function weightRows(): readonly TokenRow[] {
+  return rowsUnder("font.weight");
+}
+
+/** The per-element decisions the theme states, if it states any. */
+function elementRows(): readonly TokenRow[] {
+  return rowsUnder("font.element");
+}
+
+/**
+ * The type the theme states in one token.
+ *
+ * A typography token is a family, a size, a weight and a tracking in one
+ * value — the four decisions the scales above hold separately — so it gets
+ * a row of its own and an editor that takes the four apart. A theme that
+ * declares none has no such row, and the section says so.
+ *
+ * The theme decides where it keeps them: a composite is a *type*, and a
+ * type may be declared in any group — `typography.body` beside the other
+ * groups, or `font.body` inside the font one. So the page asks the theme
+ * which tokens are typography, wherever the theme put them.
+ */
+function compositeRows(): readonly TokenRow[] {
+  const tree = resolvedTree();
   if (tree === undefined) return [];
-  return groupTokens(tree, [["font", "size"]], activeMode());
+  return groupTokens(tree, [[]], activeMode()).filter(
+    (row) => row.type === "typography",
+  );
+}
+
+/** The letter-spacing tokens the theme declares, for the tracking family. */
+function trackingRows(): readonly TokenRow[] {
+  return rowsUnder("font.letter-spacing");
 }
 
 function tokenFor(
@@ -106,164 +200,755 @@ function sizeOf(
   return sizes.find((row) => row.path === `font.size.${step}`);
 }
 
+/** The face names the theme actually declares. */
+function declaredFaces(): readonly string[] {
+  return familyRows().map((row) => row.path.split(".").pop()!);
+}
+
+/**
+ * The families the theme loads.
+ *
+ * A name in a stack is not a family on the machine: the theme says which
+ * families it loads under `$extensions.spin.fonts`, and a stack that names
+ * one the theme does not load falls through to the next name in the stack.
+ */
+function loadedFamilies(): readonly string[] {
+  try {
+    const doc = JSON.parse(themeText()) as Record<string, unknown>;
+    const extensions = (doc["$extensions"] ?? {}) as Record<string, unknown>;
+    const spin = (extensions["spin"] ?? {}) as Record<string, unknown>;
+    const fonts = spin["fonts"];
+    if (!Array.isArray(fonts)) return [];
+    return fonts
+      .map((entry) => (entry as { family?: unknown }).family)
+      .filter((family): family is string => typeof family === "string");
+  } catch {
+    return [];
+  }
+}
+
+/** The first family in a stack, without its quotes. */
+function firstFamily(stack: string): string {
+  const first = stack.split(",")[0]?.trim() ?? "";
+  return first.replace(/^["']|["']$/g, "");
+}
+
+/**
+ * The scale the active theme declares, largest first.
+ *
+ * Read from the theme rather than from a list written here: a theme may add a
+ * step — the poster's `display` — and a page that knows a fixed set of steps
+ * quietly drops the new one, so the ramp on screen is not the ramp in the
+ * document. Order comes from the values themselves, so a theme that re-steps
+ * its scale gets the ramp in the order it actually reads.
+ */
+function scaleOrder(): readonly string[] {
+  return scaleRows()
+    .map((row) => ({
+      step: row.path.split(".").pop() ?? "",
+      px: toPx(row.value) ?? 0,
+    }))
+    .sort((a, b) => b.px - a.px)
+    .map((entry) => entry.step);
+}
+
+/**
+ * The face a role reads, following the contract's chain.
+ *
+ * The display face falls back to the heading family and the body to the sans,
+ * so a theme that names no display voice still has a face for its headings.
+ */
+function faceFor(
+  families: readonly TokenRow[],
+  path: string,
+): TokenRow | undefined {
+  const chain = [
+    path,
+    ...(FACE_CHAINS[path as keyof typeof FACE_CHAINS] ?? []),
+  ];
+  for (const step of chain) {
+    const found = families.find((row) => row.path === step);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 export default function TypePage() {
+  const sizes = createLockstep(scaleRows, "font.size");
+  const families = createMemo(familyRows);
+  const elements = createMemo(elementRows);
+
   return (
-    <div class="min-h-0 min-w-0 flex-1 overflow-y-auto">
-      <header class="stack px-8 pt-8">
-        <h1 class="text-3xl">Type</h1>
-        <p class="max-w-screen-md text-text-muted">
-          Four faces and one scale, and a map of which element claims which. A
-          theme moves its type by moving these tokens, and every element that
-          reads them follows.
-        </p>
-      </header>
+    <ConcernPage
+      title="Type"
+      note="The faces a theme uses, the scale it sets, and which element reads which. The map at the end is the theme's to change."
+    >
+      <Section
+        title="Faces"
+        fact={`${declaredFaces().length} faces`}
+        note="The families the theme declares. Each card names the slot, the face it resolves to, the stack behind it, and whether the theme loads that family itself."
+      >
+        <Show
+          when={declaredFaces().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no faces yet.
+            </p>
+          }
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <For each={declaredFaces()}>
+              {(slot) => <FaceCard slot={slot} />}
+            </For>
+          </div>
+        </Show>
+      </Section>
 
-      <section class="stack mt-8 px-8">
-        <h2 class="text-xl">Faces</h2>
-        <div class="flex flex-col gap-4">
-          <For each={FAMILY_SLOTS}>
-            {(slot) => (
-              <FamilyCard
-                slot={slot.slot}
-                role={slot.role}
-                sample={slot.sample}
-              />
-            )}
-          </For>
-        </div>
-      </section>
+      <Section
+        title="Scale"
+        fact={`${scaleOrder().length} steps`}
+        note="The steps, largest first. Each is drawn at its own size, so the ramp is the judgement."
+        aside={<LinkToggle group="font.size" ratio={sizes.activeRatio()} />}
+      >
+        <Frame>
+          <div class="flex flex-col">
+            <For each={scaleOrder()}>
+              {(step) => <ScaleRow step={step} family={sizes} />}
+            </For>
+          </div>
+        </Frame>
+      </Section>
 
-      <section class="stack mt-12 px-8">
-        <h2 class="text-xl">Scale</h2>
-        <p class="max-w-screen-md text-text-muted">
-          The nine steps, largest first. Each is drawn at its own size, so the
-          ramp is the judgement.
-        </p>
-        <div class="flex flex-col">
-          <For each={SCALE}>
-            {(step) => <ScaleRow step={step} />}
-          </For>
-        </div>
-      </section>
+      <Section
+        title="Weight"
+        fact={`${weightRows().length} steps`}
+        note="The weights a face can take, edited at their named step, so an element can claim any of them and the specimens read the value."
+      >
+        <Show
+          when={weightRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no weights yet.
+            </p>
+          }
+        >
+          <Frame>
+            <ul class="flow-list">
+              <For each={weightRows()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    utility={`font-${suffixOf(row.path)}`}
+                    specimen={
+                      <span class={`text-2xl ${`font-${suffixOf(row.path)}`}`}>
+                        {HEADING}
+                      </span>
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) =>
+                          editToken(row.path.split("."), value)}
+                        group={weightRows().map((r) => r.value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
+        </Show>
+      </Section>
 
-      <section class="stack mt-12 mb-16 px-8">
-        <h2 class="text-xl">Which face each element claims</h2>
-        <p class="max-w-screen-md text-text-muted">
-          {"Every element reads a face, and any of them can read a different one from its siblings. <h1> claiming the display face while <h2> and <h3> take the body face is a decision this table makes. In a template literal, not as JSX: the compiler reads a bare <h1> in prose as an element and says so."}
-        </p>
-        <table>
-          <thead>
-            <tr>
-              <th>Element</th>
-              <th>Face</th>
-              <th>Why</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={TAG_MAP}>
-              {(entry) => (
-                <tr>
-                  <td>
-                    <code>{`<${entry.tag}>`}</code>
-                  </td>
-                  <td>
-                    <select
-                      value={faceFor(entry.tag, entry.face)}
-                      onChange={(event) =>
-                        setFace(entry.tag, event.currentTarget.value)}
-                    >
-                      <For each={FACES}>
-                        {(face) => (
-                          <option value={face.slot}>{face.slot}</option>
-                        )}
-                      </For>
-                    </select>
-                  </td>
-                  <td class="text-text-muted">{entry.note}</td>
-                </tr>
+      <Section
+        title="Tracking"
+        fact={`${trackingRows().length} steps`}
+        note="The letter spacing at each named step, on a line of text read at display size, where the spacing is the judgement."
+      >
+        <Show
+          when={trackingRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no tracking yet.
+            </p>
+          }
+        >
+          <Frame>
+            <ul class="flow-list">
+              <For each={trackingRows()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    utility={`tracking-${suffixOf(row.path)}`}
+                    specimen={
+                      <h2 style={{ "letter-spacing": `var(${row.variable})` }}>
+                        {HEADING}
+                      </h2>
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) =>
+                          editToken(row.path.split("."), value)}
+                        group={trackingRows().map((r) => r.value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
+        </Show>
+      </Section>
+
+      <Section
+        title="Type in one token"
+        fact={`${compositeRows().length} tokens`}
+        note="A typography token is a family, a size, a weight and a tracking in one value. Each part is a step of a scale the theme already keeps above, so the editor offers those steps rather than free numbers, and the specimen is set in the result."
+      >
+        <Show
+          when={compositeRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme states no type in one token yet.
+            </p>
+          }
+        >
+          <ul class="flow-list stack-sm">
+            <For each={compositeRows()}>
+              {(row) => (
+                <li class="panel stack-sm">
+                  <div class="row-sm flex-wrap items-center gap-2">
+                    <code>{row.path}</code>
+                    <code>{row.value}</code>
+                  </div>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => editToken(row.path.split("."), value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
+                </li>
               )}
             </For>
-          </tbody>
-        </table>
-      </section>
-    </div>
+          </ul>
+        </Show>
+      </Section>
+
+      <Section
+        title="Element map"
+        fact={`${elementTypeElements().length} elements`}
+        note="Which element reads which face, size and weight. A row the theme says nothing about reads the ladder; setting one writes a token under `font.element` for that element."
+      >
+        {
+          /* Six columns and a specimen in each: wider than the drawer's
+            floor, so the table scrolls inside its own rail rather than
+            widening a frame the reader cannot widen. */
+        }
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Specimen</th>
+                <th>Face</th>
+                <th>Size</th>
+                <th>Weight</th>
+                <th>What it is for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={elementTypeElements()}>
+                {(element) => (
+                  <ElementRow
+                    element={element}
+                    families={families()}
+                    elements={elements()}
+                  />
+                )}
+              </For>
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </ConcernPage>
   );
 }
 
-/** One family slot: the face drawn in itself, and the stack that names it. */
-function FamilyCard(props: { slot: string; role: string; sample: string }) {
+/**
+ * One family slot: the face it names, the role it plays, and where the
+ * family comes from.
+ */
+function FaceCard(props: { slot: string }) {
   const rows = createMemo(familyRows);
   const row = () => tokenFor(rows(), props.slot);
+  const role = () => ROLES[props.slot] ?? "the theme's own";
+  const family = () => firstFamily(row()?.value ?? "");
+  const loaded = () => loadedFamilies();
   return (
     <card class="stack p-6">
-      <div class="split">
-        <code class="text-text-muted text-sm">
+      {
+        /*
+        In the drawer the token name and the role stack: a `split` at 340px
+        squeezes the role into a sliver beside a name that cannot wrap, which
+        is the cramming the drawer screenshot showed.
+      */
+      }
+      <div classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}>
+        <code>
           {`font.family.${props.slot}`}
         </code>
-        <span class="text-text-muted text-sm">{props.role}</span>
+        <span class="rounded-md bg-surface-sunken px-2 py-1 text-xs text-text-muted">
+          {role()}
+        </span>
       </div>
-      <p class={`font-${props.slot} text-2xl leading-tight`}>
-        {props.sample}
-      </p>
       {
-        /* The stack is output. Under it, the decision: which family this slot
-           spends, chosen from the catalogue rather than typed as a comma
-           separated list. */
+        /* The face, drawn in itself. A name in a stack is a reference; this
+           is the thing the reference points at. */
       }
-      <div class="border-border border-t pt-4">
-        <code class="text-text-muted text-xs">{row()?.value ?? "—"}</code>
-        <FontPicker
-          slot={props.slot}
+      <h2 style={{ "font-family": row()?.value ?? "inherit" }}>
+        {family() || "—"}
+      </h2>
+      {
+        /* The specimen is the face doing the job the slot exists for, and the
+           stack is the value the theme holds. */
+      }
+      <p
+        class="text-text-muted"
+        style={{ "font-family": row()?.value ?? "inherit" }}
+      >
+        {SPECIMENS[role()] ?? SENTENCE}
+      </p>
+      <hr class="w-full" />
+      <div class="stack-sm">
+        <FamilyField
           value={row()?.value ?? ""}
-          onPick={(stack) =>
-            editToken(
-              (row()?.path ?? `font.family.${props.slot}`).split("."),
-              stack,
-            )}
+          label={`font.family.${props.slot}`}
+          onCommit={(stack) => editToken([`font.family.${props.slot}`], stack)}
         />
+        <p class="text-xs text-text-muted">
+          {loaded().includes(family())
+            ? `The theme loads ${family()}.`
+            : `The theme does not load ${
+              family() || "this family"
+            }, so the browser uses the next name in the stack.`}
+        </p>
       </div>
     </card>
   );
 }
 
 /** One step of the scale, drawn at its own size. */
-function ScaleRow(props: { step: string }) {
-  const rows = createMemo(scaleRows);
+function ScaleRow(props: { step: string; family: Lockstep }) {
+  const rows = () => props.family.rows();
   const row = () => sizeOf(rows(), props.step);
   return (
-    <div class="split border-border border-b py-6 last:border-b-0">
+    <div class="split flex-wrap border-border border-b py-6 last:border-b-0">
       <p class={`text-${props.step}`}>
-        A roast day is a constraint, not a preference.
+        {HEADING}
       </p>
-      <div class="stack-sm-sm shrink-0 items-end text-right">
-        <code class="text-text-muted text-xs">{`font.size.${props.step}`}</code>
-        <code class="text-sm">{row()?.value ?? "—"}</code>
+      <div class="stack-sm shrink-0 items-end text-right">
+        <code>{`font.size.${props.step}`}</code>
+        <Show when={row()}>
+          {(current) => (
+            <ValueInput
+              value={current().value}
+              type={current().type}
+              onCommit={(value) => props.family.commit(current().path, value)}
+              group={rows().map((size) => size.value)}
+              variable={current().variable}
+              label={current().path}
+              onPreview={(value) => props.family.preview(current().path, value)}
+              onCancel={props.family.abandon}
+              proposed={props.family.shown(current().path, current().value)}
+            />
+          )}
+        </Show>
       </div>
     </div>
   );
 }
 
-/** The faces a theme can assign, and the sentence that shows each off. */
-const FACES = [
-  { slot: "heading" },
-  { slot: "body" },
-  { slot: "serif" },
-  { slot: "mono" },
-] as const;
+/**
+ * One element of the map: the specimen it draws, and the three decisions the
+ * theme may make about it.
+ *
+ * The specimen is the element itself, set in the theme's answer, so a row
+ * shows what the element reads rather than what the row says it reads.
+ */
+function ElementRow(props: {
+  element: string;
+  families: readonly TokenRow[];
+  elements: readonly TokenRow[];
+}) {
+  const fields = createMemo(() => elementTypeFields(props.element));
 
-/** The face an element claims: its own token if set, else its default. */
-function faceFor(tag: string, fallback: string): string {
-  const rows = familyRows();
-  const own = rows.find((row) => row.path === `font.element.${tag}`);
-  return own?.value ?? fallback;
+  /** What the theme states for one of the three decisions. */
+  const stated = (
+    field: "family" | "size" | "weight",
+  ): TokenRow | undefined => {
+    const path = fields()[field]?.path;
+    if (path === undefined) return undefined;
+    return props.elements.find((row) => row.path === path);
+  };
+
+  /** What the element reads when the theme says nothing: the ladder's answer. */
+  const inherited = (
+    field: "family" | "size" | "weight",
+  ): TokenRow | undefined => {
+    const fallback = fields()[field]?.fallback;
+    if (fallback === undefined) return undefined;
+    // A face falls back through the contract's chain; a size and a weight
+    // name their step outright.
+    if (field === "family") return faceFor(props.families, fallback);
+    return fontRows().find((row) => row.path === fallback);
+  };
+
+  const family = () =>
+    stated("family")?.value ?? inherited("family")?.value ?? "";
+  const size = () => stated("size")?.value ?? inherited("size")?.value ?? "";
+  const weight = () =>
+    stated("weight")?.value ?? inherited("weight")?.value ?? "";
+
+  const commit = (
+    field: "family" | "size" | "weight",
+    value: string,
+  ): void => {
+    const role = fields()[field];
+    if (role === undefined) return;
+    upsertToken(role.path.split("."), role.type, value);
+  };
+
+  const specimen = (): Record<string, string> => {
+    const out: Record<string, string> = {};
+    if (family() !== "") out["font-family"] = family();
+    if (size() !== "") out["font-size"] = size();
+    if (weight() !== "") out["font-weight"] = weight();
+    return out;
+  };
+
+  const hasOverride = () =>
+    stated("family") !== undefined ||
+    stated("size") !== undefined ||
+    stated("weight") !== undefined;
+
+  const resetElement = (): void => {
+    for (const field of ["family", "size", "weight"] as const) {
+      const path = fields()[field]?.path;
+      if (path !== undefined) removeToken(path.split("."));
+    }
+  };
+
+  return (
+    <tr>
+      <td>
+        <div class="row-sm">
+          <code>{`<${props.element}>`}</code>
+          <Show when={hasOverride()}>
+            <button
+              type="button"
+              class="bare text-primary"
+              title={`Reset <${props.element}> to the ladder`}
+              aria-label={`Reset ${props.element} to the ladder`}
+              onClick={resetElement}
+            >
+              reset
+            </button>
+          </Show>
+        </div>
+      </td>
+      <td>
+        <Dynamic
+          component={props.element}
+          class="m-0"
+          style={specimen()}
+        >
+          Aa
+        </Dynamic>
+      </td>
+      <td>
+        <FamilyField
+          value={family()}
+          label={`font.element.${props.element}.family`}
+          onCommit={(stack) => commit("family", stack)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={size()}
+          group="font.size"
+          steps={scaleRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.size`}
+          onCommit={(value) => commit("size", value)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={weight()}
+          group="font.weight"
+          steps={weightRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.weight`}
+          onCommit={(value) => commit("weight", value)}
+        />
+      </td>
+      <td class="text-text-muted">{NOTES[props.element] ?? ""}</td>
+    </tr>
+  );
 }
 
 /**
- * Write the face an element claims.
+ * One step of the theme's own scale, chosen from a panel of the theme's
+ * ladder rather than a native `<select>`.
  *
- * `font.element.<tag>` names a slot in `font.family`, and the rule prefers
- * it — so `<h1>` can claim a face while the other headings keep theirs.
+ * The value written is the ALIAS — `{font.size.3xl}` — so the element keeps
+ * reading the ladder's step rather than a copy of it: move the step and the
+ * element moves with it.
  */
-function setFace(tag: string, slot: string): void {
-  editToken(["font", "element", tag], slot);
+function StepChoice(props: {
+  value: string;
+  /** The group the steps live in: `font.size` or `font.weight`. */
+  group: string;
+  steps: readonly { name: string; value: string }[];
+  label: string;
+  onCommit: (value: string) => void;
+}) {
+  return (
+    <StepPicker
+      label={props.label}
+      value={props.value}
+      steps={props.steps}
+      onPick={(step) => props.onCommit(`{${props.group}.${step.name}}`)}
+    />
+  );
+}
+
+/**
+ * A family stack, typed as text.
+ *
+ * The theme's value is a stack — `Inter, ui-sans-serif, system-ui, sans-serif`
+ * — and a stack is what the field takes. The swatch beside it says which
+ * family the stack names, and the list below filters the catalogue as the
+ * field is typed, so the families that exist are a filter rather than a list
+ * to scroll.
+ */
+function FamilyField(props: {
+  value: string;
+  label: string;
+  onCommit: (stack: string) => void;
+}) {
+  const [open, setOpen] = createSignal(false);
+  const [draft, setDraft] = createSignal(props.value);
+  let root: HTMLDivElement | undefined;
+  let field: HTMLInputElement | undefined;
+  let list: HTMLUListElement | undefined;
+  /**
+   * The dismissal, and the keyboard's way into the results.
+   *
+   * The list used to close on the field's `blur`, deferred by 150ms so a
+   * mouse click could land — which made it unreachable from the keyboard:
+   * Tab is a blur, so the list closed before a reader could get in. The
+   * field now owns no blur rule: the list closes on a pointer outside it,
+   * on Escape, or when Tab leaves it. The three things a reader reaches
+   * for.
+   */
+  const dismiss = () => setOpen(false);
+  /**
+   * Whether focus is being handed BACK to the field.
+   *
+   * The field opens the list when it takes focus, which is right for a
+   * reader arriving in it and wrong for the studio returning focus after
+   * Escape: the close would reopen the list in the same gesture. The flag
+   * says "this focus is a return, not an arrival".
+   */
+  let returning = false;
+  const returnToField = () => {
+    returning = true;
+    dismiss();
+    field?.focus();
+    returning = false;
+  };
+  const buttons = (): HTMLButtonElement[] => [
+    ...(list?.querySelectorAll<HTMLButtonElement>("button") ?? []),
+  ];
+  const enterList = (edge: "first" | "last") => {
+    setOpen(true);
+    queueMicrotask(() => {
+      const all = buttons();
+      const target = edge === "first" ? all[0] : all[all.length - 1];
+      target?.focus();
+    });
+  };
+  onMount(() => {
+    const onPointer = (event: PointerEvent) => {
+      if (open() && !root?.contains(event.target as Node)) dismiss();
+    };
+    document.addEventListener("pointerdown", onPointer, true);
+    onCleanup(() =>
+      document.removeEventListener("pointerdown", onPointer, true)
+    );
+  });
+  // The families that match what has been typed, asked of the catalogue the
+  // host keeps. The studio does not hold the catalogue: the host has the
+  // whole of it, and the endpoint answers a name rather than a list.
+  //
+  // A signal, not a resource: a resource read during the render is tracked
+  // by the shell's Suspense, and a refetch would take the page's content
+  // down for a moment — the scroll with it, so the field the reader just
+  // focused would jump out of sight.
+  const [matches, setMatches] = createSignal<readonly CatalogFont[]>([]);
+  let asked = "";
+  createEffect(() => {
+    const query = firstFamily(draft());
+    if (query === asked) return;
+    asked = query;
+    void searchFonts(query).then((listed) => {
+      // A slower answer for an older question must not land over a newer one.
+      if (asked === query) setMatches(listed);
+    });
+  });
+
+  // The document's answer lands in the field once it is written; until then
+  // the author is typing into it, and a re-render must not swallow the word
+  // being written.
+  createEffect(on(() => props.value, (value) => setDraft(value)));
+
+  const family = () => firstFamily(draft());
+  return (
+    <div class="stack-sm" ref={root}>
+      <div class="row-sm">
+        <span
+          class="rounded-md bg-surface-sunken px-2 py-1 text-sm"
+          style={{ "font-family": `"${family()}"` }}
+        >
+          {family() || "—"}
+        </span>
+        <input
+          ref={field}
+          type="text"
+          aria-label={props.label}
+          class="w-[16rem] max-w-full"
+          placeholder="Inter, ui-sans-serif, system-ui, sans-serif"
+          value={draft()}
+          aria-expanded={open()}
+          onFocus={() => {
+            if (!returning) setOpen(true);
+          }}
+          onInput={(event) => setDraft(event.currentTarget.value)}
+          onChange={(event) => {
+            setDraft(event.currentTarget.value);
+            props.onCommit(event.currentTarget.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              dismiss();
+              return;
+            }
+            // The field is the way INTO the list for a keyboard reader.
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              enterList("first");
+              return;
+            }
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              enterList("last");
+              return;
+            }
+            // Enter commits, so a stack the author typed is not held until
+            // the field loses the pointer.
+            if (event.key === "Enter") {
+              props.onCommit(event.currentTarget.value);
+            }
+          }}
+        />
+      </div>
+      <Show when={open() && matches().length > 0}>
+        <ul
+          ref={list}
+          class="flow-list stack-sm max-w-full"
+          aria-label="Font families"
+          onKeyDown={(event) => {
+            const all = buttons();
+            const at = all.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
+            const move = (index: number) => {
+              event.preventDefault();
+              all[(index + all.length) % all.length]?.focus();
+            };
+            if (event.key === "ArrowDown") move(at < 0 ? 0 : at + 1);
+            else if (event.key === "ArrowUp") {
+              move(at < 0 ? all.length - 1 : at - 1);
+            } else if (event.key === "Home") move(0);
+            else if (event.key === "End") move(all.length - 1);
+            else if (event.key === "Escape") {
+              event.preventDefault();
+              returnToField();
+            } else if (event.key === "Tab") dismiss();
+          }}
+        >
+          <For each={matches()}>
+            {(font) => (
+              <li class="m-0">
+                <button
+                  type="button"
+                  class="secondary s-sm w-full text-left hover:border-primary"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    const stack = stackFor(font);
+                    setDraft(stack);
+                    returnToField();
+                    props.onCommit(stack);
+                  }}
+                >
+                  <span style={{ "font-family": `"${font.family}"` }}>
+                    {font.family}
+                  </span>
+                </button>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </div>
+  );
+}
+
+/** The stack a catalogue family resolves to. */
+function stackFor(font: CatalogFont): string {
+  const fallback = font.category.includes("serif")
+    ? "Georgia, serif"
+    : font.category.includes("mono")
+    ? "ui-monospace, monospace"
+    : "ui-sans-serif, system-ui, sans-serif";
+  return `"${font.family}", ${fallback}`;
+}
+
+/**
+ * The families that match a name, asked of the host's catalogue.
+ *
+ * Two thousand families is a filter, not a list: the field asks the host for
+ * the families that match what has been typed, and the host answers from the
+ * whole of its catalogue rather than from the forty it would send unasked.
+ */
+let client: ReturnType<typeof spinClient> | undefined;
+
+function searchFonts(query: string): Promise<readonly CatalogFont[]> {
+  client ??= spinClient();
+  return client
+    .then((ready) => ready.fonts.catalog({ query }))
+    .then((listed) => listed as readonly CatalogFont[]);
 }

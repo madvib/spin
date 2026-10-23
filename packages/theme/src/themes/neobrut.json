@@ -1,7 +1,29 @@
 {
   "$extensions": {
     "spin": {
-      "id": "spin-neobrut"
+      "fonts": [
+        {
+          "family": "DM Sans",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/dm-sans:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 1000",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Archivo Black",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/archivo-black@latest/latin-400-normal.woff2) format(\"woff2\")",
+          "weight": "400",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
     }
   },
   "color": {
@@ -9,7 +31,7 @@
     "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
     "primary": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#2b5fd0"
     },
     "secondary": {
       "$type": "color",
@@ -55,7 +77,8 @@
     "semantic": {
       "$description": "Status colors. Named by meaning, never by hue.",
       "success": {
-        "$value": "#16a34a"
+        "$value": "#166534",
+        "$description": "A deep green, because this theme wears white on its chromatic fills and a status colour has to read as ink on the sky page as well: a lighter green sits at three to one against the page and is a word nobody can read."
       },
       "warning": {
         "$type": "color",
@@ -63,14 +86,16 @@
       },
       "error": {
         "$type": "color",
-        "$value": "#dc2626"
+        "$value": "#b91c1c",
+        "$description": "A red deep enough to carry white on the fill and to read as ink on the page: the loud one, but never illegible."
       },
       "info": {
-        "$value": "#0284c7"
+        "$value": "#0369a1",
+        "$description": "The information colour: a step deeper than the sky it was, because this theme wears white on its chromatic fills and a lighter blue cannot carry white at four and a half to one."
       }
     },
     "surface": {
-      "$value": "{color.neutral.50}",
+      "$value": "#dceafe",
       "$description": "Page background."
     },
     "surface-sunken": {
@@ -97,17 +122,13 @@
       "$type": "color",
       "$value": "#ffffff"
     },
-    "on-danger": {
-      "$type": "color",
-      "$value": "#ffffff"
-    },
     "focus-ring": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#000000"
     },
     "link": {
       "$type": "color",
-      "$value": "#1d4ed8"
+      "$value": "#2b5fd0"
     },
     "on-secondary": {
       "$type": "color",
@@ -119,7 +140,7 @@
     },
     "on-semantic-success": {
       "$type": "color",
-      "$value": "#1a1a1a"
+      "$value": "#ffffff"
     },
     "on-semantic-warning": {
       "$type": "color",
@@ -135,15 +156,34 @@
       "$value": "#000000",
       "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance."
     },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(0 0 0 / 55%)",
+      "$description": "The page dims to the same ink the theme draws everything with."
+    },
     "on-semantic-error": {
       "$type": "color",
       "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+    },
     "on-semantic-info": {
       "$type": "color",
-      "$value": "#1a1a1a",
+      "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: flat grey, one step off the page. Neobrut's loudness is the black edge and the hard shadow, and a dead control wears neither."
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. A dimmed control would dim this with it, and the label is the one thing a dead control still has to say."
     }
   },
   "spacing": {
@@ -221,8 +261,17 @@
     "family": {
       "$type": "fontFamily",
       "sans": {
-        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$value": "DM Sans, ui-sans-serif, system-ui, sans-serif",
         "$description": "Body and UI text."
+      },
+      "heading": {
+        "$type": "fontFamily",
+        "$value": "Archivo Black, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Loud, blocky, unapologetic — the poster voice."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the same face, named so the surface is whole."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
@@ -231,6 +280,11 @@
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -267,7 +321,7 @@
     "weight": {
       "$type": "fontWeight",
       "regular": {
-        "$value": 400
+        "$value": 500
       },
       "medium": {
         "$value": 500
@@ -312,16 +366,16 @@
     "$type": "dimension",
     "$description": "Corner rounding. Everything is square: sm through full are 0 on purpose \u2014 a rounded corner would look like a mistake here, the same way a 1px border would.",
     "none": {
-      "$value": "0"
+      "$value": "5px"
     },
     "sm": {
-      "$value": "0"
+      "$value": "5px"
     },
     "md": {
-      "$value": "0"
+      "$value": "5px"
     },
     "lg": {
-      "$value": "0"
+      "$value": "5px"
     },
     "full": {
       "$value": "0"
@@ -332,7 +386,7 @@
   },
   "opacity": {
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -382,10 +436,10 @@
     "$type": "shadow",
     "$description": "Elevation, as CSS box-shadow values.",
     "sm": {
-      "$value": "4px 4px 0 #000000"
+      "$value": "none"
     },
     "md": {
-      "$value": "6px 6px 0 #000000"
+      "$value": "4px 4px 0 #000000"
     },
     "lg": {
       "$value": "8px 8px 0 #000000"
@@ -424,17 +478,21 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. Fast and flat: a hard object lands, it does not float.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "80ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "130ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "250ms"
+      },
+      "loop": {
+        "$value": "600ms",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. Brash, but never a strobe."
       }
     },
     "easing": {
@@ -461,7 +519,7 @@
   },
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$type": "fontWeight",
       "$description": "The button's own weight. A control carries more weight than the prose around it.",
@@ -484,7 +542,15 @@
     "shadow-hover": {
       "$type": "shadow",
       "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
-      "$value": "6px 6px 0 #000000"
+      "$value": "none"
+    },
+    "hover-lift-x": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "hover-lift-y": {
+      "$type": "dimension",
+      "$value": "4px"
     }
   },
   "border": {
@@ -518,7 +584,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "1rem"
@@ -533,7 +599,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -575,6 +641,110 @@
       "$type": "dimension",
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "$description": "Loud on purpose: a hard black edge, a flat high-chroma fill, and a shadow that lands like a stamp. The theme that shouts so the content does not have to.",
+  "card": {
+    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "The same five pixels as everything else: this theme rounds nothing by half."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The hard offset: a card in this theme is a block set down on the page, and it says so."
+    }
+  },
+  "alert": {
+    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner: a message is a box, and a box is not a pill."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.2}",
+      "$description": "The air above and below the message."
+    },
+    "padding-inline": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air beside the message, where it is read."
+    },
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
+    }
+  },
+  "field": {
+    "$description": "The field's own decisions: its corner and the ink of its edge.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+    }
+  },
+  "stat": {
+    "$description": "The stat's own decisions: the number it shows, and how that number is set.",
+    "value-size": {
+      "$type": "dimension",
+      "$value": "{font.size.2xl}",
+      "$description": "The size of the number: the large step of the type scale, because the number is the point of the stat."
+    },
+    "value-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures."
+    }
+  },
+  "table": {
+    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
+    "header-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of a heading: heavier than the row beneath it, so the column names itself."
+    },
+    "rule": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the rule under a row: the page's hairline."
+    },
+    "zebra": {
+      "$type": "color",
+      "$value": "{color.surface-sunken}",
+      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.09375em",
+      "$description": "A heavier rule than a plain theme's: the underline is part of the shouting."
     }
   },
   "modes": [

@@ -1,0 +1,874 @@
+{
+  "$extensions": {
+    "spin": {
+      "fonts": [
+        {
+          "family": "Inter",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Bodoni Moda",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bodoni-moda:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "400 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
+    }
+  },
+  "$description": "The theme spin wears: a technical tool set like a printed journal — warm paper, a didone for display, one red ink, and rules where other systems have shadows.",
+  "color": {
+    "$type": "color",
+    "$description": "Warm paper and warm charcoal, one red ink and one press blue. The neutrals carry the weight; the red is the spot colour, spent on marks and on the destructive action, never on a large surface.",
+    "primary": {
+      "$value": "#c8102e",
+      "$description": "The brand's red. An ordinary action wears the brand, and the destructive action wears a hotter vermilion, so the two never read as one intent.",
+      "$modes": {
+        "dark": "#c8102e"
+      }
+    },
+    "secondary": {
+      "$value": "#f4f1ec",
+      "$description": "The quiet fill: paper one step off the page, for a control that is present but not asking for attention.",
+      "$modes": {
+        "dark": "#252320"
+      }
+    },
+    "accent": {
+      "$value": "#c8102e",
+      "$description": "The spot colour. A printed page spends one ink on marks — a rule's end, a figure's number, the dangerous word — and the rest of the sheet stays black.",
+      "$modes": {
+        "dark": "#ff5a63"
+      }
+    },
+    "neutral": {
+      "50": {
+        "$value": "#fbfaf8",
+        "$modes": {
+          "dark": "#141312"
+        }
+      },
+      "100": {
+        "$value": "#f4f1ec",
+        "$modes": {
+          "dark": "#1b1a18"
+        }
+      },
+      "200": {
+        "$value": "#e7e1d7",
+        "$modes": {
+          "dark": "#252320"
+        }
+      },
+      "300": {
+        "$value": "#d4ccbf",
+        "$modes": {
+          "dark": "#332f2b"
+        }
+      },
+      "400": {
+        "$value": "#a9a093",
+        "$modes": {
+          "dark": "#4a453f"
+        }
+      },
+      "500": {
+        "$value": "#7e766b",
+        "$modes": {
+          "dark": "#6a645b"
+        }
+      },
+      "600": {
+        "$value": "#58524a",
+        "$modes": {
+          "dark": "#8d867b"
+        }
+      },
+      "700": {
+        "$value": "#3c3833",
+        "$modes": {
+          "dark": "#b2aba0"
+        }
+      },
+      "800": {
+        "$value": "#272420",
+        "$modes": {
+          "dark": "#d5cec3"
+        }
+      },
+      "900": {
+        "$value": "#161513",
+        "$modes": {
+          "dark": "#f0ebe3"
+        }
+      },
+      "$description": "The paper ramp: warm at every step, and the same ten steps restated for the night press, so a mode is a change of ink rather than a change of system."
+    },
+    "semantic": {
+      "$description": "Status colours, named by meaning. The red is both the accent and the destructive ink, so a danger and a mark are the same word on purpose; the rest are quiet enough to sit beside it.",
+      "success": {
+        "$value": "#2f6b3f",
+        "$description": "A low, warm green: the colour of a thing that worked, kept dark enough never to compete with the ink.",
+        "$modes": {
+          "dark": "#7fce9a"
+        }
+      },
+      "warning": {
+        "$value": "#8a5a00",
+        "$description": "A printer's ochre: a mark that asks to be read before it is acted on.",
+        "$modes": {
+          "dark": "#e0a33c"
+        }
+      },
+      "error": {
+        "$value": "#cf3708",
+        "$description": "The alarm: a hotter vermilion beside the brand's crimson. Two reds, the way a print shop runs a second colour beside a spot — and the destructive action can never be mistaken for the ordinary one.",
+        "$modes": {
+          "dark": "#ff7a4d"
+        }
+      },
+      "info": {
+        "$value": "#1f4b8f",
+        "$description": "The press blue, the same ink as the link: information is a link that is not yet a link.",
+        "$modes": {
+          "dark": "#8fb4ee"
+        }
+      }
+    },
+    "surface": {
+      "$value": "{color.neutral.50}",
+      "$description": "The page. Warm paper in the day; after dark the night's charcoal, which is a paper of its own rather than the absence of one.",
+      "$modes": {
+        "dark": "{color.neutral.50}"
+      }
+    },
+    "surface-sunken": {
+      "$value": "#f4f1ec",
+      "$description": "A surface that sits below the page: table stripes, inset wells, the trough a field is carved into.",
+      "$modes": {
+        "dark": "#252320"
+      }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$description": "A surface that sits above the page: cards, popovers, menus. Pure white on the paper page, and one clean step up the charcoal ramp after dark.",
+      "$modes": {
+        "dark": "#1b1a18"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Body text: ink on paper, paper on ink.",
+      "$modes": {
+        "dark": "{color.neutral.900}"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "The second voice: captions, helper copy, the small print that still has to be read.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
+    },
+    "border": {
+      "$value": "#e7e1d7",
+      "$description": "The hairline. Spin draws in thread: a one-pixel rule is what separates one thing from the next, so there are fewer boxes here than in a theme that leans on shadow.",
+      "$modes": {
+        "dark": "#332f2b"
+      }
+    },
+    "scrim": {
+      "$value": "rgb(22 21 19 / 0.45)",
+      "$description": "What dims the page behind a modal: the theme's own ink, laid over the sheet.",
+      "$modes": {
+        "dark": "rgb(8 8 7 / 0.6)"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$description": "The ink on the brand red: paper in the day, and the same paper after dark, because the brand's red does not change when the page does.",
+      "$modes": {
+        "dark": "#ffffff"
+      }
+    },
+    "focus-ring": {
+      "$value": "#1f4b8f",
+      "$description": "The press blue, and only the press blue: the ring never wears a colour that means something else.",
+      "$modes": {
+        "dark": "#8fb4ee"
+      }
+    },
+    "link": {
+      "$value": "#1f4b8f",
+      "$description": "The press blue. A link in running text is blue and never the red, so a link and a danger are never the same word on a page.",
+      "$modes": {
+        "dark": "#8fb4ee"
+      }
+    },
+    "on-secondary": {
+      "$type": "color",
+      "$value": "{color.neutral.900}",
+      "$description": "The ink on the quiet fill: the deepest ink in the ramp, in either mode.",
+      "$modes": {
+        "dark": "{color.neutral.900}"
+      }
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the spot colour: paper on the day press, and the red's own near-black on the night one.",
+      "$modes": {
+        "dark": "#1a0e10"
+      }
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the success fill.",
+      "$modes": {
+        "dark": "#141312"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the warning fill.",
+      "$modes": {
+        "dark": "#141312"
+      }
+    },
+    "field": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "A field's own surface: a lifted step off the page, so a control reads as an object set on the sheet rather than a hole punched through it.",
+      "$modes": {
+        "dark": "#1b1a18"
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "{color.neutral.500}",
+      "$description": "A control's own edge — the thread drawn a shade tighter, for a field or a switch that must read as an object. It is the one rule a finger has to find, so it carries enough weight to be seen: three to one against the page, or the control is not a control.",
+      "$modes": {
+        "dark": "{color.neutral.500}"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the error fill. A fill with no readable foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#1a0e10"
+      }
+    },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the info fill.",
+      "$modes": {
+        "dark": "#141312"
+      }
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: one step off the paper, in the ramp's own warm grey. A control that cannot be pressed is still printed — it is simply printed in the quiet ink.",
+      "$modes": {
+        "dark": "{color.neutral.100}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill: the second voice, the one the small print is set in. Dimming the control would dim this with it, and the label is the one thing a dead control still has to say.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0"
+    },
+    "1": {
+      "$value": "0.25rem"
+    },
+    "2": {
+      "$value": "0.5rem"
+    },
+    "3": {
+      "$value": "0.75rem"
+    },
+    "4": {
+      "$value": "1rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    },
+    "32": {
+      "$value": "8rem",
+      "$description": "The macro gap: the air between two sections of a page, which is where this theme puts its emphasis instead of putting a box around them."
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps, and the roomiest step is the one that separates sections."
+  },
+  "font": {
+    "$description": "One UI family, used with conviction, and one didone for the moments that are allowed to be a poster. Hierarchy is weight and size; no second typeface is spent on it.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The working voice: quiet, even, and everywhere a tool has to be read."
+      },
+      "heading": {
+        "$value": "Bodoni Moda, Didot, \"Bodoni 72\", serif",
+        "$description": "The display voice. A didone — hairline serifs, strong stems, all poise and a little menace — and the serif's one job in this theme is to speak."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the sans under another name, so the surface reads whole."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text. The didone is too sharp to read for pages, so the book serif takes the long reads."
+      },
+      "mono": {
+        "$value": "JetBrains Mono, SFMono-Regular, Menlo, Consolas, ui-monospace, monospace",
+        "$description": "Code, identifiers, tabular figures: the one face that is never wrong, because it never varies."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "2xs": {
+        "$value": "0.6875rem",
+        "$description": "The printed caption: small, set in caps and tracked open, the label above a field."
+      },
+      "xs": {
+        "$value": "0.75rem",
+        "$description": "The same voice one step up — the label on a control."
+      },
+      "sm": {
+        "$value": "0.875rem",
+        "$description": "Secondary text in a dense column, and the size every table reads at."
+      },
+      "md": {
+        "$value": "1rem",
+        "$description": "The body. Sixteen pixels, because this is a reading surface before it is a dashboard."
+      },
+      "lg": {
+        "$value": "1.125rem",
+        "$description": "A lead-in line: the sentence that introduces what follows."
+      },
+      "xl": {
+        "$value": "1.375rem",
+        "$description": "A section head, sized to be found rather than to be impressed."
+      },
+      "2xl": {
+        "$value": "1.875rem",
+        "$description": "The head of a section that has to carry a column on its own."
+      },
+      "3xl": {
+        "$value": "2.75rem",
+        "$description": "A page's own head, set in the didone at reading size."
+      },
+      "display": {
+        "$value": "3.75rem",
+        "$description": "The poster. Three and three-quarter times the body, and the one step where the jump is a scale rather than a font size."
+      },
+      "$description": "Nine steps, and a jump at the top that is a scale rather than a size: a didone is measured in headlines, and the poster only gets one."
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    },
+    "letter-spacing": {
+      "$type": "dimension",
+      "$description": "How far the letters sit from each other. A didone is spaced open where the hairlines need air and closed nowhere.",
+      "tighter": {
+        "$value": "-0.02em",
+        "$description": "Display type only. A didone carries its own tension; a theme never pinches it."
+      },
+      "tight": {
+        "$value": "-0.01em",
+        "$description": "A heading at reading size."
+      },
+      "normal": {
+        "$value": "0em",
+        "$description": "Body copy and anything unlabelled."
+      },
+      "wide": {
+        "$value": "0.04em",
+        "$description": "A word set in capitals that still has to read as a word."
+      },
+      "wider": {
+        "$value": "0.08em",
+        "$description": "The printed caption: caps at two small steps, tracked open so the label sits on the page like a rule rather than like a shout."
+      },
+      "widest": {
+        "$value": "0.14em",
+        "$description": "A single word carrying a whole section. Poster spacing."
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Square geometry. A thread ends blunt: the poster has no round corners except where a control is a pill.",
+    "none": {
+      "$value": "0"
+    },
+    "sm": {
+      "$value": "0.0625rem"
+    },
+    "md": {
+      "$value": "0.125rem"
+    },
+    "lg": {
+      "$value": "0.1875rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "opacity": {
+    "0": {
+      "$value": 0,
+      "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
+    },
+    "10": {
+      "$value": 0.1,
+      "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
+    },
+    "20": {
+      "$value": 0.2,
+      "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
+    },
+    "30": {
+      "$value": 0.3,
+      "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
+    },
+    "40": {
+      "$value": 0.4,
+      "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
+    },
+    "50": {
+      "$value": 0.5,
+      "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about — and in this theme it is what a dead control wears."
+    },
+    "60": {
+      "$value": 0.6,
+      "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
+    },
+    "70": {
+      "$value": 0.7,
+      "$description": "Secondary content that must survive a projector or a bright room."
+    },
+    "80": {
+      "$value": 0.8,
+      "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
+    },
+    "90": {
+      "$value": 0.9,
+      "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
+    },
+    "100": {
+      "$value": 1,
+      "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Flat, and then one hard cut. A card is paper on paper, separated by a hairline and by air; only an overlay is cut out of the sheet, and it is cut with a hard unblurred offset. No blur anywhere in this theme.",
+    "sm": {
+      "$value": "none",
+      "$modes": {
+        "dark": "none"
+      }
+    },
+    "md": {
+      "$value": "none",
+      "$modes": {
+        "dark": "none"
+      }
+    },
+    "lg": {
+      "$value": "4px 4px 0 0 rgb(22 21 19 / 0.16)",
+      "$description": "The cut-out: a hard offset with no blur, the look of a sheet laid on the page. Only the overlays spend it.",
+      "$modes": {
+        "dark": "4px 4px 0 0 rgb(0 0 0 / 0.55)"
+      }
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport widths where layout steps change.",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem"
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem"
+    }
+  },
+  "z-index": {
+    "$type": "number",
+    "$description": "Stacking order. Layer, never a magic number at the call site.",
+    "base": {
+      "$value": 0
+    },
+    "dropdown": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 2000
+    },
+    "toast": {
+      "$value": 3000
+    }
+  },
+  "motion": {
+    "$description": "Precise, and quick. Motion points; it does not perform — no overshoot, no bounce, and no loop that could read as a strobe.",
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "120ms",
+        "$description": "A state change the reader has already decided to expect: a hover, a press, a focus."
+      },
+      "base": {
+        "$value": "180ms",
+        "$description": "The default: a colour or a rule moving to its next position."
+      },
+      "slow": {
+        "$value": "280ms",
+        "$description": "The longest a transition may take: a panel arriving, a drawer settling."
+      },
+      "loop": {
+        "$value": "900ms",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. Slow enough to be watched rather than to be noticed."
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": {
+        "$value": "linear",
+        "$description": "No curve at all, for motion that is a loop rather than a gesture."
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)",
+        "$description": "The default curve: a quick start and a long settle, the way a press lands."
+      },
+      "decelerate": {
+        "$value": "cubic-bezier(0, 0, 0, 1)",
+        "$description": "An entrance: the element arrives and stops, without a bounce at the end."
+      },
+      "accelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)",
+        "$description": "An exit: the element leaves, and the curve carries it out of the frame."
+      }
+    }
+  },
+  "button": {
+    "$type": "dimension",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Spin's button is a printed caption on a block of ink — uppercase, tracked open, flat at rest, and lifted by a hard two pixels when it is touched.",
+    "weight": {
+      "$type": "fontWeight",
+      "$description": "The button's own weight. A control carries more weight than the prose around it, and 600 is the last step before it starts shouting.",
+      "$value": "600"
+    },
+    "case": {
+      "$value": "none",
+      "$type": "textTransform",
+      "$description": "A control says what it does, in the case it is written. The poster's voice belongs to the page, not shouted out of a button."
+    },
+    "tracking": {
+      "$type": "dimension",
+      "$description": "Label tracking. Open tracking is for a wall of capitals; a sentence in a sans wants its letters left alone.",
+      "$value": "0em"
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$description": "Nothing at rest. The block is printed on the page; a shadow would make it a photograph of a block.",
+      "$value": "none"
+    },
+    "shadow-hover": {
+      "$type": "shadow",
+      "$description": "A hard two-pixel offset, the sheet lifting off the page by the width of a rule. No blur, no glow — the button is drawn, not lit.",
+      "$value": "2px 2px 0 0 rgb(22 21 19 / 0.22)",
+      "$modes": {
+        "dark": "2px 2px 0 0 rgb(0 0 0 / 0.6)"
+      }
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
+    "width": {
+      "$value": "1px",
+      "$description": "The hairline every control and surface draws with — the thread itself."
+    },
+    "width-2": {
+      "$value": "2px",
+      "$description": "The emphasis edge: a control that must read as selected rather than merely bordered."
+    },
+    "width-4": {
+      "$value": "4px",
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+    },
+    "width-8": {
+      "$value": "8px",
+      "$description": "The frame. A block drawn rather than outlined."
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs. Its colour is the press blue, so the ring never argues with the ink around it.",
+    "width": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      },
+      "$description": "The ring's stroke. Two pixels in both modes: a one-pixel ring reads as a rendering artifact rather than a decision."
+    },
+    "offset": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      }
+    }
+  },
+  "icon": {
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 16px prose is 2px.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.875rem"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "1.125rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1.5rem"
+    }
+  },
+  "badge": {
+    "$description": "Component tokens: the decisions a theme owns for its badges. Spin's badge is a square tag with an edge drawn like thread — no pills.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "{border.width}",
+      "$description": "The stroke the badge draws around itself, so a small shape holds apart from the page."
+    },
+    "pill": {
+      "$type": "boolean",
+      "$value": false,
+      "$description": "A pill is a soft word. Spin squares its badges into tags."
+    }
+  },
+  "checkbox": {
+    "$description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn — spin's controls are drawn, not lit.",
+    "depth": {
+      "$type": "number",
+      "$value": 0
+    }
+  },
+  "switch": {
+    "$description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
+    "depth": {
+      "$type": "number",
+      "$value": 0
+    }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "card": {
+    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "Square geometry: a thread ends blunt, and a card is a sheet of paper laid on another."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "none",
+      "$description": "No elevation at all. A card is paper on paper, separated by a hairline and by air, and a shadow would make it a photograph of a sheet."
+    }
+  },
+  "alert": {
+    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner: a message is a box, and a box is not a pill."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.2}",
+      "$description": "The air above and below the message."
+    },
+    "padding-inline": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air beside the message, where it is read."
+    },
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
+    }
+  },
+  "field": {
+    "$description": "The field's own decisions: its corner and the ink of its edge.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+    }
+  },
+  "stat": {
+    "$description": "The stat's own decisions: the number it shows, and how that number is set.",
+    "value-size": {
+      "$type": "dimension",
+      "$value": "{font.size.2xl}",
+      "$description": "The size of the number: the large step of the type scale, because the number is the point of the stat."
+    },
+    "value-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures."
+    }
+  },
+  "table": {
+    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
+    "header-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of a heading: heavier than the row beneath it, so the column names itself."
+    },
+    "rule": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the rule under a row: the page's hairline."
+    },
+    "zebra": {
+      "$type": "color",
+      "$value": "{color.surface-sunken}",
+      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.0625em",
+      "$description": "A hair, the width of the rule the rest of the theme draws with."
+    }
+  },
+  "modes": [
+    "light",
+    "dark"
+  ]
+}

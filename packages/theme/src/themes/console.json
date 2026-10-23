@@ -1,7 +1,29 @@
 {
   "$extensions": {
     "spin": {
-      "id": "console"
+      "fonts": [
+        {
+          "family": "Inter",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
     }
   },
   "color": {
@@ -15,8 +37,9 @@
       "$description": "A terminal suns its rows into the phosphor floor: one step below the page, still a surface."
     },
     "surface-raised": {
-      "$value": "oklch(16% 0.01 220)",
-      "$type": "color"
+      "$value": "oklch(18% 0.012 220)",
+      "$type": "color",
+      "$description": "A raised panel steps one lightness up from the page and wears the ring; on black, a shadow alone would not separate it."
     },
     "text": {
       "$value": "oklch(92% 0.06 145)",
@@ -60,17 +83,9 @@
         "$value": "oklch(70% 0.22 25)",
         "$description": "Error status, same value as danger.",
         "$type": "color"
-      },
-      "danger": {
-        "$value": "oklch(70% 0.22 25)",
-        "$type": "color"
       }
     },
     "on-primary": {
-      "$value": "oklch(16% 0.01 220)",
-      "$type": "color"
-    },
-    "on-danger": {
       "$value": "oklch(16% 0.01 220)",
       "$type": "color"
     },
@@ -90,6 +105,11 @@
       "$type": "color",
       "$value": "#334155",
       "$description": "A control's own edge: stronger than border, which divides content."
+    },
+    "scrim": {
+      "$type": "color",
+      "$value": "rgb(0 8 4 / 70%)",
+      "$description": "The page dims into the terminal's own black. A neutral grey scrim would read as a panel from another machine."
     },
     "on-accent": {
       "$type": "color",
@@ -111,6 +131,11 @@
       "$value": "#0a0a0a",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
     },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+    },
     "on-semantic-info": {
       "$type": "color",
       "$value": "#0a0a0a",
@@ -120,6 +145,16 @@
       "$type": "color",
       "$value": "#ffffff",
       "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents."
+    },
+    "disabled": {
+      "$type": "color",
+      "$value": "oklch(22% 0.012 220)",
+      "$description": "The fill a dead control wears: one step up from the terminal floor, in the terminal's own blue-grey. A control that cannot be pressed still occupies its cell."
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "oklch(62% 0.05 145)",
+      "$description": "The ink on that fill: the muted phosphor, dim enough to recede and bright enough to read."
     }
   },
   "spacing": {
@@ -199,15 +234,29 @@
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$type": "fontFamily",
-        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
+        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below — code, markup, readouts — and not in every heading and paragraph, where monospace reads as shouting."
+      },
+      "heading": {
+        "$type": "fontFamily",
+        "$value": "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$description": "Terminal voice: the mono is the heading."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face: the same interface face, named so the surface is whole."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
         "$description": "Long-form editorial text."
       },
       "mono": {
-        "$value": "\"JetBrains Mono Variable\", \"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
+        "$value": "\"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace",
         "$type": "fontFamily"
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -364,7 +413,7 @@
   },
   "shadow": {
     "$type": "shadow",
-    "$description": "Elevation, as CSS box-shadow values.",
+    "$description": "Elevation: a phosphor ring, and the dark offset that grounds it. Three steps on purpose — a component that needs a more specific edge states it, and a step nothing spends stops being a step.",
     "sm": {
       "$value": "0 1px 2px oklch(0 0 0 / 50%), 0 0 0 1px oklch(0.78 0.20 145 / 12%)",
       "$type": "shadow"
@@ -375,34 +424,6 @@
     },
     "lg": {
       "$value": "0 0 0 1px oklch(0.78 0.20 145 / 40%), 0 8px 0 -2px oklch(0 0 0 / 70%)",
-      "$type": "shadow"
-    },
-    "xs": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 10%)",
-      "$type": "shadow"
-    },
-    "xl": {
-      "$value": "0 24px 64px oklch(0 0 0 / 70%)",
-      "$type": "shadow"
-    },
-    "card-rest": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 30%)",
-      "$type": "shadow"
-    },
-    "hover": {
-      "$value": "0 0 0 1px oklch(0.78 0.20 145 / 60%), 0 0 0 3px oklch(0.78 0.20 145 / 10%)",
-      "$type": "shadow"
-    },
-    "sticky": {
-      "$value": "0 1px 0 oklch(0.78 0.20 145 / 24%)",
-      "$type": "shadow"
-    },
-    "accent": {
-      "$value": "0 0 0 2px oklch(0.78 0.20 145 / 55%), 0 0 18px oklch(0.78 0.20 145 / 18%)",
-      "$type": "shadow"
-    },
-    "edge-top": {
-      "$value": "0 -1px 0 oklch(0.78 0.20 145 / 30%)",
       "$type": "shadow"
     }
   },
@@ -439,17 +460,21 @@
     }
   },
   "motion": {
-    "$description": "How things move and how long it takes.",
+    "$description": "How things move and how long it takes. A terminal snaps: the phosphor answers and is done, and nothing drifts.",
     "duration": {
       "$type": "duration",
       "fast": {
-        "$value": "150ms"
+        "$value": "90ms"
       },
       "base": {
-        "$value": "250ms"
+        "$value": "140ms"
       },
       "slow": {
-        "$value": "400ms"
+        "$value": "250ms"
+      },
+      "loop": {
+        "$value": "700ms",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A cursor's blink, not a blink of light."
       }
     },
     "easing": {
@@ -477,7 +502,7 @@
   "$description": "Terminal phosphor, ported from sail. Dark-only green-on-black.",
   "button": {
     "$type": "dimension",
-    "$description": "Character: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "weight": {
       "$value": 700,
       "$type": "fontWeight"
@@ -530,7 +555,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"
@@ -545,7 +570,7 @@
     }
   },
   "badge": {
-    "$description": "Character: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
+    "$description": "Component tokens: the decisions a theme owns for its badges. Metrics that every theme would answer the same way are spent in the CSS instead.",
     "edge": {
       "$type": "dimension",
       "$value": "{border.width}",
@@ -587,6 +612,109 @@
       "$type": "dimension",
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "card": {
+    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "Three pixels: a terminal rounds its boxes by a hair, never by a lot."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The phosphor ring and the dark offset: a panel is a panel, and on black it has to say so."
+    }
+  },
+  "alert": {
+    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner: a message is a box, and a box is not a pill."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.2}",
+      "$description": "The air above and below the message."
+    },
+    "padding-inline": {
+      "$type": "dimension",
+      "$value": "{spacing.4}",
+      "$description": "The air beside the message, where it is read."
+    },
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
+    }
+  },
+  "field": {
+    "$description": "The field's own decisions: its corner and the ink of its edge.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The page's corner."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
+    }
+  },
+  "stat": {
+    "$description": "The stat's own decisions: the number it shows, and how that number is set.",
+    "value-size": {
+      "$type": "dimension",
+      "$value": "{font.size.2xl}",
+      "$description": "The size of the number: the large step of the type scale, because the number is the point of the stat."
+    },
+    "value-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of the number: enough to be read at a glance, not enough to shout."
+    },
+    "value-family": {
+      "$type": "fontFamily",
+      "$value": "{font.family.mono}",
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures."
+    }
+  },
+  "table": {
+    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
+    "header-weight": {
+      "$type": "fontWeight",
+      "$value": "{font.weight.semibold}",
+      "$description": "The weight of a heading: heavier than the row beneath it, so the column names itself."
+    },
+    "rule": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The ink of the rule under a row: the page's hairline."
+    },
+    "zebra": {
+      "$type": "color",
+      "$value": "{color.surface-sunken}",
+      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.0625em",
+      "$description": "One pixel at the body size: the terminal underlines once, plainly."
     }
   },
   "modes": [

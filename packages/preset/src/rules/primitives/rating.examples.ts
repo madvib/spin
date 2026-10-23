@@ -58,21 +58,21 @@ export const ratingFixtureNote =
 export const RATING_EXAMPLES: readonly RatingExample[] = [
   {
     name: "Rating · unrated",
-    html: stars("rating", "Rating"),
+    html: stars("response", "Incident response"),
   },
   {
-    name: "Rating · preset to 3",
-    html: stars("rating", "Rating", { checked: 3 }),
+    name: "Rating · preset to 4",
+    html: stars("response", "Incident response", { checked: 4 }),
   },
   {
     name: "Rating · disabled",
-    html: stars("rating", "Rating", { disabled: true }),
+    html: stars("response", "Incident response", { disabled: true }),
   },
   {
     name: "Rating · two independent ratings",
     html: row(
-      `          ${stars("quality", "Quality")}
-          ${stars("delivery", "Delivery")}`,
+      `          ${stars("response", "Incident response")}
+          ${stars("documentation", "Incident documentation")}`,
     ),
   },
 ];

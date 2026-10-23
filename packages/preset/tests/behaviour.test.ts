@@ -26,13 +26,19 @@ import { primitiveContracts } from "../src/rules/primitives/manifest.ts";
  */
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/default.json",
+  "../../theme/src/themes/silk.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
   string,
   unknown
 >;
+
+/** A theme that states a hover lift, for the decisions about movement. */
+const LIFTED = new URL(
+  "../../theme/src/themes/neobrut.json",
+  import.meta.url,
+);
 
 type Options = Parameters<typeof spinPreset>[0];
 type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
@@ -289,36 +295,51 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
   // Breaks if a missing token is emitted anyway — a dangling reference or an
   // invented fallback adds a declaration the full theme never stated — or if
   // the component drops its other declarations with it.
+  //
+  // The token omitted here is one with no fallback: the size an alert's
+  // message is set in. A token that HAS a fallback — the card's corner, the
+  // alert's air — is the other case: the theme's own scale answers it, and
+  // that case is proved in `elements.test.ts`.
   const reduced = JSON.parse(
     readFileSync(DEFAULT, "utf8"),
   ) as Record<string, unknown>;
-  delete (reduced["radius"] as Record<string, unknown>)["lg"];
+  const size = (reduced["font"] as Record<string, unknown>)["size"] as Record<
+    string,
+    unknown
+  >;
+  delete size["sm"];
   const reserialised = JSON.parse(JSON.stringify(reduced)) as Record<
     string,
     unknown
   >;
 
   const full = declarations(
-    bodyFor(await generate("<card>Body</card>"), "card"),
+    bodyFor(await generate("<alert>Heads up</alert>"), "alert"),
   );
   const partial = declarations(
     bodyFor(
-      await generate("<card>Body</card>", { themes: { light: reserialised } }),
-      "card",
+      await generate("<alert>Heads up</alert>", {
+        themes: { light: reserialised },
+      }),
+      "alert",
     ),
   );
 
   assert(
     Object.keys(partial).length > 0,
-    "the card must still emit without the token",
+    "the alert must still emit without the token",
   );
   assert(
-    "display" in partial && "background-color" in partial,
-    "the card must still state its other properties",
+    "display" in partial,
+    "the alert must still state its other properties",
   );
   assert(
-    "border-radius" in full,
+    "font-size" in full,
     "the full theme must spend the token the reduced one omits",
+  );
+  assert(
+    !("font-size" in partial),
+    "the omitted token's declaration must be gone",
   );
   for (const [property, value] of Object.entries(partial)) {
     assert(
@@ -330,6 +351,42 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
     Object.keys(partial).length < Object.keys(full).length,
     "omitting a token must actually omit its declaration",
   );
+});
+
+Deno.test("a quiet variant states its own resting posture", async () => {
+  // Breaks if the secondary goes back to wearing the base rule's resting
+  // shadow: in a hard-edged theme that is the loudest offset on the page,
+  // spent by the fill whose background is a surface — a surface floating on
+  // itself, beside the primary action's shout. The hover still spends the
+  // theme's hovered elevation, so the theme keeps saying how loud a lift is.
+  const body = declarations(
+    bodyFor(
+      await generate('<button class="secondary">Save</button>'),
+      "secondary",
+    ),
+  );
+  assertEquals(body["box-shadow"], "none");
+});
+
+Deno.test("a bare control takes the component tokens' movement back", async () => {
+  // The movement is part of the button's own tokens the same way the shadow
+  // is, and the opt-out takes those tokens back with the paint: chrome
+  // around a control does not move when it is pointed at. Generated against
+  // a theme that states a lift, so the reset is proven against a lift that
+  // exists rather than against one the theme never mentions.
+  const lifting = JSON.parse(readFileSync(LIFTED, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  const body = declarations(
+    bodyFor(
+      await generate('<button class="bare">Go</button>', {
+        themes: { light: lifting },
+      }),
+      "bare",
+    ),
+  );
+  assertEquals(body["transform"], "none");
 });
 
 Deno.test("the motion clamp ships whenever an animated component does", async () => {
@@ -366,6 +423,25 @@ Deno.test("a boolean token decides a component's shape", async () => {
   assert(
     !("border-radius" in offDecls),
     "a theme that does not declare the flag ships no radius",
+  );
+  // And the third answer: a theme that picks NO — explicitly. The branch
+  // lives in the declaration, not in its presence: the rule prints the same
+  // flag branch for a yes and a no, and the theme's own sheet — which
+  // declares `--badge-pill: 1` for an on and nothing for an off — is what
+  // the branch reads, so the browser resolves the answer per deck.
+  const denied = structuredClone(theme) as Record<string, unknown>;
+  (denied["badge"] as Record<string, unknown>)["pill"] = {
+    $type: "boolean",
+    $value: false,
+  };
+  const no = await generate("<badge>New</badge>", {
+    themes: { light: denied },
+  });
+  const noRadius = declarations(bodyFor(no, "badge"))["border-radius"];
+  assert(
+    noRadius !== undefined && noRadius.includes("var(--badge-pill") &&
+      noRadius.includes("var(--radius-full)"),
+    "a declared false keeps the branch — the flag variable carries the no the deck gave",
   );
 });
 
@@ -610,4 +686,50 @@ Deno.test("no component's type out-sizes the page's own heading", () => {
       );
     }
   }
+});
+
+/**
+ * The theme's typography is spent everywhere.
+ *
+ * Spin owns typography for the whole application: a paragraph, a list, a
+ * heading, a quotation, a code block, a figure and a caption each read the
+ * theme's type and the theme's spacing wherever they are written. A document
+ * column is for the furniture — the quotation's inset, the media's box, the
+ * code block's chrome — and not for the type: a page that had to wrap its
+ * content in a `<prose>` to look like typography would be a system that owns
+ * typography only where a document happens to be.
+ */
+Deno.test("the theme's typography is spent outside a document column", async () => {
+  const result = await generate(
+    "<p>a</p><ul><li>a</li></ul><h2>a</h2><blockquote>a</blockquote>" +
+      "<pre><code>a</code></pre><figure><figcaption>a</figcaption></figure>",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "p")),
+    "a paragraph leaves the theme's gap under it",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "ul")),
+    "and a list leaves the gap too",
+  );
+  assert(
+    "font-size" in declarations(bodyFor(result, "h2")),
+    "and a heading reads the theme's ladder",
+  );
+  assert(
+    "font-family" in declarations(bodyFor(result, "blockquote")),
+    "and a quotation reads the theme's editorial face",
+  );
+  assert(
+    "font-family" in declarations(bodyFor(result, "pre")),
+    "and a code block reads the theme's mono face",
+  );
+  assert(
+    "margin-block-end" in declarations(bodyFor(result, "figure")),
+    "and a figure leaves the gap in the flow",
+  );
+  assert(
+    "font-size" in declarations(bodyFor(result, "figcaption")),
+    "and a caption reads the theme's small size",
+  );
 });

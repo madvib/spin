@@ -2,7 +2,8 @@
   "tasks": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "deno check src/"
   },
   "imports": {
     "solid-js": "npm:solid-js@^1.9.3",

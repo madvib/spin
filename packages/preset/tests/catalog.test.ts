@@ -2,7 +2,7 @@ import { assert, assertEquals } from "@std/assert";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../src/index.ts";
 import { parseTokens } from "@spin/theme";
-import { claims, selectorFor } from "../src/utils/claimed.ts";
+import { claims } from "../src/utils/claimed.ts";
 
 /**
  * The REAL default theme, not a fixture.
@@ -14,7 +14,7 @@ import { claims, selectorFor } from "../src/utils/claimed.ts";
  */
 const THEME = JSON.parse(
   await Deno.readTextFile(
-    new URL("../../theme/src/themes/default.json", import.meta.url),
+    new URL("../../theme/src/themes/silk.json", import.meta.url),
   ),
 ) as Record<string, unknown>;
 

@@ -1,17 +1,13 @@
 import { assert, assertEquals } from "@std/assert";
-import {
-  indexTree,
-  parseTokens,
-  validateLegibility,
-  validateTokens,
-} from "@spin/theme";
+import { parseTokens, validateTokens } from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
+import { starterThemes } from "@spin/theme/themes";
 import type { TokenLeaf, TokenNode } from "@spin/theme";
 
 /**
  * The shipped example themes are the reference implementations of "a theme
  * that satisfies the whole surface". Completeness is a composition claim — it
- * needs the base roles plus every enabled primitive's character tokens — so it
+ * needs the base roles plus every enabled primitive's component tokens — so it
  * is asserted here, where that composition lives, rather than in
  * `@spin/theme`, which cannot see the primitives at all.
  */
@@ -24,7 +20,7 @@ function example(name: string): unknown {
 }
 
 /** A base document: the whole surface, nothing layered over it. */
-for (const name of ["default.json", "neobrut.json", "console.json"]) {
+for (const name of Object.keys(starterThemes).map((stem) => `${stem}.json`)) {
   Deno.test(`${name} satisfies every required role`, () => {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);
@@ -51,7 +47,7 @@ Deno.test("a dark MODE restates what it flips and inherits the rest", () => {
   // changes. So the property to check is that every path it declares is one the
   // theme already declares — a mode that introduced a NEW token would be a
   // second theme wearing a mode's name.
-  const parsed = parseTokens(example("default.json"));
+  const parsed = parseTokens(example("silk.json"));
   if (!parsed.ok) throw new Error(parsed.error);
 
   // A token carries its mode values as `$modes.dark` beside its base, so the

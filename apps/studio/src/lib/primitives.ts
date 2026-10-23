@@ -27,6 +27,8 @@ export interface RpcComponent {
   readonly reads: readonly string[];
   readonly examples?: {
     readonly note: string;
+    /** The line that finishes an example markup alone cannot finish. */
+    readonly onLoad?: string;
     readonly rows: readonly RpcExample[];
   };
 }
@@ -35,6 +37,42 @@ export interface RpcComponent {
 export async function listPrimitives(): Promise<readonly RpcComponent[]> {
   const listed = await (await spinClient()).primitives.list({});
   return listed as readonly RpcComponent[];
+}
+
+/** One component token a component declares: its path, type, scaffold value. */
+export interface RpcComponentToken {
+  readonly path: string;
+  readonly type: string;
+  /** What the token starts at — a manifest default, sometimes a reference
+   * like `{border.width}` that the document resolves as authored. */
+  readonly value: string;
+}
+
+/** One component's contract: vocabulary, reads, and its component tokens. */
+export interface RpcContract {
+  readonly tags: readonly string[];
+  readonly variants: readonly string[];
+  readonly reads: readonly string[];
+  readonly component: readonly RpcComponentToken[];
+}
+
+/**
+ * A component's contract in one call — chiefly the component-token axis, which
+ * `primitives.list` does not carry: the manifest's authored idea of what
+ * `button.weight` starts at, so the component page can offer to CREATE the
+ * token in themes that do not have it yet, scaffolded as authored.
+ *
+ * Undefined when the daemon knows no such component: the RPC spells that as
+ * an error union rather than a failed call, and a page whose name does not
+ * exist should reach its own "no component" fallback rather than crash on a
+ * missing field.
+ */
+export async function primitivesContract(
+  name: string,
+): Promise<RpcContract | undefined> {
+  const result = await (await spinClient()).primitives.contract({ name });
+  if ("error" in result) return undefined;
+  return result;
 }
 
 /** The custom properties a component reads, grouped by token group. */

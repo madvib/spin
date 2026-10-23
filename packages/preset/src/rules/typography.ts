@@ -1,11 +1,10 @@
 import type { Rule } from "@unocss/core";
 import { arbitraryValue, staticRules } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
-import { NUMERIC_VARIANTS, OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
+import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
 export const TYPOGRAPHY_NAMES: readonly string[] = [
-  ...Object.keys(NUMERIC_VARIANTS),
   ...Object.keys(TEXT_TRANSFORMS),
   ...Object.keys(TRACKING).map((name) => `tracking-${name}`),
   ...Object.keys(OUTLINE),
@@ -13,15 +12,31 @@ export const TYPOGRAPHY_NAMES: readonly string[] = [
 
 export function typographyRules(): Rule[] {
   return [
-    // Capitalisation, tracking, and the focus ring: fixed steps a theme may
-    // override through `extendTheme`, but never has to name by hand.
-    ...staticRules([...TYPOGRAPHY_NAMES], STATIC_DECLS),
+    // Tracking: the theme's own ramp first, the conventional step second.
+    // The fallback lives inside this rule rather than in a static entry
+    // beside it because an exact-name rule outranks a pattern regardless of
+    // registration order — a static twin would shadow the theme forever.
+    [
+      /^tracking-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const token = named(ctx, "font-letter-spacing", name);
+        if (token !== undefined) return { "letter-spacing": token };
+        return STATIC_DECLS[`tracking-${name}`];
+      },
+      { autocomplete: "tracking-$letterSpacing" },
+    ],
+    // Capitalisation and the focus ring: fixed steps a theme may override
+    // through `extendTheme`, but never has to name by hand.
+    ...staticRules(
+      [...Object.keys(TEXT_TRANSFORMS), ...Object.keys(OUTLINE)],
+      STATIC_DECLS,
+    ),
     [
       /^font-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) => {
-        const family = tokenOf(ctx, "fontFamily", name);
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const family = named(ctx, "font-family", name);
         if (family) return { "font-family": family };
-        const weight = tokenOf(ctx, "fontWeight", name);
+        const weight = named(ctx, "font-weight", name);
         if (weight) return { "font-weight": weight };
         return undefined;
       },
@@ -39,19 +54,22 @@ export function typographyRules(): Rule[] {
     // would name a colour the theme has never vetted, which is a different
     // decision from naming a number: a size the theme does not carry is a
     // missing step, a colour it does not carry is an unapproved palette.
+    // The hatch refuses it by the same rule every other arbitrary value is
+    // read by — see `utils/color.ts` — so the class is dead on arrival
+    // rather than broken.
     [
       /^text-(.+)$/,
-      ([, name = ""]: string[]) => {
+      ([, name]: string[]) => {
         const literal = arbitraryValue(name);
         return literal === undefined ? undefined : { "font-size": literal };
       },
     ],
     [
       /^text-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) => {
-        const size = tokenOf(ctx, "fontSize", name);
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const size = named(ctx, "font-size", name);
         if (size) return { "font-size": size };
-        const color = tokenOf(ctx, "colors", name);
+        const color = named(ctx, "color", name);
         if (color) return { color: color };
         return undefined;
       },

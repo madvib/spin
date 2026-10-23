@@ -11,23 +11,45 @@
  * scaffolded; it was authored.
  */
 
+import { ELEMENT_ROLES } from "../contract/elements.ts";
 import { BASE_ROLES } from "../contract/roles.ts";
-import type { TokenLeaf, TokenTree } from "../pipeline/types.ts";
+import type { TokenLeaf, TokenTree, TokenType } from "../pipeline/types.ts";
+
+/** A declaration a scaffold can write: the path, the type, the value. */
+interface Scaffoldable {
+  readonly path: string;
+  readonly type: TokenType;
+  readonly value: string | number | boolean;
+}
+
+/** Every declaration a scaffold knows, base roles first. */
+function declarations(): readonly Scaffoldable[] {
+  return [...BASE_ROLES, ...ELEMENT_ROLES];
+}
 
 /**
  * A token tree with every role in `roles` and nothing else: no scales, no
  * ramps, no dark axis. Enough to validate and render; everything an author
  * adds from here is a decision, not backfill.
  *
- * Base roles carry their own type and placeholder, declared once in
- * `@spin/theme`. A path that is not a base role is an error: a scaffold
+ * With no `roles`, the scaffold carries the whole surface the contract
+ * knows: the base roles a theme must declare, and the per-element tokens the
+ * elements spend. A theme that omits a per-element token is still valid —
+ * the rules fall back to the shared scales — but a scaffold is the document
+ * an author edits, and an author should meet the decisions rather than the
+ * gaps. The studio writes this document when a theme is created, so the
+ * per-element groups arrive with it.
+ *
+ * Base and per-element roles carry their own type and placeholder, declared
+ * once in `@spin/theme`. A path that is neither is an error: a scaffold
  * cannot invent a role it does not know.
  */
 export function scaffoldTheme(roles?: readonly string[]): TokenTree {
-  const wanted = roles ?? BASE_ROLES.map((role) => role.path);
+  const known = declarations();
+  const wanted = roles ?? known.map((role) => role.path);
   const byRoot = new Map<string, TokenLeaf[]>();
   for (const path of wanted) {
-    const role = BASE_ROLES.find((candidate) => candidate.path === path);
+    const role = known.find((candidate) => candidate.path === path);
     if (role === undefined) {
       throw new Error(
         `scaffoldTheme: no declaration for required role ${path}`,

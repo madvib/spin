@@ -2,11 +2,22 @@
  * Prose examples — the markup a consumer writes, beside the rule that
  * styles it.
  *
- * A bare `<h1>` is a heading, a bare `<p>` is a paragraph; the tag is the
- * contract. `<prose>` is the one opt-in — a container that constrains the
- * measure and closes the rhythm. Every class used here resolves against the
- * preset's own catalog; the self-resolution test fails the suite if an
- * example demonstrates what the package cannot do.
+ * Two surfaces, and they are two different owners.
+ *
+ * The TYPOGRAPHY is spin's own for the whole application: a heading, a
+ * paragraph, a list, a link, a code run, a bold run, a small label and a
+ * caption each get their type and their spacing from the theme, wherever they
+ * are written. Those examples are bare — no wrapper — because a page's
+ * paragraphs are not waiting for a document column to look like typography.
+ *
+ * The DOCUMENT treatment is `<prose>`'s: the quotation's inset, the figure
+ * and its caption, the media's box, the code block's chrome, the highlight,
+ * the inserted and deleted runs. Those are a long-form column's furniture,
+ * and the examples that show them are wrapped in the column they belong to.
+ *
+ * Every class used here resolves against the preset's own catalog; the
+ * self-resolution test fails the suite if an example demonstrates what the
+ * package cannot do.
  */
 
 export interface ProseExample {
@@ -17,61 +28,75 @@ export interface ProseExample {
 }
 
 export const proseFixtureNote =
-  "Document composition: an article states nothing — its tags carry headings, lists, quotes and code. `prose` only constrains the measure.";
-
-export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
-  {
-    name: "Content tags",
-    html: `<article>
-          <h1>A heading</h1>
-          <p>Body text with a <a href="#">link</a> and some <code>inline code</code>.</p>
-          <ul><li>Unordered</li><li>Items</li></ul>
-          <blockquote>A quotation.<footer>Attribution</footer></blockquote>
-          <pre><code>preformatted</code></pre>
-        </article>`,
-  },
-  {
-    name: "A constrained measure",
-    html: `<prose>
-          <h2>Prose</h2>
-          <p>The same content, at a comfortable measure. The container states
-          nothing but width — every tag keeps whatever it does elsewhere.</p>
-        </prose>`,
-  },
-  {
-    name: "Code",
-    html: `<pre><code>function greet(name) {
-  return "Hello, " + name + "!";
-}</code></pre>`,
-  },
-  {
-    name: "Media",
-    html: `<figure>
-          <img src="chart.png" alt="Q3 revenue chart" />
-          <figcaption>Q3 revenue by region</figcaption>
-        </figure>`,
-  },
-];
+  "The document column: a `<prose>` states nothing about type — it adds the furniture of a long-form read: the quotation's inset, the media's box, the code block's chrome, the marks.";
 
 export const typographyFixtureNote =
-  "Text at scale: h1 through h6 are one ladder of sizes and weights, not classes.";
+  "The theme's typography, everywhere: h1 through h6 are one ladder of sizes and weights, and a paragraph, a list, a quotation and a code block read the same in a page as in a document.";
 
 export const TYPOGRAPHY_EXAMPLES: readonly ProseExample[] = [
   {
     name: "Heading scale",
-    html: `<h1>Heading 1</h1>
-        <h2>Heading 2</h2>
-        <h3>Heading 3</h3>
-        <h4>Heading 4</h4>
-        <h5>Heading 5</h5>
-        <h6>Heading 6</h6>`,
+    html: `<h1>Release 4.12.0</h1>
+        <h2>Rollout status</h2>
+        <h3>Health checks</h3>
+        <h4>eu-west-1</h4>
+        <h5>09:14 UTC</h5>
+        <h6>12 of 12 passed</h6>`,
+  },
+  {
+    name: "Body copy",
+    html: `<h2>Rolling back</h2>
+        <p>A rollback sends every instance back to the previous release and keeps the failed one in the history. It takes under two minutes.</p>
+        <ul><li>Every instance returns to the previous release</li><li>The failed one stays in the history</li></ul>`,
   },
   {
     name: "Inline text",
     html:
-      `<p>A <a href="#">link</a>, <strong>strong</strong>, <em>em</em>, and <code>code</code>.</p>
-        <p><kbd>Ctrl</kbd> + <kbd>C</kbd> to copy.</p>
-        <p><mark>Marked</mark>, <ins>inserted</ins>, and <del>deleted</del>.</p>`,
+      `<p>A <a href="#">runbook</a>, <strong>deployed</strong>, <em>paused</em>, and <code>rollback</code>. <small>Updated 09:14 UTC.</small></p>
+        <p><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to deploy.</p>`,
+  },
+  {
+    name: "A quotation in a page",
+    html:
+      `<blockquote>The canary looked clean for ten minutes, which is exactly how long the last failure took.</blockquote>`,
+  },
+  {
+    name: "A code block in a page",
+    html: `<pre><code>deploy status --service checkout-api</code></pre>`,
+  },
+  {
+    name: "A figure in a page",
+    html: `<figure>
+            <img src="chart.png" alt="Latency by region over 24 hours" />
+            <figcaption>p95 latency by region, last 24 hours</figcaption>
+          </figure>`,
+  },
+];
+
+export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
+  {
+    name: "A constrained measure",
+    html: `<prose>
+          <h2>Rolling back</h2>
+          <p>A rollback sends every instance back to the previous release and keeps the failed one in the history. It takes under two minutes.</p>
+        </prose>`,
+  },
+  {
+    name: "The furniture of a document",
+    html: `<prose>
+          <blockquote>The canary looked clean for ten minutes, which is exactly how long the last failure took.<footer>Tomas Berg, release manager</footer></blockquote>
+          <figure>
+            <img src="chart.png" alt="Latency by region over 24 hours" />
+            <figcaption>p95 latency by region, last 24 hours</figcaption>
+          </figure>
+          <pre><code>deploy status --service checkout-api</code></pre>
+        </prose>`,
+  },
+  {
+    name: "The marks of a document",
+    html: `<prose>
+          <p><mark>Canary</mark>, <ins>eu-west-1</ins>, and <del>us-east-2</del>.</p>
+        </prose>`,
   },
 ];
 

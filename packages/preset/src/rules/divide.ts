@@ -2,7 +2,8 @@ import { symbols } from "@unocss/core";
 import type { Rule } from "@unocss/core";
 import { DIVIDE_WIDTHS } from "../utils/vocabulary.ts";
 import { divideChildren } from "../utils/factories.ts";
-import { type ThemeContext, tokenOf } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
+import { hasRawColor } from "../utils/color.ts";
 
 /** Every width the divide rule accepts, as the class suffix it matches. */
 const WIDTHS = Object.keys(DIVIDE_WIDTHS).filter((w) => w !== "");
@@ -43,8 +44,13 @@ export function divideRules(): Rule[] {
     ],
     [
       /^divide-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) => {
-        const ref = tokenOf(ctx, "colors", name);
+      ([, name]: string[], ctx?: ThemeContext) => {
+        // As `bg-`: a raw colour is a design decision, and a design decision
+        // is a token. `divide-[#fff]` is dead on arrival — it produces no
+        // CSS at all, and the ordinary vocabulary rule catches it the way
+        // it catches a typo.
+        if (hasRawColor(name)) return undefined;
+        const ref = named(ctx, "color", name);
         if (!ref) return undefined;
         return {
           [symbols.selector]: divideChildren,

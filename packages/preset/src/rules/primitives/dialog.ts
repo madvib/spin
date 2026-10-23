@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { themeOf } from "../../utils/lookup.ts";
+import { type ThemeContext, token } from "../../utils/lookup.ts";
 import { claim, type Mode } from "./shared.ts";
 
 /**
@@ -66,7 +66,10 @@ export function dialogRules(
         // so this one yield covers `showModal()` and a hand-set `open` alike.
         yield {
           [ctx.symbols.selector]: () => ":modal::backdrop",
-          background: "rgba(0, 0, 0, 0.45)",
+          // The theme's own scrim. A theme that states none gets a neutral
+          // one rather than a missing backdrop: a modal that fails to dim
+          // the page has stopped being a modal.
+          background: t.scrim ?? "rgba(0, 0, 0, 0.45)",
           ...(t.duration !== undefined
             ? {
               "transition-duration": t.duration,
@@ -168,9 +171,20 @@ export function dialogRules(
         };
 
         // The actions row, breaking out at the bottom.
+        //
+        // It WRAPS, and that is the whole of the fix — the same fix the
+        // card's footer got, for the same reason. A dialog's footer holds
+        // the dialog's actions, and a row that cannot hold them pushes them
+        // out of the panel they belong to: in a narrow column the buttons
+        // leave the dialog entirely, and a dialog whose actions have left
+        // it is a dialog with no way out. The width the actions need is the
+        // theme's own type scale, so a theme with a wider scale would break
+        // every dialog in a narrow column — the row that wraps is what keeps
+        // the panel whole in all of them.
         yield {
           [ctx.symbols.selector]: () => `${dialog} > footer:last-of-type`,
           display: "flex",
+          "flex-wrap": "wrap",
           "align-items": "center",
           "justify-content": "flex-end",
           ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),
@@ -185,24 +199,60 @@ export function dialogRules(
             }
             : {}),
         };
+
+        // The entrance and the exit. A top-layer element has no previous
+        // style to transition from on its first open, so `@starting-style`
+        // supplies the "before"; `allow-discrete` on `overlay` and `display`
+        // is what lets the panel leave the top layer over the duration rather
+        // than vanish at the moment `close()` runs. Both are progressive:
+        // an engine that knows neither still opens and closes the dialog.
+        if (t.duration !== undefined) {
+          yield {
+            [ctx.symbols.selector]: () => `${dialog}[open]`,
+            opacity: "1",
+            transform: "translateY(0) scale(1)",
+            "transition-property": "opacity, transform, overlay, display",
+            "transition-behavior": "allow-discrete",
+            "transition-duration": t.duration,
+            "transition-timing-function": t.easing ?? "linear",
+          };
+          yield {
+            [ctx.symbols.parent]: "@starting-style",
+            [ctx.symbols.selector]: () => `${dialog}[open]`,
+            opacity: "0",
+            transform: "translateY(-0.5rem) scale(0.98)",
+          };
+          yield {
+            [ctx.symbols.selector]: () => `${dialog}[open]::backdrop`,
+            "transition-property": "opacity, overlay, display",
+            "transition-behavior": "allow-discrete",
+            "transition-duration": t.duration,
+            "transition-timing-function": t.easing ?? "linear",
+          };
+          yield {
+            [ctx.symbols.parent]: "@starting-style",
+            [ctx.symbols.selector]: () => `${dialog}[open]::backdrop`,
+            opacity: "0",
+          };
+        }
       },
       { layer: "primitives", autocomplete: "dialog" },
     ],
   ];
 }
 
-function tokens(ctx: Parameters<typeof themeOf>[0]) {
-  const t = themeOf(ctx);
+function tokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: t?.spacing?.["2"],
-    spacing4: t?.spacing?.["4"],
-    radius: t?.radius?.["lg"],
-    text: t?.colors?.["text"],
-    raised: t?.colors?.["surface-raised"],
-    border: t?.colors?.["border"],
-    borderWidth: t?.borderWidth?.["width"],
-    shadow: t?.shadow?.["lg"],
-    duration: t?.motionDuration?.["fast"],
-    easing: t?.motionEasing?.["standard"],
+    spacing2: token(ctx, "spacing.2"),
+    spacing4: token(ctx, "spacing.4"),
+    radius: token(ctx, "radius.lg"),
+    text: token(ctx, "color.text"),
+    raised: token(ctx, "color.surface-raised"),
+    border: token(ctx, "color.border"),
+    scrim: token(ctx, "color.scrim"),
+    borderWidth: token(ctx, "border.width"),
+    shadow: token(ctx, "shadow.lg"),
+    duration: token(ctx, "motion.duration.fast"),
+    easing: token(ctx, "motion.easing.standard"),
   };
 }

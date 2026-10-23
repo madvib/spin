@@ -12,7 +12,7 @@ import {
 } from "@spin/preset/reference/build.ts";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
-import { inkTokens } from "@spin/theme";
+import { inkTokens, LOOP_STEP } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.default as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -80,7 +80,7 @@ function colorValues(
 
 /** The values the utilities pages read, for the theme they demonstrate. */
 const COLOR_VALUES: Readonly<Record<string, string>> = colorValues(
-  "default",
+  "silk",
   "base",
 );
 
@@ -393,18 +393,17 @@ const FILL = ["neutral-300", "primary", "neutral-400"] as const;
  * so a frame sized in them collapses to its content.
  */
 const BOX =
-  "relative h-16 w-1/3 shrink-0 rounded-sm border border-solid border-border-strong bg-surface-raised p-1";
+  "relative h-16 w-1/3 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
 const TALL =
-  "relative h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border-strong bg-surface-raised p-1";
+  "relative h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
 const NARROW =
-  "relative h-16 w-16 shrink-0 rounded-sm border border-solid border-border-strong bg-surface-raised p-1";
+  "relative h-16 w-16 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
 const FLEXBOX = `${BOX} flex`;
 const TALLFLEX = `${TALL} flex`;
 const NARROWFLEX = `${NARROW} flex`;
 const TALLGRID = `${TALL} grid`;
 const LINES = `${NARROW} flex flex-col flex-wrap`;
-const CARD =
-  "absolute h-8 w-16 rounded-sm border border-solid border-border-strong";
+const CARD = "absolute h-8 w-16 rounded-sm border border-solid border-border";
 
 /** Three items, because one item cannot show a distribution. */
 function Tiles(props: { n: number; cls?: string; size?: string }) {
@@ -444,7 +443,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-neutral-200 text-center font-mono text-xs leading-4 text-text ${
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center font-mono text-xs leading-4 text-text ${
             props.cls?.[i] ?? ""
           }`}
         >
@@ -459,7 +458,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
 function Placed(props: { cls: string }) {
   return (
     <>
-      <b class={`h-4 rounded-sm bg-primary ${props.cls}`} />
+      <b class={`h-4 rounded-sm bg-accent ${props.cls}`} />
       <Tiles n={6} size="h-4" />
     </>
   );
@@ -536,7 +535,7 @@ interface Mechanism {
 }
 
 const OVERFLOW_BOX =
-  "relative flex h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border-strong bg-surface-raised p-1";
+  "relative flex h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
 
 const MECHANISMS: readonly Mechanism[] = [
   {
@@ -631,7 +630,7 @@ const MECHANISMS: readonly Mechanism[] = [
       >
         <Frame>
           <b class={`${CARD} bg-neutral-300 inset-1`} />
-          <b class={`${CARD} bg-primary inset-1/2`} />
+          <b class={`${CARD} bg-accent inset-1/2`} />
           <b class={`${CARD} bg-neutral-400 inset-x-2 inset-y-1/2`} />
         </Frame>
       </Figure>
@@ -1235,10 +1234,10 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "inset":
       return (
         <UnderTest
-          base="inline-flex h-16 w-1/4 items-center justify-center rounded-sm border border-solid border-border-strong bg-surface"
+          base="inline-flex h-16 w-1/4 items-center justify-center rounded-sm border border-solid border-border bg-surface"
           cls={cls()}
         >
-          <b class="block h-4 w-4 rounded-sm bg-primary" />
+          <b class="block h-4 w-4 rounded-sm bg-accent" />
         </UnderTest>
       );
 
@@ -1247,9 +1246,9 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "sizes":
       return (
         <span class="inline-flex items-end gap-2">
-          <i class="block h-8 w-8 shrink-0 rounded-sm border border-solid border-border-strong bg-neutral-200" />
+          <i class="block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-neutral-300" />
           <UnderTest
-            base="block h-8 w-16 shrink-0 rounded-sm border border-solid border-border-strong bg-surface-raised"
+            base="block h-8 w-16 shrink-0 rounded-sm border border-solid border-border bg-surface-raised"
             cls={cls()}
           />
         </span>
@@ -1261,11 +1260,11 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "row":
       return (
         <UnderTest
-          base="inline-flex h-16 w-1/3 rounded-sm border border-solid border-border-strong bg-surface p-2"
+          base="inline-flex h-16 w-1/3 rounded-sm border border-solid border-border bg-surface p-2"
           cls={cls()}
         >
           <b class="block h-4 w-4 shrink-0 rounded-sm bg-neutral-300" />
-          <b class="block h-4 w-4 shrink-0 rounded-sm bg-primary" />
+          <b class="block h-4 w-4 shrink-0 rounded-sm bg-accent" />
           <b class="block h-4 w-4 shrink-0 rounded-sm bg-neutral-400" />
         </UnderTest>
       );
@@ -1276,11 +1275,11 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       const columns = columnsOf(props.name);
       return (
         <UnderTest
-          base="inline-grid w-1/3 gap-1 rounded-sm border border-solid border-border-strong bg-surface p-1"
+          base="inline-grid w-1/3 gap-1 rounded-sm border border-solid border-border bg-surface p-1"
           cls={cls()}
         >
           <For each={Array.from({ length: columns }, (_, i) => i)}>
-            {() => <b class="block h-4 w-4 rounded-sm bg-primary" />}
+            {() => <b class="block h-4 w-4 rounded-sm bg-accent" />}
           </For>
         </UnderTest>
       );
@@ -1294,15 +1293,15 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
         <span class="relative block h-16 w-1/4 shrink-0">
           <b class="absolute top-0 left-0 block">
             <UnderTest
-              base="block h-8 w-16 rounded-sm border border-solid border-border-strong bg-neutral-300"
+              base="block h-8 w-16 rounded-sm border border-solid border-border bg-neutral-300"
               cls={cls()}
             />
           </b>
           <b class="absolute top-2 left-2 block">
-            <i class="block h-8 w-16 rounded-sm border border-solid border-border-strong bg-neutral-400" />
+            <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-neutral-400" />
           </b>
           <b class="absolute top-4 left-4 block">
-            <i class="block h-8 w-16 rounded-sm border border-solid border-border-strong bg-surface-raised" />
+            <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-surface-raised" />
           </b>
         </span>
       );
@@ -1339,7 +1338,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       return (
         <span class="flex w-full min-w-0 items-center gap-2">
           <UnderTest base={base} cls={cls()} />
-          <code class="shrink-0 font-mono text-xs text-text-muted">Aa</code>
+          <code class="shrink-0">Aa</code>
         </span>
       );
     }
@@ -1348,7 +1347,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
        behind it is a shadow on nothing. */
     case "lifted":
       return (
-        <span class="inline-flex h-16 w-full min-w-0 items-center justify-center rounded-md bg-neutral-200 p-4">
+        <span class="inline-flex h-16 w-full min-w-0 items-center justify-center rounded-md bg-surface p-4">
           <UnderTest
             base="block h-8 w-16 rounded-md border border-solid border-border bg-surface-raised"
             cls={cls()}
@@ -1360,7 +1359,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
        opacity reads as partial instead of as a bug. */
     case "faded":
       return (
-        <span class="relative block h-16 w-full min-w-0 overflow-hidden rounded-sm border border-solid border-border-strong">
+        <span class="relative block h-16 w-full min-w-0 overflow-hidden rounded-sm border border-solid border-border">
           <i class="absolute inset-0 flex">
             <For each={Array.from({ length: 8 }, (_, i) => i)}>
               {(i) => (
@@ -1373,7 +1372,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
             </For>
           </i>
           <UnderTest
-            base="absolute inset-0 rounded-sm bg-primary"
+            base="absolute inset-0 rounded-sm bg-accent"
             cls={cls()}
           />
         </span>
@@ -1384,9 +1383,9 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "motion":
       return (
         <span class="inline-flex items-center gap-2">
-          <i class="block h-8 w-8 shrink-0 rounded-sm bg-neutral-300 transition hover:bg-primary hover:translate-x-4" />
+          <i class="block h-8 w-8 shrink-0 rounded-sm bg-neutral-300 transition hover:bg-accent hover:translate-x-4" />
           <UnderTest
-            base="block h-8 w-8 shrink-0 rounded-sm bg-primary transition hover:bg-primary hover:translate-x-4"
+            base="block h-8 w-8 shrink-0 rounded-sm bg-accent transition hover:bg-accent hover:translate-x-4"
             cls={cls()}
           />
         </span>
@@ -1398,7 +1397,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       return (
         <span class="inline-flex items-center gap-2">
           <UnderTest base="block h-8 w-16 bg-surface-raised" cls={cls()} />
-          <i class="block h-8 w-16 rounded-sm border border-solid border-border-strong bg-surface-raised" />
+          <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-surface-raised" />
         </span>
       );
 
@@ -1420,10 +1419,10 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "clipped":
       return (
         <UnderTest
-          base="relative block h-16 w-1/3 rounded-sm border border-solid border-border-strong bg-surface-raised"
+          base="relative block h-16 w-1/3 rounded-sm border border-solid border-border bg-surface-raised"
           cls={cls()}
         >
-          <b class="block h-16 w-full rounded-sm bg-primary p-2 font-mono text-xs text-on-primary">
+          <b class="block h-16 w-full rounded-sm bg-accent p-2 font-mono text-xs text-on-accent">
             This paragraph is deliberately larger than the box around it.
           </b>
         </UnderTest>
@@ -1437,7 +1436,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           cls={cls()}
           tag="span"
         >
-          <code class="font-mono text-text">{props.name}</code>
+          <code>{props.name}</code>
         </UnderTest>
       );
   }
@@ -1452,13 +1451,12 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const TITLE = "m-0 text-2xl font-bold tracking-tight";
+const TITLE = "tracking-normal";
 const KIND = "font-mono text-xs text-text-muted";
 const BADGE =
-  "shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
+  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const SECTION = "mb-8";
-const SUBHEAD =
-  "mt-8 mb-2 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
 const PROSE = "max-w-screen-md text-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
@@ -1527,7 +1525,7 @@ function Swatch(props: {
         class={`block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-${bare}`}
       />
       <span class="min-w-0">
-        <code class="block truncate font-mono text-xs text-text">
+        <code class="block truncate">
           {props.name}
         </code>
         <span class="block truncate font-mono text-xs text-text-muted">
@@ -1668,7 +1666,7 @@ function InteractivityBench() {
           <span class={MONO_MUTED}>grab · scroll · resize</span>
           <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>
             {(i) => (
-              <span class="shrink-0 rounded-sm bg-neutral-200 px-2 py-1 font-mono text-xs">
+              <span class="shrink-0 rounded-sm bg-surface px-2 py-1 font-mono text-xs text-text">
                 row {i}
               </span>
             )}
@@ -1676,7 +1674,7 @@ function InteractivityBench() {
         </div>
         <div class="w-1/3 shrink-0 rounded-md border border-solid border-border bg-surface-raised p-2 select-text">
           <span class={MONO_MUTED}>drag across this text</span>
-          <p class="m-0 text-sm">
+          <p class="text-sm">
             Selection is a property of the pointer and the document, not of a
             picture.
           </p>
@@ -1688,6 +1686,42 @@ function InteractivityBench() {
       </div>
     </div>
   );
+}
+
+/**
+ * The theme's motion steps, read from the theme.
+ *
+ * The page shows the theme's OWN steps, so a theme that names its durations
+ * something else shows those: a list written here would be the reference
+ * app's idea of a theme's vocabulary, and a theme that disagreed with it
+ * would be shown boxes naming classes that do not exist.
+ */
+function motionSteps(): readonly { name: string; value: string }[] {
+  const index = indexTree(resolveAliases(themeTreeOrParse()).tree);
+  const out: { name: string; value: string }[] = [];
+  for (const [path, leaf] of Object.entries(index.leaves)) {
+    if (!path.startsWith("motion.duration.")) continue;
+    if (typeof leaf.value !== "string") continue;
+    out.push({
+      name: path.slice("motion.duration.".length),
+      value: leaf.value,
+    });
+  }
+  return out;
+}
+
+/**
+ * The duration a box wears when the row under test is not the duration.
+ *
+ * The theme's own base step when it has one, and its first step when it does
+ * not: a class named here that the theme does not carry would be a box that
+ * does not move, which is the one thing this bench cannot show.
+ */
+function neutralDuration(steps: readonly { name: string }[]): string {
+  const transitions = steps.filter((step) => step.name !== LOOP_STEP);
+  const chosen = transitions.find((step) => step.name === "base") ??
+    transitions[0];
+  return chosen === undefined ? "" : `duration-${chosen.name}`;
 }
 
 /**
@@ -1706,7 +1740,15 @@ function TransitionsBench() {
     "transition-shadow",
     "transition-none",
   ];
-  const duration = ["duration-fast", "duration-base", "duration-slow"];
+  const steps = motionSteps();
+  // The loop is a duration but not a transition's: it is the period of an
+  // endless animation, and it is spent by the animations themselves rather
+  // than by a class. The bench shows it on its own, below.
+  const duration = steps
+    .filter((step) => step.name !== LOOP_STEP)
+    .map((step) => `duration-${step.name}`);
+  const loop = steps.find((step) => step.name === LOOP_STEP);
+  const neutral = neutralDuration(steps);
   const easing = [
     "ease-linear",
     "ease-standard",
@@ -1724,7 +1766,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 ${cls} duration-base ease-standard hover:bg-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
+                    class={`block h-16 w-16 rounded-sm bg-neutral-300 ${cls} ${neutral} ease-standard hover:bg-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1754,7 +1796,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/4 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all duration-base ${cls} hover:bg-accent hover:translate-x-8`}
+                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all ${neutral} ${cls} hover:bg-accent hover:translate-x-8`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1762,6 +1804,20 @@ function TransitionsBench() {
             </For>
           </div>
         </div>
+        <Show when={loop}>
+          {(step) => (
+            <div>
+              <div class={LABEL}>what loops</div>
+              <div class={RAIL_WRAP}>
+                <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
+                  <i class="block h-16 w-16 rounded-sm bg-neutral-300 animate-spin" />
+                  <code class={CAP}>motion.duration.{step().name}</code>
+                  <code class={CAP}>{step().value}</code>
+                </div>
+              </div>
+            </div>
+          )}
+        </Show>
       </div>
     </div>
   );
@@ -1773,7 +1829,10 @@ function TransitionsBench() {
  */
 const HEADLINE: Record<string, string> = {
   background: "bg-primary",
-  "text-color": "text-primary",
+  // The link: the one colour the contract floors as ink ON THE PAGE. A
+  // theme's primary is a fill, and a fill worn as a word is a word nobody
+  // can read (a brand red on a night panel measures 3.15:1).
+  "text-color": "text-link",
   sizing: "w-1/2",
   divide: "divide-y divide-neutral-300",
   border: "border-4 border-dashed border-primary",
@@ -2110,9 +2169,7 @@ function ColorSpecimen() {
           return (
             <div class="flex min-w-0 flex-1 flex-col gap-1">
               <div
-                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${
-                  ink
-                }`}
+                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${ink}`}
               >
                 {ink === "" ? "" : cls}
               </div>
@@ -2134,7 +2191,7 @@ function TypeSpecimen() {
             <span class={`min-w-0 text-text ${cls}`}>
               Handgloves &amp; 0123
             </span>
-            <code class="font-mono text-xs text-text-muted">{cls}</code>
+            <code>{cls}</code>
           </div>
         )}
       </For>
@@ -2151,9 +2208,9 @@ function SpacingSpecimen() {
             <div
               class={`inline-block rounded-sm border border-dashed border-solid border-border bg-surface ${cls}`}
             >
-              <b class="block h-4 w-4 rounded-sm bg-primary" />
+              <b class="block h-4 w-4 rounded-sm bg-accent" />
             </div>
-            <code class="font-mono text-xs text-text-muted">{cls}</code>
+            <code>{cls}</code>
           </figure>
         )}
       </For>
@@ -2169,9 +2226,9 @@ function BorderSpecimen() {
           {(cls) => (
             <figure class="flex flex-col items-start gap-1">
               <div
-                class={`block h-12 w-20 border border-solid border-border-strong bg-surface-raised ${cls}`}
+                class={`block h-12 w-20 border border-solid border-border bg-surface-raised ${cls}`}
               />
-              <code class="font-mono text-xs text-text-muted">{cls}</code>
+              <code>{cls}</code>
             </figure>
           )}
         </For>
@@ -2183,7 +2240,7 @@ function BorderSpecimen() {
               <div
                 class={`block h-12 w-20 rounded-md border border-solid border-border bg-surface-raised ${cls}`}
               />
-              <code class="font-mono text-xs text-text-muted">{cls}</code>
+              <code>{cls}</code>
             </figure>
           )}
         </For>
@@ -2208,7 +2265,7 @@ function SectionSpecimen(props: { id: string }) {
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <h4 class="m-0 text-sm font-semibold text-text">{section.title}</h4>
+        <h4 class="text-text">{section.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
         <div class="w-full">
@@ -2233,7 +2290,7 @@ function SectionCard(props: { section: Section; count: number }) {
     <button
       type="button"
       onClick={() => (location.hash = `#/utilities/${props.section.id}`)}
-      class="flex w-full flex-col items-start gap-2 rounded-md border border-solid border-border bg-surface-raised p-4 text-left shadow-sm hover:border-border-strong"
+      class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-border-strong"
     >
       <span class="flex w-full items-center gap-2">
         <span class="text-sm font-semibold text-text">
@@ -2272,7 +2329,7 @@ export function UtilitiesLanding() {
         </div>
         <span class={BADGE}>{total()} names</span>
       </header>
-      <p class="mb-8 max-w-screen-md text-md text-text-muted">
+      <p class="max-w-screen-md text-md text-text-muted">
         Every page on this side is drawn by the utilities it describes: the
         chrome around a demonstration wears the surface being demonstrated, so a
         utility that breaks breaks the showcase with it.
@@ -2280,7 +2337,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Sections</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           The surface cut by what a reader is looking for, not by which file the
           rule lives in.
         </p>
@@ -2298,7 +2355,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="mb-4 max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-sm text-text-muted">
           Four of the{" "}
           {SECTIONS.length}, each one built out of the utilities it names — the
           demo is the class rather than a picture of it.

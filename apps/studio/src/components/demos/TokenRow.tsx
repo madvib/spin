@@ -15,8 +15,16 @@
  * one, and neither could see the other drift.
  */
 
-import { Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
+import { tokenStatus } from "../../lib/live-edit.ts";
+import {
+  activeMode,
+  activeName,
+  refusalFor,
+  registry,
+  themeText,
+} from "../../lib/store.ts";
 import ValueInput from "./ValueInput.tsx";
 
 /** `color.neutral.50` → `neutral-50`, the utility suffix a swatch spends. */
@@ -28,34 +36,100 @@ export default function TokenRow_({
   row,
   onEdit,
   swatch = false,
+  group,
+  variable,
+  onPreview,
+  onCancel,
+  proposed,
 }: {
   row: TokenRow;
   /** Applies an edit. Returns false when the theme refused it. */
   onEdit: (path: string[], value: string) => boolean;
   /** Shows the token's own utility at the head of the row. */
   swatch?: boolean;
+  /** Every value in the token's group, for the slider's ceiling. */
+  group?: readonly string[];
+  /** The token's custom property, painted on the preview surface while dragging. */
+  variable?: string;
+  /** Reports a value this row's control proposes while dragged. */
+  onPreview?: (path: string, value: string) => void;
+  /** Reports a drag abandoned before it committed. */
+  onCancel?: () => void;
+  /** Live proposed value when a linked sibling in the group is being dragged. */
+  proposed?: string;
 }) {
   const id = `token-${row.path}`;
+  const projectText = () =>
+    registry()?.find((theme) => theme.name === activeName())?.text;
+  const status = createMemo(() =>
+    tokenStatus(themeText(), projectText(), row.path, activeMode())
+  );
   return (
-    <card class="split p-4">
-      <div class="row-sm">
-        <Show when={swatch}>
-          <div
-            class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
+    <>
+      <card class="split p-2">
+        <div class="row-sm min-w-0">
+          <Show when={swatch}>
+            <div
+              class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
+            />
+          </Show>
+          <label for={id} class="truncate">
+            {row.path}
+          </label>
+          <Show when={status().aliasOf}>
+            {(target) => (
+              <span
+                class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+                title={`Points at ${target()}`}
+              >
+                → {target()}
+              </span>
+            )}
+          </Show>
+          <Show when={activeMode() === "dark" && status().restatedInDark}>
+            <span
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+              title="Overridden in dark mode"
+            >
+              dark
+            </span>
+          </Show>
+          <Show when={status().modified}>
+            <span
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+              title="Modified in this session"
+            >
+              edited
+            </span>
+          </Show>
+        </div>
+        <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
+          <ValueInput
+            id={id}
+            value={row.value}
+            type={row.type}
+            onCommit={(value) => onEdit(row.path.split("."), value)}
+            group={group}
+            variable={variable}
+            onPreview={onPreview === undefined
+              ? undefined
+              : (value) => onPreview(row.path, value)}
+            onCancel={onCancel}
+            proposed={proposed}
           />
-        </Show>
-        <label for={id} class="font-mono text-sm">
-          {row.path}
-        </label>
-      </div>
-      <div class="row-sm shrink-0">
-        <ValueInput
-          id={id}
-          value={row.value}
-          type={row.type}
-          onCommit={(value) => onEdit(row.path.split("."), value)}
-        />
-      </div>
-    </card>
+        </div>
+      </card>
+      {
+        /* The refusal belongs beside the control that asked for the value:
+          the banner at the top of the work is a different line of sight. */
+      }
+      <Show when={refusalFor(row.path)}>
+        {(message) => (
+          <p class="text-xs text-semantic-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+    </>
   );
 }

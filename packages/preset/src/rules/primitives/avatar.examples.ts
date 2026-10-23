@@ -31,14 +31,10 @@ ${inner}
         </div>`;
 
 /** A portrait, inline: a silhouette on a gradient, no asset to fetch. */
-const GRACE_FACE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNjM2NmYxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOGI1Y2Y2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iNDgiIGN5PSIzNyIgcj0iMTQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjkyIi8+PHBhdGggZD0iTTE4IDk2YzAtMTYuNiAxMy40LTI3IDMwLTI3czMwIDEwLjQgMzAgMjd6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii45MiIvPjwvc3ZnPg==";
-const ADA_FACE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGQ5NDg4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTBiOTgxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iNDgiIGN5PSIzNyIgcj0iMTQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjkyIi8+PHBhdGggZD0iTTE4IDk2YzAtMTYuNiAxMy40LTI3IDMwLTI3czMwIDEwLjQgMzAgMjd6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii45MiIvPjwvc3ZnPg==";
-const ALAN_FACE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGVhNWU5Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjU2M2ViIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iNDgiIGN5PSIzNyIgcj0iMTQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjkyIi8+PHBhdGggZD0iTTE4IDk2YzAtMTYuNiAxMy40LTI3IDMwLTI3czMwIDEwLjQgMzAgMjd6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii45MiIvPjwvc3ZnPg==";
-const KATHERINE_FACE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZjU5ZTBiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjQzZjVlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iNDgiIGN5PSIzNyIgcj0iMTQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iLjkyIi8+PHBhdGggZD0iTTE4IDk2YzAtMTYuNiAxMy40LTI3IDMwLTI3czMwIDEwLjQgMzAgMjd6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9Ii45MiIvPjwvc3ZnPg==";
+const GRACE_FACE = "https://i.pravatar.cc/96?u=grace-mtan";
+const ADA_FACE = "https://i.pravatar.cc/96?u=ada-mtan";
+const ALAN_FACE = "https://i.pravatar.cc/96?u=alan-mtan";
+const KATHERINE_FACE = "https://i.pravatar.cc/96?u=katherine-mtan";
 
 const img = (classes: string, src: string, alt: string): string =>
   `<img class="${classes}" src="${src}" alt="${alt}">`;
@@ -72,22 +68,22 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Sizes",
     html: row(
-      `          ${img("avatar avatar-sm", GRACE_FACE, "Grace Hopper")}
-          ${img("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
-          ${img("avatar avatar-lg", ALAN_FACE, "Alan Turing")}`,
+      `          ${img("avatar avatar-sm", GRACE_FACE, "Priya Raman")}
+          ${img("avatar avatar-md", ADA_FACE, "Dan Okafor")}
+          ${img("avatar avatar-lg", ALAN_FACE, "Mira Lindqvist")}`,
     ),
   },
   {
     name: "Circle",
     html: row(
       `          ${
-        img("avatar avatar-circle avatar-md", ADA_FACE, "Ada Lovelace")
+        img("avatar avatar-circle avatar-md", ADA_FACE, "Tomas Berg")
       }
           ${
         img(
           "avatar avatar-circle avatar-lg",
           KATHERINE_FACE,
-          "Katherine Johnson",
+          "Aisha Farouk",
         )
       }`,
     ),
@@ -95,21 +91,21 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Beside a name",
     html: `        <div class="flex items-center gap-2">
-          ${img("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
-          <span>Ada Lovelace</span>
+          ${img("avatar avatar-md", ADA_FACE, "Tomas Berg")}
+          <span>Tomas Berg</span>
         </div>`,
   },
   {
     name: "Ring",
     html: row(
       `          ${
-        img("avatar avatar-ring avatar-md", GRACE_FACE, "Grace Hopper")
+        img("avatar avatar-ring avatar-md", GRACE_FACE, "Dan Okafor")
       }
           ${
         img(
           "avatar avatar-ring avatar-circle avatar-md",
           ALAN_FACE,
-          "Alan Turing",
+          "Mira Lindqvist",
         )
       }`,
     ),
@@ -117,12 +113,12 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
   {
     name: "Status",
     html: row(
-      `          ${withStatus("avatar avatar-md", ADA_FACE, "Ada Lovelace")}
+      `          ${withStatus("avatar avatar-md", ADA_FACE, "Aisha Farouk")}
           ${
         withStatus(
           "avatar avatar-circle avatar-lg",
           KATHERINE_FACE,
-          "Katherine Johnson",
+          "Jonah Weiss",
         )
       }`,
     ),
@@ -131,7 +127,7 @@ export const AVATAR_EXAMPLES: readonly AvatarExample[] = [
     name: "Ring and status",
     html: row(
       `          ${
-        withStatus("avatar avatar-ring avatar-md", GRACE_FACE, "Grace Hopper")
+        withStatus("avatar avatar-ring avatar-md", GRACE_FACE, "Priya Raman")
       }`,
     ),
   },

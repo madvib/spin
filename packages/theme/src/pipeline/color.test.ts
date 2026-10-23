@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertThrows } from "@std/assert";
 import { isTokenType } from "./parse.ts";
-import { contrastRatio, isColor, parseColor } from "./color.ts";
+import { contrastRatio, isColor, parseColor, toHex } from "./color.ts";
 
 Deno.test("contrastRatio reports no contrast between a colour and itself", () => {
   for (const hex of ["#000000", "#ffffff", "#3a7bd5", "#808080"]) {
@@ -97,6 +97,60 @@ Deno.test("isColor answers without throwing on anything", () => {
   assert(!isColor("chocolate"), "a named colour is not a hex literal");
   assert(!isColor(""), "empty is not a colour");
   assert(!isColor(undefined), "and neither is nothing");
+});
+
+Deno.test("parseColor keeps the alpha an rgb() colour carries", () => {
+  // A percentage alpha is an alpha, not a channel: reading it as a byte made
+  // every translucent theme value opaque.
+  assertEquals(parseColor("rgb(15 19 30 / 45%)").a, 0.45);
+  assertEquals(parseColor("rgb(15 19 30 / 0.45)").a, 0.45);
+  assertEquals(parseColor("rgba(15, 19, 30, 0.45)").a, 0.45);
+  assertEquals(parseColor("rgb(15 19 30)").a, 1);
+});
+
+Deno.test("toHex reads a colour written in any space as the same colour", () => {
+  // The hex is a spelling of the colour, not a different colour: the round
+  // trip through the hex has to land on the same channels.
+  for (
+    const value of [
+      "#1c62c2",
+      "oklch(55% 0.15 258)",
+      "rgb(28 98 194)",
+      "oklab(0.5 0.1 -0.1)",
+      "color(display-p3 0.2 0.4 0.9)",
+    ]
+  ) {
+    const hex = toHex(value);
+    assert(hex !== undefined, `${value} has no hex`);
+    const from = parseColor(value);
+    const to = parseColor(hex);
+    assertEquals(
+      [to.r, to.g, to.b],
+      [from.r, from.g, from.b],
+      `${value} reads as ${hex}`,
+    );
+  }
+});
+
+Deno.test("toHex gives the hex a theme would have written", () => {
+  assertEquals(toHex("#1c62c2"), "#1c62c2");
+  assertEquals(toHex("#ABC"), "#aabbcc");
+  assertEquals(toHex("oklch(0% 0 0)"), "#000000");
+  assertEquals(toHex("oklch(100% 0 0)"), "#ffffff");
+});
+
+Deno.test("toHex keeps the alpha a translucent colour carries", () => {
+  assertEquals(toHex("rgb(0 0 0 / 50%)"), "#00000080");
+  assertEquals(toHex("#00000080"), "#00000080");
+  assertEquals(toHex("rgb(0 0 0)"), "#000000");
+});
+
+Deno.test("toHex answers nothing for a value that is not a colour", () => {
+  assertEquals(toHex("{color.primary}"), undefined);
+  assertEquals(toHex("transparent"), undefined);
+  assertEquals(toHex(""), undefined);
+  assertEquals(toHex(42), undefined);
+  assertEquals(toHex(undefined), undefined);
 });
 
 Deno.test("isTokenType narrows the closed vocabulary", () => {

@@ -28,6 +28,11 @@ export default function PreviewStyles() {
   // A failure is rendered as a banner on the preview surface, never as a
   // missing page: the author is looking at the theme that failed, and the
   // message belongs with it.
+  //
+  // The message, not a flag: the daemon says WHY the theme does not build
+  // ("theme \"x\" is incomplete: color.text: missing required token
+  // \"color.text\""), and a banner that says only that it does not build
+  // asks the author to find the reason themselves.
   const failure = () => {
     const rendered = css();
     return typeof rendered === "object" ? rendered.error : undefined;
@@ -43,7 +48,17 @@ export default function PreviewStyles() {
     if (!tag) {
       tag = document.createElement("style");
       tag.id = "spin-preview";
-      document.head.appendChild(tag);
+      // Before the chrome's own stylesheet, not after it: the preview
+      // scope is zero-specificity, so ties fall to the later sheet — and
+      // the later sheet must be the tool's, not the specimen's.
+      const first = document.head.querySelector(
+        'link[rel="stylesheet"], style:not(#spin-preview)',
+      );
+      if (first?.parentNode === document.head) {
+        document.head.insertBefore(tag, first);
+      } else {
+        document.head.appendChild(tag);
+      }
     }
     // A failed generation leaves the last good stylesheet in place and says
     // so, rather than wiping the preview to nothing.
@@ -51,14 +66,12 @@ export default function PreviewStyles() {
   });
 
   return (
-    <Show when={failure() !== undefined}>
+    <Show when={failure()}>
       {(message) => (
-        <p class="bg-red-100 border-red-500 text-red-900 m-4 rounded border p-3 text-sm">
+        <alert role="alert" class="alert-danger">
           This theme does not build: {message()}
-        </p>
+        </alert>
       )}
     </Show>
   );
-
-  return null;
 }

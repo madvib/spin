@@ -2,10 +2,18 @@
  * Modes: what a theme declares, and what any token in it is worth.
  *
  * A mode is a *variant of a token*, not a second theme and not a group beside
- * one. `modes` at the document root says which variants exist; `$modes` on a
- * token says how this token varies. Everything else about a theme — spacing,
- * type, radius, shadow — is mode-invariant, which is a design fact rather than
- * an accident: dark mode changes ink and surface, not space.
+ * one. `modes` at the document root says which modes the theme SERVES;
+ * `$modes` on a token says how that token varies. Everything else about a
+ * theme — spacing, type, radius, shadow — is mode-invariant, which is a
+ * design fact rather than an accident: dark mode changes ink and surface,
+ * not space.
+ *
+ * One meaning, everywhere: the root field is the set of modes the theme
+ * answers to. A mode it serves but does not override falls back to the base
+ * values, so a dark-only theme whose base is already dark is a complete
+ * theme — it serves dark, and it has nothing to restate. The other side of
+ * the same rule: a value written for a mode the theme does not serve is
+ * never shown, so the validator reports it.
  *
  * These two questions are the ones a consumer actually asks, and they belong
  * here rather than in each consumer: "what modes does this theme serve?", and
@@ -13,13 +21,22 @@
  */
 
 import type { TokenTree } from "./pipeline/types.ts";
-import type { TokenLeaf } from "./pipeline/types.ts";
+import type { TokenLeaf, TokenNode } from "./pipeline/types.ts";
 
 /** A raw theme document, as authored. */
 type ThemeDocument = Record<string, unknown>;
 
 /** The modes a document serves, as declared at its root. */
 export type Mode = "light" | "dark";
+
+/**
+ * Every mode the system serves, as a runtime list.
+ *
+ * The union above derives from nothing at runtime, and the wire needs a
+ * value: the contract's picklists read this, so a mode cannot exist in the
+ * type and not in what a validator accepts.
+ */
+export const MODES: readonly Mode[] = ["light", "dark"];
 
 /**
  * The modes a theme serves.
@@ -75,4 +92,22 @@ export function valuesInMode(
     out.set(leaf.path.join("."), override ?? leaf.value);
   }
   return out;
+}
+
+/**
+ * The tree as it reads in one mode: every leaf wearing that mode's value.
+ *
+ * A mode is a variant of a token, so the document a reader sees in dark is
+ * this tree with each leaf wearing the value it has there. The variants stay
+ * on the leaves — the modes a theme serves are a claim about the document,
+ * and the check that follows reads it.
+ */
+export function treeInMode(tree: TokenTree, mode: string): TokenTree {
+  const walk = (node: TokenNode): TokenNode => {
+    if (node.kind === "token") {
+      return { ...node, value: node.modes?.[mode] ?? node.value };
+    }
+    return { ...node, children: node.children.map(walk) };
+  };
+  return tree.map(walk);
 }
