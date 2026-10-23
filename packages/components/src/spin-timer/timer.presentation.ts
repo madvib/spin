@@ -170,6 +170,7 @@ export const def = {
         return {
           id: scope.id("area"),
           role: "timer",
+          "data-state": scope.state,
           // Zag's translation: the units a screen reader hears.
           "aria-label": `${t.days} days ${f.hours}:${f.minutes}:${f.seconds}`,
           ...liveRegion({ atomic: true }),
@@ -181,14 +182,16 @@ export const def = {
     // rebuilds when the fields it read move, so the state it carries
     // cannot go stale.
     progress: {
-      attrs: (scope) => ({
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("progress"),
+        "data-state": scope.state,
         style: { width: `${(progressOf(scope.context) * 100).toFixed(3)}%` },
       }),
     },
     control: {
-      attrs: (scope) => ({
+      attrs: (scope: ScopeLike) => ({
         id: scope.id("control"),
+        "data-state": scope.state,
       }),
     },
   },
@@ -201,6 +204,7 @@ export const def = {
         const value = timeOf(scope.context)[unit];
         return {
           id: scope.id("item", unit),
+          "data-state": scope.state,
           "data-type": unit,
           // The raw unit is data, not a style: a recipe that wants it
           // reads the attribute.
@@ -219,6 +223,7 @@ export const def = {
         const unit = scope.slot.type;
         return {
           id: scope.id("itemValue", unit),
+          "data-state": scope.state,
           "data-type": unit,
         };
       },
@@ -231,6 +236,7 @@ export const def = {
         const unit = scope.slot.type;
         return {
           id: scope.id("itemLabel", unit),
+          "data-state": scope.state,
           "data-type": unit,
         };
       },
@@ -280,6 +286,7 @@ export const def = {
           id: scope.id("actionTrigger", action),
           type: "button",
           "data-action": action,
+          "data-state": scope.state,
           hidden,
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
