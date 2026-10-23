@@ -71,6 +71,39 @@ export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
 export { overlayContract, overlayRouter } from "./overlay.ts";
 export {
+  listedComponents,
+  primitivesContract,
+  primitivesRouter,
+} from "./primitives-procedures.ts";
+export {
+  type CatalogGroupId,
+  claimedGroups,
+  type Sample,
+  SAMPLES,
+  type Section,
+  sectionFor,
+  SECTIONS,
+  utilitiesFor,
+} from "./organization.ts";
+export {
+  type Axis,
+  buildScale,
+  type BuiltScale,
+  EDGE_AXES,
+  EDGES,
+  type Scale,
+  scaleClass,
+  type ScaleSource,
+  type Shape,
+} from "./reference/build.ts";
+export type { Step } from "./reference/scale.ts";
+export {
+  type ComponentExamples,
+  componentExamples,
+  examplesFor,
+} from "./rules/primitives/examples-index.ts";
+export type { FixtureExample } from "./rules/primitives/example.ts";
+export {
   type Wind4Exclusion,
   wind4Exclusions,
   type Wind4Layers,

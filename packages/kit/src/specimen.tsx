@@ -44,15 +44,187 @@ export function formatExampleHtml(html: string): string {
   return out.join("\n");
 }
 
-type CodeTokenType = "tag" | "attr" | "string" | "comment" | "punct" | "text";
+export type CodeTokenType =
+  | "tag"
+  | "attr"
+  | "string"
+  | "comment"
+  | "punct"
+  | "text"
+  | "keyword"
+  | "code-string"
+  | "number"
+  | "plain";
 
-interface CodeToken {
+export interface CodeToken {
   readonly type: CodeTokenType;
   readonly value: string;
 }
 
 const WHITESPACE = /\s/;
 const NAME_STOP = /[\s=/>]/;
+
+/**
+ * Code as a reader meets it, tokenized for the inks the theme measured.
+ *
+ * HTML keeps its single-pass tokenizer (`tokenizeHtml`). TypeScript and JSON
+ * share a line scanner: keywords, strings, comments, and numbers are the
+ * four things a config snippet or wiring example needs distinguished, and a
+ * reader copies the block — so like the HTML tokenizer, these preserve every
+ * character exactly.
+ */
+const TS_KEYWORDS = new Set([
+  "import",
+  "export",
+  "from",
+  "default",
+  "const",
+  "let",
+  "var",
+  "function",
+  "return",
+  "require",
+  "module",
+  "type",
+  "interface",
+  "extends",
+  "new",
+  "await",
+  "async",
+  "as",
+  "with",
+  "if",
+  "else",
+  "for",
+  "while",
+]);
+
+export function tokenizeCode(
+  source: string,
+  lang: string,
+): readonly CodeToken[] {
+  if (lang === "html") return tokenizeHtml(source);
+  if (
+    lang === "ts" || lang === "tsx" || lang === "js" ||
+    lang === "javascript" || lang === "json" || lang === "bash" ||
+    lang === "sh"
+  ) {
+    return lang === "json" ? tokenizeJson(source) : tokenizeTs(source);
+  }
+  return [{ type: "plain", value: source }];
+}
+
+/** A JSON document: keys, strings, numbers, and the punctuation between. */
+function tokenizeJson(source: string): readonly CodeToken[] {
+  const out: CodeToken[] = [];
+  let i = 0;
+  const push = (type: CodeTokenType, value: string) => {
+    if (value !== "") out.push({ type, value });
+  };
+  while (i < source.length) {
+    const ch = source[i]!;
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < source.length && source[j] !== '"') {
+        if (source[j] === "\\") j += 1;
+        j += 1;
+      }
+      const stop = j < source.length ? j + 1 : j;
+      let k = stop;
+      while (k < source.length && /[\s]/.test(source[k]!)) k += 1;
+      push(source[k] === ":" ? "attr" : "code-string", source.slice(i, stop));
+      i = stop;
+      continue;
+    }
+    if (ch === "/" && source[i + 1] === "/") {
+      let j = i + 2;
+      while (j < source.length && source[j] !== "\n") j += 1;
+      push("comment", source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (/[-0-9]/.test(ch)) {
+      let j = i + 1;
+      while (j < source.length && /[0-9.eE+-]/.test(source[j]!)) j += 1;
+      push("number", source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (/[A-Za-z_$]/.test(ch)) {
+      let j = i + 1;
+      while (j < source.length && /[\w$]/.test(source[j]!)) j += 1;
+      const word = source.slice(i, j);
+      push(
+        word === "true" || word === "false" || word === "null"
+          ? "number"
+          : TS_KEYWORDS.has(word)
+          ? "keyword"
+          : "plain",
+        word,
+      );
+      i = j;
+      continue;
+    }
+    push("punct", ch);
+    i += 1;
+  }
+  return out;
+}
+
+/** TypeScript and friends: keywords, strings, comments, numbers, the rest. */
+function tokenizeTs(source: string): readonly CodeToken[] {
+  const out: CodeToken[] = [];
+  let i = 0;
+  const push = (type: CodeTokenType, value: string) => {
+    if (value !== "") out.push({ type, value });
+  };
+  while (i < source.length) {
+    const ch = source[i]!;
+    const two = source.slice(i, i + 2);
+    if (two === "//") {
+      let j = i + 2;
+      while (j < source.length && source[j] !== "\n") j += 1;
+      push("comment", source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (two === "/*") {
+      const end = source.indexOf("*/", i + 2);
+      const stop = end === -1 ? source.length : end + 2;
+      push("comment", source.slice(i, stop));
+      i = stop;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      let j = i + 1;
+      while (j < source.length && source[j] !== ch) {
+        if (source[j] === "\\") j += 1;
+        j += 1;
+      }
+      push("code-string", source.slice(i, j < source.length ? j + 1 : j));
+      i = j < source.length ? j + 1 : j;
+      continue;
+    }
+    if (/[0-9]/.test(ch)) {
+      let j = i + 1;
+      while (j < source.length && /[0-9.eE_xa-fA-F]/.test(source[j]!)) j += 1;
+      push("number", source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (/[A-Za-z_$]/.test(ch)) {
+      let j = i + 1;
+      while (j < source.length && /[\w$]/.test(source[j]!)) j += 1;
+      const word = source.slice(i, j);
+      push(TS_KEYWORDS.has(word) ? "keyword" : "plain", word);
+      i = j;
+      continue;
+    }
+    push(ch.trim() === "" ? "plain" : "punct", ch);
+    i += 1;
+  }
+  return out;
+}
 
 /**
  * Example HTML, tokenized: tags, attribute names, string values, comments and
@@ -170,13 +342,17 @@ export function tokenizeHtml(html: string): readonly CodeToken[] {
  * palette are illegible in another, so this is the set that clears 4.5:1
  * everywhere rather than the set that looks most like someone else's editor.
  */
-const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
+export const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
   tag: "text-semantic-error",
   attr: "text-link",
   string: "text-semantic-warning",
   comment: "text-text-muted",
   punct: "text-text-muted",
   text: "text-text",
+  keyword: "text-semantic-error",
+  "code-string": "text-semantic-warning",
+  number: "text-link",
+  plain: "text-text",
 };
 
 /** The word the copy control carries after it has copied. */

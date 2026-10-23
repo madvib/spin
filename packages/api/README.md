@@ -16,18 +16,22 @@ contract and its own handlers, and this one mounts them.
   mountSpinApp     mount the app — procedures and studio bundle — on a dev server
   SpinAppOptions   MiddlewareHost
 
-  contracts        themeContract · themeRouter        (from @spin/theme)
-                   presetContract · presetRouter      (from @spin/preset)
-                   primitivesContract · primitivesRouter
-                   projectContract · previewContract · iconsContract
+  contracts        themeContract · themeRouter            (from @spin/theme)
+                   presetContract · presetRouter          (from @spin/preset)
+                   primitivesContract · primitivesRouter  (from @spin/preset)
+                   overlayContract · overlayRouter        (from @spin/preset)
+                   projectContract · projectRouter · setProjectRoot
+                   previewContract · previewRouter
+                   iconsContract · iconsRouter
+                   fontsContract · fontsRouter
+                   findingsContract · findingsRouter
+
+@spin/api/client
+  createSpinClient · SpinClient
 
 @spin/api/daemon
   startDaemon      bind a port and serve the shared app
   DaemonOptions    Daemon
-
-@spin/api/project
-  projectRouter · setProjectRoot
-
 @spin/api/serve
   the `spin daemon` entry: one process, one port, one project root
 ```

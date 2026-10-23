@@ -1,9 +1,10 @@
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
-import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import {
   describeCatalog,
   primitiveCategories,
   primitiveElements,
+  SECTIONS,
+  utilitiesFor,
 } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
@@ -376,7 +377,7 @@ function AppHeader(props: { state: ThemeState }) {
         <Logo size="sm" />
       </div>
       <div class="flex items-center gap-2">
-        <span class="shrink-0 text-xs font-medium text-text-muted">theme</span>
+        <span class="shrink-0 font-mono text-xs text-text-muted">theme</span>
         <ThemePicker
           state={props.state}
           system

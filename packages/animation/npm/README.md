@@ -9,14 +9,10 @@ to the class that names it.
 ```
 @spin/animation
   animationCss            the stylesheet, as a string
-  primitiveModules        the stylesheets, keyed by component name
-  generatePrimitivesCss   concatenate the selected stylesheets
   animationPreflights     the motion layer, as preflight providers
-
-  manifest                primitiveContracts · PrimitiveContract
-  vocabulary              primitiveComponents · PrimitiveComponent
-                          claimedElements · primitiveVariants
-                          primitiveReadsByGroup
+  animationContract       the keyframes, variants, and custom property reads
+  animationVariants       the animate-* utility class names
+  AnimationContract
 ```
 
 `src/styles.ts` is generated from `src/animation.css` by `deno task codegen`.

@@ -9,8 +9,6 @@
  * `scaffoldTheme()` for a minimal document.
  */
 
-import { Type } from "@sinclair/typebox";
-import type { TSchema } from "@sinclair/typebox";
 import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
@@ -384,33 +382,48 @@ function foregroundStep(path: string): string {
   return segments[segments.length - 1] as string;
 }
 
-const TokenTypeSchema = Type.Union(
-  TOKEN_TYPES.map((type) => Type.Literal(type)),
-);
+/** A JSON Schema node emitted by the contract builder. */
+interface JsonSchema {
+  readonly type?: string;
+  readonly description?: string;
+  readonly additionalProperties?: boolean;
+  readonly required?: readonly string[];
+  readonly properties?: Record<string, JsonSchema>;
+  readonly items?: JsonSchema;
+  readonly enum?: readonly string[];
+}
+
+const TokenTypeSchema: JsonSchema = {
+  type: "string",
+  enum: [...TOKEN_TYPES],
+};
 
 /** One declared token: a value, optionally typed at the group level. */
-function leafSchema(doc: string) {
-  return Type.Object(
-    {
-      $value: Type.Unknown(),
-      $type: Type.Optional(TokenTypeSchema),
-      $description: Type.Optional(Type.String()),
+function leafSchema(doc: string): JsonSchema {
+  return {
+    type: "object",
+    description: doc,
+    additionalProperties: true,
+    required: ["$value"],
+    properties: {
+      $value: {},
+      $type: TokenTypeSchema,
+      $description: { type: "string" },
     },
-    { additionalProperties: true, description: doc },
-  );
+  };
 }
 
 /**
  * The theme document schema.
  *
- * A TypeBox type is already JSON Schema — that is the shape of the library, so
+ * Built directly as JSON Schema 2020-12 from the role declarations, so
  * `deno task schema` writes `schema.json` straight from the builder with no
- * conversion step. Declared roles are non-optional and therefore land in
- * `required` automatically; everything else a theme may add is permitted by
- * `additionalProperties`.
+ * external schema library. Declared roles land in `required` automatically;
+ * everything else a theme may add is permitted by `additionalProperties`.
  */
 export function themeSchema(): Record<string, unknown> {
-  const properties: Record<string, TSchema> = {};
+  const properties: Record<string, JsonSchema> = {};
+  const requiredGroups: string[] = [];
   // The groups, each carrying the paths it holds and which of them a theme
   // must declare. The three lists are gathered together because a group can
   // hold more than one kind of token: `font` carries the base face AND the
@@ -446,50 +459,60 @@ export function themeSchema(): Record<string, unknown> {
     // otherwise would make a scaffolded theme — which carries neither — fail
     // the schema that describes it.
     const must = entry.paths.some((path) => entry.required.has(path));
-    properties[group] = must ? schema : Type.Optional(schema);
+    if (must) requiredGroups.push(group);
+    properties[group] = schema;
   }
   // `modes` is document metadata, not a token: it sits at the root beside
   // the groups and no emitter reads it. `additionalProperties` would already
   // admit it, but the schema says what a document may carry so the field is
   // listed — and constrained to the two modes the pipeline understands.
-  properties["modes"] = Type.Optional(
-    Type.Array(Type.Union([Type.Literal("light"), Type.Literal("dark")]), {
-      description:
-        "The modes this theme serves. A mode the theme serves but does not override falls back to the base values.",
-    }),
-  );
+  properties["modes"] = {
+    type: "array",
+    description:
+      "The modes this theme serves. A mode the theme serves but does not override falls back to the base values.",
+    items: {
+      type: "string",
+      enum: ["light", "dark"],
+    },
+  };
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://spin.dev/theme.schema.json",
     title: "Spin theme",
-    ...Type.Object(properties, { additionalProperties: true }),
+    type: "object",
+    additionalProperties: true,
+    required: requiredGroups,
+    properties,
   };
+}
+
+interface ShapeLeaf {
+  readonly kind: "leaf";
+  readonly required: boolean;
+  readonly schema: JsonSchema;
 }
 
 /**
  * A group before conversion: either a nested group or a finished leaf.
- *
- * Building the nested shape first and converting once at the end keeps every
- * step typed — an accumulator of `TSchema` means the leaves are known to be
- * schemas and the compiler checks the assembly.
  *
  * A nested group carries whether a theme MUST declare it: a group that holds
  * a required role is required, and a group that holds only optional ones is
  * not. The same rule decides the leaves, so the two cannot disagree.
  */
 interface ShapeGroup {
+  readonly kind: "group";
   /** Whether the group must be declared. */
   readonly required: boolean;
   readonly children: GroupShape;
 }
 
-type GroupShape = { [segment: string]: TSchema | ShapeGroup };
+type GroupShape = { [segment: string]: ShapeLeaf | ShapeGroup };
 
 /** The nested schema for one token group, built from its role paths. */
 function groupSchema(
   paths: string[],
   required: ReadonlySet<string>,
-): TSchema {
+): JsonSchema {
   const byRole = new Map(BASE_ROLES.map((role) => [role.path, role]));
   const byElement = new Map(ELEMENT_ROLES.map((role) => [role.path, role]));
   const byType = new Map<string, ElementTypeDeclaration>(
@@ -516,9 +539,10 @@ function groupSchema(
       const segment = segments[depth] as string;
       const prefix = segments.slice(0, depth + 1).join(".");
       const child = level[segment];
-      level = typeof child === "object" && child !== null && !isLeaf(child)
-        ? (child as ShapeGroup).children
+      level = child !== undefined && child.kind === "group"
+        ? child.children
         : (level[segment] = {
+          kind: "group",
           required: holds.get(prefix) ?? false,
           children: {},
         }).children;
@@ -528,33 +552,29 @@ function groupSchema(
     const type = byType.get(path);
     const doc = role?.doc ?? element?.doc ?? type?.doc;
     if (doc === undefined) continue;
-    const leaf = leafSchema(doc);
-    level[segments[segments.length - 1] as string] = required.has(path)
-      ? leaf
-      : Type.Optional(leaf);
+    level[segments[segments.length - 1] as string] = {
+      kind: "leaf",
+      required: required.has(path),
+      schema: leafSchema(doc),
+    };
   }
   return toSchema(shape);
 }
 
-/** Convert an assembled group into the TypeBox type that is its JSON Schema. */
-function toSchema(shape: GroupShape): TSchema {
-  const properties: Record<string, TSchema> = {};
+/** Convert an assembled group into its JSON Schema object. */
+function toSchema(shape: GroupShape): JsonSchema {
+  const properties: Record<string, JsonSchema> = {};
+  const required: string[] = [];
   for (const [key, value] of Object.entries(shape)) {
-    // A leaf already carries its schema; anything without a `type` is a group
-    // that still needs converting.
-    if (isLeaf(value)) {
-      properties[key] = value;
-      continue;
-    }
-    const group = toSchema((value as ShapeGroup).children);
-    properties[key] = (value as ShapeGroup).required
-      ? group
-      : Type.Optional(group);
+    if (value.required) required.push(key);
+    properties[key] = value.kind === "leaf"
+      ? value.schema
+      : toSchema(value.children);
   }
-  return Type.Object(properties, { additionalProperties: true });
-}
-
-/** True when a value is a finished schema rather than an unconverted group. */
-function isLeaf(value: TSchema | ShapeGroup): value is TSchema {
-  return typeof value === "object" && value !== null && "type" in value;
+  return {
+    type: "object",
+    additionalProperties: true,
+    ...(required.length > 0 ? { required } : {}),
+    properties,
+  };
 }

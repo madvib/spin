@@ -55,14 +55,8 @@
       "@spin/preset/config": [
         "../../packages/preset/src/config.ts"
       ],
-      "@spin/solid": [
-        "../../packages/preset/src/solid.d.ts"
-      ],
       "@unocss/core": [
         "./node_modules/@unocss/core/dist/index.d.mts"
-      ],
-      "@spin/primitives-procedures": [
-        "../../packages/preset/src/primitives-procedures.ts"
       ],
       "@spin/theme/base": [
         "../../packages/theme/src/base/index.ts"

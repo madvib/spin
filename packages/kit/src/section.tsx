@@ -7,8 +7,9 @@
  * they live here once: a page that marks its sections differently from the
  * next page is a page that reads as a different product.
  */
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { CODE_INK, tokenizeCode } from "./specimen.tsx";
 
 /**
  * The bar that marks a section.
@@ -91,6 +92,8 @@ const COPIED_MS = 1500;
  */
 export function CodeBlock(props: {
   code: string;
+  /** The fenced block's language: ts, json, html, bash, or absent. */
+  lang?: string;
   /** Extra classes on the block. */
   class?: string;
   /** Show the copy control. Off for a block that is not meant to be taken. */
@@ -113,6 +116,11 @@ export function CodeBlock(props: {
       // The clipboard is a permission, not a guarantee: no permission, no copy.
     }
   };
+  const tokens = createMemo(() =>
+    props.lang === undefined
+      ? [{ type: "plain" as const, value: props.code }]
+      : tokenizeCode(props.code, props.lang)
+  );
   return (
     <div class="relative">
       <pre
@@ -120,7 +128,13 @@ export function CodeBlock(props: {
           props.class ?? ""
         }`}
       >
-        <code>{props.code}</code>
+        <code>
+          <For each={tokens()}>
+            {(token) => (
+              <span class={CODE_INK[token.type]}>{token.value}</span>
+            )}
+          </For>
+        </code>
       </pre>
       <Show when={props.copy}>
         <button

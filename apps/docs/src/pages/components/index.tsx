@@ -15,12 +15,12 @@
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import {
+  examplesFor,
   primitiveCategories,
   type PrimitiveContract,
   primitiveContracts,
   primitiveElements,
 } from "@spin/preset";
-import { examplesFor } from "@spin/preset/rules/primitives/examples-index.ts";
 import { A } from "@solidjs/router";
 
 /** One card's row: the element, the glyph it wears, the contract behind it. */

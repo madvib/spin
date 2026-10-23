@@ -8,8 +8,7 @@ import { legibilityFloors, themeSchema } from "./roles.ts";
  *
  * Derived from the role declarations rather than written out, so a role added
  * to `BASE_ROLES` is required by the schema and validated by the contract in
- * the same change. TypeBox types are already JSON Schema, so there is no
- * conversion and no generator script between the declaration and `schema.json`.
+ * the same change.
  */
 export function spinThemeJsonSchema(): Record<string, unknown> {
   return themeSchema();

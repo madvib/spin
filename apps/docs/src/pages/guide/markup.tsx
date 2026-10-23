@@ -3,7 +3,7 @@
  * carry the markup — nothing here narrates what the rows already show.
  */
 import type { JSX } from "solid-js";
-import { componentExamples } from "@spin/preset/rules/primitives/examples-index.ts";
+import { componentExamples } from "@spin/preset";
 import { Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
 

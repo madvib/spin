@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { animationCss, primitiveContracts } from "./index.ts";
+import { animationContract, animationCss } from "./index.ts";
 
 /**
  * The manifest and the stylesheet are two halves of one contract: the
@@ -15,7 +15,7 @@ import { animationCss, primitiveContracts } from "./index.ts";
 
 const SOURCE = new URL("./animation.css", import.meta.url);
 const stylesheet = await Deno.readTextFile(SOURCE);
-const contract = primitiveContracts.animation;
+const contract = animationContract;
 
 /** The unique names in a list, in the order they appear. */
 function unique(names: string[]): string[] {

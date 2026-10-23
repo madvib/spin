@@ -4,8 +4,11 @@
  */
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { type PrimitiveContract, primitiveContracts } from "@spin/preset";
-import { examplesFor } from "@spin/preset/rules/primitives/examples-index.ts";
+import {
+  examplesFor,
+  type PrimitiveContract,
+  primitiveContracts,
+} from "@spin/preset";
 import { A, useParams } from "@solidjs/router";
 import { Chip, Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";

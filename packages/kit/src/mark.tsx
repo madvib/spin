@@ -100,13 +100,12 @@ export function Mark(props: { class?: string }) {
   const wake = () => {
     hovered = true;
     crawlTarget = 1;
-    kick += 1.15;
+    kick += 0.7;
   };
   const sleep = () => {
     hovered = false;
     crawlTarget = 0;
   };
-
   return (
     <svg
       viewBox="0 0 120 120"
@@ -262,10 +261,10 @@ export function Mark(props: { class?: string }) {
    * resolve before it runs; one loop drives both. */
   function Physics(): null {
     onMount(() => {
-      let theta = 0.16; // radians off plumb — it starts mid-swing
+      let theta = 0.11; // radians off plumb — a visible hang, not a swing
       let omega = 0;
       let last = performance.now();
-      let nextDraft = last + 2600;
+      let nextDraft = last + 3200;
       let raf = 0;
       let onScreen = true;
 
@@ -281,17 +280,19 @@ export function Mark(props: { class?: string }) {
         last = now;
         if (!onScreen) return;
 
-        crawl += (crawlTarget - crawl) * Math.min(1, dt * 2.6);
+        crawl += (crawlTarget - crawl) * Math.min(1, dt * 1.4);
         const length = SILK_BOTTOM - HUB.y - CLIMB * crawl;
 
         if (now > nextDraft) {
-          // The draft: a nudge every few seconds, harder when woken.
-          omega += (hovered ? 0.85 : 0.2) * (Math.random() < 0.5 ? 1 : -1) *
-            (0.6 + Math.random() * 0.8);
+          // The draft: a breath every few seconds, harder when woken.
+          omega += (hovered ? 0.5 : 0.12) * (Math.random() < 0.5 ? 1 : -1) *
+            (0.5 + Math.random() * 0.5);
           nextDraft = now +
-            (hovered ? 900 + Math.random() * 700 : 3200 + Math.random() * 2600);
+            (hovered
+              ? 1600 + Math.random() * 1200
+              : 4200 + Math.random() * 3200);
         }
-        omega += kick;
+        omega += kick * 0.7;
         kick = 0;
 
         omega += (-((GRAVITY / length) * Math.sin(theta)) - 0.06 * omega) *

@@ -15,14 +15,12 @@ import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
 import { themeRouter } from "@spin/theme";
-import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
-import { presetRouter } from "@spin/preset";
+import { overlayRouter, presetRouter, primitivesRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
 import { iconsRouter } from "./icons-procedures.ts";
 import { findingsRouter } from "./findings-procedures.ts";
-import { overlayRouter } from "@spin/preset";
 
 export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
@@ -30,14 +28,17 @@ export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
 export { projectContract } from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
-export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
-export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
-export { presetRouter } from "@spin/preset";
-export { presetContract } from "@spin/preset";
-export { iconsContract } from "./icons-procedures.ts";
-export { iconsRouter } from "./icons-procedures.ts";
-export { findingsContract } from "./findings-procedures.ts";
-export { findingsRouter } from "./findings-procedures.ts";
+export {
+  overlayContract,
+  overlayRouter,
+  presetContract,
+  presetRouter,
+  primitivesContract,
+  primitivesRouter,
+} from "@spin/preset";
+export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
+export { iconsContract, iconsRouter } from "./icons-procedures.ts";
+export { findingsContract, findingsRouter } from "./findings-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */

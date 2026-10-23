@@ -68,9 +68,7 @@ Deno.test("schema.json matches the derived builder output", async () => {
   const artifact = JSON.parse(
     await Deno.readTextFile(new URL("../../schema.json", import.meta.url)),
   );
-  // The builder returns a TypeBox type, which is JSON Schema plus TypeScript's
-  // optionality marker; the artifact is the JSON that marker disappears from.
-  const derived = JSON.parse(JSON.stringify(spinThemeJsonSchema()));
+  const derived = spinThemeJsonSchema();
   assertEquals(artifact, derived);
 });
 for (

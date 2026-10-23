@@ -18,6 +18,7 @@ product's look without touching its markup.
 | ------------------- | --------------------------------------------------------------------------- |
 | `@spin/theme`       | The token pipeline: parse, validate, mutate, scaffold, emit.                |
 | `@spin/preset`      | The UnoCSS preset: the utilities, the element library, the plugin.          |
+| `@spin/project`     | The project: where it is, what it holds, and the operations over its files. |
 | `@spin/animation`   | Keyframes, and the `animate-*` utilities that name them.                    |
 | `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them. |
 | `@spin/api`         | The daemon: the procedures, over RPC, that the tools share.                 |

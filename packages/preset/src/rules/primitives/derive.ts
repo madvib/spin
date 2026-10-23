@@ -16,7 +16,6 @@
 import type { Rule } from "@unocss/core";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { ThemeCssVar } from "@spin/theme/theme-types";
-import type { State, Surface } from "../../reference/surface.ts";
 import type { ThemeDocument } from "@spin/theme";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
@@ -926,6 +925,31 @@ function withoutTaxonomy(text: string): string {
 }
 
 /**
+ * Every component's derived contract, or every failure at once: a claim that
+ * is wrong in one place is usually wrong in the same way in three, and
+ * finding them one at a time is a long conversation with yourself.
+ */
+function deriveContracts(): Map<string, ReturnType<typeof deriveRuleContract>> {
+  // The names come from the rules themselves, so a component cannot exist in
+  // the manifest without rules behind it, or be missing from it while having
+  // them.
+  const names = Object.keys(RULE_SOURCES).sort();
+  const failures: string[] = [];
+  const contracts = new Map<string, ReturnType<typeof deriveRuleContract>>();
+  for (const name of names) {
+    try {
+      contracts.set(name, deriveRuleContract(name));
+    } catch (error) {
+      failures.push(String(error instanceof Error ? error.message : error));
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(failures.join("\n"));
+  }
+  return contracts;
+}
+
+/**
  * Regenerate the manifest into `to`, preserving every authored field read out
  * of the file being written. The destination is a parameter so a test can
  * round-trip a copy rather than dirty the checked-in file.
@@ -953,23 +977,8 @@ export async function writeManifest(to: URL = MANIFEST_OUT): Promise<void> {
   // The names come from the rules themselves, so a component cannot exist in
   // the manifest without rules behind it, or be missing from it while having
   // them.
-  const names = Object.keys(RULE_SOURCES).sort();
-  // Every component is checked, and every failure is reported at once: a
-  // claim that is wrong in one place is usually wrong in the same way in
-  // three, and finding them one at a time is a long conversation with
-  // yourself.
-  const failures: string[] = [];
-  const contracts = new Map<string, ReturnType<typeof deriveRuleContract>>();
-  for (const name of names) {
-    try {
-      contracts.set(name, deriveRuleContract(name));
-    } catch (error) {
-      failures.push(String(error instanceof Error ? error.message : error));
-    }
-  }
-  if (failures.length > 0) {
-    throw new Error(failures.join("\n"));
-  }
+  const contracts = deriveContracts();
+  const names = [...contracts.keys()].sort();
   const blocks = names.map((name) => {
     const derived = contracts.get(name) as ReturnType<
       typeof deriveRuleContract
@@ -1030,140 +1039,3 @@ if (import.meta.main) {
   await writeManifest();
 }
 /* ------------------------------------------------------------------- states -- */
-
-/** A pseudo-element suffix, so it is not mistaken for a pseudo-CLASS. */
-const PSEUDO_ELEMENT = /::[a-z-]+/gi;
-
-/**
- * Every state a component's rules emit, read off the selectors.
- *
- * A state is a pseudo-CLASS or an attribute condition in a selector the rule
- * actually produces, which means the list cannot drift from the CSS: a state
- * not in a selector cannot happen, and one that is in a selector cannot be
- * forgotten by whoever draws the reference.
- *
- * PSEUDO-ELEMENTS are excluded. A `::before` is a rendering OF its element, not
- * a state an author can ask for, and listing it would put rows in the matrix
- * that nobody can inspect or click.
- *
- * Order is first appearance, which is roughly base-then-interaction and so
- * reads in the order a person would try them. Sorted alphabetically, a matrix
- * reads `:checked, :disabled, :focus` and the sequence is gone.
- */
-export function deriveStates(name: string): State[] {
-  const source = RULE_SOURCES[name];
-  if (source === undefined) return [];
-
-  const probe = createProbeTheme();
-  const selectors: string[] = [];
-  for (const rule of source()) {
-    selectors.push(...extractSelectors(runRule(rule, probe, name)));
-  }
-
-  const out: State[] = [];
-  const seen = new Set<string>();
-
-  const add = (state: State) => {
-    if (seen.has(state.when)) return;
-    seen.add(state.when);
-    out.push(state);
-  };
-
-  // `:is()` and `:not()` are COMBINERS, not states: they say which element a
-  // rule applies to, and listing "is" as a state would put a row nobody can
-  // ask for into every matrix. Nor is `:hover` on a child a state of the
-  // control — so anything inside a functional pseudo-class is skipped.
-  const COMBINERS = new Set(["is", "not", "where", "has", "matches"]);
-  // STRUCTURAL pseudo-classes position an element inside its parent. A matrix
-  // row for them is a row nobody asked for — you do not write `:first-child`,
-  // it is a consequence of order — so they are listed apart from the states.
-  const STRUCTURAL = new Set([
-    "first-child",
-    "last-child",
-    "only-child",
-    "nth-child",
-    "first-of-type",
-    "last-of-type",
-    "only-of-type",
-    "nth-of-type",
-    "first-letter",
-    "first-line",
-    "root",
-    "empty",
-  ]);
-
-  for (const selector of selectors) {
-    const bare = selector.replace(PSEUDO_ELEMENT, "");
-    // Drop the contents of a functional pseudo-class: `:is(button, [type="x"])`
-    // contributes a STATE only if something outside it does.
-    const outside = bare.replace(
-      /:(is|not|where|has|matches)\([^()]*(\([^()]*\)[^()]*)*\)/g,
-      "",
-    );
-    for (const m of outside.matchAll(/:([a-z-]+)/g)) {
-      const name = m[1] as string;
-      if (COMBINERS.has(name) || STRUCTURAL.has(name)) continue;
-      add({ name: name.replace(/-/g, " "), when: `:${name}` });
-    }
-    for (
-      const m of outside.matchAll(
-        /\[([a-z][a-z-]*)(?:([~|^$*]?)=(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g,
-      )
-    ) {
-      const [, name, , dq, sq, bareValue] = m;
-      const value = dq ?? sq ?? bareValue;
-      // A plain attribute selector is a STATE only when it has a value — the
-      // four of them without one are capabilities rather than conditions.
-      if (name === undefined) continue;
-      // A CAPABILITY selector is not a state: `input[type="text"]` says which
-      // elements the rule reaches, and `role="group"` names a container. Only
-      // an attribute a person would SET on an element is a state, and those are
-      // the ARIA ones — which is not a coincidence: they are the states a
-      // component already exposes to assistive technology.
-      if (value === undefined) continue;
-      if (!name.startsWith("aria-") && !name.startsWith("data-")) continue;
-      add({
-        name: `${name.replace(/-/g, " ")} ${value}`,
-        when: `[${name}="${value}"]`,
-        attrs: { [name]: value },
-      });
-    }
-  }
-  return out;
-}
-
-/** A component's full surface: what it claims, offers, spends, and how. */
-export function deriveSurface(name: string): Surface {
-  const contract = deriveRuleContract(name);
-  const tags = contract.tags;
-  return {
-    name,
-    tags,
-    // A variant is a class the component defines; a tag is an element it
-    // claims. Deriving one from the other would put `button` in the variant
-    // list, which is exactly the confusion the vocabulary split exists to stop.
-    variants: contract.variants.filter((v) => !tags.includes(v)),
-    reads: contract.reads,
-    // A component owns a token group when it declares component tokens under
-    // it — which is the only place a component makes a decision of its own.
-    claims: (manifestAuthored()[name] ?? []).length > 0 ? [name] : [],
-  };
-}
-
-/** The `component` steps the checked-in manifest records for a component. */
-function manifestAuthored(): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  const src = Deno.readTextFileSync(new URL("./manifest.ts", import.meta.url));
-  for (
-    const m of src.matchAll(
-      /^ {2}([\w-]+): \{[\s\S]*?component: \[([\s\S]*?)\],/gm,
-    )
-  ) {
-    const name = m[1] as string;
-    const body = m[2] ?? "";
-    out[name] = [...body.matchAll(/"([\w-]+\.[\w-]+)"/g)].map((p) =>
-      p[1] as string
-    );
-  }
-  return out;
-}

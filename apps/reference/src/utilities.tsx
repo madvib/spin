@@ -1,15 +1,16 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { describeCatalog } from "@spin/preset";
-import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
-import type { Section } from "@spin/preset/organization.ts";
 import {
   buildScale,
   type BuiltScale,
+  describeCatalog,
   EDGE_AXES,
   scaleClass,
-} from "@spin/preset/reference/build.ts";
+  type Section,
+  SECTIONS,
+  utilitiesFor,
+} from "@spin/preset";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { inkTokens, LOOP_STEP } from "@spin/theme";

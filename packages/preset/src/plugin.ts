@@ -130,7 +130,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     animationIndex: pkg("../../animation/src/index.ts"),
     presetSrc: pkg("./"),
     presetIndex: pkg("./index.ts"),
-    procedures: pkg("./primitives-procedures.ts"),
     apiIndex: pkg("../../api/src/index.ts"),
     projectIndex: pkg("../../project/src/index.ts"),
   };
@@ -178,11 +177,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spin/preset",
       replacement: source.presetIndex,
       targets: [source.presetIndex],
-    },
-    {
-      find: "@spin/primitives-procedures",
-      replacement: source.procedures,
-      targets: [source.procedures],
     },
     {
       find: "@spin/api",

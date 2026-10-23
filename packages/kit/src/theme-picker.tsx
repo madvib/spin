@@ -16,7 +16,7 @@ import { themeModes } from "@spin/theme/themes";
 import type { ThemeState } from "./theme-state.ts";
 import { defaultThemeState } from "./theme-state.ts";
 
-function Sun(props: { class?: string }): JSX.Element {
+export function Sun(props: { class?: string }): JSX.Element {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -33,7 +33,7 @@ function Sun(props: { class?: string }): JSX.Element {
   );
 }
 
-function Moon(props: { class?: string }): JSX.Element {
+export function Moon(props: { class?: string }): JSX.Element {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -49,7 +49,7 @@ function Moon(props: { class?: string }): JSX.Element {
   );
 }
 
-/** The platform's own face: two panes on a stand. */
+/** The platform's face: two panes on a stand. */
 function System(props: { class?: string }): JSX.Element {
   return (
     <svg
@@ -68,6 +68,53 @@ function System(props: { class?: string }): JSX.Element {
   );
 }
 
+/**
+ * The mode toggle: light, dark, and — where the app offers it — the system
+ * appearance. One button per mode the active theme serves; the current want
+ * reads pressed.
+ */
+export function ModeToggle(
+  props: { state?: ThemeState; system?: boolean; class?: string } = {},
+): JSX.Element {
+  const state = props.state ?? defaultThemeState;
+  const modes = () => modesOf(state.documents[state.theme()]);
+  const offerSystem = () => props.system === true;
+  const shown = () =>
+    (offerSystem()
+      ? [...modes(), "system"]
+      : [...modes()]) as readonly string[];
+  return (
+    <div
+      class={`flex items-center gap-1 ${props.class ?? ""}`}
+      role="group"
+      aria-label="appearance"
+    >
+      <For each={shown()}>
+        {(name) => (
+          <button
+            type="button"
+            onClick={() => state.setWant(name)}
+            aria-label={name === "system"
+              ? "follow the system appearance"
+              : `${name} appearance`}
+            aria-pressed={state.want() === name}
+            class={`rounded-sm border p-1 transition-colors duration-fast ${
+              state.want() === name
+                ? "border-primary text-primary"
+                : "border-border text-text-muted hover:text-text"
+            }`}
+          >
+            {name === "light"
+              ? <Sun class="h-4 w-4" />
+              : name === "dark"
+              ? <Moon class="h-4 w-4" />
+              : <System class="h-4 w-4" />}
+          </button>
+        )}
+      </For>
+    </div>
+  );
+}
 /** Three chips of a document's own colours: surface, primary, text. */
 function Swatches(props: { document: unknown }): JSX.Element {
   const color = (token: string): string => {
@@ -154,11 +201,11 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
           setOpen(!open());
         }}
         class={[
-          "secondary s-sm flex items-center gap-2",
+          "secondary s-sm flex min-w-0 items-center gap-2",
           props.triggerClass ?? "",
         ].filter(Boolean).join(" ")}
       >
-        <span>{state.theme()}</span>
+        <span class="min-w-0 flex-1 truncate text-left">{state.theme()}</span>
         <Show
           when={state.want() === "system"}
           fallback={state.mode() === "dark"
@@ -175,7 +222,7 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
           }}
           role="dialog"
           aria-label="theme and appearance"
-          class="absolute end-0 z-dropdown mt-2 min-w-[12rem] border border-border bg-surface rounded-md shadow-lg p-2"
+          class="absolute end-0 top-full z-dropdown mt-2 w-max min-w-32 max-w-[calc(100vw-2rem)] border border-border bg-surface rounded-md shadow-lg p-2"
         >
           <span class="block px-2 py-1 text-xs font-semibold text-text-muted">
             theme

@@ -17,13 +17,7 @@ const parts = [
   "// Source of truth is animation.css beside it.",
   "",
   `export const animationCss: string = ${JSON.stringify(css)};`,
-  "",
-  "/** The stylesheets, keyed by component name. */",
-  "export const primitiveStyles: Record<string, string> = {",
-  "  animation: animationCss,",
-  "};",
-  "",
 ];
 
 await Deno.writeTextFile(OUT, parts.join("\n"));
-console.log("styles.ts written (1 component)");
+console.log("styles.ts written");
