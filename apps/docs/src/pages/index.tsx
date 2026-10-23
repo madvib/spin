@@ -12,7 +12,6 @@ import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "@spin/kit";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
-import { Console } from "../console.tsx";
 
 const PAGES = [
   {
@@ -63,11 +62,9 @@ const CARD_CODE =
   </div>
 </article>`;
 
-const DIALOG_CODE = `<dialog id="sold-out">
-  <p>Next roast lands Tuesday.</p>
-  <button type="button" onclick="sold-out.close()">Close</button>
-</dialog>
-<button type="button" onclick="sold-out.showModal()">Check stock</button>`;
+const DIALOG_CODE = `<button type="button">Add to box</button>
+<button type="button" class="secondary">Cancel</button>
+<button type="button" class="danger">Roll back</button>`;
 
 /** The card in the utilities panel keeps a real count: the button is a JS
  * action, which is what `type="button"` is for. */
@@ -177,39 +174,10 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             <badge variant="accent">roaster's pick</badge>
             <badge variant="neutral">decaf</badge>
           </div>
-          <div>
-            <button
-              type="button"
-              ref={(el) => {
-                el.addEventListener("click", () =>
-                  el.nextElementSibling instanceof HTMLDialogElement &&
-                  el.nextElementSibling.showModal());
-              }}
-            >
-              Check stock
-            </button>
-            <dialog
-              aria-label="Stock"
-              ref={(el) => {
-                el.addEventListener("close", () =>
-                  el.close());
-              }}
-              class="w-[20rem]"
-            >
-              <p>
-                Next roast lands Tuesday. Focus is trapped until you close this
-                — the browser does it.
-              </p>
-              <div class="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  class="secondary"
-                  onClick={(e) => e.currentTarget.closest("dialog")?.close()}
-                >
-                  Close
-                </button>
-              </div>
-            </dialog>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button">Add to box</button>
+            <button type="button" class="secondary">Cancel</button>
+            <button type="button" class="danger">Roll back</button>
           </div>
         </div>
       </div>
@@ -355,24 +323,8 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Below the fold: an application, then the layers, then where to go. */}
+      {/* Below the fold: the layers, the studio, the tooling, then where to go. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
-        <Reveal>
-          <div class="mt-16">
-            <Section title="The console">
-              <p class="max-w-[65ch] text-text-muted">
-                A back-office screen — sidebar, stats, orders table — built from
-                the elements and classes this page documents:{" "}
-                <code>&lt;card&gt;</code>, <code>&lt;alert&gt;</code>,{" "}
-                <code>&lt;badge&gt;</code>,{" "}
-                <code>&lt;table&gt;</code>, and the utility classes the section
-                below teaches. The status chips and the search filter the rows.
-              </p>
-              <Console />
-            </Section>
-          </div>
-        </Reveal>
-
         <Reveal>
           <div class="mt-16">
             <Section title="The layers">
