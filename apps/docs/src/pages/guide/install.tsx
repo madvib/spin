@@ -133,22 +133,22 @@ export default function Install(): JSX.Element {
           as this site does. Add them to <code>deno.json</code> /
           <code>package.json</code> and map the subpaths you'll import.
         </p>
-        <Code code={ADD} />
+        <Code code={ADD} lang="json" />
         <p>
           It replaces your Uno plugin and turns your theme documents into the
           stylesheet.
         </p>
-        <Code code={WIRE} />
+        <Code code={WIRE} lang="ts" />
         <p>
           Import the sheet in your entry, and the utilities resolve against your
           theme.
         </p>
-        <Code code={IMPORT_CSS} />
+        <Code code={IMPORT_CSS} lang="ts" />
         <p>
           Under TypeScript, declare the module — it is virtual, so there is no
           file to resolve.
         </p>
-        <Code code={DECLARE_CSS} />
+        <Code code={DECLARE_CSS} lang="ts" />
         <p>
           Omit the options and the app serves the shipped starters, forked by
           {" "}
@@ -156,13 +156,13 @@ export default function Install(): JSX.Element {
           off your root — the files the studio edits. Pass a map when the
           documents come from somewhere else:
         </p>
-        <Code code={WIRE_THEMES} />
+        <Code code={WIRE_THEMES} lang="ts" />
         <p>
           The studio rides the same dev server, mounted beside the API on one
           origin: a FAB in the corner of every page opens it, and the editing
           loop runs against your live app.
         </p>
-        <Code code={WIRE_STUDIO} />
+        <Code code={WIRE_STUDIO} lang="ts" />
       </Section>
 
       <Section id="bundlers" title="Bundlers">
@@ -177,7 +177,7 @@ export default function Install(): JSX.Element {
           {(bundler) => (
             <div class="mt-4">
               <h3 class="text-text">{bundler.name}</h3>
-              <Code code={bundler.code} />
+              <Code code={bundler.code} lang="ts" />
               <p class="text-sm">{bundler.note}</p>
             </div>
           )}

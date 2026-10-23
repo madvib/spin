@@ -123,11 +123,11 @@ export default function Why(): JSX.Element {
           custom properties, and every utility and every element resolves
           against those properties.
         </p>
-        <Code class="mt-3" code={THEME} />
+        <Code class="mt-3" code={THEME} lang="json" />
         <p>
           The markup names the decision. The theme holds the value.
         </p>
-        <Code class="mt-3" code={MARKUP} />
+        <Code class="mt-3" code={MARKUP} lang="html" />
         <p>
           Replace the document and the product's look changes. The markup does
           not.

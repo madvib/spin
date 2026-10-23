@@ -56,7 +56,7 @@ const TASTE: readonly (readonly [string, string])[] = [
 
 export default function Themes(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Themes</h1>
       <p class="max-w-screen-md text-text-muted">
         A theme is one document. The build reads it and turns it into CSS custom
@@ -87,7 +87,7 @@ export default function Themes(): JSX.Element {
           it, a type. In a spin project it is{" "}
           <code>spin/&lt;name&gt;.json</code>, and the name is the file stem.
         </p>
-        <Code code={DOCUMENT} />
+        <Code code={DOCUMENT} lang="json" />
         <p>
           The document goes through {PIPELINE.length}{" "}
           stages, and each of them can be entered on its own:
@@ -175,6 +175,7 @@ export default function Themes(): JSX.Element {
         </p>
         <Code
           class="mt-2"
+          lang="json"
           code={`"primary": {
   "$value": "#c8102e",
   "$modes": { "dark": "#ff5a63" }

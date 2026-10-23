@@ -43,7 +43,7 @@ export default function Verify(): JSX.Element {
         ))}
       </div>
       <p>Running them:</p>
-      <Code code={COMMANDS} />
+      <Code code={COMMANDS} lang="bash" />
     </Section>
   );
 }

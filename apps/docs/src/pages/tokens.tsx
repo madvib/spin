@@ -55,7 +55,7 @@ export default function Tokens(): JSX.Element {
   const doc = createMemo(() => starterDoc());
   const active = theme;
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Tokens</h1>
 
       <Section id="pipeline" title="Document → sheet">

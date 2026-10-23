@@ -130,7 +130,7 @@ curl -fsSL "${base}${SKILL_PATH}" \\
     -o ~/.claude/skills/spin-theme/$style.md
 done`;
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Authoring a theme</h1>
       <p class="max-w-screen-md text-text-muted">
         A theme is written, not generated. The scaffold gives you the roles and
@@ -197,6 +197,7 @@ done`;
         </p>
         <Code
           class="mt-3"
+          lang="ts"
           code={`import { spin } from "@spin/preset/plugin";
 import { mountSpinApp } from "@spin/api";
 
@@ -240,7 +241,7 @@ export default {
           {" "}
           takes the same file in its own directory.
         </p>
-        <Code class="mt-3" code={install} />
+        <Code class="mt-3" code={install} lang="bash" />
         <p>
           The style references travel with it, in the skill's own directory, so
           one install brings the method and the directions together. They are
@@ -248,7 +249,7 @@ export default {
           theme picks one and spends the axes accordingly. They are optional:
           the skill carries a line about each, which is enough to start.
         </p>
-        <Code class="mt-3" code={installStyles} />
+        <Code class="mt-3" code={installStyles} lang="bash" />
         <p>
           What the file carries, read from the file rather than listed here:
         </p>
@@ -375,6 +376,7 @@ export default {
         </p>
         <Code
           class="mt-2"
+          lang="bash"
           code={`deno task serve                                 # the reference app, on http://localhost:5173
 deno task visual -- --url http://localhost:5173 # the check harness, over every route
 deno task visual -- --route components/button
@@ -386,6 +388,7 @@ deno task visual -- --state-contrast-strict`}
         </p>
         <Code
           class="mt-2"
+          lang="bash"
           code={`deno eval --ext=ts "
 import { themeGates } from '@spin/theme';
 const text = await Deno.readTextFile('spin/<name>.json');

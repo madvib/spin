@@ -21,7 +21,7 @@ import type { Swatch, ThemeSummary } from "../../theme-docs.ts";
 export default function Starters(): JSX.Element {
   const themes = themeSummaries();
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Starters</h1>
       <p class="max-w-screen-md text-text-muted">
         The themes the package ships. Each one is a document in{" "}

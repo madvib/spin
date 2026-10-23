@@ -93,7 +93,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             everything above this layer spends those names. Replace the file and
             you have a different product.
           </p>
-          <Code class="mt-4 text-xs" code={TOKEN_JSON} />
+          <Code class="mt-4 text-xs" code={TOKEN_JSON} lang="json" />
         </div>
         <div class="flex flex-col justify-center gap-4">
           <For each={SWATCHES}>
@@ -124,7 +124,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             it can, across color, spacing, type, layout, borders, shadows, and
             motion — and the ones you never use are never generated.
           </p>
-          <Code class="mt-4 text-xs" code={CARD_CODE} />
+          <Code class="mt-4 text-xs" code={CARD_CODE} lang="html" />
         </div>
         <div class="flex items-center justify-center">
           <article class="flex w-full max-w-[20rem] flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
@@ -165,7 +165,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             <code>&lt;dialog&gt;</code>, so focus trapping, Escape, and the
             backdrop come from the browser.
           </p>
-          <Code class="mt-4 text-xs" code={DIALOG_CODE} />
+          <Code class="mt-4 text-xs" code={DIALOG_CODE} lang="html" />
         </div>
         <div class="flex flex-col justify-center gap-5">
           <label>
@@ -285,7 +285,7 @@ export default function Home(): JSX.Element {
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
       {/* The first screen: mark, pitch, switch. */}
-      <section class="relative grid min-h-dvh md:grid-cols-2">
+      <section class="relative grid min-h-dvh overflow-hidden md:grid-cols-2">
         <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-6 py-5 md:px-12">
           <Logo size="lg" class="text-text" />
           <div class="flex items-center gap-3">
@@ -320,7 +320,7 @@ export default function Home(): JSX.Element {
           </div>
         </header>
 
-        <div class="flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
+        <div class="relative flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
             <h1>
               Spin your own web.
@@ -347,8 +347,11 @@ export default function Home(): JSX.Element {
           * screen, where the columns sit side by side. */
         }
         <hr class="md:hidden" />
-        <div class="flex items-center justify-center overflow-hidden md:border-l">
-          <Mark class="w-full max-w-screen-md text-text" />
+        <div
+          class="pointer-events-none absolute inset-0 overflow-hidden"
+          aria-hidden="true"
+        >
+          <Mark class="h-full w-full text-text opacity-20" />
         </div>
       </section>
 

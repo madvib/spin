@@ -1,6 +1,9 @@
 /**
  * components/[id] — one primitive's contract, from the same two sources
  * of truth as the index. The id arrives as a route param.
+ *
+ * Each example renders as a live `<Specimen>`: the component as a consumer
+ * writes it, the markup behind it, and the copy control for the markup.
  */
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
@@ -10,8 +13,14 @@ import {
   primitiveContracts,
 } from "@spin/preset";
 import { A, useParams } from "@solidjs/router";
+import { Specimen } from "@spin/kit";
+import { COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
-import { ExampleRow } from "../../example-row.tsx";
+
+/** The component ids in rail order, for the prev/next footer. */
+const RAIL_ORDER: readonly string[] = COMPONENT_GROUPS.flatMap((group) =>
+  group.items.map((item) => item.name)
+);
 
 export default function ComponentPage(): JSX.Element {
   const params = useParams<{ id: string }>();
@@ -20,17 +29,29 @@ export default function ComponentPage(): JSX.Element {
   );
   const examples = createMemo(() => examplesFor(params.id));
   const known = createMemo(() => !!contract());
+  const position = createMemo(() => RAIL_ORDER.indexOf(params.id));
+  const prev = createMemo(() =>
+    position() > 0 ? RAIL_ORDER[position() - 1] : undefined
+  );
+  const next = createMemo(() =>
+    position() >= 0 && position() < RAIL_ORDER.length - 1
+      ? RAIL_ORDER[position() + 1]
+      : undefined
+  );
+  const category = createMemo(() =>
+    COMPONENT_GROUPS.find((group) =>
+      group.items.some((item) => item.name === params.id)
+    )?.label
+  );
   return (
     <Show when={known()} fallback={<NotFound id={params.id} />}>
-      <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-        <p class="text-sm">
-          <A href="/components" class="text-text-muted hover:text-text">
-            ← components
-          </A>
-        </p>
+      <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+        <Show when={category()}>
+          <p class="overline text-text-muted">{category()}</p>
+        </Show>
         <h1>{params.id}</h1>
         <Show when={examples()}>
-          {(ex) => <p class="text-text-muted max-w-screen-md">{ex().note}</p>}
+          {(ex) => <p class="max-w-screen-md text-text-muted">{ex().note}</p>}
         </Show>
 
         <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
@@ -67,7 +88,7 @@ export default function ComponentPage(): JSX.Element {
         <div class="mt-8">
           <For each={examples()?.rows}>
             {(row) => (
-              <ExampleRow
+              <Specimen
                 name={row.name}
                 html={row.html}
                 onLoad={examples()?.onLoad}
@@ -75,6 +96,39 @@ export default function ComponentPage(): JSX.Element {
             )}
           </For>
         </div>
+
+        <Show when={(contract()!.scope?.paints ?? []).length > 0}>
+          <Section title="What it owns">
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="border-b border-border text-left">
+                    <th class="py-2 pr-4">element</th>
+                    <th class="py-2 pr-4 font-mono">where</th>
+                    <th class="py-2 pr-4 font-mono">owns</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={contract()!.scope.paints}>
+                    {(paint) => (
+                      <tr class="border-b border-border">
+                        <td class="font-mono text-xs">
+                          {paint.tag}
+                        </td>
+                        <td class="font-mono text-xs text-text-muted">
+                          {paint.where}
+                        </td>
+                        <td class="font-mono text-xs">
+                          {paint.owns.join(" · ")}
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+          </Section>
+        </Show>
 
         <Section title="What it spends">
           <div class="mt-3 flex flex-wrap gap-2">
@@ -118,6 +172,39 @@ export default function ComponentPage(): JSX.Element {
             </div>
           </Section>
         </Show>
+
+        <hr class="mt-16" />
+        <nav
+          class="flex items-center justify-between gap-4 pt-6"
+          aria-label="more components"
+        >
+          <Show
+            when={prev()}
+            fallback={<span />}
+          >
+            {(name) => (
+              <A
+                href={`/components/${name()}`}
+                class="text-text-muted no-underline hover:text-text"
+              >
+                ← {name()}
+              </A>
+            )}
+          </Show>
+          <Show
+            when={next()}
+            fallback={<span />}
+          >
+            {(name) => (
+              <A
+                href={`/components/${name()}`}
+                class="text-text-muted no-underline hover:text-text"
+              >
+                {name()} →
+              </A>
+            )}
+          </Show>
+        </nav>
       </main>
     </Show>
   );
