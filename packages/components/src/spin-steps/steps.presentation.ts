@@ -118,6 +118,7 @@ export const def = {
       },
     },
     nextTrigger: {
+      id: "next-trigger",
       attrs: (scope: ScopeLike) => ({
         type: "button",
         disabled: hasNextStep(scope.context) ? undefined : true,
@@ -128,6 +129,7 @@ export const def = {
       }),
     },
     prevTrigger: {
+      id: "prev-trigger",
       attrs: (scope: ScopeLike) => ({
         type: "button",
         disabled: hasPrevStep(scope.context) ? undefined : true,

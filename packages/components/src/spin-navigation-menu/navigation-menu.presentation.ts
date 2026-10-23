@@ -82,6 +82,7 @@ export const def = {
       },
     },
     itemContent: {
+      id: "content",
       indexes: (context: NavigationMenuContext) => context.items,
       attrs: (scope: ScopeLike & { readonly slot: NavItemRecord }) => {
         const item = scope.slot;

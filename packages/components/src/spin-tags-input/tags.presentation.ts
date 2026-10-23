@@ -669,6 +669,7 @@ export const def = {
       },
     },
     liveRegion: {
+      id: "live-region",
       attrs: (_scope: ScopeLike) => ({
         role: "status",
         ...liveRegion({ live: "assertive", atomic: true }),
