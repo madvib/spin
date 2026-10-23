@@ -301,7 +301,8 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const bridge = `${binding.name}Bridge`;
           const component = `${binding.factory}`;
           scriptCalls.push(
-            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}) }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
+            `  const ${bridge}Events = Object.fromEntries(Object.entries(${component}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
+            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
             `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
             `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
             `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
