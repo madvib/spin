@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import type { SliderApi } from "./slider.bindings.ts";
+import type { SliderApi } from "./slider.presentation.ts";
 
 // The derived api's public surface, pinned: removing a reader, method,
 // command, part, or slot from the def removes it here, and this test
@@ -49,8 +49,8 @@ Deno.test("SliderApi promises the component's surface", () => {
   const focusTyped: AssertExact<SliderApi["focus"], () => void> = true;
   const getThumbValueTyped: AssertExact<SliderApi["getThumbValue"], (index: number) => number> = true;
   const getMarkersTyped: AssertExact<SliderApi["getMarkers"], () => number[]> = true;
-  const getThumbPropsTyped: AssertExact<SliderApi["getThumbProps"], (slot: { readonly index: number }) => Record<string, unknown>> = true;
-  const getMarkerPropsTyped: AssertExact<SliderApi["getMarkerProps"], (slot: { readonly value: number }) => Record<string, unknown>> = true;
+  const getThumbPropsTyped: AssertExact<SliderApi["getThumbProps"], (slot: number) => Record<string, unknown>> = true;
+  const getMarkerPropsTyped: AssertExact<SliderApi["getMarkerProps"], (slot: number) => Record<string, unknown>> = true;
   assertEquals(
     [
       stateTyped,

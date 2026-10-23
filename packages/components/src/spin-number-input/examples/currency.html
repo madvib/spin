@@ -1,23 +1,27 @@
-<scope>props={ label: string = "Price", defaultValue: string = "99", min: string = "0", step: string = "0.01" } consume={ numberInput }</scope>
+<script lang="ts">
+  import { numberInput } from "../number-input.presentation.ts";
 
-<div class="w-full" {...numberInput.getRootProps()}>
+  const machine = numberInput({ defaultValue: "99", step: "0.01", min: "0" });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
-    <label class="text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50" {...numberInput.getLabelProps()}>Price</label>
-    <span class="text-xs text-muted tabular-nums transition-colors duration-fast" {...numberInput.getValueTextProps()}>{numberInput.value}</span>
+    <label class={["text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]} {...machine.getLabelProps()}>Price</label>
+    <span class="text-xs text-muted tabular-nums transition-colors duration-fast" {...machine.getValueTextProps()}>{machine.value}</span>
   </div>
 
-  <div class="flex items-center gap-2" {...numberInput.getControlProps()}>
+  <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <button
-      class="flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-      {...numberInput.getDecrementTriggerProps()}
+      class={["flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      {...machine.getDecrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
     <input
-      class="h-[1.75rem] w-[5rem] rounded-md border border-solid border-border bg-surface px-2 text-sm tabular-nums text-text transition-shadow duration-fast ease-decelerate data-[focus]:ring-2 data-[focus]:ring-border-strong data-[invalid]:border-border-strong data-[invalid]:text-primary data-[disabled]:opacity-50"
-      {...numberInput.getInputProps()}
+      class={["h-[1.75rem] w-[5rem] rounded-md border border-solid border-border bg-surface px-2 text-sm tabular-nums text-text transition-shadow duration-fast ease-decelerate", { "ring-2": machine.focused, "ring-border-strong": machine.focused, "border-border-strong": machine.invalid, "text-primary": machine.invalid, "opacity-50": machine.disabled }]}
+      {...machine.getInputProps()}
     />
     <button
-      class="flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-      {...numberInput.getIncrementTriggerProps()}
+      class={["flex size-6 items-center justify-center rounded-md border border-solid border-border bg-surface-raised text-sm text-text transition-all duration-fast ease-decelerate hover:bg-surface active:scale-95", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      {...machine.getIncrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
   </div>
 

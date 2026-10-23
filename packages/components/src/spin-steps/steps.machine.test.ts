@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { steps } from "./steps.bindings.ts";
+import { steps } from "./steps.presentation.ts";
 const createStepsBridge = steps.createBridge;
-import type { StepsComplete } from "./steps.bindings.ts";
-import type { StepsApi } from "./steps.bindings.ts";
+import type { StepsComplete } from "./steps.presentation.ts";
+import type { StepsApi } from "./steps.presentation.ts";
 import type { StepsInvalid, StepsStepChange } from "./steps.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
@@ -126,14 +126,14 @@ Deno.test("a skippable step bypasses validation", () => {
 
 Deno.test("linear mode refuses trigger jumps", () => {
   const { api, events } = mount({ linear: true });
-  handler<(e: MouseEvent) => void>(api.getTriggerProps({ index: 2 }), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getTriggerProps(2), "onClick")(click());
   assertEquals(api.value, 0);
   assertEquals(events.stepChange.length, 0);
 });
 
 Deno.test("non-linear trigger jumps to the step", () => {
   const { api, events } = mount();
-  handler<(e: MouseEvent) => void>(api.getTriggerProps({ index: 2 }), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getTriggerProps(2), "onClick")(click());
   assertEquals(api.value, 2);
   assertEquals(events.stepChange.length, 1);
 });

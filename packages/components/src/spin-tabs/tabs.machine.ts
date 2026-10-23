@@ -1,14 +1,15 @@
 /** Tabs machine: selection is component state, not platform state. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, type TabsArgs, type TabsContext } from "./tabs.state.ts";
+import { initial, type TabsArgs, type TabsContext, type TabsState } from "./tabs.state.ts";
 import type { TabsEvents } from "./tabs.events.ts";
+import { selectTab, setValue } from "./tabs.transitions.ts";
 
 export function tabs(
   args: TabsArgs = {},
   authored: (name: string) => boolean,
-): Machine<TabsContext, TabsEvents> {
-  return createMachine<TabsContext, TabsEvents>({
+): Machine<TabsContext, TabsEvents, TabsState> {
+  return createMachine<TabsContext, TabsEvents, TabsState>({
     id: "tabs",
     initial: "idle",
     context: initial(args, authored),
@@ -23,20 +24,24 @@ export function tabs(
      */
     fields: {
       value: { event: "VALUE.SET" },
+      items: {},
+      orientation: {},
+      activationMode: {},
+      loopFocus: {},
+      deselectable: {},
+      composite: {},
     },
     states: {
       idle: {
         on: {
-          "VALUE.SET": {
-            // The KEY narrows the event: `event.value` is a string.
-            assign: (_ctx, event) => ({
-              value: typeof event.value === "string" ? event.value : "",
-            }),
-          },
-          "TAB.SELECT": {
-            assign: (ctx, event) =>
-              event.value.length === 0 || event.value === ctx.value ? {} : { value: event.value },
-          },
+          "VALUE.SET": { target: "idle", assign: setValue },
+          "TAB.SELECT": { target: "idle", assign: selectTab },
+        },
+      },
+      focused: {
+        on: {
+          "VALUE.SET": { target: "focused", assign: setValue },
+          "TAB.SELECT": { target: "focused", assign: selectTab },
         },
       },
     },

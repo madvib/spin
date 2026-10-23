@@ -2,9 +2,9 @@ import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
-import { slider } from "./slider.bindings.ts";
+import { slider } from "./slider.presentation.ts";
 const createSliderBridge = slider.createBridge;
-import type { SliderApi } from "./slider.bindings.ts";
+import type { SliderApi } from "./slider.presentation.ts";
 import type {
   SliderFocusChange,
   SliderValueChange,
@@ -154,7 +154,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function thumb(api: SliderApi, index: number): Record<string, unknown> {
-  return api.getThumbProps({ index });
+  return api.getThumbProps(index);
 }
 
 Deno.test("a track press jumps the thumb and the release commits", () => {

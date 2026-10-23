@@ -2,10 +2,10 @@ import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
-import { angleSlider } from "./angle-slider.bindings.ts";
+import { angleSlider } from "./angle-slider.presentation.ts";
 const createAngleSliderBridge = angleSlider.createBridge;
-import type { AngleSliderValueChangeEnd } from "./angle-slider.bindings.ts";
-import type { AngleSliderApi } from "./angle-slider.bindings.ts";
+import type { AngleSliderValueChangeEnd } from "./angle-slider.presentation.ts";
+import type { AngleSliderApi } from "./angle-slider.presentation.ts";
 import {
   constrainAngle,
   pointAngle,

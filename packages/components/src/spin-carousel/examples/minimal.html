@@ -1,3 +1,7 @@
-<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"one","label":"One","content":"First."},{"value":"two","label":"Two","content":"Second."}] } consume={ carousel }</scope>
+<script lang="ts">
+  import { carousel } from "../carousel.presentation.ts";
+
+  const machine = carousel({items: [{"value":"one","label":"One","content":"First."},{"value":"two","label":"Two","content":"Second."}]});
+</script>
 
 <include file="./infinite.html" />

@@ -1,3 +1,7 @@
-<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Profile","Settings","Sync","Complete"]", defaultStep: string = "1" } consume={ steps }</scope>
+<script lang="ts">
+  import { steps } from "../steps.presentation.ts";
+
+  const machine = steps({ count: 4, titles: ["Profile", "Settings", "Sync", "Complete"], step: 1 });
+</script>
 
 <include file="./descriptions.html" />

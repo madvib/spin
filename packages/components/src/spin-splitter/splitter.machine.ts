@@ -1,4 +1,5 @@
 /** Splitter machine: idle/hover/focus/dragging over four states. */
+export type SplitterState = "idle" | "hover" | "focused" | "dragging";
 import { coerceJsonArray, defaultTwin } from "@spin/runtime";
 import { createMachine, type Machine, type EventUnion } from "@spin/runtime/fsm";
 const setFocusedHandle = (ctx: SplitterContext, event: EventUnion<SplitterEvents>) : Partial<SplitterContext> => {
@@ -401,8 +402,8 @@ export function initial(args: SplitterArgs = {}, authored: (name: string) => boo
 export function splitter(
   args: SplitterArgs = {},
   authored: (name: string) => boolean,
-): Machine<SplitterContext, SplitterEvents> {
-  return createMachine<SplitterContext, SplitterEvents>({
+): Machine<SplitterContext, SplitterEvents, SplitterState> {
+  return createMachine<SplitterContext, SplitterEvents, SplitterState>({
     id: "splitter",
     initial: "idle",
     context: initial(args, authored),

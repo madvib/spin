@@ -1,9 +1,9 @@
-import { assert, assertEquals } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { pagination } from "./pagination.bindings.ts";
+import { pagination } from "./pagination.presentation.ts";
 const createPaginationBridge = pagination.createBridge;
-import type { PaginationApi } from "./pagination.bindings.ts";
+import type { PaginationApi } from "./pagination.presentation.ts";
 import type {
   PaginationPageChange,
   PaginationPageSizeChange,

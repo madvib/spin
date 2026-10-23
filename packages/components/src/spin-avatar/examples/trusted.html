@@ -1,23 +1,28 @@
-<scope>props={ src: string = "https://i.pravatar.cc/300", label: string = "Avatar", fallback: string = "JD" } consume={ avatar }</scope>
+<script lang="ts">
+  import { avatar } from "../avatar.presentation.ts";
+
+  const machine = avatar({ src: "https://i.pravatar.cc/300", label: "Avatar", fallback: "JD" });
+</script>
+
 
 <div class="mx-auto flex w-full max-w-xs justify-center">
   <div class="flex items-center gap-2 rounded-full border border-solid border-border bg-surface px-4 py-2">
     <div class="flex -space-x-2">
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...avatar.getRootProps()}>
-        <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
-        <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>JD</span>
+      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
+        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>JD</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...avatar.getRootProps()}>
-        <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
-        <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>SM</span>
+      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
+        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>SM</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...avatar.getRootProps()}>
-        <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
-        <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>AB</span>
+      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
+        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>AB</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...avatar.getRootProps()}>
-        <img class="h-full w-full object-cover data-[hidden]:hidden" draggable="false" {...avatar.getImageProps()} />
-        <span aria-hidden="true" class="grid h-full w-full place-items-center data-[hidden]:hidden" {...avatar.getFallbackProps()}>KL</span>
+      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
+        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>KL</span>
       </span>
     </div>
     <span class="text-sm text-muted font-medium">Trusted by <span class="font-bold text-text">80K+</span> developers.</span>

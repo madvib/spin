@@ -2,9 +2,9 @@ import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
-import { signaturePad } from "./signature-pad.bindings.ts";
+import { signaturePad } from "./signature-pad.presentation.ts";
 const createSignaturePadBridge = signaturePad.createBridge;
-import type { SignaturePadApi } from "./signature-pad.bindings.ts";
+import type { SignaturePadApi } from "./signature-pad.presentation.ts";
 import type { SignaturePadDrawDetails } from "./signature-pad.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

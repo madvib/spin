@@ -1,3 +1,7 @@
-<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Step One","Step Two","Step Three","Step Four"]", defaultStep: string = "1", orientation: string = "vertical" } consume={ steps }</scope>
+<script lang="ts">
+  import { steps } from "../steps.presentation.ts";
+
+  const machine = steps({ count: 4, titles: ["Step One", "Step Two", "Step Three", "Step Four"], step: 1, orientation: "vertical" });
+</script>
 
 <include file="./verticallabels.html" />

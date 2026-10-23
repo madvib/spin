@@ -446,7 +446,7 @@ export function defineComponent<
           const cap = `${slotName[0]?.toUpperCase() ?? ""}${slotName.slice(1)}`;
           const segment = slotDef.id ?? slotName;
           const slotMemos = new WeakMap<object, BagMemo>();
-          api[`get${cap}Props`] = (slot: object, ...callArgs: readonly unknown[]) => {
+          api[`get${cap}Props`] = (slot: unknown, ...callArgs: readonly unknown[]) => {
             const scope = liveScope({ slot });
             return keyed(
               slotMemos,

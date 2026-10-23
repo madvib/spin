@@ -1,14 +1,18 @@
-<scope>props={ label: string = "Date", value: string = "", defaultValue: string = "", granularity: string = "day", hourCycle: int = 12, min: string = "", max: string = "", placeholder: string = "", name: string = "", form: string = "", autoFocus: bool = false, disabled: bool = false, readOnly: bool = false, invalid: bool = false, required: bool = false, dir: string = "ltr" } consume={ dateInput }</scope>
+<script lang="ts">
+  import { dateInput } from "../date-input.presentation.ts";
 
-<div class="w-full" {...dateInput.getRootProps()}>
-  <label class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate data-[disabled]:opacity-50" {...dateInput.getLabelProps()}>{label}</label>
-  <div class="flex h-7 items-center gap-0.5 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50" {...dateInput.getControlProps()}>
-    <template for={dateInput.getSegments()} as={row} key={row.index}>
+  const machine = dateInput({value: "", granularity: "day", hourCycle: 12, min: "", max: "", name: "", form: "", disabled: false, readOnly: false, invalid: false, required: false, dir: "ltr"});
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <label class={["mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]} {...machine.getLabelProps()}>Date</label>
+  <div class={["flex h-7 items-center gap-0.5 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate", { "ring-2": machine.focused, "ring-border-strong": machine.focused, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]} {...machine.getControlProps()}>
+    <template for={machine.getSegments()} as={row} key={row.index}>
       <span
-        class="rounded-sm px-0.5 tabular-nums outline-none transition-colors duration-fast ease-decelerate data-[placeholder-shown]:text-muted focus:bg-surface-raised focus:ring-2 focus:ring-border-strong data-[focus]:bg-surface-raised data-[focus]:ring-2 data-[focus]:ring-border-strong"
-        {...dateInput.getSegmentProps(row.fieldIndex)}
+        class={["rounded-sm px-0.5 tabular-nums outline-none transition-colors duration-fast ease-decelerate focus:bg-surface-raised focus:ring-2 focus:ring-border-strong", { "bg-surface-raised": machine.focused, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+        {...machine.getSegmentProps(row.fieldIndex)}
       >{row.text}</span>
     </template>
   </div>
-  <input {...dateInput.getHiddenInputProps()} />
+  <input {...machine.getHiddenInputProps()} />
 </div>

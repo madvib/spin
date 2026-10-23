@@ -5,7 +5,7 @@ import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";
 import { DemoGrid } from "../demo-grid.tsx";
 import { DemoReadout } from "../demo-readout.tsx";
-import type { TimerTickChange } from "../../../src/spin-timer/timer.bindings.ts";
+import type { TimerTickChange } from "../../../src/spin-timer/timer.presentation.ts";
 
 import "./spin-timer.html";
 interface TimerCommands {

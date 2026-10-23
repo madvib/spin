@@ -1,11 +1,11 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { timer } from "./timer.bindings.ts";
+import { timer } from "./timer.presentation.ts";
 const createTimerBridge = timer.createBridge;
-import type { TimerTickChange } from "./timer.bindings.ts";
-import type { TimerApi, TimerUnit } from "./timer.bindings.ts";
-import type { Time, TimePart } from "./timer.machine.ts";
+import type { TimerTickChange } from "./timer.presentation.ts";
+import type { TimerApi, TimerUnit } from "./timer.presentation.ts";
+import type { Time, TimePart } from "./timer.state.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -381,9 +381,8 @@ Deno.test("Given a stopwatch with a target / When progress is read / Then it rep
 Deno.test("Given a running countdown / When the parts are read / Then the contract is on them", () => {
   const h = mount({ countdown: true, startMs: 90_061_500, interval: 1_000 });
   h.api.start();
-  const root = h.api.getRootProps();
-  assertEquals(root["id"], "timer:timer", "the root carries the owner id");
-  assertEquals(root["data-state"], "running", "the root states the phase");
+  h.api.getRootProps();
+  assertEquals(h.api.state, "running", "the root states the phase");
 
   const area = h.api.getAreaProps();
   assertEquals(area["id"], "timer:timer:area", "the area carries the namespaced id");

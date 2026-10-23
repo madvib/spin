@@ -1,17 +1,19 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { menu } from "./menu.bindings.ts";
+import { menu } from "./menu.presentation.ts";
 const createMenuBridge = menu.createBridge;
-import type { MenuApi } from "./menu.bindings.ts";
+import type { MenuApi } from "./menu.presentation.ts";
 import type {
   MenuBlock,
   MenuEntry,
+  MenuRow,
+} from "./menu.state.ts";
+import type {
   MenuHighlightChange,
   MenuOpenChange,
-  MenuRow,
   MenuSelect,
-} from "./menu.machine.ts";
+} from "./menu.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

@@ -1,33 +1,37 @@
-<scope>props={ items: { value: string, label: string, disabled: bool, group: string }[] = [{"value":"dark-theme","label":"Dark Theme","group":"Appearance"},{"value":"system-theme","label":"System Theme","group":"Appearance"},{"value":"light-theme","label":"Light Theme","group":"Appearance"},{"value":"notifications","label":"Push Notifications","group":"Privacy"},{"value":"privacy-mode","label":"Privacy Mode","group":"Privacy"},{"value":"public-profile","label":"Public Profile","group":"Account"},{"value":"two-factor","label":"Two-Factor Auth","group":"Security"},{"value":"mobile-sync","label":"Mobile Sync","group":"Sync"}], label: string = "Settings Preferences", multiple: bool = true, defaultValue: string = "[\"dark-theme\",\"notifications\",\"two-factor\"]" } consume={ listbox }</scope>
+<script lang="ts">
+  import { listbox } from "../listbox.presentation.ts";
 
-<div class="w-full" {...listbox.getRootProps()}>
+  const machine = listbox({items: [{"value":"dark-theme","label":"Dark Theme","group":"Appearance"},{"value":"system-theme","label":"System Theme","group":"Appearance"},{"value":"light-theme","label":"Light Theme","group":"Appearance"},{"value":"notifications","label":"Push Notifications","group":"Privacy"},{"value":"privacy-mode","label":"Privacy Mode","group":"Privacy"},{"value":"public-profile","label":"Public Profile","group":"Account"},{"value":"two-factor","label":"Two-Factor Auth","group":"Security"},{"value":"mobile-sync","label":"Mobile Sync","group":"Sync"}], multiple: true, value: "[\"dark-theme\",\"notifications\",\"two-factor\"]"});
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
   <label
-    class="mb-1 block text-sm font-medium text-text transition-colors duration-fast ease-decelerate data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[focused]:text-primary"
-    {...listbox.getLabelProps()}
+    class={["mb-1 block text-sm font-medium text-text transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled, "cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
+    {...machine.getLabelProps()}
   >Settings Preferences</label>
 
   <span
-    class="block text-sm text-muted transition-colors duration-fast ease-decelerate data-[empty]:hidden"
-    {...listbox.getValueTextProps()}
-  >{listbox.valueAsString}</span>
+    class={["block text-sm text-muted transition-colors duration-fast ease-decelerate", { "hidden": machine.empty }]}
+    {...machine.getValueTextProps()}
+  >{machine.valueAsString}</span>
 
   <div
-    class="max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised p-1 transition-colors duration-fast ease-decelerate data-[disabled]:opacity-60 data-[empty]:hidden"
-    {...listbox.getContentProps()}
+    class={["max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised p-1 transition-colors duration-fast ease-decelerate", { "opacity-60": machine.disabled, "hidden": machine.empty }]}
+    {...machine.getContentProps()}
   >
-    <template for={listbox.getBlocks()} as={block} key={block.id}>
-      <div class="py-0.5" {...listbox.getItemGroupProps(block)}>
-        <span class="block px-2 py-1 text-xs font-medium text-muted" {...listbox.getItemGroupLabelProps(block)}>{block.label}</span>
-        <template for={listbox.getRows(block)} as={row} key={row.value}>
+    <template for={machine.getBlocks()} as={block} key={block.id}>
+      <div class="py-0.5" {...machine.getItemGroupProps(block)}>
+        <span class="block px-2 py-1 text-xs font-medium text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+        <template for={machine.getRows(block)} as={row} key={row.value}>
           <div
-            class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface data-[selected]:text-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-            {...listbox.getItemProps(row)}
+            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast ease-decelerate", { "bg-surface": machine.getItemState(row).highlighted, "text-primary": machine.getItemState(row).selected, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+            {...machine.getItemProps(row)}
           >
-            <span class="min-w-0 flex-1 truncate" {...listbox.getItemTextProps(row)}>{row.label}</span>
+            <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
             <span
               aria-hidden="true"
-              class="shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate data-[selected]:scale-100 data-[selected]:opacity-100"
-              {...listbox.getItemIndicatorProps(row)}
+              class={["shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate", { "scale-100": machine.getItemState(row).selected, "opacity-100": machine.getItemState(row).selected }]}
+              {...machine.getItemIndicatorProps(row)}
             ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
           </div>
         </template>

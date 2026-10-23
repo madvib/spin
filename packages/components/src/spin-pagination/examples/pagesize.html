@@ -1,6 +1,10 @@
-<scope>props={ count: string = "100", defaultPageSize: string = "10", siblingCount: string = "1" } consume={ pagination }</scope>
+<script lang="ts">
+  import { pagination } from "../pagination.presentation.ts";
 
-<nav class="flex w-full flex-wrap items-center gap-6" {...pagination.getRootProps()}>
+  const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
+</script>
+
+<nav class="flex w-full flex-wrap items-center gap-6" {...machine.getRootProps()}>
   <div class="flex items-center gap-2 text-sm text-muted">
     <label for="pg-size">Rows per page</label>
     <select id="pg-size" data-size="" class="rounded-md border border-solid border-border bg-surface px-2 py-1 text-sm text-text">
@@ -10,32 +14,32 @@
       <option value="50">50</option>
     </select>
   </div>
-  <div class="text-sm text-muted" data-range="">{pagination.pageRange.start}-{pagination.pageRange.end} of {pagination.count}</div>
+  <div class="text-sm text-muted" data-range="">{machine.pageRange.start}-{machine.pageRange.end} of {machine.count}</div>
   <div class="flex items-center gap-1">
     <button
       class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-      {...pagination.getFirstTriggerProps()}
+      {...machine.getFirstTriggerProps()}
     ><span aria-hidden="true">«</span></button>
     <button
       class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-      {...pagination.getPrevTriggerProps()}
+      {...machine.getPrevTriggerProps()}
     ><span aria-hidden="true">‹</span></button>
-    <template for={pagination.getItems()} as={row} key={row.key}>
+    <template for={machine.getItems()} as={row} key={row.key}>
       <button
-        class="h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface data-[selected]:border-primary data-[selected]:bg-primary data-[selected]:text-on-primary data-[hidden]:hidden"
-        {...pagination.getItemProps(row)}
+        class={["h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface", { "border-primary bg-primary text-on-primary": (row.type === "page" && row.value === machine.page), "hidden": row.type !== "page" }]}
+        {...machine.getItemProps(row)}
       >{row.label}</button><span
-        class="grid h-7 min-w-7 place-items-center px-1 text-xs text-muted data-[hidden]:hidden"
-        {...pagination.getEllipsisProps(row)}
+        class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-muted", { "hidden": row.type !== "ellipsis" }]}
+        {...machine.getEllipsisProps(row)}
       >{row.label}</span>
     </template>
     <button
       class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-      {...pagination.getNextTriggerProps()}
+      {...machine.getNextTriggerProps()}
     ><span aria-hidden="true">›</span></button>
     <button
       class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
-      {...pagination.getLastTriggerProps()}
+      {...machine.getLastTriggerProps()}
     ><span aria-hidden="true">»</span></button>
   </div>
 </nav>

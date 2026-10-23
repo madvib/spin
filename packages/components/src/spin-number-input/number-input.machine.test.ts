@@ -1,14 +1,15 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { createNumberInputBridge } from "./number-input.bridge.ts";
+import { numberInput } from "./number-input.presentation.ts";
+const createNumberInputBridge = numberInput.createBridge;
 import type {
   NumberInputFocusChange,
   NumberInputValueChange,
   NumberInputValueCommit,
   NumberInputValueInvalid,
-} from "./number-input.bridge.ts";
-import type { NumberInputApi } from "./number-input.connect.ts";
+} from "./number-input.events.ts";
+import type { NumberInputApi } from "./number-input.presentation.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -331,7 +332,7 @@ Deno.test("Given the input focused / When the focus event arrives / Then the foc
   h.focusInput();
   assertEquals(h.state(), "focused", "the machine holds focus");
   assertEquals(h.bag("input")["aria-roledescription"], "numberfield", "the input is a numberfield");
-  assertEquals(h.bag("root")["data-focus"], "", "and every part carries it");
+  assertEquals(h.api.focused, true, "and the api reports focus");
   assertEquals(h.events.focusChange, [{ focused: true, value: "3", valueAsNumber: 3 }], "focus-change reports the move");
 });
 
@@ -355,11 +356,11 @@ Deno.test("Given the scrubber grabbed / When the press arrives / Then the scrubb
   const h = mount({ defaultValue: "5" });
   h.grabScrubber();
   assertEquals(h.state(), "scrubbing", "the machine is scrubbing");
-  assertEquals(h.bag("scrubber")["data-scrubbing"], "", "the rail reports it");
+  assertEquals(h.api.scrubbing, true, "the rail reports it");
   assertEquals(h.state(), "scrubbing", "the focus survives the gesture");
   h.dropScrubber();
   assertEquals(h.state(), "focused", "the lift ends the gesture");
-  assertEquals(h.bag("scrubber")["data-scrubbing"], undefined, "and the rail clears it");
+  assertEquals(h.api.scrubbing, false, "and the rail clears it");
 });
 
 Deno.test("Given an idle input / When a spin control is pressed / Then the focus leaves idle", () => {
@@ -830,7 +831,7 @@ Deno.test("Given a disabled input / When the trigger bags are read / Then both r
   const h = mount({ disabled: true });
   assertEquals(h.trigger("increment")["disabled"], true, "the increment trigger is disabled");
   assertEquals(h.trigger("decrement")["disabled"], true, "and so is the decrement");
-  assertEquals(h.bag("root")["data-disabled"], "", "the root reports it");
+  assertEquals(h.api.disabled, true, "the root reports it");
   assertEquals(h.bag("input")["disabled"], true, "and the input is disabled");
 });
 
@@ -976,7 +977,7 @@ Deno.test("Given a label / When its bag is read / Then it names the input", () =
   const h = mount({ required: true });
   const bag = h.bag("label");
   assertEquals(bag["for"], "number-input:number-input:input", "the label names the input");
-  assertEquals(bag["data-required"], "", "and reports required");
+  assertEquals(h.api.required, true, "and reports required");
   assertEquals(bag["id"], "number-input:number-input:label", "with a namespaced id");
 });
 
@@ -1070,10 +1071,10 @@ Deno.test("Given an open input / When the api is read / Then the connect is one 
 Deno.test("Given a gesture / When the trigger bag is read mid-press / Then the data state follows the machine", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("increment");
-  assertEquals(h.bag("control")["data-focus"], "", "the control reports focus");
-  assertEquals(h.bag("valueText")["data-focus"], "", "and so does the value text");
+  assertEquals(h.api.focused, true, "the control reports focus");
+  assertEquals(h.api.focused, true, "and so does the value text");
   h.releaseTrigger("increment");
-  assertEquals(h.bag("control")["data-focus"], "", "the gesture ended but focus stays");
+  assertEquals(h.api.focused, true, "the gesture ended but focus stays");
 });
 
 Deno.test("Given an input / When it is disposed / Then the machine stops", () => {

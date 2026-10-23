@@ -1,16 +1,23 @@
-<scope>props={ items: { value: string, label: string, content: string, badge: string }[] = [{"value":"tasks","label":"Tasks","content":"Manage your daily tasks and assignments.","badge":"8"},{"value":"messages","label":"Messages","content":"View conversations and notifications.","badge":"5"},{"value":"alerts","label":"Alerts","content":"Monitor system alerts and updates.","badge":"2"}], defaultValue: string = "tab1" } consume={ tabs }</scope>
+<script lang="ts">
+  import { tabs } from "../tabs.presentation.ts";
 
+  const machine = tabs({ items: [
+    { value: "tasks", label: "Tasks", content: "Manage your daily tasks and assignments.", badge: "8" },
+    { value: "messages", label: "Messages", content: "View conversations and notifications.", badge: "5" },
+    { value: "alerts", label: "Alerts", content: "Monitor system alerts and updates.", badge: "2" },
+  ], defaultValue: "tab1" });
+</script>
 
-<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...tabs.getRootProps()}>
-  <div class="mb-4 flex gap-2" {...tabs.getListProps()}>
-    <template for={items} as={row} key={row.value}>
+<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...machine.getRootProps()}>
+  <div class="mb-4 flex gap-2" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
       <button
-        class="flex flex-col items-center gap-1 rounded-md px-4 py-3 text-sm font-medium text-muted transition-all data-[state=active]:bg-surface data-[state=active]:text-text"
-        {...tabs.getTriggerProps(row)}
-      ><span class="grid h-6 w-6 place-items-center rounded-full bg-surface-sunken text-xs font-semibold text-muted data-[state=active]:bg-primary data-[state=active]:text-on-primary" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
+        class={["flex flex-col items-center gap-1 rounded-md px-4 py-3 text-sm font-medium text-muted transition-all", { "bg-surface text-text": machine.value === row.value }]}
+        {...machine.getTriggerProps(row)}
+      ><span class={["grid h-6 w-6 place-items-center rounded-full bg-surface-sunken text-xs font-semibold text-muted", { "bg-primary text-on-primary": machine.value === row.value }]} aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
     </template>
   </div>
-  <template for={items} as={row} key={row.value}>
-    <p class="m-0 text-center text-sm text-muted" {...tabs.getContentProps(row)}>{row.content}</p>
+  <template for={machine.items} as={row} key={row.value}>
+    <p class="m-0 text-center text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
   </template>
 </div>

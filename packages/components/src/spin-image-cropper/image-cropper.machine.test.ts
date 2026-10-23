@@ -2,16 +2,16 @@ import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
-import { imageCropper } from "./image-cropper.bindings.ts";
+import { imageCropper } from "./image-cropper.presentation.ts";
 const createImageCropperBridge = imageCropper.createBridge;
 import type {
   ImageCropperCropChange,
   ImageCropperFlipChange,
   ImageCropperRotationChange,
   ImageCropperZoomChange,
-} from "./image-cropper.bindings.ts";
-import type { ImageCropperApi } from "./image-cropper.bindings.ts";
-import type { CropHandle, CropRect } from "./image-cropper.machine.ts";
+} from "./image-cropper.presentation.ts";
+import type { ImageCropperApi } from "./image-cropper.presentation.ts";
+import type { CropHandle, CropRect } from "./image-cropper.state.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

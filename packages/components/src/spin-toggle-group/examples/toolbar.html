@@ -1,11 +1,15 @@
-<scope>props={ items: { value: string, label: string }[] = [{"value":"bold","label":"Bold"},{"value":"italic","label":"Italic"},{"value":"underline","label":"Underline"}], multiple: bool = true, defaultValue: string = '["bold"]' } consume={ toggleGroup }</scope>
+<script lang="ts">
+  import { toggleGroup } from "../toggle-group.presentation.ts";
+
+  const machine = toggleGroup({ items: [{"value":"bold","label":"Bold"},{"value":"italic","label":"Italic"},{"value":"underline","label":"Underline"}], multiple: true, defaultValue: ["bold"] });
+</script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
-  <div class="inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-2" {...toggleGroup.getRootProps()}>
-    <template for={toggleGroup.getItems()} as={row} key={row.value}>
+  <div class="inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-2" {...machine.getRootProps()}>
+    <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class="rounded-md p-2 text-muted transition-all hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary"
-        {...toggleGroup.getItemProps(row)}
+        class={["rounded-md p-2 text-muted transition-all hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed }]}
+        {...machine.getItemProps(row)}
       ><span class="text-base" aria-hidden="true"><span show={row.value === "bold"} class="i-lucide-bold"></span><span show={row.value === "italic"} class="i-lucide-italic"></span><span show={row.value === "underline"} class="i-lucide-underline"></span></span></button>
     </template>
   </div>

@@ -1,14 +1,18 @@
-<scope>props={ items: { value: string, label: string }[] = [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], defaultValue: string = '["left"]' } consume={ toggleGroup }</scope>
+<script lang="ts">
+  import { toggleGroup } from "../toggle-group.presentation.ts";
+
+  const machine = toggleGroup({ items: [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], defaultValue: ["left"] });
+</script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
   <div
-    class="inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-1 data-[orientation=vertical]:flex-col"
-    {...toggleGroup.getRootProps()}
+    class={["inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-1", { "flex-col": machine.orientation === "vertical" }]}
+    {...machine.getRootProps()}
   >
-    <template for={toggleGroup.getItems()} as={row} key={row.value}>
+    <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class="rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-        {...toggleGroup.getItemProps(row)}
+        class={["rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>
   </div>

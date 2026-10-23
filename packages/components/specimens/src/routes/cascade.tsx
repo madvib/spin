@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
 import { createSpinComponent } from "@spin/hooks/solid";
-import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.bindings.ts";
+import type { CascadeCommands } from "../../../src/spin-cascade-select/cascade.presentation.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";
 import { DemoControls } from "../demo-controls.tsx";

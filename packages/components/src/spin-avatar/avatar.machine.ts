@@ -8,56 +8,47 @@
  * else. There is no guard: the last signal wins.
  */
 
-import { createMachine, type Machine, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
-import type { AvatarArgs, AvatarContext } from "./avatar.state.ts";
+import { createMachine, type Machine } from "@spin/runtime/fsm";
+import type { AvatarArgs, AvatarContext, AvatarState } from "./avatar.state.ts";
 import { initial } from "./avatar.state.ts";
 import type { AvatarEvents } from "./avatar.events.ts";
-
-const setSrc = (ctx: AvatarContext, event: EventUnion<AvatarEvents>) : Partial<AvatarContext> => {
-      if (event.type !== "SRC.CHANGE" && event.type !== "SET_SRC") return {};
-      void ctx;
-      return { src: event.src };
-    };
-
-const config: Omit<MachineSpec<AvatarContext, AvatarEvents>, "context"> = {
-  id: "avatar",
-  initial: "loading",
-  on: {
-    "SRC.CHANGE": { target: "loading", assign: setSrc },
-    "IMG.UNMOUNT": { target: "error" },
-    "SET_SRC": { target: "loading", assign: setSrc },
-  },
-  states: {
-    loading: {
-      on: {
-        "IMG.LOADED": { target: "loaded" },
-        "IMG.ERROR": { target: "error" },
-      },
-    },
-    error: {
-      on: {
-        "IMG.LOADED": { target: "loaded" },
-      },
-    },
-    loaded: {
-      on: {
-        "IMG.ERROR": { target: "error" },
-      },
-    },
-  },
-};
-
-const implementations = {};
+import { setSrc } from "./avatar.transitions.ts";
 
 export function avatar(
   args: AvatarArgs = {},
-  authored: (name: string) => boolean,
-): Machine<AvatarContext, AvatarEvents> {
-  return createMachine<AvatarContext, AvatarEvents>({
-    ...config,
+  authored: (name: string) => boolean = () => false,
+): Machine<AvatarContext, AvatarEvents, AvatarState> {
+  return createMachine<AvatarContext, AvatarEvents, AvatarState>({
+    id: "avatar",
+    initial: "loading",
     context: initial(args, authored),
     fields: {
       src: { event: "SRC.CHANGE" },
+      label: {},
+      fallback: {},
+    },
+    on: {
+      "SRC.CHANGE": { target: "loading", assign: setSrc },
+      "IMG.UNMOUNT": { target: "error" },
+      "SET_SRC": { target: "loading", assign: setSrc },
+    },
+    states: {
+      loading: {
+        on: {
+          "IMG.LOADED": { target: "loaded" },
+          "IMG.ERROR": { target: "error" },
+        },
+      },
+      error: {
+        on: {
+          "IMG.LOADED": { target: "loaded" },
+        },
+      },
+      loaded: {
+        on: {
+          "IMG.ERROR": { target: "error" },
+        },
+      },
     },
   });
 }

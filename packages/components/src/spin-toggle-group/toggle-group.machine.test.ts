@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { toggleGroup } from "./toggle-group.bindings.ts";
+import { toggleGroup } from "./toggle-group.presentation.ts";
 const createToggleGroupBridge = toggleGroup.createBridge;
-import type { ToggleGroupApi } from "./toggle-group.bindings.ts";
-import type { ToggleGroupValueChange } from "./toggle-group.machine.ts";
+import type { ToggleGroupApi } from "./toggle-group.presentation.ts";
+import type { ToggleGroupValueChange } from "./toggle-group.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -90,7 +90,8 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function item(api: ToggleGroupApi, value: string): Record<string, unknown> {
-  return api.getItemProps({ value }) as Record<string, unknown>;
+  const row = api.getItems().find((entry) => entry.value === value) ?? { value, label: value };
+  return api.getItemProps(row) as Record<string, unknown>;
 }
 
 Deno.test("a click toggles the value and a second click deselects", () => {
@@ -118,21 +119,21 @@ Deno.test("arrows move the focused id with loop wrap", () => {
   const { api } = mount();
   handler<() => void>(item(api, "bold"), "onFocus")();
   handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "italic" }).focused, true);
+  assertEquals(api.getItemState({ value: "italic", label: "italic" }).focused, true);
   handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "underline" }).focused, true);
+  assertEquals(api.getItemState({ value: "underline", label: "underline" }).focused, true);
   // Loop wraps past the last item.
   handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "bold" }).focused, true);
+  assertEquals(api.getItemState({ value: "bold", label: "bold" }).focused, true);
 });
 
 Deno.test("Home and End jump the focused id", () => {
   const { api } = mount();
   handler<() => void>(item(api, "italic"), "onFocus")();
   handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(keydown("End"));
-  assertEquals(api.getItemState({ value: "underline" }).focused, true);
+  assertEquals(api.getItemState({ value: "underline", label: "underline" }).focused, true);
   handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(keydown("Home"));
-  assertEquals(api.getItemState({ value: "bold" }).focused, true);
+  assertEquals(api.getItemState({ value: "bold", label: "bold" }).focused, true);
 });
 
 Deno.test("a disabled item refuses clicks and keys", () => {

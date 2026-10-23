@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { fileUpload } from "./file-upload.bindings.ts";
+import { fileUpload } from "./file-upload.presentation.ts";
 const createFileUploadBridge = fileUpload.createBridge;
-import type { FileUploadApi } from "./file-upload.bindings.ts";
-import type { FileRecord } from "./file-upload.machine.ts";
+import type { FileUploadApi } from "./file-upload.presentation.ts";
+import type { FileRecord } from "./file-upload.state.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;

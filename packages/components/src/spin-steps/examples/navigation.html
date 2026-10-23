@@ -1,27 +1,31 @@
-<scope>props={ label: string = "Checkout", count: string = "4", titles: string = "["Cart","Shipping","Payment","Review"]", defaultStep: string = "2" } consume={ steps }</scope>
+<script lang="ts">
+  import { steps } from "../steps.presentation.ts";
 
-<div class="w-full" {...steps.getRootProps()}>
+  const machine = steps({ count: 4, titles: ["Cart", "Shipping", "Payment", "Review"], step: 2 });
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between gap-2">
-    <span class="text-sm font-medium text-text">{label}</span>
-    <span class="text-xs text-muted">Step {steps.value + 1} of {steps.count}</span>
+    <span class="text-sm font-medium text-text">Checkout</span>
+    <span class="text-xs text-muted">Step {machine.value + 1} of {machine.count}</span>
   </div>
 
-  <ol class="flex items-start gap-1" {...steps.getListProps()}>
-    <template for={steps.getItems()} as={row} key={row}>
-      <li class="relative flex min-w-0 items-center not-last:flex-1" {...steps.getItemProps({ index: row })}>
+  <ol class="flex items-start gap-1" {...machine.getListProps()}>
+    <template for={machine.getItems()} as={row} key={row}>
+      <li class="relative flex min-w-0 items-center not-last:flex-1" {...machine.getItemProps(row)}>
         <button
           class="flex shrink-0 items-center gap-3 rounded-md bg-transparent text-left"
-          {...steps.getTriggerProps({ index: row })}
+          {...machine.getTriggerProps(row)}
         ><span
-            class="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-muted data-[current]:border-primary data-[current]:bg-primary data-[current]:text-on-primary data-[complete]:border-primary data-[complete]:bg-primary data-[complete]:text-on-primary"
-            {...steps.getIndicatorProps({ index: row })}
-          ><span aria-hidden="true" show={steps.getItemState({ index: row }).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={steps.getItemState({ index: row }).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{steps.getItemTitle(row)}</span></button><span aria-hidden="true" class="mx-3 h-0.5 flex-1 bg-border data-[complete]:bg-primary" {...steps.getSeparatorProps({ index: row })}></span>
+            class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-muted", { "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
+            {...machine.getIndicatorProps(row)}
+          ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span></button><span aria-hidden="true" class={["mx-3 h-0.5 flex-1 bg-border", { "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
       </li>
     </template>
   </ol>
 
   <div class="mt-3 flex items-center justify-center gap-2">
-    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getPrevTriggerProps()}>Prev step</button>
-    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...steps.getNextTriggerProps()}>Next step</button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...machine.getPrevTriggerProps()}>Prev step</button>
+    <button class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-50" {...machine.getNextTriggerProps()}>Next step</button>
   </div>
 </div>

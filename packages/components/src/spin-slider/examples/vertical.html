@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { slider } from "../slider.machine.ts";
+  import { slider } from "../slider.presentation.ts";
 
   const machine = slider({ value: [50], orientation: "vertical" });
 </script>
@@ -21,9 +21,9 @@
     <template for={machine.getThumbIndexes()} as={row} key={row}>
       <span
         class={["absolute left-1/2 -mb-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
-        {...machine.getThumbProps({ index: row })}
+        {...machine.getThumbProps(row)}
       ></span>
-      <input {...machine.getHiddenInputProps({ index: row })} />
+      <input {...machine.getHiddenInputProps(row)} />
     </template>
   </div>
 </div>

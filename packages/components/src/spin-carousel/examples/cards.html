@@ -1,15 +1,19 @@
-<scope>props={ items: { value: string, label: string, content: string, image: string }[] = [{"value":"mtn","label":"Mountain Adventure","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/30/400/250"},{"value":"ocean","label":"Ocean Views","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/31/400/250"},{"value":"forest","label":"Forest Escape","content":"Tall trees, soft light.","image":"https://picsum.photos/seed/32/400/250"},{"value":"urban","label":"Urban Explorer","content":"Vibrant city culture.","image":"https://picsum.photos/seed/33/400/250"}] } consume={ carousel }</scope>
+<script lang="ts">
+  import { carousel } from "../carousel.presentation.ts";
+
+  const machine = carousel({items: [{"value":"mtn","label":"Mountain Adventure","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/30/400/250"},{"value":"ocean","label":"Ocean Views","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/31/400/250"},{"value":"forest","label":"Forest Escape","content":"Tall trees, soft light.","image":"https://picsum.photos/seed/32/400/250"},{"value":"urban","label":"Urban Explorer","content":"Vibrant city culture.","image":"https://picsum.photos/seed/33/400/250"}]});
+</script>
 
 <div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
-  {...carousel.getRootProps()}>
+  {...machine.getRootProps()}>
   <div
-    class="flex gap-2 py-1 snap-x snap-mandatory data-[snap=proximity]:snap-proximity data-[orientation=vertical]:flex-col data-[orientation=vertical]:snap-y data-[orientation=horizontal]:overflow-x-auto data-[orientation=vertical]:overflow-y-auto scroll-smooth data-[draggable]:cursor-grab data-[draggable]:select-none data-[dragging]:cursor-grabbing data-[dragging]:snap-none data-[dragging]:scroll-auto"
-    {...carousel.getItemGroupProps()}
+    class={["flex gap-2 py-1 snap-x snap-mandatory snap-proximity flex-col snap-y overflow-x-auto overflow-y-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing": machine.isDragging, "snap-none": machine.isDragging, "scroll-auto": machine.isDragging }]}
+    {...machine.getItemGroupProps()}
   >
-    <template for={items} as={row} key={row.value}>
+    <template for={machine.getItemIndexes()} as={row} key={row.value}>
       <div
-        class="w-full shrink-0 min-w-0 snap-start data-[snap=center]:snap-center data-[snap=end]:snap-end data-[slides='2']:w-[calc((100%-0.5rem)/2)] data-[slides='3']:w-[calc((100%-1rem)/3)] data-[slides='4']:w-[calc((100%-1.5rem)/4)] data-[slides='5']:w-[calc((100%-2rem)/5)] data-[slides='6']:w-[calc((100%-2.5rem)/6)] data-[auto-size]:w-fit transition-opacity duration-base ease-standard opacity-50 data-[inview]:opacity-100"
-        {...carousel.getItemProps({ index: i })}
+        class={["w-full shrink-0 min-w-0 snap-start snap-center snap-end w-[calc((100%-0.5rem)/2)] w-[calc((100%-1rem)/3)] w-[calc((100%-1.5rem)/4)] w-[calc((100%-2rem)/5)] w-[calc((100%-2.5rem)/6)] w-fit transition-opacity duration-base ease-standard opacity-50", { "opacity-100": machine.isInView(row.index) }]}
+        {...machine.getItemProps(row)}
       >
         <div
           class="flex min-h-32 flex-col justify-center overflow-hidden rounded-md border border-solid border-border bg-surface">
@@ -22,34 +26,34 @@
   </div>
 
   <div
-    class="mt-2 h-1 overflow-hidden rounded-full bg-border opacity-0 transition-opacity duration-fast ease-standard pointer-events-none data-[state=playing]:opacity-100"
-    {...carousel.getAutoplayProgressProps()}>
+    class={["mt-2 h-1 overflow-hidden rounded-full bg-border opacity-0 transition-opacity duration-fast ease-standard pointer-events-none", { "opacity-100": machine.isPlaying }]}
+    {...machine.getAutoplayProgressProps()}>
     <div
-      class="h-full w-full rounded-full bg-primary origin-left scale-x-0 transition-transform duration-fast ease-standard data-[state=playing]:scale-x-100"
-      {...carousel.getAutoplayProgressFillProps()}></div>
+      class={["h-full w-full rounded-full bg-primary origin-left scale-x-0 transition-transform duration-fast ease-standard", { "scale-x-100": machine.isPlaying }]}
+      {...machine.getAutoplayProgressFillProps()}></div>
   </div>
 
-  <div class="flex items-center gap-2 mt-4" {...carousel.getControlProps()}>
+  <div class="flex items-center gap-2 mt-4" {...machine.getControlProps()}>
     <button
-      class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
-      {...carousel.getPrevTriggerProps()}>‹</button>
+      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      {...machine.getPrevTriggerProps()}>‹</button>
     <div class="flex flex-1 items-center justify-center gap-1"
-      {...carousel.getIndicatorGroupProps()}>
-      <template for={items} as={row} key={row.value}>
+      {...machine.getIndicatorGroupProps()}>
+      <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class="h-2 w-2 rounded-full border border-solid border-border bg-surface transition-all duration-base ease-standard data-[current]:w-4 data-[current]:bg-primary data-[current]:border-transparent data-[focus]:ring-2 data-[focus]:ring-border-strong data-[readonly]:cursor-default"
-          {...carousel.getIndicatorProps({ index: i })}></button>
+          class={["h-2 w-2 rounded-full border border-solid border-border bg-surface transition-all duration-base ease-standard", { "w-4": machine.index === row.index, "bg-primary": machine.index === row.index, "border-transparent": machine.index === row.index, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+          {...machine.getIndicatorProps(row)}></button>
       </template>
     </div>
     <button
-      class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[playing]:text-primary data-[focus]:ring-2 data-[focus]:ring-border-strong"
-      {...carousel.getAutoplayTriggerProps()}>▶</button>
-    <template for={carousel.getProgressRows()} as={row} key="progress">
+      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "text-primary": machine.isPlaying, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      {...machine.getAutoplayTriggerProps()}>▶</button>
+    <template for={machine.getProgressRows()} as={row} key={row.value}>
       <span class="text-xs text-muted"
-        {...carousel.getProgressTextProps()}>{row.value}</span>
+        {...machine.getProgressTextProps()}>{row.value}</span>
     </template>
     <button
-      class="p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface data-[focus]:ring-2 data-[focus]:ring-border-strong data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
-      {...carousel.getNextTriggerProps()}>›</button>
+      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      {...machine.getNextTriggerProps()}>›</button>
   </div>
 </div>

@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { asyncList } from "./async-list.bindings.ts";
+import { asyncList } from "./async-list.presentation.ts";
 const createAsyncListBridge = asyncList.createBridge;
 import type {
   AsyncListApi,
@@ -11,7 +11,7 @@ import type {
   LoadDetails,
   SortDetails,
   SortTrigger,
-} from "./async-list.bindings.ts";
+} from "./async-list.presentation.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

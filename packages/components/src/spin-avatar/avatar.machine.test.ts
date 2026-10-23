@@ -1,9 +1,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { avatar } from "./avatar.bindings.ts";
+import { avatar } from "./avatar.presentation.ts";
 const createAvatarBridge = avatar.createBridge;
-import type { AvatarApi } from "./avatar.bindings.ts";
+import type { AvatarApi } from "./avatar.presentation.ts";
 import type { AvatarStatusChange } from "./avatar.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */

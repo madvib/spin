@@ -1,7 +1,11 @@
 import { defaultTwin } from "@spin/runtime";
 
+export type AvatarState = "loading" | "loaded" | "error";
+
 export interface AvatarContext {
   src: string;
+  label: string;
+  fallback: string;
 }
 
 /**
@@ -14,6 +18,8 @@ export interface AvatarContext {
 export interface AvatarArgs {
   src?: string;
   defaultSrc?: string;
+  label?: string;
+  fallback?: string;
 }
 
 /**
@@ -31,5 +37,7 @@ export function initial(args: AvatarArgs = {}, authored: (name: string) => boole
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     src: written("src") ? args.src ?? "" : "",
+    label: args.label ?? "",
+    fallback: args.fallback ?? "",
   };
 }

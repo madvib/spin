@@ -4,7 +4,10 @@ export interface TabsItem {
   readonly value: string;
   readonly label: string;
   readonly content: string;
+  readonly badge?: string;
 }
+
+export type TabsState = "idle" | "focused";
 
 export interface TabsContext {
   value: string;
@@ -12,6 +15,11 @@ export interface TabsContext {
   /** Configuration-that-never-changes: the shaped rows, supplied once at
    * instantiation. Bags read this for keyboard navigation. */
   items: readonly TabsItem[];
+  orientation: "horizontal" | "vertical";
+  activationMode: "automatic" | "manual";
+  loopFocus: boolean;
+  deselectable: boolean;
+  composite: boolean;
 }
 
 /** A row as the host set it: the fields the host wrote, narrowed to their
@@ -21,6 +29,7 @@ export interface TabsRow {
   readonly value?: string;
   readonly label?: string;
   readonly content?: string;
+  readonly badge?: string;
 }
 
 /**
@@ -35,6 +44,11 @@ export interface TabsArgs {
   items?: readonly TabsRow[];
   value?: string;
   defaultValue?: string;
+  orientation?: "horizontal" | "vertical";
+  activationMode?: "automatic" | "manual";
+  loopFocus?: boolean;
+  deselectable?: boolean;
+  composite?: boolean;
 }
 
 /**
@@ -72,5 +86,10 @@ export function initial(args: TabsArgs = {}, authored: (name: string) => boolean
       : items[0]?.value || "",
     defaultValue,
     items,
+    orientation: args.orientation ?? "horizontal",
+    activationMode: args.activationMode ?? "automatic",
+    loopFocus: args.loopFocus ?? true,
+    deselectable: args.deselectable ?? false,
+    composite: args.composite ?? true,
   };
 }

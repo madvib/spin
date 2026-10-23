@@ -1,30 +1,34 @@
-<scope>props={ defaultValue: string = "0", allowHalf: bool = true } consume={ ratingGroup }</scope>
+<script lang="ts">
+  import { ratingGroup } from "../rating-group.presentation.ts";
 
-<div class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface text-text" {...ratingGroup.getRootProps()}>
+  const machine = ratingGroup({ value: "0", allowHalf: true });
+</script>
+
+<div class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface text-text" {...machine.getRootProps()}>
   <div class="border-b border-solid border-border p-4">
     <h3 class="text-sm font-semibold">Product Review</h3>
     <p class="mt-1 text-xs text-muted">Share your experience with this product</p>
   </div>
   <div class="space-y-4 p-4">
     <div>
-      <div class="mb-2 block text-xs font-medium" {...ratingGroup.getLabelProps()}>Overall Rating</div>
-      <div class="inline-flex" {...ratingGroup.getControlProps()}>
-        <template for={ratingGroup.getItems()} as={row} key={row}>
+      <div class="mb-2 block text-xs font-medium" {...machine.getLabelProps()}>Overall Rating</div>
+      <div class="inline-flex" {...machine.getControlProps()}>
+        <template for={machine.getItems()} as={row} key={row}>
           <span
-            class="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all data-[highlighted]:scale-110 data-[highlighted]:text-semantic-info data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-            {...ratingGroup.getItemProps({ index: row })}
+            class={["grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all", { "scale-110": machine.getItemState(row).highlighted, "text-semantic-info": machine.getItemState(row).highlighted, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+            {...machine.getItemProps(row)}
           >
-            <span class="relative" aria-hidden="true">★︎<span class="absolute inset-y-0 right-0 w-1/2 overflow-hidden" show={ratingGroup.getItemState({ index: row }).half}><span class="absolute top-0 right-0 text-border-strong">★︎</span></span></span>
+            <span class="relative" aria-hidden="true">★︎<span class="absolute inset-y-0 right-0 w-1/2 overflow-hidden" show={machine.getItemState(row).half}><span class="absolute top-0 right-0 text-border-strong">★︎</span></span></span>
           </span>
         </template>
       </div>
-      <input {...ratingGroup.getHiddenInputProps()} />
-      <div class="mt-1 text-xs text-muted" show={ratingGroup.value > 0}>
-        <span show={ratingGroup.value - ratingGroup.value % 1 === 1}>Poor</span>
-        <span show={ratingGroup.value - ratingGroup.value % 1 === 2}>Fair</span>
-        <span show={ratingGroup.value - ratingGroup.value % 1 === 3}>Good</span>
-        <span show={ratingGroup.value - ratingGroup.value % 1 === 4}>Very Good</span>
-        <span show={ratingGroup.value - ratingGroup.value % 1 === 5}>Excellent</span>
+      <input {...machine.getHiddenInputProps()} />
+      <div class="mt-1 text-xs text-muted" show={machine.value > 0}>
+        <span show={machine.value - machine.value % 1 === 1}>Poor</span>
+        <span show={machine.value - machine.value % 1 === 2}>Fair</span>
+        <span show={machine.value - machine.value % 1 === 3}>Good</span>
+        <span show={machine.value - machine.value % 1 === 4}>Very Good</span>
+        <span show={machine.value - machine.value % 1 === 5}>Excellent</span>
       </div>
     </div>
     <div>

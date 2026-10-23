@@ -26,7 +26,6 @@ export {
   type CoercePropDecl,
   type PropCoerceType,
 } from "./props.ts";
-export { factAttrs, type FactScope } from "./component/facts.ts";
 export { defineComponent } from "./component/synthesize.ts";
 export {
   clampValue,

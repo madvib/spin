@@ -1,19 +1,24 @@
-<scope>props={ src: string = "https://i.pravatar.cc/300", label: string = "Paula Aster", fallback: string = "PA" } consume={ avatar }</scope>
+<script lang="ts">
+  import { avatar } from "../avatar.presentation.ts";
+
+  const machine = avatar({ src: "https://i.pravatar.cc/300", label: "Paula Aster", fallback: "PA" });
+</script>
+
 
 <div class="mx-auto flex w-full max-w-xs justify-center">
 <span
   class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-muted"
-  {...avatar.getRootProps()}
+  {...machine.getRootProps()}
 >
   <img
-    class="h-full w-full object-cover data-[hidden]:hidden"
+    class={["h-full w-full object-cover", { "hidden": !machine.loaded }]}
     draggable="false"
-    {...avatar.getImageProps()}
+    {...machine.getImageProps()}
   />
   <span
     aria-hidden="true"
-    class="grid h-full w-full place-items-center data-[hidden]:hidden"
-    {...avatar.getFallbackProps()}
-  >{fallback}</span>
+    class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]}
+    {...machine.getFallbackProps()}
+  >PA</span>
 </span>
 </div>

@@ -1,11 +1,15 @@
-<scope>props={ items: { value: string, label: string }[] = [{"value":"sm","label":"S"},{"value":"md","label":"M"},{"value":"lg","label":"L"},{"value":"xl","label":"XL"}], defaultValue: string = '["md"]' } consume={ toggleGroup }</scope>
+<script lang="ts">
+  import { toggleGroup } from "../toggle-group.presentation.ts";
+
+  const machine = toggleGroup({ items: [{"value":"sm","label":"S"},{"value":"md","label":"M"},{"value":"lg","label":"L"},{"value":"xl","label":"XL"}], defaultValue: ["md"] });
+</script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
-  <div class="inline-flex items-center gap-1" {...toggleGroup.getRootProps()}>
-    <template for={toggleGroup.getItems()} as={row} key={row.value}>
+  <div class="inline-flex items-center gap-1" {...machine.getRootProps()}>
+    <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class="rounded-md px-3 py-2 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary"
-        {...toggleGroup.getItemProps(row)}
+        class={["rounded-md px-3 py-2 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed }]}
+        {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>
   </div>

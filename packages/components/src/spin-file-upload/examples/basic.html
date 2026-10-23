@@ -1,4 +1,7 @@
-<scope>props={ label: string = "Drop files here", maxFiles: int = 1 } consume={ fileUpload }</scope>
+<script lang="ts">
+  import { fileUpload } from "../file-upload.presentation.ts";
 
+  const machine = fileUpload({maxFiles: 1});
+</script>
 
 <include file="./avatar.html" />

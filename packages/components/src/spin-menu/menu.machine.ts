@@ -1,5 +1,14 @@
-import { createMachine, type Machine, type Service, type EventUnion, type MachineSpec } from "@spin/runtime/fsm";
-import { coerceJsonArray, defaultTwin } from "@spin/runtime";
+import { createMachine, type Machine, type Service, type MachineSpec } from "@spin/runtime/fsm";
+import type {
+  MenuArgs,
+  MenuBlock,
+  MenuContext,
+  MenuEntry,
+  MenuRow,
+  MenuState,
+} from "./menu.state.ts";
+import { entriesOf, initial } from "./menu.state.ts";
+import type { MenuEvent, MenuEvents } from "./menu.events.ts";
 const clearAnchor = () : Partial<MenuContext> => { return ({ anchorPoint: null }); };
 
 const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null, openSubmenu: null, anchorPoint: null }); };
@@ -28,165 +37,7 @@ const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null
  * click coordinate, not state that transitions.
  */
 
-export interface MenuItemData {
-  readonly value: string;
-  readonly label: string;
-  readonly shortcut?: string | undefined;
-  readonly disabled?: boolean | undefined;
-  readonly checked?: boolean | undefined;
-  readonly children?: readonly MenuEntry[] | undefined;
-}
-
-export interface MenuSeparatorData {
-  readonly separator: true;
-}
-
-export interface MenuGroupData {
-  readonly group: string;
-  readonly items: readonly MenuEntry[];
-}
-
-export type MenuEntry = MenuItemData | MenuSeparatorData | MenuGroupData;
-
-export interface MenuRow {
-  readonly value: string;
-  readonly label: string;
-  readonly shortcut: string;
-  readonly disabled: boolean;
-  readonly checked: boolean | undefined;
-  readonly children: readonly MenuEntry[];
-}
-
-export interface MenuBlock {
-  readonly id: string;
-  readonly label: string | null;
-  readonly rows: readonly MenuRow[];
-  readonly separator: boolean;
-}
-
-export interface MenuArgs {
-  items?: string | readonly MenuEntry[];
-  submenu?: boolean;
-}
-
-export interface MenuContext {
-  highlightedValue: string | null;
-  openSubmenu: string | null;
-  anchorPoint: { x: number; y: number } | null;
-  isSubmenu: boolean;
-  // Bags derive rows/blocks per read, memoized on this identity;
-  // submenu children stay nested for child instances.
-  readonly entries: readonly MenuEntry[];
-}
-
-export interface MenuOpenChange {
-  readonly open: boolean;
-}
-
-export interface MenuSelect {
-  readonly value: string;
-}
-
-export interface MenuHighlightChange {
-  readonly highlightedValue: string | null;
-}
-
-export interface MenuEvents {
-  "OPEN": {};
-  "CLOSE": {};
-  "CONTROLLED_OPEN": {};
-  "CONTROLLED_CLOSE": {};
-  "TRIGGER_CLICK": {};
-  "CONTEXT_MENU": { point: { x: number; y: number } };
-  "HIGHLIGHT": { value: string | null };
-  "ENTRIES.SET": { entries: readonly MenuEntry[] };
-  "SUBMENU_OPEN": { value: string };
-  "SUBMENU_CLOSE": {};
-  "ITEM_CLICK": { value: string };
-}
-
-export type MenuEvent = EventUnion<MenuEvents>;
-
-
-/** Transport delivers objects or nothing. */
-function isRecord(raw: unknown): raw is Record<string, unknown> {
-  return typeof raw === "object" && raw !== null;
-}
-
-function parseEntry(raw: unknown): MenuEntry | undefined {
-  if (!isRecord(raw)) return undefined;
-  const record = raw;
-  if (record["separator"] === true) return { separator: true };
-  const group = record["group"];
-  const items = record["items"];
-  if (typeof group === "string" && Array.isArray(items)) {
-    return {
-      group,
-      items: items.flatMap((item) => {
-        const entry = parseEntry(item);
-        return entry === undefined ? [] : [entry];
-      }),
-    };
-  }
-  const value = record["value"];
-  const label = record["label"];
-  if (typeof value !== "string" || typeof label !== "string") return undefined;
-  const row: {
-    value: string;
-    label: string;
-    shortcut?: string;
-    disabled?: boolean;
-    checked?: boolean;
-    children?: readonly MenuEntry[];
-  } = { value, label };
-  if (typeof record["shortcut"] === "string") row.shortcut = record["shortcut"];
-  if (typeof record["disabled"] === "boolean") row.disabled = record["disabled"];
-  if (typeof record["checked"] === "boolean") row.checked = record["checked"];
-  if (Array.isArray(record["children"])) {
-    row.children = record["children"].flatMap((child) => {
-      const entry = parseEntry(child);
-      return entry === undefined ? [] : [entry];
-    });
-  }
-  return row;
-}
-
-export function entriesOf(raw: unknown): readonly MenuEntry[] {
-  // Arrays arrive shaped; JSON text (nested trees the grammar cannot
-  // type) coerces through the framework grammar first.
-  const source: readonly unknown[] = Array.isArray(raw)
-    ? raw
-    : typeof raw === "string"
-      ? coerceJsonArray(raw, [])
-      : [];
-  const entries: MenuEntry[] = [];
-  for (const item of source) {
-    const entry = parseEntry(item);
-    if (entry !== undefined) entries.push(entry);
-  }
-  return entries;
-}
-
-export function initial(args: MenuArgs = {}, authored: (name: string) => boolean): MenuContext {
-  // A channel: the host's write, or the machine's own default. The twin
-  // is the framework's convention — a host that wrote `defaultSubmenu`
-  // wrote the channel too.
-  const written = (field: string): boolean =>
-    authored(field) ||
-    authored(defaultTwin(field)) ||
-    (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
-  return {
-    highlightedValue: null,
-    openSubmenu: null,
-    anchorPoint: null,
-    // The contract names the field `isSubmenu`; the element's prop is
-    // `submenu`, and the prop is the one the host writes.
-    isSubmenu: written("submenu") ? args.submenu === true : false,
-    entries: entriesOf(args.items),
-  };
-}
-
-const config: MachineSpec<MenuContext, MenuEvents> = {
+const config: MachineSpec<MenuContext, MenuEvents, MenuState> = {
   id: "menu",
   initial: "closed",
   context: {
@@ -194,6 +45,10 @@ const config: MachineSpec<MenuContext, MenuEvents> = {
     openSubmenu: null as string | null,
     anchorPoint: null as { x: number; y: number } | null,
     isSubmenu: false,
+    loopFocus: false,
+    closeOnSelect: false,
+    typeahead: true,
+    composite: true,
     entries: [] as readonly MenuEntry[],
   },
   states: {
@@ -251,8 +106,8 @@ export type MenuService = Service<MenuContext, MenuEvent>;
 export function menu(
   args: MenuArgs = {},
   authored: (name: string) => boolean,
-): Machine<MenuContext, MenuEvents> {
-  return createMachine<MenuContext, MenuEvents>({
+): Machine<MenuContext, MenuEvents, MenuState> {
+  return createMachine<MenuContext, MenuEvents, MenuState>({
     ...config,
     context: initial(args, authored),
     /**

@@ -334,8 +334,8 @@ export type CommandFn<T> =
     ? () => void
     : T extends { event: (args: infer A extends readonly unknown[], ...rest: never[]) => unknown }
       ? (...args: A) => void
-      : T extends { view: (args: { readonly args: infer A extends readonly unknown[] }) => unknown }
-        ? (...args: A) => void
+      : T extends { view: (args: infer V) => unknown }
+        ? V extends { readonly args: infer A extends readonly unknown[] } ? (...args: A) => void : () => void
         : never;
 
 /** A slot entry's `getXProps` surface: infers the slot parameter type `R`
@@ -344,7 +344,7 @@ export type SlotPropsFn<T> = T extends {
   attrs: (scope: SlotScope<infer R, never, never, never, never>, ...args: never[]) => unknown;
 }
   ? (slot: R) => Record<string, unknown>
-  : (slot: object) => Record<string, unknown>;
+  : (slot: unknown) => Record<string, unknown>;
 
 /** The state union a component's machine declares, or `string` when untyped. */
 export type StateOf<D> = D extends {
@@ -370,11 +370,11 @@ export type ApiOf<D extends {
   readonly [K in keyof D["commands"] & string]: D["commands"] extends Record<K, infer T> ? CommandFn<T>
     : never;
 } & {
-  readonly [K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`]: () => Record<string, unknown>;
+  readonly [K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`]: (slot?: unknown) => Record<string, unknown>;
 } & {
   readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Indexes`]: NonNullable<D["slots"]> extends Record<K, infer T> ? T extends { indexes(...args: never[]): readonly (infer E)[] } ? () => readonly E[] : () => readonly unknown[] : () => readonly unknown[];
 } & {
-  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: NonNullable<D["slots"]> extends Record<K, infer T> ? SlotPropsFn<T> : (slot: object) => Record<string, unknown>;
+  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: NonNullable<D["slots"]> extends Record<K, infer T> ? SlotPropsFn<T> : (slot: unknown) => Record<string, unknown>;
 } & {
   /** The machine's mode, live: the framework's own reader. */
   readonly state: StateOf<D>;

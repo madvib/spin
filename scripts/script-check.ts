@@ -64,24 +64,6 @@ async function main(): Promise<void> {
           `${entry.path}: script has stripped statements (effects?):\n    ${stripped.stripped.join("\n    ")}`,
         );
       }
-      const componentImports: string[] = [];
-      const templateAliases: string[] = [];
-      for (const call of stripped.calls) {
-        for (const m of stripped.module.matchAll(
-          new RegExp(`import\\s*\\{[\\s\\S]*?\\b${call.factory}\\b[\\s\\S]*?\\}\\s*from\\s*["']([^"']+)["']`, "g"),
-        )) {
-          const importedPath = m[1] ?? "";
-          const bindingsPath = importedPath.replace(/\.machine\.ts$/, ".bindings.ts");
-          if (bindingsPath !== importedPath) {
-            componentImports.push(
-              `import { ${call.factory} as __${call.factory}Component } from ${JSON.stringify(bindingsPath)};`,
-            );
-            templateAliases.push(
-              `const ${call.name} = __${call.factory}Component(${call.args}); void ${call.name};`,
-            );
-          }
-        }
-      }
       const markup = source
         .replace(/<!--[\s\S]*?-->/g, "")
         .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "");
@@ -89,15 +71,13 @@ async function main(): Promise<void> {
       const templateChecks: string[] = [];
       emitTemplateChecks(ir.nodes, templateChecks);
       const virtualModule = [
-        ...componentImports,
         stripped.module,
         ...stripped.bindings.map((b) => `void ${b};`),
         `{`,
-        ...templateAliases,
         ...templateChecks,
         `}`,
       ].join("\n");
-      // Beside the example, so `../slider.bindings.ts` resolves.
+      // Beside the example, so `../slider.presentation.ts` resolves.
       const tmp = `${entry.path}.script-check.ts`;
       await Deno.writeTextFile(tmp, virtualModule);
       modules.push(tmp);

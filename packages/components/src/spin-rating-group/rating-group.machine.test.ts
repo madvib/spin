@@ -1,11 +1,11 @@
 import { assert, assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { ratingGroup } from "./rating-group.bindings.ts";
+import { ratingGroup } from "./rating-group.presentation.ts";
 const createRatingGroupBridge = ratingGroup.createBridge;
-import type { RatingGroupHoverChange } from "./rating-group.bindings.ts";
-import type { RatingGroupApi } from "./rating-group.bindings.ts";
-import type { RatingGroupValueChange } from "./rating-group.machine.ts";
+import type { RatingGroupHoverChange } from "./rating-group.presentation.ts";
+import type { RatingGroupApi } from "./rating-group.presentation.ts";
+import type { RatingGroupValueChange } from "./rating-group.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -143,7 +143,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function item(api: RatingGroupApi, index: number): Record<string, unknown> {
-  return api.getItemProps({ index }) as Record<string, unknown>;
+  return api.getItemProps(index) as Record<string, unknown>;
 }
 
 Deno.test("the host's default value seeds the rating", () => {

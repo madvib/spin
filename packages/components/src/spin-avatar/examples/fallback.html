@@ -1,3 +1,8 @@
-<scope>props={ label: string = "Quinn Reyes", fallback: string = "QR" } consume={ avatar }</scope>
+<script lang="ts">
+  import { avatar } from "../avatar.presentation.ts";
+
+  const machine = avatar({ label: "Quinn Reyes", fallback: "QR" });
+</script>
+
 
 <include file="./basic.html" />

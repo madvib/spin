@@ -1,7 +1,7 @@
 import { assertEquals, assertNotStrictEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { cascade } from "./cascade.bindings.ts";
+import { cascade } from "./cascade.presentation.ts";
 const createCascadeBridge = cascade.createBridge;
 import type {
   CascadeApi,
@@ -11,7 +11,7 @@ import type {
   CascadeNode,
   CascadeOpenChange,
   CascadeValueChange,
-} from "./cascade.bindings.ts";
+} from "./cascade.presentation.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -172,6 +172,10 @@ function mount(
   };
   write("collection", JSON.stringify(tree));
   write("label", "Location");
+  // The element's prop store holds every declared prop as a signal, even
+  // when the host never wrote it — so a late host write re-runs the
+  // bridge's effect instead of landing in a signal nothing reads.
+  write("invalid", false);
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("onOpenChange", (change: CascadeOpenChange) => events.openChange.push(change));
   write("onValueChange", (change: CascadeValueChange) => events.valueChange.push(change));

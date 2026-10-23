@@ -1,3 +1,7 @@
-<scope>props={ panels: string = '[{"id":"nav"},{"id":"main"},{"id":"inspector"}]', defaultSize: string = '[30, 50, 20]', orientation: string = "vertical" } consume={ splitter }</scope>
+<script lang="ts">
+  import { splitter } from "../splitter.presentation.ts";
+
+  const machine = splitter({ panels: '[{"id":"nav"},{"id":"main"},{"id":"inspector"}]', size: '[30, 50, 20]', orientation: "vertical" });
+</script>
 
 <include file="./basic.html" />

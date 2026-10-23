@@ -1,10 +1,10 @@
 import { assertEquals } from "@std/assert";
 import {
   carousel as carouselMachine,
-  pageCountFor,
   type CarouselContext,
   type CarouselEvents,
 } from "./carousel.machine.ts";
+import { pageCountFor } from "./carousel.state.ts";
 import { interpret, type Service } from "@spin/runtime/fsm";
 
 /**

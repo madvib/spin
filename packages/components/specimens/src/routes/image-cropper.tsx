@@ -5,7 +5,7 @@ import type {
   ImageCropperFlipChange,
   ImageCropperRotationChange,
   ImageCropperZoomChange,
-} from "../../../src/spin-image-cropper/image-cropper.bindings.ts";
+} from "../../../src/spin-image-cropper/image-cropper.presentation.ts";
 import type { CropHandle, CropRect } from "../../../src/spin-image-cropper/image-cropper.machine.ts";
 import { DEMO_BUTTON } from "../demo-button.ts";
 import { DemoCard } from "../demo-card.tsx";

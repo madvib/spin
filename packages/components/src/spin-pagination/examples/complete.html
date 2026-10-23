@@ -1,5 +1,7 @@
-<scope>props={ count: string = "500", pageSize: string = "10", siblingCount: string = "1", defaultPage: string = "1" } consume={ pagination }</scope>
+<script lang="ts">
+  import { pagination } from "../pagination.presentation.ts";
 
-
+  const machine = pagination({ count: 500, pageSize: 10, siblingCount: 1, page: 1 });
+</script>
 
 <include file="./basic.html" />

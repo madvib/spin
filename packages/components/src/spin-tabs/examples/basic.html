@@ -1,15 +1,23 @@
-<scope>props={ items: { value: string, label: string, content: string }[] = [{"value":"tab1","label":"Dashboard","content":"Main dashboard with key metrics and insights."},{"value":"tab2","label":"Analytics","content":"Track performance with detailed reports."},{"value":"tab3","label":"Settings","content":"Configure preferences and account options."}], defaultValue: string = "tab1" } consume={ tabs }</scope>
+<script lang="ts">
+  import { tabs } from "../tabs.presentation.ts";
 
-<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...tabs.getRootProps()}>
-  <div class="mb-4 flex gap-1 rounded-lg bg-surface-raised p-1" {...tabs.getListProps()}>
-    <template for={items} as={row} key={row.value}>
+  const machine = tabs({ items: [
+    { value: "tab1", label: "Dashboard", content: "Main dashboard with key metrics and insights." },
+    { value: "tab2", label: "Analytics", content: "Track performance with detailed reports." },
+    { value: "tab3", label: "Settings", content: "Configure preferences and account options." },
+  ], defaultValue: "tab1" });
+</script>
+
+<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...machine.getRootProps()}>
+  <div class="mb-4 flex gap-1 rounded-lg bg-surface-raised p-1" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
       <button
-        class="rounded-md px-4 py-2 text-sm font-medium text-muted transition-all data-[state=active]:bg-surface data-[state=active]:text-text data-[state=active]:shadow-sm"
-        {...tabs.getTriggerProps(row)}
+        class={["rounded-md px-4 py-2 text-sm font-medium text-muted transition-all", { "bg-surface text-text shadow-sm": machine.value === row.value }]}
+        {...machine.getTriggerProps(row)}
       >{row.label}</button>
     </template>
   </div>
-  <template for={items} as={row} key={row.value}>
-    <p class="m-0 text-center text-sm text-muted" {...tabs.getContentProps(row)}>{row.content}</p>
+  <template for={machine.items} as={row} key={row.value}>
+    <p class="m-0 text-center text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
   </template>
 </div>

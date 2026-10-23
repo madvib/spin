@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { pinInput } from "./pin-input.bindings.ts";
+import { pinInput } from "./pin-input.presentation.ts";
 const createPinInputBridge = pinInput.createBridge;
-import type { PinInputApi } from "./pin-input.bindings.ts";
+import type { PinInputApi } from "./pin-input.presentation.ts";
 import type {
   PinInputValueChange,
   PinInputValueComplete,
   PinInputValueInvalid,
-} from "./pin-input.machine.ts";
+} from "./pin-input.events.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
@@ -166,9 +166,9 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   const focused: number[] = [];
   for (let index = 0; index < count; index += 1) {
     const cell = document.createElement("input");
-    cell.id = String(bridge.api.getInputProps({ index })["id"]);
+    cell.id = String(bridge.api.getInputProps(index)["id"]);
     cell.addEventListener("focus", () => focused.push(index));
-    const bag = bridge.api.getInputProps({ index });
+    const bag = bridge.api.getInputProps(index);
     for (const name of ["onFocus", "onBlur", "onKeyDown", "onPaste", "onBeforeInput", "onInput"]) {
       cell.addEventListener(name.slice(2).toLowerCase(), handler<EventListener>(bag, name));
     }
@@ -186,7 +186,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     Object.defineProperty(cell, "selectionEnd", { value: to, configurable: true });
   };
 
-  const bag = (index: number): Record<string, unknown> => bridge.api.getInputProps({ index });
+  const bag = (index: number): Record<string, unknown> => bridge.api.getInputProps(index);
 
   return {
     api: bridge.api,

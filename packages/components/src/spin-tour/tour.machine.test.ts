@@ -1,11 +1,11 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { tour } from "./tour.bindings.ts";
+import { tour } from "./tour.presentation.ts";
 const createTourBridge = tour.createBridge;
-import type { TourApi } from "./tour.bindings.ts";
+import type { TourApi } from "./tour.presentation.ts";
 import { tour as tourMachine } from "./tour.machine.ts";
-import type { TourStepRecord } from "./tour.machine.ts";
+import type { TourStepRecord } from "./tour.state.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;

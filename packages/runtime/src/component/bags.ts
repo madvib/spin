@@ -174,11 +174,11 @@ function structuralKey(owner: unknown): string | undefined {
 }
 
 /** Thumbs and rows are slots: stable object identities memoize in the
- * WeakMap; primitives and inline value-wrappers (`{ index }`, `{ value }`)
- * memoize by their structural key so fresh inline literals hit the cache. */
-export function keyed<K extends object>(
-  store: WeakMap<K, BagMemo>,
-  owner: K,
+ * WeakMap; primitives memoize by their structural key so fresh inline
+ * values hit the cache. */
+export function keyed(
+  store: WeakMap<object, BagMemo>,
+  owner: unknown,
   keyOf: (reads: BagReads) => string,
   build: (record: ReadRecorder) => Record<string, unknown>,
 ): Record<string, unknown> {
@@ -200,13 +200,14 @@ export function keyed<K extends object>(
     byValue.set(sKey, { key: keyOf(reads), bag, reads });
     return bag;
   }
-  const hit = store.get(owner);
+  const objOwner: object | null = typeof owner === "object" && owner !== null ? owner : null;
+  const hit = objOwner !== null ? store.get(objOwner) : undefined;
   const next = keyOf(hit?.reads ?? NO_READS);
   if (hit !== undefined && hit.key === next) return hit.bag;
   const recorder = createRecorder();
   const bag = build(recorder.record);
   const reads = recorder.reads();
-  store.set(owner, { key: keyOf(reads), bag, reads });
+  if (objOwner !== null) store.set(objOwner, { key: keyOf(reads), bag, reads });
   return bag;
 }
 

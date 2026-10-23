@@ -132,8 +132,8 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       } catch {
         // No actions directory: markup wires no actions.
       }
-      // Consume codegen: for each consume name, import the bindings by
-      // convention (./<name>.bindings.ts), create the machine via the
+      // Consume codegen: for each consume name, import the presentation by
+      // convention (./<name>.presentation.ts), create the machine via the
       // scope table's watch, and expose the bridge under the consume NAME
       // (values.tabs), never a bare `api`. Two machines mean two names; a
       // bare shorthand would alias whichever ran last and strand the other.
@@ -146,12 +146,12 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // property write reaches the machine. Coercion stays at build time
       // (`values` starts as `coerceProps(...)`); a live read is signal reads
       // plus a shallow copy, never a per-read JSON.parse.
-      // Events: the bindings may declare `events` mapping a CustomEvent name
+      // Events: the presentation may declare `events` mapping a CustomEvent name
       // to the bridge's callback prop that fires it plus a detail mapper.
       // Each entry becomes a machine prop — `(details) => el.dispatchEvent(...)`
       // — so the bridge's own callback invocation is what emits. No
       // effect-watching, no diffing; the mapper is authored in the
-      // bindings beside the machine whose callback it translates.
+      // presentation beside the machine whose callback it translates.
       const consumeImports: string[] = [];
       const consumeCalls: string[] = [];
       const consumeDeletes = scopeDecls.consume
@@ -166,7 +166,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         // platform tier: same slot, no machine.
         const defStem = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
         const stems = [
-          `${defStem}.bindings.ts`,
+          `${defStem}.presentation.ts`,
           // A hand-written bridge keeps its own def: the number-input's
           // bridge is not the framework's, so it declares its own events
           // and commands.
@@ -280,41 +280,26 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         }
       }
       // Script imports pass through verbatim: the script names its
-      // machine, and the checker (not a convention walk) resolves it.
-      // Each machine-factory binding also imports its sibling component
-      // (`slider.machine.ts` -> `slider.bindings.ts`) under an alias for
-      // the bridge: the factory is the type source, the component the
-      // runtime source.
+      // component, and the checker (not a convention walk) resolves it.
+      // The `<script>` imports the callable presentation directly
+      // (`../slider.presentation.ts`): the factory is the type source and
+      // the runtime source, carrying `.createBridge`, `.commands`,
+      // `.events`, and `.manifest`.
       const scriptImports: string[] = [];
       if (script !== undefined) {
         for (const m of script.module.matchAll(/^\s*import(?:\s|\{|\*)[\s\S]*?from\s*["'][^"']+["']\s*;?/gm)) {
           scriptImports.push(m[0].trim());
         }
-        for (const binding of scriptBindings) {
-          for (const m of script.module.matchAll(
-            new RegExp(`import\\s*\\{[\\s\\S]*?\\b${binding.factory}\\b[\\s\\S]*?\\}\\s*from\\s*["']([^"']+)["']`, "g"),
-          )) {
-            const machinePath = m[1] ?? "";
-            const componentPath = machinePath.replace(/\.machine\.ts$/, ".bindings.ts");
-            if (componentPath !== machinePath) {
-              scriptImports.push(`import { ${binding.factory} as ${binding.factory}Component } from ${JSON.stringify(componentPath)};`);
-            } else {
-              scriptImports.push(`const ${binding.factory}Component = ${binding.factory};`);
-            }
-          }
-        }
       }
       // Script bindings become bridges under their own names. The script
-      // calls the machine FACTORY (typed args, checked by the gate); the
-      // plugin pairs it with the sibling component (bags, presentation)
-      // for the bridge. The factory import is the type source; the
-      // component is the runtime source. The pair is found the way consume
-      // finds defs: `<name>.machine.ts` beside `<name>.bindings.ts`.
+      // calls the presentation's callable (typed args, checked by the gate);
+      // the plugin pairs it with the same module for the bridge. The
+      // presentation found the way consume finds defs: `<name>.presentation.ts`.
       const scriptCalls: string[] = [];
       if (script !== undefined) {
         for (const binding of scriptBindings) {
           const bridge = `${binding.name}Bridge`;
-          const component = `${binding.factory}Component`;
+          const component = `${binding.factory}`;
           scriptCalls.push(
             `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}) }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
             `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +

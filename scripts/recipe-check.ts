@@ -25,41 +25,9 @@
 import { walk } from "@std/fs/walk";
 import * as components from "../packages/components/src/index.ts";
 
-/**
- * Grandfathered var(--x) usage in recipes: each entry is a port waiting
- * to happen (chrome into bags, positioning into actions). A port deletes
- * its lines here; new files with vars fail the gate. Empty is the goal.
- */
-const VAR_GRANDFATHERED = new Set([
-  "packages/components/src/spin-cascade-select/examples/basic.html",
-  "packages/components/src/spin-hover-card/examples/basic.html",
-  "packages/components/src/spin-hover-card/examples/controlled.html",
-  "packages/components/src/spin-hover-card/examples/custom-positioning.html",
-  "packages/components/src/spin-hover-card/examples/link.html",
-  "packages/components/src/spin-hover-card/examples/product.html",
-  "packages/components/src/spin-hover-card/examples/user.html",
-  "packages/components/src/spin-hover-card/examples/with-arrow.html",
-  "packages/components/src/spin-navigation-menu/examples/basic.html",
-  "packages/components/src/spin-number-input/examples/basic.html",
-  "packages/components/src/spin-number-input/examples/scrubber.html",
-  "packages/components/src/spin-select/examples/basic.html",
-  "packages/components/src/spin-select/examples/category.html",
-  "packages/components/src/spin-select/examples/country.html",
-  "packages/components/src/spin-select/examples/language.html",
-  "packages/components/src/spin-select/examples/multiple.html",
-  "packages/components/src/spin-select/examples/profile.html",
-  "packages/components/src/spin-select/examples/theme.html",
-  "packages/components/src/spin-select/examples/with-overlapping-label.html",
-  "packages/components/src/spin-steps/examples/basic.html",
-  "packages/components/src/spin-steps/examples/vertical.html",
-  "packages/components/src/spin-tabs/examples/underline.html",
-  "packages/components/src/spin-tooltip/examples/basic.html",
-  "packages/components/src/spin-tooltip/examples/metrics.html",
-  "packages/components/src/spin-tooltip/examples/positioning.html",
-  "packages/components/src/spin-tooltip/examples/status.html",
-  "packages/components/src/spin-tooltip/examples/video.html",
-  "packages/components/src/spin-tooltip/examples/with-arrow.html",
-]);
+/** No recipe may spell `var(--x)`: custom properties are framework
+ * transport (defs, actions), never author markup. */
+const VAR_GRANDFATHERED: ReadonlySet<string> = new Set([]);
 const ROOT = "packages/components/src";
 type Manifest = {
   readonly parts: readonly string[];
@@ -124,7 +92,7 @@ function writtenHooks(dir: string): Set<string> {
   const hooks = new Set<string>();
   for (const entry of Deno.readDirSync(dir)) {
     if (!entry.isFile) continue;
-    if (!/\.(bindings|controller-def)\.ts$/.test(entry.name)) continue;
+    if (!/\.(presentation|controller-def)\.ts$/.test(entry.name)) continue;
     const source = Deno.readTextFileSync(`${dir}/${entry.name}`);
     // the facts the component declares
     const facts = /export const facts = \{([\s\S]*?)\n\};/.exec(source);
@@ -196,8 +164,7 @@ function elementsOf(path: string, source: string): void {
     // Custom properties are framework transport, never author markup.
     // Geometry and offsets arrive through bags (menu chrome) or actions
     // (anchor writes position itself); a recipe spelling var(--x) is
-    // routing around the typed boundary. Grandfathered until each
-    // component's port lands — see the allowlist below.
+    // routing around the typed boundary.
     const varUse = attrs.match(/var\(--[a-z0-9-]+/)?.[0];
     if (varUse !== undefined && !VAR_GRANDFATHERED.has(path)) {
       problems.push(`${path}: <${tag}> ${varUse} in authored markup — vars live in defs/actions, not recipes`);
@@ -235,7 +202,7 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
 // nothing since the split. They name the bindings now.
 for await (const entry of walk(ROOT, { exts: [".ts"] })) {
   if (!entry.isFile) continue;
-  if (!/\/spin-[^/]+\/.*\.bindings\.ts$/.test(entry.path)) continue;
+  if (!/\/spin-[^/]+\/.*\.presentation\.ts$/.test(entry.path)) continue;
   const source = await Deno.readTextFile(entry.path);
   // The scan is over CODE: a comment that says "never the global
   // document" is not a document access. The block comments are stripped

@@ -1,7 +1,11 @@
-<scope>props={ defaultValue: string = "121" } consume={ angleSlider }</scope>
+<script lang="ts">
+  import { angleSlider } from "../angle-slider.presentation.ts";
+
+  const machine = angleSlider({ value: "121" });
+</script>
 
 
-<div class="mx-auto flex w-full max-w-xs items-center justify-center" {...angleSlider.getRootProps()}>
+<div class="mx-auto flex w-full max-w-xs items-center justify-center" {...machine.getRootProps()}>
   <div class="relative p-8">
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
       <span class="absolute -translate-1/2 font-mono text-xs text-muted left-[50%] top-[5.3%]">0°</span>
@@ -15,29 +19,29 @@
     </div>
   <div
     class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center rounded-full border border-solid border-border bg-surface-raised select-none"
-    {...angleSlider.getControlProps()}
+    {...machine.getControlProps()}
   >
     <span
       class="pointer-events-none absolute inset-y-0 left-1/2 -ml-px w-[2px]"
-      {...angleSlider.getThumbProps({ needle: true })}
+      {...machine.getThumbProps({ needle: true })}
     >
       <span class="absolute inset-x-0 top-0 block h-[17%] rounded-full bg-primary" aria-hidden="true"></span>
     </span>
-    <div class="pointer-events-none absolute inset-px" {...angleSlider.getMarkerGroupProps()}>
-      <template for={angleSlider.getMarkers()} as={row} key={row}>
+    <div class="pointer-events-none absolute inset-px" {...machine.getMarkerGroupProps()}>
+      <template for={machine.getMarkers()} as={row} key={row}>
         <span
           class="absolute inset-y-0 left-1/2 -ml-px w-[2px]"
-          {...angleSlider.getMarkerProps({ value: row, diameter: true })}
+          {...machine.getMarkerProps({ value: row, diameter: true })}
         >
-          <span class="absolute inset-x-0 top-[6%] block h-[11%] rounded-full bg-border-strong data-[state=under-value]:bg-semantic-success data-[state=at-value]:bg-primary" aria-hidden="true"></span>
+          <span class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full bg-border-strong", { "bg-semantic-success": machine.getMarkerState(row) === "under-value", "bg-primary": machine.getMarkerState(row) === "at-value" }]} aria-hidden="true"></span>
         </span>
       </template>
     </div>
-    <span class="flex flex-col items-center" {...angleSlider.getValueTextProps(angleSlider.valueAsDegree)}>
-      <span class="text-4xl font-bold tabular-nums text-text">{angleSlider.value}°</span>
+    <span class="flex flex-col items-center" {...machine.getValueTextProps(machine.valueAsDegree)}>
+      <span class="text-4xl font-bold tabular-nums text-text">{machine.value}°</span>
       <span class="text-sm font-medium text-muted">degrees</span>
     </span>
   </div>
   </div>
-  <input {...angleSlider.getHiddenInputProps()} />
+  <input {...machine.getHiddenInputProps()} />
 </div>

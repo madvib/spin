@@ -1,3 +1,7 @@
-<scope>props={ items: { value: string, label: string, content: string, image: string }[] = [{"value":"a","label":"Alpine","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/1/500/300"},{"value":"b","label":"Bay","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/2/500/300"},{"value":"c","label":"Canyon","content":"Red rock, deep time.","image":"https://picsum.photos/seed/3/500/300"}] } consume={ carousel }</scope>
+<script lang="ts">
+  import { carousel } from "../carousel.presentation.ts";
+
+  const machine = carousel({items: [{"value":"a","label":"Alpine","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/1/500/300"},{"value":"b","label":"Bay","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/2/500/300"},{"value":"c","label":"Canyon","content":"Red rock, deep time.","image":"https://picsum.photos/seed/3/500/300"}]});
+</script>
 
 <include file="./autoplay.html" />

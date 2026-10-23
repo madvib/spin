@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
-import { combobox } from "./combobox.bindings.ts";
+import { combobox } from "./combobox.presentation.ts";
 const createComboboxBridge = combobox.createBridge;
 import type {
   ComboboxApi,
@@ -12,7 +12,7 @@ import type {
   ComboboxRow,
   ComboboxSelect,
   ComboboxValueChange,
-} from "./combobox.bindings.ts";
+} from "./combobox.presentation.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

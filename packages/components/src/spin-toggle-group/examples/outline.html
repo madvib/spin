@@ -1,11 +1,15 @@
-<scope>props={ items: { value: string, label: string }[] = [{"value":"day","label":"Day"},{"value":"week","label":"Week"},{"value":"month","label":"Month"},{"value":"year","label":"Year"}], defaultValue: string = '["month"]' } consume={ toggleGroup }</scope>
+<script lang="ts">
+  import { toggleGroup } from "../toggle-group.presentation.ts";
+
+  const machine = toggleGroup({ items: [{"value":"day","label":"Day"},{"value":"week","label":"Week"},{"value":"month","label":"Month"},{"value":"year","label":"Year"}], defaultValue: ["month"] });
+</script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
-  <div class="inline-flex border border-solid border-border rounded-lg" {...toggleGroup.getRootProps()}>
-    <template for={toggleGroup.getItems()} as={row} key={row.value}>
+  <div class="inline-flex border border-solid border-border rounded-lg" {...machine.getRootProps()}>
+    <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class="border-r border-solid border-border px-4 py-2 text-sm font-medium text-muted transition-all last:border-r-0 hover:bg-surface hover:text-text data-[state=on]:bg-primary data-[state=on]:text-on-primary"
-        {...toggleGroup.getItemProps(row)}
+        class={["border-r border-solid border-border px-4 py-2 text-sm font-medium text-muted transition-all last:border-r-0 hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed }]}
+        {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>
   </div>
