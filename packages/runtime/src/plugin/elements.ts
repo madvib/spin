@@ -404,7 +404,7 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           // spreading them would clobber a script arg default with nothing.
           // Strip them here so a host write is the only thing that wins
           // over the element's own markup.
-          ...(hasConsume ? [`  const defined = (bag: Record<string, unknown>): Record<string, unknown> => { const out: Record<string, unknown> = {}; for (const [k, v] of Object.entries(bag)) if (v !== undefined) out[k] = v; return out; };`] : []),
+          ...(hasConsume ? [`  const defined = (bag) => { const out = {}; for (const [k, v] of Object.entries(bag)) if (v !== undefined) out[k] = v; return out; };`] : []),
           ...scriptCalls,
           ...consumeCalls,
           // Light-DOM children are projected BEFORE create(): the markup's
