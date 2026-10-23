@@ -20,9 +20,7 @@
     "./packages/syntax"
   ],
   "exports": {
-    ".": "./packages/theme/src/index.ts",
-    "./preset/organization.ts": "./packages/preset/src/organization.ts",
-    "./preset/reference/build.ts": "./packages/preset/src/reference/build.ts"
+    ".": "./packages/theme/src/index.ts"
   },
   "imports": {
     "@spin/theme": "./packages/theme/src/index.ts",
@@ -47,9 +45,7 @@
     "@spin/kit": "./packages/kit/src/index.ts",
     "playwright-core": "npm:playwright-core@^1.63.0",
     "@spin/runtime": "./packages/runtime/src/index.ts",
-    "@spin/lint": "./packages/lint/src/index.ts",
     "@spin/components": "./packages/components/src/index.ts",
-    "@std/fs/walk": "jsr:@std/fs@^1.0.0/walk",
     "unplugin": "npm:unplugin@^3.4.0",
     "@zag-js/color-utils": "npm:@zag-js/color-utils@^1.44.0",
     "@zag-js/utils": "npm:@zag-js/utils@~1.44.0",
@@ -59,7 +55,13 @@
     "@spin/hooks": "./packages/hooks/src/index.ts",
     "@spin/hooks/solid": "./packages/hooks/src/solid.ts",
     "@spin/hooks/react": "./packages/hooks/src/react.ts",
-    "@spin/syntax": "./packages/syntax/src/index.ts"
+    "@spin/syntax": "./packages/syntax/src/index.ts",
+    "@std/fs/walk": "jsr:@std/fs@^1.0.0/walk",
+    "@typescript-eslint/parser": "npm:@typescript-eslint/parser@8.71.0",
+    "typescript": "npm:typescript@6.0.3",
+    "@unocss/vite": "npm:@unocss/vite@66.10.5",
+    "vite": "npm:vite@8",
+    "vite-plugin-solid": "npm:vite-plugin-solid@^2.11.14"
   },
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run packages/ apps/studio/src/",
@@ -110,5 +112,8 @@
       "dom",
       "dom.iterable"
     ]
+  },
+  "overrides": {
+    "npm:typescript": "npm:typescript@6.0.3"
   }
 }

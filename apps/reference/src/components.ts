@@ -63,7 +63,7 @@ for (const [path, html] of Object.entries(recipeModules)) {
   const machine = recipeMachineOf(path);
   if (grouped.has(machine)) continue;
   grouped.set(machine, {
-    examples: [{ name: `${titleOf(machine)} — Recipe`, html }],
+    examples: [{ name: `${titleOf(machine)} — Recipe`, html, source: html }],
   });
 }
 

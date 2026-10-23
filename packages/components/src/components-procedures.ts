@@ -7,6 +7,7 @@
 import { implement } from "@orpc/server";
 
 import { componentsContract } from "./components-contract.ts";
+import * as catalog from "./index.ts";
 
 export { componentsContract };
 
@@ -69,11 +70,67 @@ const readExample = async (machine: string, example: string): Promise<ExampleRow
   }
 };
 
+const rewriteExampleImports = (html: string): string =>
+  html.replace(
+    /from\s+["']\.\.\/(?:\.\.\/)?[^"']*?([^/"']+)\.(?:presentation|controller-def)\.ts["']/g,
+    (_match, _stem) => `from "@spin/components"`,
+  );
+type ComponentManifest = {
+  readonly parts: string[];
+  readonly slots: string[];
+  readonly readers: string[];
+  readonly methods: string[];
+  readonly commands: string[];
+  readonly events: string[];
+};
+
+const EMPTY_MANIFEST: ComponentManifest = {
+  parts: [],
+  slots: [],
+  readers: [],
+  methods: [],
+  commands: [],
+  events: [],
+};
+
+const camelOf = (name: string): string =>
+  name.split("-").map((word, i) =>
+    i === 0 ? word : word.length === 0 ? word : word[0]?.toUpperCase() + word.slice(1)
+  ).join("");
+
+const manifestOf = (name: string): ComponentManifest => {
+  const rec = catalog as unknown as Record<string, unknown>;
+  const handle = rec[camelOf(name)] as { readonly manifest?: Partial<ComponentManifest> } | undefined;
+  if (handle?.manifest !== undefined) {
+    const m = handle.manifest;
+    return {
+      parts: [...(m.parts ?? [])],
+      slots: [...(m.slots ?? [])],
+      readers: [...(m.readers ?? [])],
+      methods: [...(m.methods ?? [])],
+      commands: [...(m.commands ?? [])],
+      events: [...(m.events ?? [])],
+    };
+  }
+  const sibling = rec[`${camelOf(name)}Manifest`] as Partial<ComponentManifest> | undefined;
+  if (sibling !== undefined) {
+    return {
+      parts: [...(sibling.parts ?? [])],
+      slots: [...(sibling.slots ?? [])],
+      readers: [...(sibling.readers ?? [])],
+      methods: [...(sibling.methods ?? [])],
+      commands: [...(sibling.commands ?? [])],
+      events: [...(sibling.events ?? [])],
+    };
+  }
+  return EMPTY_MANIFEST;
+};
+
 const os = implement(componentsContract);
 
 const list = os.components.list.handler(async () => {
   const found = await discover();
-  return [...found.entries()].map(([name, examples]) => ({ name, examples }));
+  return [...found.entries()].map(([name, examples]) => ({ name, examples, manifest: manifestOf(name) }));
 });
 
 const examples = os.components.examples.handler(async ({ input }) => {
@@ -100,7 +157,7 @@ const copy = os.components.copy.handler(async ({ input }) => {
     const root = input.root ?? ".";
     const file = join("spin", input.name, `${input.example}.html`);
     await mkdir(join(root, "spin", input.name), { recursive: true });
-    await writeFile(join(root, file), found.html, "utf8");
+    await writeFile(join(root, file), rewriteExampleImports(found.html), "utf8");
     return { file, error: null };
   } catch (err) {
     return { file: null, error: err instanceof Error ? err.message : String(err) };

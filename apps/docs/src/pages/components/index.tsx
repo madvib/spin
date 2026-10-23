@@ -15,13 +15,58 @@
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import {
+  examplesFor,
   primitiveCategories,
   type PrimitiveContract,
   primitiveContracts,
   primitiveElements,
 } from "@spin/preset";
-import { examplesFor } from "@spin/preset/rules/primitives/examples-index.ts";
 import { A } from "@solidjs/router";
+
+const MACHINE_SOURCES = import.meta.glob(
+  "../../../../../packages/components/src/*/examples/*.html",
+  { query: "?raw", import: "default", eager: true },
+) as Record<string, string>;
+
+const MACHINE_TAXONOMY: readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly members: readonly string[];
+}[] = [
+  { id: "inputs", label: "Inputs", members: ["slider", "tabs", "select", "combobox", "tags-input", "rating-group", "number-input", "pin-input", "color-picker", "date-picker", "date-input", "editable", "file-upload", "toggle-group", "angle-slider"] },
+  { id: "display", label: "Display", members: ["avatar", "carousel", "pagination", "steps", "timer", "tour", "async-list"] },
+  { id: "selection", label: "Selection", members: ["listbox", "menu", "navigation-menu", "tree-view", "cascade-select"] },
+  { id: "layout", label: "Layout", members: ["splitter"] },
+  { id: "media", label: "Media", members: ["image-cropper", "signature-pad", "floating-panel", "hover-card", "popover", "tooltip"] },
+];
+
+const MACHINE_GROUPS: readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly rows: readonly {
+    readonly name: string;
+    readonly icon: string;
+    readonly mountHtml: string;
+    readonly manifest: { readonly commands: readonly string[] };
+  }[];
+}[] = MACHINE_TAXONOMY.map((group) => ({
+  id: group.id,
+  label: group.label,
+  rows: group.members
+    .filter((name) =>
+      Object.keys(MACHINE_SOURCES).some((path) => path.split("/").at(-3) === name)
+    )
+    .map((name) => {
+      const first = Object.keys(MACHINE_SOURCES).find((path) => path.split("/").at(-3) === name)
+        ?.split("/").at(-1)?.slice(0, -".html".length) ?? "basic";
+      return {
+        name,
+        icon: "i-lucide-box",
+        mountHtml: `<${name}-${first}></${name}-${first}>`,
+        manifest: { commands: [] as string[] },
+      };
+    }),
+})).filter((group) => group.rows.length > 0);
 
 /** One card's row: the element, the glyph it wears, the contract behind it. */
 interface Row {
@@ -96,6 +141,41 @@ export default function ComponentsIndex(): JSX.Element {
       </p>
       <GroupNav />
 
+      <For each={MACHINE_GROUPS}>
+        {(group) => (
+          <section class="mt-10 scroll-mt-20" id={`machine-${group.id}`}>
+            <h2 class="text-text">
+              {group.label} <span class="text-xs text-text-muted">· interactive</span>
+            </h2>
+            <div class="mt-4 grid gap-4 md:grid-cols-3">
+              <For each={group.rows}>
+                {(row) => (
+                  <A
+                    href={`/components/machine-${row.name}`}
+                    class="block border border-border bg-surface-raised rounded-md overflow-hidden no-underline hover:border-border-strong transition-colors duration-fast"
+                  >
+                    <div class="flex h-20 items-center justify-center overflow-hidden border-b border-border bg-surface px-4">
+                      <div innerHTML={row.mountHtml} />
+                    </div>
+                    <div class="flex items-center justify-between gap-2 px-4 py-3">
+                      <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
+                        <i
+                          class={`${row.icon} icon-md shrink-0 text-text-muted`}
+                          aria-hidden="true"
+                        />
+                        <span class="truncate">{row.name}</span>
+                      </span>
+                      <span class="shrink-0 text-xs text-text-muted">
+                        {row.manifest.commands.length} commands
+                      </span>
+                    </div>
+                  </A>
+                )}
+              </For>
+            </div>
+          </section>
+        )}
+      </For>
       <For each={GROUPS}>
         {(group) => (
           <section class="mt-10 scroll-mt-20" id={group.id}>

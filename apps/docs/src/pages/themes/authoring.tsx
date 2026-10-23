@@ -138,9 +138,11 @@ done`;
         the product should look like. This page is the method: the shape of the
         brief, the fast path through it, the skill that carries it, the
         directions it can be pointed in, what the checks can prove, and what
-        they cannot.
+        they cannot. The contract it satisfies is on{" "}
+        <A href="/themes">Theme Contract & Modes</A>; the editor beside it is on
+        {" "}
+        <A href="/themes/studio">Using the Studio</A>.
       </p>
-
       <Section id="brief" title="The shape of the brief">
         <p>
           {BRIEF.length}{" "}
@@ -240,7 +242,7 @@ export default {
           {" "}
           takes the same file in its own directory.
         </p>
-        <Code class="mt-3" code={install} />
+        <Code class="mt-3" code={install} lang="bash" />
         <p>
           The style references travel with it, in the skill's own directory, so
           one install brings the method and the directions together. They are
@@ -248,7 +250,7 @@ export default {
           theme picks one and spends the axes accordingly. They are optional:
           the skill carries a line about each, which is enough to start.
         </p>
-        <Code class="mt-3" code={installStyles} />
+        <Code class="mt-3" code={installStyles} lang="bash" />
         <p>
           What the file carries, read from the file rather than listed here:
         </p>

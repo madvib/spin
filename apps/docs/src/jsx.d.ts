@@ -11,6 +11,7 @@ declare module "solid-js" {
       badge: HTMLAttributes<HTMLElement> & { variant?: string };
       alert: HTMLAttributes<HTMLElement> & { variant?: string };
       card: HTMLAttributes<HTMLElement>;
+      prose: HTMLAttributes<HTMLElement>;
     }
   }
 }

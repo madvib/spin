@@ -33,7 +33,7 @@ Deno.test("an overlay wins over disk while it is set", () => {
   reset();
   setOverlay(editing);
   const resolved = resolveThemes(disk);
-  assertEquals(resolved.acme?.primary, "#b91c1c");
+  assertEquals(resolved.acme.primary, "#b91c1c");
 });
 
 Deno.test("a theme the overlay does not name still resolves from disk", () => {
@@ -44,8 +44,8 @@ Deno.test("a theme the overlay does not name still resolves from disk", () => {
     other: { primary: "#15803d" },
   } as unknown as Record<string, ThemeDocument>;
   const resolved = resolveThemes(both);
-  assertEquals(resolved.acme?.primary, "#b91c1c");
-  assertEquals(resolved.other?.primary, "#15803d");
+  assertEquals(resolved.acme.primary, "#b91c1c");
+  assertEquals(resolved.other.primary, "#15803d");
 });
 
 Deno.test("clearing the overlay restores disk as the source", () => {
@@ -73,8 +73,8 @@ Deno.test("the overlay is stored as a copy, so the caller cannot edit through it
     ThemeDocument
   >;
   setOverlay(live);
-  if (live.acme !== undefined) live.acme.primary = "#000000";
-  assertEquals(overlayThemes().acme?.primary, "#b91c1c");
+  live.acme.primary = "#000000";
+  assertEquals(overlayThemes().acme.primary, "#b91c1c");
   reset();
 });
 
@@ -82,8 +82,8 @@ Deno.test("reading the overlay hands back a copy too", () => {
   reset();
   setOverlay(editing);
   const read = overlayThemes();
-  if (read.acme !== undefined) read.acme.primary = "#000000";
-  assertEquals(resolveThemes(disk).acme?.primary, "#b91c1c");
+  read.acme.primary = "#000000";
+  assertEquals(resolveThemes(disk).acme.primary, "#b91c1c");
   reset();
 });
 

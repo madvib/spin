@@ -37,6 +37,7 @@ import {
 } from "solid-js";
 import { A, useParams } from "@solidjs/router";
 import {
+  copyComponentExample,
   primitivesContract,
   primitivesTokens,
   type RpcExample,
@@ -151,10 +152,12 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 function ExampleSection(props: {
   readonly row: RpcExample;
   readonly onLoad?: string;
+  readonly componentName?: string;
 }) {
   // The section's own view. Two sections can show different things at once,
   // because each one answers to its own switch and to nothing else.
   const [view, setView] = createSignal<View>("component");
+  const [copiedFile, setCopiedFile] = createSignal<string | null>(null);
   // The panel decides the room the specimen gets, and the markup says which
   // room it is: a page header is a page-width thing, and the md measure —
   // where the page's own prose reads — squeezes a header until its trail
@@ -165,7 +168,11 @@ function ExampleSection(props: {
   const markup = createMemo(() => formatExampleHtml(props.row.html));
   const tokens = createMemo(() => tokenizeHtml(markup()));
   const code = () => view() === "code";
-
+  const copyExample = async (): Promise<void> => {
+    if (props.componentName === undefined || props.row.stem === undefined) return;
+    const result = await copyComponentExample(props.componentName, props.row.stem);
+    if (result.error === null && result.file !== null) setCopiedFile(result.file);
+  };
   return (
     <section class="mb-4">
       <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -174,6 +181,15 @@ function ExampleSection(props: {
           {props.row.name}
         </h3>
         <ViewSwitch view={view()} onChange={setView} />
+        <Show when={props.row.stem !== undefined}>
+          <button
+            type="button"
+            class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
+            onClick={() => void copyExample()}
+          >
+            {copiedFile() ?? "copy to project"}
+          </button>
+        </Show>
       </div>
       <Show when={!code()}>
         <div
@@ -182,7 +198,7 @@ function ExampleSection(props: {
           }`}
         >
           <Specimen
-            html={props.row.html}
+            html={props.row.mountHtml ?? props.row.html}
             onLoad={props.onLoad}
             measure={measure}
           />
@@ -476,6 +492,20 @@ export default function ComponentPage() {
               {component.examples?.note ?? ""}
             </p>
 
+            <Show when={component.kind === "machine" && component.manifest !== undefined}>
+              <div class="mt-3 flex flex-wrap gap-1" aria-label="Machine contract">
+                <For each={Object.entries(component.manifest!) as [string, readonly string[]][]}>
+                  {([tier, names]) => (
+                    <Show when={names.length > 0}>
+                      <span class="rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+                        {tier}: {names.length}
+                      </span>
+                    </Show>
+                  )}
+                </For>
+              </div>
+            </Show>
+
             <Show when={showTokens() && componentTokens().length > 0}>
               <div class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4">
                 <div class="flex items-center justify-between">
@@ -545,7 +575,7 @@ export default function ComponentPage() {
 
             <For each={rows()}>
               {(row) => (
-                <ExampleSection row={row} onLoad={component.examples?.onLoad} />
+                <ExampleSection row={row} onLoad={component.examples?.onLoad} componentName={component.name} />
               )}
             </For>
 

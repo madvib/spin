@@ -11,15 +11,34 @@
 
 import { spinClient } from "./client.ts";
 
+// Compiled example elements (`slider-basic`, `tabs-basic`, ...), registered
+// as custom elements by the element transform as a side effect. The studio
+// mounts `mountHtml` tags in the preview stage, so the definitions must
+// exist in this window.
+import.meta.glob("../../../../packages/components/src/*/examples/*.html", { eager: true });
+
 /** One example row, as the RPC surface carries it. */
 export interface RpcExample {
   readonly name: string;
   readonly html: string;
+  /** The mount tag for machine examples (`slider-basic`), rendered in the preview stage. */
+  readonly mountHtml?: string;
+  /** The example stem (`basic`), for the copy-to-project call. */
+  readonly stem?: string;
 }
 
 /** One component, with its examples, in one payload. */
 export interface RpcComponent {
   readonly name: string;
+  readonly kind?: "primitive" | "machine";
+  readonly manifest?: {
+    readonly parts: readonly string[];
+    readonly slots: readonly string[];
+    readonly readers: readonly string[];
+    readonly methods: readonly string[];
+    readonly commands: readonly string[];
+    readonly events: readonly string[];
+  };
   readonly tags: readonly string[];
   readonly variants: readonly string[];
   /** The custom properties this component reads, so one call carries both
@@ -33,10 +52,56 @@ export interface RpcComponent {
   };
 }
 
-/** Every component, in one call. Measured at ~60 KiB for 32 components. */
+/** Every component, in one call. Primitives plus machine components. */
 export async function listPrimitives(): Promise<readonly RpcComponent[]> {
-  const listed = await (await spinClient()).primitives.list({});
-  return listed as readonly RpcComponent[];
+  const client = await spinClient();
+  const [primitives, machines] = await Promise.all([
+    client.primitives.list({}),
+    client.components.list({}),
+  ]);
+  const rows = machines as unknown as {
+    readonly name: string;
+    readonly examples: readonly string[];
+    readonly manifest: RpcComponent["manifest"];
+  }[];
+  const machineRows = await Promise.all(
+    rows.map(async (entry) => {
+      const ex = await client.components.examples({ name: entry.name });
+      return { entry, examples: ex.examples };
+    }),
+  );
+  return [
+    ...(primitives as readonly RpcComponent[]),
+    ...machineRows.map(({ entry, examples }) => ({
+      name: `component-${entry.name}`,
+      kind: "machine" as const,
+      manifest: entry.manifest,
+      tags: [`spin-${entry.name}`],
+      variants: [...entry.examples],
+      reads: [] as string[],
+      examples: {
+        note: "Interactive machine component. Requires the runtime (@spin/runtime).",
+        rows: examples.map((row) => {
+          const stem = row.name;
+          return {
+            name: `${entry.name} — ${row.title}`,
+            html: row.html,
+            mountHtml: `<${entry.name}-${stem}></${entry.name}-${stem}>`,
+            stem,
+          };
+        }),
+      },
+    })),
+  ];
+}
+
+/** Copy one machine example into the project at `spin/<name>/<example>.html`. */
+export async function copyComponentExample(
+  name: string,
+  example: string,
+): Promise<{ file: string | null; error: string | null }> {
+  const bare = name.startsWith("component-") ? name.slice("component-".length) : name;
+  return (await spinClient()).components.copy({ name: bare, example });
 }
 
 /** One component token a component declares: its path, type, scaffold value. */

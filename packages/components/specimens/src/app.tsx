@@ -46,7 +46,7 @@ function BrandMark() {
 const NAV_LINK =
   "flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text-muted transition-colors hover:text-text aria-[current]:font-medium aria-[current]:text-text";
 
-const GROUP_LABEL = "px-2 pt-5 pb-1 text-xs font-medium text-text-muted";
+const GROUP_LABEL = "px-2 text-xs font-medium text-text-muted";
 
 const SELECT =
   "w-[7rem] shrink-0 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs text-text";
@@ -55,7 +55,7 @@ const ICON_BUTTON =
   "inline-flex min-h-0 shrink-0 items-center justify-center rounded-md border border-solid border-transparent bg-transparent p-1 text-sm text-text-muted shadow-none cursor-pointer hover:border-border-strong hover:text-text";
 
 const FILTER_ROW =
-  "mt-2 flex items-center gap-2 border-b border-border px-2 pb-2 text-xs text-text-muted";
+  "flex items-center gap-2 border-b border-border px-2 text-xs text-text-muted";
 
 /**
  * The rail's contract, in the browser.
@@ -162,7 +162,7 @@ function Rail() {
         <i class="i-lucide-search icon-sm shrink-0" />
         <span class="sr-only">Filter components</span>
         <input
-          class="w-full border-transparent bg-transparent p-0 text-xs text-text"
+          class="w-full border-transparent bg-transparent"
           placeholder="Filter"
           value={query()}
           onInput={(e) => setQuery(e.currentTarget.value)}
@@ -171,7 +171,7 @@ function Rail() {
       <Show
         when={filtered().length > 0}
         fallback={
-          <p class="px-2 pt-4 text-xs text-text-muted">Nothing matches that.</p>
+          <p class="text-xs text-text-muted">Nothing matches that.</p>
         }
       >
         <For each={GROUPS}>
@@ -244,14 +244,14 @@ function Shell(props: { children?: JSX.Element }) {
               <article class="max-w-[45rem]">
                 <header class="mb-8 flex flex-col gap-2">
                   <div class="flex items-baseline justify-between gap-4">
-                    <h1 class="m-0 text-2xl font-bold tracking-tight">
+                    <h1>
                       {s().title}
                     </h1>
                     <span class="shrink-0 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
                       {s().id}
                     </span>
                   </div>
-                  <p class="m-0 max-w-screen-md text-md text-text-muted">
+                  <p class="max-w-screen-md text-md text-text-muted">
                     {s().blurb}
                   </p>
                 </header>

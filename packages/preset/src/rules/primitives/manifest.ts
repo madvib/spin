@@ -319,10 +319,10 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   button: {
     tags: ["button", "span"],
     variants: [
+      "bare",
       "button-icon",
       "contrast",
       "danger",
-      "filled",
       "ghost",
       "icon",
       "outline",
@@ -404,13 +404,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       // weight, case, tracking — the button's type, spent in the base rule
       // always. The type scale could name them, but "my buttons are bold and
       // my prose is not" is a real product need, so the button keeps its own
-      // say. These are TYPE rather than paint, so they stay on the base and
-      // travel with a control painted by utilities as surely as by a variant.
-      //
-      // shadow, shadow-hover — the resting and the hovered elevation, and
-      // these ARE paint: they travel with `filled` and the other looks,
-      // because a shadow on a control that asked for no fill is a box hanging
-      // off an invisible button.
+      // say.
       { path: "button.weight", type: "fontWeight", value: "600" },
       { path: "button.case", type: "textTransform", value: "none" },
       { path: "button.tracking", type: "dimension", value: "0em" },
@@ -526,26 +520,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       // flat and another raised should be able to say so.
       { path: "checkbox.depth", type: "number", value: "1" },
     ],
-  },
-  accordion: {
-  tags: [
-    "accordion-content",
-    "accordion-item",
-    "accordion-root",
-    "accordion-trigger",
-    "span",
-  ],
-  variants: [],
-  reads: [
-    "--color-border",
-    "--color-surface-raised",
-    "--color-text",
-    "--color-text-muted",
-    "--radius-md",
-    "--spacing-2",
-    "--spacing-4",
-  ],
-  character: [],
   },
   details: {
     tags: ["details", "summary"],
@@ -1437,7 +1411,7 @@ export function primitiveReadsByGroup(): Record<string, string[]> {
   const out: Record<string, Set<string>> = {};
   for (const component of Object.values(primitiveContracts)) {
     for (const token of component.reads) {
-      const [group = "", ...rest] = token.split("-");
+      const [group, ...rest] = token.split("-");
       // A multi-segment name like `on-primary` belongs to the group that
       // precedes it; a single-segment name like `white` has no group.
       const key = rest.length > 0 ? group : "color";

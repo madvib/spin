@@ -67,7 +67,7 @@ export default function Popover() {
             node.setAttribute("label", "Open popover");
           }}
         >
-          <p class="m-0 text-sm text-text">A card that happens to float.</p>
+          <p class="text-sm text-text">A card that happens to float.</p>
         </spin-popover>
         <DemoControls>
           <button type="button" class={DEMO_BUTTON} onClick={() => popover()?.commands.show()}>

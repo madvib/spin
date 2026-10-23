@@ -14,10 +14,10 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
+import { A } from "@solidjs/router";
 import { Chip } from "../../bits.tsx";
 import { themeSummaries } from "../../theme-docs.ts";
 import type { Swatch, ThemeSummary } from "../../theme-docs.ts";
-
 export default function Starters(): JSX.Element {
   const themes = themeSummaries();
   return (
@@ -27,9 +27,11 @@ export default function Starters(): JSX.Element {
         The themes the package ships. Each one is a document in{" "}
         <code>@spin/theme/themes</code>, and this page is a rendering of those
         documents, so it cannot drift from them. A project forks one by writing
-        a file of the same name into its own <code>spin/</code> directory.
+        a file of the same name into its own <code>spin/</code>{" "}
+        directory. Fork yours in{" "}
+        <A href="/themes/studio">the Studio</A>, or by hand following{" "}
+        <A href="/themes/authoring">Authoring a theme</A>.
       </p>
-
       <div class="mt-8">
         <For each={themes}>
           {(theme) => <ThemeCard theme={theme} />}

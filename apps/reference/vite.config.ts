@@ -17,6 +17,7 @@ const here = import.meta.dirname!;
 
 export default defineConfig({
   plugins: [
+    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
     spin.vite({
       // No `themes`: the app serves the shipped starters, forked by
@@ -51,6 +52,10 @@ export default defineConfig({
           // picker. Their classes are part of this app's content.
           resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
           resolve(here, "src/**/*.{tsx,ts}"),
+          // Machine component examples: `.html` files compiled by
+          // spinElements above. Their static + class-object utilities must
+          // reach Uno's scanner or the examples render unstyled.
+          resolve(here, "../../packages/components/src/*/examples/*.html"),
         ],
         pipeline: {
           include: [

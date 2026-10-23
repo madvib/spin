@@ -136,9 +136,10 @@ export default function Schema(): JSX.Element {
         under them; and the types are the closed vocabulary a token may declare.
         The package writes the schema to <code>schema.json</code>{" "}
         and derives it from the same declaration the validator uses, so the
-        three cannot drift.
+        three cannot drift. Read <A href="/themes">Theme Contract & Modes</A>
+        {" "}
+        first if the required roles are new to you.
       </p>
-
       <Section id="document" title="The document">
         <p>
           The root of a document holds groups, and a group holds tokens and
@@ -148,7 +149,7 @@ export default function Schema(): JSX.Element {
           <code>$modes</code>. The keys DTCG reserves are these five, plus{" "}
           <code>$deprecated</code>; every other key at a level is a child.
         </p>
-        <Code code={DOCUMENT} />
+        <Code code={DOCUMENT} lang="json" />
         <p>
           A group may declare a <code>$type</code>{" "}
           of its own, and that type is the default for everything under it. A

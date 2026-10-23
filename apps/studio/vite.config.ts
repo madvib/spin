@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "../../packages/preset/src/plugin.ts";
+import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import carbon from "@iconify-json/carbon/icons.json" with { type: "json" };
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
@@ -88,6 +88,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
+    spinElements({ machines: resolve(import.meta.dirname, "../../packages/components/src") }),
     spin.vite({
       // The chrome is themed by the studio's own static theme. Project
       // themes are injected at runtime by the preview surface, so editing one
@@ -154,6 +155,12 @@ export default defineConfig(({ command }) => ({
           resolve(
             import.meta.dirname,
             "../../packages/kit/src/**/*.{tsx,ts}",
+          ),
+          // Machine component examples: `.html` files compiled by
+          // spinElements above. Mirrors the reference app.
+          resolve(
+            import.meta.dirname,
+            "../../packages/components/src/*/examples/*.html",
           ),
         ],
         pipeline: {

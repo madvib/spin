@@ -134,7 +134,7 @@
     "on-danger": {
       "$type": "color",
       "$value": "{color.on-semantic-error}",
-      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` \u2014 the role the contract requires, the floor is measured on, and the danger button and the danger badge wear \u2014 so the two names can never disagree."
     },
     "on-semantic-info": {
       "$type": "color",
@@ -158,11 +158,6 @@
     }
   },
   "spacing": {
-    "$type": "dimension",
-    "unit": {
-      "$value": "0.25rem"
-    },
-    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
     "0": {
       "$value": "0"
     },
@@ -172,11 +167,19 @@
     "2": {
       "$value": "0.5rem"
     },
-    "3": {
-      "$value": "0.75rem"
-    },
     "4": {
       "$value": "1rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps.",
+    "3": {
+      "$value": "0.75rem"
     },
     "5": {
       "$value": "1.25rem"
@@ -187,29 +190,20 @@
     "7": {
       "$value": "1.75rem"
     },
-    "8": {
-      "$value": "2rem"
-    },
     "10": {
       "$value": "2.5rem"
     },
     "12": {
-      "$value": "3rem"
+      "$value": "3.0rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
     },
     "14": {
       "$value": "3.5rem"
-    },
-    "16": {
-      "$value": "4rem"
-    },
-    "20": {
-      "$value": "5rem"
-    },
-    "24": {
-      "$value": "6rem"
-    },
-    "32": {
-      "$value": "8rem"
     },
     "36": {
       "$value": "9rem"
@@ -223,8 +217,8 @@
     "60": {
       "$value": "15rem"
     },
-    "px": {
-      "$value": "1px"
+    "64": {
+      "$value": "16rem"
     }
   },
   "font": {
@@ -234,7 +228,7 @@
       "sans": {
         "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
         "$type": "fontFamily",
-        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below — code, markup, readouts — and not in every heading and paragraph, where monospace reads as shouting."
+        "$description": "A proportional face for the interface. A terminal keeps its voice in the mono face below \u2014 code, markup, readouts \u2014 and not in every heading and paragraph, where monospace reads as shouting."
       },
       "heading": {
         "$type": "fontFamily",
@@ -256,7 +250,7 @@
       "brand": {
         "$type": "fontFamily",
         "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The logotype face — one brand, every starter."
+        "$description": "The logotype face \u2014 one brand, every starter."
       }
     },
     "size": {
@@ -284,10 +278,6 @@
       },
       "3xl": {
         "$value": "1.875rem"
-      },
-      "4xl": {
-        "$value": "2.375rem",
-        "$type": "dimension"
       }
     },
     "weight": {
@@ -358,9 +348,6 @@
     "xl": {
       "$value": "4px",
       "$type": "dimension"
-    },
-    "xs": {
-      "$value": "0.0625rem"
     }
   },
   "opacity": {
@@ -413,7 +400,7 @@
   },
   "shadow": {
     "$type": "shadow",
-    "$description": "Elevation: a phosphor ring, and the dark offset that grounds it. Three steps on purpose — a component that needs a more specific edge states it, and a step nothing spends stops being a step.",
+    "$description": "Elevation: a phosphor ring, and the dark offset that grounds it. Three steps on purpose \u2014 a component that needs a more specific edge states it, and a step nothing spends stops being a step.",
     "sm": {
       "$value": "0 1px 2px oklch(0 0 0 / 50%), 0 0 0 1px oklch(0.78 0.20 145 / 12%)",
       "$type": "shadow"
@@ -490,12 +477,6 @@
       },
       "accelerate": {
         "$value": "cubic-bezier(0.3, 0, 1, 1)"
-      },
-      "out": {
-        "$value": "cubic-bezier(0, 0, 0.2, 1)"
-      },
-      "in-out": {
-        "$value": "cubic-bezier(0.4, 0, 0.2, 1)"
       }
     }
   },
@@ -555,7 +536,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

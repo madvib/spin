@@ -28,9 +28,7 @@ const PLUGIN_INCLUDE = [
 function referencePlugin(): ViteOptions {
   const options = spin.vite({
     themes: starterThemes,
-    presets: [
-      presetIcons({ collections: { lucide } } as never),
-    ],
+    presets: [presetIcons({ collections: { lucide } } as never)],
     content: {
       filesystem: [
         `${repo}packages/preset/src/rules/primitives/*.examples.ts`,
@@ -62,7 +60,7 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
     string,
     Record<string, Record<string, string>>
   >;
-  if (doc.color !== undefined && doc.color.primary !== undefined) doc.color.primary.$value = "#b91c1c";
+  doc.color.primary.$value = "#b91c1c";
   await Deno.writeTextFile(
     `${root}/spin/brand.json`,
     JSON.stringify(doc),

@@ -10,7 +10,7 @@
     "./load": "./src/directives/load.ts",
     "./plugin": "./src/plugin/index.ts",
     "./plugin/elements": "./src/plugin/elements.ts",
-    "./props": "./src/props.ts",
+    "./props": "./src/props.ts"
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",

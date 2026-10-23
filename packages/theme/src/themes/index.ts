@@ -58,8 +58,8 @@ export const starterThemes = {
   silk: silkTheme,
   neobrut: neobrutTheme,
   console: consoleTheme,
-  spin: spinTheme,
   synthwave: synthwaveTheme,
+  spin: spinTheme,
 } as const;
 
 export type StarterThemeName = keyof typeof starterThemes;

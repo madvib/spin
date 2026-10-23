@@ -46,9 +46,7 @@ type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 /** Generate a document, keeping the per-token rule data for inspection. */
 async function generate(markup: string, extra: Options = {}): Promise<Result> {
   const uno = await createGenerator({
-    presets: [
-      spinPreset({ themes: { light: theme }, ...extra }),
-    ],
+    presets: [spinPreset({ themes: { light: theme }, ...extra })],
   });
   return await uno.generate(markup, { extendedInfo: true });
 }
@@ -152,7 +150,7 @@ function matchesSubject(
   }
   const type = /^([a-zA-Z][a-zA-Z0-9-]*)/.exec(trimmed)?.[1];
   const required = [...trimmed.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)].map(
-    ([, name = ""]) => name,
+    (match) => match[1],
   );
   if (!required.every((name) => classes.includes(name))) return false;
   if (type !== undefined) return type === tag;
@@ -167,7 +165,6 @@ function cssSelectorLists(css: string): string[][] {
   const pattern = /([^{}]*)\{/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(withoutComments)) !== null) {
-    if (match[1] === undefined) continue;
     const prelude = match[1].trim();
     if (prelude.length === 0 || prelude.startsWith("@")) continue;
     lists.push(splitTopLevel(prelude));

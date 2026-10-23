@@ -21,10 +21,10 @@ function treeOf(result: ReturnType<typeof parseTokens>): TokenTree {
  */
 function blocks(css: string): CssBlock[] {
   const found: CssBlock[] = [];
-  for (const [, selector = "", body = ""] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const declarations: Record<string, string> = {};
     for (
-      const [, property = "", value = ""] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)
+      const [, property, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)
     ) {
       declarations[property.trim()] = value.trim();
     }

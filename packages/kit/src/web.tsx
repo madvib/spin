@@ -1,3 +1,4 @@
+import { createEffect, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 
 /**
@@ -34,6 +35,38 @@ export function WebGlyph(
   return <WebMark {...props} />;
 }
 
+/**
+ * The favicon, repainted when the theme changes.
+ *
+ * Reads the active theme's primary token and repaints the tab icon to match:
+ * the mark on the tab is the mark in the brand. Renders nothing — it owns
+ * the `<link rel="icon">` element as a side effect.
+ */
+export function BrandFavicon(
+  props: { getPrimary: () => string },
+): null {
+  const apply = (): void => {
+    if (typeof document === "undefined") return;
+    const primary = props.getPrimary();
+    if (!primary) return;
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="${primary}"><path d="${WEB}"/></svg>`;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (link === null) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      link.type = "image/svg+xml";
+      document.head.appendChild(link);
+    }
+    link.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  };
+  createEffect(() => {
+    props.getPrimary();
+    apply();
+  });
+  onMount(apply);
+  return null;
+}
 function WebMark(
   props: { class?: string; title?: string; size?: number },
 ): JSX.Element {

@@ -14,10 +14,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./tokens": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
     "./base": {
       "types": "./dist/base/index.d.ts",
       "default": "./dist/base/index.js"
@@ -42,7 +38,6 @@
   "dependencies": {
     "@orpc/contract": "1",
     "@orpc/server": "1",
-    "@sinclair/typebox": "0.34",
     "valibot": "1"
   },
   "publishConfig": {

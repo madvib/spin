@@ -22,10 +22,6 @@
       "types": "./dist/serve.d.ts",
       "default": "./dist/serve.js"
     },
-    "./project": {
-      "types": "./dist/project-procedures.d.ts",
-      "default": "./dist/project-procedures.js"
-    },
     "./client": {
       "types": "./dist/client.d.ts",
       "default": "./dist/client.js"

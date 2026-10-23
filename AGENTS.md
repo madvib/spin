@@ -36,11 +36,10 @@ to build from, and oracles that mechanically verify the result.
 - **No agent-authored `*.md` in the repo.** No `docs/`, `specs/`, `DESIGN.md`,
   or hand-written prose files. Operational docs that would go stale go in
   `.agents/specs/` (git-ignored). Code, tests, and `README.md` per package are
-  the only authored files. The one exception is `packages/theme/skill/`: the
-  house skill is the theme module's manual and a product that ships — agents
-  install it and follow it — so it is written prose, and it lives beside the
-  language it describes because a manual that lives with the documentation
-  drifts from the contract it documents.
+  the only authored files. The two exceptions are `packages/theme/skill/` (the
+  house skill is the theme module's manual and a product that ships alongside
+  the language it describes) and `apps/docs/src/content/` (the public
+  documentation site's markdown copy modules).
 
 ### Comment etiquette
 

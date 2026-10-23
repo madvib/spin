@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "../../packages/preset/src/plugin.ts";
+import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import { renderSkill } from "../../packages/theme/src/skill/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
@@ -88,8 +88,8 @@ function houseSkill(): Plugin {
  */
 export default defineConfig({
   plugins: [
+    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
-    houseSkill(),
     spin.vite({
       // No `themes` option: the app serves the shipped starters, forked by
       // `spin/*.json` off this root — the files the studio edits when a
@@ -110,17 +110,9 @@ export default defineConfig({
             "../../packages/preset/src/rules/primitives/*.examples.ts",
           ),
           resolve(here, "src/**/*.{tsx,ts}"),
-          // The taxonomy names the glyph each element wears. The icon preset
-          // generates a rule for a name that is written down and for no name
-          // that is not, so a card whose glyph lives only in the taxonomy would
-          // draw nothing at all. Mirrors the studio and the reference app.
-          resolve(
-            here,
-            "../../packages/preset/src/rules/primitives/categories.ts",
-          ),
-          // The shared kit styles itself with the same vocabulary; scan it
-          // so the picker's classes exist in the sheet.
-          resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
+          // Machine component examples: `.html` files compiled by
+          // spinElements above. Mirrors the reference app.
+          resolve(here, "../../packages/components/src/*/examples/*.html"),
         ],
       },
     }),

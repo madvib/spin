@@ -23,9 +23,19 @@ const ExampleRow = v.object({
   html: v.string(),
 });
 
+const ComponentManifestSchema = v.object({
+  parts: v.array(v.string()),
+  slots: v.array(v.string()),
+  readers: v.array(v.string()),
+  methods: v.array(v.string()),
+  commands: v.array(v.string()),
+  events: v.array(v.string()),
+});
+
 const ComponentSummary = v.object({
   name: v.string(),
   examples: v.array(v.string()),
+  manifest: ComponentManifestSchema,
 });
 
 const ExamplesOutput = v.object({

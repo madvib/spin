@@ -15,10 +15,14 @@ export default function ComponentPage(): JSX.Element {
   const contract = createMemo<PrimitiveContract | undefined>(
     () => primitiveContracts[params.id],
   );
+  const machineId = createMemo(() =>
+    params.id.startsWith("machine-") ? params.id.slice("machine-".length) : null
+  );
   const examples = createMemo(() => examplesFor(params.id));
-  const known = createMemo(() => !!contract());
+  const known = createMemo(() => !!contract() || machineId() !== null);
   return (
     <Show when={known()} fallback={<NotFound id={params.id} />}>
+      <Show when={machineId() === null} fallback={<MachineDetail name={machineId() ?? ""} />}>
       <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
         <p class="text-sm">
           <A href="/components" class="text-text-muted hover:text-text">
@@ -116,9 +120,49 @@ export default function ComponentPage(): JSX.Element {
           </Section>
         </Show>
       </main>
+      </Show>
     </Show>
   );
 }
+function MachineDetail(props: { name: string }): JSX.Element {
+  const sources = import.meta.glob(
+    "../../../../../packages/components/src/*/examples/*.html",
+    { query: "?raw", import: "default", eager: true },
+  ) as Record<string, string>;
+  const rows = () =>
+    Object.entries(sources)
+      .filter(([path]) => path.split("/").at(-3) === props.name)
+      .map(([path, html]) => ({
+        name: path.split("/").at(-1)?.slice(0, -".html".length) ?? path,
+        html,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+      <p class="text-sm">
+        <A href="/components" class="text-text-muted hover:text-text">
+          ← components
+        </A>
+      </p>
+      <h1>{props.name}</h1>
+      <p class="text-text-muted max-w-screen-md">
+        Interactive machine component. Requires the runtime (@spin/runtime):
+        markup drives a statechart.
+      </p>
+      <div class="mt-8">
+        <For each={rows()}>
+          {(row) => (
+            <ExampleRow
+              name={row.name}
+              html={`<${props.name}-${row.name}></${props.name}-${row.name}>`}
+            />
+          )}
+        </For>
+      </div>
+    </main>
+  );
+}
+
 
 function NotFound(props: { id: string }): JSX.Element {
   return (

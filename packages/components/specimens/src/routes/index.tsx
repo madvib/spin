@@ -12,14 +12,14 @@ export default function Index() {
   const machines = SPECIMENS.length;
   return (
     <article class="max-w-[45rem]">
-      <h1 class="m-0 text-4xl font-bold tracking-tight">spin · components</h1>
-      <p class="mt-6 text-xl text-text-muted">
+      <h1>spin · components</h1>
+      <p class="text-xl text-text-muted">
         {machines}{" "}
         components, each a machine authored as config — states, conds and
         assigns as plain data — behind an owned runtime. No third-party
         interpreter, no adapter, no machine-in-a-black-box.
       </p>
-      <div class="mt-8 flex flex-wrap gap-3">
+      <div class="flex flex-wrap gap-3">
         <span class="rounded-full border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text-muted">
           {machines} machines
         </span>
@@ -30,13 +30,13 @@ export default function Index() {
           e2e in real Chromium
         </span>
       </div>
-      <p class="mt-8 text-md text-text-muted">
+      <p class="text-md text-text-muted">
         Pick a component from the rail. Every page mounts the real element in a
         framed stage, with the host-side controls the route demonstrates: the
         imperative commands, the controlled props, and the events the machine
         emits.
       </p>
-      <div class="mt-8 grid gap-2 sm:grid-cols-2">
+      <div class="grid gap-2 sm:grid-cols-2">
         <For each={SPECIMENS}>
           {(specimen) => (
             <A

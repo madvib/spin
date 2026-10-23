@@ -101,7 +101,7 @@ function declarationsFor(
   );
   const selector = new RegExp(`\\.${escaped}(?![\\w-])`);
   const declarations: Record<string, string> = {};
-  for (const [, selectorText = "", body = ""] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  for (const [, selectorText, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (!selector.test(selectorText)) continue;
     for (const declaration of body.split(";")) {
       const at = declaration.indexOf(":");

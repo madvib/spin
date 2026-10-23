@@ -27,11 +27,8 @@ Deno.test("contrastRatio grows as the two colours drift apart", () => {
   ];
 
   for (let i = 1; i < greys.length; i++) {
-    const lighter = greys[i - 1];
-    const darker = greys[i];
-    if (lighter === undefined || darker === undefined) continue;
-    const previous = contrastRatio("#ffffff", lighter);
-    const current = contrastRatio("#ffffff", darker);
+    const previous = contrastRatio("#ffffff", greys[i - 1]);
+    const current = contrastRatio("#ffffff", greys[i]);
     assert(
       current > previous,
       `${greys[i]} should contrast less with white than ${greys[i - 1]}`,

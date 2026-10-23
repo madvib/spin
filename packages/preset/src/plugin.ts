@@ -130,9 +130,13 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     animationIndex: pkg("../../animation/src/index.ts"),
     presetSrc: pkg("./"),
     presetIndex: pkg("./index.ts"),
-    procedures: pkg("./primitives-procedures.ts"),
     apiIndex: pkg("../../api/src/index.ts"),
     projectIndex: pkg("../../project/src/index.ts"),
+    runtimeIndex: pkg("../../runtime/src/index.ts"),
+    componentsIndex: pkg("../../components/src/index.ts"),
+    syntaxIndex: pkg("../../syntax/src/index.ts"),
+    hooksIndex: pkg("../../hooks/src/index.ts"),
+    diagnosticsIndex: pkg("../../diagnostics/src/index.ts"),
   };
   const unoCore = join(
     await spinWorkspaceRoot(),
@@ -180,11 +184,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       targets: [source.presetIndex],
     },
     {
-      find: "@spin/primitives-procedures",
-      replacement: source.procedures,
-      targets: [source.procedures],
-    },
-    {
       find: "@spin/api",
       replacement: source.apiIndex,
       targets: [source.apiIndex],
@@ -201,6 +200,81 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spin/kit",
       replacement: pkg("../../kit/src/index.ts"),
       targets: [pkg("../../kit/src/index.ts")],
+    },
+    {
+      find: "@spin/components/procedures",
+      replacement: pkg("../../components/src/components-procedures.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: /^@spin\/components\/(.+)$/,
+      replacement: `${pkg("../../components/src/")}$1`,
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spin/components",
+      replacement: source.componentsIndex,
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spin/runtime/plugin/elements",
+      replacement: pkg("../../runtime/src/plugin/elements.ts"),
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/runtime/props",
+      replacement: pkg("../../runtime/src/props.ts"),
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/runtime/fsm",
+      replacement: pkg("../../runtime/src/machine/fsm/machine.ts"),
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/runtime/load",
+      replacement: pkg("../../runtime/src/directives/load.ts"),
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/runtime/actions",
+      replacement: pkg("../../runtime/src/actions/index.ts"),
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: /^@spin\/runtime\/(.+)$/,
+      replacement: `${pkg("../../runtime/src/")}$1`,
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/runtime",
+      replacement: source.runtimeIndex,
+      targets: [source.runtimeIndex],
+    },
+    {
+      find: "@spin/syntax",
+      replacement: source.syntaxIndex,
+      targets: [source.syntaxIndex],
+    },
+    {
+      find: "@spin/hooks/solid",
+      replacement: pkg("../../hooks/src/solid.ts"),
+      targets: [source.hooksIndex],
+    },
+    {
+      find: "@spin/hooks/react",
+      replacement: pkg("../../hooks/src/react.ts"),
+      targets: [source.hooksIndex],
+    },
+    {
+      find: "@spin/hooks",
+      replacement: source.hooksIndex,
+      targets: [source.hooksIndex],
+    },
+    {
+      find: "@spin/diagnostics",
+      replacement: source.diagnosticsIndex,
+      targets: [source.diagnosticsIndex],
     },
     // Pure id-shaping: every `npm:` specifier the packages carry drops the
     // prefix so rolldown can find it in node_modules. No target to outlive.

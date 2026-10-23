@@ -13,7 +13,7 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { Section } from "../../bits.tsx";
-import { Markdown } from "./_markdown.tsx";
+import { Markdown } from "../../markdown.tsx";
 import { SKILL_PATH, styleReferences } from "../../style-docs.ts";
 import type { StyleReference } from "../../style-docs.ts";
 
@@ -41,14 +41,14 @@ export default function Styles(): JSX.Element {
         A style reference is a direction, not a theme. It names a look, says
         what makes that look recognisable, and says what would pull it back
         towards the house style. Pick one, read it, and spend the axes
-        accordingly.
+        accordingly — then author your theme with{" "}
+        <A href="/themes/authoring">Authoring a theme</A>.
       </p>
-
-      <div class="mt-4 flex flex-wrap gap-2">
-        <A href="/themes/authoring" class="text-link hover:underline">
+      <div class="mt-4 flex flex-wrap gap-3">
+        <A href="/themes/authoring">
           authoring a theme
         </A>
-        <A href={SKILL_PATH} class="text-link hover:underline">
+        <A href={SKILL_PATH}>
           the skill file
         </A>
       </div>

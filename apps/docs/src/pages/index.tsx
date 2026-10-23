@@ -12,28 +12,43 @@ import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "@spin/kit";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
-import { Console } from "../console.tsx";
-
+import { Markdown } from "../markdown.tsx";
+import overviewMd from "../content/overview.md?raw";
 const PAGES = [
   {
-    href: "/guide",
-    title: "Guide",
-    body: "Install, wire, and write your first themed UI.",
+    href: "/guide/install",
+    title: "Install & Wiring",
+    body: "Packages, the Vite plugin, and the bundler recipes.",
   },
   {
-    href: "/tokens",
-    title: "Tokens",
-    body: "Colors, modes, type — every starter side by side.",
+    href: "/guide/css",
+    title: "CSS & Edges",
+    body: "Closed vocabulary, layers, wind4, and the sharp edges.",
   },
   {
     href: "/themes",
     title: "Themes",
-    body: "What a theme is, the starters, and how to write one.",
+    body: "The DTCG contract, modes, and the Studio that edits them.",
+  },
+  {
+    href: "/themes/studio",
+    title: "Studio",
+    body: "The live theme editor beside your running app.",
   },
   {
     href: "/components",
-    title: "Components",
-    body: "Every element, with live examples you can copy.",
+    title: "Elements",
+    body: "Every element, with live specimens you can copy.",
+  },
+  {
+    href: "/utilities",
+    title: "Utilities",
+    body: "Every utility the active starter spends, grouped by intent.",
+  },
+  {
+    href: "/tooling/lints",
+    title: "Lints",
+    body: "Six theme-aware rules over your source.",
   },
 ];
 
@@ -63,12 +78,8 @@ const CARD_CODE =
   </div>
 </article>`;
 
-const DIALOG_CODE = `<dialog id="sold-out">
-  <p>Next roast lands Tuesday.</p>
-  <button type="button" onclick="sold-out.close()">Close</button>
-</dialog>
-<button type="button" onclick="sold-out.showModal()">Check stock</button>`;
-
+const UTILITIES_CODE = `<button type="button" class="s-sm">Add to box</button>
+<badge variant="primary">Ethiopia Guji</badge>`;
 /** The card in the utilities panel keeps a real count: the button is a JS
  * action, which is what `type="button"` is for. */
 const [inBox, setInBox] = createSignal(0);
@@ -93,7 +104,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             everything above this layer spends those names. Replace the file and
             you have a different product.
           </p>
-          <Code class="mt-4 text-xs" code={TOKEN_JSON} />
+          <Code class="mt-4 text-xs" code={TOKEN_JSON} lang="json" />
         </div>
         <div class="flex flex-col justify-center gap-4">
           <For each={SWATCHES}>
@@ -124,7 +135,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             it can, across color, spacing, type, layout, borders, shadows, and
             motion — and the ones you never use are never generated.
           </p>
-          <Code class="mt-4 text-xs" code={CARD_CODE} />
+          <Code class="mt-4 text-xs" code={CARD_CODE} lang="html" />
         </div>
         <div class="flex items-center justify-center">
           <article class="flex w-full max-w-[20rem] flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
@@ -163,53 +174,20 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             switch is a checkbox wearing{" "}
             <code>role="switch"</code>; a dialog is a{" "}
             <code>&lt;dialog&gt;</code>, so focus trapping, Escape, and the
-            backdrop come from the browser.
+            backdrop come from the browser. No example opens one here: a modal
+            on a marketing page is a page that interrupts its reader.
           </p>
-          <Code class="mt-4 text-xs" code={DIALOG_CODE} />
+          <Code class="mt-4 text-xs" code={UTILITIES_CODE} lang="html" />
         </div>
         <div class="flex flex-col justify-center gap-5">
           <label>
             <input type="checkbox" role="switch" checked />{" "}
-            Notify me when the roast lands
+            Notify me of restocks
           </label>
           <div class="flex flex-wrap items-center gap-2">
-            <badge variant="success">shipped</badge>
+            <badge variant="success">in stock</badge>
             <badge variant="accent">roaster's pick</badge>
             <badge variant="neutral">decaf</badge>
-          </div>
-          <div>
-            <button
-              type="button"
-              ref={(el) => {
-                el.addEventListener("click", () =>
-                  el.nextElementSibling instanceof HTMLDialogElement &&
-                  el.nextElementSibling.showModal());
-              }}
-            >
-              Check stock
-            </button>
-            <dialog
-              aria-label="Stock"
-              ref={(el) => {
-                el.addEventListener("close", () =>
-                  el.close());
-              }}
-              class="w-[20rem]"
-            >
-              <p>
-                Next roast lands Tuesday. Focus is trapped until you close this
-                — the browser does it.
-              </p>
-              <div class="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  class="secondary"
-                  onClick={(e) => e.currentTarget.closest("dialog")?.close()}
-                >
-                  Close
-                </button>
-              </div>
-            </dialog>
           </div>
         </div>
       </div>
@@ -284,10 +262,21 @@ export default function Home(): JSX.Element {
   };
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
-      {/* The first screen: mark, pitch, switch. */}
+      {
+        /* The first screen: mark, pitch, switch. The mark layer sits above the
+      header background so the spider never slides under it. */
+      }
       <section class="relative grid min-h-dvh md:grid-cols-2">
-        <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-6 py-5 md:px-12">
-          <Logo size="lg" class="text-text" />
+        <div
+          class="pointer-events-none absolute inset-0 z-modal"
+          aria-hidden="true"
+        >
+          <div class="absolute inset-y-0 right-0 flex w-1/2 items-center justify-center overflow-hidden">
+            <Mark class="w-full max-w-screen-md text-text" />
+          </div>
+        </div>
+        <header class="absolute inset-x-0 top-0 z-base flex items-center justify-between gap-4 px-6 py-5 md:px-12">
+          <Logo size="lg" class="text-primary" />
           <div class="flex items-center gap-3">
             <span class="hidden text-xs font-semibold text-text-muted sm:block">
               theme
@@ -320,66 +309,29 @@ export default function Home(): JSX.Element {
           </div>
         </header>
 
-        <div class="flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
+        <div class="relative z-base flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
-            <h1>
-              Spin your own web.
-            </h1>
-            <p class="text-md text-text-muted">
-              Spin is a design system and portable UI framework. Built on
-              familiar concepts like design tokens, utility classes, and web
-              components, Spin can be adopted incrementally and works with any
-              rendering framework. Agents are first class authors and are given
-              tooling to create consistent and beautiful interfaces, fast.
-            </p>
+            <Markdown text={overviewMd} />
             <div class="mt-8 flex flex-wrap items-center gap-3">
-              <A href="/guide" role="button" class={CTA}>get started</A>
+              <A href="/guide/install" role="button" class={CTA}>get started</A>
               <A href="/components" role="button" class={GHOST}>
                 browse elements
               </A>
             </div>
           </div>
         </div>
-
-        {
-          /* The rule between the pitch and the mark: the theme's own element
-          * for a rule, and the vertical edge is the cell's own on a wide
-          * screen, where the columns sit side by side. */
-        }
-        <hr class="md:hidden" />
-        <div class="flex items-center justify-center overflow-hidden md:border-l">
-          <Mark class="w-full max-w-screen-md text-text" />
-        </div>
+        <div aria-hidden="true" />
       </section>
 
-      {/* Below the fold: an application, then the layers, then where to go. */}
+      {/* Below the fold: the layers, the studio, the tooling, then where to go. */}
       <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
-        <Reveal>
-          <div class="mt-16">
-            <Section title="The console">
-              <p class="max-w-[65ch] text-text-muted">
-                A back-office screen — sidebar, stats, orders table — built from
-                the elements and classes this page documents:{" "}
-                <code>&lt;card&gt;</code>, <code>&lt;alert&gt;</code>,{" "}
-                <code>&lt;badge&gt;</code>,{" "}
-                <code>&lt;table&gt;</code>, and the utility classes the section
-                below teaches. The status chips and the search filter the rows.
-              </p>
-              <Console />
-            </Section>
-          </div>
-        </Reveal>
-
         <Reveal>
           <div class="mt-16">
             <Section title="The layers">
               <p class="max-w-[65ch] text-text-muted">
-                Nothing here is all-or-nothing. Bring tokens to an app you
-                already have, add utility classes where you want to stop writing
-                CSS, pull in an element when you want its behavior, and take the
-                component runtime when you want the same branded component in a
-                second framework. Each layer reads the one below it, and you can
-                stop at any of them.
+                Four layers, each one optional. Tokens describe the look;
+                utilities spend it; elements carry behavior; the runtime carries
+                the same branded components into every framework.
               </p>
               <For each={layers()}>
                 {(layer, i) => (

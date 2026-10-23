@@ -39,19 +39,19 @@ export function colorRules(): Rule[] {
   return [
     [
       /^bg-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) =>
+      ([, name]: string[], ctx?: ThemeContext) =>
         colorOf(ctx, name, "background-color"),
       { autocomplete: "bg-$colors" },
     ],
     [
       /^border-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) =>
+      ([, name]: string[], ctx?: ThemeContext) =>
         colorOf(ctx, name, "border-color"),
       { autocomplete: "border-$colors" },
     ],
     [
       /^text-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) => {
+      ([, name]: string[], ctx?: ThemeContext) => {
         // `text-lg` is a size; only a colour name reaches this branch. A theme
         // may name a colour after the utility itself — the baseline theme's
         // `text-muted` is `color.text-muted` — so the prefixed name is tried
@@ -64,7 +64,7 @@ export function colorRules(): Rule[] {
     ],
     [
       /^accent-(.+)$/,
-      ([, name = ""]: string[], ctx?: ThemeContext) =>
+      ([, name]: string[], ctx?: ThemeContext) =>
         colorOf(ctx, name, "accent-color"),
       { autocomplete: "accent-$colors" },
     ],

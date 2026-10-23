@@ -26,12 +26,12 @@
       ]
     }
   },
-  "$description": "A machine you read at three in the morning: the whole instrument is dark glass and lit figures, the values are the loud part, the labels stay quiet, and the panel's own light is the only illumination in the room. The day shift is the same machine under a lavender lamp — the same shapes, the same space, a different light.",
+  "$description": "A machine you read at three in the morning: the whole instrument is dark glass and lit figures, the values are the loud part, the labels stay quiet, and the panel's own light is the only illumination in the room. The day shift is the same machine under a lavender lamp \u2014 the same shapes, the same space, a different light.",
   "color": {
     "$type": "color",
-    "$description": "One hue family for the surfaces and one signal for everything that speaks. The ramp is an indigo ink — never a warm charcoal, because a warm dark stops reading as a screen — and the lit colours are the only saturated things on the panel. Every step below is restated for the daylit face; a step means the same thing in both lights.",
+    "$description": "One hue family for the surfaces and one signal for everything that speaks. The ramp is an indigo ink \u2014 never a warm charcoal, because a warm dark stops reading as a screen \u2014 and the lit colours are the only saturated things on the panel. Every step below is restated for the daylit face; a step means the same thing in both lights.",
     "neutral": {
-      "$description": "Ten steps of the same indigo ink, restated for the other light. The meaning of each step does not change — 50 is always the page, 900 is always the ink — so a mode is a change of light, not a change of system.",
+      "$description": "Ten steps of the same indigo ink, restated for the other light. The meaning of each step does not change \u2014 50 is always the page, 900 is always the ink \u2014 so a mode is a change of light, not a change of system.",
       "50": {
         "$value": "oklch(15% 0.035 285)",
         "$description": "The page: the panel itself. The ink the console is built out of, and the floor every other surface is measured against.",
@@ -41,7 +41,7 @@
       },
       "100": {
         "$value": "oklch(20.2% 0.042 285)",
-        "$description": "One step towards the light: a card, a popover, a menu — anything that sits on the page rather than in it.",
+        "$description": "One step towards the light: a card, a popover, a menu \u2014 anything that sits on the page rather than in it.",
         "$modes": {
           "light": "oklch(99.5% 0.008 320)"
         }
@@ -105,7 +105,7 @@
     },
     "primary": {
       "$value": "oklch(81% 0.15 195)",
-      "$description": "The electric cyan: the one colour that acts. It is the primary button, the link in running text and the focus ring, and it is spent on nothing else — a second loud colour would mean the first one means nothing.",
+      "$description": "The electric cyan: the one colour that acts. It is the primary button, the link in running text and the focus ring, and it is spent on nothing else \u2014 a second loud colour would mean the first one means nothing.",
       "$modes": {
         "light": "oklch(55% 0.235 350)"
       }
@@ -133,14 +133,14 @@
     },
     "accent": {
       "$value": "oklch(68% 0.255 350)",
-      "$description": "The signal: hot magenta, the colour the console uses when it has something to say. It is the accent badge, the alert's leading edge and the little marks on a panel — never the button.",
+      "$description": "The signal: hot magenta, the colour the console uses when it has something to say. It is the accent badge, the alert's leading edge and the little marks on a panel \u2014 never the button.",
       "$modes": {
         "light": "oklch(50% 0.15 205)"
       }
     },
     "on-accent": {
       "$value": "oklch(15% 0.04 350)",
-      "$description": "The ink on the signal: the console's own black. A lit plate is cut, not painted, so its label is the dark that was behind it — and in the day shift the teal is a deep plate instead of a lamp, so it takes paper.",
+      "$description": "The ink on the signal: the console's own black. A lit plate is cut, not painted, so its label is the dark that was behind it \u2014 and in the day shift the teal is a deep plate instead of a lamp, so it takes paper.",
       "$modes": {
         "light": "oklch(98.5% 0.01 205)"
       }
@@ -185,7 +185,7 @@
     },
     "on-semantic-warning": {
       "$value": "oklch(18% 0.05 95)",
-      "$description": "The ink on the amber lamp. Amber is a light colour in both shifts, so it always takes the dark ink — a white label on a lit lamp is a label nobody can read.",
+      "$description": "The ink on the amber lamp. Amber is a light colour in both shifts, so it always takes the dark ink \u2014 a white label on a lit lamp is a label nobody can read.",
       "$modes": {
         "light": "oklch(98.5% 0.01 95)"
       }
@@ -206,7 +206,7 @@
     },
     "on-danger": {
       "$value": "{color.on-semantic-error}",
-      "$description": "The legacy name for the ink on the fault fill. It points at `color.on-semantic-error` — the role the contract requires and the floor is measured on — so the two names can never disagree.",
+      "$description": "The legacy name for the ink on the fault fill. It points at `color.on-semantic-error` \u2014 the role the contract requires and the floor is measured on \u2014 so the two names can never disagree.",
       "$modes": {
         "light": "{color.on-semantic-error}"
       }
@@ -276,7 +276,7 @@
     },
     "disabled": {
       "$value": "{color.neutral.300}",
-      "$description": "The fill a dead control wears: the panel switched off. A control that cannot be pressed is still printed — it is simply printed in the quiet ink.",
+      "$description": "The fill a dead control wears: the panel switched off. A control that cannot be pressed is still printed \u2014 it is simply printed in the quiet ink.",
       "$modes": {
         "light": "{color.neutral.300}"
       }
@@ -297,7 +297,7 @@
     },
     "link": {
       "$value": "{color.primary}",
-      "$description": "The acting colour, as a word in running text. A link is never the body ink — a link you cannot pick out of the prose is a link nobody clicks — and it is never the vermilion, so a link and a danger are never the same word.",
+      "$description": "The acting colour, as a word in running text. A link is never the body ink \u2014 a link you cannot pick out of the prose is a link nobody clicks \u2014 and it is never the vermilion, so a link and a danger are never the same word.",
       "$modes": {
         "light": "{color.primary}"
       }
@@ -339,7 +339,7 @@
     },
     "8": {
       "$value": "2.125rem",
-      "$description": "The gap between two blocks on a page — where this theme puts its emphasis instead of putting a box around them."
+      "$description": "The gap between two blocks on a page \u2014 where this theme puts its emphasis instead of putting a box around them."
     },
     "10": {
       "$value": "2.75rem",
@@ -364,6 +364,24 @@
     "32": {
       "$value": "10rem",
       "$description": "The empty space a poster would need. A control room never gets there."
+    },
+    "14": {
+      "$value": "3.5rem"
+    },
+    "36": {
+      "$value": "11.5rem"
+    },
+    "40": {
+      "$value": "13rem"
+    },
+    "56": {
+      "$value": "17rem"
+    },
+    "60": {
+      "$value": "19rem"
+    },
+    "64": {
+      "$value": "21rem"
     }
   },
   "font": {
@@ -376,7 +394,7 @@
       },
       "heading": {
         "$value": "Chakra Petch, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The display voice: an angular technical face, cut with flat terminals and open apertures. It speaks in headings and nowhere else — a panel's title is a heading, a page of values is not."
+        "$description": "The display voice: an angular technical face, cut with flat terminals and open apertures. It speaks in headings and nowhere else \u2014 a panel's title is a heading, a page of values is not."
       },
       "body": {
         "$value": "{font.family.sans}",
@@ -384,7 +402,7 @@
       },
       "mono": {
         "$value": "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace",
-        "$description": "The value voice: a developer mono whose figures line up in a column. Numbers, identifiers, timings, log lines — everything a reader measures rather than reads."
+        "$description": "The value voice: a developer mono whose figures line up in a column. Numbers, identifiers, timings, log lines \u2014 everything a reader measures rather than reads."
       },
       "serif": {
         "$value": "ui-serif, Georgia, Cambria, serif",
@@ -505,7 +523,7 @@
     },
     "md": {
       "$value": "0.25rem",
-      "$description": "The working radius: a button, a field, a card — the cut objects a finger meets."
+      "$description": "The working radius: a button, a field, a card \u2014 the cut objects a finger meets."
     },
     "lg": {
       "$value": "0.4375rem",
@@ -606,7 +624,7 @@
     }
   },
   "motion": {
-    "$description": "The accent moves and the rest does not. Motion points; it does not perform — no overshoot, no bounce, and one loop in the whole theme.",
+    "$description": "The accent moves and the rest does not. Motion points; it does not perform \u2014 no overshoot, no bounce, and one loop in the whole theme.",
     "duration": {
       "$type": "duration",
       "fast": {
@@ -623,7 +641,7 @@
       },
       "loop": {
         "$value": "2.4s",
-        "$description": "The loop: the pulse, the shimmer, the one thing on the console that moves without being asked. It is the only duration that runs on its own, and it is a step of its own so the slowest transition does not have to carry it — well above the floor below which a loop reads as a strobe."
+        "$description": "The loop: the pulse, the shimmer, the one thing on the console that moves without being asked. It is the only duration that runs on its own, and it is a step of its own so the slowest transition does not have to carry it \u2014 well above the floor below which a loop reads as a strobe."
       }
     },
     "easing": {
@@ -664,7 +682,7 @@
     "case": {
       "$type": "textTransform",
       "$value": "none",
-      "$description": "A key says what it does, in the case it is written. A theme that set every button in capitals would have a page of capitals, which is a shout and not a voice — and the buttons are not the only thing on the page."
+      "$description": "A key says what it does, in the case it is written. A theme that set every button in capitals would have a page of capitals, which is a shout and not a voice \u2014 and the buttons are not the only thing on the page."
     },
     "tracking": {
       "$type": "dimension",
@@ -690,7 +708,7 @@
     "$description": "Stroke weight, in whole pixels: a console renders a hairline at one pixel or it has stopped being a console.",
     "width": {
       "$value": "1px",
-      "$description": "The hairline every control and surface draws with — the thread itself."
+      "$description": "The hairline every control and surface draws with \u2014 the thread itself."
     },
     "width-2": {
       "$value": "2px",
@@ -698,7 +716,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -727,7 +745,7 @@
     },
     "offset": {
       "$value": "2px",
-      "$description": "The gap between the ring and the control it is on — far enough that the ring is drawn on the panel and never on the fill it is meant to be reading against.",
+      "$description": "The gap between the ring and the control it is on \u2014 far enough that the ring is drawn on the panel and never on the fill it is meant to be reading against.",
       "$modes": {
         "light": "2px"
       }
@@ -832,7 +850,7 @@
     "padding": {
       "$type": "dimension",
       "$value": "{spacing.4}",
-      "$description": "The air above and below the message — more of it than beside it, because the text is read in a line."
+      "$description": "The air above and below the message \u2014 more of it than beside it, because the text is read in a line."
     },
     "padding-inline": {
       "$type": "dimension",
@@ -873,7 +891,7 @@
     "value-family": {
       "$type": "fontFamily",
       "$value": "{font.family.mono}",
-      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures — the digits line up down a column of readings."
+      "$description": "The face the number is set in: the mono, because a figure is a figure and the mono is the face that carries figures \u2014 the digits line up down a column of readings."
     }
   },
   "table": {

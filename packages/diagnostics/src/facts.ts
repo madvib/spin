@@ -29,7 +29,7 @@ import {
   primitiveVariants,
   spinShortcuts,
 } from "@spin/preset";
-import { primitiveVariants as animationVariants } from "@spin/animation";
+import { animationVariants } from "@spin/animation";
 import type { Facts, ScopeFact } from "./core.ts";
 import { generatedClasses } from "./generated.ts";
 import { paintKeyFor, type Tier, TIER_BY_GROUP } from "./tiers.ts";

@@ -1,0 +1,10 @@
+{
+ "name": "@spin/api",
+ "version": "0.1.0",
+ "type": "module",
+ "exports": {
+  ".": "../../../packages/api/src/index.ts"
+ },
+ "main": "../../../packages/api/src/index.ts",
+ "module": "../../../packages/api/src/index.ts"
+}

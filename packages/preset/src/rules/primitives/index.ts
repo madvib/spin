@@ -10,7 +10,6 @@ import { cardRules } from "./card.ts";
 import type { Mode } from "./shared.ts";
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
-import { accordionRules } from "./accordion.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
@@ -68,7 +67,6 @@ export function primitiveRules(
     ...cardRules(roots, mode),
     ...controlRules(roots),
     ...dialogRules(roots, mode),
-    ...accordionRules(roots, mode),
     ...disclosureRules(roots, mode),
     ...fieldsetRules(roots, mode),
     ...progressRules(roots, mode),

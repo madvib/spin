@@ -29,9 +29,7 @@ const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
 >;
 
 async function assemble(options: Parameters<typeof spinPreset>[0]) {
-  const uno = await createGenerator({
-    presets: [spinPreset(options)],
-  });
+  const uno = await createGenerator({ presets: [spinPreset(options)] });
   return uno.generate(
     "bg-primary p-4 md:flex gap-gutter animate-spin hover:bg-primary",
   );
@@ -76,44 +74,18 @@ Deno.test("the primitives ship because the theme enables them", async () => {
   // uses, so a page with no `<button>` correctly ships no button CSS — and an
   // assertion that finds the button's selector in such a page is reading a
   // preflight's incidental text rather than the primitive.
-  const markup = '<button>Go</button><button class="filled">Filled</button>';
+  const markup = "<button>Go</button>";
   const page = async (options: Parameters<typeof spinPreset>[0]) => {
     const uno = await createGenerator({ presets: [spinPreset(options)] });
     return await uno.generate(markup);
   };
 
   const { css } = await page({ themes: { light: theme } });
+  assert(
+    /background-color:\s*var\(--color-primary\)/.test(css),
+    "the button spends the primary fill",
+  );
   assert(css.includes('[role="button"]'), "the button claims its role");
-  // Paint is asked for. The base rule claims the element, its states and its
-  // focus ring, and spends no fill — a document that never asked for paint
-  // must not be paying for the theme's primary. `filled` is what spends it.
-  // (`transition-property`'s list names background-color without declaring
-  // it, so the assertion looks for a declaration. And the block boundaries
-  // matter: a reset-outline's own hover may spend primary elsewhere in the
-  // sheet, so the assertion reads the base rule's own block and nothing
-  // else.)
-  const base = css.indexOf(':is(button, [type="submit"]');
-  const baseRule = css.slice(base, css.indexOf("}", base));
-  assert(
-    !/background-color:\s*var\(--color-primary\)/.test(baseRule),
-    "the base must not spend the primary fill",
-  );
-  // But the TYPE is not paint: a control reads as a control whether or not it
-  // is painted, so the weight and the tracking stay on the base and travel
-  // with a recipe that paints itself using utilities rather than a variant.
-  assert(
-    /font-weight:\s*var\(--button-weight\)/.test(baseRule),
-    "the base must spend the button's type character",
-  );
-  const filled = css.slice(css.indexOf(".filled"));
-  assert(
-    /background-color:\s*var\(--color-primary\)/.test(filled),
-    "the filled variant spends the primary fill",
-  );
-  assert(
-    /color:\s*var\(--color-on-primary\)/.test(filled),
-    "the filled variant spends the on-primary ink",
-  );
 
   const without = await page({
     themes: { light: theme },

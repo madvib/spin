@@ -1,0 +1,10 @@
+{
+ "name": "@spin/diagnostics",
+ "version": "0.1.0",
+ "type": "module",
+ "exports": {
+  ".": "../../../packages/diagnostics/src/index.ts"
+ },
+ "main": "../../../packages/diagnostics/src/index.ts",
+ "module": "../../../packages/diagnostics/src/index.ts"
+}

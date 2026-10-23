@@ -45,7 +45,7 @@ function requiredLeaves(
     if (key.startsWith("$")) continue;
     const path = [...prefix, key];
     const child = properties[key];
-    if (child !== undefined && isGroup(child)) {
+    if (isGroup(child)) {
       out.push(...requiredLeaves(child, path));
     } else {
       out.push(path.join("."));

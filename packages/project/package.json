@@ -1,0 +1,10 @@
+{
+ "name": "@spin/project",
+ "version": "0.1.0",
+ "type": "module",
+ "exports": {
+  ".": "../../../packages/project/src/index.ts"
+ },
+ "main": "../../../packages/project/src/index.ts",
+ "module": "../../../packages/project/src/index.ts"
+}

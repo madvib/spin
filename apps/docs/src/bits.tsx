@@ -86,8 +86,15 @@ export function Eyebrow(props: { children: JSX.Element }): JSX.Element {
 export function Code(props: {
   code: string;
   class?: string;
+  lang?: string;
 }): JSX.Element {
-  return <CodeBlock code={props.code} class={props.class ?? "text-xs"} />;
+  return (
+    <CodeBlock
+      code={props.code}
+      lang={props.lang}
+      class={props.class ?? "text-xs"}
+    />
+  );
 }
 
 export function Chip(props: { children: JSX.Element }): JSX.Element {

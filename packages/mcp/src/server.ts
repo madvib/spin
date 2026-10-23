@@ -311,36 +311,85 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
   server.registerTool(
     "component",
     {
-      title: "Primitive components",
+      title: "Components: primitives and machines",
       description:
-        "The primitive library: list every component with its tags, variants and token reads, or one component's contract — tags, variants, reads, its component tokens, and the example markup it ships.",
+        "The component libraries: CSS primitives (tags, variants, token reads, component tokens, example markup) and machine components (statechart-driven elements with typed bridges, example markup, and copy-to-project). List both, read one component's contract, list a machine's examples, or copy a machine example into the project.",
       inputSchema: {
-        action: z.enum(["list", "contract"]).describe("What to return."),
+        action: z.enum(["list", "contract", "examples", "copy"]).describe("What to return."),
         name: z
           .string()
           .optional()
-          .describe("contract: a component name, e.g. 'button'."),
+          .describe("contract/examples/copy: a component name, e.g. 'button' or 'tree-view'."),
+        example: z
+          .string()
+          .optional()
+          .describe("copy: the example name, e.g. 'basic'."),
+        root: z
+          .string()
+          .optional()
+          .describe("copy: the project root to write into (defaults to the daemon root)."),
       },
     },
-    async ({ action, name }) => {
+    async ({ action, name, example, root }) => {
       if (action === "list") {
-        const components = await client.primitives.list({});
-        return json(
-          components.map((entry) => ({
+        const primitives = await client.primitives.list({});
+        const machines = await client.components.list({});
+        return json([
+          ...primitives.map((entry) => ({
             name: entry.name,
+            kind: "primitive" as const,
             tags: entry.tags,
             variants: entry.variants,
             reads: entry.reads,
           })),
-        );
+          ...machines.map((entry) => ({
+            name: entry.name,
+            kind: "machine" as const,
+            tags: [`spin-${entry.name}`],
+            variants: entry.examples,
+            reads: [] as string[],
+            examples: entry.examples,
+            manifest: entry.manifest,
+          })),
+        ]);
+      }
+      if (action === "examples") {
+        if (name === undefined) return failed("examples needs a component name");
+        const bare = name.replace(/^spin-/, "");
+        const ex = await client.components.examples({ name: bare });
+        return json({ name: bare, examples: ex.examples });
+      }
+      if (action === "copy") {
+        if (name === undefined) return failed("copy needs a component name");
+        if (example === undefined) return failed("copy needs an example name");
+        const bare = name.replace(/^spin-/, "");
+        const copied = await client.components.copy({
+          name: bare,
+          example,
+          ...(root !== undefined ? { root } : {}),
+        });
+        if (copied.error !== null) return failed(copied.error);
+        return json({ file: copied.file });
       }
       if (name === undefined) return failed("contract needs a component name");
       const contract = await client.primitives.contract({ name });
-      if ("error" in contract) return failed(contract.error);
-      const summary = (await client.primitives.list({})).find(
-        (entry) => entry.name === name,
-      );
-      return json({ ...contract, examples: summary?.examples ?? null });
+      if (!("error" in contract)) {
+        const summary = (await client.primitives.list({})).find(
+          (entry) => entry.name === name,
+        );
+        return json({ kind: "primitive" as const, ...contract, examples: summary?.examples ?? null });
+      }
+      const bare = name.replace(/^spin-/, "");
+      const listed = await client.components.list({});
+      const found = listed.find((entry) => entry.name === bare);
+      if (found === undefined) return failed(contract.error);
+      const ex = await client.components.examples({ name: bare });
+      return json({
+        kind: "machine" as const,
+        name: bare,
+        manifest: found.manifest,
+        examples: { rows: ex.examples },
+      });
     },
   );
 

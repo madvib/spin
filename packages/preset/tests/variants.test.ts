@@ -115,7 +115,7 @@ Deno.test("a responsive prefix emits the theme's width as a media query", async 
       `the query must carry a literal width: ${query}`,
     );
   }
-  const [md = ""] = responsive;
+  const [md] = responsive;
   const themeWidth = (theme.breakpoint as Record<string, { $value?: string }>)
     ?.[
       "md"

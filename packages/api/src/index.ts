@@ -15,14 +15,12 @@ import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
 import { themeRouter } from "@spin/theme";
-import { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
-import { presetRouter } from "@spin/preset";
+import { overlayRouter, presetRouter, primitivesRouter } from "@spin/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
 import { iconsRouter } from "./icons-procedures.ts";
 import { findingsRouter } from "./findings-procedures.ts";
-import { overlayRouter } from "@spin/preset";
 import { componentsRouter } from "@spin/components/procedures";
 
 export { themeRouter } from "@spin/theme";
@@ -32,15 +30,16 @@ export { previewContract } from "./preview-procedures.ts";
 export { projectContract } from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
 export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
-export { primitivesContract } from "../../preset/src/primitives-procedures.ts";
+export { primitivesContract } from "@spin/preset";
 export { presetRouter } from "@spin/preset";
+export {
+  overlayContract,
+  overlayRouter,
+  presetContract,
+} from "@spin/preset";
 export { componentsRouter } from "@spin/components/procedures";
 export { componentsContract } from "@spin/components/procedures";
-export { presetContract } from "@spin/preset";
-export { iconsContract } from "./icons-procedures.ts";
-export { iconsRouter } from "./icons-procedures.ts";
-export { findingsContract } from "./findings-procedures.ts";
-export { findingsRouter } from "./findings-procedures.ts";
+export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */

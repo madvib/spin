@@ -298,21 +298,53 @@ describe("the spin MCP server", () => {
     const names = (jsonOf(listed) as Array<{ name: string }>).map((c) =>
       c.name
     );
-    assert(names.includes("card"), `card among ${names.join(",")}`);
-
     const one = await mcp.callTool({
       name: "component",
       arguments: { action: "contract", name: "card" },
     });
     const contract = jsonOf(one) as {
       reads: string[];
-      examples: { rows: Array<{ name: string }> } | null;
+      component: unknown[];
     };
     assert(contract.reads.length > 0, "a contract reads tokens");
-    assert(
-      (contract.examples?.rows.length ?? 0) > 0,
-      "and ships example markup",
+    assert(contract.component.length > 0, "and declares component tokens");
+  });
+
+  it("lists machine components, and one machine's contract, examples, and copy", async () => {
+    const listed = await mcp.callTool({
+      name: "component",
+      arguments: { action: "list" },
+    });
+    const entries = jsonOf(listed) as Array<{ name: string; kind: string }>;
+    assert(entries.some((c) => c.name === "card" && c.kind === "primitive"), "card stays a primitive");
+    assert(entries.some((c) => c.name === "tree-view" && c.kind === "machine"), "tree-view lists as a machine");
+    assert(entries.some((c) => c.name === "select" && c.kind === "machine"), "select lists as a machine");
+
+    const one = await mcp.callTool({
+      name: "component",
+      arguments: { action: "contract", name: "tree-view" },
+    });
+    const contract = jsonOf(one) as {
+      kind: string;
+      manifest: { parts: string[]; slots: string[]; readers: string[]; methods: string[] };
+      examples: { rows: Array<{ name: string; html: string }> };
+    };
+    assertEquals(contract.kind, "machine");
+    assert(contract.manifest.parts.includes("root"), "the manifest names parts");
+    assert(contract.manifest.slots.includes("item"), "and slots");
+    assert(contract.manifest.readers.length > 0, "and readers");
+    assert(contract.examples.rows.length === 2, "and ships two examples");
+
+    const copied = await mcp.callTool({
+      name: "component",
+      arguments: { action: "copy", name: "tree-view", example: "basic", root: dir },
+    });
+    assertEquals(copied.isError, undefined);
+    assertEquals(
+      (jsonOf(copied) as { file: string }).file,
+      join("spin", "tree-view", "basic.html"),
     );
+    assert(existsSync(join(dir, "spin", "tree-view", "basic.html")), "the file lands in the project");
   });
 
   it("lists the utilities under reader intent", async () => {

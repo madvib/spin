@@ -25,6 +25,11 @@ other packages read.
   wind4             wind4Layers · wind4Exclusions · Wind4Options · Wind4Layers
                     Wind4Exclusion
   procedures        presetContract · presetRouter · overlayContract · overlayRouter
+                    primitivesContract · primitivesRouter · listedComponents
+  examples          componentExamples · examplesFor · ComponentExamples · FixtureExample
+  organization      SECTIONS · SAMPLES · Section · Sample · CatalogGroupId
+                    sectionFor · utilitiesFor · claimedGroups
+  scales            buildScale · scaleClass · BuiltScale · Scale · Axis · Step · EDGES
 
 @spin/preset/plugin
   spin              the unplugin: scan, generate, serve
@@ -32,34 +37,8 @@ other packages read.
   spinAliases       the specifier table that bridges the workspace
   SpinPluginOptions · DevServer
 
-@spin/preset/session
-  setOverlay · clearOverlay · overlayThemes · hasOverlay · overlayDirty
-  noteDiskDocument · noteDiskDocuments · onOverlayChange · resolveThemes
-
-@spin/preset/content
-  scanContent · joinContent · globFiles · expandBraces · isIncluded
-  ContentOptions · ContentMap
-
 @spin/preset/config
   spinConfig · configScaffoldText · SpinConfigOptions
-
-@spin/preset/organization
-  SECTIONS · SAMPLES · Section · Sample · CatalogGroupId
-  sectionFor · utilitiesFor · claimedGroups
-
-@spin/preset/rules/primitives/manifest.ts
-  primitiveContracts · primitiveComponents · claimedElements · paintedElements
-  primitiveVariants · primitiveReadsByGroup · PrimitiveContract
-
-@spin/preset/rules/primitives/derive.ts
-  deriveRuleContract · deriveStates · deriveSurface · writeManifest
-
-@spin/preset/reference/surface.ts    stateRow · tokenReport · Surface · State
-@spin/preset/reference/scale.ts      Scale · Axis · Step · EDGES
-@spin/preset/reference/build.ts      buildScale · scaleClass · BuiltScale
-
-@spin/preset/rules/primitives/*.examples.ts
-  the example markup each element ships, one module per element
 
 @spin/preset/solid
   the JSX intrinsic-element types, for TypeScript

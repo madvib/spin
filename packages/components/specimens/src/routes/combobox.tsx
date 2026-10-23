@@ -189,7 +189,7 @@ export default function ComboboxFsm() {
           prop:placeholder="Search a framework"
           prop:defaultValue="svelte"
         />
-        <p class="mt-1 text-xs text-muted">
+        <p class="text-xs text-muted">
           {matches().length} of {FRAMEWORKS.length} rows match “{query()}”.
         </p>
         <DemoControls>

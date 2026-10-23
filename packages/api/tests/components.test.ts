@@ -28,11 +28,15 @@ describe("daemon components over HTTP", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("lists machines with their example names", async () => {
+  it("lists machines with their example names and manifests", async () => {
     const listed = await client.components.list({});
     const tree = listed.find((c) => c.name === "tree-view");
     assert(tree !== undefined, "tree-view is listed");
-    assertEquals(tree.examples, ["async-loading", "basic"]);
+    assertEquals(tree.examples, ["basic", "loading"]);
+    assert(tree.manifest.parts.includes("root"), "the manifest names parts");
+    assert(tree.manifest.slots.includes("item"), "and slots");
+    assert(tree.manifest.readers.length > 0, "and readers");
+    assert(tree.manifest.methods.length > 0, "and methods");
   });
 
   it("serves a machine's variants with copy-ready markup", async () => {
@@ -40,7 +44,7 @@ describe("daemon components over HTTP", () => {
     assertEquals(examples.length, 2);
     const basic = examples.find((v) => v.name === "basic");
     assert(basic !== undefined);
-    assert(basic.html.includes("<spin-tree-view"), "the markup names the element");
+    assert(basic.html.includes("getBranchControlProps"), "the markup names the element");
   });
 
   it("copies a variant into the project at its known location", async () => {
@@ -54,8 +58,8 @@ describe("daemon components over HTTP", () => {
     const written = join(dir, "spin", "tree-view", "basic.html");
     assert(existsSync(written), "the file lands in the project");
     assert(
-      readFileSync(written, "utf8").includes("<spin-tree-view"),
-      "with the variant's markup",
+      readFileSync(written, "utf8").includes('from "@spin/components"'),
+      "with the variant's markup rewritten to @spin/components",
     );
   });
 

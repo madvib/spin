@@ -368,9 +368,7 @@ let spinOnlyGenerator: Promise<UnoGenerator> | undefined;
 
 function spinOnly(): Promise<UnoGenerator> {
   return spinOnlyGenerator ??= createGenerator({
-    presets: [
-      spinPreset({ themes: { default: theme }, wind4: false }),
-    ],
+    presets: [spinPreset({ themes: { default: theme }, wind4: false })],
   });
 }
 
@@ -406,13 +404,13 @@ function sweep(): Promise<readonly Generated[]> {
 /** Every custom property a stylesheet DECLARES, at any scope. */
 function declaredProperties(css: string): ReadonlySet<string> {
   const declared = new Set<string>();
-  for (const [, name = ""] of css.matchAll(/(--[\w-]+)\s*:/g)) declared.add(name);
+  for (const match of css.matchAll(/(--[\w-]+)\s*:/g)) declared.add(match[1]);
   // `@property --un-ring-offset-width` is a declaration too, and reading one is
   // legitimate: the registration gives it a type and, with an initial value, a
   // value. Excluding registrations from "declared" would flag every wind4
   // utility that reads its own `--un-*` chain.
-  for (const [, name = ""] of css.matchAll(/@property\s+(--[\w-]+)/g)) {
-    declared.add(name);
+  for (const match of css.matchAll(/@property\s+(--[\w-]+)/g)) {
+    declared.add(match[1]);
   }
   return declared;
 }
@@ -434,7 +432,7 @@ const BARE_READ = /\bvar\(\s*(--[\w-]+)\s*\)/g;
 
 /** The bare `var()` reads in a stylesheet, in the order they appear. */
 function bareReads(css: string): string[] {
-  return [...css.matchAll(BARE_READ)].map(([, name = ""]) => name);
+  return [...css.matchAll(BARE_READ)].map((match) => match[1]);
 }
 
 /**
@@ -512,8 +510,8 @@ Deno.test("no utility we own reads a variable the sheet does not declare", async
     // registered HERE is defined for this utility even though the broad sheet
     // may never have triggered it.
     const known = new Set(declared);
-    for (const [, name = ""] of css.matchAll(/@property\s+(--[\w-]+)/g)) {
-      known.add(name);
+    for (const match of css.matchAll(/@property\s+(--[\w-]+)/g)) {
+      known.add(match[1]);
     }
     for (const read of bareReads(css)) {
       if (known.has(read) || CONSUMER_SUPPLIED.includes(read)) continue;

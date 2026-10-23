@@ -4,7 +4,14 @@
  * stylesheet the plugin emits.
  */
 interface ImportMeta {
-  glob<T = unknown>(pattern: string): Record<string, () => Promise<T>>;
+  glob<T = unknown>(
+    pattern: string,
+    options?: {
+      eager?: boolean;
+      query?: string;
+      import?: string;
+    },
+  ): Record<string, T>;
 }
 
 declare module "uno.css";

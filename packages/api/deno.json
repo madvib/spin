@@ -5,8 +5,7 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./daemon": "./src/daemon.ts",
-    "./serve": "./src/serve.ts",
-    "./project": "./src/project-procedures.ts"
+    "./serve": "./src/serve.ts"
   },
   "imports": {
     "@spin/api": "./src/index.ts",

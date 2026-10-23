@@ -1,9 +1,10 @@
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
-import { SECTIONS, utilitiesFor } from "@spin/preset/organization.ts";
 import {
   describeCatalog,
   primitiveCategories,
   primitiveElements,
+  SECTIONS,
+  utilitiesFor,
 } from "@spin/preset";
 import { parseTokens } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
@@ -17,8 +18,9 @@ import {
 } from "@spin/kit";
 import { MontagePage } from "./montage.tsx";
 import { PRIMITIVES } from "./primitives.ts";
+import { COMPONENT_GROUPS, COMPONENT_ICONS, COMPONENTS, componentRequirement } from "./components.ts";
 import { MONTAGE_ROUTE } from "./routes.ts";
-import { themeDocuments } from "./themes.ts";
+import { THEMES, themeDocuments } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
@@ -32,9 +34,12 @@ import type { TokenTree } from "@spin/theme";
  * rail and the docs' gallery read the same one, so a row cannot be drawn
  * here with one glyph and drawn elsewhere with another.
  */
-const ICONS: Readonly<Record<string, string>> = Object.fromEntries(
-  primitiveElements.map((element) => [element.name, element.icon]),
-);
+const ICONS: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(
+    primitiveElements.map((element) => [element.name, element.icon]),
+  ),
+  ...COMPONENT_ICONS,
+};
 
 let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
@@ -194,14 +199,14 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 const FEATURED: readonly string[] = ["button", "card", "alert"];
 
 function PrimitivePage(props: { id: string; onLoad?: string }) {
-  const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id));
+  const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id) ?? COMPONENTS.find((r) => r.id === props.id));
   return (
     <Show when={fixture()} fallback={<p>Not found</p>}>
       {(f) => (
         <>
           <header class="mb-8 flex items-start justify-between gap-4">
             <div class="flex items-start gap-2">
-              <i class={`${ICONS[f().id]} ${TITLE_ICON}`} />
+              <i class={`${ICONS[f().id] ?? "i-lucide-cog"} ${TITLE_ICON}`} />
               <div>
                 <h2>
                   {f().title}
@@ -209,6 +214,11 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 <div class="font-mono text-xs text-text-muted">
                   {f().kind}
                 </div>
+                <Show when={f().id.startsWith("component-")}>
+                  <div class="mt-1 text-xs text-text-muted">
+                    {componentRequirement(f().id)}
+                  </div>
+                </Show>
               </div>
             </div>
             <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
@@ -223,7 +233,8 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
               <Specimen
                 name={e.name}
                 html={e.html}
-                onLoad={f().onLoad ?? props.onLoad}
+                source={e.source}
+                onLoad={e.onLoad ?? f().onLoad ?? props.onLoad}
               />
             )}
           </For>
@@ -233,9 +244,9 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
   );
 }
 
-/** Every primitive, by id, for the index rows. */
-const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number]> = Object
-  .fromEntries(PRIMITIVES.map((p) => [p.id, p]));
+/** Every primitive and machine component, by id, for the index rows. */
+const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number] | (typeof COMPONENTS)[number]> = Object
+  .fromEntries([...PRIMITIVES, ...COMPONENTS].map((p) => [p.id, p]));
 
 /** One specimen on the landing: a component, as a consumer writes it. */
 function FeaturedSpecimen(props: { id: string }) {
@@ -299,7 +310,7 @@ function IndexRow(props: { id: string }) {
  */
 function LandingPage() {
   const components = createMemo(() =>
-    [...PRIMITIVES].sort((a, b) => a.title.localeCompare(b.title))
+    [...PRIMITIVES, ...COMPONENTS].sort((a, b) => a.title.localeCompare(b.title))
   );
   return (
     <>
@@ -309,7 +320,7 @@ function LandingPage() {
           <h2>Primitives</h2>
         </div>
         <div class="font-mono text-xs text-text-muted">
-          spin reference · {PRIMITIVES.length} components
+          spin reference · {PRIMITIVES.length + COMPONENTS.length} components
         </div>
         <p class="max-w-screen-md text-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
@@ -376,7 +387,7 @@ function AppHeader(props: { state: ThemeState }) {
         <Logo size="sm" />
       </div>
       <div class="flex items-center gap-2">
-        <span class="shrink-0 text-xs font-medium text-text-muted">theme</span>
+        <span class="shrink-0 font-mono text-xs text-text-muted">theme</span>
         <ThemePicker
           state={props.state}
           system
@@ -429,7 +440,7 @@ function Rail(props: {
   const montage = () => props.route().startsWith(MONTAGE_ROUTE);
 
   const components = createMemo(() =>
-    PRIMITIVES.filter((page) => page.title.toLowerCase().includes(needle()))
+    [...PRIMITIVES, ...COMPONENTS].filter((page) => page.title.toLowerCase().includes(needle()))
       .sort((a, b) => a.title.localeCompare(b.title))
   );
 
@@ -438,7 +449,7 @@ function Rail(props: {
   );
 
   const shown = () => utilities() ? sections().length : components().length;
-  const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length;
+  const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length + COMPONENTS.length;
 
   const byId = createMemo(
     () => new Map(components().map((page) => [page.id, page])),
@@ -466,19 +477,29 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : primitiveCategories
-        .map((cat) => ({
-          label: cat.label,
-          rows: primitiveElements
-            .filter((element) => element.category === cat.id)
-            .map((element) => byId().get(element.name))
-            .filter((page) => page !== undefined)
-            .map((page) => ({
-              id: page.id,
-              title: page.title,
-              icon: ICONS[page.id],
-            })),
-        }))
+      : [...primitiveCategories.map((cat) => ({
+        label: cat.label,
+        rows: primitiveElements
+          .filter((element) => element.category === cat.id)
+          .map((element) => byId().get(element.name))
+          .filter((page) => page !== undefined)
+          .map((page) => ({
+            id: page.id,
+            title: page.title,
+            icon: ICONS[page.id],
+          })),
+      })),
+      ...COMPONENT_GROUPS.map((group) => ({
+        label: group.label,
+        rows: group.members
+          .map((id) => byId().get(`component-${id}`))
+          .filter((page) => page !== undefined)
+          .map((page) => ({
+            id: page.id,
+            title: page.title,
+            icon: ICONS[page.id],
+          })),
+      }))]
         .filter((group) => group.rows.length > 0)
   );
 

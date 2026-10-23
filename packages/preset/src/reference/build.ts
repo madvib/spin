@@ -109,10 +109,10 @@ export function buildScale(
     id: group.id,
     title: meta.title,
     blurb: meta.blurb,
-    steps: [...steps].sort(compareSteps).map((key) => {
-      const value = meta.values?.[key];
-      return value === undefined ? { key } : { key, value };
-    }),
+    steps: [...steps].sort(compareSteps).map((key) => ({
+      key,
+      value: meta.values?.[key],
+    })),
     axes: axes.length > 0 ? axes : [{ key: "", label: "only" }],
     sample: meta.sample ?? "box",
     unmatched,

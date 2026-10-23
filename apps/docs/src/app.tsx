@@ -10,9 +10,9 @@ import { A, Navigate, Router, useLocation } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { For, lazy, Show } from "solid-js";
-import { ThemePicker } from "@spin/kit";
-import { Logo } from "@spin/kit";
-
+import { BrandFavicon, Logo, ModeToggle, ThemePicker } from "@spin/kit";
+import { NAV_TRACKS } from "./nav.ts";
+import { starterDoc } from "./bits.tsx";
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
 function routeFromFile(file: string): string {
@@ -84,145 +84,70 @@ function buildRoutes(): RouteDefinition[] {
       flat.push(layout);
       continue;
     }
+    const defaultChild = dir === "/guide" ? "install" : children[0].path;
     flat.push({
       ...layout,
       children: [
-        { path: "", component: redirect(`${dir}/${children[0].path}`) },
+        { path: "", component: redirect(`${dir}/${defaultChild}`) },
         ...children,
       ],
     });
   }
+  flat.push(
+    { path: "/guide/themes", component: redirect("/themes") },
+    { path: "/guide/verify", component: redirect("/tooling/lints") },
+    { path: "/tokens", component: redirect("/utilities") },
+    { path: "/tooling", component: redirect("/tooling/lints") },
+  );
   return flat;
 }
 
 const ROUTES: RouteDefinition[] = buildRoutes();
 
-/** One entry in the rail: a path, and the pages nested under it. */
-interface NavEntry {
-  readonly path: string;
-  /** The word the rail shows: the last segment of the path. */
-  readonly label: string;
-  readonly children: NavEntry[];
-}
-
-/**
- * The rail's tree, derived from the routes.
- *
- * A path's segments are its nesting, so a section and the pages under it
- * read as one group whether the router nested them (a folder with an index
- * page) or routed them flat (a folder without one). The routes are the only
- * list; the rail is a reading of it.
- */
-function navTree(paths: readonly string[]): NavEntry[] {
-  const roots: NavEntry[] = [];
-  const index = new Map<string, NavEntry>();
-  for (const path of paths) {
-    const segments = path.split("/").filter((segment) => segment !== "");
-    let parent: NavEntry | undefined;
-    let walked = "";
-    for (const segment of segments) {
-      walked += "/" + segment;
-      let entry = index.get(walked);
-      if (entry === undefined) {
-        entry = { path: walked, label: segment, children: [] };
-        index.set(walked, entry);
-        if (parent === undefined) roots.push(entry);
-        else (parent.children as NavEntry[]).push(entry);
-      }
-      parent = entry;
-    }
-  }
-  return roots;
-}
-
-/** The rail's links are the real routes, nested the way their paths nest. */
-const NAV: readonly NavEntry[] = navTree(
-  ROUTES
-    .map((route) => route.path)
-    .filter((path): path is string =>
-      path !== undefined && path !== "/" && path !== "*" &&
-      !path.includes(":")
-    )
-    .sort(),
-);
-
 function RailLayout(props: { children: JSX.Element }): JSX.Element {
   return (
     <div class="flex min-h-dvh bg-surface text-text font-sans text-md">
       <nav
-        class="sticky top-0 flex h-screen shrink-0 flex-col gap-6 border-e border-border px-4 py-6"
+        class="sticky top-0 flex h-screen w-32 shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
         aria-label="site"
       >
-        <A href="/" end class="flex items-center gap-3 text-text no-underline">
-          <Logo size="md" />
+        <A href="/" end class="no-underline" aria-label="spin home">
+          <Logo size="md" class="text-primary" />
         </A>
-
-        <div class="grid gap-1">
-          <p class="text-xs font-semibold text-text-muted">pages</p>
-          <For each={NAV}>
-            {(entry) => (
-              <>
-                <A
-                  href={entry.path}
-                  class="block py-1 px-2 text-sm rounded-sm no-underline transition-colors duration-fast"
-                  activeClass="bg-surface-raised text-text font-semibold"
-                  inactiveClass="text-text-muted hover:text-text"
-                >
-                  {entry.label}
-                </A>
-                <Show when={entry.children.length > 0}>
-                  <div class="grid gap-1 pl-4">
-                    <For each={entry.children}>
-                      {(child) => (
-                        <A
-                          href={child.path}
-                          class="block py-1 px-2 text-xs rounded-sm no-underline transition-colors duration-fast"
-                          activeClass="bg-surface-raised text-text font-semibold"
-                          inactiveClass="text-text-muted hover:text-text"
-                        >
-                          {child.label}
-                        </A>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-              </>
+        <div class="grid gap-4">
+          <For each={NAV_TRACKS}>
+            {(track) => (
+              <div class="grid gap-1">
+                <p class="overline">{track.label}</p>
+                <For each={track.items}>
+                  {(item) => (
+                    <A
+                      href={item.href}
+                      end={item.href === "/" || item.href === "/themes"}
+                      class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+                      activeClass="bg-surface-raised text-text font-semibold"
+                      inactiveClass="text-text-muted hover:text-text"
+                    >
+                      {item.title}
+                    </A>
+                  )}
+                </For>
+              </div>
             )}
           </For>
         </div>
 
-        <div class="grid gap-2">
-          <p class="text-xs font-semibold text-text-muted">theme</p>
-          <ThemePicker />
-        </div>
-
-        {
-          /*
-          The credit the mark's licence asks for: the web is Lorc's, from the
-          Game Icons set, under CC BY 3.0. It is a link, because the licence
-          is a promise about where the drawing came from, and the answer is
-          one click away.
-        */
-        }
-        <div class="mt-auto grid gap-1">
-          <p class="text-xs text-text-muted">v0.1</p>
-          <p class="text-xs text-text-muted">
-            <a
-              href="https://game-icons.net/1x1/lorc/spider-web.html"
-              target="_blank"
-              rel="noreferrer"
-              class="hover:text-text"
-            >
-              Icons made by Lorc (CC BY 3.0)
-            </a>
-          </p>
+        <div class="mt-auto grid gap-2 pt-4">
+          <hr />
+          <ModeToggle />
+          <ThemePicker class="min-w-0" triggerClass="w-full justify-between" />
         </div>
       </nav>
 
       {
         /* `min-w-0`: a flex item's width is its content's minimum unless it
-          is told otherwise, so the column beside the rail could not shrink
-          and every page scrolled sideways on a narrow screen. */
+        is told otherwise, so the column beside the rail could not shrink
+        and every page scrolled sideways on a narrow screen. */
       }
       <div class="min-w-0 flex-1">{props.children}</div>
     </div>
@@ -236,17 +161,30 @@ function RailLayout(props: { children: JSX.Element }): JSX.Element {
 function Layout(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
   return (
-    <Show
-      when={location.pathname === "/"}
-      fallback={<RailLayout>{props.children}</RailLayout>}
-    >
-      <div class="min-h-dvh bg-surface text-text font-sans text-md">
-        {props.children}
-      </div>
-    </Show>
+    <>
+      <BrandFavicon getPrimary={activePrimary} />
+      <Show
+        when={location.pathname === "/"}
+        fallback={<RailLayout>{props.children}</RailLayout>}
+      >
+        <div class="min-h-dvh bg-surface text-text font-sans text-md">
+          {props.children}
+        </div>
+      </Show>
+    </>
   );
 }
 
 export function App(): JSX.Element {
   return <Router root={Layout}>{ROUTES}</Router>;
+}
+
+/** The active starter's primary, read reactively so the tab icon follows. */
+function activePrimary(): string {
+  const doc = starterDoc() as unknown as Record<string, unknown>;
+  const color = doc["color"] as Record<string, unknown> | undefined;
+  const primary = color?.["primary"] as Record<string, unknown> | undefined;
+  return typeof primary?.["$value"] === "string"
+    ? (primary["$value"] as string)
+    : "";
 }
