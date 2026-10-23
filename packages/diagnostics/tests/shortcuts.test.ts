@@ -46,8 +46,8 @@ export default {
   plugins: [
     spin.vite({
       shortcuts: {
-        stack: "flex flex-col gap-4",
-        panel: "bg-surface-raised border border-border rounded-md p-6",
+        "my-stack": "flex flex-col gap-4",
+        "my-panel": "bg-surface-raised border border-border rounded-md p-6",
       },
     }),
   ],
@@ -60,7 +60,7 @@ Deno.test("a class the project declares is not reported", () => {
     new Set(),
     shortcutsIn(CONFIG),
   );
-  assertEquals(reported(facts, "stack panel"), []);
+  assertEquals(reported(facts, "my-stack my-panel"), []);
 });
 
 Deno.test("a class the project does not declare is still reported", () => {
@@ -69,7 +69,7 @@ Deno.test("a class the project does not declare is still reported", () => {
     new Set(),
     shortcutsIn(CONFIG),
   );
-  assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+  assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
 });
 
 Deno.test("a shortcut that spends a class the theme cannot make is reported", () => {
@@ -91,7 +91,7 @@ Deno.test("a project that declares shortcuts the lint cannot read says nothing",
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: studioShortcuts })`),
   );
-  assertEquals(reported(facts, "stack-sm bg-primary"), []);
+  assertEquals(reported(facts, "my-stack bg-primary"), []);
 });
 
 Deno.test("the lint learns the shortcuts of the project a file belongs to", async () => {
@@ -100,8 +100,8 @@ Deno.test("the lint learns the shortcuts of the project a file belongs to", asyn
     await Deno.mkdir(`${root}/src`);
     await Deno.writeTextFile(`${root}/vite.config.ts`, CONFIG);
     const facts = factsForFile(`${root}/src/page.tsx`);
-    assertEquals(reported(facts, "stack panel"), []);
-    assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+    assertEquals(reported(facts, "my-stack my-panel"), []);
+    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
     await Deno.remove(root, { recursive: true });
   }
@@ -115,18 +115,18 @@ Deno.test("a table the configuration keeps in a constant is read", async () => {
     await Deno.mkdir(`${root}/src`);
     await Deno.writeTextFile(
       `${root}/vite.config.ts`,
-      `const studioShortcuts = { stack: "flex flex-col gap-4" };
+      `const studioShortcuts = { "my-stack": "flex flex-col gap-4" };
 spin.vite({ shortcuts: studioShortcuts });`,
     );
     const facts = factsForFile(`${root}/src/page.tsx`);
-    assertEquals(reported(facts, "stack"), []);
-    assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+    assertEquals(reported(facts, "my-stack"), []);
+    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
     await Deno.remove(root, { recursive: true });
   }
 });
 
-Deno.test("a project that declares no shortcuts composes nothing", async () => {
+Deno.test("a project that declares no shortcuts adds nothing to the product's set", async () => {
   const root = await Deno.makeTempDir();
   try {
     await Deno.mkdir(`${root}/src`);
@@ -136,7 +136,9 @@ Deno.test("a project that declares no shortcuts composes nothing", async () => {
     );
     assertEquals(Object.keys(readProjectShortcuts(root).shortcuts).length, 0);
     const facts = factsForFile(`${root}/src/page.tsx`);
-    assertEquals(reported(facts, "stack"), ["stack"]);
+    // The standard compositions ship with the preset; the project added none.
+    assertEquals(reported(facts, "stack panel"), []);
+    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
     await Deno.remove(root, { recursive: true });
   }

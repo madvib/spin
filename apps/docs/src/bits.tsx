@@ -12,6 +12,7 @@ import type { JSX } from "solid-js";
 import { createSignal, onCleanup, onMount } from "solid-js";
 import { starterThemes } from "@spin/theme/themes";
 import { mode, theme } from "@spin/kit";
+import { CodeBlock, Section as SharedSection } from "@spin/kit";
 
 /**
  * Scroll-in for the blocks below the fold: a plain opacity fade, skipped
@@ -63,26 +64,20 @@ export function Section(props: {
   children: JSX.Element;
 }): JSX.Element {
   return (
-    <section class="mb-10 scroll-mt-20" id={props.id}>
-      <h2 class="flex items-center gap-2">
-        {
-          /* The mark before the title: a rule in the brand ink, drawn the way
-          * the theme draws its rules — a hairline of the accent rather than a
-          * fill the theme gave another element. */
-        }
-        <span class="block h-1 w-4 border-t-4 border-solid border-primary" />
-        {props.title}
-      </h2>
-      <div class="text-text-muted">
-        {props.children}
-      </div>
-    </section>
+    <SharedSection
+      title={props.title}
+      id={props.id}
+      class="mb-10 scroll-mt-20"
+      muted
+    >
+      {props.children}
+    </SharedSection>
   );
 }
 
 export function Eyebrow(props: { children: JSX.Element }): JSX.Element {
   return (
-    <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+    <p class="overline">
       {props.children}
     </p>
   );
@@ -92,15 +87,7 @@ export function Code(props: {
   code: string;
   class?: string;
 }): JSX.Element {
-  return (
-    <pre
-      class={`font-mono text-sm bg-surface-raised border border-border rounded-md p-4 overflow-x-auto text-text ${
-        props.class ?? ""
-      }`}
-    >
-      <code>{props.code}</code>
-    </pre>
-  );
+  return <CodeBlock code={props.code} class={props.class ?? "text-xs"} />;
 }
 
 export function Chip(props: { children: JSX.Element }): JSX.Element {

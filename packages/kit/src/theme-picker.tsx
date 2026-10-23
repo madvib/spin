@@ -1,22 +1,20 @@
 /**
  * The one theme + appearance control every spin app uses.
  *
- * Trigger: the current starter's name and an appearance icon. The panel:
- * every starter with a live swatch preview of that document's own tokens,
- * and a sun/moon pair for the mode (shown only for two-mode starters).
- * Names carry themes; icons carry appearance.
+ * Trigger: the current theme's name and an appearance icon. The panel: every
+ * theme with a live swatch preview of that document's own tokens, and a
+ * sun/moon pair for the mode (shown only for two-mode themes). Names carry
+ * themes; icons carry appearance.
+ *
+ * The control reads a {@link ThemeState}. An app that serves the shipped
+ * starters uses the default one; an app that serves its own projects' themes
+ * passes the state it created, and the control reads the same facts from it.
  */
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { starterThemes } from "@spin/theme/themes";
-import {
-  mode,
-  modesFor,
-  setMode,
-  setTheme,
-  starterList,
-  theme,
-} from "./theme-state.ts";
+import { themeModes } from "@spin/theme/themes";
+import type { ThemeState } from "./theme-state.ts";
+import { defaultThemeState } from "./theme-state.ts";
 
 function Sun(props: { class?: string }): JSX.Element {
   return (
@@ -51,12 +49,31 @@ function Moon(props: { class?: string }): JSX.Element {
   );
 }
 
-/** Three chips of a starter's own document: surface, accent, text. */
-function Swatches(props: { name: string }): JSX.Element {
+/** The platform's own face: two panes on a stand. */
+function System(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class={props.class}
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="13" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
+  );
+}
+
+/** Three chips of a document's own colours: surface, primary, text. */
+function Swatches(props: { document: unknown }): JSX.Element {
   const color = (token: string): string => {
-    const doc = starterThemes[
-      props.name as keyof typeof starterThemes
-    ] as { color?: Record<string, { $value?: unknown }> } | undefined;
+    const doc = props.document as
+      | { color?: Record<string, { $value?: unknown }> }
+      | undefined;
     const value = doc?.color?.[token]?.$value;
     return typeof value === "string" ? value : "";
   };
@@ -74,11 +91,36 @@ function Swatches(props: { name: string }): JSX.Element {
   );
 }
 
-export function ThemePicker(): JSX.Element {
+/** The modes a document serves, as the picker offers them. */
+function modesOf(document: unknown): readonly string[] {
+  if (document === undefined) return ["light"];
+  const served = themeModes(document as Parameters<typeof themeModes>[0])
+    .filter((mode) => mode === "light" || mode === "dark");
+  return served.length > 0 ? served : ["light"];
+}
+
+export interface ThemePickerProps {
+  /** The state to drive. Defaults to the kit's starter state. */
+  readonly state?: ThemeState;
+  /** Offer the platform's appearance as a third choice. */
+  readonly system?: boolean;
+  /** Extra classes on the control's wrapper. */
+  readonly class?: string;
+  /** Extra classes on the trigger. */
+  readonly triggerClass?: string;
+}
+
+export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
+  const state = props.state ?? defaultThemeState;
   const [open, setOpen] = createSignal(false);
   let panel: HTMLDivElement | undefined;
+  let trigger: HTMLButtonElement | undefined;
+
   const onDocClick = (event: MouseEvent) => {
-    if (!panel?.contains(event.target as Node)) setOpen(false);
+    if (!open()) return;
+    const target = event.target as Node | null;
+    if (panel?.contains(target) || trigger?.contains(target)) return;
+    setOpen(false);
   };
   const onKey = (event: KeyboardEvent) => {
     if (event.key === "Escape") setOpen(false);
@@ -92,17 +134,39 @@ export function ThemePicker(): JSX.Element {
     });
   });
 
+  const modes = () => modesOf(state.documents[state.theme()]);
+  const offerSystem = () => props.system === true;
+
   return (
-    <div class="relative">
+    <div class={`relative ${props.class ?? ""}`}>
       <button
+        ref={(el) => {
+          trigger = el;
+        }}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open()}
-        onClick={() => setOpen(!open())}
-        class="secondary s-sm flex items-center gap-2 hover:border-border-strong transition-colors duration-fast"
+        onClick={(event) => {
+          // The document's click listener closes the panel. The trigger's own
+          // click is what opened it, so it must not reach that listener in the
+          // same tick — which is why the picker used to open and close at once.
+          event.stopPropagation();
+          setOpen(!open());
+        }}
+        class={[
+          "secondary s-sm flex items-center gap-2",
+          props.triggerClass ?? "",
+        ].filter(Boolean).join(" ")}
       >
-        <span>{theme()}</span>
-        {mode() === "dark" ? <Moon class="h-4 w-4" /> : <Sun class="h-4 w-4" />}
+        <span>{state.theme()}</span>
+        <Show
+          when={state.want() === "system"}
+          fallback={state.mode() === "dark"
+            ? <Moon class="h-4 w-4" />
+            : <Sun class="h-4 w-4" />}
+        >
+          <System class="h-4 w-4" />
+        </Show>
       </button>
       <Show when={open()}>
         <div
@@ -111,57 +175,57 @@ export function ThemePicker(): JSX.Element {
           }}
           role="dialog"
           aria-label="theme and appearance"
-          class="absolute right-0 z-50 mt-2 border border-border bg-surface rounded-md shadow-lg p-2"
+          class="absolute end-0 z-dropdown mt-2 min-w-[12rem] border border-border bg-surface rounded-md shadow-lg p-2"
         >
-          {
-            /*
-            The label is a SPAN, not a paragraph: the theme owns the space
-            between blocks, so a paragraph here would carry the theme's
-            margin, and the rows below it are inset by the control's own
-            padding. A span keeps the label on the rows' edge.
-          */
-          }
           <span class="block px-2 py-1 text-xs font-semibold text-text-muted">
             theme
           </span>
-          <For each={starterList}>
+          <For each={state.names}>
             {(name) => (
               <button
                 type="button"
-                onClick={() => setTheme(name)}
-                aria-pressed={theme() === name}
+                onClick={() => state.setTheme(name)}
+                aria-pressed={state.theme() === name}
                 class={`flex w-full items-center justify-between gap-4 px-2 py-1 text-sm rounded-sm transition-colors duration-fast ${
-                  theme() === name
+                  state.theme() === name
                     ? "bg-surface-raised text-text font-semibold"
                     : "text-text-muted hover:text-text"
                 }`}
               >
                 <span>{name}</span>
-                <Swatches name={name} />
+                <Swatches document={state.documents[name]} />
               </button>
             )}
           </For>
-          <Show when={modesFor(theme()).length > 1}>
+          <Show when={modes().length > 1 || offerSystem()}>
             <span class="block mt-2 px-2 py-1 text-xs font-semibold text-text-muted">
               appearance
             </span>
             <div class="flex gap-2 px-2 py-1">
-              <For each={["light", "dark"] as const}>
+              <For
+                each={(offerSystem()
+                  ? [...modes(), "system"]
+                  : [...modes()]) as readonly string[]}
+              >
                 {(name) => (
                   <button
                     type="button"
-                    onClick={() => setMode(name)}
-                    aria-label={`${name} appearance`}
-                    aria-pressed={mode() === name}
+                    onClick={() => state.setWant(name)}
+                    aria-label={name === "system"
+                      ? "follow the system appearance"
+                      : `${name} appearance`}
+                    aria-pressed={state.want() === name}
                     class={`rounded-sm p-1 border transition-colors duration-fast ${
-                      mode() === name
+                      state.want() === name
                         ? "border-primary text-primary"
                         : "border-border text-text-muted hover:text-text"
                     }`}
                   >
                     {name === "light"
                       ? <Sun class="h-4 w-4" />
-                      : <Moon class="h-4 w-4" />}
+                      : name === "dark"
+                      ? <Moon class="h-4 w-4" />
+                      : <System class="h-4 w-4" />}
                   </button>
                 )}
               </For>

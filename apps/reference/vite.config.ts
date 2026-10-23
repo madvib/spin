@@ -23,7 +23,6 @@ export default defineConfig({
       // `spin/*.json` at this root — the same files the studio edits — so a
       // theme change in the studio re-themes this app and nothing has to be
       // re-imported. This project defines no themes of its own.
-
       presets: [presetIcons({ collections: { lucide } as never })],
       // The studio bundle, built by `apps/studio/deno task build`. Absent
       // until built — the mount skips it rather than failing the server.
@@ -48,6 +47,9 @@ export default defineConfig({
             here,
             "../../packages/preset/src/rules/primitives/categories.ts",
           ),
+          // The kit's shared components: the section, the specimen, the theme
+          // picker. Their classes are part of this app's content.
+          resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
           resolve(here, "src/**/*.{tsx,ts}"),
         ],
         pipeline: {

@@ -88,12 +88,26 @@ Deno.test("a scale step the starters declare is part of the vocabulary", () => {
   );
 });
 
+Deno.test("the product's own compositions are vocabulary without a project declaration", () => {
+  // `stack`, `row`, `split`, `panel` and `overline` ship with the preset, so a
+  // project writes them without declaring them. A lint that called them
+  // unknown would flag the product's own pages.
+  const facts = factsFor(Object.values(starterThemes));
+  assertEquals(
+    reported(
+      facts,
+      "stack stack-sm stack-lg row row-sm split panel overline cluster",
+    ),
+    [],
+  );
+});
+
 Deno.test("with no project theme, the starters' vocabulary applies", () => {
   // A project that has not forked a theme still renders: it serves the
   // starters. The vocabulary is theirs, and only theirs.
   const facts = projectFacts({}, new Set());
   assertEquals(reported(facts, "text-xs gap-2 rounded-md"), []);
-  assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+  assertEquals(reported(facts, "my-stack"), ["my-stack"]);
 });
 
 Deno.test("a class the animation layer defines is part of the vocabulary", () => {
@@ -119,5 +133,5 @@ Deno.test("a class the project declares is known beside the starters", () => {
     new Set(),
   );
   assertEquals(reported(facts, "p-40 text-xs"), []);
-  assertEquals(reported(facts, "stack-sm"), ["stack-sm"]);
+  assertEquals(reported(facts, "my-stack"), ["my-stack"]);
 });

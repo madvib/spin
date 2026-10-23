@@ -27,6 +27,7 @@ import {
   describeCatalog,
   primitiveContracts,
   primitiveVariants,
+  spinShortcuts,
 } from "@spin/preset";
 import { primitiveVariants as animationVariants } from "@spin/animation";
 import type { Facts, ScopeFact } from "./core.ts";
@@ -190,10 +191,32 @@ export function factsFor(
     // A declaration the lint could not read leaves the vocabulary
     // incomplete: the rule that asks "can this be produced?" stands down,
     // and the rest of the facts still stand.
-    shortcuts: shortcuts.unreadable
-      ? null
-      : new Map(Object.entries(shortcuts.shortcuts)),
+    //
+    // The product's own compositions are always present: the preset ships
+    // them, so a project does not declare `stack` to be allowed to write it.
+    // A project's shortcuts are layered on top, which lets one name be
+    // specialised without restating the standard set.
+    shortcuts: shortcuts.unreadable ? null : new Map([
+      ...Object.entries(spinShortcuts).map((
+        [name, value],
+      ) => [name, shortcutParts(value)] as const),
+      ...Object.entries(shortcuts.shortcuts).map((
+        [name, value],
+      ) => [name, shortcutParts(value)] as const),
+    ]),
   };
+}
+
+/**
+ * A shortcut's classes, whether it was written as one string or a list.
+ *
+ * The product's own table uses Uno's string form; a project's parsed table
+ * may already be a list. The vocabulary stores the parts either way, so the
+ * rule that checks what a shortcut expands to reads classes and not
+ * characters.
+ */
+function shortcutParts(value: string | readonly string[]): readonly string[] {
+  return typeof value === "string" ? value.split(/\s+/).filter(Boolean) : value;
 }
 
 /**
@@ -204,8 +227,7 @@ export function factsFor(
  * theme that says the same thing twice — a project's own theme and the
  * starter it was forked from — is read in the order the documents came in,
  * so the last one is the answer.
- */
-function valuesOf(trees: readonly TokenTree[]): Map<string, string> {
+ */ function valuesOf(trees: readonly TokenTree[]): Map<string, string> {
   const out = new Map<string, string>();
   for (const tree of trees) {
     const resolved = resolveAliases(tree);

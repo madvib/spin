@@ -16,38 +16,11 @@ import studioTheme from "./theme.json" with { type: "json" };
 /**
  * The studio's own compositions.
  *
- * These are the decisions every page of this app makes: stack things
- * vertically with a gap, put things beside each other, hold a control rail
- * beside a surface. Written out each time they are `flex flex-col gap-4`
- * and `flex gap-4` — repeated in eight files, and the repetition is why the
- * app looks generic.
- *
- * They are NOT primitives and NOT tokens. A token is a value; a primitive
- * carries base on a semantic tag. A shortcut consumes both and commits to a
- * composition, which is a third thing: quality of life that keeps one
- * page's spacing from drifting from the next one's.
- *
- * So they live here, in the studio's own configuration: the vocabulary an
- * app composes is the app's decision, and spin does not forbid a project
- * from composing its own. What they SPEND is still the theme's — a gap of
- * `gap-4` is the theme's spacing step, so a theme that prefers roomier
- * sections sets it once and every composition follows.
+ * The standard ones — `stack`, `row`, `split`, `panel`, `overline` — ship
+ * with the preset, so every app that draws a page reads the same set. What is
+ * here is the studio's own: the two drawer regions and the preview's scope.
  */
 const studioShortcuts = {
-  /** A column of things, one gap apart. */
-  "stack": "flex flex-col gap-4",
-  /** The same column, close together. */
-  "stack-sm": "flex flex-col gap-2",
-  /** The same column, with room between. */
-  "stack-lg": "flex flex-col gap-8",
-  /** A row of things, on one line. */
-  "row": "flex items-center gap-4",
-  /** The same row, close together. */
-  "row-sm": "flex items-center gap-2",
-  /** A row that gives its ends to their owners. */
-  "split": "flex items-center justify-between gap-4",
-  /** A raised surface: the theme's fill, edge, corners and air. */
-  "panel": "bg-surface-raised border border-border rounded-md p-6",
   /**
    * The page's region: the room the shell gives it.
    *
@@ -173,6 +146,14 @@ export default defineConfig(({ command }) => ({
           resolve(
             import.meta.dirname,
             "../../packages/preset/src/rules/primitives/categories.ts",
+          ),
+          // The kit's shared components carry classes too — a section, a
+          // specimen, the theme picker — and a class the scan does not see is
+          // a class the sheet does not carry. The kit is internal chrome, so
+          // its source is part of every app's content.
+          resolve(
+            import.meta.dirname,
+            "../../packages/kit/src/**/*.{tsx,ts}",
           ),
         ],
         pipeline: {

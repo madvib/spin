@@ -61,6 +61,15 @@ const SERVED: Record<string, Record<string, unknown>> = {
 export const THEMES: readonly string[] = Object.keys(SERVED);
 
 /**
+ * The documents the app serves, by name.
+ *
+ * The kit's theme state reads this map: a project theme is a theme the
+ * picker can serve, and a theme the picker cannot name is a theme the app
+ * renders but nobody can choose.
+ */
+export const themeDocuments: Readonly<Record<string, unknown>> = SERVED;
+
+/**
  * A theme's document, or undefined when the name is not one of ours.
  *
  * The lookup is a cast rather than an index signature: the cast is the price

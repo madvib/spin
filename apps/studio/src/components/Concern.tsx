@@ -11,6 +11,14 @@ import {
 } from "../lib/store.ts";
 
 /**
+ * The section furniture is the product's, not the studio's: `@spin/kit`
+ * exports the marked heading, the note and the fact on the right, and the
+ * docs and the reference app read the same component. The pages here import
+ * them from this module so a concern page reads as one vocabulary.
+ */
+export { Marker, Section } from "@spin/kit";
+
+/**
  * The furniture every concern page is built from.
  *
  * The overview is the model. It opens with a name and one line saying what
@@ -74,99 +82,18 @@ export function ConcernPage(props: {
 }
 
 /**
- * A section on a concern page.
- *
- * The marker is a bar in the acting colour — the same mark the component
- * pages put beside an example's name — and it says "a section starts here"
- * in the one place on the page where a reader looks for it. The fact on the
- * right says what the section holds, so the shape of what follows is known
- * before it is read.
- */
-export function Section(props: {
-  title: string;
-  /** The fact the section carries: how many steps, how many curves. */
-  fact?: string;
-  /** One line: what the section is for. */
-  note?: string;
-  /**
-   * The colour the section's family wears.
-   *
-   * A page that holds two kinds of token says so with the colours: the
-   * subject wears the acting colour and the other family wears the accent,
-   * so the reader knows which set of tokens the section is about before the
-   * first row is read.
-   */
-  tone?: "primary" | "accent";
-  /** A control that belongs to the section, on the right of its heading. */
-  aside?: JSX.Element;
-  children: JSX.Element;
-}) {
-  return (
-    <section class="stack-sm" aria-label={props.title}>
-      <div class="split">
-        <h2 class="row-sm">
-          <Marker tone={props.tone} />
-          <span class="min-w-0">{props.title}</span>
-        </h2>
-        <div class="row-sm shrink-0">
-          <Show when={props.fact}>
-            <span class="text-sm text-text-muted">{props.fact}</span>
-          </Show>
-          {props.aside}
-        </div>
-      </div>
-      <Show when={props.note}>
-        <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
-      </Show>
-      {props.children}
-    </section>
-  );
-}
-
-/**
- * The colours a marker can wear, and the classes each one wears.
- *
- * Written out rather than composed: the scanner reads source text, so a
- * class name assembled at runtime is a class nothing generates.
- */
-const MARKERS: Record<string, string> = {
-  primary: "bg-primary",
-  accent: "bg-accent",
-};
-
-/**
- * The bar that marks a section.
- *
- * The acting colour and nothing else. It says "this is a section", and it
- * is the one mark the studio puts in the same place on every page, so a
- * reader who knows one page knows all of them.
- */
-export function Marker(props: { tone?: "primary" | "accent" }) {
-  return (
-    <span
-      class={`block h-1 w-4 shrink-0 rounded-full ${
-        MARKERS[props.tone ?? "primary"] ?? ""
-      }`}
-      aria-hidden="true"
-    />
-  );
-}
-
-/**
  * The frame a figure stands in.
  *
  * A raised card, the way the overview frames a concern: the figure is not
- * part of the page around it, and the card is what says so.
+ * part of the page around it, and the card is what says so. The surface, the
+ * corner, the edge and the air are the card primitive's decisions, so the
+ * studio does not restate them.
  */
 export function Frame(props: { children: JSX.Element; class?: string }) {
   return (
-    <div
-      class={`rounded-lg border border-border bg-surface-raised p-4 ${
-        props.class ?? ""
-      }`}
-    >
+    <card class={props.class}>
       {props.children}
-    </div>
+    </card>
   );
 }
 
@@ -257,39 +184,29 @@ export function TokenLine(props: {
 }
 
 /**
- * The tones a badge can wear, and the classes each one wears.
- *
- * Written out rather than composed: the scanner reads source text, so a
- * class name assembled at runtime is a class nothing generates.
- */
-const TONES: Record<string, string> = {
-  primary: "bg-primary text-on-primary",
-  accent: "bg-accent text-on-accent",
-  warning: "bg-semantic-warning text-on-semantic-warning",
-  error: "bg-semantic-error text-on-semantic-error",
-  info: "bg-semantic-info text-on-semantic-info",
-};
-
-/**
  * A status, as a pill.
  *
- * The fill says what the status is and the ink on it is the theme's own
- * answer for what reads on that fill — so a badge is legible in a theme
- * that has never been looked at, and a theme that changes its palette
- * changes the badge with it.
+ * The primitive's own badge, with the studio's tone names mapped onto the
+ * variants the theme declares. The fill, the ink on it, the radius and the
+ * padding are the badge's decisions — the studio does not restate them, so a
+ * theme that changes its palette changes every status in the tool.
  */
+const TONE_VARIANTS = {
+  primary: "primary",
+  accent: "accent",
+  warning: "warning",
+  error: "danger",
+  info: "info",
+} as const;
+
 export function Badge(props: {
-  tone: "primary" | "accent" | "warning" | "error" | "info";
+  tone: keyof typeof TONE_VARIANTS;
   children: JSX.Element;
 }) {
   return (
-    <span
-      class={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
-        TONES[props.tone] ?? ""
-      }`}
-    >
+    <badge variant={TONE_VARIANTS[props.tone]} class="shrink-0">
       {props.children}
-    </span>
+    </badge>
   );
 }
 
