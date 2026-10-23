@@ -404,6 +404,8 @@ export const def = {
       },
     },
     focused: { read: (_context, state) => state === "focused" },
+    invalid: { read: (context) => context.invalid === true },
+    disabled: { read: (context) => context.disabled },
   },
   methods: {
     getItems: {
