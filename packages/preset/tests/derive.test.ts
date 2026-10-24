@@ -1,4 +1,8 @@
-import { assert, assertEquals } from "@std/assert";
+import { copyFile, mkdtemp, readFile, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { writeManifest } from "../src/rules/primitives/derive.ts";
 
@@ -16,22 +20,22 @@ const MANIFEST = new URL(
   import.meta.url,
 );
 
-Deno.test("a regen keeps the comment above an authored field", async () => {
+test("a regen keeps the comment above an authored field", async () => {
   // `component` is hand knowledge the rules cannot derive, and the comment
   // above it says why the field is what it is. A regen that drops the
   // comment is one regen away from dropping the field it explains.
-  const copy = await Deno.makeTempFile({ suffix: "manifest.ts" });
+  const copy = await mkdtemp(join(tmpdir(),"spin-")) + "/manifest.ts";
   try {
-    await Deno.copyFile(MANIFEST, copy);
+    await copyFile(MANIFEST, copy);
     await writeManifest(pathToFileURL(copy));
     const avatar = /^ {2}avatar: \{[\s\S]*?\n {2}\},/m.exec(
-      await Deno.readTextFile(copy),
+      await readFile(copy, "utf8"),
     )?.[0] ?? "";
     assert(
       avatar.includes("// The ladder is the avatar's whole palette"),
       `the authored comment survives the regen:\n${avatar}`,
     );
-    assertEquals(
+    deepStrictEqual(
       avatar.includes(
         '{ path: "avatar.md", type: "dimension", value: "2.5rem" }',
       ),
@@ -39,6 +43,6 @@ Deno.test("a regen keeps the comment above an authored field", async () => {
       "and the field it explains, with it",
     );
   } finally {
-    await Deno.remove(copy);
+    await rm(copy);
   }
 });

@@ -34,6 +34,7 @@
  */
 
 import { dirname, join, relative, resolve } from "node:path";
+import { mkdir, rm, copyFile, chmod, stat, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { renderSkill } from "../packages/theme/src/skill/index.ts";
 import { reachableFiles } from "./dist-graph.ts";
@@ -65,15 +66,14 @@ const SKILL_RENDERERS: Record<string, (template: string) => string> = {
   "@spin/theme": (template) => renderSkill(template),
 };
 
-/** A package's `deno.json`, as far as the build cares. */
+/** A package's `package.json`, as far as the build cares. */
 interface Manifest {
   readonly name: string;
   readonly version: string;
   /** Subpath → source file, both relative to the package directory. */
   readonly exports: Record<string, string>;
-  /** Bare specifier → its target, as the manifest spells it. */
-  readonly imports: Record<string, string>;
-  readonly compilerOptions: Record<string, unknown>;
+  /** Workspace dependencies, by package name. */
+  readonly workspaceDeps: readonly string[];
 }
 
 /** One module of the graph, as `deno info` reports it. */
@@ -94,31 +94,48 @@ interface Graph {
 }
 
 async function readJson(path: string): Promise<Record<string, unknown>> {
-  return JSON.parse(await Deno.readTextFile(path));
+  return JSON.parse(await readFile(path, "utf8"));
 }
 
 async function exists(path: string): Promise<boolean> {
   try {
-    await Deno.stat(path);
+    await stat(path);
     return true;
   } catch {
     return false;
   }
 }
 
-/** The `deno.json` of a package, reduced to what the build reads. */
+/** A package's `package.json`, reduced to what the build reads. */
 async function loadManifest(dir: string): Promise<Manifest> {
-  const raw = await readJson(join(dir, "deno.json"));
-  const exports = raw["exports"];
-  const subpaths: Record<string, string> = typeof exports === "string"
-    ? { ".": exports }
-    : (exports as Record<string, string>);
+  const raw = await readJson(join(dir, "package.json"));
+  // Workspace manifests point at `src` for development; the `default`
+  // condition is the module, `types` the declarations. Publish manifests
+  // under `npm/` point at `dist` instead — never read here.
+  const exports = (raw["exports"] ?? {}) as Record<
+    string,
+    string | { default?: string; types?: string }
+  >;
+  const subpaths: Record<string, string> = {};
+  for (const [subpath, target] of Object.entries(exports)) {
+    // A types-only export (`.d.ts` with no runtime module) still ships its
+    // declarations; it just has no JavaScript entry to compile. The
+    // `.d.ts` suffix marks it for the declaration path in `prepare`.
+    if (typeof target === "string") subpaths[subpath] = target;
+    else if (target.default !== undefined) subpaths[subpath] = target.default;
+    else if (target.types !== undefined) subpaths[subpath] = target.types;
+  }
+  const allDeps = {
+    ...((raw["dependencies"] ?? {}) as Record<string, string>),
+    ...((raw["peerDependencies"] ?? {}) as Record<string, string>),
+  };
   return {
     name: raw["name"] as string,
     version: raw["version"] as string,
     exports: subpaths,
-    imports: (raw["imports"] ?? {}) as Record<string, string>,
-    compilerOptions: (raw["compilerOptions"] ?? {}) as Record<string, unknown>,
+    workspaceDeps: Object.entries(allDeps)
+      .filter(([, range]) => range === "workspace:*")
+      .map(([name]) => name),
   };
 }
 
@@ -130,8 +147,8 @@ async function loadManifest(dir: string): Promise<Manifest> {
  */
 async function publishablePackages(): Promise<string[]> {
   const found: string[] = [];
-  for await (const entry of Deno.readDir(PACKAGES_DIR)) {
-    if (!entry.isDirectory) continue;
+  for (const entry of await readdir(PACKAGES_DIR, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
     if (entry.name.startsWith(COPY_PREFIX)) continue;
     const dir = join(PACKAGES_DIR, entry.name);
     if (await exists(join(dir, NPM_DIR, "package.json"))) {
@@ -146,26 +163,21 @@ async function run(
   args: string[],
   cwd: string,
 ): Promise<{ code: number; out: string; err: string }> {
-  const process = new Deno.Command(cmd, {
-    args,
-    cwd,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stdout, stderr } = await process.output();
+  const { spawnSync } = await import("node:child_process");
+  const r = spawnSync(cmd, args, { cwd, encoding: "utf8" });
   return {
-    code,
-    out: new TextDecoder().decode(stdout),
-    err: new TextDecoder().decode(stderr),
+    code: r.status ?? 1,
+    out: r.stdout ?? "",
+    err: r.stderr ?? "",
   };
 }
 
 /** Every file under a directory, relative to it. */
 async function walk(dir: string): Promise<string[]> {
   const found: string[] = [];
-  for await (const entry of Deno.readDir(dir)) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory) {
+    if (entry.isDirectory()) {
       found.push(...(await walk(path)).map((sub) => join(entry.name, sub)));
     } else {
       found.push(entry.name);
@@ -177,11 +189,11 @@ async function walk(dir: string): Promise<string[]> {
 /** The empty directories under a directory, deepest first. */
 async function emptyDirs(dir: string): Promise<string[]> {
   const found: string[] = [];
-  for await (const entry of Deno.readDir(dir)) {
-    if (!entry.isDirectory) continue;
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
     const path = join(dir, entry.name);
     found.push(...(await emptyDirs(path)));
-    if ((await Array.fromAsync(Deno.readDir(path))).length === 0) {
+    if ((await readdir(path, { withFileTypes: true })).length === 0) {
       found.push(path);
     }
   }
@@ -406,63 +418,24 @@ function rewriteFile(
   return out + text.slice(cursor);
 }
 
-/**
- * The installed copy of an npm specifier.
- *
- * The build resolves npm packages from the workspace's `node_modules`
- * rather than from the registry: the workspace's lockfile already pins what
- * is installed, and the build must not reach for the network to find out
- * what it has.
- */
-function installedNpm(specifier: string): string | null {
-  if (!specifier.startsWith("npm:")) return null;
-  const bare = specifier.slice("npm:".length);
-  const versionAt = bare.lastIndexOf("@");
-  const withoutVersion = versionAt > 0 ? bare.slice(0, versionAt) : bare;
-  const parts = withoutVersion.split("/");
-  const name = withoutVersion.startsWith("@")
-    ? parts.slice(0, 2).join("/")
-    : parts[0];
-  const subpath = withoutVersion.slice(name.length);
-  return join(REPO, "node_modules", name) + subpath;
-}
 
 /**
- * The import map the compile reads.
+ * The import map the graph reads.
  *
- * The workspace's own manifests are the source of truth, and Deno merges the
- * root's map with the member's. This reproduces that merge for the copy,
- * and adds the subpaths a cross-package import is published under — the copy
- * sits beside the package it came from, so the relative targets in the
- * member's map resolve to the same files they did before.
+ * The copy's cross-package imports are bare `@spin/*` specifiers, and the
+ * graph needs them pointed at files: the sibling subpaths. The copy sits
+ * beside the package it came from, so the relative targets resolve to the
+ * same files the source package resolves.
  */
 function buildImportMap(
-  copyDir: string,
-  manifest: Manifest,
-  root: Manifest,
   siblings: Map<string, Manifest>,
 ): Record<string, string> {
   const map: Record<string, string> = {};
-  const add = (key: string, value: string, base: string): void => {
-    if (value.startsWith("./") || value.startsWith("../")) {
-      map[key] = new URL(`file://${resolve(base, value)}`).href;
-      return;
-    }
-    const installed = installedNpm(value);
-    map[key] = installed ? new URL(`file://${installed}`).href : value;
-  };
-  for (const [key, value] of Object.entries(root.imports)) {
-    add(key, value, REPO);
-  }
-  for (const [key, value] of Object.entries(manifest.imports)) {
-    add(key, value, copyDir);
-  }
-  // The subpaths a cross-package import is published under.
   for (const [name, sibling] of siblings) {
     for (const [subpath, file] of Object.entries(sibling.exports)) {
       const key = subpath === "."
-        ? name
-        : `${name}/${subpath.replace(/^\.\//, "")}`;
+        ? sibling.name
+        : `${sibling.name}/${subpath.replace(/^\.\//, "")}`;
       map[key] = new URL(
         `file://${resolve(join(PACKAGES_DIR, name), file)}`,
       ).href;
@@ -486,7 +459,7 @@ async function moduleGraph(
   entries: string[],
 ): Promise<Graph> {
   const synthetic = join(dirname(configPath), "entries.ts");
-  await Deno.writeTextFile(
+  await writeFile(
     synthetic,
     entries.map((entry) => `import ${JSON.stringify(entry)};`).join("\n") +
       "\n",
@@ -535,15 +508,14 @@ interface Prepared {
 async function prepare(
   name: string,
   manifests: Map<string, Manifest>,
-  root: Manifest,
 ): Promise<Prepared> {
   const dir = join(PACKAGES_DIR, name);
   const manifest = manifests.get(name)!;
   const copyDir = join(PACKAGES_DIR, `${COPY_PREFIX}${name}`);
   const copySrc = join(copyDir, "src");
 
-  await Deno.remove(copyDir, { recursive: true }).catch(() => {});
-  await Deno.mkdir(copySrc, { recursive: true });
+  await rm(copyDir, { recursive: true }).catch(() => {});
+  await mkdir(copySrc, { recursive: true });
 
   const entryFiles: string[] = [];
   const declarationExports: string[] = [];
@@ -556,37 +528,33 @@ async function prepare(
   for (const file of await walk(join(dir, "src"))) {
     const from = join(dir, "src", file);
     const to = join(copySrc, file);
-    await Deno.mkdir(dirname(to), { recursive: true });
+    await mkdir(dirname(to), { recursive: true });
     if (!/\.tsx?$/.test(file)) {
-      await Deno.copyFile(from, to);
+      await copyFile(from, to);
       continue;
     }
-    const text = await Deno.readTextFile(from);
-    await Deno.writeTextFile(
+    const text = await readFile(from, "utf8");
+    await writeFile(
       to,
       rewriteFile(text, from, dir, manifests, false),
     );
   }
 
-  // The config the compile reads.
+  // The config the graph reads. The copy's cross-package imports are bare
+  // `@spin/*` specifiers, resolved through the workspace the same way the
+  // source package resolves them — so the map is the sibling subpaths.
   const siblings = new Map<string, Manifest>();
   for (const [other, otherManifest] of manifests) {
     if (other === name) continue;
     siblings.set(other, otherManifest);
   }
-  await Deno.writeTextFile(
+  await writeFile(
     join(copyDir, "deno.json"),
-    JSON.stringify({
-      imports: buildImportMap(copyDir, manifest, root, siblings),
-      compilerOptions: {
-        ...root.compilerOptions,
-        ...manifest.compilerOptions,
-      },
-    }),
+    JSON.stringify({ imports: buildImportMap(siblings) }),
   );
 
   // The globals the sources are written against.
-  await Deno.writeTextFile(join(copyDir, "deno-globals.d.ts"), DENO_GLOBALS);
+  await writeFile(join(copyDir, "deno-globals.d.ts"), DENO_GLOBALS);
 
   return { dir, copyDir, copySrc, manifest, entryFiles, declarationExports };
 }
@@ -617,9 +585,8 @@ const CODE = new Set(["TypeScript", "TSX", "JavaScript", "JSX", "MTS", "MJS"]);
 async function buildPackage(
   name: string,
   manifests: Map<string, Manifest>,
-  root: Manifest,
 ): Promise<Built> {
-  const prepared = await prepare(name, manifests, root);
+  const prepared = await prepare(name, manifests);
   const { dir, copyDir, copySrc, manifest } = prepared;
   const dist = join(dir, NPM_DIR, "dist");
   const configPath = join(copyDir, "deno.json");
@@ -645,15 +612,18 @@ async function buildPackage(
     const modules = own.filter((module) => CODE.has(module.mediaType ?? ""));
     const assets = own.filter((module) => !CODE.has(module.mediaType ?? ""));
 
-    // The JSX runtime the package's own manifest points at — a shim for the
-    // runtime the package is written against, not a module of the package.
-    // It is in the graph because the compiler reaches for the runtime, and
-    // it ships to nobody: a consumer's framework provides its own.
-    const runtime = manifest.imports["solid-js/jsx-runtime"];
-    const shim =
-      runtime && (runtime.startsWith("./") || runtime.startsWith("../"))
-        ? resolve(dir, runtime)
-        : null;
+    // The JSX runtime the repo maps for Solid — a shim for the runtime the
+    // package is written against, not a module of the package. It is in the
+    // graph because the compiler reaches for the runtime, and it ships to
+    // nobody: a consumer's framework provides its own.
+    const tsconfig = JSON.parse(
+      await readFile(join(REPO, "tsconfig.json"), "utf8"),
+    ) as {
+      compilerOptions?: { paths?: Record<string, string[]> };
+    };
+    const runtime =
+      tsconfig.compilerOptions?.paths?.["solid-js/jsx-runtime"]?.[0];
+    const shim = runtime !== undefined ? resolve(REPO, runtime) : null;
     const shipped = modules.filter((module) => module.local !== shim);
 
     // The imports the source writes, as the source writes them.
@@ -669,22 +639,24 @@ async function buildPackage(
     // beside the copy and moved into place at the end: a build that fails
     // leaves no half-written dist behind.
     const jsDir = join(copyDir, "js");
-    const args = ["bundle", "--no-check"];
-    // The externals come first in the argument list: `deno bundle`
-    // mis-parses them when they follow the other flags, and the failure is a
-    // panic in its type checker rather than a message.
-    for (const external of externals) args.push("--external", external);
-    args.push(
-      "--config",
-      configPath,
+    const args = [
+      "build",
+      ...shipped.map((module) => module.local!),
       "--outdir",
       jsDir,
-      "--node-modules-dir=manual",
-    );
-    args.push(...shipped.map((module) => module.local!));
-    const bundled = await run("deno", args, REPO);
+      "--root",
+      copySrc,
+      "--target",
+      "node",
+      "--format",
+      "esm",
+    ];
+    // Every import the source writes stays external: the dist is the source
+    // tree with the types stripped, not a bundle.
+    for (const external of externals) args.push("--external", external);
+    const bundled = await run("bun", args, REPO);
     if (bundled.code !== 0) {
-      throw new Error(`deno bundle failed for ${name}:\n${bundled.err}`);
+      throw new Error(`bun build failed for ${name}:\n${bundled.err}`);
     }
     console.error(`  ${name}: javascript written`);
 
@@ -699,17 +671,17 @@ async function buildPackage(
     console.error(`  ${name}: declarations written`);
 
     // The dist is the JavaScript, with the declarations laid over it.
-    await Deno.remove(dist, { recursive: true }).catch(() => {});
-    await Deno.mkdir(dist, { recursive: true });
+    await rm(dist, { recursive: true }).catch(() => {});
+    await mkdir(dist, { recursive: true });
     for (const file of await walk(join(copyDir, "types"))) {
       const target = join(dist, file);
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.copyFile(join(copyDir, "types", file), target);
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(join(copyDir, "types", file), target);
     }
     for (const file of await walk(jsDir)) {
       const target = join(dist, file);
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.copyFile(join(jsDir, file), target);
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(join(jsDir, file), target);
     }
 
     // A module the code only imports for its types has no runtime to write,
@@ -721,24 +693,24 @@ async function buildPackage(
         .replace(/\.tsx?$/, ".js");
       const target = join(dist, name);
       if (await exists(target)) continue;
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.writeTextFile(target, "export {};\n");
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, "export {};\n");
     }
 
     // The assets the source imports: a theme document, a stylesheet.
     for (const asset of assets) {
       const target = join(dist, relative(copySrc, asset.local!));
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.copyFile(asset.local!, target);
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(asset.local!, target);
     }
 
     // The README the npm package carries: npm includes it, and a package
     // without one is a package nobody can read.
     const readme = join(dir, "README.md");
     if (await exists(readme)) {
-      await Deno.writeTextFile(
+      await writeFile(
         join(dir, NPM_DIR, "README.md"),
-        await Deno.readTextFile(readme),
+        await readFile(readme, "utf8"),
       );
     }
 
@@ -749,19 +721,19 @@ async function buildPackage(
     const skill = join(dir, "skill");
     if (await exists(skill)) {
       const target = join(dir, NPM_DIR, "skill");
-      await Deno.remove(target, { recursive: true }).catch(() => {});
+      await rm(target, { recursive: true }).catch(() => {});
       const renderer = SKILL_RENDERERS[manifest.name];
       for (const file of await walk(skill)) {
         const from = join(skill, file);
         const to = join(target, file);
-        await Deno.mkdir(dirname(to), { recursive: true });
+        await mkdir(dirname(to), { recursive: true });
         if (file === "SKILL.md" && renderer) {
-          await Deno.writeTextFile(
+          await writeFile(
             to,
-            renderer(await Deno.readTextFile(from)),
+            renderer(await readFile(from, "utf8")),
           );
         } else {
-          await Deno.copyFile(from, to);
+          await copyFile(from, to);
         }
       }
     }
@@ -773,10 +745,10 @@ async function buildPackage(
         dist,
         relative(join(dir, "src"), resolve(dir, file)),
       );
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.writeTextFile(
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(
         target,
-        await Deno.readTextFile(join(dir, file)),
+        await readFile(join(dir, file), "utf8"),
       );
     }
 
@@ -789,8 +761,8 @@ async function buildPackage(
         copySrc,
         file.replace(/\.d\.ts$/, ".ts").replace(/\.js$/, ".ts"),
       );
-      const text = await Deno.readTextFile(path);
-      await Deno.writeTextFile(
+      const text = await readFile(path, "utf8");
+      await writeFile(
         path,
         // The bundle records where a module came from; the copy is a build
         // step, and the published file should name the source it came from.
@@ -810,10 +782,10 @@ async function buildPackage(
     );
     for (const file of await walk(dist)) {
       if (reachable.has(file)) continue;
-      await Deno.remove(join(dist, file));
+      await rm(join(dist, file));
     }
     for (const dir of await emptyDirs(dist)) {
-      await Deno.remove(dir).catch(() => {});
+      await rm(dir).catch(() => {});
     }
 
     // A bin is run, not imported: it says how it is run, and it is allowed
@@ -823,7 +795,7 @@ async function buildPackage(
 
     return { name: manifest.name, files: (await walk(dist)).length };
   } finally {
-    await Deno.remove(copyDir, { recursive: true }).catch(() => {});
+    await rm(copyDir, { recursive: true }).catch(() => {});
   }
 }
 
@@ -843,22 +815,13 @@ async function markBins(dir: string): Promise<void> {
   for (const target of targets) {
     const path = join(dir, NPM_DIR, target);
     if (!await exists(path)) continue;
-    const text = await Deno.readTextFile(path);
+    const text = await readFile(path, "utf8");
     if (!text.startsWith("#!")) {
-      await Deno.writeTextFile(path, `#!/usr/bin/env node\n${text}`);
+      await writeFile(path, `#!/usr/bin/env node\n${text}`);
     }
-    await Deno.chmod(path, 0o755);
+    await chmod(path, 0o755);
   }
 }
-
-/**
- * The TypeScript that writes the declarations.
- *
- * The version Deno itself compiles with: the packages type-check under
- * `deno check`, and a compiler that reads the same sources differently
- * would write declarations the repository's own check does not agree with.
- */
-const TYPESCRIPT = "npm:typescript@6.0.3/bin/tsc";
 
 /**
  * Write a package's declarations.
@@ -900,19 +863,17 @@ async function emitDeclarations(
   }
 
   const outDir = join(copyDir, "types");
+  const shimPath = join(copySrc, "solid-server.d.ts");
+  const shimFiles = (await exists(shimPath)) ? [shimPath] : [];
   const tsconfig = {
     compilerOptions: {
       target: "es2022",
       module: "esnext",
       moduleResolution: "bundler",
       lib: ["es2023", "dom", "dom.iterable"],
-      // The package's own compiler options — a JSX runtime, mostly. The
-      // rest of the manifest's options describe the Deno runtime, which
-      // `tsc` does not share.
-      ...(manifest.compilerOptions["jsx"] === undefined ? {} : {
-        jsx: manifest.compilerOptions["jsx"],
-        jsxImportSource: manifest.compilerOptions["jsxImportSource"],
-      }),
+      // Solid JSX for .tsx: the automatic runtime with solid-js as source.
+      jsx: "react-jsx",
+      jsxImportSource: "solid-js",
       strict: true,
       declaration: true,
       emitDeclarationOnly: true,
@@ -921,10 +882,10 @@ async function emitDeclarations(
       skipLibCheck: true,
       outDir,
       rootDir: copySrc,
-      types: ["node"],
+      types: ["node", "bun-types"],
       paths,
     },
-    files: [join(copyDir, "deno-globals.d.ts")],
+    files: [join(copyDir, "deno-globals.d.ts"), ...shimFiles],
     include: [join(copySrc, "**/*.ts"), join(copySrc, "**/*.tsx")],
     exclude: [
       join(copySrc, "**/*.test.ts"),
@@ -933,19 +894,18 @@ async function emitDeclarations(
     ],
   };
   const tsconfigPath = join(copyDir, "tsconfig.json");
-  await Deno.writeTextFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-
+  await writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
   const result = await run(
-    "deno",
-    ["run", "-A", TYPESCRIPT, "--project", tsconfigPath],
+    join(REPO, "node_modules", "typescript", "bin", "tsc"),
+    ["--project", tsconfigPath],
     REPO,
   );
   if (result.code === 0) {
     // The declarations land beside the JavaScript.
     for (const file of await walk(outDir)) {
       const target = join(prepared.dir, NPM_DIR, "dist", file);
-      await Deno.mkdir(dirname(target), { recursive: true });
-      await Deno.copyFile(join(outDir, file), target);
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(join(outDir, file), target);
     }
   }
   return result;
@@ -963,20 +923,15 @@ function dependencyOrder(
 ): string[] {
   const deps = new Map<string, Set<string>>();
   for (const name of names) {
-    const found = new Set<string>();
     const manifest = manifests.get(name)!;
-    for (const key of Object.keys(manifest.imports)) {
-      for (const [other, otherManifest] of manifests) {
-        if (other === name) continue;
-        if (
-          key === otherManifest.name ||
-          key.startsWith(otherManifest.name + "/")
-        ) {
-          found.add(other);
-        }
-      }
-    }
-    deps.set(name, found);
+    deps.set(
+      name,
+      new Set(
+        manifest.workspaceDeps.filter((dep) =>
+          names.includes(dep) && dep !== name
+        ),
+      ),
+    );
   }
 
   const ordered: string[] = [];
@@ -995,8 +950,7 @@ function dependencyOrder(
 }
 
 async function main(): Promise<void> {
-  const only = Deno.args[0];
-  const root = await loadManifest(REPO);
+  const only = process.argv.slice(2)[0];
   const names = await publishablePackages();
   const selected = only ? names.filter((name) => name === only) : names;
   if (selected.length === 0) {
@@ -1015,7 +969,7 @@ async function main(): Promise<void> {
   }
 
   for (const name of dependencyOrder(selected, manifests)) {
-    const built = await buildPackage(name, manifests, root);
+    const built = await buildPackage(name, manifests);
     console.log(
       `built ${built.name} — ${built.files} files in ` +
         relative(REPO, join(PACKAGES_DIR, name, NPM_DIR, "dist")),

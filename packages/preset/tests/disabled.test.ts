@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   createGenerator,
   type ExtendedTokenInfo,
@@ -83,34 +84,34 @@ function role(path: string[]): string {
 const FILL = role(["color", "disabled"]);
 const INK = role(["color", "on-disabled"]);
 
-Deno.test("a dead control wears the theme's disabled fill and the ink on it", async () => {
+test("a dead control wears the theme's disabled fill and the ink on it", async () => {
   const result = await generate("<button disabled>Deploy</button>");
   const dead = state(result, "button", ":disabled,");
 
   // The fill and the ink are PAINTED, and they are the theme's own: the
   // fill a dead control wears, and the ink that reads on it.
-  assertEquals(dead["background-color"], FILL);
-  assertEquals(dead["color"], INK);
-  assertEquals(dead["border-color"], INK);
+  deepStrictEqual(dead["background-color"], FILL);
+  deepStrictEqual(dead["color"], INK);
+  deepStrictEqual(dead["border-color"], INK);
   // And the control is not dimmed. A dim spends opacity on the whole
   // element, so the ink dims with the fill — which is how the white label
   // on a blue button measured 1.56:1.
-  assertEquals(dead["opacity"], undefined);
+  deepStrictEqual(dead["opacity"], undefined);
 });
 
-Deno.test("a dead control casts no shadow and answers no pointer", async () => {
+test("a dead control casts no shadow and answers no pointer", async () => {
   // A shadow is the shape of a control that can be pressed, and a lift is
   // the movement of one. A dead control wears neither.
   const result = await generate("<button disabled>Deploy</button>");
   const dead = state(result, "button", ":disabled,");
-  assertEquals(dead["box-shadow"], "none");
-  assertEquals(dead["transform"], "none");
+  deepStrictEqual(dead["box-shadow"], "none");
+  deepStrictEqual(dead["transform"], "none");
 
   // And the hover is not for it: the pointed-at state leaves a dead
   // control alone, so a control that cannot be pressed cannot say it can
   // be by being pointed at.
   const hovered = state(result, "button", ":hover");
-  assertEquals(
+  deepStrictEqual(
     hovered["box-shadow"],
     "var(--button-shadow-hover)",
     "the hover spends the theme's lift",
@@ -127,7 +128,7 @@ Deno.test("a dead control casts no shadow and answers no pointer", async () => {
   );
 });
 
-Deno.test("a dead variant wears the posture whatever it was", async () => {
+test("a dead variant wears the posture whatever it was", async () => {
   // A variant states its own ink, and that ink is as specific as the base's
   // dead rule — so a variant has to say what a dead version of itself
   // wears. A dead outline button that kept its accent ink would be the
@@ -138,13 +139,13 @@ Deno.test("a dead variant wears the posture whatever it was", async () => {
   );
   for (const variant of ["secondary", "outline"]) {
     const dead = state(result, variant, ":disabled,");
-    assertEquals(dead["background-color"], FILL, `${variant} wears the fill`);
-    assertEquals(dead["color"], INK, `${variant} wears the ink`);
-    assertEquals(dead["opacity"], undefined, `${variant} is not dimmed`);
+    deepStrictEqual(dead["background-color"], FILL, `${variant} wears the fill`);
+    deepStrictEqual(dead["color"], INK, `${variant} wears the ink`);
+    deepStrictEqual(dead["opacity"], undefined, `${variant} is not dimmed`);
   }
 });
 
-Deno.test("a dead field and a dead control wear the posture too", async () => {
+test("a dead field and a dead control wear the posture too", async () => {
   // A field is a control like any other, and a dimmed one dims the text a
   // reader is meant to transcribe. The checkbox and the switch draw
   // themselves, so their fill and their ink are the theme's to paint.
@@ -153,17 +154,17 @@ Deno.test("a dead field and a dead control wear the posture too", async () => {
       '<input type="checkbox" role="switch" disabled>',
   );
   const field = state(result, "input", ":disabled,");
-  assertEquals(field["background-color"], FILL);
-  assertEquals(field["color"], INK);
-  assertEquals(field["opacity"], undefined);
+  deepStrictEqual(field["background-color"], FILL);
+  deepStrictEqual(field["color"], INK);
+  deepStrictEqual(field["opacity"], undefined);
 
   const checkbox = state(result, "checkbox", ":disabled,");
-  assertEquals(checkbox["background-color"], FILL);
-  assertEquals(checkbox["color"], INK);
-  assertEquals(checkbox["opacity"], undefined);
+  deepStrictEqual(checkbox["background-color"], FILL);
+  deepStrictEqual(checkbox["color"], INK);
+  deepStrictEqual(checkbox["opacity"], undefined);
 
   const switcher = state(result, "switch", ":disabled,");
-  assertEquals(switcher["background-color"], FILL);
-  assertEquals(switcher["color"], INK);
-  assertEquals(switcher["opacity"], undefined);
+  deepStrictEqual(switcher["background-color"], FILL);
+  deepStrictEqual(switcher["color"], INK);
+  deepStrictEqual(switcher["opacity"], undefined);
 });

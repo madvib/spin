@@ -1,10 +1,44 @@
 {
   "name": "@spin/project",
   "version": "0.1.0",
+  "description": "The project: where it is, what it holds, what it declares.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
   },
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./sync": {
+      "types": "./src/sync.ts",
+      "default": "./src/sync.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "peerDependencies": {
+    "@spin/preset": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write ."
+  }
 }

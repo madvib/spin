@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The project's saved icons, over a real directory.
  *
@@ -7,7 +8,7 @@
  * disk, not about the code that reaches it.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -29,22 +30,22 @@ const SOURCE = {
   license: "ISC",
 };
 
-Deno.test("a saved icon reads back as it was written", async () => {
+test("a saved icon reads back as it was written", async () => {
   const dir = await root();
 
   const written = await writeIcon(dir, "arrow-up", {
     markup: MARKUP,
     attribution: SOURCE,
   });
-  assertEquals(written.error, null);
+  deepStrictEqual(written.error, null);
 
   const read = await readIcon(dir, "arrow-up");
-  assertEquals(read.icon?.name, "arrow-up");
-  assertEquals(read.icon?.markup, MARKUP);
-  assertEquals(read.icon?.attribution, SOURCE);
+  deepStrictEqual(read.icon?.name, "arrow-up");
+  deepStrictEqual(read.icon?.markup, MARKUP);
+  deepStrictEqual(read.icon?.attribution, SOURCE);
 });
 
-Deno.test("the library names the icons the project holds", async () => {
+test("the library names the icons the project holds", async () => {
   const dir = await root();
   await writeIcon(dir, "arrow-up", {
     markup: MARKUP,
@@ -56,23 +57,23 @@ Deno.test("the library names the icons the project holds", async () => {
   });
 
   const listed = await listIcons(dir);
-  assertEquals(listed.map((icon) => icon.name), ["arrow-up", "close"]);
+  deepStrictEqual(listed.map((icon) => icon.name), ["arrow-up", "close"]);
 });
 
-Deno.test("a save creates the library the project did not have", async () => {
+test("a save creates the library the project did not have", async () => {
   const dir = await root();
 
   const written = await writeIcon(dir, "arrow-up", {
     markup: MARKUP,
     attribution: SOURCE,
   });
-  assertEquals(written.error, null);
+  deepStrictEqual(written.error, null);
 
   const listed = await listIcons(dir);
-  assertEquals(listed.map((icon) => icon.name), ["arrow-up"]);
+  deepStrictEqual(listed.map((icon) => icon.name), ["arrow-up"]);
 });
 
-Deno.test("an icon saved without a source reads with nothing said about it", async () => {
+test("an icon saved without a source reads with nothing said about it", async () => {
   const dir = await root();
   await writeIcon(dir, "drawn", {
     markup: MARKUP,
@@ -80,14 +81,14 @@ Deno.test("an icon saved without a source reads with nothing said about it", asy
   });
 
   const read = await readIcon(dir, "drawn");
-  assertEquals(read.icon?.attribution, {
+  deepStrictEqual(read.icon?.attribution, {
     collection: null,
     author: null,
     license: null,
   });
 });
 
-Deno.test("a removed icon is no longer in the library", async () => {
+test("a removed icon is no longer in the library", async () => {
   const dir = await root();
   await writeIcon(dir, "arrow-up", {
     markup: MARKUP,
@@ -95,13 +96,13 @@ Deno.test("a removed icon is no longer in the library", async () => {
   });
 
   const removed = await removeIcon(dir, "arrow-up");
-  assertEquals(removed.error, null);
+  deepStrictEqual(removed.error, null);
 
-  assertEquals(await listIcons(dir), []);
-  assertEquals((await readIcon(dir, "arrow-up")).icon, null);
+  deepStrictEqual(await listIcons(dir), []);
+  deepStrictEqual((await readIcon(dir, "arrow-up")).icon, null);
 });
 
-Deno.test("a name that is not a file stem is refused", async () => {
+test("a name that is not a file stem is refused", async () => {
   const dir = await root();
 
   const written = await writeIcon(dir, "arrow up!", {
@@ -113,10 +114,10 @@ Deno.test("a name that is not a file stem is refused", async () => {
     `the refusal names the name: ${written.error}`,
   );
 
-  assertEquals(await listIcons(dir), []);
+  deepStrictEqual(await listIcons(dir), []);
 });
 
-Deno.test("a file that carries no markup is not an icon", async () => {
+test("a file that carries no markup is not an icon", async () => {
   const dir = await root();
   await mkdir(join(dir, "spin", "icons"), { recursive: true });
   await writeFile(
@@ -125,11 +126,11 @@ Deno.test("a file that carries no markup is not an icon", async () => {
     "utf8",
   );
 
-  assertEquals(await listIcons(dir), []);
-  assertEquals((await readIcon(dir, "notes")).icon, null);
+  deepStrictEqual(await listIcons(dir), []);
+  deepStrictEqual((await readIcon(dir, "notes")).icon, null);
 });
 
-Deno.test("an operation about one root leaves another root alone", async () => {
+test("an operation about one root leaves another root alone", async () => {
   const mine = await root();
   const yours = await root();
   await writeIcon(mine, "arrow-up", {
@@ -137,13 +138,13 @@ Deno.test("an operation about one root leaves another root alone", async () => {
     attribution: SOURCE,
   });
 
-  assertEquals(await listIcons(yours), []);
-  assertEquals((await readIcon(yours, "arrow-up")).icon, null);
+  deepStrictEqual(await listIcons(yours), []);
+  deepStrictEqual((await readIcon(yours, "arrow-up")).icon, null);
 });
 
-Deno.test("a project that holds no icons holds an empty library", async () => {
+test("a project that holds no icons holds an empty library", async () => {
   const dir = await root();
   await mkdir(join(dir, "spin"), { recursive: true });
 
-  assertEquals(await listIcons(dir), []);
+  deepStrictEqual(await listIcons(dir), []);
 });

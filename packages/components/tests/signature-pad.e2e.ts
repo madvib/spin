@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM signature-pad draws in a real browser — a press
  * starts a stroke, the release commits one path, clear empties the pad, and
@@ -6,7 +7,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `signature-pad:<element id>:<part>`. */
 const at = (id: string, part: string): string =>
@@ -14,7 +15,7 @@ const at = (id: string, part: string): string =>
 const CONTROL = at("pad", "control");
 const CLEAR = at("pad", "clear-trigger");
 
-Deno.test("spin-signature-pad e2e", () =>
+test("spin-signature-pad e2e", () =>
   runComponentSuite(
     { port: 5250, route: "/signature-pad", ready: CONTROL },
     async ({ page }) => {

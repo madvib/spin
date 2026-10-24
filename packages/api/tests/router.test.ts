@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseTokens, setToken, treeToJson } from "@spin/theme";
 import { scaffold } from "@spin/preset";
 import {
@@ -24,16 +25,16 @@ import { RPCHandler } from "@orpc/server/fetch";
 /** Serve the composed daemon router on an ephemeral port. */
 function serve() {
   const handler = new RPCHandler(router);
-  const server = Deno.serve({ port: 0, onListen: () => {} }, (
-    request,
-  ): Promise<Response> =>
-    handler.handle(request, { prefix: "/rpc" }).then(
-      ({ response }) => response ?? new Response("Not Found", { status: 404 }),
-    ));
-  const addr = server.addr as Deno.NetAddr;
+  const server = Bun.serve({
+    port: 0,
+    async fetch(request) {
+      const { response } = await handler.handle(request, { prefix: "/rpc" });
+      return response ?? new Response("Not Found", { status: 404 });
+    },
+  });
   return {
     server,
-    client: createSpinClient(`http://localhost:${addr.port}/rpc`),
+    client: createSpinClient(`http://localhost:${server.port}/rpc`),
   };
 }
 /**
@@ -134,7 +135,7 @@ function at(root: unknown, path: string): unknown {
   );
 }
 
-Deno.test("every declared procedure has a contract and a handler", () => {
+test("every declared procedure has a contract and a handler", () => {
   // Three packages ship procedures. Only one of them was covered by an
   // agreement check, which is how a contract could grow a procedure nothing
   // implements without the suite noticing.
@@ -150,7 +151,7 @@ Deno.test("every declared procedure has a contract and a handler", () => {
   }
 });
 
-Deno.test("the router carries nothing the contract does not declare", () => {
+test("the router carries nothing the contract does not declare", () => {
   for (const [name, paths, , router] of DECLARED) {
     for (const group of Object.keys(router as Record<string, unknown>)) {
       assert(
@@ -161,21 +162,21 @@ Deno.test("the router carries nothing the contract does not declare", () => {
   }
 });
 
-Deno.test("typed client talks to the router over serve", async () => {
+test("typed client talks to the router over serve", async () => {
   const { server, client } = serve();
   try {
     const text = treeToJson(scaffold());
 
     const analysis = await client.theme.analyze({ text });
-    assertEquals(analysis.error, null);
-    assertEquals(analysis.issues, []);
+    deepStrictEqual(analysis.error, null);
+    deepStrictEqual(analysis.issues, []);
 
     const css = await client.theme.css({ text });
-    assertEquals(css.error, null);
+    deepStrictEqual(css.error, null);
     assert(css.css.includes("--color-primary"), `missing var in: ${css.css}`);
 
     const types = await client.theme.types({ text });
-    assertEquals(types.error, null);
+    deepStrictEqual(types.error, null);
     assert(
       types.types.includes("ThemeTokenPath"),
       `missing union in: ${types.types.slice(0, 120)}`,
@@ -190,7 +191,7 @@ Deno.test("typed client talks to the router over serve", async () => {
       path: ["color", "primary"],
       value: "#ff0000",
     });
-    assertEquals(mutated.error, null);
+    deepStrictEqual(mutated.error, null);
     assert(parseTokens(mutated.text ?? "").ok, "mutated text must parse");
 
     const refused = await client.theme.tokens.remove({
@@ -205,35 +206,35 @@ Deno.test("typed client talks to the router over serve", async () => {
       "scaffold text must parse",
     );
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("analyze reports broken JSON as an error", async () => {
+test("analyze reports broken JSON as an error", async () => {
   const { server, client } = serve();
   try {
     const out = await client.theme.analyze({ text: "{nope" });
     assert(out.error !== null, "expected a parse error");
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("the catalog reflects the theme it is given", async () => {
+test("the catalog reflects the theme it is given", async () => {
   const { server, client } = serve();
   try {
     // The scaffold is roles without scales, so a scale-driven family has
     // nothing to resolve and reports empty. That is the contract: the catalog
     // describes the theme in hand, not the vocabulary in general.
     const bare = await client.preset.catalog({ text: treeToJson(scaffold()) });
-    assertEquals(bare.error, null);
+    deepStrictEqual(bare.error, null);
     const bareIds = bare.sections.map((section) => section.id);
     assert(
       bareIds.includes("background"),
       `colors resolve with no scale: ${bareIds.join(",")}`,
     );
     const barePadding = bare.sections.find((s) => s.id === "padding");
-    assertEquals(
+    deepStrictEqual(
       barePadding?.utilities.length,
       0,
       "no spacing scale, no padding",
@@ -254,22 +255,22 @@ Deno.test("the catalog reflects the theme it is given", async () => {
       "a spacing scale populates the gap family",
     );
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("preset catalog reports unparseable input", async () => {
+test("preset catalog reports unparseable input", async () => {
   const { server, client } = serve();
   try {
     const out = await client.preset.catalog({ text: "{nope" });
     assert(out.error !== null, "expected a parse error");
-    assertEquals(out.sections, []);
+    deepStrictEqual(out.sections, []);
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("a mode override lands in $modes and leaves the base value", async () => {
+test("a mode override lands in $modes and leaves the base value", async () => {
   const { server, client } = serve();
   try {
     const text = treeToJson(scaffold());
@@ -282,18 +283,18 @@ Deno.test("a mode override lands in $modes and leaves the base value", async () 
       value: "#8db9fa",
       mode: "dark",
     });
-    assertEquals(mutated.error, null);
+    deepStrictEqual(mutated.error, null);
     const doc = JSON.parse(mutated.text ?? "") as {
       color: { primary: { $value: unknown; $modes: Record<string, unknown> } };
     };
-    assertEquals(doc.color.primary.$modes.dark, "#8db9fa");
-    assertEquals(doc.color.primary.$value, before.color.primary.$value);
+    deepStrictEqual(doc.color.primary.$modes.dark, "#8db9fa");
+    deepStrictEqual(doc.color.primary.$value, before.color.primary.$value);
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("a mutation refusal carries its code over the wire", async () => {
+test("a mutation refusal carries its code over the wire", async () => {
   const { server, client } = serve();
   try {
     const refused = await client.theme.tokens.remove({
@@ -301,14 +302,14 @@ Deno.test("a mutation refusal carries its code over the wire", async () => {
       path: ["color", "primary"],
     });
     assert(refused.error !== null, "expected a required-token refusal");
-    assertEquals(refused.code, "required-token");
-    assertEquals(refused.text, null);
+    deepStrictEqual(refused.code, "required-token");
+    deepStrictEqual(refused.text, null);
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("analyze reports a value written for a mode the theme does not serve", async () => {
+test("analyze reports a value written for a mode the theme does not serve", async () => {
   const { server, client } = serve();
   try {
     // A theme that serves light and carries a dark value: the value is never
@@ -327,7 +328,7 @@ Deno.test("analyze reports a value written for a mode the theme does not serve",
       text: treeToJson(moded.tree),
       modes: ["light"],
     });
-    assertEquals(analysis.error, null);
+    deepStrictEqual(analysis.error, null);
     assert(
       analysis.issues.some((issue) =>
         issue.path === "color.primary" &&
@@ -336,20 +337,20 @@ Deno.test("analyze reports a value written for a mode the theme does not serve",
       `no dead-override issue: ${JSON.stringify(analysis.issues)}`,
     );
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("the organization lists the catalog under reader intent", async () => {
+test("the organization lists the catalog under reader intent", async () => {
   const { server, client } = serve();
   try {
     const text = treeToJson(scaffold());
     const catalog = await client.preset.catalog({ text });
     const organization = await client.preset.organization({ text });
-    assertEquals(organization.error, null);
+    deepStrictEqual(organization.error, null);
     // Lossless by construction: every utility the catalog emits is claimed by
     // exactly one section, so a reader can always find what they saw.
-    assertEquals(
+    deepStrictEqual(
       organization.sections.flatMap((s) => s.utilities).sort(),
       catalog.sections.flatMap((s) => s.utilities).sort(),
     );
@@ -363,6 +364,6 @@ Deno.test("the organization lists the catalog under reader intent", async () => 
       "every section explains itself",
     );
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });

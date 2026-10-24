@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The icon procedures, over RPC.
  *
@@ -6,7 +7,7 @@
  * does not hold would be caught by the file it did or did not write.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,16 +17,16 @@ import { createSpinClient, router } from "@spin/api";
 /** Serve the composed daemon router on an ephemeral port. */
 function serve() {
   const handler = new RPCHandler(router);
-  const server = Deno.serve({ port: 0, onListen: () => {} }, (
-    request,
-  ): Promise<Response> =>
-    handler.handle(request, { prefix: "/rpc" }).then(
-      ({ response }) => response ?? new Response("Not Found", { status: 404 }),
-    ));
-  const addr = server.addr as Deno.NetAddr;
+  const server = Bun.serve({
+    port: 0,
+    async fetch(request) {
+      const { response } = await handler.handle(request, { prefix: "/rpc" });
+      return response ?? new Response("Not Found", { status: 404 });
+    },
+  });
   return {
     server,
-    client: createSpinClient(`http://localhost:${addr.port}/rpc`),
+    client: createSpinClient(`http://localhost:${server.port}/rpc`),
   };
 }
 
@@ -33,7 +34,7 @@ function serve() {
 const MARKUP =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14"/></svg>';
 
-Deno.test("a saved icon is listed, read and removed over the wire", async () => {
+test("a saved icon is listed, read and removed over the wire", async () => {
   const dir = await mkdtemp(join(tmpdir(), "spin-api-icons-"));
   const { server, client } = serve();
   try {
@@ -47,11 +48,11 @@ Deno.test("a saved icon is listed, read and removed over the wire", async () => 
       },
       root: dir,
     });
-    assertEquals(saved.error, null);
+    deepStrictEqual(saved.error, null);
 
     const listed = await client.icons.saved.list({ root: dir });
-    assertEquals(listed.map((icon) => icon.name), ["arrow-up"]);
-    assertEquals(listed[0]?.attribution, {
+    deepStrictEqual(listed.map((icon) => icon.name), ["arrow-up"]);
+    deepStrictEqual(listed[0]?.attribution, {
       collection: "lucide",
       author: "Lucide Contributors",
       license: "ISC",
@@ -61,20 +62,20 @@ Deno.test("a saved icon is listed, read and removed over the wire", async () => 
       name: "arrow-up",
       root: dir,
     });
-    assertEquals(read.icon?.markup, MARKUP);
+    deepStrictEqual(read.icon?.markup, MARKUP);
 
     const removed = await client.icons.saved.remove({
       name: "arrow-up",
       root: dir,
     });
-    assertEquals(removed.error, null);
-    assertEquals(await client.icons.saved.list({ root: dir }), []);
+    deepStrictEqual(removed.error, null);
+    deepStrictEqual(await client.icons.saved.list({ root: dir }), []);
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("a saved icon reaches the project's own files", async () => {
+test("a saved icon reaches the project's own files", async () => {
   const dir = await mkdtemp(join(tmpdir(), "spin-api-icons-"));
   const { server, client } = serve();
   try {
@@ -88,14 +89,14 @@ Deno.test("a saved icon reaches the project's own files", async () => {
     const document = JSON.parse(
       await readFile(join(dir, "spin", "icons", "arrow-up.json"), "utf8"),
     ) as { markup: string; attribution: { collection: string } };
-    assertEquals(document.markup, MARKUP);
-    assertEquals(document.attribution.collection, "lucide");
+    deepStrictEqual(document.markup, MARKUP);
+    deepStrictEqual(document.attribution.collection, "lucide");
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("an icon saved without a source keeps its name and markup", async () => {
+test("an icon saved without a source keeps its name and markup", async () => {
   const dir = await mkdtemp(join(tmpdir(), "spin-api-icons-"));
   const { server, client } = serve();
   try {
@@ -104,24 +105,24 @@ Deno.test("an icon saved without a source keeps its name and markup", async () =
       markup: MARKUP,
       root: dir,
     });
-    assertEquals(saved.error, null);
+    deepStrictEqual(saved.error, null);
 
     const read = await client.icons.saved.read({
       name: "drawn",
       root: dir,
     });
-    assertEquals(read.icon?.name, "drawn");
-    assertEquals(read.icon?.attribution, {
+    deepStrictEqual(read.icon?.name, "drawn");
+    deepStrictEqual(read.icon?.attribution, {
       collection: null,
       author: null,
       license: null,
     });
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });
 
-Deno.test("the installed collections say who made them", async () => {
+test("the installed collections say who made them", async () => {
   const { server, client } = serve();
   try {
     const collections = await client.icons.collections({});
@@ -137,6 +138,6 @@ Deno.test("the installed collections say who made them", async () => {
       );
     }
   } finally {
-    await server.shutdown();
+    await server.stop();
   }
 });

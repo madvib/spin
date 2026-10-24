@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM async list drives its machine in a real browser — the
  * auto-reloading paged instance, the hand-driven crew instance (reload, load
@@ -6,7 +7,7 @@
 
 import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the recipe's scheme: `async-list:<element id>:<part>`. */
 const at = (id: string, part?: string): string =>
@@ -38,7 +39,7 @@ async function waitGrowth(
   throw new Error(`readout #${id} never grew past ${floor}`);
 }
 
-Deno.test("spin-async-list e2e", () =>
+test("spin-async-list e2e", () =>
   runComponentSuite({
     port: 5229,
     route: "/async-list",

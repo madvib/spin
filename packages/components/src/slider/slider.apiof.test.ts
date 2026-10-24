@@ -1,11 +1,12 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { SliderApi } from "./slider.presentation.ts";
 
 // The derived api's public surface, pinned: removing a reader, method,
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("SliderApi promises the component's surface", () => {
+test("SliderApi promises the component's surface", () => {
   const keys: (keyof SliderApi)[] = [
     "state",
     "value",
@@ -38,7 +39,7 @@ Deno.test("SliderApi promises the component's surface", () => {
     "getThumbProps",
     "getHiddenInputProps",
   ];
-  assertEquals(keys.length, 30);
+  deepStrictEqual(keys.length, 30);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -74,7 +75,7 @@ Deno.test("SliderApi promises the component's surface", () => {
     SliderApi["getMarkerProps"],
     (slot: number) => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setValueTyped,

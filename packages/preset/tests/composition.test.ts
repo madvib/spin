@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { generateCss, parseDocument } from "@spin/theme";
@@ -35,7 +36,7 @@ async function assemble(options: Parameters<typeof spinPreset>[0]) {
   );
 }
 
-Deno.test("a complete theme assembles a working document", async () => {
+test("a complete theme assembles a working document", async () => {
   // Asserts what the document DOES, not what the generated text looks like.
   // Every rule here once read `var(--…)` out of the emitted CSS, which means
   // a rename anywhere in the theme pipeline broke the suite for no reason —
@@ -69,7 +70,7 @@ Deno.test("a complete theme assembles a working document", async () => {
   );
 });
 
-Deno.test("the primitives ship because the theme enables them", async () => {
+test("the primitives ship because the theme enables them", async () => {
   // The markup has to name a button. Rules emit only for the tokens a document
   // uses, so a page with no `<button>` correctly ships no button CSS — and an
   // assertion that finds the button's selector in such a page is reading a
@@ -97,7 +98,7 @@ Deno.test("the primitives ship because the theme enables them", async () => {
   );
 });
 
-Deno.test("fonts declared by the theme reach the document", async () => {
+test("fonts declared by the theme reach the document", async () => {
   const document = {
     ...theme,
     $extensions: {
@@ -115,7 +116,7 @@ Deno.test("fonts declared by the theme reach the document", async () => {
   assert(css.includes("/fonts/inter.woff2"), "the source must be carried");
 });
 
-Deno.test("a theme missing a required role is refused", () => {
+test("a theme missing a required role is refused", () => {
   assertThrowsIncomplete({
     color: { $type: "color", primary: { $value: "#333333" } },
   });
@@ -135,7 +136,7 @@ function assertThrowsIncomplete(document: Record<string, unknown>): void {
   assert(refused, "an incomplete theme must be refused");
 }
 
-Deno.test("the scaffold assembles without any scale", async () => {
+test("the scaffold assembles without any scale", async () => {
   const document = scaffoldDocument() as Record<string, unknown>;
   const { css } = await assemble({ themes: { light: document } });
   assert(css.includes("--color-primary"), "roles emit even without scales");
@@ -145,7 +146,7 @@ Deno.test("the scaffold assembles without any scale", async () => {
   );
 });
 
-Deno.test("component tokens are optional, so requiring them narrows nothing", () => {
+test("component tokens are optional, so requiring them narrows nothing", () => {
   const roles = requiredRolesFor();
   assert(
     !roles.some((role) => role.startsWith("button.")),
@@ -154,14 +155,14 @@ Deno.test("component tokens are optional, so requiring them narrows nothing", ()
   assert(roles.includes("color.primary"), "the base roles are still required");
 });
 
-Deno.test("a theme's tokens and extensions come from one parse", () => {
+test("a theme's tokens and extensions come from one parse", () => {
   const parsed = parseDocument(theme);
   assert(parsed.ok, `the example parses: ${JSON.stringify(parsed)}`);
   const spin = parsed.extensions["spin"] as Record<string, unknown>;
   // The extension the system reads is the fonts: the faces a theme declares
   // are the faces the sheet loads.
   const fonts = spin?.["fonts"] as { family?: string }[] | undefined;
-  assertEquals(fonts?.[0]?.family, "Inter");
+  deepStrictEqual(fonts?.[0]?.family, "Inter");
   const css = generateCss(parsed.tree);
   assert(css.includes("--color-primary"), "the tree emits its variables");
 });

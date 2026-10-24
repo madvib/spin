@@ -1,12 +1,13 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { SplitterApi } from "./splitter.presentation.ts";
 
-Deno.test("SplitterApi state type", () => {
+test("SplitterApi state type", () => {
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<
     SplitterApi["state"],
     "idle" | "hover" | "focused" | "dragging"
   > = true;
-  assertEquals(stateTyped, true);
+  deepStrictEqual(stateTyped, true);
 });

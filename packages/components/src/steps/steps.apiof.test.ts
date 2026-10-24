@@ -1,8 +1,9 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { StepsApi } from "./steps.presentation.ts";
 import type { StepsItemState } from "./steps.state.ts";
 
-Deno.test("StepsApi promises the component's surface", () => {
+test("StepsApi promises the component's surface", () => {
   const keys: (keyof StepsApi)[] = [
     "state",
     "value",
@@ -30,7 +31,7 @@ Deno.test("StepsApi promises the component's surface", () => {
     "getProgressProps",
     "getProgressFillProps",
   ];
-  assertEquals(keys.length, 25);
+  deepStrictEqual(keys.length, 25);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<StepsApi["state"], "idle"> = true;
@@ -46,7 +47,7 @@ Deno.test("StepsApi promises the component's surface", () => {
     StepsApi["getTriggerProps"],
     (slot: number) => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, setStepTyped, getItemStateTyped, getTriggerPropsTyped].every(
       Boolean,
     ),

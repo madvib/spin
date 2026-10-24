@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { RatingGroupApi } from "./rating-group.presentation.ts";
 
-Deno.test("RatingGroupApi promises the component's surface", () => {
+test("RatingGroupApi promises the component's surface", () => {
   const keys: (keyof RatingGroupApi)[] = [
     "state",
     "value",
@@ -18,7 +19,7 @@ Deno.test("RatingGroupApi promises the component's surface", () => {
     "getItemProps",
     "getHiddenInputProps",
   ];
-  assertEquals(keys.length, 14);
+  deepStrictEqual(keys.length, 14);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<
@@ -43,7 +44,7 @@ Deno.test("RatingGroupApi promises the component's surface", () => {
       readonly checked: boolean;
     }
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, setValueTyped, getItemPropsTyped, getItemStateTyped].every(
       Boolean,
     ),

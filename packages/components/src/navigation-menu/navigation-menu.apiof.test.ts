@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { NavigationMenuApi } from "./navigation-menu.presentation.ts";
 
-Deno.test("NavigationMenuApi promises the component's surface", () => {
+test("NavigationMenuApi promises the component's surface", () => {
   const keys: (keyof NavigationMenuApi)[] = [
     "state",
     "value",
@@ -17,7 +18,7 @@ Deno.test("NavigationMenuApi promises the component's surface", () => {
     "getLinkProps",
     "getItemContentProps",
   ];
-  assertEquals(keys.length, 13);
+  deepStrictEqual(keys.length, 13);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<NavigationMenuApi["state"], "idle" | "open"> =
@@ -31,7 +32,7 @@ Deno.test("NavigationMenuApi promises the component's surface", () => {
     NavigationMenuApi["items"],
     readonly { value: string; label: string }[]
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, showTyped, valueTyped, itemsTyped].every(Boolean),
     true,
   );

@@ -1,4 +1,7 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   contrastRatio,
   cssVarName,
@@ -201,7 +204,7 @@ const REQUIRED = [
   "color.link",
 ];
 
-Deno.test("the ink a theme declares is read from the theme itself", () => {
+test("the ink a theme declares is read from the theme itself", () => {
   // The pairing is a fact about the theme, not a convention a consumer
   // invents: every fill with a contrast floor names its own foreground, and
   // `inkTokens()` answers "which ink goes on this fill?" from those floors.
@@ -219,8 +222,8 @@ Deno.test("the ink a theme declares is read from the theme itself", () => {
   }
 });
 
-Deno.test("the example theme's light document parses into a token tree", async () => {
-  const source = await Deno.readTextFile(new URL("silk.json", THEMES_DIR));
+test("the example theme's light document parses into a token tree", async () => {
+  const source = await readFile(new URL("silk.json", THEMES_DIR), "utf8");
   const tree = treeOf(parseTokens(source), "silk.json");
 
   // The groups the theme MUST have, not every group it happens to have. An
@@ -275,13 +278,13 @@ function leavesOf(node: TokenNode): TokenLeaf[] {
   return node.children.flatMap(leavesOf);
 }
 
-Deno.test("the baseline theme carries a dark MODE rather than being a second theme", async () => {
+test("the baseline theme carries a dark MODE rather than being a second theme", async () => {
   // `light` and `dark` are two modes of ONE theme. There is no theme named
   // `light` and no document named `dark` — the dark side lives on the tokens
   // themselves as `$modes.dark`, which `generateCss` scopes to
   // `[data-theme="<name>"][data-mode="dark"]`.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
 
@@ -294,25 +297,25 @@ Deno.test("the baseline theme carries a dark MODE rather than being a second the
       if (leaf.modes !== undefined) varying.add(leaf.path[0] as string);
     }
   }
-  assertEquals([...varying].sort(), ["color", "focus"]);
+  deepStrictEqual([...varying].sort(), ["color", "focus"]);
 });
 
-Deno.test("the example theme defines every token path it advertises", async () => {
+test("the example theme defines every token path it advertises", async () => {
   const theme = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const report = validateTokens(theme, { required: REQUIRED });
 
-  assertEquals(report.issues, []);
+  deepStrictEqual(report.issues, []);
   assert(report.valid);
 });
 
-Deno.test("the example theme's light document validates on its own", async () => {
-  const source = await Deno.readTextFile(new URL("silk.json", THEMES_DIR));
+test("the example theme's light document validates on its own", async () => {
+  const source = await readFile(new URL("silk.json", THEMES_DIR), "utf8");
   const light = treeOf(parseTokens(source), "silk.json");
 
-  assertEquals(validateTokens(light).issues, []);
+  deepStrictEqual(validateTokens(light).issues, []);
 });
 
 /**
@@ -330,16 +333,16 @@ const DECLARED_MODES = {
   synthwave: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
-Deno.test("a theme states its modes at the root", async () => {
+test("a theme states its modes at the root", async () => {
   // The modes are data, not derived from a group's presence: neobrut and
   // console have no `dark` group but different mode postures, and asking "does
   // this theme carry a dark override set?" cannot tell a base-that-is-dark
   // from a theme that never declares one. `modes` says what it serves.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
     const doc = JSON.parse(
-      await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
+      await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8"),
     );
-    assertEquals(
+    deepStrictEqual(
       doc.modes,
       modes,
       `${name}: root modes must say what it serves`,
@@ -347,7 +350,7 @@ Deno.test("a theme states its modes at the root", async () => {
   }
 });
 
-Deno.test("a theme that serves a mode it does not override is valid", async () => {
+test("a theme that serves a mode it does not override is valid", async () => {
   // The root `modes` says what a theme SERVES, and a mode it serves but
   // does not override falls back to the base values. So a theme that serves
   // dark and restates nothing is a complete theme, not a half-dark one —
@@ -357,24 +360,24 @@ Deno.test("a theme that serves a mode it does not override is valid", async () =
   // written for a mode the theme does not serve is never shown, and the
   // validator reports it.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
-  assertEquals(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
+  deepStrictEqual(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
 
   const darkless = treeOf(
     parseTokens({
       ...JSON.parse(
-        await Deno.readTextFile(new URL("console.json", THEMES_DIR)),
+        await readFile(new URL("console.json", THEMES_DIR), "utf8"),
       ),
       modes: ["dark"],
     }),
     "console.json",
   );
-  assertEquals(validateTokens(darkless, { modes: ["dark"] }).issues, []);
+  deepStrictEqual(validateTokens(darkless, { modes: ["dark"] }).issues, []);
 });
 
-Deno.test("a theme declares the modes it actually has", async () => {
+test("a theme declares the modes it actually has", async () => {
   // Not "every starter carries a dark group" — that was the wrong property,
   // and it was wrong for console, whose BASE is already dark: a terminal
   // palette has no light mode, and generating a `dark` group from its own
@@ -386,9 +389,9 @@ Deno.test("a theme declares the modes it actually has", async () => {
   // which is the one file a theme owns.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
     const doc = JSON.parse(
-      await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR)),
+      await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8"),
     );
-    assertEquals(
+    deepStrictEqual(
       [...themeModes(doc as ThemeDocument)],
       modes,
       `${name}: the reported modes must follow from its root field`,
@@ -396,9 +399,9 @@ Deno.test("a theme declares the modes it actually has", async () => {
   }
 });
 
-Deno.test("the example theme's stylesheet is a light block and a dark block", async () => {
+test("the example theme's stylesheet is a light block and a dark block", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   // The NAMED path, which is what a consumer calls. It scopes a theme's dark
@@ -406,43 +409,43 @@ Deno.test("the example theme's stylesheet is a light block and a dark block", as
   // its theme, and two themes can each carry a dark mode without fighting.
   const css = generateThemeCss({ silk: tree });
 
-  assertEquals(
+  deepStrictEqual(
     blocks(css).map((block) => block.selector),
     ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
   );
 });
 
-Deno.test("the light block of the example theme carries the light document's values", async () => {
+test("the light block of the example theme carries the light document's values", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const root = blockWithSelector(generateCss(tree), ":root");
 
-  assertEquals(root.declarations["--color-primary"], "#1c62c2");
-  assertEquals(root.declarations["--color-secondary"], "#1a2434");
-  assertEquals(root.declarations["--color-accent"], "#006974");
-  assertEquals(root.declarations["--color-semantic-error"], "#a6312b");
-  assertEquals(root.declarations["--spacing-4"], "1rem");
-  assertEquals(
+  deepStrictEqual(root.declarations["--color-primary"], "#1c62c2");
+  deepStrictEqual(root.declarations["--color-secondary"], "#1a2434");
+  deepStrictEqual(root.declarations["--color-accent"], "#006974");
+  deepStrictEqual(root.declarations["--color-semantic-error"], "#a6312b");
+  deepStrictEqual(root.declarations["--spacing-4"], "1rem");
+  deepStrictEqual(
     root.declarations["--font-family-sans"],
     "Inter, ui-sans-serif, system-ui, sans-serif",
   );
-  assertEquals(root.declarations["--font-size-md"], "1rem");
-  assertEquals(root.declarations["--font-weight-bold"], "700");
-  assertEquals(root.declarations["--radius-full"], "9999px");
-  assertEquals(root.declarations["--breakpoint-lg"], "64rem");
-  assertEquals(root.declarations["--z-index-modal"], "2000");
-  assertEquals(root.declarations["--motion-duration-base"], "250ms");
-  assertEquals(
+  deepStrictEqual(root.declarations["--font-size-md"], "1rem");
+  deepStrictEqual(root.declarations["--font-weight-bold"], "700");
+  deepStrictEqual(root.declarations["--radius-full"], "9999px");
+  deepStrictEqual(root.declarations["--breakpoint-lg"], "64rem");
+  deepStrictEqual(root.declarations["--z-index-modal"], "2000");
+  deepStrictEqual(root.declarations["--motion-duration-base"], "250ms");
+  deepStrictEqual(
     root.declarations["--motion-easing-standard"],
     "cubic-bezier(0.2, 0, 0, 1)",
   );
 });
 
-Deno.test("every dark declaration lands on a property the light theme declares", async () => {
+test("every dark declaration lands on a property the light theme declares", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -459,9 +462,9 @@ Deno.test("every dark declaration lands on a property the light theme declares",
   }
 });
 
-Deno.test("the dark block emits every token the dark document declares", async () => {
+test("the dark block emits every token the dark document declares", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -480,30 +483,30 @@ Deno.test("the dark block emits every token the dark document declares", async (
       `${name} is declared by the dark document but missing from its block`,
     );
   }
-  assertEquals(
+  deepStrictEqual(
     Object.keys(darkBlock.declarations).sort(),
     [...declared].sort(),
   );
 });
 
-Deno.test("a dark-mode consumer reads the dark document's colors", async () => {
+test("a dark-mode consumer reads the dark document's colors", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "dark");
 
-  assertEquals(vars["--color-primary"], "#8db9fa");
-  assertEquals(vars["--color-secondary"], "#dadee5");
-  assertEquals(vars["--color-accent"], "#71c7d1");
-  assertEquals(vars["--color-semantic-success"], "#72cf88");
-  assertEquals(vars["--color-semantic-error"], "#f38277");
-  assertEquals(vars["--color-surface-raised"], "#18202a");
+  deepStrictEqual(vars["--color-primary"], "#8db9fa");
+  deepStrictEqual(vars["--color-secondary"], "#dadee5");
+  deepStrictEqual(vars["--color-accent"], "#71c7d1");
+  deepStrictEqual(vars["--color-semantic-success"], "#72cf88");
+  deepStrictEqual(vars["--color-semantic-error"], "#f38277");
+  deepStrictEqual(vars["--color-surface-raised"], "#18202a");
 });
 
-Deno.test("roles that reference the neutral ramp follow it into dark mode", async () => {
+test("roles that reference the neutral ramp follow it into dark mode", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -512,21 +515,21 @@ Deno.test("roles that reference the neutral ramp follow it into dark mode", asyn
 
   // A surface is a reference, not a value, so the dark document never restates
   // it. Restating it is exactly what would let the two modes drift apart.
-  assertEquals(lightVars["--color-surface"], "var(--color-neutral-50)");
-  assertEquals(lightVars["--color-text"], "var(--color-neutral-900)");
-  assertEquals(lightVars["--color-border"], "var(--color-neutral-200)");
+  deepStrictEqual(lightVars["--color-surface"], "var(--color-neutral-50)");
+  deepStrictEqual(lightVars["--color-text"], "var(--color-neutral-900)");
+  deepStrictEqual(lightVars["--color-border"], "var(--color-neutral-200)");
 
-  assertEquals(resolve(lightVars, "--color-surface"), "#f7f8fb");
-  assertEquals(resolve(darkVars, "--color-surface"), "#0d121a");
-  assertEquals(resolve(lightVars, "--color-text"), "#050d1c");
-  assertEquals(resolve(darkVars, "--color-text"), "#f3f5f8");
-  assertEquals(resolve(lightVars, "--color-border"), "#e4e8ef");
-  assertEquals(resolve(darkVars, "--color-border"), "#1d242f");
+  deepStrictEqual(resolve(lightVars, "--color-surface"), "#f7f8fb");
+  deepStrictEqual(resolve(darkVars, "--color-surface"), "#0d121a");
+  deepStrictEqual(resolve(lightVars, "--color-text"), "#050d1c");
+  deepStrictEqual(resolve(darkVars, "--color-text"), "#f3f5f8");
+  deepStrictEqual(resolve(lightVars, "--color-border"), "#e4e8ef");
+  deepStrictEqual(resolve(darkVars, "--color-border"), "#1d242f");
 });
 
-Deno.test("spacing, typography and layering are the same scale in both modes", async () => {
+test("spacing, typography and layering are the same scale in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -534,32 +537,32 @@ Deno.test("spacing, typography and layering are the same scale in both modes", a
   const darkVars = varsInMode(css, "dark");
 
   for (const step of ["0", "1", "2", "4", "8", "16"]) {
-    assertEquals(darkVars[`--spacing-${step}`], lightVars[`--spacing-${step}`]);
+    deepStrictEqual(darkVars[`--spacing-${step}`], lightVars[`--spacing-${step}`]);
   }
   for (const layer of ["base", "dropdown", "modal", "toast"]) {
-    assertEquals(
+    deepStrictEqual(
       darkVars[`--z-index-${layer}`],
       lightVars[`--z-index-${layer}`],
     );
   }
-  assertEquals(darkVars["--spacing-4"], "1rem");
-  assertEquals(darkVars["--radius-md"], "0.5rem");
-  assertEquals(darkVars["--z-index-toast"], "3000");
-  assertEquals(darkVars["--font-weight-semibold"], "600");
-  assertEquals(darkVars["--breakpoint-xl"], "80rem");
-  assertEquals(
+  deepStrictEqual(darkVars["--spacing-4"], "1rem");
+  deepStrictEqual(darkVars["--radius-md"], "0.5rem");
+  deepStrictEqual(darkVars["--z-index-toast"], "3000");
+  deepStrictEqual(darkVars["--font-weight-semibold"], "600");
+  deepStrictEqual(darkVars["--breakpoint-xl"], "80rem");
+  deepStrictEqual(
     darkVars["--shadow-lg"],
     "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)",
   );
-  assertEquals(
+  deepStrictEqual(
     darkVars["--motion-easing-decelerate"],
     "cubic-bezier(0, 0, 0, 1)",
   );
 });
 
-Deno.test("the example theme's spacing scale grows with its step number", async () => {
+test("the example theme's spacing scale grows with its step number", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
@@ -572,9 +575,9 @@ Deno.test("the example theme's spacing scale grows with its step number", async 
   );
 });
 
-Deno.test("the example theme's radii round off from square to fully round", async () => {
+test("the example theme's radii round off from square to fully round", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
@@ -587,9 +590,9 @@ Deno.test("the example theme's radii round off from square to fully round", asyn
   );
 });
 
-Deno.test("the example theme's breakpoints and z-index layers are ordered", async () => {
+test("the example theme's breakpoints and z-index layers are ordered", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
@@ -606,12 +609,12 @@ Deno.test("the example theme's breakpoints and z-index layers are ordered", asyn
     ),
     "z-index",
   );
-  assertEquals(Number(vars["--z-index-base"]), 0);
+  deepStrictEqual(Number(vars["--z-index-base"]), 0);
 });
 
-Deno.test("the example theme's text is legible on its own surfaces in both modes", async () => {
+test("the example theme's text is legible on its own surfaces in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -635,9 +638,9 @@ Deno.test("the example theme's text is legible on its own surfaces in both modes
   }
 });
 
-Deno.test("the example theme's status colors are legible in both modes", async () => {
+test("the example theme's status colors are legible in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateCss(tree);
@@ -669,7 +672,7 @@ Deno.test("the example theme's status colors are legible in both modes", async (
  * surface, and text-on-surface legibility is covered by the text floors
  * test above.
  */
-Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode", async () => {
+test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode", async () => {
   const pairs = [
     ["--color-primary", "--color-on-primary"],
     ["--color-secondary", "--color-on-secondary"],
@@ -681,7 +684,7 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
 
   for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
     const tree = treeOf(
-      parseTokens(await Deno.readTextFile(new URL(`${name}.json`, THEMES_DIR))),
+      parseTokens(await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8")),
       `${name}.json`,
     );
     const css = generateCss(tree);
@@ -708,25 +711,25 @@ Deno.test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode",
   }
 });
 
-Deno.test("the example theme is addressable as the named 'silk' theme", async () => {
+test("the example theme is addressable as the named 'silk' theme", async () => {
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
   const css = generateThemeCss({ silk: tree });
 
-  assertEquals(
+  deepStrictEqual(
     blocks(css).map((block) => block.selector),
     ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
   );
-  assertEquals(
+  deepStrictEqual(
     blockWithSelector(
       css,
       '[data-theme="silk"]',
     ).declarations["--color-primary"],
     "#1c62c2",
   );
-  assertEquals(
+  deepStrictEqual(
     blockWithSelector(
       css,
       '[data-theme="silk"][data-mode="dark"]',
@@ -735,20 +738,21 @@ Deno.test("the example theme is addressable as the named 'silk' theme", async ()
   );
 });
 
-Deno.test("the checked-in token types are what the baseline generates", async () => {
+test("the checked-in token types are what the baseline generates", async () => {
   // `theme-types.d.ts` is a generated artifact: it says which tokens the
   // baseline carries, and a component that spends a token the artifact does
   // not name does not compile. Drift therefore surfaces as a compile error in
   // someone else's checkout, so the freshness check lives here with the theme
   // that generates it.
   const tree = treeOf(
-    parseTokens(await Deno.readTextFile(new URL("silk.json", THEMES_DIR))),
+    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
     "silk.json",
   );
-  const checkedIn = await Deno.readTextFile(
+  const checkedIn = await readFile(
     new URL("../src/theme-types.d.ts", import.meta.url),
+    "utf8",
   );
-  assertEquals(
+  deepStrictEqual(
     checkedIn,
     generateTypes(tree),
     "run `deno task types` in packages/theme to regenerate",
@@ -764,13 +768,14 @@ Deno.test("the checked-in token types are what the baseline generates", async ()
  * project's own theme is: the completeness of the document, the floors in
  * every mode it serves, the ladders, the loop, and the modes.
  */
-Deno.test("every starter passes the battery", async () => {
+test("every starter passes the battery", async () => {
   for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
-    const text = await Deno.readTextFile(
+    const text = await readFile(
       new URL(`${name}.json`, THEMES_DIR),
+      "utf8",
     );
     const report = themeGates(text);
-    assertEquals(
+    deepStrictEqual(
       report.issues.map((issue) => `${issue.path}: ${issue.message}`),
       [],
       `${name} does not pass the battery`,
@@ -868,7 +873,7 @@ function stripModes(node: unknown): void {
   for (const value of Object.values(record)) stripModes(value);
 }
 
-Deno.test("the battery catches a project theme's unreadable badge", () => {
+test("the battery catches a project theme's unreadable badge", () => {
   const report = themeGates(projectTheme("badge"));
   const legibility = report.gates.find((gate) => gate.gate === "legibility");
   assert(
@@ -880,7 +885,7 @@ Deno.test("the battery catches a project theme's unreadable badge", () => {
   );
 });
 
-Deno.test("the battery catches a project theme's descending ladder", () => {
+test("the battery catches a project theme's descending ladder", () => {
   const report = themeGates(projectTheme("ladder"));
   const scales = report.gates.find((gate) => gate.gate === "scales");
   assert(
@@ -891,7 +896,7 @@ Deno.test("the battery catches a project theme's descending ladder", () => {
   );
 });
 
-Deno.test("the battery catches a project theme's strobe", () => {
+test("the battery catches a project theme's strobe", () => {
   const report = themeGates(projectTheme("loop"));
   const motion = report.gates.find((gate) => gate.gate === "motion");
   assert(
@@ -902,7 +907,7 @@ Deno.test("the battery catches a project theme's strobe", () => {
   );
 });
 
-Deno.test("the battery catches a project theme's dark mode that restates nothing", () => {
+test("the battery catches a project theme's dark mode that restates nothing", () => {
   const report = themeGates(projectTheme("mode"));
   const modes = report.gates.find((gate) => gate.gate === "modes");
   assert(
@@ -913,7 +918,7 @@ Deno.test("the battery catches a project theme's dark mode that restates nothing
   );
 });
 
-Deno.test("the battery catches text that cannot be read on a raised sheet", () => {
+test("the battery catches text that cannot be read on a raised sheet", () => {
   // The page and the sheet above it are two surfaces, and the ink owes the
   // floor on both: a card the reader cannot read is a card nobody reads.
   const report = themeGates(projectTheme("raised"));
@@ -928,7 +933,7 @@ Deno.test("the battery catches text that cannot be read on a raised sheet", () =
   );
 });
 
-Deno.test("the battery catches a fill with no ink of its own", () => {
+test("the battery catches a fill with no ink of its own", () => {
   // The badge spends the secondary fill as a pill with a word on it, so the
   // ink on it is a floor and not a habit.
   const report = themeGates(projectTheme("ink"));
@@ -942,7 +947,7 @@ Deno.test("the battery catches a fill with no ink of its own", () => {
   );
 });
 
-Deno.test("the battery catches a status colour nobody can read", () => {
+test("the battery catches a status colour nobody can read", () => {
   // A status colour is worn as ink on the page as often as it is worn as a
   // fill, so it owes the text floor.
   const report = themeGates(projectTheme("status"));
@@ -958,7 +963,7 @@ Deno.test("the battery catches a status colour nobody can read", () => {
   );
 });
 
-Deno.test("the battery catches a mode that restates the spacing", () => {
+test("the battery catches a mode that restates the spacing", () => {
   // The scales are judged once, on the base document, so a dark mode with
   // its own spacing is a second set of decisions nobody measured.
   const report = themeGates(projectTheme("scale"));
@@ -972,26 +977,26 @@ Deno.test("the battery catches a mode that restates the spacing", () => {
   );
 });
 
-Deno.test("a project theme that breaks nothing passes the battery", () => {
+test("a project theme that breaks nothing passes the battery", () => {
   const report = themeGates(projectTheme("none"));
-  assertEquals(
+  deepStrictEqual(
     report.issues.map((issue) => `${issue.path}: ${issue.message}`),
     [],
   );
   assert(report.valid);
 });
 
-Deno.test("the body ink owes a floor on the page and on the sheet above it", () => {
+test("the body ink owes a floor on the page and on the sheet above it", () => {
   // Two surfaces, two floors: a card is a surface the reader reads on, and
   // the ink that holds on the page has to hold there too.
   const floors = legibilityFloors();
-  assertEquals(
+  deepStrictEqual(
     floors.find((floor) =>
       floor.fg === "color.text" && floor.bg === "color.surface"
     ),
     { fg: "color.text", bg: "color.surface", min: 4.5 },
   );
-  assertEquals(
+  deepStrictEqual(
     floors.find((floor) =>
       floor.fg === "color.text" && floor.bg === "color.surface-raised"
     ),
@@ -999,18 +1004,18 @@ Deno.test("the body ink owes a floor on the page and on the sheet above it", () 
   );
 });
 
-Deno.test("a status colour owes the text floor on the page", () => {
+test("a status colour owes the text floor on the page", () => {
   // A status colour is worn as ink on the page as often as it is worn as a
   // fill, so it owes four and a half to one rather than the non-text three.
   for (const name of ["success", "warning", "error", "info"]) {
-    assertEquals(
+    deepStrictEqual(
       legibilityFloors().find((floor) => floor.fg === `color.semantic.${name}`),
       { fg: `color.semantic.${name}`, bg: "color.surface", min: 4.5 },
     );
   }
 });
 
-Deno.test("the ink on the secondary and the accent fill is a role the contract asks for", () => {
+test("the ink on the secondary and the accent fill is a role the contract asks for", () => {
   // The badge spends the secondary and the accent tones as filled pills with
   // a word on them, so the ink on them is a role with a floor — like the ink
   // on the primary — and a scaffold writes it.
@@ -1018,11 +1023,11 @@ Deno.test("the ink on the secondary and the accent fill is a role the contract a
   assert(paths.includes("color.on-secondary"), "the secondary fill has an ink");
   assert(paths.includes("color.on-accent"), "the accent fill has an ink");
   const floors = legibilityFloors();
-  assertEquals(
+  deepStrictEqual(
     floors.find((floor) => floor.fg === "color.on-secondary"),
     { fg: "color.on-secondary", bg: "color.secondary", min: 4.5 },
   );
-  assertEquals(
+  deepStrictEqual(
     floors.find((floor) => floor.fg === "color.on-accent"),
     { fg: "color.on-accent", bg: "color.accent", min: 4.5 },
   );

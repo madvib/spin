@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { select } from "./select.presentation.ts";
@@ -289,53 +290,53 @@ const selectOptions = (
 
 // ---- the start state ------------------------------------------------------
 
-Deno.test("Given a fresh select / When it mounts / Then idle is the reachable start state", () => {
+test("Given a fresh select / When it mounts / Then idle is the reachable start state", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.mode(), "idle", "the machine starts unfocused and closed");
-  assertEquals(h.api.open, false, "the api reports closed");
-  assertEquals(h.api.focused, false, "and unfocused");
-  assertEquals(
+  deepStrictEqual(h.mode(), "idle", "the machine starts unfocused and closed");
+  deepStrictEqual(h.api.open, false, "the api reports closed");
+  deepStrictEqual(h.api.focused, false, "and unfocused");
+  deepStrictEqual(
     h.api.getRootProps()["data-state"],
     "closed",
     "the root bag reports closed",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getTriggerProps()["data-state"],
     "closed",
     "so does the trigger",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getTriggerProps()["aria-expanded"],
     false,
     "and the trigger's aria agrees",
   );
-  assertEquals(SELECTED(h), [], "nothing is selected");
-  assertEquals(HIGHLIGHTED(h), null, "nothing is highlighted");
+  deepStrictEqual(SELECTED(h), [], "nothing is selected");
+  deepStrictEqual(HIGHLIGHTED(h), null, "nothing is highlighted");
 });
 
-Deno.test("Given a select / When the hidden select's options are read / Then they carry the collection and the selection", () => {
+test("Given a select / When the hidden select's options are read / Then they carry the collection and the selection", () => {
   const h = mount(FRUIT_ITEMS);
   const options = selectOptions(h);
-  assertEquals(
+  deepStrictEqual(
     options.rows.map((row) => row.value),
     ["apple", "banana", "cherry", "date"],
     "every row is an option",
   );
-  assertEquals(
+  deepStrictEqual(
     options.rows.map((row) => row.label),
     ["Apple", "Banana", "Cherry", "Date"],
     "with its label",
   );
-  assertEquals(options.value, [], "the empty selection is the select's value");
-  assertEquals(options.multiple, false, "a single select posts one value");
+  deepStrictEqual(options.value, [], "the empty selection is the select's value");
+  deepStrictEqual(options.multiple, false, "a single select posts one value");
   h.api.selectValue("banana");
-  assertEquals(
+  deepStrictEqual(
     selectOptions(h).value,
     ["banana"],
     "a pick writes the hidden select's value",
   );
   const multi = mount(FRUIT_ITEMS, { multiple: true });
-  assertEquals(
+  deepStrictEqual(
     selectOptions(multi).multiple,
     true,
     "a multiple select posts many",
@@ -344,52 +345,52 @@ Deno.test("Given a select / When the hidden select's options are read / Then the
 
 // ---- opening and closing ---------------------------------------------------
 
-Deno.test("Given a select / When setOpen and close run / Then the panel follows and the bags report it", () => {
+test("Given a select / When setOpen and close run / Then the panel follows and the bags report it", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
-  assertEquals(h.mode(), "open", "setOpen opens the panel");
-  assertEquals(
+  deepStrictEqual(h.mode(), "open", "setOpen opens the panel");
+  deepStrictEqual(
     h.api.getRootProps()["data-state"],
     "open",
     "the root bag reports open",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getTriggerProps()["data-state"],
     "open",
     "so does the trigger",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps()["hidden"],
     false,
     "and the content is shown",
   );
-  assertEquals(HIGHLIGHTED(h), "apple", "with the first row adopted");
+  deepStrictEqual(HIGHLIGHTED(h), "apple", "with the first row adopted");
   h.api.close();
-  assertEquals(h.mode(), "idle", "close returns to idle");
-  assertEquals(
+  deepStrictEqual(h.mode(), "idle", "close returns to idle");
+  deepStrictEqual(
     h.api.getRootProps()["data-state"],
     "closed",
     "the root bag reports closed",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps()["hidden"],
     true,
     "and the content is hidden",
   );
 });
 
-Deno.test("Given a closed select / When toggle runs / Then the panel flips both ways", () => {
+test("Given a closed select / When toggle runs / Then the panel flips both ways", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.toggle();
-  assertEquals(h.mode(), "open", "toggle opens the panel");
-  assertEquals(
+  deepStrictEqual(h.mode(), "open", "toggle opens the panel");
+  deepStrictEqual(
     h.api.getTriggerProps()["data-state"],
     "open",
     "the trigger reports open",
   );
   h.api.toggle();
-  assertEquals(h.mode(), "idle", "and closes it again");
-  assertEquals(
+  deepStrictEqual(h.mode(), "idle", "and closes it again");
+  deepStrictEqual(
     h.api.getTriggerProps()["data-state"],
     "closed",
     "the trigger reports closed",
@@ -398,11 +399,11 @@ Deno.test("Given a closed select / When toggle runs / Then the panel flips both 
 
 // ---- the selection commands -------------------------------------------------
 
-Deno.test("Given a single select / When selectValue runs / Then the value is replaced", () => {
+test("Given a single select / When selectValue runs / Then the value is replaced", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.selectValue("apple");
-  assertEquals(SELECTED(h), ["apple"], "the pick lands");
-  assertEquals(
+  deepStrictEqual(SELECTED(h), ["apple"], "the pick lands");
+  deepStrictEqual(
     h.events.valueChange.at(-1),
     {
       value: ["apple"],
@@ -411,95 +412,95 @@ Deno.test("Given a single select / When selectValue runs / Then the value is rep
     "value-change reports the pick with its item",
   );
   h.api.selectValue("date");
-  assertEquals(SELECTED(h), ["date"], "the next pick replaces");
+  deepStrictEqual(SELECTED(h), ["date"], "the next pick replaces");
 });
 
-Deno.test("Given a multiple select / When selectValue runs twice / Then the values toggle", () => {
+test("Given a multiple select / When selectValue runs twice / Then the values toggle", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.api.selectValue("apple");
-  assertEquals(SELECTED(h), ["apple"], "the first pick lands");
+  deepStrictEqual(SELECTED(h), ["apple"], "the first pick lands");
   h.api.selectValue("date");
-  assertEquals(SELECTED(h), ["apple", "date"], "the second accumulates");
+  deepStrictEqual(SELECTED(h), ["apple", "date"], "the second accumulates");
   h.api.selectValue("apple");
-  assertEquals(SELECTED(h), ["date"], "a repeat pick toggles the row off");
+  deepStrictEqual(SELECTED(h), ["date"], "a repeat pick toggles the row off");
 });
 
-Deno.test("Given a select / When setValue and clearValue run / Then the array is assigned and cleared", () => {
+test("Given a select / When setValue and clearValue run / Then the array is assigned and cleared", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setValue(["date", "apple"]);
-  assertEquals(
+  deepStrictEqual(
     SELECTED(h),
     ["date", "apple"],
     "the array is assigned verbatim",
   );
   h.api.clearValue();
-  assertEquals(SELECTED(h), [], "clearValue empties the selection");
+  deepStrictEqual(SELECTED(h), [], "clearValue empties the selection");
 });
 
 // ---- the row click ----------------------------------------------------------
 
-Deno.test("Given an open select / When a row is clicked / Then the clicked row is selected, not the highlight", () => {
+test("Given an open select / When a row is clicked / Then the clicked row is selected, not the highlight", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
-  assertEquals(
+  deepStrictEqual(
     HIGHLIGHTED(h),
     "apple",
     "the open panel highlights the first row",
   );
   h.clickRow("date");
-  assertEquals(SELECTED(h), ["date"], "the click selects the row it landed on");
-  assertEquals(h.mode(), "focused", "and closeOnSelect closes the panel");
+  deepStrictEqual(SELECTED(h), ["date"], "the click selects the row it landed on");
+  deepStrictEqual(h.mode(), "focused", "and closeOnSelect closes the panel");
 });
 
 // ---- the trigger's keys ------------------------------------------------------
 
-Deno.test("Given a focused select / When Enter or the arrows arrive / Then the panel opens with the highlight pre-placed", () => {
+test("Given a focused select / When Enter or the arrows arrive / Then the panel opens with the highlight pre-placed", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusTrigger();
-  assertEquals(h.mode(), "focused", "the trigger takes the focus");
+  deepStrictEqual(h.mode(), "focused", "the trigger takes the focus");
   h.press("Enter");
-  assertEquals(h.mode(), "open", "Enter opens the panel");
-  assertEquals(HIGHLIGHTED(h), "apple", "with the first row highlighted");
+  deepStrictEqual(h.mode(), "open", "Enter opens the panel");
+  deepStrictEqual(HIGHLIGHTED(h), "apple", "with the first row highlighted");
   h.api.close();
   h.focusTrigger();
   h.press("ArrowUp");
-  assertEquals(h.mode(), "open", "ArrowUp opens the panel");
-  assertEquals(HIGHLIGHTED(h), "date", "with the last row highlighted");
+  deepStrictEqual(h.mode(), "open", "ArrowUp opens the panel");
+  deepStrictEqual(HIGHLIGHTED(h), "date", "with the last row highlighted");
   h.api.close();
   h.focusTrigger();
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "apple", "and ArrowDown opens with the first");
+  deepStrictEqual(HIGHLIGHTED(h), "apple", "and ArrowDown opens with the first");
 });
 
-Deno.test("Given a focused single select / When the closed arrows arrive / Then the selection moves in the collection", () => {
+test("Given a focused single select / When the closed arrows arrive / Then the selection moves in the collection", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusTrigger();
   h.press("ArrowRight");
-  assertEquals(
+  deepStrictEqual(
     SELECTED(h),
     ["apple"],
     "ArrowRight from empty takes the first row",
   );
   h.press("ArrowRight");
-  assertEquals(SELECTED(h), ["banana"], "and walks forward");
+  deepStrictEqual(SELECTED(h), ["banana"], "and walks forward");
   h.press("ArrowLeft");
-  assertEquals(SELECTED(h), ["apple"], "ArrowLeft walks back");
+  deepStrictEqual(SELECTED(h), ["apple"], "ArrowLeft walks back");
   h.press("End");
-  assertEquals(SELECTED(h), ["date"], "End takes the last row");
+  deepStrictEqual(SELECTED(h), ["date"], "End takes the last row");
   h.press("Home");
-  assertEquals(SELECTED(h), ["apple"], "and Home the first");
+  deepStrictEqual(SELECTED(h), ["apple"], "and Home the first");
 });
 
-Deno.test("Given a focused multiple select / When the closed arrows arrive / Then the selection stays put", () => {
+test("Given a focused multiple select / When the closed arrows arrive / Then the selection stays put", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.focusTrigger();
   h.api.selectValue("apple");
-  assertEquals(SELECTED(h), ["apple"], "a pick lands");
+  deepStrictEqual(SELECTED(h), ["apple"], "a pick lands");
   h.press("ArrowRight");
   h.press("Home");
   h.press("End");
   h.press("ArrowLeft");
-  assertEquals(
+  deepStrictEqual(
     SELECTED(h),
     ["apple"],
     "the closed arrows move nothing in a multiple select",
@@ -508,55 +509,55 @@ Deno.test("Given a focused multiple select / When the closed arrows arrive / The
 
 // ---- the content's keys ------------------------------------------------------
 
-Deno.test("Given an open select / When the content arrows arrive / Then the highlight walks the collection", () => {
+test("Given an open select / When the content arrows arrive / Then the highlight walks the collection", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
-  assertEquals(
+  deepStrictEqual(
     HIGHLIGHTED(h),
     "apple",
     "the open panel starts on the first row",
   );
   h.pressContent("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "banana", "ArrowDown walks forward");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "ArrowDown walks forward");
   h.pressContent("ArrowUp");
-  assertEquals(HIGHLIGHTED(h), "apple", "ArrowUp walks back");
+  deepStrictEqual(HIGHLIGHTED(h), "apple", "ArrowUp walks back");
   h.pressContent("End");
-  assertEquals(HIGHLIGHTED(h), "date", "End jumps to the last row");
+  deepStrictEqual(HIGHLIGHTED(h), "date", "End jumps to the last row");
   h.pressContent("Home");
-  assertEquals(HIGHLIGHTED(h), "apple", "and Home to the first");
+  deepStrictEqual(HIGHLIGHTED(h), "apple", "and Home to the first");
   h.pressContent("b");
-  assertEquals(HIGHLIGHTED(h), "banana", "typeahead matches the label prefix");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "typeahead matches the label prefix");
   h.pressContent("B");
-  assertEquals(HIGHLIGHTED(h), "banana", "case-insensitively");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "case-insensitively");
 });
 
-Deno.test("Given an open select / When Enter arrives on the content / Then the highlight is picked and the panel closes", () => {
+test("Given an open select / When Enter arrives on the content / Then the highlight is picked and the panel closes", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
   h.pressContent("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "banana", "the highlight is on banana");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "the highlight is on banana");
   h.pressContent("Enter");
-  assertEquals(SELECTED(h), ["banana"], "Enter picks the highlight");
-  assertEquals(h.mode(), "focused", "and closeOnSelect closes the panel");
+  deepStrictEqual(SELECTED(h), ["banana"], "Enter picks the highlight");
+  deepStrictEqual(h.mode(), "focused", "and closeOnSelect closes the panel");
 });
 
 // ---- closing on a pick -------------------------------------------------------
 
-Deno.test("Given closeOnSelect false / When a row is picked / Then the panel stays open", () => {
+test("Given closeOnSelect false / When a row is picked / Then the panel stays open", () => {
   const h = mount(FRUIT_ITEMS, { closeOnSelect: false });
   h.api.setOpen(true);
   h.clickRow("date");
-  assertEquals(SELECTED(h), ["date"], "the pick lands");
-  assertEquals(h.mode(), "open", "and the panel stays up");
+  deepStrictEqual(SELECTED(h), ["date"], "the pick lands");
+  deepStrictEqual(h.mode(), "open", "and the panel stays up");
 });
 
-Deno.test("Given a multiple select / When a row is clicked / Then it accumulates and stays open", () => {
+test("Given a multiple select / When a row is clicked / Then it accumulates and stays open", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.api.setOpen(true);
   h.clickRow("apple");
   h.clickRow("date");
-  assertEquals(SELECTED(h), ["apple", "date"], "picks accumulate");
-  assertEquals(h.mode(), "open", "and the panel stays up for the next pick");
+  deepStrictEqual(SELECTED(h), ["apple", "date"], "picks accumulate");
+  deepStrictEqual(h.mode(), "open", "and the panel stays up for the next pick");
 });
 
 // Controlled channels (value/highlightedValue/open) are hooks-layer jobs now;
@@ -566,40 +567,40 @@ Deno.test("Given a multiple select / When a row is clicked / Then it accumulates
 // The bridge's collection effect keeps the machine's order in step and lets
 // the machine's own sync event drop what the new collection no longer holds.
 
-Deno.test("Given a select whose selection and highlight vanish / When the collection changes / Then both are dropped", () => {
+test("Given a select whose selection and highlight vanish / When the collection changes / Then both are dropped", () => {
   const h = mount(FRUIT_ITEMS, { defaultValue: "banana" });
   h.api.setOpen(true);
-  assertEquals(HIGHLIGHTED(h), "banana", "the open panel adopts the selection");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "the open panel adopts the selection");
   h.write("items", [
     { value: "apple", label: "Apple" },
     { value: "cherry", label: "Cherry" },
     { value: "date", label: "Date" },
   ]);
-  assertEquals(SELECTED(h), [], "a vanished selection is dropped");
-  assertEquals(HIGHLIGHTED(h), null, "and so is a vanished highlight");
+  deepStrictEqual(SELECTED(h), [], "a vanished selection is dropped");
+  deepStrictEqual(HIGHLIGHTED(h), null, "and so is a vanished highlight");
 });
 
-Deno.test("Given a select whose highlight vanishes / When the collection changes / Then it falls back to the selection", () => {
+test("Given a select whose highlight vanishes / When the collection changes / Then it falls back to the selection", () => {
   const h = mount(FRUIT_ITEMS, { defaultValue: "date" });
   h.api.setOpen(true);
   h.hoverRow("banana");
-  assertEquals(HIGHLIGHTED(h), "banana", "the pointer adopted banana");
-  assertEquals(SELECTED(h), ["date"], "the selection is date");
+  deepStrictEqual(HIGHLIGHTED(h), "banana", "the pointer adopted banana");
+  deepStrictEqual(SELECTED(h), ["date"], "the selection is date");
   h.write("items", [
     { value: "apple", label: "Apple" },
     { value: "cherry", label: "Cherry" },
     { value: "date", label: "Date" },
   ]);
-  assertEquals(SELECTED(h), ["date"], "the selection survives");
-  assertEquals(HIGHLIGHTED(h), "date", "and the highlight falls back to it");
+  deepStrictEqual(SELECTED(h), ["date"], "the selection survives");
+  deepStrictEqual(HIGHLIGHTED(h), "date", "and the highlight falls back to it");
 });
 
 // ---- the events -----------------------------------------------------------------
 
-Deno.test("Given a select / When the selection moves / Then value-change fires with the items", () => {
+test("Given a select / When the selection moves / Then value-change fires with the items", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setValue(["apple", "date"]);
-  assertEquals(
+  deepStrictEqual(
     h.events.valueChange.at(-1),
     {
       value: ["apple", "date"],
@@ -612,60 +613,60 @@ Deno.test("Given a select / When the selection moves / Then value-change fires w
   );
 });
 
-Deno.test("Given a select / When the panel moves / Then open-change fires with the reason", () => {
+test("Given a select / When the panel moves / Then open-change fires with the reason", () => {
   const h = mount(FRUIT_ITEMS);
   h.clickTrigger();
-  assertEquals(
+  deepStrictEqual(
     h.events.openChange.at(-1),
     { open: true, reason: "trigger-click" },
     "the trigger's click is the reason",
   );
   h.pressEscape();
-  assertEquals(
+  deepStrictEqual(
     h.events.openChange.at(-1),
     { open: false, reason: "escape-key" },
     "the escape is too",
   );
   h.api.setOpen(true);
-  assertEquals(
+  deepStrictEqual(
     h.events.openChange.at(-1),
     { open: true, reason: "script" },
     "and the host's command is a script",
   );
 });
 
-Deno.test("Given a select / When focus runs / Then the trigger's focus event moves the machine", () => {
+test("Given a select / When focus runs / Then the trigger's focus event moves the machine", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.mode(), "idle", "the select starts unfocused");
+  deepStrictEqual(h.mode(), "idle", "the select starts unfocused");
   h.api.focus();
-  assertEquals(h.mode(), "focused", "focus sends the trigger's focus event");
+  deepStrictEqual(h.mode(), "focused", "focus sends the trigger's focus event");
 });
 
 // ---- the layer -------------------------------------------------------------------
 
-Deno.test("Given an open select / When Escape arrives / Then the panel closes to focused", () => {
+test("Given an open select / When Escape arrives / Then the panel closes to focused", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
   h.pressEscape();
-  assertEquals(h.mode(), "focused", "escape returns to the focused phase");
-  assertEquals(HIGHLIGHTED(h), null, "and clears the highlight");
-  assertEquals(
+  deepStrictEqual(h.mode(), "focused", "escape returns to the focused phase");
+  deepStrictEqual(HIGHLIGHTED(h), null, "and clears the highlight");
+  deepStrictEqual(
     h.events.openChange.at(-1),
     { open: false, reason: "escape-key" },
     "open-change reports the escape",
   );
 });
 
-Deno.test("Given an open select / When an outside press arrives / Then restoreFocus decides the landing", () => {
+test("Given an open select / When an outside press arrives / Then restoreFocus decides the landing", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setOpen(true);
   h.pressOutside(null, 0);
-  assertEquals(
+  deepStrictEqual(
     h.mode(),
     "focused",
     "a plain press returns to the focused phase",
   );
   h.api.setOpen(true);
   h.pressOutside(null, 2);
-  assertEquals(h.mode(), "idle", "a non-focusable press lands in idle");
+  deepStrictEqual(h.mode(), "idle", "a non-focusable press lands in idle");
 });

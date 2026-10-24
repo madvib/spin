@@ -13,6 +13,9 @@
  * source text, so a token a rule reads conditionally is still captured.
  */
 
+import { readFileSync } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import type { Rule } from "@unocss/core";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import type { ThemeCssVar } from "@spin/theme/theme-types";
@@ -583,8 +586,11 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
 export const declaredVars: ReadonlySet<string> = (() => {
   try {
     const doc = JSON.parse(
-      Deno.readTextFileSync(
-        new URL("../../../../theme/src/themes/silk.json", import.meta.url),
+      readFileSync(
+        fileURLToPath(
+          new URL("../../../../theme/src/themes/silk.json", import.meta.url),
+        ),
+        "utf8",
       ),
     ) as ThemeDocument;
     const parsed = parseTokens(doc);
@@ -1000,7 +1006,7 @@ export async function writeManifest(to: URL = MANIFEST_OUT): Promise<void> {
     ].filter((line) => line !== "").join("\n");
   });
 
-  await Deno.writeTextFile(
+  await writeFile(
     to,
     [
       header,
@@ -1022,7 +1028,7 @@ const MANIFEST_OUT = new URL("./manifest.ts", import.meta.url);
 
 async function readIfPresent(url: URL): Promise<string> {
   try {
-    return await Deno.readTextFile(url);
+    return await readFile(fileURLToPath(url), "utf8");
   } catch {
     // First run: no checked-in manifest yet.
     return "";
@@ -1170,7 +1176,7 @@ async function writeElements(
   const entries = tags.map((tag) =>
     `    "${tag}": HTMLElement & SpinElementAttributes;`
   ).join("\n");
-  await Deno.writeTextFile(
+  await writeFile(
     ELEMENTS_OUT,
     [
       "/**",

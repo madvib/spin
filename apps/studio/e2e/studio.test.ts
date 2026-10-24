@@ -12,7 +12,7 @@
  *   STUDIO_URL=http://localhost:9173 APP_URL=http://localhost:9174 deno task e2e
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { ROUTE_PATHS } from "../src/lib/routes.ts";
 import { test, withPage, withWatcher } from "./harness.ts";
 import {
@@ -838,12 +838,12 @@ test("a classless control behaves the theme's way on every route", async () => {
     ) {
       throw new Error("a button was not on its page");
     }
-    assertEquals(
+    deepStrictEqual(
       triggerRest,
       specimenRest,
       "the same control rests the same way, a route apart",
     );
-    assertEquals(
+    deepStrictEqual(
       triggerHover,
       specimenHover,
       "and moves the same way under the pointer",
@@ -965,17 +965,17 @@ test("the component-token controls read as chrome, not as calls to action", asyn
     );
     if (snap === null) throw new Error("a panel control was not on the page");
 
-    assertEquals(
+    deepStrictEqual(
       snap.toggle,
       snap.segment,
       "the header chip reads at what the page's own segments read at",
     );
-    assertEquals(
+    deepStrictEqual(
       snap.toggle.weight,
       snap.regular,
       "the chip sits at the theme's regular weight, not the button's own",
     );
-    assertEquals(
+    deepStrictEqual(
       snap.close,
       {
         background: "rgba(0, 0, 0, 0)",

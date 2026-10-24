@@ -281,9 +281,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       replacement: source.diagnosticsIndex,
       targets: [source.diagnosticsIndex],
     },
-    // Pure id-shaping: every `npm:` specifier the packages carry drops the
-    // prefix so rolldown can find it in node_modules. No target to outlive.
-    { find: /^npm:(.+)$/, replacement: "$1", targets: [] },
     {
       // The ONE copy: two uno cores in one sheet resolves tokens from
       // different instances. Pinned only while the module is hoisted there.
@@ -472,9 +469,8 @@ export function projectThemes(
 
 export const spin = createUnplugin<SpinPluginOptions>((options) => {
   // `configResolved` sets this before anything generates; the default only
-  // covers non-vite hosts. Guarded because the studio typechecks this file
-  // without Deno types, and an unguarded reference is a build break there.
-  let root = typeof Deno !== "undefined" ? Deno.cwd() : process.cwd();
+  // covers non-vite hosts.
+  let root = process.cwd();
   let envMode: "dev" | "build" = "build";
   // The walk is the expensive half and content changes rarely, so the scan
   // is cached and the stylesheet regenerates from it. An overlay change

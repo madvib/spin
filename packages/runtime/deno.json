@@ -26,15 +26,9 @@
     "@spin/syntax/props": "../syntax/src/props.ts",
     "unplugin": "npm:unplugin@^3.4.0"
   },
-  "tasks": {
-    "test": "deno test --config deno.test.json --allow-read --allow-import src/",
-    "lint": "deno lint",
-    "fmt": "deno fmt"
-  },
   "compilerOptions": {
     "strict": true,
     "lib": [
-      "deno.window",
       "dom",
       "dom.iterable"
     ]

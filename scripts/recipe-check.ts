@@ -22,13 +22,21 @@
  * human's memory of which patterns break.
  */
 
-import { walk } from "@std/fs/walk";
+import { readdir, readdirSync, readFileSync, readFile } from "node:fs/promises";
 import * as components from "../packages/components/src/index.ts";
 
 /** No recipe may spell `var(--x)`: custom properties are framework
  * transport (defs, actions), never author markup. */
 const VAR_GRANDFATHERED: ReadonlySet<string> = new Set([]);
 const ROOT = "packages/components/src";
+async function* walkFiles(root: string, exts: string[]): AsyncGenerator<{ path: string; isFile: boolean }> {
+  const entries = await readdir(root, { withFileTypes: true });
+  for (const e of entries) {
+    const p = `${root}/${e.name}`;
+    if (e.isDirectory()) yield* walkFiles(p, exts);
+    else if (e.isFile() && exts.some((x) => e.name.endsWith(x))) yield { path: p, isFile: true };
+  }
+}
 type Manifest = {
   readonly parts: readonly string[];
   readonly slots: readonly string[];
@@ -101,10 +109,10 @@ const problems: string[] = [];
  * attributes its parts spell. */
 function writtenHooks(dir: string): Set<string> {
   const hooks = new Set<string>();
-  for (const entry of Deno.readDirSync(dir)) {
-    if (!entry.isFile) continue;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
     if (!/\.(presentation|controller-def)\.ts$/.test(entry.name)) continue;
-    const source = Deno.readTextFileSync(`${dir}/${entry.name}`);
+    const source = readFileSync(`${dir}/${entry.name}`, "utf8");
     // the facts the component declares
     const facts = /export const facts = \{([\s\S]*?)\n\};/.exec(source);
     if (facts) {
@@ -216,9 +224,8 @@ function elementsOf(path: string, source: string): void {
 
 // Vocabulary is uno-class-check's job (generator truth, same preset +
 // themes the app builds with). This file keeps the structural traps only.
-for await (const entry of walk(ROOT, { exts: [".html"] })) {
-  if (!entry.isFile) continue;
-  const source = await Deno.readTextFile(entry.path);
+for await (const entry of walkFiles(ROOT, [".html"])) {
+  const source = await readFile(entry.path, "utf8");
   elementsOf(entry.path, source);
   readersOf(entry.path, source);
   hooksOf(entry.path, source);
@@ -231,10 +238,9 @@ for await (const entry of walk(ROOT, { exts: [".html"] })) {
 //
 // These rules named the DEFS, and the defs are gone — so they enforced
 // nothing since the split. They name the bindings now.
-for await (const entry of walk(ROOT, { exts: [".ts"] })) {
-  if (!entry.isFile) continue;
+for await (const entry of walkFiles(ROOT, [".ts"])) {
   if (!/\.presentation\.ts$/.test(entry.path)) continue;
-  const source = await Deno.readTextFile(entry.path);
+  const source = await readFile(entry.path, "utf8");
   // The scan is over CODE: a comment that says "never the global
   // document" is not a document access. The block comments are stripped
   // first, then the line comments — a `//` inside a string is neither.
@@ -286,6 +292,6 @@ for await (const entry of walk(ROOT, { exts: [".ts"] })) {
 if (problems.length > 0) {
   console.error(`recipe: ${problems.length} violation(s):`);
   for (const problem of problems) console.error(`  ${problem}`);
-  Deno.exit(1);
+  process.exit(1);
 }
 console.log("recipe: all clear");

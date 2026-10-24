@@ -1,0 +1,226 @@
+{
+  "name": "@spin/components",
+  "version": "0.1.1",
+  "description": "The machine components: headless statecharts with typed bridges, examples, and RPC procedures.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./angle-slider": {
+      "types": "./src/angle-slider/angle-slider.presentation.ts",
+      "default": "./src/angle-slider/angle-slider.presentation.ts"
+    },
+    "./async-list": {
+      "types": "./src/async-list/async-list.presentation.ts",
+      "default": "./src/async-list/async-list.presentation.ts"
+    },
+    "./avatar": {
+      "types": "./src/avatar/avatar.presentation.ts",
+      "default": "./src/avatar/avatar.presentation.ts"
+    },
+    "./carousel": {
+      "types": "./src/carousel/carousel.presentation.ts",
+      "default": "./src/carousel/carousel.presentation.ts"
+    },
+    "./cascade-select": {
+      "types": "./src/cascade-select/cascade.presentation.ts",
+      "default": "./src/cascade-select/cascade.presentation.ts"
+    },
+    "./color-picker": {
+      "types": "./src/color-picker/color-picker.presentation.ts",
+      "default": "./src/color-picker/color-picker.presentation.ts"
+    },
+    "./combobox": {
+      "types": "./src/combobox/combobox.presentation.ts",
+      "default": "./src/combobox/combobox.presentation.ts"
+    },
+    "./date-input": {
+      "types": "./src/date-input/date-input.presentation.ts",
+      "default": "./src/date-input/date-input.presentation.ts"
+    },
+    "./date-picker": {
+      "types": "./src/date-picker/date-picker.presentation.ts",
+      "default": "./src/date-picker/date-picker.presentation.ts"
+    },
+    "./editable": {
+      "types": "./src/editable/editable.presentation.ts",
+      "default": "./src/editable/editable.presentation.ts"
+    },
+    "./file-upload": {
+      "types": "./src/file-upload/file-upload.presentation.ts",
+      "default": "./src/file-upload/file-upload.presentation.ts"
+    },
+    "./floating-panel": {
+      "types": "./src/floating-panel/floating-panel.presentation.ts",
+      "default": "./src/floating-panel/floating-panel.presentation.ts"
+    },
+    "./hover-card": {
+      "types": "./src/hover-card/hover-card.controller-def.ts",
+      "default": "./src/hover-card/hover-card.controller-def.ts"
+    },
+    "./image-cropper": {
+      "types": "./src/image-cropper/image-cropper.presentation.ts",
+      "default": "./src/image-cropper/image-cropper.presentation.ts"
+    },
+    "./listbox": {
+      "types": "./src/listbox/listbox.presentation.ts",
+      "default": "./src/listbox/listbox.presentation.ts"
+    },
+    "./menu": {
+      "types": "./src/menu/menu.presentation.ts",
+      "default": "./src/menu/menu.presentation.ts"
+    },
+    "./navigation-menu": {
+      "types": "./src/navigation-menu/navigation-menu.presentation.ts",
+      "default": "./src/navigation-menu/navigation-menu.presentation.ts"
+    },
+    "./number-input": {
+      "types": "./src/number-input/number-input.presentation.ts",
+      "default": "./src/number-input/number-input.presentation.ts"
+    },
+    "./pagination": {
+      "types": "./src/pagination/pagination.presentation.ts",
+      "default": "./src/pagination/pagination.presentation.ts"
+    },
+    "./pin-input": {
+      "types": "./src/pin-input/pin-input.presentation.ts",
+      "default": "./src/pin-input/pin-input.presentation.ts"
+    },
+    "./popover": {
+      "types": "./src/popover/popover.controller-def.ts",
+      "default": "./src/popover/popover.controller-def.ts"
+    },
+    "./rating-group": {
+      "types": "./src/rating-group/rating-group.presentation.ts",
+      "default": "./src/rating-group/rating-group.presentation.ts"
+    },
+    "./select": {
+      "types": "./src/select/select.presentation.ts",
+      "default": "./src/select/select.presentation.ts"
+    },
+    "./signature-pad": {
+      "types": "./src/signature-pad/signature-pad.presentation.ts",
+      "default": "./src/signature-pad/signature-pad.presentation.ts"
+    },
+    "./slider": {
+      "types": "./src/slider/slider.presentation.ts",
+      "default": "./src/slider/slider.presentation.ts"
+    },
+    "./splitter": {
+      "types": "./src/splitter/splitter.presentation.ts",
+      "default": "./src/splitter/splitter.presentation.ts"
+    },
+    "./steps": {
+      "types": "./src/steps/steps.presentation.ts",
+      "default": "./src/steps/steps.presentation.ts"
+    },
+    "./tabs": {
+      "types": "./src/tabs/tabs.presentation.ts",
+      "default": "./src/tabs/tabs.presentation.ts"
+    },
+    "./tags-input": {
+      "types": "./src/tags-input/tags.presentation.ts",
+      "default": "./src/tags-input/tags.presentation.ts"
+    },
+    "./timer": {
+      "types": "./src/timer/timer.presentation.ts",
+      "default": "./src/timer/timer.presentation.ts"
+    },
+    "./toast": {
+      "types": "./src/toast/toast.presentation.ts",
+      "default": "./src/toast/toast.presentation.ts"
+    },
+    "./toggle-group": {
+      "types": "./src/toggle-group/toggle-group.presentation.ts",
+      "default": "./src/toggle-group/toggle-group.presentation.ts"
+    },
+    "./tooltip": {
+      "types": "./src/tooltip/tooltip.controller-def.ts",
+      "default": "./src/tooltip/tooltip.controller-def.ts"
+    },
+    "./tour": {
+      "types": "./src/tour/tour.presentation.ts",
+      "default": "./src/tour/tour.presentation.ts"
+    },
+    "./tree-view": {
+      "types": "./src/tree-view/tree-view.presentation.ts",
+      "default": "./src/tree-view/tree-view.presentation.ts"
+    },
+    "./procedures": {
+      "types": "./src/components-procedures.ts",
+      "default": "./src/components-procedures.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@spin/components": "workspace:*",
+    "@spin/hooks": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/runtime": "workspace:*",
+    "@spin/theme": "workspace:*",
+    "@unocss/core": "^66.10.5",
+    "@zag-js/color-utils": "^1.44.0",
+    "perfect-freehand": "^1.2.3",
+    "valibot": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@spin/runtime": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "e2e:rail": "bun test tests/rail.e2e.ts",
+    "e2e:carousel": "bun test tests/carousel.e2e.ts",
+    "e2e:menu": "bun run tests/menu.e2e.ts",
+    "e2e:cascade": "bun test tests/cascade.e2e.ts",
+    "e2e:tags": "bun test tests/tags.e2e.ts",
+    "e2e:number-input": "bun test tests/number-input.e2e.ts",
+    "e2e:timer": "bun test tests/timer.e2e.ts",
+    "e2e:pin-input": "bun test tests/pin-input.e2e.ts",
+    "e2e:async-list": "bun test tests/async-list.e2e.ts",
+    "e2e:combobox": "bun test tests/combobox.e2e.ts",
+    "e2e:listbox": "bun test tests/listbox.e2e.ts",
+    "e2e:color-picker": "bun test tests/color-picker.e2e.ts",
+    "e2e:image-cropper": "bun test tests/image-cropper.e2e.ts",
+    "e2e:signature-pad": "bun test tests/signature-pad.e2e.ts",
+    "e2e:rating-group": "bun test tests/rating-group.e2e.ts",
+    "e2e:slider": "bun test tests/slider.e2e.ts",
+    "e2e:splitter": "bun test tests/splitter.e2e.ts",
+    "e2e:steps": "bun test tests/steps.e2e.ts",
+    "e2e:pagination": "bun test tests/pagination.e2e.ts",
+    "e2e:angle-slider": "bun test tests/angle-slider.e2e.ts",
+    "e2e:toggle-group": "bun test tests/toggle-group.e2e.ts",
+    "e2e:avatar": "bun test tests/avatar.e2e.ts",
+    "e2e:select": "bun test tests/select.e2e.ts",
+    "e2e:editable": "bun test tests/editable.e2e.ts",
+    "e2e:toast": "bun test tests/toast.e2e.ts",
+    "e2e:tree-view": "bun test tests/tree-view.e2e.ts",
+    "e2e:popover": "bun test tests/popover.e2e.ts",
+    "e2e:tooltip": "bun test tests/tooltip.e2e.ts",
+    "e2e:hover-card": "bun test tests/hover-card.e2e.ts",
+    "e2e:date-input": "bun test tests/date-input.e2e.ts",
+    "e2e:date-picker": "bun test tests/date-picker.e2e.ts",
+    "e2e:floating-panel": "bun test tests/floating-panel.e2e.ts",
+    "e2e:file-upload": "bun test tests/file-upload.e2e.ts",
+    "e2e:navigation-menu": "bun test tests/navigation-menu.e2e.ts",
+    "e2e:tour": "bun test tests/tour.e2e.ts"
+  }
+}

@@ -14,7 +14,7 @@
  * human's memory of which args are typed.
  */
 
-import { walk } from "@std/fs/walk";
+import { readdir, readFile, writeFile, rm } from "node:fs/promises";
 import {
   extractScript,
   type Node,
@@ -23,6 +23,14 @@ import {
 } from "../packages/syntax/src/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname;
+async function* walkFiles(root: string, exts: string[]): AsyncGenerator<{ path: string; isFile: boolean }> {
+  const entries = await readdir(root, { withFileTypes: true });
+  for (const e of entries) {
+    const p = `${root}/${e.name}`;
+    if (e.isDirectory()) yield* walkFiles(p, exts);
+    else if (e.isFile() && exts.some((x) => e.name.endsWith(x))) yield { path: p, isFile: true };
+  }
+}
 
 function emitTemplateChecks(nodes: readonly Node[], out: string[]): void {
   for (const node of nodes) {
@@ -60,11 +68,9 @@ async function main(): Promise<void> {
   const modules: string[] = [];
   const failures: string[] = [];
   try {
-    for await (
-      const entry of walk(ROOT + "packages/components/src", { exts: [".html"] })
-    ) {
+    for await (const entry of walkFiles(ROOT + "packages/components/src", [".html"])) {
       if (!entry.isFile) continue;
-      const source = await Deno.readTextFile(entry.path);
+      const source = await readFile(entry.path, "utf8");
       const body = extractScript(source);
       if (body === undefined) continue;
       const stripped = stripScript(body);
@@ -89,7 +95,7 @@ async function main(): Promise<void> {
           if (part === ".") return parts;
           return [...parts, part];
         }, [] as string[]).join("/");
-        const included = await Deno.readTextFile(normalized);
+        const included = await readFile(normalized, "utf8");
         const includedBody = included
           .replace(/<scope>[\s\S]*?<\/scope>\s*/, "")
           .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/, "");
@@ -110,32 +116,27 @@ async function main(): Promise<void> {
       ].join("\n");
       // Beside the example, so `../slider.presentation.ts` resolves.
       const tmp = `${entry.path}.script-check.ts`;
-      await Deno.writeTextFile(tmp, virtualModule);
+      await writeFile(tmp, virtualModule);
       modules.push(tmp);
     }
     if (modules.length === 0) {
       console.log("script-check: no <script> blocks found");
       return;
     }
-    const cmd = new Deno.Command("deno", {
-      args: ["check", "--no-lock", ...modules],
-      cwd: ROOT,
-      stdout: "piped",
-      stderr: "piped",
-    });
-    const { code, stdout, stderr } = await cmd.output();
-    const out = new TextDecoder().decode(stdout) +
-      new TextDecoder().decode(stderr);
+    const { spawnSync } = await import("node:child_process");
+    const r = spawnSync("deno", ["check", "--no-lock", ...modules], { cwd: ROOT, encoding: "utf8" });
+    const code = r.status ?? 1;
+    const out = (r.stdout ?? "") + (r.stderr ?? "");
     for (const f of failures) console.log(`FAIL ${f}`);
     if (code !== 0) {
       // Map tmp paths back to examples.
       console.log(out.replaceAll(".script-check.ts", ""));
-      Deno.exit(1);
+      process.exit(1);
     }
-    if (failures.length > 0) Deno.exit(1);
+    if (failures.length > 0) process.exit(1);
     console.log(`script-check: ${modules.length} script block(s), all clear`);
   } finally {
-    for (const tmp of modules) await Deno.remove(tmp).catch(() => {});
+    for (const tmp of modules) await rm(tmp).catch(() => {});
   }
 }
 

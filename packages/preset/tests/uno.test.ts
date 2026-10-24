@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { toUnoTheme } from "@spin/preset";
@@ -9,7 +10,7 @@ function treeOf(doc: unknown): TokenTree {
   return parsed.tree;
 }
 
-Deno.test("toUnoTheme nests color groups and resolves aliases", () => {
+test("toUnoTheme nests color groups and resolves aliases", () => {
   const theme = toUnoTheme(treeOf({
     color: {
       $type: "color",
@@ -21,15 +22,15 @@ Deno.test("toUnoTheme nests color groups and resolves aliases", () => {
       surface: { $value: "{color.primary}" },
     },
   }));
-  assertEquals(theme.colors.primary, "#111");
-  assertEquals(
+  deepStrictEqual(theme.colors.primary, "#111");
+  deepStrictEqual(
     (theme.colors.neutral as Record<string, string>)["50"],
     "#eee",
   );
-  assertEquals(theme.colors.surface, "#111");
+  deepStrictEqual(theme.colors.surface, "#111");
 });
 
-Deno.test("toUnoTheme maps each token group onto its Uno key", () => {
+test("toUnoTheme maps each token group onto its Uno key", () => {
   const theme = toUnoTheme(treeOf({
     spacing: { $type: "dimension", 4: { $value: "1rem" } },
     font: {
@@ -46,19 +47,19 @@ Deno.test("toUnoTheme maps each token group onto its Uno key", () => {
       easing: { $type: "cubicBezier", standard: { $value: "linear" } },
     },
   }));
-  assertEquals(theme.spacing["4"], "1rem");
-  assertEquals(theme.fontSize["lg"], "2rem");
-  assertEquals(theme.fontFamily["sans"], "faces");
-  assertEquals(theme.fontWeight["bold"], "700");
-  assertEquals(theme.radius["lg"], "3px");
-  assertEquals(theme.shadow["md"], "shadows");
-  assertEquals(theme.breakpoint["md"], "5rem");
-  assertEquals(theme.zIndex["modal"], "9");
-  assertEquals(theme.transitionDuration["base"], "9ms");
-  assertEquals(theme.transitionTimingFunction["standard"], "linear");
+  deepStrictEqual(theme.spacing["4"], "1rem");
+  deepStrictEqual(theme.fontSize["lg"], "2rem");
+  deepStrictEqual(theme.fontFamily["sans"], "faces");
+  deepStrictEqual(theme.fontWeight["bold"], "700");
+  deepStrictEqual(theme.radius["lg"], "3px");
+  deepStrictEqual(theme.shadow["md"], "shadows");
+  deepStrictEqual(theme.breakpoint["md"], "5rem");
+  deepStrictEqual(theme.zIndex["modal"], "9");
+  deepStrictEqual(theme.transitionDuration["base"], "9ms");
+  deepStrictEqual(theme.transitionTimingFunction["standard"], "linear");
 });
 
-Deno.test("toUnoTheme keeps base values when a dark group exists", () => {
+test("toUnoTheme keeps base values when a dark group exists", () => {
   const theme = toUnoTheme(treeOf({
     color: {
       $type: "color",
@@ -71,11 +72,11 @@ Deno.test("toUnoTheme keeps base values when a dark group exists", () => {
       },
     },
   }));
-  assertEquals(theme.colors.primary, "#111");
-  assertEquals("dark" in theme.colors, false);
+  deepStrictEqual(theme.colors.primary, "#111");
+  deepStrictEqual("dark" in theme.colors, false);
 });
 
-Deno.test("the loop is not a transition duration in the Uno theme", () => {
+test("the loop is not a transition duration in the Uno theme", () => {
   // The Uno shape has no slot for the period of an endless animation, and a
   // loop where a transition's duration goes is how `duration-loop` became a
   // transition. The loop is spent off the custom property instead.
@@ -88,6 +89,6 @@ Deno.test("the loop is not a transition duration in the Uno theme", () => {
       },
     },
   }));
-  assertEquals(theme.transitionDuration["base"], "9ms");
-  assertEquals("loop" in theme.transitionDuration, false);
+  deepStrictEqual(theme.transitionDuration["base"], "9ms");
+  deepStrictEqual("loop" in theme.transitionDuration, false);
 });

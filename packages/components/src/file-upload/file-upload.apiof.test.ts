@@ -1,8 +1,9 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { FileUploadApi } from "./file-upload.presentation.ts";
 import type { FileRow } from "./file-upload.presentation.ts";
 
-Deno.test("FileUploadApi promises the component's surface", () => {
+test("FileUploadApi promises the component's surface", () => {
   const keys: (keyof FileUploadApi)[] = [
     "acceptedFiles",
     "rejectedFiles",
@@ -24,7 +25,7 @@ Deno.test("FileUploadApi promises the component's surface", () => {
     "getItemDeleteTriggerProps",
     "getClearTriggerProps",
   ];
-  assertEquals(keys.length, 19);
+  deepStrictEqual(keys.length, 19);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const openFilePickerTyped: AssertExact<
@@ -43,7 +44,7 @@ Deno.test("FileUploadApi promises the component's surface", () => {
     FileUploadApi["getItemSizeText"],
     (row: FileRow) => string
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       openFilePickerTyped,
       removeFileTyped,

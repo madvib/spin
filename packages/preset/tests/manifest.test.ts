@@ -1,4 +1,8 @@
-import { assertEquals, assertThrows } from "@std/assert";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
+import { deepStrictEqual } from "node:assert/strict";
 import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
 import {
   primitiveComponents,
@@ -28,7 +32,7 @@ const THEMES_DIR = new URL("../../theme/src/themes/", import.meta.url);
 const THEMES = Object.keys(starterThemes).map((name) => `${name}.json`);
 
 function varsOf(name: string): Set<string> {
-  const text = Deno.readTextFileSync(new URL(name, THEMES_DIR));
+  const text = readFileSync(new URL(name, THEMES_DIR));
   const parsed = parseTokens(JSON.parse(text));
   if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
   return new Set(Object.keys(indexTree(resolveAliases(parsed.tree).tree).vars));
@@ -41,7 +45,7 @@ function readsOf(component: { reads: readonly string[] }): string[] {
   return [...component.reads];
 }
 
-Deno.test("the checked-in manifest matches what the rules do now", () => {
+test("the checked-in manifest matches what the rules do now", () => {
   // Every rule component compared field by field. A component added without
   // regenerating, or a rule changed without regenerating, fails here — which is
   // the whole reason the manifest is derived rather than maintained.
@@ -84,19 +88,19 @@ Deno.test("the checked-in manifest matches what the rules do now", () => {
       }
     }
   }
-  assertEquals(
+  deepStrictEqual(
     stale,
     [],
     `stale: ${stale.join(", ")}\ncopy into manifest.ts:\n${patch.join("\n")}`,
   );
 });
 
-Deno.test("a rule that reaches outside its primitive's scope is a failure", () => {
+test("a rule that reaches outside its primitive's scope is a failure", () => {
   // The claim is what the rules are held to. A claim that does not cover
   // what a rule reaches is rejected — the failure is the point, because a
   // primitive that paints outside its scope paints elements nobody declared
   // it paints.
-  assertThrows(
+  assert.throws(
     () =>
       deriveScope("button", {
         self: "button",
@@ -107,31 +111,31 @@ Deno.test("a rule that reaches outside its primitive's scope is a failure", () =
   );
 });
 
-Deno.test("a scope says where the painting lands", () => {
+test("a scope says where the painting lands", () => {
   // Typography belongs to the whole application: a paragraph is a paragraph
   // and a heading is a heading, wherever they are written, so both are
   // painted globally. The document's FURNITURE — the quotation's inset, the
   // code block's chrome, the highlight — belongs inside the column, so it is
   // painted as a descendant of the prose.
   const prose = primitiveContracts["prose"]?.scope;
-  assertEquals(prose?.self, "prose");
+  deepStrictEqual(prose?.self, "prose");
   const where = (tag: string) =>
     prose?.paints.filter((paint) => paint.tag === tag).map((paint) =>
       paint.where
     );
-  assertEquals(where("p"), ["global"]);
-  assertEquals(where("h1"), ["global"]);
+  deepStrictEqual(where("p"), ["global"]);
+  deepStrictEqual(where("h1"), ["global"]);
   // The list's items breathe a step apart wherever the list is written: the
   // rule reaches them through a SIBLING, and a sibling is not an ancestor.
-  assertEquals(where("li"), ["global"]);
+  deepStrictEqual(where("li"), ["global"]);
   // A quotation has both: the voice it reads in is the theme's, and the
   // inset it is set in is the document's.
-  assertEquals(where("blockquote"), ["global", "descendant"]);
+  deepStrictEqual(where("blockquote"), ["global", "descendant"]);
   // The highlight is the document's alone.
-  assertEquals(where("mark"), ["descendant"]);
+  deepStrictEqual(where("mark"), ["descendant"]);
 });
 
-Deno.test("what a primitive owns is what its rules decide", () => {
+test("what a primitive owns is what its rules decide", () => {
   // The button draws itself: it owns its fill, its edge, its face and its
   // type. The group container it joins is LAYED OUT, not painted — nothing
   // decides how it looks — so it owns nothing.
@@ -140,12 +144,12 @@ Deno.test("what a primitive owns is what its rules decide", () => {
     button?.paints
       .filter((paint) => paint.tag === tag && paint.where === "global")
       .flatMap((paint) => paint.owns);
-  assertEquals(owns("button")?.includes("background"), true);
-  assertEquals(owns("button")?.includes("size"), true);
-  assertEquals(owns("span"), []);
+  deepStrictEqual(owns("button")?.includes("background"), true);
+  deepStrictEqual(owns("button")?.includes("size"), true);
+  deepStrictEqual(owns("span"), []);
 });
 
-Deno.test("every shipped theme satisfies every component's reads", () => {
+test("every shipped theme satisfies every component's reads", () => {
   // A theme missing a token a component spends renders a control with half its
   // styling silently gone — a border that resolves to nothing, a colour that
   // falls through to whatever it inherited. Completeness holds per theme.
@@ -157,11 +161,11 @@ Deno.test("every shipped theme satisfies every component's reads", () => {
         if (!declared.has(bare(token))) missing.push(`${name}:${token}`);
       }
     }
-    assertEquals(missing, [], `${theme} cannot satisfy: ${missing.join(", ")}`);
+    deepStrictEqual(missing, [], `${theme} cannot satisfy: ${missing.join(", ")}`);
   }
 });
 
-Deno.test("variants a component defines reach the lint's vocabulary", () => {
+test("variants a component defines reach the lint's vocabulary", () => {
   // The lint reads `primitiveVariants()`, so a class only one component
   // defines has to survive into the union — otherwise authored code is
   // rejected for using a class the theme itself ships.
@@ -175,7 +179,7 @@ Deno.test("variants a component defines reach the lint's vocabulary", () => {
   }
 });
 
-Deno.test("no component reads another component's tokens", () => {
+test("no component reads another component's tokens", () => {
   // A component reaching into another's group couples two surfaces that are
   // meant to change independently, and the coupling is invisible in the rules.
   for (const [name, component] of Object.entries(primitiveComponents)) {
@@ -183,7 +187,7 @@ Deno.test("no component reads another component's tokens", () => {
       const owner = Object.keys(primitiveContracts).find((other) =>
         other !== name && token.startsWith(`--${other}.`)
       );
-      assertEquals(
+      deepStrictEqual(
         owner,
         undefined,
         `${name} reads ${token}, which belongs to ${owner}`,
@@ -192,23 +196,23 @@ Deno.test("no component reads another component's tokens", () => {
   }
 });
 
-Deno.test("the elevation ladder is spent by height", () => {
+test("the elevation ladder is spent by height", () => {
   // A surface resting ON the page spends the resting step; what floats above
   // the page spends the floating one. Breaks if a call site reaches for a
   // bigger step instead of the theme stating a louder one — a card on the
   // overlay's step is a card levitating over a page it sits on — or if an
   // overlay sinks to the resting step.
-  assertEquals(
+  deepStrictEqual(
     primitiveContracts["card"]?.reads.includes("--shadow-md"),
     true,
     "a card rests on the page's step",
   );
-  assertEquals(
+  deepStrictEqual(
     primitiveContracts["dialog"]?.reads.includes("--shadow-lg"),
     true,
     "a dialog floats above it",
   );
-  assertEquals(
+  deepStrictEqual(
     primitiveContracts["popover"]?.reads.includes("--shadow-lg"),
     true,
     "and a popover floats above it too",

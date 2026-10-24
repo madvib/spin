@@ -15,7 +15,7 @@
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { assertEquals } from "@std/assert";
+import { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { rpcHandler } from "../src/index.ts";
 import { setProjectRoot } from "../src/project-procedures.ts";
@@ -103,17 +103,17 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // gets the same text on the next read. Any normalisation in between is a
     // bug the author cannot see.
     const read = await themeText("acme");
-    assertEquals(read.text, read.text, "the theme is there");
+    deepStrictEqual(read.text, read.text, "the theme is there");
     const original = read.text as string;
     const written = await writeTheme("acme", original);
-    assertEquals(written.error, null, "the write succeeds");
-    assertEquals((await themeText("acme")).text, original, "byte for byte");
+    deepStrictEqual(written.error, null, "the write succeeds");
+    deepStrictEqual((await themeText("acme")).text, original, "byte for byte");
   });
 
   it("serves the shipped starters a project has not forked", async () => {
     const read = await themeText("silk");
     const doc = JSON.parse(read.text ?? "{}") as { color?: unknown };
-    assertEquals(
+    deepStrictEqual(
       doc.color !== undefined,
       true,
       "an unforked starter reads as a document",
@@ -123,8 +123,8 @@ describe("the theme surface over RPC, against the fixture app", () => {
       "silk",
       "<button>x</button>",
     );
-    assertEquals(out.error, null, "and generates a stylesheet");
-    assertEquals(
+    deepStrictEqual(out.error, null, "and generates a stylesheet");
+    deepStrictEqual(
       out.css.includes('data-theme="silk"'),
       true,
       "scoped to its own name",
@@ -143,7 +143,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // and the floor — so the assertion reads for that rather than a word a
     // future rephrasing would break.
     const reported = await analyze(edited);
-    assertEquals(
+    deepStrictEqual(
       reported.issues.some((issue) =>
         /4\.00:1, below the 4\.5:1 floor/.test(issue.message)
       ),
@@ -154,7 +154,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // message: the analysis is the early courtesy, the generator is the
     // authority, and they agree because they are the same rule.
     const generated = await preview(edited, "starter");
-    assertEquals(
+    deepStrictEqual(
       generated.error?.includes("4.00:1, below the 4.5:1 floor"),
       true,
       "the preview refuses on the same pair the analysis reported",
@@ -167,16 +167,16 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // produced.
     const text = (await themeText("acme")).text as string;
     const set = await setToken(text, ["color", "primary"], "#1e40af");
-    assertEquals(set.error, null, "the mutation is accepted");
+    deepStrictEqual(set.error, null, "the mutation is accepted");
     const mutated = set.text as string;
     const doc = JSON.parse(mutated) as {
       color: Record<string, { $value: unknown }>;
     };
-    assertEquals(doc["color"]!["primary"]!["$value"], "#1e40af", "it landed");
+    deepStrictEqual(doc["color"]!["primary"]!["$value"], "#1e40af", "it landed");
     // And the mutated document still analyses, because a mutation that broke
     // the document would be a worse failure than a refused one.
     const reported = await analyze(mutated);
-    assertEquals(reported.error, null, "the mutated document parses");
+    deepStrictEqual(reported.error, null, "the mutated document parses");
   });
 
   it("refuses to remove a token the theme requires", async () => {
@@ -184,7 +184,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // paths, and dropping one must be refused rather than silently accepted.
     const text = (await themeText("acme")).text as string;
     const removed = await removeToken(text, ["color", "primary"]);
-    assertEquals(
+    deepStrictEqual(
       removed.text === null || removed.error !== null,
       true,
       "a required token cannot be dropped",
@@ -200,13 +200,13 @@ describe("the theme surface over RPC, against the fixture app", () => {
       "acme",
       `<badge variant="accent">x</badge><button>y</button>`,
     );
-    assertEquals(out.error, null, "the stylesheet generates");
-    assertEquals(
+    deepStrictEqual(out.error, null, "the stylesheet generates");
+    deepStrictEqual(
       out.css.includes("badge"),
       true,
       "the badge rule is in the sheet",
     );
-    assertEquals(
+    deepStrictEqual(
       out.css.includes('data-theme="acme"'),
       true,
       "the theme's own name scopes the variables",
@@ -221,13 +221,13 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // generation, and element rules take the host scope like utilities do.
     const text = (await themeText("neobrut")).text as string;
     const out = await preview(text, "neobrut", "<div>hi</div>");
-    assertEquals(out.error, null, "the stylesheet generates");
-    assertEquals(
+    deepStrictEqual(out.error, null, "the stylesheet generates");
+    deepStrictEqual(
       out.css.includes(":where(.spin-preview) :is(button"),
       true,
       "the button rule rides along under the host scope",
     );
-    assertEquals(
+    deepStrictEqual(
       out.css.includes("transform:translate(var(--button-hover-lift-x)"),
       true,
       "and the theme's own hover lift is in it",
@@ -241,8 +241,8 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // grid-cols-4, which is the same specificity winning by order.
     const text = (await themeText("acme")).text as string;
     const out = await preview(text, "acme", "<div>hi</div>");
-    assertEquals(out.error, null, "the stylesheet generates");
-    assertEquals(
+    deepStrictEqual(out.error, null, "the stylesheet generates");
+    deepStrictEqual(
       out.css.includes(":where(.spin-preview) .grid-cols-4"),
       true,
       "utilities carry the host scope",
@@ -251,12 +251,12 @@ describe("the theme surface over RPC, against the fixture app", () => {
 
   it("keeps the reported path relative to the project", async () => {
     const listed = await listThemes();
-    assertEquals(
+    deepStrictEqual(
       listed.filter((t) => t.file !== null).map((t) => t.file).sort(),
       ["spin/acme.json", "spin/starter.json"],
       "no machine's filesystem layout travels with a theme",
     );
-    assertEquals(
+    deepStrictEqual(
       listed.filter((t) => t.file === null).map((t) => t.name).sort(),
       ["console", "neobrut", "silk", "spin", "synthwave"],
       "the unforked starters carry no path at all",
@@ -270,7 +270,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
       ["color", "primary"],
       "#1e40af",
     );
-    assertEquals(
+    deepStrictEqual(
       (await themeText("starter")).text,
       untouched,
       "an edit to acme does not reach starter",

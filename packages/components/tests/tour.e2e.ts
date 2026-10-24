@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-tour e2e: the inactive and running modes with the three phases,
  * behind the app-controller handle.
@@ -10,7 +11,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const overlay = (
   page: Page,
@@ -33,7 +34,7 @@ const clickOverlay = (page: Page, suffix: string): Promise<void> =>
     );
   }, suffix).then(() => undefined);
 
-Deno.test("spin-tour e2e", () =>
+test("spin-tour e2e", () =>
   runComponentSuite({
     port: 5239,
     route: "/tour",

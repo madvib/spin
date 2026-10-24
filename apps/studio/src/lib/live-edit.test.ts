@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
 import { measure, quantize, sliderRange } from "./scale.ts";
 import {
@@ -79,24 +80,24 @@ function withComposite(
   return JSON.stringify(doc, null, 2);
 }
 
-Deno.test("the fill paints the share of the travel the value has covered", () => {
-  assertEquals(rangeProgress(0, 0, 3), "0%");
-  assertEquals(rangeProgress(1.5, 0, 3), "50%");
-  assertEquals(rangeProgress(3, 0, 3), "100%");
+test("the fill paints the share of the travel the value has covered", () => {
+  deepStrictEqual(rangeProgress(0, 0, 3), "0%");
+  deepStrictEqual(rangeProgress(1.5, 0, 3), "50%");
+  deepStrictEqual(rangeProgress(3, 0, 3), "100%");
 });
 
-Deno.test("a fill never runs past the end of the groove", () => {
-  assertEquals(rangeProgress(-1, 0, 3), "0%");
-  assertEquals(rangeProgress(9, 0, 3), "100%");
+test("a fill never runs past the end of the groove", () => {
+  deepStrictEqual(rangeProgress(-1, 0, 3), "0%");
+  deepStrictEqual(rangeProgress(9, 0, 3), "100%");
 });
 
-Deno.test("a track with no travel has no fill", () => {
-  assertEquals(rangeProgress(4, 4, 4), "0%");
-  assertEquals(rangeProgress(Number.NaN, 0, 3), "0%");
-  assertEquals(rangeProgress(1, 0, Number.NaN), "0%");
+test("a track with no travel has no fill", () => {
+  deepStrictEqual(rangeProgress(4, 4, 4), "0%");
+  deepStrictEqual(rangeProgress(Number.NaN, 0, 3), "0%");
+  deepStrictEqual(rangeProgress(1, 0, Number.NaN), "0%");
 });
 
-Deno.test("the number the readout prints and the share the fill paints are one value", () => {
+test("the number the readout prints and the share the fill paints are one value", () => {
   // The live edit's own agreement: the value the control shows and the
   // share the groove paints describe the same value, so the thumb and the
   // fill never disagree about where the value is.
@@ -104,16 +105,16 @@ Deno.test("the number the readout prints and the share the fill paints are one v
   const track = sliderRange("1.125rem", group);
   for (const raw of [0, 0.5, 1.125, 2, 2.9925]) {
     const shown = measure(quantize("1.125rem", raw));
-    assertEquals(shown === undefined, false, "the value reads as a number");
+    deepStrictEqual(shown === undefined, false, "the value reads as a number");
     const n = shown!.n;
     const steps = (n - track.min) / track.step;
-    assertEquals(
+    deepStrictEqual(
       Math.abs(steps - Math.round(steps)) < 1e-9,
       true,
       `${n} sits on the track's own grid of ${track.step}`,
     );
     const share = rangeProgress(n, track.min, track.max);
-    assertEquals(
+    deepStrictEqual(
       share,
       `${
         Math.round(((n - track.min) / (track.max - track.min)) * 10000) / 100
@@ -122,29 +123,29 @@ Deno.test("the number the readout prints and the share the fill paints are one v
   }
 });
 
-Deno.test("the value the theme declares is the one a reset puts back", () => {
-  assertEquals(declaredValue(fixture(), "icon.sm", "light"), "0.875rem");
-  assertEquals(declaredValue(fixture(), "icon.md", "light"), "1.125rem");
-  assertEquals(declaredValue(fixture(), "icon.md", "dark"), "1.25rem");
+test("the value the theme declares is the one a reset puts back", () => {
+  deepStrictEqual(declaredValue(fixture(), "icon.sm", "light"), "0.875rem");
+  deepStrictEqual(declaredValue(fixture(), "icon.md", "light"), "1.125rem");
+  deepStrictEqual(declaredValue(fixture(), "icon.md", "dark"), "1.25rem");
 });
 
-Deno.test("a token the document does not declare has nothing to put back", () => {
-  assertEquals(declaredValue(fixture(), "icon.lg", "light"), undefined);
-  assertEquals(declaredValue(fixture(), "spacing.4", "light"), undefined);
+test("a token the document does not declare has nothing to put back", () => {
+  deepStrictEqual(declaredValue(fixture(), "icon.lg", "light"), undefined);
+  deepStrictEqual(declaredValue(fixture(), "spacing.4", "light"), undefined);
 });
 
-Deno.test("a document that cannot be read declares nothing", () => {
-  assertEquals(declaredValue("{ not json", "icon.sm", "light"), undefined);
+test("a document that cannot be read declares nothing", () => {
+  deepStrictEqual(declaredValue("{ not json", "icon.sm", "light"), undefined);
 });
 
-Deno.test("a control is named after the token it edits", () => {
-  assertEquals(tokenPath("token-icon.md", undefined), "icon.md");
-  assertEquals(tokenPath(undefined, "icon.md"), "icon.md");
-  assertEquals(tokenPath("colour-picker", undefined), undefined);
-  assertEquals(tokenPath(undefined, undefined), undefined);
+test("a control is named after the token it edits", () => {
+  deepStrictEqual(tokenPath("token-icon.md", undefined), "icon.md");
+  deepStrictEqual(tokenPath(undefined, "icon.md"), "icon.md");
+  deepStrictEqual(tokenPath("colour-picker", undefined), undefined);
+  deepStrictEqual(tokenPath(undefined, undefined), undefined);
 });
 
-Deno.test("a value that would not build is refused, in the module's own words", () => {
+test("a value that would not build is refused, in the module's own words", () => {
   // The reported failure: a dimension that lost its unit. The theme module
   // owns that rule, and the studio says it in the module's words — a
   // refusal the build would agree with.
@@ -154,15 +155,15 @@ Deno.test("a value that would not build is refused, in the module's own words", 
     ["focus.width"],
   );
   assert(refusal !== undefined, "the value that would not build was allowed");
-  assertEquals(refusal.path, "focus.width");
+  deepStrictEqual(refusal.path, "focus.width");
   assert(
     refusal.message.includes("dimension needs a CSS unit"),
     `the refusal does not say what is wrong: ${refusal.message}`,
   );
 });
 
-Deno.test("a value the theme can build is allowed through", () => {
-  assertEquals(
+test("a value the theme can build is allowed through", () => {
+  deepStrictEqual(
     editRefusal(
       complete(),
       withValue(complete(), "focus.width", "3px"),
@@ -172,7 +173,7 @@ Deno.test("a value the theme can build is allowed through", () => {
   );
 });
 
-Deno.test("an edit that breaks a contrast floor is refused", () => {
+test("an edit that breaks a contrast floor is refused", () => {
   // The rule the studio already kept: a value that no longer reads on the
   // surface it is read on does not land.
   const refusal = editRefusal(
@@ -181,18 +182,18 @@ Deno.test("an edit that breaks a contrast floor is refused", () => {
     ["color.text"],
   );
   assert(refusal !== undefined, "the floor was broken and the edit allowed");
-  assertEquals(refusal.path, "color.text");
+  deepStrictEqual(refusal.path, "color.text");
 });
 
-Deno.test("a document that is already broken stays editable elsewhere", () => {
+test("a document that is already broken stays editable elsewhere", () => {
   // The studio is where a broken theme is repaired: a gate that refused
   // every edit to a broken document would make the repair impossible.
   const broken = withValue(complete(), "focus.width", "18");
   const repaired = withValue(broken, "avatar.sm", "2rem");
-  assertEquals(editRefusal(broken, repaired, ["avatar.sm"]), undefined);
+  deepStrictEqual(editRefusal(broken, repaired, ["avatar.sm"]), undefined);
 });
 
-Deno.test("a token that is already broken cannot be left broken by its own edit", () => {
+test("a token that is already broken cannot be left broken by its own edit", () => {
   // The other half of the same promise: the token under the pointer has to
   // be left sound, so a wrong value cannot be made wronger.
   const broken = withValue(complete(), "focus.width", "18");
@@ -202,12 +203,12 @@ Deno.test("a token that is already broken cannot be left broken by its own edit"
     ["focus.width"],
   );
   assert(refusal !== undefined, "the broken token was left broken");
-  assertEquals(refusal.path, "focus.width");
+  deepStrictEqual(refusal.path, "focus.width");
 });
 
-Deno.test("a broken token can be repaired by an edit that makes it sound", () => {
+test("a broken token can be repaired by an edit that makes it sound", () => {
   const broken = withValue(complete(), "focus.width", "18");
-  assertEquals(
+  deepStrictEqual(
     editRefusal(broken, withValue(broken, "focus.width", "2px"), [
       "focus.width",
     ]),
@@ -215,12 +216,12 @@ Deno.test("a broken token can be repaired by an edit that makes it sound", () =>
   );
 });
 
-Deno.test("a document that does not parse is refused", () => {
+test("a document that does not parse is refused", () => {
   const refusal = editRefusal(complete(), "{ not json at all\n");
   assert(refusal !== undefined, "a document that does not parse was allowed");
 });
 
-Deno.test("the refusal names the token the author is holding", () => {
+test("the refusal names the token the author is holding", () => {
   // Two problems, one of them at the token under the pointer: the refusal
   // is about the token the author can act on.
   const after = withValue(
@@ -230,10 +231,10 @@ Deno.test("the refusal names the token the author is holding", () => {
   );
   const refusal = editRefusal(complete(), after, ["focus.width"]);
   assert(refusal !== undefined, "the edit was allowed");
-  assertEquals(refusal.path, "focus.width");
+  deepStrictEqual(refusal.path, "focus.width");
 });
 
-Deno.test("a document that does not build says why, in the module's words", () => {
+test("a document that does not build says why, in the module's words", () => {
   const failure = documentFailure(withValue(complete(), "focus.width", "18"));
   assert(failure !== undefined, "a broken document reported nothing");
   assert(
@@ -242,11 +243,11 @@ Deno.test("a document that does not build says why, in the module's words", () =
   );
 });
 
-Deno.test("a document that builds has nothing to say", () => {
-  assertEquals(documentFailure(complete()), undefined);
+test("a document that builds has nothing to say", () => {
+  deepStrictEqual(documentFailure(complete()), undefined);
 });
 
-Deno.test("a composite's colour that fails the floor it owes is refused", () => {
+test("a composite's colour that fails the floor it owes is refused", () => {
   // The composite is the theme's `border.focus-ring`: the edge the focus
   // ring is drawn with, so its colour owes the floor `color.focus-ring`
   // owes — three to one on the page. A white edge on a white page does
@@ -265,14 +266,14 @@ Deno.test("a composite's colour that fails the floor it owes is refused", () => 
   );
   const refusal = editRefusal(before, after, ["border.focus-ring"]);
   assert(refusal !== undefined, "the floor was broken and the edit allowed");
-  assertEquals(refusal.path, "border.focus-ring");
+  deepStrictEqual(refusal.path, "border.focus-ring");
   assert(
     refusal.message.includes("below the 3:1 floor"),
     `the refusal does not say what is wrong: ${refusal.message}`,
   );
 });
 
-Deno.test("a composite's colour that clears the floor it owes is allowed", () => {
+test("a composite's colour that clears the floor it owes is allowed", () => {
   const before = withComposite(
     complete(),
     "border.focus-ring",
@@ -285,10 +286,10 @@ Deno.test("a composite's colour that clears the floor it owes is allowed", () =>
     "border",
     "2px solid #666666",
   );
-  assertEquals(editRefusal(before, after, ["border.focus-ring"]), undefined);
+  deepStrictEqual(editRefusal(before, after, ["border.focus-ring"]), undefined);
 });
 
-Deno.test("a composite's part that is not a value the theme accepts is refused", () => {
+test("a composite's part that is not a value the theme accepts is refused", () => {
   // The theme's own rule for a dimension: a width that lost its unit is
   // not a width, and the module is the one that says so.
   const before = withComposite(
@@ -305,14 +306,14 @@ Deno.test("a composite's part that is not a value the theme accepts is refused",
   );
   const refusal = editRefusal(before, after, ["border.default"]);
   assert(refusal !== undefined, "the value that would not build was allowed");
-  assertEquals(refusal.path, "border.default");
+  deepStrictEqual(refusal.path, "border.default");
   assert(
     refusal.message.includes("dimension needs a CSS unit"),
     `the refusal does not say what is wrong: ${refusal.message}`,
   );
 });
 
-Deno.test("a composite the theme can build is allowed through", () => {
+test("a composite the theme can build is allowed through", () => {
   const before = withComposite(
     complete(),
     "border.default",
@@ -325,10 +326,10 @@ Deno.test("a composite the theme can build is allowed through", () => {
     "border",
     "1px dashed #333333",
   );
-  assertEquals(editRefusal(before, after, ["border.default"]), undefined);
+  deepStrictEqual(editRefusal(before, after, ["border.default"]), undefined);
 });
 
-Deno.test("tokenStatus reports aliases, dark overrides and session edits", () => {
+test("tokenStatus reports aliases, dark overrides and session edits", () => {
   const project = JSON.stringify(
     {
       radius: {
@@ -345,20 +346,20 @@ Deno.test("tokenStatus reports aliases, dark overrides and session edits", () =>
     null,
     2,
   );
-  assertEquals(tokenStatus(project, project, "card.radius", "light"), {
+  deepStrictEqual(tokenStatus(project, project, "card.radius", "light"), {
     raw: "{radius.md}",
     aliasOf: "radius.md",
     restatedInDark: false,
     modified: false,
   });
-  assertEquals(tokenStatus(project, project, "card.radius", "dark"), {
+  deepStrictEqual(tokenStatus(project, project, "card.radius", "dark"), {
     raw: "0.5rem",
     aliasOf: undefined,
     restatedInDark: true,
     modified: false,
   });
   const edited = withValue(project, "radius.md", "0.375rem");
-  assertEquals(tokenStatus(edited, project, "radius.md", "light"), {
+  deepStrictEqual(tokenStatus(edited, project, "radius.md", "light"), {
     raw: "0.375rem",
     aliasOf: undefined,
     restatedInDark: false,

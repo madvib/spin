@@ -9,7 +9,7 @@
  * rather than driving a browser of its own.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import type { Page } from "playwright-core";
 import { test, withPage } from "./harness.ts";
 import { studioUrl } from "./studio.ts";
@@ -154,7 +154,7 @@ test("every example owns its switch", async () => {
     const before = await states(page);
     assert(before.length > 1, "the page shows no examples to switch");
     for (const section of before) {
-      assertEquals(
+      deepStrictEqual(
         section.switch,
         [["component", "true"], ["code", "false"]],
         `${section.name} opens on the component, with both of its states said`,
@@ -169,7 +169,7 @@ test("every example owns its switch", async () => {
       after[0]?.showsCode === false,
       "the first section followed the second one's switch",
     );
-    assertEquals(
+    deepStrictEqual(
       after[0]?.switch,
       [["component", "true"], ["code", "false"]],
       "the first section's switch moved when the second one's did",
@@ -255,7 +255,7 @@ test("a long block scrolls inside its own box", async () => {
       `the block holds its whole content (${box.scroll}px in ${box.client}px), ` +
         "so a long block grows the page",
     );
-    assertEquals(box.overflow, "auto", "the block does not scroll");
+    deepStrictEqual(box.overflow, "auto", "the block does not scroll");
   });
 });
 
@@ -292,7 +292,7 @@ test("the copy belongs to the code it copies", async () => {
     await block.scrollIntoViewIfNeeded();
     const hidden = await copyControl(page);
     assert(hidden !== null, "the copy control is not on the page");
-    assertEquals(hidden.pointer, "none", "an unseen copy control can be hit");
+    deepStrictEqual(hidden.pointer, "none", "an unseen copy control can be hit");
 
     await block.hover();
     await page.waitForFunction(
@@ -308,7 +308,7 @@ test("the copy belongs to the code it copies", async () => {
     );
     const seen = await copyControl(page);
     assert(seen !== null, "the copy control is not on the page");
-    assertEquals(seen.pointer, "auto", "the copy control cannot be hit");
+    deepStrictEqual(seen.pointer, "auto", "the copy control cannot be hit");
 
     // The control that is pressed is the one in the section showing markup.
     await page
@@ -334,7 +334,7 @@ test("the copy belongs to the code it copies", async () => {
       )
       .then((handle) => handle.jsonValue() as Promise<string>)
       .catch(() => null);
-    assertEquals(claim, "copied", "the control does not say it copied");
+    deepStrictEqual(claim, "copied", "the control does not say it copied");
 
     const copied = await page.evaluate(async () => {
       const section = [...document.querySelectorAll("#app section")].find((s) =>
@@ -345,7 +345,7 @@ test("the copy belongs to the code it copies", async () => {
         shown: section?.querySelector("pre")?.textContent ?? "",
       };
     });
-    assertEquals(
+    deepStrictEqual(
       copied.clipboard.replace(/\s+/g, " ").trim(),
       copied.shown.replace(/\s+/g, " ").trim(),
       "the clipboard holds something other than the block's markup",

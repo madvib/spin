@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { TagsApi } from "./tags.presentation.ts";
 import type { TagsRow } from "./tags.presentation.ts";
 
@@ -6,7 +7,7 @@ import type { TagsRow } from "./tags.presentation.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("TagsApi promises the component's surface", () => {
+test("TagsApi promises the component's surface", () => {
   const keys: (keyof TagsApi)[] = [
     "state",
     "value",
@@ -48,7 +49,7 @@ Deno.test("TagsApi promises the component's surface", () => {
     "getItemInputIndexes",
     "getItemDeleteTriggerIndexes",
   ];
-  assertEquals(keys.length, 39);
+  deepStrictEqual(keys.length, 39);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -65,7 +66,7 @@ Deno.test("TagsApi promises the component's surface", () => {
     TagsApi["indexOfRow"],
     (row: TagsRow) => number
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setValueTyped,

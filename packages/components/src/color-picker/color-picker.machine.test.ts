@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -151,71 +152,71 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   return { api: bridge.api, root, events, write };
 }
 
-Deno.test("seeds black in hex", () => {
+test("seeds black in hex", () => {
   const h = mount();
-  assertEquals(h.api.value, "#000000");
-  assertEquals(h.api.format, "hex");
-  assertEquals(h.api.open, false);
+  deepStrictEqual(h.api.value, "#000000");
+  deepStrictEqual(h.api.format, "hex");
+  deepStrictEqual(h.api.open, false);
 });
 
-Deno.test("seeds the authored value and format", () => {
+test("seeds the authored value and format", () => {
   const h = mount({ defaultValue: "#ff0000", defaultFormat: "rgb" });
-  assertEquals(h.api.value, "rgb(255, 0, 0)");
-  assertEquals(h.api.format, "rgb");
+  deepStrictEqual(h.api.value, "rgb(255, 0, 0)");
+  deepStrictEqual(h.api.format, "rgb");
 });
 
-Deno.test("trigger opens and closes", () => {
+test("trigger opens and closes", () => {
   const h = mount();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  assertEquals(h.api.open, true);
-  assertEquals(h.events.openChange.length, 1);
-  assertEquals(h.events.openChange[0]?.open, true);
+  deepStrictEqual(h.api.open, true);
+  deepStrictEqual(h.events.openChange.length, 1);
+  deepStrictEqual(h.events.openChange[0]?.open, true);
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  assertEquals(h.api.open, false);
+  deepStrictEqual(h.api.open, false);
 });
 
-Deno.test("inline is always open", () => {
+test("inline is always open", () => {
   const h = mount({ inline: true });
-  assertEquals(h.api.open, true);
+  deepStrictEqual(h.api.open, true);
 });
 
-Deno.test("swatch commits the color", () => {
+test("swatch commits the color", () => {
   const h = mount();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   handler<() => void>(
     h.api.getSwatchTriggerProps({ value: "#00ff00" }),
     "onClick",
   )();
-  assertEquals(h.api.value.toLowerCase(), "#00ff00");
-  assertEquals(h.events.valueChange.length, 1);
-  assertEquals(h.events.valueChangeEnd.length, 1);
+  deepStrictEqual(h.api.value.toLowerCase(), "#00ff00");
+  deepStrictEqual(h.events.valueChange.length, 1);
+  deepStrictEqual(h.events.valueChangeEnd.length, 1);
 });
 
-Deno.test("swatch closes when closeOnSelect", () => {
+test("swatch closes when closeOnSelect", () => {
   const h = mount({ closeOnSelect: true });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  assertEquals(h.api.open, true);
+  deepStrictEqual(h.api.open, true);
   handler<() => void>(
     h.api.getSwatchTriggerProps({ value: "#00ff00" }),
     "onClick",
   )();
-  assertEquals(h.api.open, false);
+  deepStrictEqual(h.api.open, false);
 });
 
-Deno.test("area drag moves the color and ends", () => {
+test("area drag moves the color and ends", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const before = h.api.value;
   const drag = dragParam(h.api.getAreaProps() as Record<string, unknown>);
   drag.onStart?.(pressAt(100, 100));
   const moved = h.api.value;
-  assertEquals(moved === before, false);
+  deepStrictEqual(moved === before, false);
   drag.onMove?.(deltaAt(150, 50));
   drag.onEnd?.({ cancelled: false });
-  assertEquals(h.events.valueChangeEnd.length, 1);
+  deepStrictEqual(h.events.valueChangeEnd.length, 1);
 });
 
-Deno.test("channel slider drag moves the channel and ends", () => {
+test("channel slider drag moves the channel and ends", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const drag = dragParam(
@@ -223,23 +224,23 @@ Deno.test("channel slider drag moves the channel and ends", () => {
   );
   // The handle's own box carries the percent: half way along a 200 wide box.
   drag.onStart?.(pressAt(100, 100));
-  assertEquals(h.api.value, "#800000");
+  deepStrictEqual(h.api.value, "#800000");
   drag.onMove?.(deltaAt(150, 100));
-  assertEquals(h.api.value, "#BF0000");
+  deepStrictEqual(h.api.value, "#BF0000");
   drag.onEnd?.({ cancelled: false });
-  assertEquals(h.events.valueChangeEnd.length, 1);
+  deepStrictEqual(h.events.valueChangeEnd.length, 1);
 });
 
-Deno.test("area arrows step the channels", () => {
+test("area arrows step the channels", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const thumb = h.api.getAreaThumbProps();
   const before = h.api.value;
   handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(keydown("ArrowLeft"));
-  assertEquals(h.api.value === before, false);
+  deepStrictEqual(h.api.value === before, false);
 });
 
-Deno.test("channel arrows step hue", () => {
+test("channel arrows step hue", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const thumb = h.api.getChannelSliderThumbProps({ channel: "hue" });
@@ -247,18 +248,18 @@ Deno.test("channel arrows step hue", () => {
   handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(h.api.value === before, false);
+  deepStrictEqual(h.api.value === before, false);
 });
 
-Deno.test("channel home jumps to the range floor", () => {
+test("channel home jumps to the range floor", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const thumb = h.api.getChannelSliderThumbProps({ channel: "hue" });
   handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(keydown("Home"));
-  assertEquals(h.api.getChannelValue("hue"), "0");
+  deepStrictEqual(h.api.getChannelValue("hue"), "0");
 });
 
-Deno.test("hex input commits on blur", () => {
+test("hex input commits on blur", () => {
   const h = mount();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<
@@ -273,11 +274,11 @@ Deno.test("hex input commits on blur", () => {
   handler<(e: FocusEvent) => void>(input, "onBlur")(
     { currentTarget: { value: "#0000ff" } } as unknown as FocusEvent,
   );
-  assertEquals(h.api.value.toLowerCase(), "#0000ff");
-  assertEquals(h.events.valueChangeEnd.length, 1);
+  deepStrictEqual(h.api.value.toLowerCase(), "#0000ff");
+  deepStrictEqual(h.events.valueChangeEnd.length, 1);
 });
 
-Deno.test("garbage input keeps the color", () => {
+test("garbage input keeps the color", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<
@@ -287,52 +288,52 @@ Deno.test("garbage input keeps the color", () => {
   handler<(e: FocusEvent) => void>(input, "onBlur")(
     { currentTarget: { value: "not-a-color" } } as unknown as FocusEvent,
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "rgb(255, 0, 0)".length > 0 ? h.api.value : "#ff0000",
   );
 });
 
-Deno.test("format select reserializes", () => {
+test("format select reserializes", () => {
   const h = mount({ defaultValue: "#ff0000" });
   const before = h.api.value;
   void before;
   h.api.setFormat("rgb" as ColorFormat);
-  assertEquals(h.api.format, "rgb");
-  assertEquals(h.api.value, "rgb(255, 0, 0)");
-  assertEquals(h.events.formatChange.length, 1);
+  deepStrictEqual(h.api.format, "rgb");
+  deepStrictEqual(h.api.value, "rgb(255, 0, 0)");
+  deepStrictEqual(h.events.formatChange.length, 1);
 });
 
-Deno.test("commands move the machine", () => {
+test("commands move the machine", () => {
   const h = mount();
   h.api.setValue("#00ff00");
-  assertEquals(h.api.value.toLowerCase(), "#00ff00");
+  deepStrictEqual(h.api.value.toLowerCase(), "#00ff00");
   h.api.setOpen(true);
-  assertEquals(h.api.open, true);
+  deepStrictEqual(h.api.open, true);
   h.api.setOpen(false);
-  assertEquals(h.api.open, false);
+  deepStrictEqual(h.api.open, false);
 });
 
-Deno.test("authored value seeds the color", () => {
+test("authored value seeds the color", () => {
   const h = mount({ value: "#0000ff" });
-  assertEquals(h.api.value.toLowerCase(), "#0000ff");
+  deepStrictEqual(h.api.value.toLowerCase(), "#0000ff");
 });
 
-Deno.test("aria contract on trigger and area", () => {
+test("aria contract on trigger and area", () => {
   const h = mount();
   const trigger = h.api.getTriggerProps() as Record<string, unknown>;
-  assertEquals(trigger["aria-haspopup"], "dialog");
-  assertEquals(trigger["aria-expanded"], "false");
+  deepStrictEqual(trigger["aria-haspopup"], "dialog");
+  deepStrictEqual(trigger["aria-expanded"], "false");
   handler<() => void>(trigger, "onClick")();
   const open = h.api.getTriggerProps() as Record<string, unknown>;
-  assertEquals(open["aria-expanded"], "true");
+  deepStrictEqual(open["aria-expanded"], "true");
   const thumb = h.api.getAreaThumbProps() as Record<string, unknown>;
-  assertEquals(thumb["role"], "slider");
-  assertEquals(thumb["aria-roledescription"], "2d slider");
+  deepStrictEqual(thumb["role"], "slider");
+  deepStrictEqual(thumb["aria-roledescription"], "2d slider");
   const hue = h.api.getChannelSliderThumbProps({ channel: "hue" }) as Record<
     string,
     unknown
   >;
-  assertEquals(hue["role"], "slider");
-  assertEquals(hue["aria-label"], "hue");
+  deepStrictEqual(hue["role"], "slider");
+  deepStrictEqual(hue["aria-label"], "hue");
 });

@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { scaffoldDocument, spinPreset } from "../src/index.ts";
 import type { ThemeDocument } from "../src/index.ts";
@@ -38,7 +39,7 @@ async function cssWith(themes: Record<string, ThemeDocument>): Promise<string> {
   return css;
 }
 
-Deno.test("a theme's declared face ships whatever the theme is named", async () => {
+test("a theme's declared face ships whatever the theme is named", async () => {
   const css = await cssWith({ brand: docWithFace("Brand Face") });
   assert(
     css.includes('font-family: "Brand Face";'),
@@ -50,10 +51,10 @@ Deno.test("a theme's declared face ships whatever the theme is named", async () 
   );
 });
 
-Deno.test("two themes declaring one family ship one face", async () => {
+test("two themes declaring one family ship one face", async () => {
   const css = await cssWith({
     first: docWithFace("Shared Face"),
     second: docWithFace("Shared Face"),
   });
-  assertEquals((css.match(/@font-face/g) ?? []).length, 1);
+  deepStrictEqual((css.match(/@font-face/g) ?? []).length, 1);
 });

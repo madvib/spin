@@ -1,3 +1,4 @@
+import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 /**
  * The studio's newest surfaces, end to end.
  *
@@ -15,7 +16,7 @@
  * page a reader looks at. Nothing here asserts on the studio's internals.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { join } from "node:path";
 import { test, withPage } from "./harness.ts";
 import { type StudioPage, studioUrl } from "./studio.ts";
@@ -212,9 +213,9 @@ function fixtureDir(root: string): string {
  */
 async function writeFixture(root: string): Promise<string> {
   const dir = fixtureDir(root);
-  await Deno.mkdir(dir, { recursive: true });
+  await mkdir(dir, { recursive: true });
   const file = join(dir, "dirty.tsx");
-  await Deno.writeTextFile(
+  await writeFile(
     file,
     `export const Dirty = () => <div class="${UNKNOWN_CLASS}">dirty</div>;\n`,
   );
@@ -224,7 +225,7 @@ async function writeFixture(root: string): Promise<string> {
 /** Take the fixture away, and the directory it lived in with it. */
 async function removeFixture(root: string): Promise<void> {
   try {
-    await Deno.remove(fixtureDir(root), { recursive: true });
+    await rm(fixtureDir(root), { recursive: true });
   } catch {
     // It was not there to begin with.
   }
@@ -233,7 +234,7 @@ async function removeFixture(root: string): Promise<void> {
 /** Whether a file is there. */
 async function there(path: string): Promise<boolean> {
   try {
-    await Deno.stat(path);
+    await stat(path);
     return true;
   } catch {
     return false;
@@ -293,7 +294,7 @@ async function assertPanelAgrees(
   report: FindingsReport,
 ): Promise<void> {
   const drawn = await drawnGroups(page);
-  assertEquals(
+  deepStrictEqual(
     drawn.length,
     report.groups.length,
     `the panel draws ${drawn.length} groups and the lints named ${report.groups.length}`,
@@ -304,7 +305,7 @@ async function assertPanelAgrees(
       one !== undefined,
       `the panel draws no group for ${group.ruleId}`,
     );
-    assertEquals(
+    deepStrictEqual(
       one.title,
       group.title,
       `the group for ${group.ruleId} is not titled by the rule`,
@@ -353,7 +354,7 @@ test("the findings panel groups what the lints say by the rule that said it", as
       const drawn = await drawnGroups(page);
       const one = drawn.find((candidate) => candidate.ruleId === group.ruleId);
       assert(one !== undefined, `the panel draws no group for ${group.ruleId}`);
-      assertEquals(
+      deepStrictEqual(
         one.title,
         group.title,
         "the group is not titled by the rule",
@@ -484,7 +485,7 @@ test("a fix applied from the panel changes the file, and the finding goes away",
           return "pressed";
         })()`,
       );
-      assertEquals(
+      deepStrictEqual(
         pressed,
         "pressed",
         "the panel offered no fix for the finding",
@@ -492,7 +493,7 @@ test("a fix applied from the panel changes the file, and the finding goes away",
 
       // the file on disk no longer carries the class the rule said to drop
       const written = await until(
-        async () => await Deno.readTextFile(file),
+        async () => await readFile(file, "utf8"),
         (text) => !text.includes(UNKNOWN_CLASS),
         "the fix on the disk",
       );
@@ -634,7 +635,7 @@ test("a composite token opens an editor of the theme's own steps, and one part w
   await withPage(async (page) => {
     await openStudio(page);
     const seated = await seatTheme(page, "synthwave");
-    assertEquals(
+    deepStrictEqual(
       seated,
       "seated",
       "the studio did not seat the theme under edit",
@@ -652,14 +653,14 @@ test("a composite token opens an editor of the theme's own steps, and one part w
     // the row shows the theme's own value
     const row = await compositeRow(page, "font.typography.body");
     assert(row !== null, "the type page draws no row for font.typography.body");
-    assertEquals(
+    deepStrictEqual(
       row.value,
       declared,
       "the row does not show the theme's own value",
     );
 
     // and each part is the theme's own step
-    assertEquals(
+    deepStrictEqual(
       row.parts,
       { Family: "sans", Size: "lg", Weight: "regular", Tracking: "normal" },
       "the editor's parts are not the theme's own steps",
@@ -672,7 +673,7 @@ test("a composite token opens an editor of the theme's own steps, and one part w
     )
       .filter(([name]) => !name.startsWith("$"))
       .map(([name, leaf]) => ({ name, value: String(leaf.$value) }));
-    assertEquals(
+    deepStrictEqual(
       steps.map((step) => ({ name: step.name, value: step.value })),
       sizes,
       "the editor does not offer the theme's own size steps",
@@ -685,7 +686,7 @@ test("a composite token opens an editor of the theme's own steps, and one part w
     assert(next !== undefined, "the theme declares no other size step");
 
     const picked = await pickStep(page, "Size", next.name);
-    assertEquals(picked, "picked", "the editor did not take the step");
+    deepStrictEqual(picked, "picked", "the editor did not take the step");
 
     // the token is written back in the theme's own spelling
     assert(
@@ -698,14 +699,14 @@ test("a composite token opens an editor of the theme's own steps, and one part w
       "the type page draws no row for font.typography.body",
     );
     assert(written.value !== declared, "the edit did not move the token");
-    assertEquals(
+    deepStrictEqual(
       written.value,
       declared.replace(held.value, next.value),
       "the token is not written back in the theme's spelling",
     );
 
     // and the parts it did not touch are the parts that were there
-    assertEquals(
+    deepStrictEqual(
       {
         Family: written.parts.Family,
         Weight: written.parts.Weight,
@@ -714,7 +715,7 @@ test("a composite token opens an editor of the theme's own steps, and one part w
       { Family: "sans", Weight: "regular", Tracking: "normal" },
       "the parts the edit did not touch have moved",
     );
-    assertEquals(
+    deepStrictEqual(
       written.parts.Size,
       next.name,
       "the editor does not hold the step that was picked",
@@ -740,7 +741,7 @@ async function iconsOnDisk(root: string): Promise<string[]> {
   const dir = join(root, "spin", "icons");
   const names: string[] = [];
   try {
-    for await (const entry of Deno.readDir(dir)) {
+    for await (const entry of await readdir(dir)) {
       if (entry.isFile && entry.name.endsWith(".json")) {
         names.push(entry.name.replace(/\.json$/, ""));
       }
@@ -755,7 +756,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
   await withPage(async (page) => {
     const root = await openProject(page);
     const file = iconFile(root, GLYPH);
-    await Deno.remove(file).catch(() => {
+    await rm(file).catch(() => {
       // It was not there to begin with.
     });
     try {
@@ -779,7 +780,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
           return "chosen";
         })()`,
       );
-      assertEquals(found, "chosen", "the glyph was not chosen");
+      deepStrictEqual(found, "chosen", "the glyph was not chosen");
 
       // keep it
       const kept = await page.eval<string>(
@@ -793,12 +794,12 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
           return "kept";
         })()`,
       );
-      assertEquals(kept, "kept", "the page offered no way to keep the glyph");
+      deepStrictEqual(kept, "kept", "the page offered no way to keep the glyph");
 
       // the project holds the glyph, on disk
       const written = JSON.parse(
         await until(
-          async () => await Deno.readTextFile(file),
+          async () => await readFile(file, "utf8"),
           (text) => text.includes("<svg"),
           "the saved icon on the disk",
         ),
@@ -807,7 +808,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         written.markup.includes("<svg"),
         "the file does not hold the glyph's markup",
       );
-      assertEquals(
+      deepStrictEqual(
         written.attribution.collection,
         COLLECTION,
         "the file does not say where the glyph came from",
@@ -819,7 +820,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         (icons) => icons.some((icon) => icon.name === GLYPH),
         "the saved icon in the api",
       );
-      assertEquals(
+      deepStrictEqual(
         listed.map((icon) => icon.name),
         await iconsOnDisk(root),
         "the api does not list the icons the project holds",
@@ -829,7 +830,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         icon !== undefined,
         "the api does not list the icon the studio saved",
       );
-      assertEquals(icon.markup, written.markup, "the api holds other markup");
+      deepStrictEqual(icon.markup, written.markup, "the api holds other markup");
 
       // and the page's library says so
       const library = await page.eval<string>(
@@ -859,7 +860,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
           return "removed";
         })()`,
       );
-      assertEquals(
+      deepStrictEqual(
         removed,
         "removed",
         "the library offered no way to remove the glyph",
@@ -871,12 +872,12 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         (icons) => icons.every((icon) => icon.name !== GLYPH),
         "the saved icon to leave the api",
       );
-      assertEquals(
+      deepStrictEqual(
         after.map((icon) => icon.name),
         await iconsOnDisk(root),
         "the api still lists an icon the project does not hold",
       );
-      assertEquals(
+      deepStrictEqual(
         await there(file),
         false,
         "the file the remove took away is still on disk",
@@ -894,12 +895,12 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         `the library does not say it is empty: ${emptied}`,
       );
     } finally {
-      await Deno.remove(file).catch(() => {
+      await rm(file).catch(() => {
         // It was not there to begin with.
       });
       // The drawer the daemon made for the library goes with it, when the
       // library was the only thing in it.
-      await Deno.remove(join(root, "spin", "icons")).catch(() => {
+      await rm(join(root, "spin", "icons")).catch(() => {
         // Another icon is in there, or it was never made.
       });
     }
@@ -938,7 +939,7 @@ test("the colours page's picker opens for the role the swatch names, and writes 
         return (title?.textContent ?? "").trim();
       })()`,
     );
-    assertEquals(
+    deepStrictEqual(
       heading,
       `Editing ${ROLE}`,
       "the picker did not open for the role",
@@ -958,8 +959,8 @@ test("the colours page's picker opens for the role the swatch names, and writes 
         return "written";
       })()`,
     );
-    assertEquals(wrote, "written", "the picker took no value");
-    assertEquals(
+    deepStrictEqual(wrote, "written", "the picker took no value");
+    deepStrictEqual(
       await previewVar(page, "--color-accent"),
       WRITTEN,
       "the document does not hold the value the picker wrote",
@@ -982,7 +983,7 @@ test("the colours page's picker opens for the role the swatch names, and writes 
         return "pointed";
       })()`,
     );
-    assertEquals(pointed, "pointed", "the picker offered no token to point at");
+    deepStrictEqual(pointed, "pointed", "the picker offered no token to point at");
 
     // the role now reads as computed, and holds the reference
     const role = await page.eval<{ raw: string; slot: string; hex: string }>(
@@ -1004,7 +1005,7 @@ test("the colours page's picker opens for the role the swatch names, and writes 
         };
       })()`,
     );
-    assertEquals(
+    deepStrictEqual(
       role.raw,
       `{${REFERENCE}}`,
       "the document does not hold the reference the picker was pointed at",
@@ -1023,7 +1024,7 @@ test("the colours page's picker opens for the role the swatch names, and writes 
       REFERENCE.split("."),
     );
     assert(referenced !== null, "the theme declares no color.secondary");
-    assertEquals(
+    deepStrictEqual(
       role.hex,
       `Copy ${referenced}`,
       "the role does not read as the colour it points at",
@@ -1072,18 +1073,18 @@ test("the rail marks the row the pointer is on, and lets it go when the pointer 
     await openStudio(page);
     const resting = await rowBackground(page);
     assert(resting !== null, "the rail draws no row for the findings page");
-    assertEquals(
+    deepStrictEqual(
       resting,
       "rgba(0, 0, 0, 0)",
       "the rail row wears a paint of its own at rest",
     );
 
     const hovered = await page.hover('nav a[href^="/findings"]');
-    assertEquals(hovered, "hovered", "the rail row could not be hovered");
+    deepStrictEqual(hovered, "hovered", "the rail row could not be hovered");
     const marked = await rowBackground(page);
     const surface = await chromeSurface(page);
     assert(surface !== null, "the studio's chrome wears no surface of its own");
-    assertEquals(
+    deepStrictEqual(
       marked,
       surface,
       "the hovered rail row does not wear the theme's surface",
@@ -1091,7 +1092,7 @@ test("the rail marks the row the pointer is on, and lets it go when the pointer 
 
     await page.parkPointer();
     await page.settle(400);
-    assertEquals(
+    deepStrictEqual(
       await rowBackground(page),
       resting,
       "the rail row keeps the hover mark after the pointer parks",

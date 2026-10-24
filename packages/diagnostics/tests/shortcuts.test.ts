@@ -1,4 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { shortcutsIn } from "@spin/project";
 import { starterThemes } from "@spin/theme/themes";
 import {
@@ -54,25 +58,25 @@ export default {
 };
 `;
 
-Deno.test("a class the project declares is not reported", () => {
+test("a class the project declares is not reported", () => {
   const facts = factsFor(
     Object.values(starterThemes),
     new Set(),
     shortcutsIn(CONFIG),
   );
-  assertEquals(reported(facts, "my-stack my-panel"), []);
+  deepStrictEqual(reported(facts, "my-stack my-panel"), []);
 });
 
-Deno.test("a class the project does not declare is still reported", () => {
+test("a class the project does not declare is still reported", () => {
   const facts = factsFor(
     Object.values(starterThemes),
     new Set(),
     shortcutsIn(CONFIG),
   );
-  assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
+  deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
 });
 
-Deno.test("a shortcut that spends a class the theme cannot make is reported", () => {
+test("a shortcut that spends a class the theme cannot make is reported", () => {
   // `gap-72` is a step no theme carries: the shortcut would style nothing,
   // and that is worth saying where the shortcut is used.
   const facts = factsFor(
@@ -80,10 +84,10 @@ Deno.test("a shortcut that spends a class the theme cannot make is reported", ()
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-72" } })`),
   );
-  assertEquals(reported(facts, "stack"), ["gap-72"]);
+  deepStrictEqual(reported(facts, "stack"), ["gap-72"]);
 });
 
-Deno.test("a project that declares shortcuts the lint cannot read says nothing", () => {
+test("a project that declares shortcuts the lint cannot read says nothing", () => {
   // The vocabulary cannot be read in full, so the rule that asks "can this
   // be produced?" stands down — and only that rule.
   const facts = factsFor(
@@ -91,63 +95,63 @@ Deno.test("a project that declares shortcuts the lint cannot read says nothing",
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: studioShortcuts })`),
   );
-  assertEquals(reported(facts, "my-stack bg-primary"), []);
+  deepStrictEqual(reported(facts, "my-stack bg-primary"), []);
 });
 
-Deno.test("the lint learns the shortcuts of the project a file belongs to", async () => {
-  const root = await Deno.makeTempDir();
+test("the lint learns the shortcuts of the project a file belongs to", async () => {
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/src`);
-    await Deno.writeTextFile(`${root}/vite.config.ts`, CONFIG);
+    await mkdir(`${root}/src`);
+    await writeFile(`${root}/vite.config.ts`, CONFIG);
     const facts = factsForFile(`${root}/src/page.tsx`);
-    assertEquals(reported(facts, "my-stack my-panel"), []);
-    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
+    deepStrictEqual(reported(facts, "my-stack my-panel"), []);
+    deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a table the configuration keeps in a constant is read", async () => {
+test("a table the configuration keeps in a constant is read", async () => {
   // The ordinary way to write one: a table of a dozen lines, named, and
   // handed to the plugin by name.
-  const root = await Deno.makeTempDir();
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/src`);
-    await Deno.writeTextFile(
+    await mkdir(`${root}/src`);
+    await writeFile(
       `${root}/vite.config.ts`,
       `const studioShortcuts = { "my-stack": "flex flex-col gap-4" };
 spin.vite({ shortcuts: studioShortcuts });`,
     );
     const facts = factsForFile(`${root}/src/page.tsx`);
-    assertEquals(reported(facts, "my-stack"), []);
-    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
+    deepStrictEqual(reported(facts, "my-stack"), []);
+    deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a project that declares no shortcuts adds nothing to the product's set", async () => {
-  const root = await Deno.makeTempDir();
+test("a project that declares no shortcuts adds nothing to the product's set", async () => {
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/src`);
-    await Deno.writeTextFile(
+    await mkdir(`${root}/src`);
+    await writeFile(
       `${root}/vite.config.ts`,
       `export default { plugins: [] };`,
     );
-    assertEquals(Object.keys(readProjectShortcuts(root).shortcuts).length, 0);
+    deepStrictEqual(Object.keys(readProjectShortcuts(root).shortcuts).length, 0);
     const facts = factsForFile(`${root}/src/page.tsx`);
     // The standard compositions ship with the preset; the project added none.
-    assertEquals(reported(facts, "stack panel"), []);
-    assertEquals(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
+    deepStrictEqual(reported(facts, "stack panel"), []);
+    deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a project with no configuration at all declares nothing", () => {
-  assertEquals(
+test("a project with no configuration at all declares nothing", () => {
+  deepStrictEqual(
     Object.keys(readProjectShortcuts(undefined).shortcuts).length,
     0,
   );
-  assertEquals(noShortcuts().unreadable, false);
+  deepStrictEqual(noShortcuts().unreadable, false);
 });

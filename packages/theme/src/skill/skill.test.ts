@@ -1,4 +1,7 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { renderSkill } from "./index.ts";
 import { starterGroups } from "../themes/index.ts";
 import { GATES } from "../contract/battery.ts";
@@ -28,15 +31,15 @@ function checklistGroups(text: string): readonly string[] {
   return groups;
 }
 
-Deno.test("the skill walks exactly the groups the module emits", async () => {
-  const template = await Deno.readTextFile(TEMPLATE);
+test("the skill walks exactly the groups the module emits", async () => {
+  const template = await readFile(TEMPLATE, "utf8");
   const groups = checklistGroups(renderSkill(template));
   assert(groups.length > 0, "the skill carries a checklist");
-  assertEquals(groups, [...starterGroups()]);
+  deepStrictEqual(groups, [...starterGroups()]);
 });
 
-Deno.test("the guidance the file carries survives the assembly", async () => {
-  const template = await Deno.readTextFile(TEMPLATE);
+test("the guidance the file carries survives the assembly", async () => {
+  const template = await readFile(TEMPLATE, "utf8");
   const rendered = renderSkill(template);
   assert(
     rendered.includes("The structure of the palette"),
@@ -48,7 +51,7 @@ Deno.test("the guidance the file carries survives the assembly", async () => {
   );
 });
 
-Deno.test("a group the file does not describe still appears in the skill", () => {
+test("a group the file does not describe still appears in the skill", () => {
   const template = "## The checklist\n\n### color\n\n**For.** The palette.\n";
   const rendered = renderSkill(template);
   for (const group of starterGroups()) {
@@ -59,7 +62,7 @@ Deno.test("a group the file does not describe still appears in the skill", () =>
   }
 });
 
-Deno.test("everything outside the checklist is the file's own text", () => {
+test("everything outside the checklist is the file's own text", () => {
   const template = [
     "# The house skill",
     "",
@@ -86,12 +89,12 @@ Deno.test("everything outside the checklist is the file's own text", () => {
   );
 });
 
-Deno.test("the skill's gate list is the battery's gate list", async () => {
+test("the skill's gate list is the battery's gate list", async () => {
   // The gates an author runs are the battery's gates, and the battery is the
   // one that answers. A gate the skill does not name is a gate nobody runs,
   // and a gate the skill names that the battery does not have is a gate that
   // cannot fail — which is worse, because it reads as a check that passed.
-  const template = await Deno.readTextFile(TEMPLATE);
+  const template = await readFile(TEMPLATE, "utf8");
   const rendered = renderSkill(template);
   const gates = rendered.slice(rendered.indexOf("## The gates"));
   for (const gate of GATES) {
@@ -106,11 +109,11 @@ Deno.test("the skill's gate list is the battery's gate list", async () => {
   );
 });
 
-Deno.test("the skill names the option that judges a document in a mode", async () => {
+test("the skill names the option that judges a document in a mode", async () => {
   // `mode` is the option that measures legibility in a mode, and an author
   // who does not know it runs the validator once and believes the dark mode
   // is checked.
-  const template = await Deno.readTextFile(TEMPLATE);
+  const template = await readFile(TEMPLATE, "utf8");
   const rendered = renderSkill(template);
   assert(
     rendered.includes("{ required, modes, mode }"),

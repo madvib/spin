@@ -1,11 +1,12 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { TabsApi } from "./tabs.presentation.ts";
 
 // The derived api's public surface, pinned: removing a reader, method,
 // command, or part from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("TabsApi promises the component's surface", () => {
+test("TabsApi promises the component's surface", () => {
   const keys: (keyof TabsApi)[] = [
     "state",
     "value",
@@ -16,7 +17,7 @@ Deno.test("TabsApi promises the component's surface", () => {
     "getTriggerProps",
     "getContentProps",
   ];
-  assertEquals(keys.length, 8);
+  deepStrictEqual(keys.length, 8);
   // Derived member signatures: state union and typed command tuples.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
@@ -24,7 +25,7 @@ Deno.test("TabsApi promises the component's surface", () => {
   const selectTyped: AssertExact<TabsApi["select"], (value: string) => void> =
     true;
   const valueTyped: AssertExact<TabsApi["value"], string> = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       selectTyped,

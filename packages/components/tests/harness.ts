@@ -4,29 +4,25 @@
  *
  *   import { runComponentSuite, step } from "./harness.ts";
  *
- *   Deno.test("spin-slider e2e", () =>
+ *   test("spin-slider e2e", () =>
  *     runComponentSuite({ port: 5252, route: "/slider", ready: CONTROL }, async ({ page }) => {
  *       await step("a track press jumps", ...);
  *     }));
  *
- * Run explicitly (not in default `deno task test`):
- *   cd packages/components && deno test --allow-read --allow-net --allow-run
- *     --allow-env --allow-sys --allow-write=/tmp --allow-import
- *     --min-dep-age=0 tests/<suite>.e2e.ts
+ * Run explicitly (not in default `bun test`):
+ *   cd packages/components && bun test tests/<suite>.e2e.ts
  *
- * deno.json holds that command per suite as `deno task e2e:<suite>` (every
- * suite but `examples` has one; the menu suite's task runs it with `deno run`,
- * because that file is a program, not a test).
- *
- * Builds the specimens app, serves dist, drives real Chromium via Playwright.
+ * Builds the reference app, serves dist, drives real Chromium via Playwright.
  * Requires the Playwright browser once: `bunx playwright install chromium`.
  * Fails loud naming the step; silent on success.
  */
 
+import { execFile, spawn, type ChildProcess } from "node:child_process";
+import { promisify } from "node:util";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { type Browser, chromium, type Page } from "npm:playwright-core";
+import { type Browser, chromium, type Page } from "playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 /** The reference app: the library's EXAMPLES, each its own element. The
@@ -46,18 +42,17 @@ export { delay };
 
 /** Builds an app from a clean checkout. */
 async function buildDemo(app: string): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", app],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(
-    code,
-    0,
-    `vite build failed:\n${new TextDecoder().decode(stderr)}`,
-  );
+  const execFileAsync = promisify(execFile);
+  try {
+    await execFileAsync("node", [join(ROOT, "node_modules/vite/bin/vite.js"), "build", app], { cwd: ROOT });
+  } catch (error) {
+    const err = error as { stderr?: string | Buffer };
+    assert.equal(
+      1,
+      0,
+      `vite build failed:\n${String(err.stderr ?? error)}`,
+    );
+  }
 }
 
 /** Serves the built dist on a fixed port and waits until it answers. */
@@ -65,21 +60,15 @@ async function startServer(
   port: number,
   route: string,
   app: string,
-): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      app,
-      "--port",
-      String(port),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
+): Promise<ChildProcess> {
+  const child = spawn("node", [
+    join(ROOT, "node_modules/vite/bin/vite.js"),
+    "preview",
+    app,
+    "--port",
+    String(port),
+    "--strictPort",
+  ], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
   const url = `http://127.0.0.1:${port}${route}`;
   for (let i = 0; i < 50; i += 1) {
     try {
@@ -89,9 +78,12 @@ async function startServer(
     }
     await delay(100);
   }
-  const errText = new TextDecoder().decode(
-    await new Response(child.stderr).arrayBuffer(),
-  );
+  const errText = await new Promise<string>((resolve) => {
+    let text = "";
+    child.stderr?.on("data", (chunk: Buffer) => { text += String(chunk); });
+    child.stderr?.on("end", () => resolve(text));
+    setTimeout(() => resolve(text), 500);
+  });
   try {
     child.kill();
   } catch {

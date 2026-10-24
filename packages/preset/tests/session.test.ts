@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { afterEach, test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   clearOverlay,
   hasOverlay,
@@ -9,6 +10,13 @@ import {
   setOverlay,
 } from "../src/session.ts";
 import type { ThemeDocument } from "@spin/theme";
+
+// Bun runs test files in one process, so module state leaks across files:
+// an overlay left set here merges into every preset generation after it
+// (resolveThemes). Deno ran files in isolation and never saw this.
+afterEach(() => {
+  clearOverlay();
+});
 
 const disk = { acme: { primary: "#0369a1" } } as unknown as Record<
   string,
@@ -23,20 +31,20 @@ function reset() {
   clearOverlay();
 }
 
-Deno.test("with no overlay open the caller's documents are the source", () => {
+test("with no overlay open the caller's documents are the source", () => {
   reset();
-  assertEquals(resolveThemes(disk), disk);
+  deepStrictEqual(resolveThemes(disk), disk);
   assert(!hasOverlay());
 });
 
-Deno.test("an overlay wins over disk while it is set", () => {
+test("an overlay wins over disk while it is set", () => {
   reset();
   setOverlay(editing);
   const resolved = resolveThemes(disk);
-  assertEquals(resolved.acme.primary, "#b91c1c");
+  deepStrictEqual(resolved.acme.primary, "#b91c1c");
 });
 
-Deno.test("a theme the overlay does not name still resolves from disk", () => {
+test("a theme the overlay does not name still resolves from disk", () => {
   reset();
   setOverlay(editing);
   const both = {
@@ -44,29 +52,29 @@ Deno.test("a theme the overlay does not name still resolves from disk", () => {
     other: { primary: "#15803d" },
   } as unknown as Record<string, ThemeDocument>;
   const resolved = resolveThemes(both);
-  assertEquals(resolved.acme.primary, "#b91c1c");
-  assertEquals(resolved.other.primary, "#15803d");
+  deepStrictEqual(resolved.acme.primary, "#b91c1c");
+  deepStrictEqual(resolved.other.primary, "#15803d");
 });
 
-Deno.test("clearing the overlay restores disk as the source", () => {
+test("clearing the overlay restores disk as the source", () => {
   reset();
   setOverlay(editing);
   clearOverlay();
-  assertEquals(resolveThemes(disk), disk);
+  deepStrictEqual(resolveThemes(disk), disk);
   assert(!hasOverlay());
 });
 
-Deno.test("an overlay can name a document disk does not have", () => {
+test("an overlay can name a document disk does not have", () => {
   reset();
   setOverlay({ brand: { primary: "#b91c1c" } } as unknown as Record<
     string,
     ThemeDocument
   >);
-  assertEquals(Object.keys(resolveThemes(disk)).sort(), ["acme", "brand"]);
+  deepStrictEqual(Object.keys(resolveThemes(disk)).sort(), ["acme", "brand"]);
   reset();
 });
 
-Deno.test("the overlay is stored as a copy, so the caller cannot edit through it", () => {
+test("the overlay is stored as a copy, so the caller cannot edit through it", () => {
   reset();
   const live = { acme: { primary: "#b91c1c" } } as unknown as Record<
     string,
@@ -74,20 +82,20 @@ Deno.test("the overlay is stored as a copy, so the caller cannot edit through it
   >;
   setOverlay(live);
   live.acme.primary = "#000000";
-  assertEquals(overlayThemes().acme.primary, "#b91c1c");
+  deepStrictEqual(overlayThemes().acme.primary, "#b91c1c");
   reset();
 });
 
-Deno.test("reading the overlay hands back a copy too", () => {
+test("reading the overlay hands back a copy too", () => {
   reset();
   setOverlay(editing);
   const read = overlayThemes();
   read.acme.primary = "#000000";
-  assertEquals(resolveThemes(disk).acme.primary, "#b91c1c");
+  deepStrictEqual(resolveThemes(disk).acme.primary, "#b91c1c");
   reset();
 });
 
-Deno.test("a theme matching disk reads clean", () => {
+test("a theme matching disk reads clean", () => {
   reset();
   const doc = { primary: "#0369a1" } as unknown as ThemeDocument;
   noteDiskDocuments({ acme: doc });
@@ -95,10 +103,10 @@ Deno.test("a theme matching disk reads clean", () => {
     string,
     ThemeDocument
   >);
-  assertEquals(overlayDirty(), []);
+  deepStrictEqual(overlayDirty(), []);
 });
 
-Deno.test("a theme differing from disk reads dirty", () => {
+test("a theme differing from disk reads dirty", () => {
   reset();
   noteDiskDocuments({
     acme: { primary: "#0369a1" },
@@ -107,15 +115,15 @@ Deno.test("a theme differing from disk reads dirty", () => {
     string,
     ThemeDocument
   >);
-  assertEquals(overlayDirty(), ["acme"]);
+  deepStrictEqual(overlayDirty(), ["acme"]);
 });
 
-Deno.test("an overlaid theme disk never had reads dirty", () => {
+test("an overlaid theme disk never had reads dirty", () => {
   reset();
   noteDiskDocuments({});
   setOverlay({ brand: { primary: "#b91c1c" } } as unknown as Record<
     string,
     ThemeDocument
   >);
-  assertEquals(overlayDirty(), ["brand"]);
+  deepStrictEqual(overlayDirty(), ["brand"]);
 });

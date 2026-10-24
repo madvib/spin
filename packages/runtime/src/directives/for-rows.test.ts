@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { effect, machineTick, signal } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
@@ -14,7 +15,7 @@ const { document } = parseHTML("<!doctype html><html><body></body></html>");
  * render detached from the sync effect's reactive parentage; the cell owner
  * alone decides lifetime. This test fails if renders ever re-attach.
  */
-Deno.test("rows from an earlier sync stay subscribed after a later sync", () => {
+test("rows from an earlier sync stay subscribed after a later sync", () => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const anchor = document.createComment("for");
@@ -37,12 +38,12 @@ Deno.test("rows from an earlier sync stay subscribed after a later sync", () => 
       return { nodes: [...frag.childNodes] };
     },
   });
-  assertEquals(host.querySelectorAll("div").length, 2, "two rows render");
+  deepStrictEqual(host.querySelectorAll("div").length, 2, "two rows render");
   items([...items(), "c"]);
-  assertEquals(host.querySelectorAll("div").length, 3, "appended row renders");
+  deepStrictEqual(host.querySelectorAll("div").length, 3, "appended row renders");
   runs.length = 0;
   tick(tick() + 1);
-  assertEquals(
+  deepStrictEqual(
     runs.some((r) => r === "run:a"),
     true,
     `row from the first sync re-runs on a later tick (runs=[${
@@ -51,7 +52,7 @@ Deno.test("rows from an earlier sync stay subscribed after a later sync", () => 
   );
 });
 
-Deno.test("rows stay after preceding siblings (anchor-relative placement)", () => {
+test("rows stay after preceding siblings (anchor-relative placement)", () => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const label = document.createElement("div");
@@ -73,11 +74,11 @@ Deno.test("rows stay after preceding siblings (anchor-relative placement)", () =
     },
   });
   const order = () => [...host.childNodes].map((n) => n.textContent);
-  assertEquals(order(), ["Options", "a", "b", "for"]);
+  deepStrictEqual(order(), ["Options", "a", "b", "for"]);
   items(["b", "a"]);
-  assertEquals(order(), ["Options", "b", "a", "for"]);
+  deepStrictEqual(order(), ["Options", "b", "a", "for"]);
   items([...items(), "c"]);
-  assertEquals(order(), ["Options", "b", "a", "c", "for"]);
+  deepStrictEqual(order(), ["Options", "b", "a", "c", "for"]);
 });
 
 /**
@@ -90,7 +91,7 @@ Deno.test("rows stay after preceding siblings (anchor-relative placement)", () =
  * the bag spreads read. This test fails if the for stops reading it: the
  * list would freeze at its first rows.
  */
-Deno.test("the for re-syncs on the machine-move signal", () => {
+test("the for re-syncs on the machine-move signal", () => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const anchor = document.createComment("for");
@@ -109,7 +110,7 @@ Deno.test("the for re-syncs on the machine-move signal", () => {
       return { nodes: [el] };
     },
   });
-  assertEquals(
+  deepStrictEqual(
     host.querySelectorAll("div").length,
     1,
     "the seeded row renders",
@@ -118,14 +119,14 @@ Deno.test("the for re-syncs on the machine-move signal", () => {
   // A machine move: the context object mutates, and the move signal flips.
   ctx.rows = ["a", "b"];
   machineTick(machineTick() + 1);
-  assertEquals(
+  deepStrictEqual(
     host.querySelectorAll("div").length,
     2,
     "the new row renders from the move",
   );
 });
 
-Deno.test("multi-root rows keep source order (item then twin)", () => {
+test("multi-root rows keep source order (item then twin)", () => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const anchor = document.createComment("for");
@@ -149,7 +150,7 @@ Deno.test("multi-root rows keep source order (item then twin)", () => {
     .filter((n) => n.nodeName !== "#comment")
     .map((n) => (n as Element).textContent ?? "?")
     .join("");
-  assertEquals(
+  deepStrictEqual(
     order,
     "h:m:s:",
     `row twins follow their item (got ${

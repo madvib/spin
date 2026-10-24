@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { machineTick } from "../core/signal.ts";
 import { bindSpread } from "./spread.ts";
@@ -10,7 +11,7 @@ const { window } = parseHTML("<!doctype html><html><body></body></html>");
 const { document } = window;
 Object.assign(globalThis, { document });
 
-Deno.test("a re-run with a new handler identity fires exactly once per dispatch", () => {
+test("a re-run with a new handler identity fires exactly once per dispatch", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -27,8 +28,8 @@ Deno.test("a re-run with a new handler identity fires exactly once per dispatch"
   bindSpread(el, () => current);
 
   el.dispatchEvent(new window.Event("click"));
-  assertEquals(firstCalls, 1);
-  assertEquals(secondCalls, 0);
+  deepStrictEqual(firstCalls, 1);
+  deepStrictEqual(secondCalls, 0);
 
   current = { onClick: second, "data-x": "1" };
   machineTick(machineTick() + 1);
@@ -36,11 +37,11 @@ Deno.test("a re-run with a new handler identity fires exactly once per dispatch"
   el.dispatchEvent(new window.Event("click"));
   // The old listener is gone and the new one fires once: a duplicated
   // listener would push firstCalls to 2.
-  assertEquals(firstCalls, 1);
-  assertEquals(secondCalls, 1);
+  deepStrictEqual(firstCalls, 1);
+  deepStrictEqual(secondCalls, 1);
 });
 
-Deno.test("re-running with the same handler identity keeps a single listener", () => {
+test("re-running with the same handler identity keeps a single listener", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -56,27 +57,27 @@ Deno.test("re-running with the same handler identity keeps a single listener", (
   machineTick(machineTick() + 1);
 
   el.dispatchEvent(new window.Event("click"));
-  assertEquals(calls, 1);
+  deepStrictEqual(calls, 1);
 });
 
-Deno.test("attributes the reader drops are removed from the element", () => {
+test("attributes the reader drops are removed from the element", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
   let current: Record<string, unknown> = { "data-x": "1", "data-y": "2" };
   bindSpread(el, () => current);
 
-  assertEquals(el.getAttribute("data-x"), "1");
-  assertEquals(el.getAttribute("data-y"), "2");
+  deepStrictEqual(el.getAttribute("data-x"), "1");
+  deepStrictEqual(el.getAttribute("data-y"), "2");
 
   current = { "data-x": "1" };
   machineTick(machineTick() + 1);
 
-  assertEquals(el.getAttribute("data-x"), "1");
-  assertEquals(el.getAttribute("data-y"), null);
+  deepStrictEqual(el.getAttribute("data-x"), "1");
+  deepStrictEqual(el.getAttribute("data-y"), null);
 });
 
-Deno.test("a listener the reader drops stops firing", () => {
+test("a listener the reader drops stops firing", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -89,16 +90,16 @@ Deno.test("a listener the reader drops stops firing", () => {
   bindSpread(el, () => current);
 
   el.dispatchEvent(new window.Event("click"));
-  assertEquals(calls, 1);
+  deepStrictEqual(calls, 1);
 
   current = {};
   machineTick(machineTick() + 1);
 
   el.dispatchEvent(new window.Event("click"));
-  assertEquals(calls, 1);
+  deepStrictEqual(calls, 1);
 });
 
-Deno.test("style object is serialized to cssText", () => {
+test("style object is serialized to cssText", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -107,13 +108,13 @@ Deno.test("style object is serialized to cssText", () => {
   };
   bindSpread(el, () => current);
 
-  assertEquals(
+  deepStrictEqual(
     el.getAttribute("style"),
     "position:absolute;top:10px;background-color:red;",
   );
 });
 
-Deno.test("aria booleans render as true/false strings, never empty or absent", () => {
+test("aria booleans render as true/false strings, never empty or absent", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -123,17 +124,17 @@ Deno.test("aria booleans render as true/false strings, never empty or absent", (
   };
   bindSpread(el, () => current);
   // false on an aria state is explicit, not absent; on a plain boolean it removes.
-  assertEquals(el.getAttribute("aria-selected"), "false");
-  assertEquals(el.hasAttribute("hidden"), false);
+  deepStrictEqual(el.getAttribute("aria-selected"), "false");
+  deepStrictEqual(el.hasAttribute("hidden"), false);
 
   current = { "aria-selected": true, hidden: true };
   machineTick(machineTick() + 1);
   // true on an aria state is "true", not the empty string (which AT reads as unset).
-  assertEquals(el.getAttribute("aria-selected"), "true");
-  assertEquals(el.getAttribute("hidden"), "");
+  deepStrictEqual(el.getAttribute("aria-selected"), "true");
+  deepStrictEqual(el.getAttribute("hidden"), "");
 });
 
-Deno.test("a bag-carried use: directive is consumed, never written as an attribute", () => {
+test("a bag-carried use: directive is consumed, never written as an attribute", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
@@ -148,13 +149,13 @@ Deno.test("a bag-carried use: directive is consumed, never written as an attribu
 
   // The attach pass owns `use:name` entries: the attribute writer must not
   // leak the stringified param into the DOM.
-  assertEquals(el.getAttribute("data-x"), "1");
-  assertEquals(el.hasAttribute("use:unregistered-directive"), false);
+  deepStrictEqual(el.getAttribute("data-x"), "1");
+  deepStrictEqual(el.hasAttribute("use:unregistered-directive"), false);
 
   // Dropping the directive writes nothing either — no attribute to remove.
   bag = { "data-x": "1" };
   machineTick(machineTick() + 1);
 
-  assertEquals(el.getAttribute("data-x"), "1");
-  assertEquals(el.hasAttribute("use:unregistered-directive"), false);
+  deepStrictEqual(el.getAttribute("data-x"), "1");
+  deepStrictEqual(el.hasAttribute("use:unregistered-directive"), false);
 });

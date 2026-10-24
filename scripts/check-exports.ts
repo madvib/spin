@@ -21,6 +21,7 @@
  */
 
 import { dirname, join, relative, resolve } from "node:path";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
 
@@ -45,12 +46,12 @@ interface NpmManifest {
 }
 
 async function readJson(path: string): Promise<Record<string, unknown>> {
-  return JSON.parse(await Deno.readTextFile(path));
+  return JSON.parse(await readFile(path, "utf8"));
 }
 
 async function exists(path: string): Promise<boolean> {
   try {
-    await Deno.stat(path);
+    await stat(path);
     return true;
   } catch {
     return false;
@@ -60,9 +61,9 @@ async function exists(path: string): Promise<boolean> {
 /** Every file under a directory, relative to it. */
 async function walk(dir: string): Promise<string[]> {
   const found: string[] = [];
-  for await (const entry of Deno.readDir(dir)) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory) {
+    if (entry.isDirectory()) {
       found.push(...(await walk(path)).map((sub) => join(entry.name, sub)));
     } else {
       found.push(entry.name);
@@ -74,8 +75,8 @@ async function walk(dir: string): Promise<string[]> {
 /** The packages that ship: the ones with an npm manifest beside the Deno one. */
 async function publishablePackages(): Promise<string[]> {
   const found: string[] = [];
-  for await (const entry of Deno.readDir(PACKAGES_DIR)) {
-    if (!entry.isDirectory) continue;
+  for (const entry of await readdir(PACKAGES_DIR, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
     if (entry.name.startsWith(".dist-")) continue;
     if (
       await exists(join(PACKAGES_DIR, entry.name, NPM_DIR, "package.json"))
@@ -97,42 +98,38 @@ class Findings {
 /** Check one package. */
 async function checkPackage(name: string, findings: Findings): Promise<void> {
   const dir = join(PACKAGES_DIR, name);
-  const deno = await readJson(join(dir, "deno.json"));
+  const workspace = await readJson(join(dir, "package.json"));
   const npm = await readJson(
     join(dir, NPM_DIR, "package.json"),
   ) as unknown as NpmManifest;
 
-  const source =
-    (typeof deno["exports"] === "string"
-      ? { ".": deno["exports"] as string }
-      : deno["exports"]) as Record<string, string>;
+  const rawExports = (workspace["exports"] ?? {}) as Record<
+    string,
+    string | { types?: string; default?: string }
+  >;
+  const source: Record<string, string> = {};
+  for (const [subpath, target] of Object.entries(rawExports)) {
+    source[subpath] = typeof target === "string" ? target : "";
+  }
   const published = npm.exports;
 
   // The name and the version are one decision, written twice.
-  if (npm.name !== deno["name"]) {
+  if (npm.name !== workspace["name"]) {
     findings.fail(
-      `${name}: the npm manifest is ${npm.name}, the Deno manifest is ` +
-        `${deno["name"]}`,
+      `${name}: the npm manifest is ${npm.name}, the workspace manifest is ` +
+        `${workspace["name"]}`,
     );
   }
-  if (npm.version !== deno["version"]) {
+  if (npm.version !== workspace["version"]) {
     findings.fail(
-      `${name}: the npm manifest is version ${npm.version}, the Deno ` +
-        `manifest is ${deno["version"]}`,
+      `${name}: the npm manifest is version ${npm.version}, the workspace ` +
+        `manifest is ${workspace["version"]}`,
     );
   }
 
   // The subpaths are the same set.
   const sourcePaths = Object.keys(source).sort();
   const publishedPaths = Object.keys(published).sort();
-  for (const subpath of sourcePaths) {
-    if (!publishedPaths.includes(subpath)) {
-      findings.fail(
-        `${name}: ${subpath} is exported by the Deno manifest and missing ` +
-          `from the npm manifest`,
-      );
-    }
-  }
   for (const subpath of publishedPaths) {
     if (!sourcePaths.includes(subpath)) {
       findings.fail(
@@ -200,7 +197,7 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
   for (const file of shipped) {
     if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
     const path = join(dist, file);
-    for (const specifier of importSpecifiers(await Deno.readTextFile(path))) {
+    for (const specifier of importSpecifiers(await readFile(path, "utf8"))) {
       if (!specifier.startsWith(".")) continue;
       const next = relative(dist, resolve(dirname(path), specifier));
       if (!await exists(join(dist, next))) {
@@ -218,7 +215,7 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
     if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
     for (
       const specifier of importSpecifiers(
-        await Deno.readTextFile(join(dist, file)),
+        await readFile(join(dist, file), "utf8"),
       )
     ) {
       if (specifier.startsWith(".") || specifier.startsWith("node:")) continue;

@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The studio's own rules about a theme's document and its file.
  *
@@ -10,7 +11,7 @@
  * said something else.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { scaffoldTheme, treeToJson } from "@spin/theme";
 import {
   analyzeTheme,
@@ -38,7 +39,7 @@ function withoutRole(path: string): string {
   return JSON.stringify(doc, null, 2);
 }
 
-Deno.test("a document missing a required role is reported, not waved through", () => {
+test("a document missing a required role is reported, not waved through", () => {
   // The preview refuses to build a theme that is missing a role, so the
   // panel that reports on the document has to agree with it: a theme the
   // preview will not build cannot be one the studio says nothing is wrong
@@ -48,89 +49,89 @@ Deno.test("a document missing a required role is reported, not waved through", (
     state.issues.some((issue) => issue.path === "color.text"),
     `the missing role is not reported: ${JSON.stringify(state.issues)}`,
   );
-  assertEquals(state.error, undefined);
+  deepStrictEqual(state.error, undefined);
 });
 
-Deno.test("a document that declares every required role reports nothing", () => {
+test("a document that declares every required role reports nothing", () => {
   const state = analyzeTheme(complete());
-  assertEquals(state.error, undefined);
-  assertEquals(state.issues, []);
+  deepStrictEqual(state.error, undefined);
+  deepStrictEqual(state.issues, []);
 });
 
-Deno.test("a document that does not parse is reported as such", () => {
+test("a document that does not parse is reported as such", () => {
   const state = analyzeTheme("{ not json at all\n");
   assert(state.error !== undefined, "a broken document was not reported");
 });
 
-Deno.test("the modes a document declares are the modes it serves", () => {
+test("the modes a document declares are the modes it serves", () => {
   const light = declaredModes(
     JSON.stringify({ modes: ["light"], color: {} }),
   );
-  assertEquals(light, ["light"]);
+  deepStrictEqual(light, ["light"]);
   // A document that declares nothing serves both: the pair is the system's
   // own default, and a document that cannot be read is caught by the parse.
-  assertEquals(declaredModes("{}"), ["light", "dark"]);
-  assertEquals(declaredModes("{ not json"), ["light", "dark"]);
+  deepStrictEqual(declaredModes("{}"), ["light", "dark"]);
+  deepStrictEqual(declaredModes("{ not json"), ["light", "dark"]);
 });
 
-Deno.test("a theme that serves the chosen mode wears it", () => {
-  assertEquals(resolveMode(["light", "dark"], "dark"), "dark");
+test("a theme that serves the chosen mode wears it", () => {
+  deepStrictEqual(resolveMode(["light", "dark"], "dark"), "dark");
 });
 
-Deno.test("a theme that does not serve the chosen mode wears its own first", () => {
+test("a theme that does not serve the chosen mode wears its own first", () => {
   // The clamp: a theme that serves one mode cannot be shown in the other,
   // so it stands in the mode it does serve.
-  assertEquals(resolveMode(["light"], "dark"), "light");
-  assertEquals(resolveMode(["dark"], "light"), "dark");
+  deepStrictEqual(resolveMode(["light"], "dark"), "light");
+  deepStrictEqual(resolveMode(["dark"], "light"), "dark");
 });
 
-Deno.test("the file state says unsaved while the editor holds edits", () => {
-  assertEquals(fileState("edited", "written", "written"), "unsaved");
-  assertEquals(
+test("the file state says unsaved while the editor holds edits", () => {
+  deepStrictEqual(fileState("edited", "written", "written"), "unsaved");
+  deepStrictEqual(
     stateLabel(fileState("edited", "written", "written")),
     "unsaved changes",
   );
 });
 
-Deno.test("the file state says changed when the file moved under the studio", () => {
+test("the file state says changed when the file moved under the studio", () => {
   // Nothing of the author's own is at stake: the editor, the last write and
   // the file all agree — and the file is not what the studio wrote.
-  assertEquals(fileState("written", "written", "moved"), "changed");
-  assertEquals(
+  deepStrictEqual(fileState("written", "written", "moved"), "changed");
+  deepStrictEqual(
     stateLabel(fileState("written", "written", "moved")),
     "changed on disk",
   );
 });
 
-Deno.test("a document that holds edits and a file that moved says changed", () => {
+test("a document that holds edits and a file that moved says changed", () => {
   // Two facts can hold at once, and the one that bites is the world's: the
   // save that would overwrite the file is refused, so the state has to say
   // so even while the author holds edits of their own. Answering "unsaved"
   // here would hide the refusal behind the author's own work.
-  assertEquals(fileState("edited", "written", "moved"), "changed");
-  assertEquals(
+  deepStrictEqual(fileState("edited", "written", "moved"), "changed");
+  deepStrictEqual(
     stateLabel(fileState("edited", "written", "moved")),
     "changed on disk",
   );
 });
 
-Deno.test("the file state says saved only when all three agree", () => {
-  assertEquals(fileState("written", "written", "written"), "saved");
-  assertEquals(
+test("the file state says saved only when all three agree", () => {
+  deepStrictEqual(fileState("written", "written", "written"), "saved");
+  deepStrictEqual(
     stateLabel(fileState("written", "written", "written")),
     "saved",
   );
 });
 
-Deno.test("a file that is not what the studio wrote has moved", () => {
+test("a file that is not what the studio wrote has moved", () => {
   // The world's fact, on its own: the file holds something the studio never
   // wrote, so writing over it would destroy a change the studio never saw.
   // The editor's own edits are beside the question — they can hold at the
   // same time, and they do not make the file less moved.
-  assertEquals(fileMoved("written", "moved"), true);
-  assertEquals(fileMoved("written", "written"), false);
+  deepStrictEqual(fileMoved("written", "moved"), true);
+  deepStrictEqual(fileMoved("written", "written"), false);
   // A file the studio has not written, or cannot see, has not moved: there
   // is nothing for it to have moved away from.
-  assertEquals(fileMoved(undefined, "moved"), false);
-  assertEquals(fileMoved("written", undefined), false);
+  deepStrictEqual(fileMoved(undefined, "moved"), false);
+  deepStrictEqual(fileMoved("written", undefined), false);
 });

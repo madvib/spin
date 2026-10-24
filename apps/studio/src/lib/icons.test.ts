@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 
 /**
  * The studio's client reads the page's address when it loads, so the module
@@ -10,7 +11,7 @@ globalThis.location = { search: "" } as unknown as Location;
 
 const { attributionText, iconMarkup } = await import("./icons.ts");
 
-Deno.test("a saved icon's markup carries the box it was drawn in", () => {
+test("a saved icon's markup carries the box it was drawn in", () => {
   const markup = iconMarkup({
     body: '<path d="M5 12h14"/>',
     width: 24,
@@ -27,7 +28,7 @@ Deno.test("a saved icon's markup carries the box it was drawn in", () => {
   );
 });
 
-Deno.test("the attribution names the source it was given", () => {
+test("the attribution names the source it was given", () => {
   const text = attributionText({
     collection: "lucide",
     author: "Lucide Contributors",
@@ -38,7 +39,7 @@ Deno.test("the attribution names the source it was given", () => {
   assert(text.includes("ISC"), `the licence is named: ${text}`);
 });
 
-Deno.test("an icon with no source recorded says so", () => {
+test("an icon with no source recorded says so", () => {
   const text = attributionText({
     collection: null,
     author: null,
@@ -48,8 +49,8 @@ Deno.test("an icon with no source recorded says so", () => {
   assert(text.includes("no source"), `the absence is said: ${text}`);
 });
 
-Deno.test("an attribution with only a collection names only that", () => {
-  assertEquals(
+test("an attribution with only a collection names only that", () => {
+  deepStrictEqual(
     attributionText({
       collection: "carbon",
       author: null,

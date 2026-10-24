@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { SelectApi, SelectItemState } from "./select.presentation.ts";
 import type { SelectRow } from "./select.state.ts";
 
@@ -6,7 +7,7 @@ import type { SelectRow } from "./select.state.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("SelectApi promises the component's surface", () => {
+test("SelectApi promises the component's surface", () => {
   const keys: (keyof SelectApi)[] = [
     "state",
     "open",
@@ -51,7 +52,7 @@ Deno.test("SelectApi promises the component's surface", () => {
     "getItemTextIndexes",
     "getItemIndicatorIndexes",
   ];
-  assertEquals(keys.length, 42);
+  deepStrictEqual(keys.length, 42);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -72,7 +73,7 @@ Deno.test("SelectApi promises the component's surface", () => {
     SelectApi["getItemState"],
     (row: SelectRow) => SelectItemState
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setValueTyped,

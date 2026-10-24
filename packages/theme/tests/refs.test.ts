@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { indexTree, parseTokens, themeKey, themeRef } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 
@@ -17,11 +18,11 @@ function refOf(name: keyof typeof starterThemes) {
   return { tree: parsed.tree, ref: themeRef(parsed.tree) };
 }
 
-Deno.test("the projection carries every token of a theme", () => {
+test("the projection carries every token of a theme", () => {
   const { tree, ref } = refOf("silk");
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     const name = themeKey(leaf.path.join("."));
-    assertEquals(
+    deepStrictEqual(
       ref[name],
       `var(--${name})`,
       `${leaf.path.join(".")} must be in the map under its property name`,
@@ -29,11 +30,11 @@ Deno.test("the projection carries every token of a theme", () => {
   }
 });
 
-Deno.test("a dotted path and its dashes name one entry", () => {
+test("a dotted path and its dashes name one entry", () => {
   const { ref } = refOf("silk");
-  assertEquals(ref[themeKey("font.family.sans")], "var(--font-family-sans)");
-  assertEquals(ref[themeKey("color.neutral.500")], "var(--color-neutral-500)");
-  assertEquals(
+  deepStrictEqual(ref[themeKey("font.family.sans")], "var(--font-family-sans)");
+  deepStrictEqual(ref[themeKey("color.neutral.500")], "var(--color-neutral-500)");
+  deepStrictEqual(
     ref[themeKey("font.family.sans")],
     ref["font-family-sans"],
   );

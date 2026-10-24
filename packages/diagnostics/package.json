@@ -1,10 +1,61 @@
 {
   "name": "@spin/diagnostics",
   "version": "0.1.0",
+  "description": "The diagnostics: the lints, the rendered checks, and the service over them.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
   },
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./eslint": {
+      "types": "./src/eslint.ts",
+      "default": "./src/eslint.ts"
+    },
+    "./cli": {
+      "types": "./src/cli.ts",
+      "default": "./src/cli.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "bin": {
+    "spin": "./dist/cli.js"
+  },
+  "dependencies": {
+    "@spin/animation": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/syntax": "workspace:*",
+    "@spin/theme": "workspace:*",
+    "@typescript-eslint/parser": "8.71.0",
+    "@unocss/core": "^66.10.5",
+    "eslint": "10.11.0"
+  },
+  "peerDependencies": {
+    "@spin/animation": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/syntax": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "lint:ox": "oxlint --config .oxlintrc.json",
+    "lint:cli": "bun run src/cli.ts",
+    "fmt": "biome format --write ."
+  }
 }

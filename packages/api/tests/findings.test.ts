@@ -1,3 +1,7 @@
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
 /**
  * The findings procedures, over the wire.
  *
@@ -8,7 +12,7 @@
  * them.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createSpinClient, setProjectRoot } from "@spin/api";
 import { RPCHandler } from "@orpc/server/fetch";
 import { router } from "@spin/api";
@@ -17,25 +21,25 @@ import { router } from "@spin/api";
 function serve(root: string) {
   setProjectRoot(root);
   const handler = new RPCHandler(router);
-  const server = Deno.serve({ port: 0, onListen: () => {} }, (
-    request,
-  ): Promise<Response> =>
-    handler.handle(request, { prefix: "/rpc" }).then(
-      ({ response }) => response ?? new Response("Not Found", { status: 404 }),
-    ));
-  const addr = server.addr as Deno.NetAddr;
+  const server = Bun.serve({
+    port: 0,
+    async fetch(request) {
+      const { response } = await handler.handle(request, { prefix: "/rpc" });
+      return response ?? new Response("Not Found", { status: 404 });
+    },
+  });
   return {
     server,
-    client: createSpinClient(`http://localhost:${addr.port}/rpc`),
+    client: createSpinClient(`http://localhost:${server.port}/rpc`),
   };
 }
 
 /** A project with a source file that has something to report. */
 async function project(): Promise<string> {
-  const root = await Deno.makeTempDir();
-  await Deno.mkdir(`${root}/spin`);
-  await Deno.mkdir(`${root}/src`);
-  await Deno.writeTextFile(
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
+  await mkdir(`${root}/spin`);
+  await mkdir(`${root}/src`);
+  await writeFile(
     `${root}/src/app.tsx`,
     `export const App = () => (
   <div className="not-a-class">
@@ -45,7 +49,7 @@ async function project(): Promise<string> {
 );
 `,
   );
-  await Deno.writeTextFile(
+  await writeFile(
     `${root}/vite.config.ts`,
     `import { spin } from "@spin/preset";
 
@@ -61,7 +65,7 @@ export default {
   return root;
 }
 
-Deno.test("the findings cross the wire, grouped by the rule that said them", async () => {
+test("the findings cross the wire, grouped by the rule that said them", async () => {
   const root = await project();
   const { server, client } = serve(root);
   try {
@@ -71,17 +75,17 @@ Deno.test("the findings cross the wire, grouped by the rule that said them", asy
       finding.ruleId === "spin/closed-vocabulary"
     );
     assert(unknown !== undefined, "the finding did not cross");
-    assertEquals(unknown.file, "src/app.tsx");
-    assertEquals(unknown.remedy, "Drop `not-a-class`");
-    assertEquals(unknown.fixable, true);
-    assertEquals(report.files, 2);
+    deepStrictEqual(unknown.file, "src/app.tsx");
+    deepStrictEqual(unknown.remedy, "Drop `not-a-class`");
+    deepStrictEqual(unknown.fixable, true);
+    deepStrictEqual(report.files, 2);
   } finally {
-    await server.shutdown();
-    await Deno.remove(root, { recursive: true });
+    await server.stop();
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a fix crosses the wire and lands in the file", async () => {
+test("a fix crosses the wire and lands in the file", async () => {
   const root = await project();
   const { server, client } = serve(root);
   try {
@@ -97,10 +101,10 @@ Deno.test("a fix crosses the wire and lands in the file", async () => {
       line: finding.line,
       column: finding.column,
     });
-    assertEquals(fixed.applied, true);
-    assertEquals(fixed.error, null);
+    deepStrictEqual(fixed.applied, true);
+    deepStrictEqual(fixed.error, null);
 
-    const text = await Deno.readTextFile(`${root}/src/app.tsx`);
+    const text = await readFile(`${root}/src/app.tsx`, "utf8");
     assert(
       !text.includes("not-a-class"),
       `the class is still in the file: ${text}`,
@@ -109,50 +113,50 @@ Deno.test("a fix crosses the wire and lands in the file", async () => {
     // The finding is gone because the code changed: the lints are run
     // again over the file as it now stands.
     const after = await client.findings.list({});
-    assertEquals(
+    deepStrictEqual(
       after.groups.flatMap((group) => group.findings).filter((candidate) =>
         candidate.ruleId === "spin/closed-vocabulary"
       ),
       [],
     );
   } finally {
-    await server.shutdown();
-    await Deno.remove(root, { recursive: true });
+    await server.stop();
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("the corpus crosses the wire with the actions that settle it", async () => {
+test("the corpus crosses the wire with the actions that settle it", async () => {
   const root = await project();
   const { server, client } = serve(root);
   try {
     const corpus = await client.findings.corpus({});
-    assertEquals(corpus.repetition.length, 1);
+    deepStrictEqual(corpus.repetition.length, 1);
     const repetition = corpus.repetition[0]!;
-    assertEquals(repetition.classes, ["flex", "flex-col", "gap-4"]);
-    assertEquals(repetition.count, 2);
-    assertEquals(repetition.suggested, "stack");
+    deepStrictEqual(repetition.classes, ["flex", "flex-col", "gap-4"]);
+    deepStrictEqual(repetition.count, 2);
+    deepStrictEqual(repetition.suggested, "stack");
 
     // The composition becomes a shortcut the project declares.
     const declared = await client.findings.shortcut({
       name: repetition.suggested,
       classes: repetition.classes,
     });
-    assertEquals(declared.error, null);
-    assertEquals(declared.file, "vite.config.ts");
-    const config = await Deno.readTextFile(`${root}/vite.config.ts`);
+    deepStrictEqual(declared.error, null);
+    deepStrictEqual(declared.file, "vite.config.ts");
+    const config = await readFile(`${root}/vite.config.ts`, "utf8");
     assert(
       config.includes('"stack": "flex flex-col gap-4"'),
       `the shortcut was not declared: ${config}`,
     );
   } finally {
-    await server.shutdown();
-    await Deno.remove(root, { recursive: true });
+    await server.stop();
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a file's class lists are written in the order the sheet writes them", async () => {
+test("a file's class lists are written in the order the sheet writes them", async () => {
   const root = await project();
-  await Deno.writeTextFile(
+  await writeFile(
     `${root}/src/app.tsx`,
     `export const App = () => <div className="gap-4 flex" />;
 `,
@@ -160,18 +164,18 @@ Deno.test("a file's class lists are written in the order the sheet writes them",
   const { server, client } = serve(root);
   try {
     const corpus = await client.findings.corpus({});
-    assertEquals(corpus.order.length, 1);
-    assertEquals(corpus.order[0]?.file, "src/app.tsx");
+    deepStrictEqual(corpus.order.length, 1);
+    deepStrictEqual(corpus.order[0]?.file, "src/app.tsx");
 
     const written = await client.findings.order({ file: "src/app.tsx" });
-    assertEquals(written.applied, true);
-    const text = await Deno.readTextFile(`${root}/src/app.tsx`);
+    deepStrictEqual(written.applied, true);
+    const text = await readFile(`${root}/src/app.tsx`, "utf8");
     assert(
       text.includes('className="flex gap-4"'),
       `the classes are not in order: ${text}`,
     );
   } finally {
-    await server.shutdown();
-    await Deno.remove(root, { recursive: true });
+    await server.stop();
+    await rm(root, { recursive: true });
   }
 });

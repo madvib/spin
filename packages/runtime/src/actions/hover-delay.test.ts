@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { hoverDelay } from "./hover-delay.ts";
 
@@ -28,18 +29,18 @@ function pointer(type: string): Event {
 
 const tick = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-Deno.test("Given a rest past the open delay / When the pointer dwells / Then onOpen fires once", async () => {
+test("Given a rest past the open delay / When the pointer dwells / Then onOpen fires once", async () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let opens = 0;
   const result = hoverDelay(node, { openDelay: 20, onOpen: () => opens++ });
   node.dispatchEvent(pointer("pointerenter"));
   await tick(60);
-  assertEquals(opens, 1, "the dwell opens once");
+  deepStrictEqual(opens, 1, "the dwell opens once");
   result?.destroy?.();
 });
 
-Deno.test("Given a leave before the open delay / When the pointer exits early / Then onOpen never fires", async () => {
+test("Given a leave before the open delay / When the pointer exits early / Then onOpen never fires", async () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let opens = 0;
@@ -47,11 +48,11 @@ Deno.test("Given a leave before the open delay / When the pointer exits early / 
   node.dispatchEvent(pointer("pointerenter"));
   node.dispatchEvent(pointer("pointerleave"));
   await tick(90);
-  assertEquals(opens, 0, "leaving cancels the pending open");
+  deepStrictEqual(opens, 0, "leaving cancels the pending open");
   result?.destroy?.();
 });
 
-Deno.test("Given an open surface / When the pointer leaves past the close delay / Then onClose fires", async () => {
+test("Given an open surface / When the pointer leaves past the close delay / Then onClose fires", async () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let closes = 0;
@@ -59,11 +60,11 @@ Deno.test("Given an open surface / When the pointer leaves past the close delay 
   node.dispatchEvent(pointer("pointerenter"));
   node.dispatchEvent(pointer("pointerleave"));
   await tick(60);
-  assertEquals(closes, 1, "the absence closes once");
+  deepStrictEqual(closes, 1, "the absence closes once");
   result?.destroy?.();
 });
 
-Deno.test("Given a pending close / When the pointer re-enters / Then onClose never fires", async () => {
+test("Given a pending close / When the pointer re-enters / Then onClose never fires", async () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let closes = 0;
@@ -72,11 +73,11 @@ Deno.test("Given a pending close / When the pointer re-enters / Then onClose nev
   node.dispatchEvent(pointer("pointerleave"));
   node.dispatchEvent(pointer("pointerenter"));
   await tick(90);
-  assertEquals(closes, 0, "re-entering cancels the pending close");
+  deepStrictEqual(closes, 0, "re-entering cancels the pending close");
   result?.destroy?.();
 });
 
-Deno.test("Given a touch pointer / When it enters / Then no dwell clock starts", async () => {
+test("Given a touch pointer / When it enters / Then no dwell clock starts", async () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let opens = 0;
@@ -85,6 +86,6 @@ Deno.test("Given a touch pointer / When it enters / Then no dwell clock starts",
   event["pointerType"] = "touch";
   node.dispatchEvent(event as unknown as Event);
   await tick(40);
-  assertEquals(opens, 0, "touch never opens a hover surface");
+  deepStrictEqual(opens, 0, "touch never opens a hover surface");
   result?.destroy?.();
 });

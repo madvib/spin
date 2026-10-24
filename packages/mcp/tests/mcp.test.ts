@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
   existsSync,
@@ -105,7 +105,7 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "list" },
     });
-    assertEquals(jsonOf(result), [
+    deepStrictEqual(jsonOf(result), [
       { name: "console", file: null },
       { name: "neobrut", file: null },
       { name: "sample", file: "spin/sample.json" },
@@ -121,7 +121,7 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "read" },
     });
-    assertEquals(result.isError, true);
+    deepStrictEqual(result.isError, true);
     const refusal = jsonOf(result) as { error: string };
     assert(
       refusal.error.includes("theme name"),
@@ -134,7 +134,7 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "read", name: "sample" },
     });
-    assertEquals(
+    deepStrictEqual(
       textOf(result),
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     );
@@ -150,14 +150,14 @@ describe("the spin MCP server", () => {
         value: "#123456",
       },
     });
-    assertEquals(result.isError, undefined);
+    deepStrictEqual(result.isError, undefined);
     const doc = JSON.parse(
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     ) as {
       color: { primary: { $value: string; $modes: Record<string, string> } };
     };
-    assertEquals(doc.color.primary.$value, "#123456");
-    assertEquals(doc.color.primary.$modes.dark, "#8db9fa");
+    deepStrictEqual(doc.color.primary.$value, "#123456");
+    deepStrictEqual(doc.color.primary.$modes.dark, "#8db9fa");
   });
 
   it("writes a mode override beside an unchanged base value", async () => {
@@ -179,8 +179,8 @@ describe("the spin MCP server", () => {
     ) as {
       color: { primary: { $value: string; $modes: Record<string, string> } };
     };
-    assertEquals(doc.color.primary.$modes.dark, "#654321");
-    assertEquals(doc.color.primary.$value, before.color.primary.$value);
+    deepStrictEqual(doc.color.primary.$modes.dark, "#654321");
+    deepStrictEqual(doc.color.primary.$value, before.color.primary.$value);
   });
 
   it("refuses to remove a required token, with the refusal's code", async () => {
@@ -188,9 +188,9 @@ describe("the spin MCP server", () => {
       name: "token",
       arguments: { action: "remove", theme: "sample", path: "color.primary" },
     });
-    assertEquals(result.isError, true);
+    deepStrictEqual(result.isError, true);
     const refusal = jsonOf(result) as { error: string; code: string };
-    assertEquals(refusal.code, "required-token");
+    deepStrictEqual(refusal.code, "required-token");
     assert(
       refusal.error.includes("color.primary"),
       `refusal names the path: ${refusal.error}`,
@@ -211,14 +211,14 @@ describe("the spin MCP server", () => {
         to: "color.brand",
       },
     });
-    assertEquals(result.isError, undefined);
+    deepStrictEqual(result.isError, undefined);
     const doc = JSON.parse(
       readFileSync(join(dir, "spin", "rename-me.json"), "utf8"),
     ) as {
       color: { brand: { $value: string; $modes: Record<string, string> } };
     };
-    assertEquals(doc.color.brand.$value, "#123456");
-    assertEquals(doc.color.brand.$modes.dark, "#654321");
+    deepStrictEqual(doc.color.brand.$value, "#123456");
+    deepStrictEqual(doc.color.brand.$modes.dark, "#654321");
     // The rename left the required role unclaimed, and the answer says so.
     const answer = jsonOf(result) as { issues: Array<{ path: string }> };
     assert(
@@ -232,8 +232,8 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "create", name: "copy", from: "sample" },
     });
-    assertEquals(created.isError, undefined);
-    assertEquals(
+    deepStrictEqual(created.isError, undefined);
+    deepStrictEqual(
       readFileSync(join(dir, "spin", "copy.json"), "utf8"),
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     );
@@ -241,8 +241,8 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "delete", name: "copy" },
     });
-    assertEquals(deleted.isError, undefined);
-    assertEquals(existsSync(join(dir, "spin", "copy.json")), false);
+    deepStrictEqual(deleted.isError, undefined);
+    deepStrictEqual(existsSync(join(dir, "spin", "copy.json")), false);
   });
 
   it("creates a theme from the scaffold when no source is named", async () => {
@@ -250,7 +250,7 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "create", name: "fresh" },
     });
-    assertEquals(created.isError, undefined);
+    deepStrictEqual(created.isError, undefined);
     const doc = JSON.parse(
       readFileSync(join(dir, "spin", "fresh.json"), "utf8"),
     ) as { color?: unknown };
@@ -263,12 +263,12 @@ describe("the spin MCP server", () => {
       name: "theme",
       arguments: { action: "write", name: "whole", text },
     });
-    assertEquals(written.isError, undefined);
-    assertEquals(
+    deepStrictEqual(written.isError, undefined);
+    deepStrictEqual(
       readFileSync(join(dir, "spin", "whole.json"), "utf8"),
       text,
     );
-    assertEquals(jsonOf(written), { error: null, issues: [] });
+    deepStrictEqual(jsonOf(written), { error: null, issues: [] });
   });
 
   it("reports the dead override of a theme that does not serve the mode", async () => {
@@ -280,7 +280,7 @@ describe("the spin MCP server", () => {
       error: string | null;
       issues: Array<{ path: string; message: string }>;
     };
-    assertEquals(analysis.error, null);
+    deepStrictEqual(analysis.error, null);
     assert(
       analysis.issues.some((issue) =>
         issue.path === "color.primary" &&
@@ -343,7 +343,7 @@ describe("the spin MCP server", () => {
       };
       examples: { rows: Array<{ name: string; html: string }> };
     };
-    assertEquals(contract.kind, "machine");
+    deepStrictEqual(contract.kind, "machine");
     assert(
       contract.manifest.parts.includes("root"),
       "the manifest names parts",
@@ -361,8 +361,8 @@ describe("the spin MCP server", () => {
         root: dir,
       },
     });
-    assertEquals(copied.isError, undefined);
-    assertEquals(
+    deepStrictEqual(copied.isError, undefined);
+    deepStrictEqual(
       (jsonOf(copied) as { file: string }).file,
       join("spin", "tree-view", "basic.html"),
     );
@@ -433,7 +433,7 @@ describe("the spin MCP server", () => {
         license: "ISC",
       },
     });
-    assertEquals(saved.isError, undefined);
+    deepStrictEqual(saved.isError, undefined);
 
     // The library is project data: the file the tool wrote is what the
     // project now holds.
@@ -443,10 +443,10 @@ describe("the spin MCP server", () => {
       markup: string;
       attribution: { collection: string; author: string; license: string };
     };
-    assertEquals(document.markup, markup);
-    assertEquals(document.attribution.collection, "lucide");
-    assertEquals(document.attribution.author, "Lucide Contributors");
-    assertEquals(document.attribution.license, "ISC");
+    deepStrictEqual(document.markup, markup);
+    deepStrictEqual(document.attribution.collection, "lucide");
+    deepStrictEqual(document.attribution.author, "Lucide Contributors");
+    deepStrictEqual(document.attribution.license, "ISC");
 
     const listed = await mcp.callTool({
       name: "savedIcon",
@@ -461,21 +461,21 @@ describe("the spin MCP server", () => {
       kept !== undefined,
       `arrow-up among ${icons.map((i) => i.name).join(",")}`,
     );
-    assertEquals(kept.attribution.collection, "lucide");
+    deepStrictEqual(kept.attribution.collection, "lucide");
 
     const read = await mcp.callTool({
       name: "savedIcon",
       arguments: { action: "read", name: "arrow-up" },
     });
     const answer = jsonOf(read) as { markup: string; attribution: unknown };
-    assertEquals(answer.markup, markup);
+    deepStrictEqual(answer.markup, markup);
 
     const removed = await mcp.callTool({
       name: "savedIcon",
       arguments: { action: "remove", name: "arrow-up" },
     });
-    assertEquals(removed.isError, undefined);
-    assertEquals(
+    deepStrictEqual(removed.isError, undefined);
+    deepStrictEqual(
       existsSync(join(dir, "spin", "icons", "arrow-up.json")),
       false,
     );
@@ -486,7 +486,7 @@ describe("the spin MCP server", () => {
       name: "preview",
       arguments: { theme: "sample", markup: '<button class="btn">Go</button>' },
     });
-    assertEquals(result.isError, undefined);
+    deepStrictEqual(result.isError, undefined);
     const { css } = jsonOf(result) as { css: string };
     assert(
       css.includes("--color-primary"),
@@ -506,7 +506,7 @@ describe("the spin MCP server", () => {
     );
     const read = await mcp.readResource({ uri: "spin://themes/sample" });
     const contents = read.contents as Array<{ text?: string }>;
-    assertEquals(
+    deepStrictEqual(
       contents[0]?.text,
       readFileSync(join(dir, "spin", "sample.json"), "utf8"),
     );
@@ -519,7 +519,7 @@ describe("the spin MCP server", () => {
       root: string;
       themes: string[];
     };
-    assertEquals(report.root, dir);
+    deepStrictEqual(report.root, dir);
     assert(
       report.themes.includes("sample.json"),
       `sample.json among ${report.themes.join(",")}`,

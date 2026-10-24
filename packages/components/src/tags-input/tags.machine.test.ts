@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { tags } from "./tags.presentation.ts";
@@ -225,50 +226,50 @@ const dataFocus = (h: Harness): boolean =>
   h.api.getControlProps()["data-focus"] === "";
 const editingRow = (h: Harness): number | null => h.api.editedIndex;
 
-Deno.test("Given a fresh tags input / When nothing is authored / Then idle and empty are the reachable start", () => {
+test("Given a fresh tags input / When nothing is authored / Then idle and empty are the reachable start", () => {
   const h = mount();
-  assertEquals(h.api.value, [], "no tags at the start");
-  assertEquals(h.api.count, 0, "the count is zero");
-  assertEquals(h.api.empty, true, "the api reports empty");
-  assertEquals(
+  deepStrictEqual(h.api.value, [], "no tags at the start");
+  deepStrictEqual(h.api.count, 0, "the count is zero");
+  deepStrictEqual(h.api.empty, true, "the api reports empty");
+  deepStrictEqual(
     h.api.getRootProps()["data-empty"],
     "",
     "the root reports empty",
   );
-  assertEquals(h.api.atMax, false, "an unlimited input is never at max");
+  deepStrictEqual(h.api.atMax, false, "an unlimited input is never at max");
   h.dispose();
 });
 
-Deno.test("Given defaultValue / When the input mounts / Then the value seeds and no change event fires", () => {
+test("Given defaultValue / When the input mounts / Then the value seeds and no change event fires", () => {
   const h = mount({ defaultValue: ["react", "solid"] });
-  assertEquals(h.api.value, ["react", "solid"], "the seed lands");
-  assertEquals(h.api.count, 2, "the count follows the seed");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["react", "solid"], "the seed lands");
+  deepStrictEqual(h.api.count, 2, "the count follows the seed");
+  deepStrictEqual(
     h.api.valueAsString,
     "react, solid",
     "the joined string is comma-spaced",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-empty"],
     undefined,
     "the root reports not empty",
   );
-  assertEquals(h.changes.value, [], "seeding is not a change");
+  deepStrictEqual(h.changes.value, [], "seeding is not a change");
   h.dispose();
 });
 
-Deno.test("Given defaultInputValue / When the input mounts / Then the entry field carries the seed", () => {
+test("Given defaultInputValue / When the input mounts / Then the entry field carries the seed", () => {
   const h = mount({ defaultInputValue: "typed" });
-  assertEquals(h.api.inputValue, "typed", "the input value seeds");
-  assertEquals(h.bag()["value"], "typed", "the input bag carries the seed");
-  assertEquals(h.changes.inputValue, [], "seeding is not a change");
+  deepStrictEqual(h.api.inputValue, "typed", "the input value seeds");
+  deepStrictEqual(h.bag()["value"], "typed", "the input bag carries the seed");
+  deepStrictEqual(h.changes.inputValue, [], "seeding is not a change");
   h.dispose();
 });
 
-Deno.test("Given autoFocus / When the input mounts / Then focused:input is the reachable start state", () => {
+test("Given autoFocus / When the input mounts / Then focused:input is the reachable start state", () => {
   const h = mount({ autoFocus: true, defaultValue: ["a"] });
-  assertEquals(dataFocus(h), true, "the focused tag is set at start");
-  assertEquals(
+  deepStrictEqual(dataFocus(h), true, "the focused tag is set at start");
+  deepStrictEqual(
     h.api.getRootProps()["data-focus"],
     "",
     "the root reports focus",
@@ -276,46 +277,46 @@ Deno.test("Given autoFocus / When the input mounts / Then focused:input is the r
   h.dispose();
 });
 
-Deno.test("Given idle / When the entry field receives focus / Then the machine takes focused:input", () => {
+test("Given idle / When the entry field receives focus / Then the machine takes focused:input", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
-  assertEquals(dataFocus(h), true, "focus moves the machine on");
+  deepStrictEqual(dataFocus(h), true, "focus moves the machine on");
   h.dispose();
 });
 
-Deno.test("Given idle / When the root takes a pointer press / Then the machine takes focused:input", () => {
+test("Given idle / When the root takes a pointer press / Then the machine takes focused:input", () => {
   const h = mount();
   handler<() => void>(h.api.getRootProps(), "onPointerDown")();
-  assertEquals(dataFocus(h), true, "a press on the control focuses the field");
+  deepStrictEqual(dataFocus(h), true, "a press on the control focuses the field");
   h.dispose();
 });
 
-Deno.test("Given idle with a highlighted tag / When the root takes a pointer press / Then the machine stays idle", () => {
+test("Given idle with a highlighted tag / When the root takes a pointer press / Then the machine stays idle", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   h.api.addValue("c");
   // Pointer down on a tag highlights it and navigates, so a later root press
   // must not strip that highlight by re-entering focused:input.
   handler<() => void>(h.api.getRootProps(), "onPointerDown")();
-  assertEquals(dataFocus(h), true, "the press focuses the field anyway");
+  deepStrictEqual(dataFocus(h), true, "the press focuses the field anyway");
   h.dispose();
 });
 
-Deno.test("Given focused:input / When text is typed / Then the input value follows and reports", () => {
+test("Given focused:input / When text is typed / Then the input value follows and reports", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "re";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
-  assertEquals(h.api.inputValue, "re", "the machine holds the typed text");
-  assertEquals(
+  deepStrictEqual(h.api.inputValue, "re", "the machine holds the typed text");
+  deepStrictEqual(
     h.changes.inputValue,
     ["re"],
     "input-value-change reports the write",
   );
-  assertEquals(h.bag()["value"], "re", "the input bag carries the text back");
+  deepStrictEqual(h.bag()["value"], "re", "the input bag carries the text back");
   h.dispose();
 });
 
-Deno.test("Given typed text / When Enter arrives / Then the sanitized value is added and the field clears", () => {
+test("Given typed text / When Enter arrives / Then the sanitized value is added and the field clears", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "  Elm  ";
@@ -323,24 +324,24 @@ Deno.test("Given typed text / When Enter arrives / Then the sanitized value is a
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.value, ["Elm"], "trimmed text becomes the tag");
-  assertEquals(h.api.inputValue, "", "the field clears after the add");
-  assertEquals(h.changes.value, [["Elm"]], "value-change reports the add");
+  deepStrictEqual(h.api.value, ["Elm"], "trimmed text becomes the tag");
+  deepStrictEqual(h.api.inputValue, "", "the field clears after the add");
+  deepStrictEqual(h.changes.value, [["Elm"]], "value-change reports the add");
   h.dispose();
 });
 
-Deno.test("Given an empty field / When Enter arrives / Then nothing is added", () => {
+test("Given an empty field / When Enter arrives / Then nothing is added", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.value, [], "the empty insert is refused");
-  assertEquals(h.changes.value, [], "no change event for a refused insert");
+  deepStrictEqual(h.api.value, [], "the empty insert is refused");
+  deepStrictEqual(h.changes.value, [], "no change event for a refused insert");
   h.dispose();
 });
 
-Deno.test("Given the field at max / When Enter arrives / Then the text survives and the count holds", () => {
+test("Given the field at max / When Enter arrives / Then the text survives and the count holds", () => {
   const h = mount({ max: 1 });
   h.api.setValue(["one"]);
   handler<() => void>(h.bag(), "onFocus")();
@@ -349,13 +350,13 @@ Deno.test("Given the field at max / When Enter arrives / Then the text survives 
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.value, ["one"], "the insert is refused at the cap");
-  assertEquals(h.api.inputValue, "two", "the typed text survives the refusal");
-  assertEquals(h.api.atMax, true, "the api reports at max");
+  deepStrictEqual(h.api.value, ["one"], "the insert is refused at the cap");
+  deepStrictEqual(h.api.inputValue, "two", "the typed text survives the refusal");
+  deepStrictEqual(h.api.atMax, true, "the api reports at max");
   h.dispose();
 });
 
-Deno.test("Given the field at max with allowOverflow / When Enter arrives / Then the tag is added and the root goes invalid", () => {
+test("Given the field at max with allowOverflow / When Enter arrives / Then the tag is added and the root goes invalid", () => {
   const h = mount({ max: 1, allowOverflow: true });
   h.api.setValue(["one"]);
   handler<() => void>(h.bag(), "onFocus")();
@@ -364,13 +365,13 @@ Deno.test("Given the field at max with allowOverflow / When Enter arrives / Then
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.value, ["one", "two"], "overflow lets the tag through");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["one", "two"], "overflow lets the tag through");
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     "",
     "the root reports invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["aria-invalid"],
     true,
     "the field reports invalid",
@@ -378,7 +379,7 @@ Deno.test("Given the field at max with allowOverflow / When Enter arrives / Then
   h.dispose();
 });
 
-Deno.test("Given a list past the cap / When every part is read / Then all four carry invalid", () => {
+test("Given a list past the cap / When every part is read / Then all four carry invalid", () => {
   const h = mount({ max: 2, allowOverflow: true, defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "c";
@@ -386,7 +387,7 @@ Deno.test("Given a list past the cap / When every part is read / Then all four c
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.value, ["a", "b", "c"], "overflow lets the chip through");
+  deepStrictEqual(h.api.value, ["a", "b", "c"], "overflow lets the chip through");
   // `invalid = prop("invalid") || computed("isOverflowing")`: one derived
   // boolean flowing to root, control, label and input alike.
   for (
@@ -397,9 +398,9 @@ Deno.test("Given a list past the cap / When every part is read / Then all four c
       () => h.api.getInputProps(),
     ]
   ) {
-    assertEquals(read()["data-invalid"], "", "each part carries the flag");
+    deepStrictEqual(read()["data-invalid"], "", "each part carries the flag");
   }
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["aria-invalid"],
     true,
     "the field announces it",
@@ -407,30 +408,30 @@ Deno.test("Given a list past the cap / When every part is read / Then all four c
   h.dispose();
 });
 
-Deno.test("Given a host-authored invalid prop / When every part is read / Then all four carry invalid", () => {
+test("Given a host-authored invalid prop / When every part is read / Then all four carry invalid", () => {
   const h = mount({ invalid: true, defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     "",
     "the root reports invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getControlProps()["data-invalid"],
     "",
     "the control reports invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getLabelProps()["data-invalid"],
     "",
     "the label reports invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["data-invalid"],
     "",
     "the field reports invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["aria-invalid"],
     true,
     "the field announces it",
@@ -438,30 +439,30 @@ Deno.test("Given a host-authored invalid prop / When every part is read / Then a
   h.dispose();
 });
 
-Deno.test("Given a list at the cap without overflow / When the parts are read / Then none reports invalid", () => {
+test("Given a list at the cap without overflow / When the parts are read / Then none reports invalid", () => {
   const h = mount({ max: 2, defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     undefined,
     "the cap alone is not invalid",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getControlProps()["data-invalid"],
     undefined,
     "neither is the control",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getLabelProps()["data-invalid"],
     undefined,
     "nor the label",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["data-invalid"],
     undefined,
     "nor the field",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["aria-invalid"],
     false,
     "the field announces false",
@@ -469,21 +470,21 @@ Deno.test("Given a list at the cap without overflow / When the parts are read / 
   h.dispose();
 });
 
-Deno.test("Given a host-authored invalid that clears / When the parts are read / Then invalid leaves every part", () => {
+test("Given a host-authored invalid that clears / When the parts are read / Then invalid leaves every part", () => {
   const h = mount({ invalid: true, defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     "",
     "the root reports invalid while set",
   );
   h.write("invalid", false);
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     undefined,
     "and drops it when the host clears it",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps()["aria-invalid"],
     false,
     "the field follows",
@@ -491,33 +492,33 @@ Deno.test("Given a host-authored invalid that clears / When the parts are read /
   h.dispose();
 });
 
-Deno.test("Given typed text ending in the delimiter / When the input fires / Then the tag is added without the delimiter", () => {
+test("Given typed text ending in the delimiter / When the input fires / Then the tag is added without the delimiter", () => {
   const h = mount({ delimiter: ";" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "one";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
   h.input.value = "one;";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
-  assertEquals(h.api.value, ["one"], "the delimiter key inserts");
-  assertEquals(h.api.inputValue, "", "the field clears");
+  deepStrictEqual(h.api.value, ["one"], "the delimiter key inserts");
+  deepStrictEqual(h.api.inputValue, "", "the field clears");
   h.dispose();
 });
 
-Deno.test("Given a caret at the start with tags / When ArrowLeft arrives / Then the machine takes navigating:tag on the last tag", () => {
+test("Given a caret at the start with tags / When ArrowLeft arrives / Then the machine takes navigating:tag on the last tag", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(h.api.highlightedIndex, 1, "the last tag is highlighted");
-  assertEquals(h.changes.highlight, [1], "highlight-change reports the move");
-  assertEquals(
+  deepStrictEqual(h.api.highlightedIndex, 1, "the last tag is highlighted");
+  deepStrictEqual(h.changes.highlight, [1], "highlight-change reports the move");
+  deepStrictEqual(
     h.api.getItemPreviewProps(h.row("b"))["data-highlighted"],
     "",
     "the preview is highlighted",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemPreviewProps(h.row("a"))["data-highlighted"],
     undefined,
     "the other preview is not",
@@ -525,14 +526,14 @@ Deno.test("Given a caret at the start with tags / When ArrowLeft arrives / Then 
   h.dispose();
 });
 
-Deno.test("Given a caret mid-text / When ArrowLeft arrives / Then the machine stays in focused:input", () => {
+test("Given a caret mid-text / When ArrowLeft arrives / Then the machine stays in focused:input", () => {
   const h = mount({ defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(false);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "the caret position blocks the walk",
@@ -540,25 +541,25 @@ Deno.test("Given a caret mid-text / When ArrowLeft arrives / Then the machine st
   h.dispose();
 });
 
-Deno.test("Given no tags / When ArrowLeft arrives / Then the machine stays in focused:input", () => {
+test("Given no tags / When ArrowLeft arrives / Then the machine stays in focused:input", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(h.api.highlightedIndex, null, "no tags means no walk");
+  deepStrictEqual(h.api.highlightedIndex, null, "no tags means no walk");
   h.dispose();
 });
 
-Deno.test("Given a caret at the start with tags / When Backspace arrives / Then the machine navigates to the last tag", () => {
+test("Given a caret at the start with tags / When Backspace arrives / Then the machine navigates to the last tag", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     1,
     "backspace enters navigation without deleting",
@@ -566,7 +567,7 @@ Deno.test("Given a caret at the start with tags / When Backspace arrives / Then 
   h.dispose();
 });
 
-Deno.test("Given a highlighted middle tag / When Delete arrives in focused:input / Then it removes and highlights the slid-in tag", () => {
+test("Given a highlighted middle tag / When Delete arrives in focused:input / Then it removes and highlights the slid-in tag", () => {
   const h = mount({ defaultValue: ["a", "b", "c"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -574,8 +575,8 @@ Deno.test("Given a highlighted middle tag / When Delete arrives in focused:input
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Delete"),
   );
-  assertEquals(h.api.value, ["a", "c"], "the highlighted tag is removed");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a", "c"], "the highlighted tag is removed");
+  deepStrictEqual(
     h.api.highlightedIndex,
     1,
     "the focus lands on the tag that slid in",
@@ -583,7 +584,7 @@ Deno.test("Given a highlighted middle tag / When Delete arrives in focused:input
   h.dispose();
 });
 
-Deno.test("Given the last tag highlighted / When Delete arrives / Then the highlight clears rather than pointing at a ghost", () => {
+test("Given the last tag highlighted / When Delete arrives / Then the highlight clears rather than pointing at a ghost", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -591,8 +592,8 @@ Deno.test("Given the last tag highlighted / When Delete arrives / Then the highl
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Delete"),
   );
-  assertEquals(h.api.value, ["a"], "the last tag is removed");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a"], "the last tag is removed");
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "no tag slid into its slot, so nothing is highlighted",
@@ -600,35 +601,35 @@ Deno.test("Given the last tag highlighted / When Delete arrives / Then the highl
   h.dispose();
 });
 
-Deno.test("Given typed text / When a paste arrives without addOnPaste / Then only the input value moves", () => {
+test("Given typed text / When a paste arrives without addOnPaste / Then only the input value moves", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "a,b";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(
     typing(h.input, "insertFromPaste"),
   );
-  assertEquals(h.api.value, [], "no tags are added");
-  assertEquals(h.api.inputValue, "a,b", "the pasted text lands in the field");
+  deepStrictEqual(h.api.value, [], "no tags are added");
+  deepStrictEqual(h.api.inputValue, "a,b", "the pasted text lands in the field");
   h.dispose();
 });
 
-Deno.test("Given a paste with addOnPaste / When the input fires / Then the delimiter splits it into tags", () => {
+test("Given a paste with addOnPaste / When the input fires / Then the delimiter splits it into tags", () => {
   const h = mount({ addOnPaste: true, defaultValue: ["keep"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = " a , b ,a";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(
     typing(h.input, "insertFromPaste"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     ["keep", "a", "b"],
     "each sanitized part becomes a tag, duplicates dropped",
   );
-  assertEquals(h.api.inputValue, "", "the field clears after the paste");
+  deepStrictEqual(h.api.inputValue, "", "the field clears after the paste");
   h.dispose();
 });
 
-Deno.test("Given blurBehavior add / When the field blurs / Then the text becomes a tag and the machine idles", () => {
+test("Given blurBehavior add / When the field blurs / Then the text becomes a tag and the machine idles", () => {
   const h = mount({ blurBehavior: "add" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "leftover";
@@ -643,12 +644,12 @@ Deno.test("Given blurBehavior add / When the field blurs / Then the text becomes
     "use:dismissable",
     "onOutside",
   )(pointerDown(0));
-  assertEquals(h.api.value, ["leftover"], "the blur-added tag lands");
-  assertEquals(dataFocus(h), false, "the machine idles after the blur");
+  deepStrictEqual(h.api.value, ["leftover"], "the blur-added tag lands");
+  deepStrictEqual(dataFocus(h), false, "the machine idles after the blur");
   h.dispose();
 });
 
-Deno.test("Given blurBehavior clear / When the field blurs / Then the text is discarded and the machine idles", () => {
+test("Given blurBehavior clear / When the field blurs / Then the text is discarded and the machine idles", () => {
   const h = mount({ blurBehavior: "clear" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "leftover";
@@ -658,13 +659,13 @@ Deno.test("Given blurBehavior clear / When the field blurs / Then the text is di
     "use:dismissable",
     "onOutside",
   )(pointerDown(0));
-  assertEquals(h.api.value, [], "nothing is added");
-  assertEquals(h.api.inputValue, "", "the text is discarded");
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(h.api.value, [], "nothing is added");
+  deepStrictEqual(h.api.inputValue, "", "the text is discarded");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
-Deno.test("Given no blurBehavior / When the field blurs / Then the machine idles and the text stays", () => {
+test("Given no blurBehavior / When the field blurs / Then the machine idles and the text stays", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "leftover";
@@ -674,13 +675,13 @@ Deno.test("Given no blurBehavior / When the field blurs / Then the machine idles
     "use:dismissable",
     "onOutside",
   )(pointerDown(0));
-  assertEquals(h.api.value, [], "nothing is added");
-  assertEquals(h.api.inputValue, "leftover", "the text stays");
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(h.api.value, [], "nothing is added");
+  deepStrictEqual(h.api.inputValue, "leftover", "the text stays");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
-Deno.test("Given blurBehavior add / When focus leaves the field for the body / Then the text becomes a tag", () => {
+test("Given blurBehavior add / When focus leaves the field for the body / Then the text becomes a tag", () => {
   const h = mount({ blurBehavior: "add" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "onblur";
@@ -688,37 +689,37 @@ Deno.test("Given blurBehavior add / When focus leaves the field for the body / T
   // The label-click case: a press on a non-focusable part of the page
   // moves focus to the body, so the focusout carries no relatedTarget.
   handler<(event: FocusEvent) => void>(h.bag(), "onFocusOut")(focusOut(null));
-  assertEquals(h.api.value, ["onblur"], "the blur-added tag lands");
-  assertEquals(h.api.inputValue, "", "the field clears");
-  assertEquals(dataFocus(h), false, "the machine idles after the blur");
+  deepStrictEqual(h.api.value, ["onblur"], "the blur-added tag lands");
+  deepStrictEqual(h.api.inputValue, "", "the field clears");
+  deepStrictEqual(dataFocus(h), false, "the machine idles after the blur");
   h.dispose();
 });
 
-Deno.test("Given blurBehavior clear / When focus leaves the field for the body / Then the text is discarded", () => {
+test("Given blurBehavior clear / When focus leaves the field for the body / Then the text is discarded", () => {
   const h = mount({ blurBehavior: "clear" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "onblur";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
   handler<(event: FocusEvent) => void>(h.bag(), "onFocusOut")(focusOut(null));
-  assertEquals(h.api.value, [], "nothing is added");
-  assertEquals(h.api.inputValue, "", "the text is discarded");
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(h.api.value, [], "nothing is added");
+  deepStrictEqual(h.api.inputValue, "", "the text is discarded");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
-Deno.test("Given no blurBehavior / When focus leaves the field for the body / Then the text stays", () => {
+test("Given no blurBehavior / When focus leaves the field for the body / Then the text stays", () => {
   const h = mount();
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "onblur";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
   handler<(event: FocusEvent) => void>(h.bag(), "onFocusOut")(focusOut(null));
-  assertEquals(h.api.value, [], "nothing is added");
-  assertEquals(h.api.inputValue, "onblur", "the text stays");
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(h.api.value, [], "nothing is added");
+  deepStrictEqual(h.api.inputValue, "onblur", "the text stays");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
-Deno.test("Given a field with text / When the window drops focus / Then nothing reports and the text stays", () => {
+test("Given a field with text / When the window drops focus / Then nothing reports and the text stays", () => {
   const h = mount({ blurBehavior: "add" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "onblur";
@@ -734,26 +735,26 @@ Deno.test("Given a field with text / When the window drops focus / Then nothing 
   if (original === undefined) {
     delete (document as { hasFocus?: unknown }).hasFocus;
   } else Object.defineProperty(document, "hasFocus", original);
-  assertEquals(h.api.value, [], "nothing is added");
-  assertEquals(h.api.inputValue, "onblur", "the text stays");
-  assertEquals(dataFocus(h), true, "the machine keeps the field");
+  deepStrictEqual(h.api.value, [], "nothing is added");
+  deepStrictEqual(h.api.inputValue, "onblur", "the text stays");
+  deepStrictEqual(dataFocus(h), true, "the machine keeps the field");
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When ArrowRight arrives / Then the highlight advances and the last step returns to the field", () => {
+test("Given navigating:tag / When ArrowRight arrives / Then the highlight advances and the last step returns to the field", () => {
   const h = mount({ defaultValue: ["a", "b", "c"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   h.pressTag("a");
-  assertEquals(h.api.highlightedIndex, 0, "the pressed tag is highlighted");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the pressed tag is highlighted");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(h.api.highlightedIndex, 1, "the first press advances one tag");
+  deepStrictEqual(h.api.highlightedIndex, 1, "the first press advances one tag");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     2,
     "the second press advances to the last",
@@ -761,8 +762,8 @@ Deno.test("Given navigating:tag / When ArrowRight arrives / Then the highlight a
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(dataFocus(h), true, "past the last tag the field takes over");
-  assertEquals(
+  deepStrictEqual(dataFocus(h), true, "past the last tag the field takes over");
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "the field's entry clears the highlight",
@@ -770,16 +771,16 @@ Deno.test("Given navigating:tag / When ArrowRight arrives / Then the highlight a
   h.dispose();
 });
 
-Deno.test("Given navigating:tag on the first tag / When ArrowLeft arrives / Then the highlight clears", () => {
+test("Given navigating:tag on the first tag / When ArrowLeft arrives / Then the highlight clears", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   h.pressTag("a");
-  assertEquals(h.api.highlightedIndex, 0, "the first tag is highlighted");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the first tag is highlighted");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "there is no tag before the first",
@@ -787,18 +788,18 @@ Deno.test("Given navigating:tag on the first tag / When ArrowLeft arrives / Then
   h.dispose();
 });
 
-Deno.test("Given navigating:tag with a caret mid-text / When ArrowLeft arrives / Then the field takes over", () => {
+test("Given navigating:tag with a caret mid-text / When ArrowLeft arrives / Then the field takes over", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   h.pressTag("a");
-  assertEquals(h.api.highlightedIndex, 0, "the first tag is highlighted");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the first tag is highlighted");
   h.caret(false);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(dataFocus(h), true, "the walk hands back to the caret");
-  assertEquals(
+  deepStrictEqual(dataFocus(h), true, "the walk hands back to the caret");
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "entering the field clears the highlight",
@@ -806,18 +807,18 @@ Deno.test("Given navigating:tag with a caret mid-text / When ArrowLeft arrives /
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When ArrowDown or Escape arrives / Then the field takes over", () => {
+test("Given navigating:tag / When ArrowDown or Escape arrives / Then the field takes over", () => {
   const h = mount({ defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(h.api.highlightedIndex, 0, "navigating");
+  deepStrictEqual(h.api.highlightedIndex, 0, "navigating");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowDown"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "arrow down returns to the field",
@@ -825,7 +826,7 @@ Deno.test("Given navigating:tag / When ArrowDown or Escape arrives / Then the fi
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Escape"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "escape returns to the field too",
@@ -833,7 +834,7 @@ Deno.test("Given navigating:tag / When ArrowDown or Escape arrives / Then the fi
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When a character is typed / Then the field takes over with the text", () => {
+test("Given navigating:tag / When a character is typed / Then the field takes over with the text", () => {
   const h = mount({ defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -842,8 +843,8 @@ Deno.test("Given navigating:tag / When a character is typed / Then the field tak
   );
   h.input.value = "x";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(typing(h.input));
-  assertEquals(h.api.inputValue, "x", "the typed text lands");
-  assertEquals(
+  deepStrictEqual(h.api.inputValue, "x", "the typed text lands");
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "the field takes over",
@@ -851,17 +852,17 @@ Deno.test("Given navigating:tag / When a character is typed / Then the field tak
   h.dispose();
 });
 
-Deno.test("Given navigating:tag on the first tag / When Backspace arrives / Then it deletes and highlights the new first", () => {
+test("Given navigating:tag on the first tag / When Backspace arrives / Then it deletes and highlights the new first", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
   h.pressTag("a");
-  assertEquals(h.api.highlightedIndex, 0, "on the first tag");
+  deepStrictEqual(h.api.highlightedIndex, 0, "on the first tag");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(h.api.value, ["b"], "the first tag is deleted");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["b"], "the first tag is deleted");
+  deepStrictEqual(
     h.api.highlightedIndex,
     0,
     "the next tag slides into the first slot and is highlighted",
@@ -869,7 +870,7 @@ Deno.test("Given navigating:tag on the first tag / When Backspace arrives / Then
   h.dispose();
 });
 
-Deno.test("Given navigating:tag mid-list / When Backspace arrives / Then it deletes and highlights the previous tag", () => {
+test("Given navigating:tag mid-list / When Backspace arrives / Then it deletes and highlights the previous tag", () => {
   const h = mount({ defaultValue: ["a", "b", "c"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -877,16 +878,16 @@ Deno.test("Given navigating:tag mid-list / When Backspace arrives / Then it dele
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(h.api.highlightedIndex, 1, "on the middle tag");
+  deepStrictEqual(h.api.highlightedIndex, 1, "on the middle tag");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(h.api.value, ["a", "c"], "the middle tag is deleted");
-  assertEquals(h.api.highlightedIndex, 0, "the previous tag is highlighted");
+  deepStrictEqual(h.api.value, ["a", "c"], "the middle tag is deleted");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the previous tag is highlighted");
   h.dispose();
 });
 
-Deno.test("Given navigating:tag with no highlight / When Backspace arrives / Then the last tag is highlighted", () => {
+test("Given navigating:tag with no highlight / When Backspace arrives / Then the last tag is highlighted", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -894,7 +895,7 @@ Deno.test("Given navigating:tag with no highlight / When Backspace arrives / The
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     null,
     "the highlight cleared at the first tag",
@@ -902,7 +903,7 @@ Deno.test("Given navigating:tag with no highlight / When Backspace arrives / The
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedIndex,
     1,
     "backspace from nothing highlights the last tag",
@@ -910,7 +911,7 @@ Deno.test("Given navigating:tag with no highlight / When Backspace arrives / The
   h.dispose();
 });
 
-Deno.test("Given navigating:tag with a caret mid-text / When Backspace arrives / Then the field takes over", () => {
+test("Given navigating:tag with a caret mid-text / When Backspace arrives / Then the field takes over", () => {
   const h = mount({ defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -921,8 +922,8 @@ Deno.test("Given navigating:tag with a caret mid-text / When Backspace arrives /
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(h.api.value, ["a"], "nothing is deleted");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a"], "nothing is deleted");
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "the field takes over",
@@ -930,7 +931,7 @@ Deno.test("Given navigating:tag with a caret mid-text / When Backspace arrives /
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When Delete arrives / Then it deletes and returns to the field", () => {
+test("Given navigating:tag / When Delete arrives / Then it deletes and returns to the field", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -938,8 +939,8 @@ Deno.test("Given navigating:tag / When Delete arrives / Then it deletes and retu
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Delete"),
   );
-  assertEquals(h.api.value, ["a"], "the highlighted tag is deleted");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a"], "the highlighted tag is deleted");
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "the field takes over",
@@ -947,7 +948,7 @@ Deno.test("Given navigating:tag / When Delete arrives / Then it deletes and retu
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When Enter arrives / Then the highlighted tag opens for editing", () => {
+test("Given navigating:tag / When Enter arrives / Then the highlighted tag opens for editing", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -955,19 +956,19 @@ Deno.test("Given navigating:tag / When Enter arrives / Then the highlighted tag 
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.editing, true, "the machine takes editing:tag");
-  assertEquals(editingRow(h), 1, "the last tag is the one being edited");
-  assertEquals(
+  deepStrictEqual(h.api.editing, true, "the machine takes editing:tag");
+  deepStrictEqual(editingRow(h), 1, "the last tag is the one being edited");
+  deepStrictEqual(
     h.api.getItemInputProps(h.row("b"))["hidden"],
     false,
     "the inline input shows",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemInputProps(h.row("a"))["hidden"],
     true,
     "the other inline input stays hidden",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemPreviewProps(h.row("b"))["hidden"],
     true,
     "the preview hides while editing",
@@ -975,7 +976,7 @@ Deno.test("Given navigating:tag / When Enter arrives / Then the highlighted tag 
   h.dispose();
 });
 
-Deno.test("Given editable false / When Enter arrives on a highlighted tag / Then the machine stays navigating", () => {
+test("Given editable false / When Enter arrives on a highlighted tag / Then the machine stays navigating", () => {
   const h = mount({ defaultValue: ["a"], editable: false });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -983,12 +984,12 @@ Deno.test("Given editable false / When Enter arrives on a highlighted tag / Then
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Enter"),
   );
-  assertEquals(h.api.editing, false, "editing is refused");
-  assertEquals(h.api.highlightedIndex, 0, "the highlight stays");
+  deepStrictEqual(h.api.editing, false, "editing is refused");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the highlight stays");
   h.dispose();
 });
 
-Deno.test("Given navigating:tag / When the field blurs / Then the machine idles and the highlight clears", () => {
+test("Given navigating:tag / When the field blurs / Then the machine idles and the highlight clears", () => {
   const h = mount({ defaultValue: ["a"] });
   handler<() => void>(h.bag(), "onFocus")();
   h.caret(true);
@@ -1001,8 +1002,8 @@ Deno.test("Given navigating:tag / When the field blurs / Then the machine idles 
     "use:dismissable",
     "onOutside",
   )(pointerDown(0));
-  assertEquals(h.api.highlightedIndex, null, "the highlight clears");
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(h.api.highlightedIndex, null, "the highlight clears");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
@@ -1015,11 +1016,11 @@ function edit(h: Harness, value: string, occurrence = 0): void {
   handler<() => void>(h.api.getItemPreviewProps(row), "onDblclick")();
 }
 
-Deno.test("Given editing:tag / When the inline field types / Then the edited value follows", () => {
+test("Given editing:tag / When the inline field types / Then the edited value follows", () => {
   const h = mount({ defaultValue: ["a"] });
   edit(h, "a");
-  assertEquals(h.api.editedIndex, 0, "the tag is open for editing");
-  assertEquals(
+  deepStrictEqual(h.api.editedIndex, 0, "the tag is open for editing");
+  deepStrictEqual(
     h.api.getItemInputProps(h.row("a"))["value"],
     "a",
     "the inline field carries the tag",
@@ -1029,7 +1030,7 @@ Deno.test("Given editing:tag / When the inline field types / Then the edited val
     h.api.getItemInputProps(h.row("a")),
     "onInput",
   )(typing(h.input));
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemInputProps(h.row("a"))["value"],
     "b",
     "the inline field follows the typing",
@@ -1037,7 +1038,7 @@ Deno.test("Given editing:tag / When the inline field types / Then the edited val
   h.dispose();
 });
 
-Deno.test("Given editing:tag / When Escape arrives / Then the edit is abandoned and the tag keeps its value", () => {
+test("Given editing:tag / When Escape arrives / Then the edit is abandoned and the tag keeps its value", () => {
   const h = mount({ defaultValue: ["a"] });
   edit(h, "a");
   h.input.value = "scratch";
@@ -1049,13 +1050,13 @@ Deno.test("Given editing:tag / When Escape arrives / Then the edit is abandoned 
     h.api.getItemInputProps(h.row("a")),
     "onKeydown",
   )(keydown("Escape"));
-  assertEquals(h.api.value, ["a"], "the original value survives");
-  assertEquals(h.api.editing, false, "the machine leaves editing:tag");
-  assertEquals(h.api.highlightedIndex, 0, "the tag stays highlighted");
+  deepStrictEqual(h.api.value, ["a"], "the original value survives");
+  deepStrictEqual(h.api.editing, false, "the machine leaves editing:tag");
+  deepStrictEqual(h.api.highlightedIndex, 0, "the tag stays highlighted");
   h.dispose();
 });
 
-Deno.test("Given editing:tag / When the inline field blurs toward the entry field / Then the machine navigates", async () => {
+test("Given editing:tag / When the inline field blurs toward the entry field / Then the machine navigates", async () => {
   const h = mount({ defaultValue: ["a"] });
   edit(h, "a");
   const blur = handler<(event: FocusEvent) => void>(
@@ -1064,13 +1065,13 @@ Deno.test("Given editing:tag / When the inline field blurs toward the entry fiel
   );
   blur(focusOut(h.input));
   await settle();
-  assertEquals(h.api.editing, false, "the machine leaves editing:tag");
-  assertEquals(h.api.highlightedIndex, null, "the highlight clears");
-  assertEquals(dataFocus(h), true, "the machine stays in the focused tier");
+  deepStrictEqual(h.api.editing, false, "the machine leaves editing:tag");
+  deepStrictEqual(h.api.highlightedIndex, null, "the highlight clears");
+  deepStrictEqual(dataFocus(h), true, "the machine stays in the focused tier");
   h.dispose();
 });
 
-Deno.test("Given editing:tag / When the inline field blurs elsewhere / Then the machine idles and the blur behavior runs", async () => {
+test("Given editing:tag / When the inline field blurs elsewhere / Then the machine idles and the blur behavior runs", async () => {
   const h = mount({ defaultValue: ["a"], blurBehavior: "add" });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "pending";
@@ -1083,16 +1084,16 @@ Deno.test("Given editing:tag / When the inline field blurs elsewhere / Then the 
     "onBlur",
   )(focusOut(null));
   await settle();
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     ["a", "pending"],
     "the blur behavior added the entry text",
   );
-  assertEquals(dataFocus(h), false, "the machine idles");
+  deepStrictEqual(dataFocus(h), false, "the machine idles");
   h.dispose();
 });
 
-Deno.test("Given editing:tag with an empty inline field / When Enter arrives / Then the tag is removed", () => {
+test("Given editing:tag with an empty inline field / When Enter arrives / Then the tag is removed", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   h.pressTag("a");
   edit(h, "a");
@@ -1105,12 +1106,12 @@ Deno.test("Given editing:tag with an empty inline field / When Enter arrives / T
     h.api.getItemInputProps(h.row("a")),
     "onKeydown",
   )(keydown("Enter"));
-  assertEquals(h.api.value, ["b"], "an emptied tag is deleted");
-  assertEquals(h.api.editing, false, "the machine leaves editing:tag");
+  deepStrictEqual(h.api.value, ["b"], "an emptied tag is deleted");
+  deepStrictEqual(h.api.editing, false, "the machine leaves editing:tag");
   h.dispose();
 });
 
-Deno.test("Given editing:tag / When Enter arrives with a new value / Then the tag is rewritten in place", () => {
+test("Given editing:tag / When Enter arrives with a new value / Then the tag is rewritten in place", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   edit(h, "b");
   h.input.value = "beta";
@@ -1122,16 +1123,16 @@ Deno.test("Given editing:tag / When Enter arrives with a new value / Then the ta
     h.api.getItemInputProps(h.row("b")),
     "onKeydown",
   )(keydown("Enter"));
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     ["a", "beta"],
     "the value is rewritten at its index",
   );
-  assertEquals(h.api.highlightedIndex, 1, "the tag stays highlighted");
+  deepStrictEqual(h.api.highlightedIndex, 1, "the tag stays highlighted");
   h.dispose();
 });
 
-Deno.test("Given editing:tag with a duplicate value / When Enter arrives / Then the rewrite is refused", () => {
+test("Given editing:tag with a duplicate value / When Enter arrives / Then the rewrite is refused", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   edit(h, "b");
   h.input.value = "a";
@@ -1143,25 +1144,25 @@ Deno.test("Given editing:tag with a duplicate value / When Enter arrives / Then 
     h.api.getItemInputProps(h.row("b")),
     "onKeydown",
   )(keydown("Enter"));
-  assertEquals(h.api.value, ["a", "b"], "the duplicate rewrite is refused");
+  deepStrictEqual(h.api.value, ["a", "b"], "the duplicate rewrite is refused");
   h.dispose();
 });
 
-Deno.test("Given editable false / When a tag is double-clicked / Then it does not open for editing", () => {
+test("Given editable false / When a tag is double-clicked / Then it does not open for editing", () => {
   const h = mount({ defaultValue: ["a"], editable: false });
   handler<() => void>(h.api.getItemPreviewProps(h.row("a")), "onDblclick")();
-  assertEquals(h.api.editing, false, "editing is refused");
+  deepStrictEqual(h.api.editing, false, "editing is refused");
   h.dispose();
 });
 
 // ---- root-level commands and tag gestures ---------------------------------
 
-Deno.test("Given idle / When a tag preview is pressed / Then the machine navigates to that tag", () => {
+test("Given idle / When a tag preview is pressed / Then the machine navigates to that tag", () => {
   const h = mount({ defaultValue: ["a", "b", "c"] });
   h.pressTag("b");
-  assertEquals(h.api.highlightedIndex, 1, "the pressed tag is highlighted");
-  assertEquals(dataFocus(h), true, "the machine is in the focused tier");
-  assertEquals(
+  deepStrictEqual(h.api.highlightedIndex, 1, "the pressed tag is highlighted");
+  deepStrictEqual(dataFocus(h), true, "the machine is in the focused tier");
+  deepStrictEqual(
     h.api.getControlProps()["data-focus"],
     "",
     "the control reports focus",
@@ -1169,18 +1170,18 @@ Deno.test("Given idle / When a tag preview is pressed / Then the machine navigat
   h.dispose();
 });
 
-Deno.test("Given a tag / When its delete trigger is clicked / Then the tag is removed and the field takes focus", () => {
+test("Given a tag / When its delete trigger is clicked / Then the tag is removed and the field takes focus", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<(event: MouseEvent) => void>(
     h.api.getItemDeleteTriggerProps(h.row("a")),
     "onClick",
   )(click());
-  assertEquals(h.api.value, ["b"], "the tag is removed");
-  assertEquals(dataFocus(h), true, "the field takes focus");
+  deepStrictEqual(h.api.value, ["b"], "the tag is removed");
+  deepStrictEqual(dataFocus(h), true, "the field takes focus");
   h.dispose();
 });
 
-Deno.test("Given an inert input / When the delete trigger is pressed / Then the press is swallowed and the click does nothing", () => {
+test("Given an inert input / When the delete trigger is pressed / Then the press is swallowed and the click does nothing", () => {
   const h = mount({ defaultValue: ["a"], disabled: true });
   let prevented = false;
   handler<(event: PointerEvent) => void>(
@@ -1192,80 +1193,80 @@ Deno.test("Given an inert input / When the delete trigger is pressed / Then the 
       prevented = true;
     },
   } as unknown as PointerEvent);
-  assertEquals(prevented, true, "the press is swallowed while inert");
+  deepStrictEqual(prevented, true, "the press is swallowed while inert");
   handler<(event: MouseEvent) => void>(
     h.api.getItemDeleteTriggerProps(h.row("a")),
     "onClick",
   )(click());
-  assertEquals(h.api.value, ["a"], "the tag survives");
+  deepStrictEqual(h.api.value, ["a"], "the tag survives");
   h.dispose();
 });
 
-Deno.test("Given the clear trigger / When it is clicked / Then every tag is cleared and the announcement fires", () => {
+test("Given the clear trigger / When it is clicked / Then every tag is cleared and the announcement fires", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   handler<() => void>(h.api.getClearTriggerProps(), "onClick")();
-  assertEquals(h.api.value, [], "the tags clear");
-  assertEquals(
+  deepStrictEqual(h.api.value, [], "the tags clear");
+  deepStrictEqual(
     h.api.getClearTriggerProps()["hidden"],
     true,
     "the trigger hides on the empty state",
   );
-  assertEquals(h.announce(), "No tags selected", "the clear is announced");
+  deepStrictEqual(h.announce(), "No tags selected", "the clear is announced");
   h.dispose();
 });
 
-Deno.test("Given the hidden input / When a form reset is reported / Then the seeded value returns", () => {
+test("Given the hidden input / When a form reset is reported / Then the seeded value returns", () => {
   const h = mount({ defaultValue: ["a"] });
   h.api.addValue("b");
-  assertEquals(h.api.value, ["a", "b"], "the tag was added");
+  deepStrictEqual(h.api.value, ["a", "b"], "the tag was added");
   actionCallback<() => void>(
     h.api.getHiddenInputProps(),
     "use:form-control",
     "onFormReset",
   )();
-  assertEquals(h.api.value, ["a"], "the reset restores the seed");
+  deepStrictEqual(h.api.value, ["a"], "the reset restores the seed");
   h.dispose();
 });
 
-Deno.test("Given a value / When setValue runs / Then the whole list is replaced and reports", () => {
+test("Given a value / When setValue runs / Then the whole list is replaced and reports", () => {
   const h = mount({ defaultValue: ["a"] });
   h.api.setValue(["x", "y"]);
-  assertEquals(h.api.value, ["x", "y"], "the list is replaced");
-  assertEquals(h.changes.value, [["x", "y"]], "value-change reports the write");
+  deepStrictEqual(h.api.value, ["x", "y"], "the list is replaced");
+  deepStrictEqual(h.changes.value, [["x", "y"]], "value-change reports the write");
   h.dispose();
 });
 
-Deno.test("Given setValueAtIndex / When the index is out of range or the value empty / Then the list is untouched", () => {
+test("Given setValueAtIndex / When the index is out of range or the value empty / Then the list is untouched", () => {
   const h = mount({ defaultValue: ["a"] });
   h.api.setValueAtIndex(5, "x");
-  assertEquals(h.api.value, ["a"], "an out-of-range index is refused");
+  deepStrictEqual(h.api.value, ["a"], "an out-of-range index is refused");
   h.api.setValueAtIndex(0, "");
-  assertEquals(h.api.value, ["a"], "an empty value is refused");
+  deepStrictEqual(h.api.value, ["a"], "an empty value is refused");
   h.api.setValueAtIndex(0, "a");
-  assertEquals(h.api.value, ["a"], "an unchanged value is a no-op");
+  deepStrictEqual(h.api.value, ["a"], "an unchanged value is a no-op");
   h.api.setValueAtIndex(0, "z");
-  assertEquals(h.api.value, ["z"], "a real rewrite lands");
+  deepStrictEqual(h.api.value, ["z"], "a real rewrite lands");
   h.dispose();
 });
 
-Deno.test("Given addValue with a duplicate / When it runs / Then the list is unchanged", () => {
+test("Given addValue with a duplicate / When it runs / Then the list is unchanged", () => {
   const h = mount({ defaultValue: ["a"] });
   h.api.addValue("a");
-  assertEquals(h.api.value, ["a"], "duplicates are dropped by default");
+  deepStrictEqual(h.api.value, ["a"], "duplicates are dropped by default");
   h.dispose();
 });
 
-Deno.test("Given allowDuplicates / When addValue runs with a duplicate / Then both instances are kept", () => {
+test("Given allowDuplicates / When addValue runs with a duplicate / Then both instances are kept", () => {
   const h = mount({ defaultValue: ["a"], allowDuplicates: true });
   h.api.addValue("a");
-  assertEquals(h.api.value, ["a", "a"], "both instances survive");
-  assertEquals(h.api.getTags().length, 2, "two rows exist");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a", "a"], "both instances survive");
+  deepStrictEqual(h.api.getTags().length, 2, "two rows exist");
+  deepStrictEqual(
     h.api.indexOfRow(h.row("a", 1)),
     1,
     "the second instance is its own row",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemPreviewProps(h.row("a", 1))["id"],
     "tags-input:" + id2(h) + ":tag:a:1",
     "ids stay unique",
@@ -1279,47 +1280,47 @@ function id2(h: Harness): string {
   return id.slice("tags-input:".length);
 }
 
-Deno.test("Given clearValue with an id / When it runs / Then only that tag is removed", () => {
+test("Given clearValue with an id / When it runs / Then only that tag is removed", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   h.api.clearValue(String(h.api.getItemPreviewProps(h.row("b"))["id"]));
-  assertEquals(h.api.value, ["a"], "the named tag is removed");
+  deepStrictEqual(h.api.value, ["a"], "the named tag is removed");
   h.api.clearValue(String(h.api.getItemDeleteTriggerProps(h.row("a"))["id"]));
-  assertEquals(h.api.value, [], "the delete trigger's id resolves too");
+  deepStrictEqual(h.api.value, [], "the delete trigger's id resolves too");
   h.api.clearValue("tags-input:missing");
-  assertEquals(h.api.value, [], "an unknown id is a no-op");
+  deepStrictEqual(h.api.value, [], "an unknown id is a no-op");
   h.dispose();
 });
 
-Deno.test("Given the commands / When they run / Then the entry field and focus follow", () => {
+test("Given the commands / When they run / Then the entry field and focus follow", () => {
   const h = mount();
   h.api.setInputValue("draft");
-  assertEquals(h.api.inputValue, "draft", "setInputValue writes");
+  deepStrictEqual(h.api.inputValue, "draft", "setInputValue writes");
   h.api.clearInputValue();
-  assertEquals(h.api.inputValue, "", "clearInputValue clears");
+  deepStrictEqual(h.api.inputValue, "", "clearInputValue clears");
   let focused = 0;
   h.input.addEventListener("focus", () => {
     focused++;
   });
   h.api.focus();
-  assertEquals(focused, 1, "focus lands on the entry field");
+  deepStrictEqual(focused, 1, "focus lands on the entry field");
   h.dispose();
 });
 
 // ---- controlled channels --------------------------------------------------
 
-Deno.test("Given an authored value / When the host writes it / Then the machine follows without an event", () => {
+test("Given an authored value / When the host writes it / Then the machine follows without an event", () => {
   const h = mount({ value: ["a"] });
-  assertEquals(h.api.value, ["a"], "the host's list is the machine's list");
+  deepStrictEqual(h.api.value, ["a"], "the host's list is the machine's list");
   h.api.addValue("b");
-  assertEquals(
+  deepStrictEqual(
     h.changes.value,
     [["a", "b"]],
     "the machine's move composes on the host's list and reports",
   );
-  assertEquals(h.api.value, ["a", "b"], "the move lands");
+  deepStrictEqual(h.api.value, ["a", "b"], "the move lands");
   h.write("value", ["z"]);
-  assertEquals(h.api.value, ["z"], "a later host write re-imposes the list");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["z"], "a later host write re-imposes the list");
+  deepStrictEqual(
     h.changes.value,
     [["a", "b"]],
     "a host write is not a change event",
@@ -1327,11 +1328,11 @@ Deno.test("Given an authored value / When the host writes it / Then the machine 
   h.dispose();
 });
 
-Deno.test("Given an un-authored value / When the host writes it / Then the machine ignores it", () => {
+test("Given an un-authored value / When the host writes it / Then the machine ignores it", () => {
   const h = mount();
   h.api.addValue("a");
   h.write("value", ["z"]);
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     ["a"],
     "a default-shaped write is not a host write",
@@ -1339,38 +1340,38 @@ Deno.test("Given an un-authored value / When the host writes it / Then the machi
   h.dispose();
 });
 
-Deno.test("Given an authored inputValue / When the host writes it / Then the entry field follows", () => {
+test("Given an authored inputValue / When the host writes it / Then the entry field follows", () => {
   const h = mount({ inputValue: "a" });
-  assertEquals(h.api.inputValue, "a", "the authored value seeds the field");
+  deepStrictEqual(h.api.inputValue, "a", "the authored value seeds the field");
   h.write("inputValue", "ab");
-  assertEquals(h.api.inputValue, "ab", "a host write moves the field");
+  deepStrictEqual(h.api.inputValue, "ab", "a host write moves the field");
   h.dispose();
 });
 
 // ---- the live region and host behavior functions --------------------------
 
-Deno.test("Given a mutation / When it lands / Then the live region announces it", () => {
+test("Given a mutation / When it lands / Then the live region announces it", () => {
   const h = mount();
   h.api.addValue("react");
-  assertEquals(h.announce(), "Added tag react", "an add is announced");
+  deepStrictEqual(h.announce(), "Added tag react", "an add is announced");
   h.api.clearValue(0);
-  assertEquals(h.announce(), "Tag react deleted", "a delete is announced");
+  deepStrictEqual(h.announce(), "Tag react deleted", "a delete is announced");
   h.api.setValue(["react"]);
   h.api.setValueAtIndex(0, "solid");
-  assertEquals(h.announce(), "Tag update to solid", "an update is announced");
+  deepStrictEqual(h.announce(), "Tag update to solid", "an update is announced");
   h.api.clearValue();
-  assertEquals(h.announce(), "No tags selected", "a clear is announced");
+  deepStrictEqual(h.announce(), "No tags selected", "a clear is announced");
   h.dispose();
 });
 
-Deno.test("Given a delete then a highlight / When the highlight lands / Then both sentences announce", () => {
+test("Given a delete then a highlight / When the highlight lands / Then both sentences announce", () => {
   const h = mount({ defaultValue: ["a", "b"] });
   h.caret(true);
   h.pressTag("a");
   handler<(event: KeyboardEvent) => void>(h.bag(), "onKeydown")(
     keydown("Backspace"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.announce(),
     "Tag a deleted. Tag b selected. Press enter to edit, delete or backspace to remove.",
     "the delete and the selection announce together",
@@ -1378,18 +1379,18 @@ Deno.test("Given a delete then a highlight / When the highlight lands / Then bot
   h.dispose();
 });
 
-Deno.test("Given a paste / When it lands / Then the region announces the count", () => {
+test("Given a paste / When it lands / Then the region announces the count", () => {
   const h = mount({ addOnPaste: true });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "a,b,c";
   handler<(event: InputEvent) => void>(h.bag(), "onInput")(
     typing(h.input, "insertFromPaste"),
   );
-  assertEquals(h.announce(), "Pasted 3 tags", "the paste count is announced");
+  deepStrictEqual(h.announce(), "Pasted 3 tags", "the paste count is announced");
   h.dispose();
 });
 
-Deno.test("Given a repeated identical mutation / When it lands / Then the region node is replaced so it announces again", () => {
+test("Given a repeated identical mutation / When it lands / Then the region node is replaced so it announces again", () => {
   const h = mount({ addOnPaste: true });
   handler<() => void>(h.bag(), "onFocus")();
   h.input.value = "a,b";
@@ -1407,8 +1408,8 @@ Deno.test("Given a repeated identical mutation / When it lands / Then the region
     String(h.api.getLiveRegionProps()["id"]),
   );
   const second = node === null ? "" : (node.textContent ?? "");
-  assertEquals(first, "Pasted 2 tags", "the first paste announces");
-  assertEquals(
+  deepStrictEqual(first, "Pasted 2 tags", "the first paste announces");
+  deepStrictEqual(
     second,
     "Pasted 2 tags",
     "the identical repeat still lands in the live tree",
@@ -1416,26 +1417,26 @@ Deno.test("Given a repeated identical mutation / When it lands / Then the region
   h.dispose();
 });
 
-Deno.test("Given host translations / When a mutation lands / Then the overridden message announces", () => {
+test("Given host translations / When a mutation lands / Then the overridden message announces", () => {
   const h = mount();
   const root = h.root as unknown as Record<string, unknown>;
   root["translations"] = { tagAdded: (value: string) => `Added ${value}` };
   h.api.addValue("elm");
-  assertEquals(h.announce(), "Added elm", "the host override wins");
+  deepStrictEqual(h.announce(), "Added elm", "the host override wins");
   h.dispose();
 });
 
-Deno.test("Given a host sanitizeValue and validate / When a tag is added / Then they decide the value", () => {
+test("Given a host sanitizeValue and validate / When a tag is added / Then they decide the value", () => {
   const h = mount();
   const root = h.root as unknown as Record<string, unknown>;
   root["sanitizeValue"] = (value: string): string => value.trim().toLowerCase();
   root["validate"] = ({ inputValue }: { inputValue: string }) =>
     inputValue !== "banned";
   h.api.addValue("  Elm  ");
-  assertEquals(h.api.value, ["elm"], "the host sanitizer ran");
+  deepStrictEqual(h.api.value, ["elm"], "the host sanitizer ran");
   h.api.addValue("banned");
-  assertEquals(h.api.value, ["elm"], "the host validator refused the tag");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["elm"], "the host validator refused the tag");
+  deepStrictEqual(
     h.changes.invalid,
     ["invalidTag"],
     "value-invalid reports the refusal",
@@ -1443,19 +1444,19 @@ Deno.test("Given a host sanitizeValue and validate / When a tag is added / Then 
   h.dispose();
 });
 
-Deno.test("Given a max / When the list passes it / Then value-invalid reports the overflow once", () => {
+test("Given a max / When the list passes it / Then value-invalid reports the overflow once", () => {
   const h = mount({ max: 2 });
   h.api.setValue(["a", "b"]);
-  assertEquals(h.changes.invalid, [], "at the cap is not over it");
+  deepStrictEqual(h.changes.invalid, [], "at the cap is not over it");
   h.api.addValue("c");
-  assertEquals(h.api.value, ["a", "b", "c"], "addValue is unguarded");
-  assertEquals(
+  deepStrictEqual(h.api.value, ["a", "b", "c"], "addValue is unguarded");
+  deepStrictEqual(
     h.changes.invalid,
     ["rangeOverflow"],
     "the overflow reports once",
   );
   h.api.addValue("d");
-  assertEquals(
+  deepStrictEqual(
     h.changes.invalid,
     ["rangeOverflow"],
     "still over, no second report",
@@ -1465,14 +1466,14 @@ Deno.test("Given a max / When the list passes it / Then value-invalid reports th
 
 // ---- the row model --------------------------------------------------------
 
-Deno.test("Given a middle tag removed / When the rows are read / Then a surviving row keeps its identity", () => {
+test("Given a middle tag removed / When the rows are read / Then a surviving row keeps its identity", () => {
   const h = mount({ defaultValue: ["a", "b", "c"] });
   const before = h.api.getItemPreviewProps(h.row("c"))["id"];
   h.api.clearValue(1);
-  assertEquals(h.api.value, ["a", "c"], "the middle tag is gone");
+  deepStrictEqual(h.api.value, ["a", "c"], "the middle tag is gone");
   const after = h.api.getItemPreviewProps(h.row("c"))["id"];
-  assertEquals(after, before, "the surviving row's part id is unchanged");
-  assertEquals(
+  deepStrictEqual(after, before, "the surviving row's part id is unchanged");
+  deepStrictEqual(
     h.api.indexOfRow(h.row("c")),
     1,
     "its index moved to where it now sits",
@@ -1480,15 +1481,15 @@ Deno.test("Given a middle tag removed / When the rows are read / Then a survivin
   h.dispose();
 });
 
-Deno.test("Given getItemState / When a tag is highlighted / Then the state reads through the api", () => {
+test("Given getItemState / When a tag is highlighted / Then the state reads through the api", () => {
   const h = mount({ defaultValue: ["a"] });
   h.pressTag("a");
   const state = h.api.getItemState(h.row("a"));
-  assertEquals(state.index, 0, "the index is reported");
-  assertEquals(state.highlighted, true, "the highlight is reported");
-  assertEquals(state.editing, false, "editing is off");
-  assertEquals(state.disabled, false, "an interactive input reads enabled");
-  assertEquals(
+  deepStrictEqual(state.index, 0, "the index is reported");
+  deepStrictEqual(state.highlighted, true, "the highlight is reported");
+  deepStrictEqual(state.editing, false, "editing is off");
+  deepStrictEqual(state.disabled, false, "an interactive input reads enabled");
+  deepStrictEqual(
     state.id,
     String(h.api.getItemPreviewProps(h.row("a"))["id"]),
     "the id matches the preview's",
@@ -1496,15 +1497,15 @@ Deno.test("Given getItemState / When a tag is highlighted / Then the state reads
   h.dispose();
 });
 
-Deno.test("Given a disabled input / When an item state is read / Then the disabled prop reads through", () => {
+test("Given a disabled input / When an item state is read / Then the disabled prop reads through", () => {
   const h = mount({ defaultValue: ["a"], disabled: true });
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemState(h.row("a")).disabled,
     true,
     "the disabled prop reads through",
   );
   h.api.addValue("b");
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemState(h.row("b")).disabled,
     true,
     "every item is disabled with the input",

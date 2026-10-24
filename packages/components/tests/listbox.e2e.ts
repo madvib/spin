@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM listbox drives its machine in a real browser — the
  * focus default, the arrow walk with wrapping and disabled-skip, Enter/Space
@@ -15,7 +16,7 @@ const FW_ITEM = (value: string): string => at("frameworks", `item:${value}`);
 const TOP_CONTENT = at("toppings", "content");
 const TOP_ITEM = (value: string): string => at("toppings", `item:${value}`);
 
-Deno.test("spin-listbox e2e", () =>
+test("spin-listbox e2e", () =>
   runComponentSuite({
     port: 5247,
     route: "/listbox",

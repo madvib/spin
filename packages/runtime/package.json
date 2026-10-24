@@ -1,0 +1,66 @@
+{
+  "name": "@spin/runtime",
+  "version": "0.1.1",
+  "description": "The component runtime: signals, bridges, elements plugin, and directives.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./testing": {
+      "types": "./src/testing.ts",
+      "default": "./src/testing.ts"
+    },
+    "./fsm": {
+      "types": "./src/machine/fsm/machine.ts",
+      "default": "./src/machine/fsm/machine.ts"
+    },
+    "./load": {
+      "types": "./src/directives/load.ts",
+      "default": "./src/directives/load.ts"
+    },
+    "./plugin": {
+      "types": "./src/plugin/index.ts",
+      "default": "./src/plugin/index.ts"
+    },
+    "./plugin/elements": {
+      "types": "./src/plugin/elements.ts",
+      "default": "./src/plugin/elements.ts"
+    },
+    "./props": {
+      "types": "./src/props.ts",
+      "default": "./src/props.ts"
+    },
+    "./actions": {
+      "types": "./src/actions/index.ts",
+      "default": "./src/actions/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@spin/runtime": "workspace:*",
+    "@spin/syntax": "workspace:*",
+    "alien-signals": "^3.2.1",
+    "linkedom": "^0.18.0",
+    "unplugin": "^3.4.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write ."
+  }
+}

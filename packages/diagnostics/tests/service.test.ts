@@ -1,5 +1,8 @@
-import { assertEquals } from "@std/assert";
-import { relative } from "node:path";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
+import { join, relative } from "node:path";
 import type { RenderedFinding, RenderedHarness } from "../src/check.ts";
 import type { TextEdit } from "../src/core.ts";
 import { applyFixes } from "../src/engine.ts";
@@ -23,85 +26,85 @@ const DIRTY = `export const App = () => <span className="not-a-class" />;
 const CLEAN = `export const App = () => <span className="flex gap-2" />;
 `;
 
-Deno.test("the lint reads the disk when it is given nothing else", async () => {
-  const directory = await Deno.makeTempDir();
+test("the lint reads the disk when it is given nothing else", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(file, DIRTY);
+    await writeFile(file, DIRTY);
     const { findings } = await lint(file);
-    assertEquals(findings.map((finding) => finding.ruleId), [
+    deepStrictEqual(findings.map((finding) => finding.ruleId), [
       "spin/closed-vocabulary",
     ]);
-    assertEquals(findings.map((finding) => finding.file), [file]);
+    deepStrictEqual(findings.map((finding) => finding.file), [file]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("a staged document is read instead of the file on disk", async () => {
+test("a staged document is read instead of the file on disk", async () => {
   // The studio's panel reports on what the editor holds; the editor's
   // linter reports on what is saved. So the same file, staged with
   // different text, gives different findings.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(file, DIRTY);
+    await writeFile(file, DIRTY);
 
     const staged = await lint(file, {
       kind: "staged",
       documents: [{ path: file, text: CLEAN }],
     });
-    assertEquals(staged.findings, []);
+    deepStrictEqual(staged.findings, []);
 
     const saved = await lint(file);
-    assertEquals(saved.findings.map((finding) => finding.messageId), [
+    deepStrictEqual(saved.findings.map((finding) => finding.messageId), [
       "unknown",
     ]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("a staged document is found by the path it resolves to", async () => {
+test("a staged document is found by the path it resolves to", async () => {
   // The caller may hand a path absolute or relative; the lint compares the
   // paths as they resolve, so either is understood.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(file, CLEAN);
+    await writeFile(file, CLEAN);
     const staged = await lint(file, {
       kind: "staged",
       documents: [{ path: relative(process.cwd(), file), text: DIRTY }],
     });
-    assertEquals(staged.findings.map((finding) => finding.messageId), [
+    deepStrictEqual(staged.findings.map((finding) => finding.messageId), [
       "unknown",
     ]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the findings carry the edit that settles them", async () => {
+test("the findings carry the edit that settles them", async () => {
   // The service does not write: the decision about what to change belongs
   // to the core, and the change belongs to whoever holds the file. So the
   // edit the finding carries is the one that drops the class.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(file, DIRTY);
+    await writeFile(file, DIRTY);
     const { findings } = await lint(file);
     const fix = findings[0]?.fix;
-    assertEquals(fix === undefined, false);
-    assertEquals(
+    deepStrictEqual(fix === undefined, false);
+    deepStrictEqual(
       applyFixes(DIRTY, [fix as TextEdit]).code,
       `export const App = () => <span className="" />;\n`,
     );
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the check answers with what the harness found", async () => {
+test("the check answers with what the harness found", async () => {
   // The checks are the harness's: the service calls it and reads back what
   // it measured. It never looks at a page itself.
   const found: RenderedFinding[] = [{
@@ -122,12 +125,12 @@ Deno.test("the check answers with what the harness found", async () => {
   };
 
   const report = await check("http://localhost:5173", harness);
-  assertEquals(report.findings, found);
-  assertEquals(report.failed, ["contrast"]);
-  assertEquals(report.code, 1);
+  deepStrictEqual(report.findings, found);
+  deepStrictEqual(report.failed, ["contrast"]);
+  deepStrictEqual(report.code, 1);
 
   const quiet = await check("http://localhost:5174", harness);
-  assertEquals(quiet.findings, []);
-  assertEquals(quiet.failed, []);
-  assertEquals(quiet.code, 0);
+  deepStrictEqual(quiet.findings, []);
+  deepStrictEqual(quiet.failed, []);
+  deepStrictEqual(quiet.code, 0);
 });

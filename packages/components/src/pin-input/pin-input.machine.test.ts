@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { pinInput } from "./pin-input.presentation.ts";
@@ -322,96 +323,96 @@ const CHARS = (h: Harness): readonly string[] => h.api.value;
 // `idle` is the start; `focused` is a cell holding DOM focus. Both are
 // reachable, and the value events (the root tier) are exercised from both.
 
-Deno.test("Given a fresh pin / When nothing is authored / Then idle is the reachable start state", () => {
+test("Given a fresh pin / When nothing is authored / Then idle is the reachable start state", () => {
   const h = mount();
-  assertEquals(h.state(), "idle", "no cell holds focus at the start");
-  assertEquals(
+  deepStrictEqual(h.state(), "idle", "no cell holds focus at the start");
+  deepStrictEqual(
     CHARS(h),
     ["", "", "", ""],
     "the value is empty and filled to the count",
   );
-  assertEquals(h.api.count, 4, "the cell count is the element default");
-  assertEquals(CELLS(h), [0, 1, 2, 3], "the items are the cell indices");
-  assertEquals(h.api.valueAsString, "", "the joined string is empty");
-  assertEquals(h.api.complete, false, "an empty pin is not complete");
-  assertEquals(h.events.value, [], "seeding reports nothing");
-  assertEquals(h.events.complete, [], "and nothing completes");
+  deepStrictEqual(h.api.count, 4, "the cell count is the element default");
+  deepStrictEqual(CELLS(h), [0, 1, 2, 3], "the items are the cell indices");
+  deepStrictEqual(h.api.valueAsString, "", "the joined string is empty");
+  deepStrictEqual(h.api.complete, false, "an empty pin is not complete");
+  deepStrictEqual(h.events.value, [], "seeding reports nothing");
+  deepStrictEqual(h.events.complete, [], "and nothing completes");
   h.dispose();
 });
 
-Deno.test("Given defaultValue / When the pin mounts / Then the seed is the start state", () => {
+test("Given defaultValue / When the pin mounts / Then the seed is the start state", () => {
   const h = mount({ defaultValue: ["1", "2"] });
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "", ""],
     "defaultValue seeds the cells, padded to the count",
   );
-  assertEquals(h.api.valueAsString, "12", "the joined string follows the seed");
-  assertEquals(h.api.complete, false, "two of four cells is not complete");
-  assertEquals(h.events.value, [], "a seed is not a change");
+  deepStrictEqual(h.api.valueAsString, "12", "the joined string follows the seed");
+  deepStrictEqual(h.api.complete, false, "two of four cells is not complete");
+  deepStrictEqual(h.events.value, [], "a seed is not a change");
   h.dispose();
 });
 
-Deno.test("Given a value that fills every cell / When the pin mounts / Then it is complete without a report", () => {
+test("Given a value that fills every cell / When the pin mounts / Then it is complete without a report", () => {
   const h = mount({ defaultValue: ["9", "8", "7", "6"] });
-  assertEquals(h.api.complete, true, "every cell is filled");
-  assertEquals(
+  deepStrictEqual(h.api.complete, true, "every cell is filled");
+  deepStrictEqual(
     h.api.valueAsString,
     "9876",
     "the joined string is the whole pin",
   );
-  assertEquals(h.events.complete, [], "the mount is not a completion edge");
+  deepStrictEqual(h.events.complete, [], "the mount is not a completion edge");
   h.dispose();
 });
 
-Deno.test("Given the grammar's own default for an array prop / When the pin mounts / Then it seeds no characters", () => {
+test("Given the grammar's own default for an array prop / When the pin mounts / Then it seeds no characters", () => {
   // The scope grammar's default for `string[] = []` arrives as the string
   // "[]" coerced into one cell; a cell holds one character, so it is not one.
   const h = mount({ defaultValue: ["[]"] });
-  assertEquals(h.api.value, ["", "", "", ""], "the artifact seeds nothing");
-  assertEquals(h.api.valueAsString, "", "and the pin reads as empty");
+  deepStrictEqual(h.api.value, ["", "", "", ""], "the artifact seeds nothing");
+  deepStrictEqual(h.api.valueAsString, "", "and the pin reads as empty");
   h.dispose();
 });
 
-Deno.test("Given a pin / When a cell takes focus / Then the focused state is reachable", () => {
+test("Given a pin / When a cell takes focus / Then the focused state is reachable", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(0);
-  assertEquals(h.state(), "focused", "the api reports the cell focused");
+  deepStrictEqual(h.state(), "focused", "the api reports the cell focused");
   h.dispose();
 });
 
-Deno.test("Given a focused cell / When focus leaves the pin / Then the idle state is reachable again", () => {
+test("Given a focused cell / When focus leaves the pin / Then the idle state is reachable again", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
-  assertEquals(h.state(), "focused", "the cell holds focus");
+  deepStrictEqual(h.state(), "focused", "the cell holds focus");
   h.blurOut(1);
-  assertEquals(h.state(), "idle", "the blur returns to idle");
-  assertEquals(CHARS(h), ["1", "2", "", ""], "the blur keeps the value");
+  deepStrictEqual(h.state(), "idle", "the blur returns to idle");
+  deepStrictEqual(CHARS(h), ["1", "2", "", ""], "the blur keeps the value");
   h.dispose();
 });
 
-Deno.test("Given a focused cell / When focus moves to another cell of the pin / Then it is not a blur", () => {
+test("Given a focused cell / When focus moves to another cell of the pin / Then it is not a blur", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(0);
   h.blurOut(0, h.cell(1));
-  assertEquals(
+  deepStrictEqual(
     h.state(),
     "focused",
     "focus inside the pin keeps the focused state",
   );
   h.focusIn(1);
-  assertEquals(h.state(), "focused", "and the new cell is focused");
+  deepStrictEqual(h.state(), "focused", "and the new cell is focused");
   h.dispose();
 });
 
 // ---- INPUT.FOCUS ----------------------------------------------------------
 
-Deno.test("Given an empty pin / When a cell takes focus / Then the index parks on the first empty cell", () => {
+test("Given an empty pin / When a cell takes focus / Then the index parks on the first empty cell", () => {
   const h = mount();
   h.focusIn(2);
-  assertEquals(h.state(), "focused", "the focused state is reached");
-  assertEquals(h.focused(), [0], "the view moved focus to the first cell");
-  assertEquals(
+  deepStrictEqual(h.state(), "focused", "the focused state is reached");
+  deepStrictEqual(h.focused(), [0], "the view moved focus to the first cell");
+  deepStrictEqual(
     h.bag(0)["placeholder"],
     "",
     "the focused cell hides its placeholder",
@@ -419,16 +420,16 @@ Deno.test("Given an empty pin / When a cell takes focus / Then the index parks o
   h.dispose();
 });
 
-Deno.test("Given a half-filled pin / When a filled cell takes focus / Then the index follows the focus", () => {
+test("Given a half-filled pin / When a filled cell takes focus / Then the index follows the focus", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
-  assertEquals(h.focused(), [1], "focus stays where the host put it");
-  assertEquals(
+  deepStrictEqual(h.focused(), [1], "focus stays where the host put it");
+  deepStrictEqual(
     h.bag(1)["placeholder"],
     "",
     "the focused cell hides its placeholder",
   );
-  assertEquals(
+  deepStrictEqual(
     h.bag(0)["placeholder"],
     "\u25CB",
     "an unfocused cell keeps the placeholder",
@@ -436,11 +437,11 @@ Deno.test("Given a half-filled pin / When a filled cell takes focus / Then the i
   h.dispose();
 });
 
-Deno.test("Given a half-filled pin / When a cell beyond the fill takes focus / Then the first empty cell takes it", () => {
+test("Given a half-filled pin / When a cell beyond the fill takes focus / Then the first empty cell takes it", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(0);
   h.focusIn(3);
-  assertEquals(
+  deepStrictEqual(
     h.focused(),
     [0, 2],
     "focus is moved to the first cell the value has not filled",
@@ -450,19 +451,19 @@ Deno.test("Given a half-filled pin / When a cell beyond the fill takes focus / T
 
 // ---- INPUT.CHANGE / INPUT.ADVANCE -----------------------------------------
 
-Deno.test("Given a focused empty cell / When a character is typed / Then the cell fills and focus advances", () => {
+test("Given a focused empty cell / When a character is typed / Then the cell fills and focus advances", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(2);
   h.typeIn(2, "3");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "3", ""],
     "the typed character lands in the focused cell",
   );
-  assertEquals(h.bag(2)["value"], "3", "the bag carries the new character");
-  assertEquals(h.focused().at(-1), 3, "focus advances to the next cell");
-  assertEquals(h.api.valueAsString, "123", "the joined string follows");
-  assertEquals(
+  deepStrictEqual(h.bag(2)["value"], "3", "the bag carries the new character");
+  deepStrictEqual(h.focused().at(-1), 3, "focus advances to the next cell");
+  deepStrictEqual(h.api.valueAsString, "123", "the joined string follows");
+  deepStrictEqual(
     h.events.value,
     [{ value: ["1", "2", "3", ""], valueAsString: "123" }],
     "value-change reports the new value",
@@ -470,16 +471,16 @@ Deno.test("Given a focused empty cell / When a character is typed / Then the cel
   h.dispose();
 });
 
-Deno.test("Given a filled cell / When a second character is typed over it / Then the new character replaces it", () => {
+test("Given a filled cell / When a second character is typed over it / Then the new character replaces it", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
   h.typeIn(1, "23");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "3", "", ""],
     "the character that differs from the current one wins",
   );
-  assertEquals(
+  deepStrictEqual(
     h.focused().at(-1),
     2,
     "focus advances past the overwritten cell",
@@ -487,45 +488,45 @@ Deno.test("Given a filled cell / When a second character is typed over it / Then
   h.dispose();
 });
 
-Deno.test("Given a focused cell / When the same character is re-typed / Then the advance key moves on instead", () => {
+test("Given a focused cell / When the same character is re-typed / Then the advance key moves on instead", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
   h.press(1, "2");
-  assertEquals(CHARS(h), ["1", "2", "", ""], "the cell keeps its character");
-  assertEquals(
+  deepStrictEqual(CHARS(h), ["1", "2", "", ""], "the cell keeps its character");
+  deepStrictEqual(
     h.focused().at(-1),
     2,
     "the view reported the advance, and focus followed it",
   );
-  assertEquals(h.events.value, [], "no value change is reported");
+  deepStrictEqual(h.events.value, [], "no value change is reported");
   h.dispose();
 });
 
-Deno.test("Given a value / When the browser reports the character the machine already holds / Then nothing is written", () => {
+test("Given a value / When the browser reports the character the machine already holds / Then nothing is written", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
   h.typeIn(1, "2");
-  assertEquals(CHARS(h), ["1", "2", "", ""], "the cell keeps its character");
-  assertEquals(h.events.value, [], "no change is reported");
+  deepStrictEqual(CHARS(h), ["1", "2", "", ""], "the cell keeps its character");
+  deepStrictEqual(h.events.value, [], "no change is reported");
   h.dispose();
 });
 
-Deno.test("Given the last empty cell / When it is filled / Then the pin completes and reports once", () => {
+test("Given the last empty cell / When it is filled / Then the pin completes and reports once", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(3);
   h.typeIn(3, "4");
-  assertEquals(CHARS(h), ["1", "2", "3", "4"], "the last cell fills");
-  assertEquals(h.api.complete, true, "the api reports complete");
-  assertEquals(h.events.complete, [{
+  deepStrictEqual(CHARS(h), ["1", "2", "3", "4"], "the last cell fills");
+  deepStrictEqual(h.api.complete, true, "the api reports complete");
+  deepStrictEqual(h.events.complete, [{
     value: ["1", "2", "3", "4"],
     valueAsString: "1234",
   }], "value-complete reports the edge once");
-  assertEquals(
+  deepStrictEqual(
     h.bag(0)["data-complete"],
     "",
     "the root reports complete through the bag",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-complete"],
     "",
     "and through the root bag",
@@ -533,13 +534,13 @@ Deno.test("Given the last empty cell / When it is filled / Then the pin complete
   h.dispose();
 });
 
-Deno.test("Given a complete pin / When a cell is edited again / Then the completion does not re-report", () => {
+test("Given a complete pin / When a cell is edited again / Then the completion does not re-report", () => {
   const h = mount({ defaultValue: ["1", "2", "3", "4"] });
   h.focusIn(3);
   h.typeIn(3, "5");
-  assertEquals(CHARS(h), ["1", "2", "3", "5"], "the cell edits");
-  assertEquals(h.api.complete, true, "the pin is still complete");
-  assertEquals(
+  deepStrictEqual(CHARS(h), ["1", "2", "3", "5"], "the cell edits");
+  deepStrictEqual(h.api.complete, true, "the pin is still complete");
+  deepStrictEqual(
     h.events.complete,
     [],
     "and the completion edge does not re-fire",
@@ -549,30 +550,30 @@ Deno.test("Given a complete pin / When a cell is edited again / Then the complet
 
 // ---- INPUT.PASTE ----------------------------------------------------------
 
-Deno.test("Given a half-filled pin / When a paste lands at the first empty cell / Then it distributes forward", () => {
+test("Given a half-filled pin / When a paste lands at the first empty cell / Then it distributes forward", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(2);
   h.pasteIn(2, "34");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "3", "4"],
     "the paste fills the empty cells from the focused one",
   );
-  assertEquals(h.api.complete, true, "the paste completes the pin");
-  assertEquals(h.events.complete.length, 1, "the completion edge fired once");
+  deepStrictEqual(h.api.complete, true, "the paste completes the pin");
+  deepStrictEqual(h.events.complete.length, 1, "the completion edge fired once");
   h.dispose();
 });
 
-Deno.test("Given an empty pin / When a paste longer than the pin lands / Then the pin holds its first cells", () => {
+test("Given an empty pin / When a paste longer than the pin lands / Then the pin holds its first cells", () => {
   const h = mount();
   h.focusIn(0);
   h.pasteIn(0, "123456");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "3", "4"],
     "the paste is truncated to the cell count",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.valueAsString,
     "1234",
     "the joined string is the whole pin",
@@ -580,11 +581,11 @@ Deno.test("Given an empty pin / When a paste longer than the pin lands / Then th
   h.dispose();
 });
 
-Deno.test("Given a focused cell inside the fill / When a paste lands / Then the characters ahead of it stay", () => {
+test("Given a focused cell inside the fill / When a paste lands / Then the characters ahead of it stay", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
   h.pasteIn(1, "9");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "9", "", ""],
     "the paste starts at the focused cell",
@@ -594,142 +595,142 @@ Deno.test("Given a focused cell inside the fill / When a paste lands / Then the 
 
 // ---- the keyboard map -----------------------------------------------------
 
-Deno.test("Given a filled cell / When Backspace arrives / Then the cell clears and focus steps back", () => {
+test("Given a filled cell / When Backspace arrives / Then the cell clears and focus steps back", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(2);
   h.press(2, "Backspace");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "", ""],
     "the focused cell clears and the tail shifts up",
   );
-  assertEquals(h.focused().at(-1), 1, "focus steps back one cell");
+  deepStrictEqual(h.focused().at(-1), 1, "focus steps back one cell");
   h.dispose();
 });
 
-Deno.test("Given an empty cell / When Backspace arrives / Then focus steps back and the cell behind clears", () => {
+test("Given an empty cell / When Backspace arrives / Then focus steps back and the cell behind clears", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(2);
   h.press(2, "Backspace");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "", "", ""],
     "the character behind the empty cell is taken",
   );
-  assertEquals(h.focused().at(-1), 1, "focus steps back one cell");
+  deepStrictEqual(h.focused().at(-1), 1, "focus steps back one cell");
   h.dispose();
 });
 
-Deno.test("Given a filled cell / When Delete arrives / Then only the cell clears", () => {
+test("Given a filled cell / When Delete arrives / Then only the cell clears", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(1);
   h.press(1, "Delete");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "3", "", ""],
     "the focused cell clears and the tail shifts up",
   );
-  assertEquals(h.focused().at(-1), 1, "focus does not move");
+  deepStrictEqual(h.focused().at(-1), 1, "focus does not move");
   h.dispose();
 });
 
-Deno.test("Given an empty cell / When Delete arrives / Then nothing moves", () => {
+test("Given an empty cell / When Delete arrives / Then nothing moves", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(3);
   h.press(3, "Delete");
-  assertEquals(CHARS(h), ["1", "2", "", ""], "the value is untouched");
+  deepStrictEqual(CHARS(h), ["1", "2", "", ""], "the value is untouched");
   h.dispose();
 });
 
-Deno.test("Given a middle cell / When ArrowLeft arrives / Then the previous cell takes focus", () => {
+test("Given a middle cell / When ArrowLeft arrives / Then the previous cell takes focus", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(2);
   h.press(2, "ArrowLeft");
-  assertEquals(h.focused().at(-1), 1, "the view focused the previous cell");
-  assertEquals(CHARS(h), ["1", "2", "3", ""], "the value is untouched");
+  deepStrictEqual(h.focused().at(-1), 1, "the view focused the previous cell");
+  deepStrictEqual(CHARS(h), ["1", "2", "3", ""], "the value is untouched");
   h.dispose();
 });
 
-Deno.test("Given the first cell / When ArrowLeft arrives / Then focus clamps", () => {
+test("Given the first cell / When ArrowLeft arrives / Then focus clamps", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(0);
   h.press(0, "ArrowLeft");
-  assertEquals(h.focused(), [0], "focus never moves before the first cell");
+  deepStrictEqual(h.focused(), [0], "focus never moves before the first cell");
   h.dispose();
 });
 
-Deno.test("Given a middle cell / When ArrowRight arrives / Then the next cell takes focus", () => {
+test("Given a middle cell / When ArrowRight arrives / Then the next cell takes focus", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(1);
   h.press(1, "ArrowRight");
-  assertEquals(h.focused().at(-1), 2, "the view focused the next cell");
+  deepStrictEqual(h.focused().at(-1), 2, "the view focused the next cell");
   h.dispose();
 });
 
-Deno.test("Given the last filled cell / When ArrowRight arrives / Then focus clamps at the fill", () => {
+test("Given the last filled cell / When ArrowRight arrives / Then focus clamps at the fill", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(2);
   h.press(2, "ArrowRight");
-  assertEquals(
+  deepStrictEqual(
     h.focused().at(-1),
     3,
     "the cell one past the fill is reachable",
   );
   h.press(3, "ArrowRight");
-  assertEquals(h.focused().at(-1), 3, "and the cell after that is not");
+  deepStrictEqual(h.focused().at(-1), 3, "and the cell after that is not");
   h.dispose();
 });
 
-Deno.test("Given a focused cell / When Home and End arrive / Then focus takes the extremes", () => {
+test("Given a focused cell / When Home and End arrive / Then focus takes the extremes", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(1);
   h.press(1, "Home");
-  assertEquals(h.focused().at(-1), 0, "Home focuses the first cell");
+  deepStrictEqual(h.focused().at(-1), 0, "Home focuses the first cell");
   h.press(0, "End");
-  assertEquals(h.focused().at(-1), 2, "End focuses the last filled cell");
+  deepStrictEqual(h.focused().at(-1), 2, "End focuses the last filled cell");
   h.dispose();
 });
 
-Deno.test("Given a keydown with a modifier / When it arrives / Then the map ignores it", () => {
+test("Given a keydown with a modifier / When it arrives / Then the map ignores it", () => {
   const h = mount({ defaultValue: ["1", "2", "3"] });
   h.focusIn(1);
   h.press(1, "ArrowRight", { ctrl: true });
-  assertEquals(h.focused(), [1], "the modified arrow moves nothing");
+  deepStrictEqual(h.focused(), [1], "the modified arrow moves nothing");
   h.dispose();
 });
 
-Deno.test("Given a right-to-left pin / When ArrowRight arrives / Then it walks backward", () => {
+test("Given a right-to-left pin / When ArrowRight arrives / Then it walks backward", () => {
   const h = mount({ defaultValue: ["1", "2", "3"], dir: "rtl" });
   h.focusIn(1);
   h.press(1, "ArrowRight");
-  assertEquals(h.focused().at(-1), 0, "ArrowRight is ArrowLeft in rtl");
+  deepStrictEqual(h.focused().at(-1), 0, "ArrowRight is ArrowLeft in rtl");
   h.press(0, "ArrowLeft");
-  assertEquals(h.focused().at(-1), 1, "and ArrowLeft is ArrowRight");
+  deepStrictEqual(h.focused().at(-1), 1, "and ArrowLeft is ArrowRight");
   h.dispose();
 });
 
 // ---- the validity gate ----------------------------------------------------
 
-Deno.test("Given a numeric pin / When an invalid character arrives / Then the keystroke is refused and reported", () => {
+test("Given a numeric pin / When an invalid character arrives / Then the keystroke is refused and reported", () => {
   const h = mount();
   h.focusIn(0);
   h.beforeType(0, "a");
-  assertEquals(CHARS(h), ["", "", "", ""], "nothing lands in the cell");
-  assertEquals(
+  deepStrictEqual(CHARS(h), ["", "", "", ""], "nothing lands in the cell");
+  deepStrictEqual(
     h.events.invalid,
     [{ value: "a", index: 0 }],
     "value-invalid reports the refusal",
   );
-  assertEquals(h.events.value, [], "and no value change");
+  deepStrictEqual(h.events.value, [], "and no value change");
   h.dispose();
 });
 
-Deno.test("Given a numeric pin / When a valid character arrives / Then no refusal is reported", () => {
+test("Given a numeric pin / When a valid character arrives / Then no refusal is reported", () => {
   const h = mount();
   h.focusIn(0);
   h.beforeType(0, "7");
-  assertEquals(h.events.invalid, [], "a valid keystroke is not a refusal");
-  assertEquals(
+  deepStrictEqual(h.events.invalid, [], "a valid keystroke is not a refusal");
+  deepStrictEqual(
     CHARS(h),
     ["", "", "", ""],
     "the beforeinput gate reports nothing — the machine is not told yet",
@@ -737,13 +738,13 @@ Deno.test("Given a numeric pin / When a valid character arrives / Then no refusa
   h.dispose();
 });
 
-Deno.test("Given a filled cell / When a character is typed over it / Then the prospective value is what is validated", () => {
+test("Given a filled cell / When a character is typed over it / Then the prospective value is what is validated", () => {
   const h = mount({ defaultValue: ["1"] });
   h.focusIn(0);
   // A caret at the end of "1" appending "a" would make the cell "1a", which
   // is not a numeric character either: the whole cell is what is validated.
   h.beforeType(0, "a", 1, 1);
-  assertEquals(
+  deepStrictEqual(
     h.events.invalid,
     [{ value: "1a", index: 0 }],
     "the refusal carries the prospective cell value",
@@ -751,12 +752,12 @@ Deno.test("Given a filled cell / When a character is typed over it / Then the pr
   h.dispose();
 });
 
-Deno.test("Given a numeric pin / When an invalid paste arrives / Then it is refused and reported", () => {
+test("Given a numeric pin / When an invalid paste arrives / Then it is refused and reported", () => {
   const h = mount();
   h.focusIn(0);
   h.pasteIn(0, "abcd");
-  assertEquals(CHARS(h), ["", "", "", ""], "the paste lands nowhere");
-  assertEquals(
+  deepStrictEqual(CHARS(h), ["", "", "", ""], "the paste lands nowhere");
+  deepStrictEqual(
     h.events.invalid,
     [{ value: "abcd", index: 0 }],
     "value-invalid reports the refusal",
@@ -764,23 +765,23 @@ Deno.test("Given a numeric pin / When an invalid paste arrives / Then it is refu
   h.dispose();
 });
 
-Deno.test("Given an alphabetic pin / When letters arrive / Then they are the valid characters", () => {
+test("Given an alphabetic pin / When letters arrive / Then they are the valid characters", () => {
   const h = mount({ type: "alphabetic" });
   h.focusIn(0);
   h.beforeType(0, "q");
-  assertEquals(h.events.invalid, [], "a letter is valid");
+  deepStrictEqual(h.events.invalid, [], "a letter is valid");
   h.beforeType(0, "4");
-  assertEquals(h.events.invalid, [{ value: "4", index: 0 }], "a digit is not");
+  deepStrictEqual(h.events.invalid, [{ value: "4", index: 0 }], "a digit is not");
   h.dispose();
 });
 
-Deno.test("Given a pattern pin / When the pattern is checked / Then it overrides the type", () => {
+test("Given a pattern pin / When the pattern is checked / Then it overrides the type", () => {
   const h = mount({ pattern: "[A-F]" });
   h.focusIn(0);
   h.beforeType(0, "C");
-  assertEquals(h.events.invalid, [], "a character the pattern allows is valid");
+  deepStrictEqual(h.events.invalid, [], "a character the pattern allows is valid");
   h.beforeType(0, "1");
-  assertEquals(
+  deepStrictEqual(
     h.events.invalid,
     [{ value: "1", index: 0 }],
     "and a character it refuses is not",
@@ -790,63 +791,63 @@ Deno.test("Given a pattern pin / When the pattern is checked / Then it overrides
 
 // ---- the imperative surface ----------------------------------------------
 
-Deno.test("Given a pin / When setValue runs / Then the value is exactly what was set", () => {
+test("Given a pin / When setValue runs / Then the value is exactly what was set", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.api.setValue(["5", "6", "7"]);
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["5", "6", "7", ""],
     "the array is filled to the cell count",
   );
-  assertEquals(h.events.value.at(-1), {
+  deepStrictEqual(h.events.value.at(-1), {
     value: ["5", "6", "7", ""],
     valueAsString: "567",
   }, "value-change reports the new value");
   h.dispose();
 });
 
-Deno.test("Given a pin / When setValue is called from the idle state / Then the root tier takes it", () => {
+test("Given a pin / When setValue is called from the idle state / Then the root tier takes it", () => {
   const h = mount();
   h.api.setValue(["1"]);
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "", "", ""],
     "the value lands without a focused cell",
   );
-  assertEquals(h.state(), "idle", "the machine is still idle");
+  deepStrictEqual(h.state(), "idle", "the machine is still idle");
   h.dispose();
 });
 
-Deno.test("Given a pin / When setValueAtIndex runs / Then the named cell takes the character", () => {
+test("Given a pin / When setValueAtIndex runs / Then the named cell takes the character", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.api.setValueAtIndex(2, "7");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "7", ""],
     "the character lands in the named cell",
   );
-  assertEquals(h.api.valueAsString, "127", "the joined string follows");
+  deepStrictEqual(h.api.valueAsString, "127", "the joined string follows");
   h.dispose();
 });
 
-Deno.test("Given a pin / When clearValue runs / Then every cell empties and the index parks on the first", () => {
+test("Given a pin / When clearValue runs / Then every cell empties and the index parks on the first", () => {
   const h = mount({ defaultValue: ["1", "2", "3", "4"] });
   h.api.clearValue();
-  assertEquals(CHARS(h), ["", "", "", ""], "every cell is empty");
-  assertEquals(h.api.complete, false, "the pin is no longer complete");
-  assertEquals(
+  deepStrictEqual(CHARS(h), ["", "", "", ""], "every cell is empty");
+  deepStrictEqual(h.api.complete, false, "the pin is no longer complete");
+  deepStrictEqual(
     h.events.value.at(-1),
     { value: ["", "", "", ""], valueAsString: "" },
     "value-change reports the clear",
   );
   // VALUE.CLEAR parks the index on the first cell, and the cell's
   // placeholder is what reads it.
-  assertEquals(
+  deepStrictEqual(
     h.bag(0)["placeholder"],
     "",
     "the first cell is the parked index",
   );
-  assertEquals(
+  deepStrictEqual(
     h.bag(1)["placeholder"],
     "\u25CB",
     "the others keep their placeholder",
@@ -854,27 +855,27 @@ Deno.test("Given a pin / When clearValue runs / Then every cell empties and the 
   h.dispose();
 });
 
-Deno.test("Given a focused pin / When clearValue runs / Then focus stays and the value empties", () => {
+test("Given a focused pin / When clearValue runs / Then focus stays and the value empties", () => {
   const h = mount({ defaultValue: ["1", "2"] });
   h.focusIn(1);
   h.api.clearValue();
-  assertEquals(h.state(), "focused", "the focused state is kept");
-  assertEquals(CHARS(h), ["", "", "", ""], "the value empties");
+  deepStrictEqual(h.state(), "focused", "the focused state is kept");
+  deepStrictEqual(CHARS(h), ["", "", "", ""], "the value empties");
   h.dispose();
 });
 
 // ---- the controlled channel ----------------------------------------------
 
-Deno.test("Given a controlled value / When the host writes it / Then the machine alternates", () => {
+test("Given a controlled value / When the host writes it / Then the machine alternates", () => {
   const h = mount({ value: ["1"] });
-  assertEquals(CHARS(h), ["1", "", "", ""], "the authored value seeds the pin");
+  deepStrictEqual(CHARS(h), ["1", "", "", ""], "the authored value seeds the pin");
   h.write("value", ["2", "3"]);
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["2", "3", "", ""],
     "a host write alternates the value",
   );
-  assertEquals(
+  deepStrictEqual(
     h.events.value.at(-1),
     { value: ["2", "3", "", ""], valueAsString: "23" },
     "the write is reported as a change",
@@ -882,10 +883,10 @@ Deno.test("Given a controlled value / When the host writes it / Then the machine
   h.dispose();
 });
 
-Deno.test("Given an uncontrolled pin / When the value prop is written / Then the machine does not alternate", () => {
+test("Given an uncontrolled pin / When the value prop is written / Then the machine does not alternate", () => {
   const h = mount({ defaultValue: ["1"] });
   h.write("value", ["9", "9"]);
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "", "", ""],
     "the seed is not a controlled value",
@@ -893,23 +894,23 @@ Deno.test("Given an uncontrolled pin / When the value prop is written / Then the
   h.dispose();
 });
 
-Deno.test("Given a controlled value / When a keystroke moves the machine / Then the authored prop does not fight it", () => {
+test("Given a controlled value / When a keystroke moves the machine / Then the authored prop does not fight it", () => {
   const h = mount({ value: ["1"] });
   h.focusIn(0);
   h.typeIn(1, "5");
-  assertEquals(CHARS(h), ["5", "", "", ""], "the keystroke lands");
-  assertEquals(h.events.value.at(-1), {
+  deepStrictEqual(CHARS(h), ["5", "", "", ""], "the keystroke lands");
+  deepStrictEqual(h.events.value.at(-1), {
     value: ["5", "", "", ""],
     valueAsString: "5",
   }, "and is reported once");
   h.dispose();
 });
 
-Deno.test("Given a controlled value that completes the pin / When the host writes it / Then the completion edge fires", () => {
+test("Given a controlled value that completes the pin / When the host writes it / Then the completion edge fires", () => {
   const h = mount({ value: ["1"] });
   h.write("value", ["1", "2", "3", "4"]);
-  assertEquals(h.api.complete, true, "the pin is complete");
-  assertEquals(h.events.complete, [{
+  deepStrictEqual(h.api.complete, true, "the pin is complete");
+  deepStrictEqual(h.events.complete, [{
     value: ["1", "2", "3", "4"],
     valueAsString: "1234",
   }], "value-complete reports the edge");
@@ -918,29 +919,29 @@ Deno.test("Given a controlled value that completes the pin / When the host write
 
 // ---- the cell count -------------------------------------------------------
 
-Deno.test("Given a pin / When the host changes the count / Then the cells follow", () => {
+test("Given a pin / When the host changes the count / Then the cells follow", () => {
   const h = mount({ count: 4, defaultValue: ["1", "2"] });
   h.write("count", 6);
-  assertEquals(h.api.count, 6, "the count prop is the machine's");
-  assertEquals(
+  deepStrictEqual(h.api.count, 6, "the count prop is the machine's");
+  deepStrictEqual(
     CELLS(h),
     [0, 1, 2, 3, 4, 5],
     "the items are the new cell indices",
   );
-  assertEquals(h.bag(5)["value"], "", "the new cells are empty");
-  assertEquals(
+  deepStrictEqual(h.bag(5)["value"], "", "the new cells are empty");
+  deepStrictEqual(
     h.bag(0)["value"],
     "1",
     "and the old cells keep their characters",
   );
-  assertEquals(h.events.value, [], "a count change reports no value change");
+  deepStrictEqual(h.events.value, [], "a count change reports no value change");
   h.dispose();
 });
 
-Deno.test("Given a pin with two cells / When the markup iterates / Then the bags follow the shorter count", () => {
+test("Given a pin with two cells / When the markup iterates / Then the bags follow the shorter count", () => {
   const h = mount({ count: 2 });
-  assertEquals(CELLS(h), [0, 1], "two cells render");
-  assertEquals(
+  deepStrictEqual(CELLS(h), [0, 1], "two cells render");
+  deepStrictEqual(
     h.bag(1)["enterKeyHint"],
     "done",
     "the last cell announces the done hint",
@@ -950,35 +951,35 @@ Deno.test("Given a pin with two cells / When the markup iterates / Then the bags
 
 // ---- the DOM contract -----------------------------------------------------
 
-Deno.test("Given a pin / When the parts are read / Then every part id is namespaced off the root", () => {
+test("Given a pin / When the parts are read / Then every part id is namespaced off the root", () => {
   const h = mount();
   const rootId = String(h.api.getRootProps()["id"]);
-  assertEquals(
+  deepStrictEqual(
     rootId.startsWith("pin-input:"),
     true,
     "the root carries the namespaced id",
   );
-  assertEquals(
+  deepStrictEqual(
     String(h.bag(0)["id"]),
     `${rootId}:input:0`,
     "a cell's id is the root's, indexed",
   );
-  assertEquals(
+  deepStrictEqual(
     String(h.api.getLabelProps()["id"]),
     `${rootId}:label`,
     "the label is a part",
   );
-  assertEquals(
+  deepStrictEqual(
     String(h.api.getControlProps()["id"]),
     `${rootId}:control`,
     "the control is a part",
   );
-  assertEquals(
+  deepStrictEqual(
     String(h.api.getHiddenInputProps()["id"]),
     `${rootId}:hidden`,
     "the hidden input is a part",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getLabelProps()["for"],
     `${rootId}:hidden`,
     "the label names the hidden input",
@@ -986,53 +987,53 @@ Deno.test("Given a pin / When the parts are read / Then every part id is namespa
   h.dispose();
 });
 
-Deno.test("Given a fresh pin / When the cell bag is read / Then it carries the aria contract", () => {
+test("Given a fresh pin / When the cell bag is read / Then it carries the aria contract", () => {
   const h = mount();
   const bag = h.bag(0);
-  assertEquals(
+  deepStrictEqual(
     bag["aria-label"],
     "pin code 1 of 4",
     "each cell is labelled by its position",
   );
-  assertEquals(bag["tabIndex"], 0, "the first cell is the one tab stop");
-  assertEquals(h.bag(1)["tabIndex"], -1, "the others are not");
-  assertEquals(
+  deepStrictEqual(bag["tabIndex"], 0, "the first cell is the one tab stop");
+  deepStrictEqual(h.bag(1)["tabIndex"], -1, "the others are not");
+  deepStrictEqual(
     bag["inputMode"],
     "numeric",
     "a numeric pin asks for the numeric keyboard",
   );
-  assertEquals(
+  deepStrictEqual(
     bag["type"],
     "tel",
     "and a numeric cell is a telephone field, which does not spin",
   );
-  assertEquals(
+  deepStrictEqual(
     bag["placeholder"],
     "\u25CB",
     "an unfocused empty cell shows the placeholder",
   );
-  assertEquals(
+  deepStrictEqual(
     bag["autoComplete"],
     "off",
     "no autofill unless the host asks for otp",
   );
-  assertEquals(bag["autoCapitalize"], "none", "and no capitalization");
-  assertEquals(bag["aria-invalid"], undefined, "a valid pin announces nothing");
-  assertEquals(bag["data-filled"], undefined, "an empty cell is not filled");
+  deepStrictEqual(bag["autoCapitalize"], "none", "and no capitalization");
+  deepStrictEqual(bag["aria-invalid"], undefined, "a valid pin announces nothing");
+  deepStrictEqual(bag["data-filled"], undefined, "an empty cell is not filled");
   h.dispose();
 });
 
-Deno.test("Given a filled pin / When the cell bag is read / Then the filled cell reports it", () => {
+test("Given a filled pin / When the cell bag is read / Then the filled cell reports it", () => {
   const h = mount({ defaultValue: ["1"] });
-  assertEquals(h.bag(0)["data-filled"], "", "the filled cell reports filled");
-  assertEquals(h.bag(0)["value"], "1", "the bag carries the character");
-  assertEquals(h.bag(1)["data-filled"], undefined, "an empty cell does not");
+  deepStrictEqual(h.bag(0)["data-filled"], "", "the filled cell reports filled");
+  deepStrictEqual(h.bag(0)["value"], "1", "the bag carries the character");
+  deepStrictEqual(h.bag(1)["data-filled"], undefined, "an empty cell does not");
   h.dispose();
 });
 
-Deno.test("Given a masked pin / When the cell bag is read / Then the cells are password fields", () => {
+test("Given a masked pin / When the cell bag is read / Then the cells are password fields", () => {
   const h = mount({ mask: true });
-  assertEquals(
+  deepStrictEqual(
     h.bag(0)["type"],
     "password",
     "a masked pin hides its characters",
@@ -1040,10 +1041,10 @@ Deno.test("Given a masked pin / When the cell bag is read / Then the cells are p
   h.dispose();
 });
 
-Deno.test("Given an otp pin / When the cell bag is read / Then it asks the platform for the code", () => {
+test("Given an otp pin / When the cell bag is read / Then it asks the platform for the code", () => {
   const h = mount({ otp: true });
-  assertEquals(h.bag(0)["inputMode"], "numeric", "an otp pin is numeric");
-  assertEquals(
+  deepStrictEqual(h.bag(0)["inputMode"], "numeric", "an otp pin is numeric");
+  deepStrictEqual(
     h.bag(0)["autoComplete"],
     "one-time-code",
     "and the platform may fill it",
@@ -1051,7 +1052,7 @@ Deno.test("Given an otp pin / When the cell bag is read / Then it asks the platf
   h.dispose();
 });
 
-Deno.test("Given a named pin / When the hidden input bag is read / Then the form value rides it", () => {
+test("Given a named pin / When the hidden input bag is read / Then the form value rides it", () => {
   const h = mount({
     defaultValue: ["1", "2"],
     name: "pin",
@@ -1059,26 +1060,26 @@ Deno.test("Given a named pin / When the hidden input bag is read / Then the form
     required: true,
   });
   const bag = h.api.getHiddenInputProps();
-  assertEquals(bag["name"], "pin", "the name crosses");
-  assertEquals(bag["form"], "checkout", "and the form it belongs to");
-  assertEquals(bag["required"], true, "the required flag crosses");
-  assertEquals(bag["value"], "12", "the value is the joined pin");
-  assertEquals(bag["hidden"], true, "and the input is hidden from view");
-  assertEquals(bag["type"], "text", "as a text field");
-  assertEquals(bag["tabIndex"], -1, "out of the tab order");
-  assertEquals(bag["aria-hidden"], true, "and out of the a11y tree");
+  deepStrictEqual(bag["name"], "pin", "the name crosses");
+  deepStrictEqual(bag["form"], "checkout", "and the form it belongs to");
+  deepStrictEqual(bag["required"], true, "the required flag crosses");
+  deepStrictEqual(bag["value"], "12", "the value is the joined pin");
+  deepStrictEqual(bag["hidden"], true, "and the input is hidden from view");
+  deepStrictEqual(bag["type"], "text", "as a text field");
+  deepStrictEqual(bag["tabIndex"], -1, "out of the tab order");
+  deepStrictEqual(bag["aria-hidden"], true, "and out of the a11y tree");
   h.dispose();
 });
 
-Deno.test("Given a disabled pin / When the cell bag is read / Then the cells announce disabled", () => {
+test("Given a disabled pin / When the cell bag is read / Then the cells announce disabled", () => {
   const h = mount({ disabled: true });
-  assertEquals(h.bag(0)["disabled"], true, "the cell is disabled");
-  assertEquals(
+  deepStrictEqual(h.bag(0)["disabled"], true, "the cell is disabled");
+  deepStrictEqual(
     h.bag(0)["data-disabled"],
     "",
     "and reports it for the utilities",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-disabled"],
     "",
     "the root reports it too",
@@ -1086,55 +1087,55 @@ Deno.test("Given a disabled pin / When the cell bag is read / Then the cells ann
   h.dispose();
 });
 
-Deno.test("Given a read-only pin / When the parts are read / Then the state leaves on the root and the cells", () => {
+test("Given a read-only pin / When the parts are read / Then the state leaves on the root and the cells", () => {
   const h = mount({ readOnly: true });
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-readonly"],
     "",
     "the root reports read-only",
   );
-  assertEquals(h.bag(0)["readOnly"], true, "the cells are read-only");
+  deepStrictEqual(h.bag(0)["readOnly"], true, "the cells are read-only");
   h.dispose();
 });
 
-Deno.test("Given an invalid pin / When the parts are read / Then every part reports it", () => {
+test("Given an invalid pin / When the parts are read / Then every part reports it", () => {
   const h = mount({ invalid: true });
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-invalid"],
     "",
     "the root reports invalid",
   );
-  assertEquals(h.api.getLabelProps()["data-invalid"], "", "the label does too");
-  assertEquals(h.bag(0)["data-invalid"], "", "and each cell");
-  assertEquals(h.bag(0)["aria-invalid"], true, "the cells announce it");
+  deepStrictEqual(h.api.getLabelProps()["data-invalid"], "", "the label does too");
+  deepStrictEqual(h.bag(0)["data-invalid"], "", "and each cell");
+  deepStrictEqual(h.bag(0)["aria-invalid"], true, "the cells announce it");
   h.dispose();
 });
 
-Deno.test("Given a complete pin / When the parts are read / Then every part reports completion", () => {
+test("Given a complete pin / When the parts are read / Then every part reports completion", () => {
   const h = mount({ defaultValue: ["1", "2", "3", "4"] });
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-complete"],
     "",
     "the root reports complete",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getLabelProps()["data-complete"],
     "",
     "the label does too",
   );
-  assertEquals(h.bag(0)["data-complete"], "", "and each cell");
+  deepStrictEqual(h.bag(0)["data-complete"], "", "and each cell");
   h.dispose();
 });
 
 // ---- host props the grammar cannot declare --------------------------------
 
-Deno.test("Given a host sanitizeValue / When a paste lands / Then the transform runs before validation", () => {
+test("Given a host sanitizeValue / When a paste lands / Then the transform runs before validation", () => {
   const h = mount({ type: "alphabetic" });
   const root = h.root as unknown as Record<string, unknown>;
   root["sanitizeValue"] = (value: string): string => value.toUpperCase();
   h.focusIn(0);
   h.pasteIn(0, "ab");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["A", "B", "", ""],
     "the paste was sanitized, then distributed",
@@ -1142,14 +1143,14 @@ Deno.test("Given a host sanitizeValue / When a paste lands / Then the transform 
   h.dispose();
 });
 
-Deno.test("Given host translations / When a cell bag is read / Then the overridden label wins", () => {
+test("Given host translations / When a cell bag is read / Then the overridden label wins", () => {
   const h = mount();
   const root = h.root as unknown as Record<string, unknown>;
   root["translations"] = {
     inputLabel: (index: number, length: number): string =>
       `digit ${index} of ${length}`,
   };
-  assertEquals(
+  deepStrictEqual(
     h.bag(1)["aria-label"],
     "digit 1 of 4",
     "the host's label replaces the default",
@@ -1159,39 +1160,39 @@ Deno.test("Given host translations / When a cell bag is read / Then the overridd
 
 // ---- inertness ------------------------------------------------------------
 
-Deno.test("Given a disabled pin / When a keystroke arrives / Then nothing moves", () => {
+test("Given a disabled pin / When a keystroke arrives / Then nothing moves", () => {
   const h = mount({ disabled: true, defaultValue: ["1"] });
   h.focusIn(0);
   h.typeIn(0, "5");
   h.pasteIn(0, "67");
-  assertEquals(CHARS(h), ["1", "", "", ""], "the value is untouched");
+  deepStrictEqual(CHARS(h), ["1", "", "", ""], "the value is untouched");
   h.dispose();
 });
 
-Deno.test("Given a read-only pin / When a keystroke arrives / Then the value is untouched but focus still walks", () => {
+test("Given a read-only pin / When a keystroke arrives / Then the value is untouched but focus still walks", () => {
   const h = mount({ readOnly: true, defaultValue: ["1", "2"] });
   h.focusIn(0);
   h.typeIn(1, "7");
-  assertEquals(
+  deepStrictEqual(
     CHARS(h),
     ["1", "2", "", ""],
     "a read-only pin does not take characters",
   );
   h.press(1, "ArrowRight");
-  assertEquals(h.focused().at(-1), 1, "and the arrows still walk the cells");
+  deepStrictEqual(h.focused().at(-1), 1, "and the arrows still walk the cells");
   h.dispose();
 });
 
 // ---- the mount reflexes ---------------------------------------------------
 
-Deno.test("Given autoFocus / When the pin mounts / Then the index parks on the first cell", () => {
+test("Given autoFocus / When the pin mounts / Then the index parks on the first cell", () => {
   const h = mount({ autoFocus: true });
-  assertEquals(
+  deepStrictEqual(
     h.bag(0)["placeholder"],
     "",
     "the first cell is the parked index",
   );
-  assertEquals(
+  deepStrictEqual(
     h.bag(1)["placeholder"],
     "\u25CB",
     "the others keep their placeholder",
@@ -1199,25 +1200,25 @@ Deno.test("Given autoFocus / When the pin mounts / Then the index parks on the f
   h.dispose();
 });
 
-Deno.test("Given autoFocus / When the fragment is inserted / Then the first cell takes focus", async () => {
+test("Given autoFocus / When the fragment is inserted / Then the first cell takes focus", async () => {
   const h = mount({ autoFocus: true });
   await Promise.resolve();
-  assertEquals(h.focused(), [0], "the view focused the first cell");
-  assertEquals(h.state(), "focused", "and the machine followed the focus");
+  deepStrictEqual(h.focused(), [0], "the view focused the first cell");
+  deepStrictEqual(h.state(), "focused", "and the machine followed the focus");
   h.dispose();
 });
 
-Deno.test("Given a pin / When the label is pressed / Then the first cell takes focus", () => {
+test("Given a pin / When the label is pressed / Then the first cell takes focus", () => {
   const h = mount();
-  assertEquals(h.pressLabel(), true, "the label's own activation is cancelled");
-  assertEquals(h.state(), "focused", "and the first cell is focused");
+  deepStrictEqual(h.pressLabel(), true, "the label's own activation is cancelled");
+  deepStrictEqual(h.state(), "focused", "and the first cell is focused");
   h.dispose();
 });
 
-Deno.test("Given a pin / When the focus command runs / Then the first cell takes focus", () => {
+test("Given a pin / When the focus command runs / Then the first cell takes focus", () => {
   const h = mount({ defaultValue: ["1"] });
   h.api.focus();
-  assertEquals(h.focused().at(-1), 0, "the first cell is focused");
-  assertEquals(h.state(), "focused", "and the machine followed");
+  deepStrictEqual(h.focused().at(-1), 0, "the first cell is focused");
+  deepStrictEqual(h.state(), "focused", "and the machine followed");
   h.dispose();
 });

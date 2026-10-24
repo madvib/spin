@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM steps flow in a real browser — next advances, back
  * retreats, triggers jump, and the imperative commands drive the index.
@@ -5,14 +6,14 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `steps:<element id>:<part>`. */
 const at = (part: string): string => `[id="steps:flow:${part}"]`;
 const ROOT_ID = '[id="steps:flow"]';
 const trigger = (index: number): string => at(`trigger:${index}`);
 
-Deno.test("spin-steps e2e", () =>
+test("spin-steps e2e", () =>
   runComponentSuite(
     { port: 5254, route: "/steps", ready: ROOT_ID },
     async ({ page }) => {

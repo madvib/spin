@@ -1,4 +1,6 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../src/index.ts";
 import { parseTokens } from "@spin/theme";
@@ -13,12 +15,12 @@ import { claims } from "../src/utils/claimed.ts";
  * names a utility that does not work" into a false alarm.
  */
 const THEME = JSON.parse(
-  await Deno.readTextFile(
+  await readFile(
     new URL("../../theme/src/themes/silk.json", import.meta.url),
   ),
 ) as Record<string, unknown>;
 
-Deno.test("every utility the catalog names actually generates", async () => {
+test("every utility the catalog names actually generates", async () => {
   const parsed = parseTokens(THEME);
   if (!parsed.ok) throw new Error(parsed.error);
   // The variants section names prefixes (`hover:`), not utilities: a prefix on
@@ -42,14 +44,14 @@ Deno.test("every utility the catalog names actually generates", async () => {
     const { css } = await uno.generate(utility);
     if (!claims(css, utility)) missing.push(utility);
   }
-  assertEquals(
+  deepStrictEqual(
     missing,
     [],
     "the utility reference names these, but the generator emits nothing",
   );
 });
 
-Deno.test("a theme with no scales is described honestly", () => {
+test("a theme with no scales is described honestly", () => {
   // The scaffold declares roles and no scales. The families that need a scale
   // have nothing to describe, so the catalog must not claim them — a reference
   // listing `p-4` for a theme with no spacing scale would be telling a user to
@@ -57,7 +59,7 @@ Deno.test("a theme with no scales is described honestly", () => {
   const parsed = parseTokens(scaffoldDocument());
   if (!parsed.ok) throw new Error(parsed.error);
   const padding = describeCatalog(parsed.tree).find((s) => s.id === "padding");
-  assertEquals(padding?.utilities, [], "no spacing scale, nothing to claim");
+  deepStrictEqual(padding?.utilities, [], "no spacing scale, nothing to claim");
 
   const background = describeCatalog(parsed.tree).find((s) =>
     s.id === "background"
@@ -68,7 +70,7 @@ Deno.test("a theme with no scales is described honestly", () => {
   );
 });
 
-Deno.test("the catalog reflects the theme, not a fixed inventory", () => {
+test("the catalog reflects the theme, not a fixed inventory", () => {
   // Adding a colour step to the theme must add utilities to the catalog. This
   // is the direction a section list cannot check: it would notice a new
   // *section* but never a new *member*.
@@ -102,7 +104,7 @@ Deno.test("the catalog reflects the theme, not a fixed inventory", () => {
     .filter((u) =>
       !describeCatalog(withOne.tree).flatMap((s) => s.utilities).includes(u)
     );
-  assertEquals(
+  deepStrictEqual(
     added.sort(),
     ["bg-accentish", "border-accentish", "divide-accentish", "text-accentish"],
     "one added colour step is named in the colour families",

@@ -1,4 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import plugin from "../src/index.ts";
 import { type GateNode, renderMessage } from "../src/rules.ts";
 import { lint, type LintOptions } from "../src/service.ts";
@@ -78,14 +82,14 @@ function reportsFor(node: GateNode): Report[] {
   return reports;
 }
 
-Deno.test("a token written by hand in a class attribute is reported", () => {
+test("a token written by hand in a class attribute is reported", () => {
   // The mistake the rule exists for: the component names the token instead
   // of reading the theme, so a renamed token leaves it pointing at nothing.
   const [report] = reportsFor(
     attribute("class", literal("bg-primary var(--color-text)")),
   );
-  assertEquals(report?.messageId, "handwritten");
-  assertEquals(report?.data, {
+  deepStrictEqual(report?.messageId, "handwritten");
+  deepStrictEqual(report?.data, {
     token: "color-text",
     group: "color",
     step: "color-text",
@@ -95,7 +99,7 @@ Deno.test("a token written by hand in a class attribute is reported", () => {
   });
 });
 
-Deno.test("the message names the token, not the variable", () => {
+test("the message names the token, not the variable", () => {
   // The remedy has to be true: the variable is generated output, and the
   // theme's path is what an author spends.
   const rule = plugin.rules["no-handwritten-tokens"];
@@ -112,56 +116,56 @@ Deno.test("the message names the token, not the variable", () => {
     },
   }).JSXAttribute;
   visit?.(attribute("class", literal("var(--color-text)")));
-  assertEquals(seen, [
+  deepStrictEqual(seen, [
     "`var(--color-text)` is generated output, not an API. " +
     "Read the theme's token `color.text`, not its variable.",
   ]);
 });
 
-Deno.test("a token written by hand in a style attribute is reported", () => {
+test("a token written by hand in a style attribute is reported", () => {
   // A declaration is markup too: the value reaches the document as the
   // document's own text, and a custom property in it is written by hand.
   const [report] = reportsFor(
     attribute("style", literal("color: var(--color-text)")),
   );
-  assertEquals(report?.messageId, "handwritten");
-  assertEquals(report?.data?.["token"], "color-text");
+  deepStrictEqual(report?.messageId, "handwritten");
+  deepStrictEqual(report?.data?.["token"], "color-text");
 });
 
-Deno.test("a token written by hand in a template used as markup is reported", () => {
+test("a token written by hand in a template used as markup is reported", () => {
   // The template is the class list the element wears, so the token in it is
   // a token in the document's own text.
   const [report] = reportsFor(
     attribute("class", expression(template("var(--color-text)"))),
   );
-  assertEquals(report?.messageId, "handwritten");
-  assertEquals(report?.data?.["token"], "color-text");
+  deepStrictEqual(report?.messageId, "handwritten");
+  deepStrictEqual(report?.data?.["token"], "color-text");
 });
 
-Deno.test("a class that spends no token is left alone", () => {
+test("a class that spends no token is left alone", () => {
   // Most class lists are words. The rule reads the ones that name a custom
   // property, not the ones that merely sit in the source.
-  assertEquals(reportsFor(attribute("class", literal("bg-primary"))), []);
+  deepStrictEqual(reportsFor(attribute("class", literal("bg-primary"))), []);
 });
 
-Deno.test("an attribute that carries data is not markup", () => {
+test("an attribute that carries data is not markup", () => {
   // A title is a sentence the author wrote, not a decision about how the
   // element looks; reading it as markup would report the author's prose.
-  assertEquals(
+  deepStrictEqual(
     reportsFor(attribute("title", literal("var(--color-text)"))),
     [],
   );
 });
 
-Deno.test("a stylesheet a package emits is not authored markup", async () => {
+test("a stylesheet a package emits is not authored markup", async () => {
   // The generator's own output: the theme's CSS, the preset's rules and
   // the animation layer's keyframes all name the custom properties they
   // spend. That is what generated output looks like, and the rule reads
   // markup — so the stylesheet is not what it reports.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/stylesheet.ts`;
-    await Deno.writeTextFile(
+    await writeFile(
       file,
       `export const css = \`
 body { color: var(--color-text); }
@@ -173,8 +177,8 @@ body { color: var(--color-text); }
       rules: ["no-handwritten-tokens"],
     };
     const { findings } = await lint(file, undefined, options);
-    assertEquals(findings, []);
+    deepStrictEqual(findings, []);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });

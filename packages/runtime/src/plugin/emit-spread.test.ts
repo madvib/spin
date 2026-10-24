@@ -1,68 +1,73 @@
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parse } from "@spin/syntax";
 import { emit } from "./emit.ts";
 
-Deno.test("emit spread produces bindSpread with scopeExpr rewrite", () => {
+test("emit spread produces bindSpread with scopeExpr rewrite", () => {
   const ir = parse(`<div {...tabs.getX(row)}></div>`);
   const { js } = emit(ir);
-  assertStringIncludes(js, "bindSpread(");
+  assert(js.includes("bindSpread("));
   // A consume name reads through values, exactly like a scope prop.
-  assertStringIncludes(js, "values.tabs.getX(values.row)");
+  const scopeRead = "values.tabs.getX(values.row)";
+  assert(js.includes(scopeRead));
 });
 
-Deno.test("emit for-template produces balanced bindFor without .sync wrapper", () => {
+test("emit for-template produces balanced bindFor without .sync wrapper", () => {
   const ir = parse(
     `<template for={items} as={row}><span>{row.name}</span></template>`,
   );
   const { js } = emit(ir);
-  assertStringIncludes(js, "bindFor(");
-  assertStringIncludes(js, "items: () => ((values.items) ?? [])");
-  assertStringIncludes(js, "render: (item, i) => {");
-  assertStringIncludes(js, "let row = item;");
-  assertStringIncludes(js, "update(item) { row = item;");
-  // Regression: no stale .sync wrapper
-  assertEquals(js.includes(".sync"), false);
+  assert(js.includes("bindFor("));
+  const itemsFn = "items: () => ((values.items) ?? [])";
+  assert(js.includes(itemsFn));
+  const renderFn = "render: (item, i) => {";
+  assert(js.includes(renderFn));
+  assert(js.includes("let row = item;"));
+  const updateRow = "update(item) { row = item;";
+  assert(js.includes(updateRow));
+  deepStrictEqual(js.includes(".sync"), false);
   // Regression: template-literal brace-eat — braces in expressions preserved
-  assertStringIncludes(js, "values.items");
+  assert(js.includes("values.items"));
 });
 
-Deno.test("row binding avoids render-param shadow inside for-template", () => {
+test("row binding avoids render-param shadow inside for-template", () => {
   const ir = parse(
     `<template for={items} as={row}><span>{row.name}</span></template>`,
   );
   const { js } = emit(ir);
   // Inside render, `row` is the local item param, NOT values.row
-  assertStringIncludes(js, "let row = item;");
-  assertStringIncludes(js, "update(item) { row = item;");
+  assert(js.includes("let row = item;"));
+  const updateRow = "update(item) { row = item;";
+  assert(js.includes(updateRow));
   // The text expression uses bare `row.name`, not `values.row.name`
-  assertStringIncludes(js, "row.name");
-  assertEquals(js.includes("values.row.name"), false);
+  assert(js.includes("row.name"));
+  deepStrictEqual(js.includes("values.row.name"), false);
 });
 
-Deno.test("object-literal keys survive scopeExpr (carousel index)", () => {
+test("object-literal keys survive scopeExpr (carousel index)", () => {
   const ir = parse(
     `<template for={items} as={row}><div {...carousel.getItemProps({ index: i })}></div></template>`,
   );
   const { js } = emit(ir);
   // `index` stays a key, `i` stays the row position — neither becomes values.*
-  assertStringIncludes(js, "getItemProps({ index: i })");
-  assertEquals(js.includes("values.index"), false);
+  const itemProps = "getItemProps({ index: i })";
+  assert(js.includes(itemProps));
 });
 
-Deno.test("emit binds an attribute to a typed state read", () => {
+test("emit binds an attribute to a typed state read", () => {
   const ir = parse(`<div data-mode={slider.state}></div>`);
   const { js } = emit(ir);
-  assertStringIncludes(js, `bindAttr(`);
-  assertStringIncludes(js, `"data-mode"`);
+  assert(js.includes(`bindAttr(`));
+  assert(js.includes(`"data-mode"`));
   // The consume name reads through values, exactly like a scope prop.
-  assertStringIncludes(js, "values.slider.state");
+  assert(js.includes("values.slider.state"));
 });
 
-Deno.test("emit binds a class to a state read", () => {
+test("emit binds a class to a state read", () => {
   const ir = parse(
     `<div class={"bg-surface" + (slider.dragging ? " scale-110" : "")}></div>`,
   );
   const { js } = emit(ir);
-  assertStringIncludes(js, `"class"`);
-  assertStringIncludes(js, "values.slider.dragging");
+  assert(js.includes(`"class"`));
+  assert(js.includes("values.slider.dragging"));
 });

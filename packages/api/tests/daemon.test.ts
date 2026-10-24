@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
   copyFileSync,
@@ -63,21 +63,21 @@ describe("daemon project.themes over HTTP", () => {
       .filter((theme) => theme.file !== null);
     for (const theme of listed) {
       const doc = JSON.parse(theme.text) as Record<string, unknown>;
-      assertEquals(
+      deepStrictEqual(
         "dark" in doc,
         false,
         `${theme.name}: no dark group — a token carries its own $modes`,
       );
       const parsed = parseTokens(theme.text);
-      assertEquals(parsed.ok, true, `${theme.name}: parses`);
+      deepStrictEqual(parsed.ok, true, `${theme.name}: parses`);
       if (!parsed.ok) return;
       const modes = themeModes(doc as never);
-      assertEquals(
+      deepStrictEqual(
         modes.includes("dark"),
         true,
         `${theme.name}: declares dark`,
       );
-      assertEquals(
+      deepStrictEqual(
         validateTokens(parsed.tree, { modes: [...modes] }).issues,
         [],
         `${theme.name}: every color and focus leaf has a dark value`,
@@ -87,7 +87,7 @@ describe("daemon project.themes over HTTP", () => {
 
   it("lists the shipped starters beside the project's files", async () => {
     const listed = await client.project.themes.list({});
-    assertEquals(
+    deepStrictEqual(
       listed.map((t) => [t.name, t.file]),
       [
         ["acme", "spin/acme.json"],
@@ -103,7 +103,7 @@ describe("daemon project.themes over HTTP", () => {
     // Project-relative, never absolute: a path a developer sees carries no
     // machine with it — no screenshot, log line, or issue report says where
     // the files live on someone's disk.
-    assertEquals(
+    deepStrictEqual(
       listed.every((t) =>
         t.file === null ||
         (!t.file.startsWith("/") && !t.file.includes(":\\"))
@@ -118,7 +118,7 @@ describe("daemon project.themes over HTTP", () => {
     const doc = JSON.parse(shipped.text ?? "{}") as {
       color: { primary: { $value: string } };
     };
-    assertEquals(
+    deepStrictEqual(
       typeof doc.color.primary.$value,
       "string",
       "the unforked starter reads as its document",
@@ -128,14 +128,14 @@ describe("daemon project.themes over HTTP", () => {
       name: "silk",
       text: JSON.stringify(doc, null, 2),
     });
-    assertEquals(written.error, null, "the save forks the starter");
-    assertEquals(
+    deepStrictEqual(written.error, null, "the save forks the starter");
+    deepStrictEqual(
       (await client.project.themes.list({})).find((t) => t.name === "silk")
         ?.file,
       "spin/silk.json",
       "the fork is the project's own file",
     );
-    assertEquals(
+    deepStrictEqual(
       (await client.project.themes.read({ name: "silk" })).text?.includes(
         "#ff0000",
       ),
@@ -143,8 +143,8 @@ describe("daemon project.themes over HTTP", () => {
       "and shadows the shipped document",
     );
     const removed = await client.project.themes.remove({ name: "silk" });
-    assertEquals(removed.error, null, "the fork is removable");
-    assertEquals(
+    deepStrictEqual(removed.error, null, "the fork is removable");
+    deepStrictEqual(
       (await client.project.themes.read({ name: "silk" })).text,
       shipped.text,
       "and removing it puts the shipped document back",
@@ -156,25 +156,25 @@ describe("daemon project.themes over HTTP", () => {
     // in it, and the uno config answers the second half without being the
     // mark of one — a project can hold themes it has not wired up yet.
     const report = await client.project.detect({ root: dir });
-    assertEquals(report.spin, true, "the fixture's spin directory is seen");
-    assertEquals(report.uno, false, "the fixture has no uno config");
-    assertEquals(report.themes, ["acme.json", "starter.json"]);
+    deepStrictEqual(report.spin, true, "the fixture's spin directory is seen");
+    deepStrictEqual(report.uno, false, "the fixture has no uno config");
+    deepStrictEqual(report.themes, ["acme.json", "starter.json"]);
 
     const bare = mkdtempSync(join(tmpdir(), "spin-bare-"));
     const empty = await client.project.detect({ root: bare });
-    assertEquals(empty.spin, false, "a root without spin is not a project");
-    assertEquals(empty.themes, []);
+    deepStrictEqual(empty.spin, false, "a root without spin is not a project");
+    deepStrictEqual(empty.themes, []);
 
     writeFileSync(join(bare, "uno.config.ts"), "export default []");
     const noPlugin = await client.project.detect({ root: bare });
-    assertEquals(noPlugin.uno, true);
-    assertEquals(noPlugin.wired, false, "an uno config without the preset");
+    deepStrictEqual(noPlugin.uno, true);
+    deepStrictEqual(noPlugin.wired, false, "an uno config without the preset");
     writeFileSync(
       join(bare, "uno.config.ts"),
       'import { spinPreset } from "@spin/preset";',
     );
     const wired = await client.project.detect({ root: bare });
-    assertEquals(wired.wired, true, "an uno config naming the preset");
+    deepStrictEqual(wired.wired, true, "an uno config naming the preset");
     rmSync(bare, { recursive: true, force: true });
   });
 
@@ -184,9 +184,9 @@ describe("daemon project.themes over HTTP", () => {
     // MCP client — has no other way to learn it. `detect` stays for roots the
     // caller names.
     const report = await client.project.current({});
-    assertEquals(report.root, dir);
-    assertEquals(report.spin, true);
-    assertEquals(report.themes, ["acme.json", "starter.json"]);
+    deepStrictEqual(report.root, dir);
+    deepStrictEqual(report.spin, true);
+    deepStrictEqual(report.themes, ["acme.json", "starter.json"]);
   });
 
   it("serves two projects from one daemon, named per call", async () => {
@@ -201,14 +201,14 @@ describe("daemon project.themes over HTTP", () => {
       join(other, "spin", "solo.json"),
     );
     const theirs = await client.project.themes.list({ root: other });
-    assertEquals(
+    deepStrictEqual(
       theirs.map((t) => t.name),
       ["console", "neobrut", "silk", "solo", "spin", "synthwave"],
       "the named root's own file plus the shipped starters",
     );
     // The daemon's own project is unchanged, which is the point.
     const mine = await client.project.themes.list({});
-    assertEquals(mine.map((t) => t.name), [
+    deepStrictEqual(mine.map((t) => t.name), [
       "acme",
       "console",
       "neobrut",
@@ -230,28 +230,28 @@ describe("daemon project.themes over HTTP", () => {
       name: "first",
       starter: "silk",
     });
-    assertEquals(init.error, null);
+    deepStrictEqual(init.error, null);
     const detect = await client.project.detect({ root: fresh });
-    assertEquals(detect.spin, true, "init created the directory");
-    assertEquals(detect.themes, ["first.json"], "and seeded one theme");
+    deepStrictEqual(detect.spin, true, "init created the directory");
+    deepStrictEqual(detect.themes, ["first.json"], "and seeded one theme");
     // And the build config, which is the other half of a project: the daemon
     // composes theme's document with the preset's config because it is the
     // only thing that knows a project needs both.
-    assertEquals(detect.uno, true, "init wrote an uno config");
-    assertEquals(detect.wired, true, "and that config wires the preset");
+    deepStrictEqual(detect.uno, true, "init wrote an uno config");
+    deepStrictEqual(detect.wired, true, "and that config wires the preset");
     const config = readFileSync(join(fresh, "uno.config.ts"), "utf8");
-    assertEquals(
+    deepStrictEqual(
       config.includes('"@spin/config"'),
       true,
       "it applies the encapsulated form",
     );
-    assertEquals(
+    deepStrictEqual(
       config.includes("spin()"),
       true,
       "with the spin config, not raw uno",
     );
     const listed = await client.project.themes.list({ root: fresh });
-    assertEquals(
+    deepStrictEqual(
       listed.map((t) => t.name),
       ["console", "first", "neobrut", "silk", "spin", "synthwave"],
       "the seeded theme joins the shipped starters",
@@ -260,7 +260,7 @@ describe("daemon project.themes over HTTP", () => {
       name: "first",
       root: fresh,
     });
-    assertEquals(
+    deepStrictEqual(
       JSON.parse(seeded.text ?? "{}").color !== undefined,
       true,
       "the seeded theme is a real document, not an empty file",
@@ -279,10 +279,10 @@ describe("daemon project.themes over HTTP", () => {
       text: source.text as string,
       root: fresh,
     });
-    assertEquals(written.error, null);
-    assertEquals(readdirSync(join(fresh, "spin")), ["first.json"]);
+    deepStrictEqual(written.error, null);
+    deepStrictEqual(readdirSync(join(fresh, "spin")), ["first.json"]);
     const detected = await client.project.detect({ root: fresh });
-    assertEquals(detected.spin, true, "the write made the project");
+    deepStrictEqual(detected.spin, true, "the write made the project");
     rmSync(fresh, { recursive: true, force: true });
   });
 
@@ -291,21 +291,21 @@ describe("daemon project.themes over HTTP", () => {
       from: "starter",
       to: "acme-dark",
     });
-    assertEquals(copied.error, null);
+    deepStrictEqual(copied.error, null);
     const names = (await client.project.themes.list({})).map((t) => t.name);
-    assertEquals(
+    deepStrictEqual(
       names.includes("acme-dark"),
       true,
       "the copy appears in the list",
     );
     const read = await client.project.themes.read({ name: "acme-dark" });
     const source = await client.project.themes.read({ name: "starter" });
-    assertEquals(read.text, source.text);
+    deepStrictEqual(read.text, source.text);
   });
 
   it("writes a theme and reads it back", async () => {
     const before = await client.project.themes.read({ name: "acme" });
-    assertEquals(
+    deepStrictEqual(
       before.text !== null,
       true,
       "the fixture theme reads",
@@ -318,9 +318,9 @@ describe("daemon project.themes over HTTP", () => {
       name: "acme",
       text: edited,
     });
-    assertEquals(written.error, null);
+    deepStrictEqual(written.error, null);
     const after = await client.project.themes.read({ name: "acme" });
-    assertEquals(
+    deepStrictEqual(
       after.text?.includes("#ff0000"),
       true,
       "the write landed on disk",
@@ -329,9 +329,9 @@ describe("daemon project.themes over HTTP", () => {
 
   it("removes a theme", async () => {
     const removed = await client.project.themes.remove({ name: "acme-dark" });
-    assertEquals(removed.error, null);
+    deepStrictEqual(removed.error, null);
     const names = (await client.project.themes.list({})).map((t) => t.name);
-    assertEquals(
+    deepStrictEqual(
       names.includes("acme-dark"),
       false,
       "the removed theme is gone",
@@ -347,7 +347,7 @@ describe("daemon project.themes over HTTP", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ json: {} }),
     });
-    assertEquals(res.status, 200, "the daemon answers its own procedures");
+    deepStrictEqual(res.status, 200, "the daemon answers its own procedures");
   });
 
   it("refuses a name that escapes the themes directory", async () => {
@@ -360,6 +360,6 @@ describe("daemon project.themes over HTTP", () => {
     } catch {
       refused = true;
     }
-    assertEquals(refused, true, "a name with a separator must be refused");
+    deepStrictEqual(refused, true, "a name with a separator must be refused");
   });
 });

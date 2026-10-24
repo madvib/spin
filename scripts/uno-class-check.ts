@@ -17,7 +17,7 @@
 import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
-import { walk } from "@std/fs/walk";
+import { readdir, readFile } from "node:fs/promises";
 import { classTokens } from "../packages/syntax/src/classes.ts";
 import { expandVariantGroups } from "../packages/syntax/src/expand-groups.ts";
 import { parse } from "../packages/syntax/src/parse.ts";
@@ -58,12 +58,19 @@ function classesOfMarkup(source: string): string[] {
   return classTokens(parse(stripped));
 }
 
+async function* walkFiles(root: string, exts: string[]): AsyncGenerator<string> {
+  const entries = await readdir(root, { withFileTypes: true });
+  for (const e of entries) {
+    const p = `${root}/${e.name}`;
+    if (e.isDirectory()) yield* walkFiles(p, exts);
+    else if (e.isFile() && exts.some((x) => e.name.endsWith(x))) yield p;
+  }
+}
 const tokens = new Set<string>();
 for (const root of SOURCES) {
-  for await (const entry of walk(root, { exts: [".html", ".tsx", ".ts"] })) {
-    if (!entry.isFile) continue;
-    const source = await Deno.readTextFile(entry.path);
-    const found = entry.path.endsWith(".html")
+  for await (const entryPath of walkFiles(root, [".html", ".tsx", ".ts"])) {
+    const source = await readFile(entryPath, "utf8");
+    const found = entryPath.endsWith(".html")
       ? classesOfMarkup(source)
       : classesOf(source);
     for (const token of found) tokens.add(token);
@@ -93,6 +100,6 @@ const dead = [...tokens].filter((token) =>
 if (dead.length > 0) {
   console.error(`uno: ${dead.length} class(es) match no rule:`);
   for (const token of dead) console.error(`  ${token}`);
-  Deno.exit(1);
+  process.exit(1);
 }
 console.log(`uno: ${tokens.size} classes, all matched`);

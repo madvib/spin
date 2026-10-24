@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { provideController, type SpinController } from "@spin/runtime";
 import { spinComponentCtl } from "./controller.ts";
@@ -21,29 +22,29 @@ function element(): Element {
   return document.createElement("div");
 }
 
-Deno.test("spinComponentCtl binds before any controller registers", () => {
+test("spinComponentCtl binds before any controller registers", () => {
   const el = element();
   const ctl = spinComponentCtl(el);
   const seen: string[] = [];
   const unbind = ctl.bind({ items: [1, 2] }, {
     "value-change": () => seen.push("event"),
   });
-  assertEquals((el as unknown as Record<string, unknown>)["items"], [1, 2]);
+  deepStrictEqual((el as unknown as Record<string, unknown>)["items"], [1, 2]);
   el.dispatchEvent(new CustomEvent("value-change"));
-  assertEquals(seen, ["event"]);
+  deepStrictEqual(seen, ["event"]);
   unbind();
   el.dispatchEvent(new CustomEvent("value-change"));
-  assertEquals(seen, ["event"], "unbind detaches the subscription");
+  deepStrictEqual(seen, ["event"], "unbind detaches the subscription");
 });
 
-Deno.test("spinComponentCtl reads empty commands and state before connect", () => {
+test("spinComponentCtl reads empty commands and state before connect", () => {
   const el = element();
   const ctl = spinComponentCtl(el);
-  assertEquals(Object.keys(ctl.commands).length, 0);
-  assertEquals(Object.keys(ctl.state).length, 0);
+  deepStrictEqual(Object.keys(ctl.commands).length, 0);
+  deepStrictEqual(Object.keys(ctl.state).length, 0);
 });
 
-Deno.test("spinComponentCtl resolves commands and state once provided", () => {
+test("spinComponentCtl resolves commands and state once provided", () => {
   const el = element();
   const ctl = spinComponentCtl(el);
   let open = false;
@@ -56,11 +57,11 @@ Deno.test("spinComponentCtl resolves commands and state once provided", () => {
     state: { open: () => open },
   };
   provideController(el, () => controller);
-  assertEquals(
+  deepStrictEqual(
     typeof (ctl.commands as Record<string, unknown>)["show"],
     "function",
   );
   (ctl.commands as { show(): void }).show();
-  assertEquals(open, true);
-  assertEquals(ctl.state["open"]?.(), true);
+  deepStrictEqual(open, true);
+  deepStrictEqual(ctl.state["open"]?.(), true);
 });

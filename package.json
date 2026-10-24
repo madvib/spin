@@ -1,0 +1,63 @@
+{
+  "name": "@spin/workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "internal/check"
+  ],
+  "type": "module",
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@orpc/client": "^1.0.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@spin/animation": "workspace:*",
+    "@spin/api": "workspace:*",
+    "@spin/components": "workspace:*",
+    "@spin/diagnostics": "workspace:*",
+    "@spin/hooks": "workspace:*",
+    "@spin/kit": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/runtime": "workspace:*",
+    "@spin/syntax": "workspace:*",
+    "@spin/theme": "workspace:*",
+    "@typescript-eslint/parser": "8.71.0",
+    "@unocss/core": "66.10.5",
+    "@unocss/preset-icons": "^66.10.5",
+    "@unocss/preset-tagify": "66.10.5",
+    "@unocss/preset-wind4": "^66.10.5",
+    "@unocss/vite": "66.10.5",
+    "@zag-js/color-utils": "^1.44.0",
+    "playwright-core": "^1.63.0",
+    "typescript": "5.9.2",
+    "unplugin": "^3.4.0",
+    "valibot": "^1.0.0",
+    "vite": "8",
+    "vite-plugin-solid": "^2.11.14"
+  },
+  "scripts": {
+    "test": "bun test packages/ apps/studio/src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "check": "tsc --noEmit",
+    "build:dist": "bun run scripts/build-dist.ts",
+    "check:dist": "bun run scripts/check-exports.ts",
+    "lint:ox": "oxlint --config .oxlintrc.json packages/ apps/",
+    "visual": "cd apps/reference && bun run visual",
+    "serve": "cd apps/reference && bun run dev",
+    "dev": "bun run dev:studio & bun run dev:daemon & wait",
+    "dev:docs": "cd apps/docs && bun run dev",
+    "build:docs": "cd apps/docs && bun run build",
+    "dev:daemon": "cd packages/api && bun run dev --root ../../examples/fixture-app --port 0",
+    "dev:studio": "cd apps/studio && bun run dev",
+    "build:studio": "cd apps/studio && bun run build",
+    "skill": "cd packages/theme && bun run skill",
+    "e2e": "cd apps/studio && bun run e2e"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.4"
+  }
+}

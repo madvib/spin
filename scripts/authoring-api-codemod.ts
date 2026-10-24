@@ -44,6 +44,7 @@
  *   deno run -A scripts/authoring-api-codemod.ts [--check]
  */
 
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 const COMPONENTS = "packages/components/src";
 
 /** The extent of a balanced expression, stopping at a top-level comma. */
@@ -298,7 +299,7 @@ function eventMap(
       };
     }
   }
-  if (Deno.args.includes("--verbose")) {
+  if (process.argv.slice(2).includes("--verbose")) {
     console.log(`  members: ${members.length}`);
   }
   if (members.length === 0) return undefined;
@@ -754,13 +755,13 @@ function convert(source: string): string {
       out = out.slice(0, from) + widened + out.slice(from + map.text.length);
     }
   }
-  if (Deno.args.includes("--verbose")) {
+  if (process.argv.slice(2).includes("--verbose")) {
     console.log(
       `  bodies: assigns=${bodies.assigns.size} conds=${bodies.conds.size}`,
     );
   }
   const plan = planBodies(out, bodies);
-  if (Deno.args.includes("--verbose")) {
+  if (process.argv.slice(2).includes("--verbose")) {
     console.log(`  inline: ${[...plan.inline.keys()].join(",")}`);
   }
   out = rewriteTransitions(out, plan);
@@ -888,12 +889,12 @@ function hoistTables(
 }
 
 if (import.meta.main) {
-  const check = Deno.args.includes("--check");
-  const only = Deno.args.find((arg) => arg.startsWith("--only="))?.slice(
+  const check = process.argv.slice(2).includes("--check");
+  const only = process.argv.slice(2).find((arg) => arg.startsWith("--only="))?.slice(
     "--only=".length,
   );
   const files: string[] = [];
-  for (const dir of Deno.readDirSync(COMPONENTS)) {
+  for (const dir of readdirSync(COMPONENTS, { withFileTypes: true })) {
     if (!dir.isDirectory) continue;
     if (
       only !== undefined && !dir.name.includes(only) &&
@@ -903,7 +904,7 @@ if (import.meta.main) {
     }
     // the machine file: the component's own name, which is not always the
     // directory's (the cascade-select's is `cascade`).
-    const machines = [...Deno.readDirSync(`${COMPONENTS}/${dir.name}`)]
+    const machines = [...readdirSync(`${COMPONENTS}/${dir.name}`, { withFileTypes: true })]
       .map((entry) => entry.name)
       .filter((name) => name.endsWith(".machine.ts"));
     if (machines.length === 0) continue;
@@ -911,20 +912,20 @@ if (import.meta.main) {
     files.push(path);
   }
   for (const path of files) {
-    const source = Deno.readTextFileSync(path);
+    const source = readFileSync(path, "utf8");
     const out = convert(source);
     if (out === source) continue;
     if (check) {
       console.log(`would rewrite ${path}`);
     } else {
-      Deno.writeTextFileSync(path, out);
+      writeFileSync(path, out);
       console.log(`rewrote ${path}`);
     }
     // the test file names the map too
     const test = path.replace(/\.machine\.ts$/, ".machine.test.ts");
     let testSource: string;
     try {
-      testSource = Deno.readTextFileSync(test);
+      testSource = readFileSync(test, "utf8");
     } catch {
       testSource = "";
     }
@@ -948,7 +949,7 @@ if (import.meta.main) {
         if (testOut !== testSource) {
           if (check) console.log(`would rewrite ${test}`);
           else {
-            Deno.writeTextFileSync(test, testOut);
+            writeFileSync(test, testOut);
             console.log(`rewrote ${test}`);
           }
         }
@@ -959,7 +960,7 @@ if (import.meta.main) {
     const legacy = path.replace(/\.machine\.ts$/, ".bridge.ts");
     let legacySource: string;
     try {
-      legacySource = Deno.readTextFileSync(legacy);
+      legacySource = readFileSync(legacy, "utf8");
     } catch {
       legacySource = "";
     }
@@ -998,7 +999,7 @@ if (import.meta.main) {
         if (legacyOut !== legacySource) {
           if (check) console.log(`would rewrite ${legacy}`);
           else {
-            Deno.writeTextFileSync(legacy, legacyOut);
+            writeFileSync(legacy, legacyOut);
             console.log(`rewrote ${legacy}`);
           }
         }
@@ -1009,7 +1010,7 @@ if (import.meta.main) {
     const bindings = path.replace(/\.machine\.ts$/, ".bindings.ts");
     let bindingSource: string;
     try {
-      bindingSource = Deno.readTextFileSync(bindings);
+      bindingSource = readFileSync(bindings, "utf8");
     } catch {
       continue;
     }
@@ -1018,20 +1019,20 @@ if (import.meta.main) {
         ? `${/export type (\w+)Event = EventUnion</.exec(out)?.[1]}Event`
         : /export type (\w+)Event =\n/.exec(source)?.[1];
     if (unionName === undefined) {
-      if (Deno.args.includes("--verbose")) {
+      if (process.argv.slice(2).includes("--verbose")) {
         console.log(`  no union name for ${path}`);
       }
       continue;
     }
-    if (Deno.args.includes("--verbose")) {
+    if (process.argv.slice(2).includes("--verbose")) {
       console.log(`  union name: ${unionName}`);
     }
     const bindingOut = convertBindings(bindingSource, unionName);
-    if (Deno.args.includes("--verbose")) {
+    if (process.argv.slice(2).includes("--verbose")) {
       console.log(`  binding changed: ${bindingOut !== bindingSource}`);
     }
     if (bindingOut === bindingSource) {
-      if (Deno.args.includes("--verbose")) {
+      if (process.argv.slice(2).includes("--verbose")) {
         console.log(`  bindings unchanged: ${bindings}`);
       }
       continue;
@@ -1039,7 +1040,7 @@ if (import.meta.main) {
     if (check) {
       console.log(`would rewrite ${bindings}`);
     } else {
-      Deno.writeTextFileSync(bindings, bindingOut);
+      writeFileSync(bindings, bindingOut);
       console.log(`rewrote ${bindings}`);
     }
   }

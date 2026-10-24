@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM avatar faces in a real browser — the portrait loads
  * and the fallback yields, the broken src keeps its fallback, and the
@@ -13,7 +14,7 @@ const USER_IMAGE = at("user", "image");
 const USER_FALLBACK = at("user", "fallback");
 const BROKEN_FALLBACK = at("broken", "fallback");
 
-Deno.test("spin-avatar e2e", () =>
+test("spin-avatar e2e", () =>
   runComponentSuite(
     { port: 5258, route: "/avatar", ready: USER_IMAGE },
     async ({ page }) => {

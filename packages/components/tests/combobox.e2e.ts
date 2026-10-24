@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM combobox drives its machine in a real browser — the
  * focus/open lifecycle, the arrow walk with wrapping, Enter selection, the
@@ -7,7 +8,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `combobox:<element id>:<part>`. */
 const at = (id: string, part: string): string =>
@@ -22,7 +23,7 @@ const CTL_INPUT = at("controlled", "input");
 const readout = async (page: Page, id: string): Promise<string> =>
   (await page.locator(`#${id}`).textContent()) ?? "";
 
-Deno.test("spin-combobox e2e", () =>
+test("spin-combobox e2e", () =>
   runComponentSuite({
     port: 5228,
     route: "/combobox",

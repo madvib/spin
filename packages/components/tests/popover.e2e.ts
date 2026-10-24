@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-popover e2e: the platform tier behind the same app-controller
  * handle as a machine.
@@ -11,7 +12,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#popover-open";
 const TOASTS = "#popover-toasts";
@@ -24,7 +25,7 @@ const nativeOpen = (page: Page): Promise<boolean> =>
     ) ?? false
   );
 
-Deno.test("spin-popover e2e", () =>
+test("spin-popover e2e", () =>
   runComponentSuite({
     port: 5224,
     route: "/popover",

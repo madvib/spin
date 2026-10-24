@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { avatar } from "./avatar.presentation.ts";
@@ -73,69 +74,69 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   return { api: bridge.api, root, events, write };
 }
 
-Deno.test("a load resolves to loaded and an error to error", () => {
+test("a load resolves to loaded and an error to error", () => {
   const { api, events } = mount();
-  assertEquals(api.status, "loading");
+  deepStrictEqual(api.status, "loading");
   handler<() => void>(api.getImageProps(), "onLoad")();
   assert(api.loaded);
-  assertEquals(api.status, "loaded");
+  deepStrictEqual(api.status, "loaded");
   handler<() => void>(api.getImageProps(), "onError")();
   assert(!api.loaded);
-  assertEquals(api.status, "error");
-  assertEquals(events.statusChange.map((change) => change.status), [
+  deepStrictEqual(api.status, "error");
+  deepStrictEqual(events.statusChange.map((change) => change.status), [
     "loaded",
     "error",
   ]);
 });
 
-Deno.test("an error recovers on load", () => {
+test("an error recovers on load", () => {
   const { api } = mount();
   handler<() => void>(api.getImageProps(), "onError")();
-  assertEquals(api.status, "error");
+  deepStrictEqual(api.status, "error");
   handler<() => void>(api.getImageProps(), "onLoad")();
-  assertEquals(api.status, "loaded");
+  deepStrictEqual(api.status, "loaded");
 });
 
-Deno.test("a src change returns to loading", () => {
+test("a src change returns to loading", () => {
   const { api, events } = mount({ src: "a.png" });
   handler<() => void>(api.getImageProps(), "onLoad")();
-  assertEquals(api.status, "loaded");
+  deepStrictEqual(api.status, "loaded");
   api.setSrc("b.png");
-  assertEquals(api.status, "loading");
-  assertEquals(events.statusChange.map((change) => change.status), [
+  deepStrictEqual(api.status, "loading");
+  deepStrictEqual(events.statusChange.map((change) => change.status), [
     "loaded",
     "loading",
   ]);
 });
 
-Deno.test("the imperative reports drive the states", () => {
+test("the imperative reports drive the states", () => {
   const { api } = mount();
   api.setLoaded();
-  assertEquals(api.status, "loaded");
+  deepStrictEqual(api.status, "loaded");
   api.setError();
-  assertEquals(api.status, "error");
+  deepStrictEqual(api.status, "error");
 });
 
-Deno.test("authored src seeds the image and a host write reloads it", () => {
+test("authored src seeds the image and a host write reloads it", () => {
   const { api, events, write } = mount({ src: "a.png" });
   handler<() => void>(api.getImageProps(), "onLoad")();
-  assertEquals(api.status, "loaded");
-  assertEquals(events.statusChange.length, 1);
+  deepStrictEqual(api.status, "loaded");
+  deepStrictEqual(events.statusChange.length, 1);
   write("src", "b.png");
-  assertEquals(api.status, "loading");
+  deepStrictEqual(api.status, "loading");
 });
 
-Deno.test("image and fallback visibility invert across loading, loaded, and error states", () => {
+test("image and fallback visibility invert across loading, loaded, and error states", () => {
   const { api } = mount({ src: "avatar.png" });
-  assertEquals(api.getImageProps()["data-state"], "hidden");
-  assertEquals(api.getFallbackProps()["data-state"], "visible");
+  deepStrictEqual(api.getImageProps()["data-state"], "hidden");
+  deepStrictEqual(api.getFallbackProps()["data-state"], "visible");
 
   api.setLoaded();
-  assertEquals(api.getImageProps()["data-state"], "visible");
-  assertEquals(api.getFallbackProps()["data-state"], "hidden");
+  deepStrictEqual(api.getImageProps()["data-state"], "visible");
+  deepStrictEqual(api.getFallbackProps()["data-state"], "hidden");
 
   api.setError();
-  assertEquals(api.status, "error");
-  assertEquals(api.getImageProps()["data-state"], "hidden");
-  assertEquals(api.getFallbackProps()["data-state"], "visible");
+  deepStrictEqual(api.status, "error");
+  deepStrictEqual(api.getImageProps()["data-state"], "hidden");
+  deepStrictEqual(api.getFallbackProps()["data-state"], "visible");
 });

@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-floating-panel e2e: open/closed, the gesture modes, and the stage,
  * behind the app-controller handle.
@@ -10,7 +11,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#panel-state";
 const POSITIONER = "#panel [role='dialog']";
@@ -116,7 +117,7 @@ async function gesture(
   await page.waitForTimeout(300);
 }
 
-Deno.test("spin-floating-panel e2e", () =>
+test("spin-floating-panel e2e", () =>
   runComponentSuite({
     port: 5236,
     route: "/floating-panel",

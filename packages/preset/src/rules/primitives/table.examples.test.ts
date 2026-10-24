@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { parseTokens } from "@spin/theme";
@@ -24,7 +25,7 @@ const STRUCTURAL: Record<string, true> = {
 };
 
 const THEME = JSON.parse(
-  await Deno.readTextFile(
+  await readFile(
     new URL("../../../../theme/src/themes/silk.json", import.meta.url),
   ),
 ) as Record<string, unknown>;

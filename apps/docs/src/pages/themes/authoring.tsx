@@ -391,9 +391,10 @@ deno task visual -- --state-contrast-strict`}
         <Code
           class="mt-2"
           lang="bash"
-          code={`deno eval --ext=ts "
+code={`deno eval --ext=ts "
+import { readFile } from 'node:fs/promises';
 import { themeGates } from '@spin/theme';
-const text = await Deno.readTextFile('spin/<name>.json');
+const text = await readFile('spin/<name>.json', 'utf8');
 const report = themeGates(text);
 for (const gate of report.gates) {
   for (const issue of gate.issues) {

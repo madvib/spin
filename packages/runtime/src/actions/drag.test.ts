@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { drag, type DragDelta, type DragPress } from "./drag.ts";
 
@@ -39,7 +40,7 @@ const fireDoc = (type: string, x: number, y: number, extras: Record<string, unkn
   document.dispatchEvent(event as unknown as Event);
 };
 
-Deno.test("Given an armed handle / When the pointer moves / Then the delta is from the press point", () => {
+test("Given an armed handle / When the pointer moves / Then the delta is from the press point", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   const moves: DragDelta[] = [];
@@ -51,31 +52,31 @@ Deno.test("Given an armed handle / When the pointer moves / Then the delta is fr
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 100, 100) as unknown as Event);
   fireDoc("pointermove", 130, 90);
   fireDoc("pointermove", 160, 90);
-  assertEquals(moves.length, 2, "one report per move");
-  assertEquals(moves[0]?.dx, 30, "x delta is from the press point");
-  assertEquals(moves[0]?.dy, -10, "y delta is signed");
-  assertEquals(moves[1]?.dx, 60, "the second move reports from the same origin");
+  deepStrictEqual(moves.length, 2, "one report per move");
+  deepStrictEqual(moves[0]?.dx, 30, "x delta is from the press point");
+  deepStrictEqual(moves[0]?.dy, -10, "y delta is signed");
+  deepStrictEqual(moves[1]?.dx, 60, "the second move reports from the same origin");
   fireDoc("pointerup", 160, 90);
-  assertEquals(ended, [false], "pointerup ends without a cancel");
+  deepStrictEqual(ended, [false], "pointerup ends without a cancel");
   result?.destroy?.();
 });
 
-Deno.test("Given an armed handle / When Escape arrives / Then the gesture cancels", () => {
+test("Given an armed handle / When Escape arrives / Then the gesture cancels", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   const ended: boolean[] = [];
   const result = drag(node, { onEnd: (end) => ended.push(end.cancelled) });
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10) as unknown as Event);
   fireDoc("keydown", 0, 0, { key: "Escape" });
-  assertEquals(ended, [true], "escape reports a cancelled end");
+  deepStrictEqual(ended, [true], "escape reports a cancelled end");
   // And the listeners are gone: a later move reports nothing.
   fireDoc("pointermove", 50, 50);
   fireDoc("pointerup", 50, 50);
-  assertEquals(ended.length, 1, "no second end after the cancel");
+  deepStrictEqual(ended.length, 1, "no second end after the cancel");
   result?.destroy?.();
 });
 
-Deno.test("Given a press on a button inside the handle / When it lands / Then the gesture does not start", () => {
+test("Given a press on a button inside the handle / When it lands / Then the gesture does not start", () => {
   const node = document.createElement("div");
   const child = document.createElement("button");
   node.appendChild(child);
@@ -86,32 +87,32 @@ Deno.test("Given a press on a button inside the handle / When it lands / Then th
   // the target on the way up).
   const event = pointerEvent(win["window"], "pointerdown", 10, 10);
   child.dispatchEvent(event as unknown as Event);
-  assertEquals(starts, 0, "an inner control keeps its click");
+  deepStrictEqual(starts, 0, "an inner control keeps its click");
   result?.destroy?.();
 });
 
-Deno.test("Given a disabled handle / When pressed / Then no gesture starts", () => {
+test("Given a disabled handle / When pressed / Then no gesture starts", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let starts = 0;
   const result = drag(node, { enabled: false, onStart: () => starts++ });
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10) as unknown as Event);
-  assertEquals(starts, 0, "the disabled handle never arms");
+  deepStrictEqual(starts, 0, "the disabled handle never arms");
   result?.destroy?.();
 });
 
-Deno.test("Given a right press / When it lands on the handle / Then it is ignored", () => {
+test("Given a right press / When it lands on the handle / Then it is ignored", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   const moves: DragDelta[] = [];
   const result = drag(node, { onMove: (delta) => moves.push(delta) });
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10, { button: 2 }) as unknown as Event);
   fireDoc("pointermove", 40, 40);
-  assertEquals(moves.length, 0, "a right-press never drags");
+  deepStrictEqual(moves.length, 0, "a right-press never drags");
   result?.destroy?.();
 });
 
-Deno.test("Given an armed handle / When it unmounts mid-gesture / Then the listeners detach", () => {
+test("Given an armed handle / When it unmounts mid-gesture / Then the listeners detach", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   const moves: DragDelta[] = [];
@@ -119,10 +120,10 @@ Deno.test("Given an armed handle / When it unmounts mid-gesture / Then the liste
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10) as unknown as Event);
   result?.destroy?.();
   fireDoc("pointermove", 40, 40);
-  assertEquals(moves.length, 0, "destroy detaches the document listeners");
+  deepStrictEqual(moves.length, 0, "destroy detaches the document listeners");
 });
 
-Deno.test("Given an armed handle / When the pointer moves / Then the report carries the place and the box", () => {
+test("Given an armed handle / When the pointer moves / Then the report carries the place and the box", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   node.getBoundingClientRect = () =>
@@ -135,17 +136,17 @@ Deno.test("Given an armed handle / When the pointer moves / Then the report carr
   });
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10, { pointerId: 7 }) as unknown as Event);
   fireDoc("pointermove", 30, 40, { pointerId: 7 });
-  assertEquals(presses[0]?.x, 10, "the press reports its point");
-  assertEquals(presses[0]?.y, 10, "the press reports its point");
-  assertEquals(presses[0]?.pointerId, 7, "the press reports its pointer");
-  assertEquals(presses[0]?.rect?.width, 20, "the press reports the handle's box");
-  assertEquals(moves[0]?.x, 30, "the move reports where the pointer is");
-  assertEquals(moves[0]?.y, 40, "the move reports where the pointer is");
-  assertEquals(moves[0]?.dx, 20, "the delta still counts from the press");
+  deepStrictEqual(presses[0]?.x, 10, "the press reports its point");
+  deepStrictEqual(presses[0]?.y, 10, "the press reports its point");
+  deepStrictEqual(presses[0]?.pointerId, 7, "the press reports its pointer");
+  deepStrictEqual(presses[0]?.rect?.width, 20, "the press reports the handle's box");
+  deepStrictEqual(moves[0]?.x, 30, "the move reports where the pointer is");
+  deepStrictEqual(moves[0]?.y, 40, "the move reports where the pointer is");
+  deepStrictEqual(moves[0]?.dx, 20, "the delta still counts from the press");
   result?.destroy?.();
 });
 
-Deno.test("Given a handle that can capture / When the gesture starts / Then the pointer is captured and released", () => {
+test("Given a handle that can capture / When the gesture starts / Then the pointer is captured and released", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   const captured: number[] = [];
@@ -158,19 +159,19 @@ Deno.test("Given a handle that can capture / When the gesture starts / Then the 
   };
   const result = drag(node, {});
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10, { pointerId: 3 }) as unknown as Event);
-  assertEquals(captured, [3], "the handle takes the pointer");
+  deepStrictEqual(captured, [3], "the handle takes the pointer");
   fireDoc("pointerup", 10, 10, { pointerId: 3 });
-  assertEquals(released, [3], "the release hands it back");
+  deepStrictEqual(released, [3], "the release hands it back");
   result?.destroy?.();
 });
 
-Deno.test("Given a handle that goes disabled / When the param updates / Then the next press does not arm", () => {
+test("Given a handle that goes disabled / When the param updates / Then the next press does not arm", () => {
   const node = document.createElement("button");
   document.body.appendChild(node);
   let starts = 0;
   const result = drag(node, { enabled: true, onStart: () => starts++ });
   result?.update?.({ enabled: false, onStart: () => starts++ });
   node.dispatchEvent(pointerEvent(win["window"], "pointerdown", 10, 10) as unknown as Event);
-  assertEquals(starts, 0, "the live param keeps the handle from arming");
+  deepStrictEqual(starts, 0, "the live param keeps the handle from arming");
   result?.destroy?.();
 });

@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-hover-card e2e: one hover-delay action on the root behind the same
  * app-controller handle as a machine.
@@ -11,7 +12,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#hover-card-open";
 const TRIGGER = "#demo-hover-card button";
@@ -32,7 +33,7 @@ const waitReadout = (page: Page, value: string): Promise<void> => {
   ).then(() => undefined);
 };
 
-Deno.test("spin-hover-card e2e", () =>
+test("spin-hover-card e2e", () =>
   runComponentSuite(
     { port: 5233, route: "/hover-card", ready: TRIGGER },
     async ({ page }) => {

@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM pin-input drives its machine in a real browser — the
  * typing contract, the keyboard map, the paste distribution, the refusal
@@ -7,7 +8,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Parts are addressed by the element's id, which the route writes so each
  * instance is addressable: `pin-input:<id>:input:<index>`. */
@@ -63,7 +64,7 @@ const pasteInto = async (
     { selector, text },
   );
 
-Deno.test("spin-pin-input e2e", () =>
+test("spin-pin-input e2e", () =>
   runComponentSuite({
     port: 5221,
     route: "/pin-input",

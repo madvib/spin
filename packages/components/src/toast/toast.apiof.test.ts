@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { ToastApi } from "./toast.presentation.ts";
 import type { ToastEntry } from "./toast.state.ts";
 
@@ -6,7 +7,7 @@ import type { ToastEntry } from "./toast.state.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("ToastApi promises the component's surface", () => {
+test("ToastApi promises the component's surface", () => {
   const keys: (keyof ToastApi)[] = [
     "state",
     "count",
@@ -34,7 +35,7 @@ Deno.test("ToastApi promises the component's surface", () => {
     "getActionTriggerIndexes",
     "getCloseTriggerIndexes",
   ];
-  assertEquals(keys.length, 25);
+  deepStrictEqual(keys.length, 25);
   // Derived member signatures: state union and typed methods.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
@@ -44,7 +45,7 @@ Deno.test("ToastApi promises the component's surface", () => {
     ToastApi["getToasts"],
     () => readonly ToastEntry[]
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       dismissAllTyped,

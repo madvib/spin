@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { tour } from "./tour.presentation.ts";
@@ -75,94 +76,94 @@ function harness(initial: Record<string, unknown> = {}): Harness {
   };
 }
 
-Deno.test("Given an inactive tour / When it starts / Then the first step resolves", () => {
+test("Given an inactive tour / When it starts / Then the first step resolves", () => {
   const h = harness();
-  assertEquals(h.api.running, false);
+  deepStrictEqual(h.api.running, false);
   h.api.start();
-  assertEquals(h.api.running, true, "the tour runs");
-  assertEquals(h.api.state, "resolving", "and begins by resolving its target");
-  assertEquals(h.steps, [0], "one step-change to the first step");
+  deepStrictEqual(h.api.running, true, "the tour runs");
+  deepStrictEqual(h.api.state, "resolving", "and begins by resolving its target");
+  deepStrictEqual(h.steps, [0], "one step-change to the first step");
   h.dispose();
 });
 
-Deno.test("Given a resolving step / When the target never appears / Then the tour ends not-found", () => {
+test("Given a resolving step / When the target never appears / Then the tour ends not-found", () => {
   const h = harness();
   h.api.start();
   h.api.notifyTargetNotFound();
-  assertEquals(h.dismisses, ["not-found"], "the missing target reports");
-  assertEquals(h.api.running, false, "and the tour ends");
+  deepStrictEqual(h.dismisses, ["not-found"], "the missing target reports");
+  deepStrictEqual(h.api.running, false, "and the tour ends");
   h.dispose();
 });
 
-Deno.test("Given an active step / When the next fires / Then the new step re-resolves", () => {
+test("Given an active step / When the next fires / Then the new step re-resolves", () => {
   const h = harness();
   h.api.start();
   h.api.notifyTargetResolved();
-  assertEquals(h.api.state, "scrolling", "the resolved target scrolls");
+  deepStrictEqual(h.api.state, "scrolling", "the resolved target scrolls");
   h.api.notifyScrollEnd();
-  assertEquals(h.api.state, "active", "and then the step is active");
+  deepStrictEqual(h.api.state, "active", "and then the step is active");
   h.api.next();
-  assertEquals(h.api.step, 1, "next advances");
-  assertEquals(h.api.state, "resolving", "the new step re-resolves");
-  assertEquals(h.steps, [0, 1], "each move reports");
+  deepStrictEqual(h.api.step, 1, "next advances");
+  deepStrictEqual(h.api.state, "resolving", "the new step re-resolves");
+  deepStrictEqual(h.steps, [0, 1], "each move reports");
   h.dispose();
 });
 
-Deno.test("Given the first active step / When prev fires / Then nothing moves", () => {
+test("Given the first active step / When prev fires / Then nothing moves", () => {
   const h = harness();
   h.api.start();
   h.api.notifyTargetResolved();
   h.api.notifyScrollEnd();
   h.api.prev();
-  assertEquals(h.api.step, 0, "the first step holds");
+  deepStrictEqual(h.api.step, 0, "the first step holds");
   h.dispose();
 });
 
-Deno.test("Given the last step / When dismiss fires / Then it completes", () => {
+test("Given the last step / When dismiss fires / Then it completes", () => {
   const h = harness();
   h.api.start();
   h.api.setStep(1);
   h.api.notifyTargetResolved();
   h.api.notifyScrollEnd();
   h.api.dismiss();
-  assertEquals(h.dismisses, ["complete"], "the last dismiss completes");
-  assertEquals(h.completed(), 1, "and the complete channel fires");
-  assertEquals(h.api.running, false, "and the tour ends");
+  deepStrictEqual(h.dismisses, ["complete"], "the last dismiss completes");
+  deepStrictEqual(h.completed(), 1, "and the complete channel fires");
+  deepStrictEqual(h.api.running, false, "and the tour ends");
   h.dispose();
 });
 
-Deno.test("Given a running tour / When skip fires / Then it ends as a skip", () => {
+test("Given a running tour / When skip fires / Then it ends as a skip", () => {
   const h = harness();
   h.api.start();
   h.api.skip();
-  assertEquals(h.dismisses, ["skip"], "the skip reason reports");
+  deepStrictEqual(h.dismisses, ["skip"], "the skip reason reports");
   h.dispose();
 });
 
-Deno.test("Given the bags / When read / Then the overlay hides while inactive", () => {
+test("Given the bags / When read / Then the overlay hides while inactive", () => {
   const h = harness();
-  assertEquals(
+  deepStrictEqual(
     h.api.getRootProps()["data-state"],
     "closed",
     "the overlay is closed",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps()["hidden"],
     true,
     "and the dialog hidden",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getProgressTextProps()["text"],
     "0 of 2",
     "the progress counts from the start",
   );
   h.api.start();
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps()["hidden"],
     false,
     "a running tour shows",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getPrevTriggerProps()["hidden"],
     true,
     "the first step hides prev",
@@ -170,16 +171,16 @@ Deno.test("Given the bags / When read / Then the overlay hides while inactive", 
   h.dispose();
 });
 
-Deno.test("Given an authored step / When it changes / Then the machine alternates", () => {
+test("Given an authored step / When it changes / Then the machine alternates", () => {
   const h = harness({ step: 1 });
   const cell = h.props["step"];
   if (cell === undefined) throw new Error("no step cell");
   cell(0);
-  assertEquals(h.api.step, 0, "the host's write alternates the step");
+  deepStrictEqual(h.api.step, 0, "the host's write alternates the step");
   h.dispose();
 });
 
-Deno.test("Given a resolving step / When the view reports the target's box / Then the machine holds the spotlight", () => {
+test("Given a resolving step / When the view reports the target's box / Then the machine holds the spotlight", () => {
   const machine = tourMachine({ steps: JSON.stringify(STEPS) }, () => true);
   const resolving = machine.transition(machine.initialState, { type: "START" });
   const measured = machine.transition(resolving, {
@@ -189,8 +190,8 @@ Deno.test("Given a resolving step / When the view reports the target's box / The
     w: 30,
     h: 40,
   });
-  assertEquals(measured.value, "resolving", "the step keeps resolving");
-  assertEquals(
+  deepStrictEqual(measured.value, "resolving", "the step keeps resolving");
+  deepStrictEqual(
     measured.context.spotlight,
     { x: 10, y: 20, w: 30, h: 40 },
     "the machine holds the target's box",

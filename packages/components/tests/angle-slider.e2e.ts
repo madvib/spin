@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM angle-slider turns in a real browser — dial press
  * jumps the value, arrows step from the keyboard, Home/End jump, and the
@@ -6,13 +7,13 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `angle-slider:<element id>:<part>`. */
 const CONTROL = '[id="angle-slider:dial:control"]';
 const THUMB = '[id="angle-slider:dial:thumb"]';
 
-Deno.test("spin-angle-slider e2e", () =>
+test("spin-angle-slider e2e", () =>
   runComponentSuite(
     { port: 5256, route: "/angle-slider", ready: CONTROL },
     async ({ page }) => {

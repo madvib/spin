@@ -1,10 +1,11 @@
+import { test } from "bun:test";
 /**
  * E2E: spin-carousel renders and pages in a real browser.
  */
 
 import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** The specimen's readout of the machine's index. */
 const indexOf = async (page: Page): Promise<string> =>
@@ -45,7 +46,7 @@ const watchIndex = (page: Page): Promise<string> =>
     return promise;
   });
 
-Deno.test("spin-carousel e2e", () =>
+test("spin-carousel e2e", () =>
   runComponentSuite({
     port: 5204,
     route: "/carousel",

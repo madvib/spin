@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM slider slides in a real browser — track press jumps
  * the thumb, arrows step from the keyboard, Home/End jump, and the
@@ -6,14 +7,14 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `slider:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="slider:${id}:${part}"]`;
 const CONTROL = at("volume", "control");
 const THUMB = at("volume", "thumb:0");
 
-Deno.test("spin-slider e2e", () =>
+test("spin-slider e2e", () =>
   runComponentSuite(
     { port: 5252, route: "/slider", ready: CONTROL },
     async ({ page }) => {

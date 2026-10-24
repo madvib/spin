@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-date-picker e2e: open/closed modes, the view climb, and the three
  * selection modes, behind the app-controller handle.
@@ -11,7 +12,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#picker-value";
 const TRIGGER = "#picker [id$=':trigger']";
@@ -45,7 +46,7 @@ const focusedDay = (page: Page): Promise<string | undefined> =>
     ) ?? undefined
   );
 
-Deno.test("spin-date-picker e2e", () =>
+test("spin-date-picker e2e", () =>
   runComponentSuite(
     { port: 5235, route: "/date-picker", ready: TRIGGER },
     async ({ page }) => {

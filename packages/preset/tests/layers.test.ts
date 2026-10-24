@@ -1,4 +1,5 @@
-import { assert } from "@std/assert";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
@@ -30,7 +31,7 @@ function at(css: string, pattern: RegExp): number {
   return pattern.exec(css)?.index ?? -1;
 }
 
-Deno.test("the reset is written before the theme and the utilities", async () => {
+test("the reset is written before the theme and the utilities", async () => {
   const uno = await createGenerator({
     presets: [spinPreset({ themes: { light: theme } })],
   });
@@ -60,7 +61,7 @@ Deno.test("the reset is written before the theme and the utilities", async () =>
   );
 });
 
-Deno.test("the theme's variables are written before the utilities", async () => {
+test("the theme's variables are written before the utilities", async () => {
   // The other half of the same order: a component is a default and a utility
   // is a decision, so the utilities have to come last.
   const uno = await createGenerator({

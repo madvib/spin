@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import type { UnoGenerator } from "@unocss/core";
 import { createGenerator } from "@unocss/core";
 import { parseTokens } from "@spin/theme";
@@ -73,20 +74,20 @@ const CLAIMED_BY_RULES: readonly string[] = [
   ...STACKING_NAMES,
 ];
 
-Deno.test("every catalog group belongs to a section", () => {
+test("every catalog group belongs to a section", () => {
   // The property that matters: nothing the system produces may be absent from
   // the reference, and nothing may be listed twice.
   const orphans = catalog
     .map((g) => g.id)
     .filter((id) => sectionFor(id) === undefined);
-  assertEquals(
+  deepStrictEqual(
     orphans,
     [],
     `these groups ship rules but no section claims them: ${orphans.join(", ")}`,
   );
 });
 
-Deno.test("no group is claimed twice", () => {
+test("no group is claimed twice", () => {
   const seen = new Map<string, string>();
   const doubles: string[] = [];
   for (const section of SECTIONS) {
@@ -98,10 +99,10 @@ Deno.test("no group is claimed twice", () => {
       seen.set(group, section.id);
     }
   }
-  assertEquals(doubles, [], `a group in two sections: ${doubles.join(", ")}`);
+  deepStrictEqual(doubles, [], `a group in two sections: ${doubles.join(", ")}`);
 });
 
-Deno.test("every section names a group the catalog has", () => {
+test("every section names a group the catalog has", () => {
   // The reverse direction. Without this, a typo in a section's `groups` is a
   // section that silently renders empty, which looks exactly like a section
   // with nothing in it.
@@ -109,37 +110,37 @@ Deno.test("every section names a group the catalog has", () => {
   const missing = SECTIONS.flatMap((s) =>
     s.groups.filter((g) => !ids.has(g)).map((g) => `${s.id} -> ${g}`)
   );
-  assertEquals(
+  deepStrictEqual(
     missing,
     [],
     `sections naming groups that do not exist: ${missing.join(", ")}`,
   );
 });
 
-Deno.test("every section has utilities to show", () => {
+test("every section has utilities to show", () => {
   // A section whose groups are all empty renders as a heading and nothing
   // else — a reference entry that promises something and delivers a blank.
   const empty = SECTIONS
     .map((s) => ({ id: s.id, n: utilitiesFor(s, catalog).length }))
     .filter((s) => s.n === 0)
     .map((s) => s.id);
-  assertEquals(empty, [], `sections with no utilities: ${empty.join(", ")}`);
+  deepStrictEqual(empty, [], `sections with no utilities: ${empty.join(", ")}`);
 });
 
-Deno.test("section ids are URL-safe and unique", () => {
+test("section ids are URL-safe and unique", () => {
   // They are links. A duplicate would make one section unreachable and an id
   // with a slash or a space would break the route.
   const ids = SECTIONS.map((s) => s.id);
   const bad = ids.filter((id) => !/^[a-z0-9-]+$/.test(id));
-  assertEquals(bad, [], `section ids that are not URL-safe: ${bad.join(", ")}`);
-  assertEquals(
+  deepStrictEqual(bad, [], `section ids that are not URL-safe: ${bad.join(", ")}`);
+  deepStrictEqual(
     ids.length,
     new Set(ids).size,
     `duplicate section ids: ${ids.join(", ")}`,
   );
 });
 
-Deno.test("the organization covers most of what the system produces", () => {
+test("the organization covers most of what the system produces", () => {
   // Not "all" — a section may legitimately hold nothing yet. But if the
   // reference is showing a fraction of the surface, that is worth seeing fail
   // rather than discover.
@@ -148,7 +149,7 @@ Deno.test("the organization covers most of what the system produces", () => {
   const covered = catalog
     .filter((g) => claimed.has(g.id))
     .reduce((n, g) => n + g.utilities.length, 0);
-  assertEquals(
+  deepStrictEqual(
     covered,
     total,
     `only ${covered} of ${total} utilities are in a section`,
@@ -183,7 +184,7 @@ Deno.test("the organization covers most of what the system produces", () => {
  * every assertion in the suite passed. The catalog cannot catch it, because the
  * catalog is derived from what works.
  */
-Deno.test("every name a rule claims produces a rule", async () => {
+test("every name a rule claims produces a rule", async () => {
   const { createGenerator } = await import("@unocss/core");
   const uno = await createGenerator({
     presets: [spinPreset({ themes: { default: theme } })],
@@ -193,14 +194,14 @@ Deno.test("every name a rule claims produces a rule", async () => {
     const { css } = await uno.generate(name);
     if (!claims(css, name)) missing.push(name);
   }
-  assertEquals(
+  deepStrictEqual(
     missing,
     [],
     `rules claim these, and none produces a rule: ${missing.join(", ")}`,
   );
 });
 
-Deno.test("no utility sets only custom properties nothing consumes", async () => {
+test("no utility sets only custom properties nothing consumes", async () => {
   const { createGenerator } = await import("@unocss/core");
   const uno = await createGenerator({
     presets: [spinPreset({ themes: { default: theme } })],
@@ -231,7 +232,7 @@ Deno.test("no utility sets only custom properties nothing consumes", async () =>
       });
     if (effective.length === 0) inert.push(name);
   }
-  assertEquals(
+  deepStrictEqual(
     inert,
     [],
     `these set properties nothing acts on: ${inert.join(", ")}`,
@@ -251,7 +252,7 @@ Deno.test("no utility sets only custom properties nothing consumes", async () =>
  * mode nothing else catches, because the rule EXISTS. So it is checked here
  * rather than by looking.
  */
-Deno.test("no utility emits a declaration its property cannot hold", async () => {
+test("no utility emits a declaration its property cannot hold", async () => {
   const { createGenerator } = await import("@unocss/core");
   const uno = await createGenerator({
     presets: [spinPreset({ themes: { default: theme } })],
@@ -281,7 +282,7 @@ Deno.test("no utility emits a declaration its property cannot hold", async () =>
       }
     }
   }
-  assertEquals(
+  deepStrictEqual(
     bad,
     [],
     `these declare a function named after the property, which CSS drops: ${
@@ -457,7 +458,7 @@ const CONSUMER_SUPPLIED: readonly string[] = ["--grid-gutter"];
  *
  * The catalog proves a name is ADVERTISED. This proves it WORKS.
  */
-Deno.test("every catalog utility produces a rule", async () => {
+test("every catalog utility produces a rule", async () => {
   assert(
     UTILITIES.length >= UTILITY_FLOOR,
     `the catalog names ${UTILITIES.length} utilities, below the floor of ${UTILITY_FLOOR} — the sweep below would pass on an empty set`,
@@ -466,7 +467,7 @@ Deno.test("every catalog utility produces a rule", async () => {
   for (const { name, css } of await sweep()) {
     if (!claims(css, name)) missing.push(name);
   }
-  assertEquals(
+  deepStrictEqual(
     missing,
     [],
     `the catalog advertises these and the sheet has no rule for them: ${
@@ -498,7 +499,7 @@ Deno.test("every catalog utility produces a rule", async () => {
  * to read wind4's variables, and holding it to our sheet would report the
  * layering working as designed.
  */
-Deno.test("no utility we own reads a variable the sheet does not declare", async () => {
+test("no utility we own reads a variable the sheet does not declare", async () => {
   const declared = declaredProperties(await fullSheet());
   const solo = await spinOnly();
   const offenders: string[] = [];
@@ -518,7 +519,7 @@ Deno.test("no utility we own reads a variable the sheet does not declare", async
       offenders.push(`${name} reads ${read}`);
     }
   }
-  assertEquals(
+  deepStrictEqual(
     offenders,
     [],
     `these read a variable no spin sheet declares, so they compute to nothing: ${
@@ -542,13 +543,13 @@ Deno.test("no utility we own reads a variable the sheet does not declare", async
  * the sheet is checked for the shape directly rather than for the absence of a
  * particular import.
  */
-Deno.test("no custom property is defined in terms of itself", async () => {
+test("no custom property is defined in terms of itself", async () => {
   const css = await fullSheet();
   const selfReferential: string[] = [];
   for (const match of css.matchAll(/(--[\w-]+):\s*var\(\s*\1\s*\)/g)) {
     selfReferential.push(match[0]);
   }
-  assertEquals(
+  deepStrictEqual(
     selfReferential,
     [],
     `these variables are defined as themselves, which resolves to nothing: ${
@@ -580,7 +581,7 @@ Deno.test("no custom property is defined in terms of itself", async () => {
  * list that grows with usage is honest about what happened, but only a test
  * that forces the read can pin it.
  */
-Deno.test("wind4's inert rules stay out of the layer", async () => {
+test("wind4's inert rules stay out of the layer", async () => {
   const uno = await layered();
   // Force the lazy report: the guarded wrapper only learns the blur handler
   // cannot run when something actually asks for a blur utility.
@@ -594,7 +595,7 @@ Deno.test("wind4's inert rules stay out of the layer", async () => {
   const inert = wind4Exclusions()
     .filter((exclusion) => exclusion.reason === "inert")
     .map((exclusion) => exclusion.rule);
-  assertEquals(
+  deepStrictEqual(
     inert,
     [...KNOWN_INERT],
     `wind4's inert rules changed — a new one means a utility quietly left the layer: ${
@@ -619,7 +620,7 @@ Deno.test("wind4's inert rules stay out of the layer", async () => {
     const { css } = await uno.generate(name, { preflights: false });
     if (claims(css, name)) leaked.push(name);
   }
-  assertEquals(
+  deepStrictEqual(
     leaked,
     [],
     `these generate a rule that computes to nothing: ${leaked.join(", ")}`,

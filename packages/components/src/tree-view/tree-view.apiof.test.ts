@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { TreeApi, VisibleRow } from "./tree-view.presentation.ts";
 
-Deno.test("TreeApi promises the component's surface", () => {
+test("TreeApi promises the component's surface", () => {
   const keys: (keyof TreeApi)[] = [
     "state",
     "focusedValue",
@@ -40,7 +41,7 @@ Deno.test("TreeApi promises the component's surface", () => {
     "getLoadingIndexes",
     "getRenameInputIndexes",
   ];
-  assertEquals(keys.length, 36);
+  deepStrictEqual(keys.length, 36);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<TreeApi["state"], "idle" | "renaming"> = true;
@@ -52,7 +53,7 @@ Deno.test("TreeApi promises the component's surface", () => {
     TreeApi["getVisibleRows"],
     () => readonly VisibleRow[]
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, startRenamingTyped, getVisibleRowsTyped].every(Boolean),
     true,
   );

@@ -11,10 +11,9 @@
  * and the browser runs the result; this is the Deno-side of the same
  * components, and nothing more.
  */
-import { createComponent } from "solid-js";
+import { createComponent } from "solid-js/dist/server.js";
 import type { JSX } from "solid-js";
-import { ssrElement } from "solid-js/web";
-
+import { ssrElement } from "solid-js/web/dist/server.js";
 export type { JSX } from "solid-js/types/jsx.d.ts";
 
 /** The props Solid's compiler hands the runtime. */
@@ -46,6 +45,9 @@ export function jsx(
 
 /** The same call: the children of a keyed list arrive as an array. */
 export const jsxs = jsx;
+
+/** The dev-runtime entry: identical without debug metadata. */
+export const jsxDEV = jsx;
 
 /** A group of children with no element of its own. */
 export function Fragment(props: JsxProps): unknown {

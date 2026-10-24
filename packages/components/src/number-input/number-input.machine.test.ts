@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { numberInput } from "./number-input.presentation.ts";
@@ -385,91 +386,91 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 // `scrubbing` is the drag gesture on the rail. All three are reachable, and
 // each state-changing event is exercised below.
 
-Deno.test("Given a fresh number input / When nothing is authored / Then idle is the reachable start state", () => {
+test("Given a fresh number input / When nothing is authored / Then idle is the reachable start state", () => {
   const h = mount();
-  assertEquals(h.state(), "idle", "the machine starts idle");
-  assertEquals(h.api.value, "", "the value is empty");
-  assertEquals(h.api.valueAsNumber, Number.NaN, "an empty value has no number");
-  assertEquals(h.api.empty, true, "the api reports the empty value");
-  assertEquals(h.api.invalid, false, "a fresh value is in range");
-  assertEquals(h.api.disabled, false, "the input is enabled");
-  assertEquals(h.api.canIncrement, true, "and it may increment");
-  assertEquals(h.api.canDecrement, true, "and it may decrement");
-  assertEquals(h.api.scrubbing, false, "no scrub gesture is live");
+  deepStrictEqual(h.state(), "idle", "the machine starts idle");
+  deepStrictEqual(h.api.value, "", "the value is empty");
+  deepStrictEqual(h.api.valueAsNumber, Number.NaN, "an empty value has no number");
+  deepStrictEqual(h.api.empty, true, "the api reports the empty value");
+  deepStrictEqual(h.api.invalid, false, "a fresh value is in range");
+  deepStrictEqual(h.api.disabled, false, "the input is enabled");
+  deepStrictEqual(h.api.canIncrement, true, "and it may increment");
+  deepStrictEqual(h.api.canDecrement, true, "and it may decrement");
+  deepStrictEqual(h.api.scrubbing, false, "no scrub gesture is live");
 });
 
-Deno.test("Given defaultValue / When the input mounts / Then the seed is the start state", () => {
+test("Given defaultValue / When the input mounts / Then the seed is the start state", () => {
   const h = mount({ defaultValue: "12", min: "0", max: "20", step: "2" });
-  assertEquals(h.api.value, "12", "defaultValue seeds the value");
-  assertEquals(h.api.valueAsNumber, 12, "and its number");
-  assertEquals(h.api.empty, false, "the api reports a value");
-  assertEquals(h.events.valueChange, [], "seeding reports nothing");
-  assertEquals(h.events.focusChange, [], "and no focus moved");
+  deepStrictEqual(h.api.value, "12", "defaultValue seeds the value");
+  deepStrictEqual(h.api.valueAsNumber, 12, "and its number");
+  deepStrictEqual(h.api.empty, false, "the api reports a value");
+  deepStrictEqual(h.events.valueChange, [], "seeding reports nothing");
+  deepStrictEqual(h.events.focusChange, [], "and no focus moved");
 });
 
-Deno.test("Given the input focused / When the focus event arrives / Then the focused state is reachable", () => {
+test("Given the input focused / When the focus event arrives / Then the focused state is reachable", () => {
   const h = mount({ defaultValue: "3" });
   h.focusInput();
-  assertEquals(h.state(), "focused", "the machine holds focus");
-  assertEquals(
+  deepStrictEqual(h.state(), "focused", "the machine holds focus");
+  deepStrictEqual(
     h.bag("input")["aria-roledescription"],
     "numberfield",
     "the input is a numberfield",
   );
-  assertEquals(h.api.focused, true, "and the api reports focus");
-  assertEquals(h.events.focusChange, [{
+  deepStrictEqual(h.api.focused, true, "and the api reports focus");
+  deepStrictEqual(h.events.focusChange, [{
     focused: true,
     value: "3",
     valueAsNumber: 3,
   }], "focus-change reports the move");
 });
 
-Deno.test("Given a focused input / When it blurs / Then the idle state is reachable again", () => {
+test("Given a focused input / When it blurs / Then the idle state is reachable again", () => {
   const h = mount({ defaultValue: "007" });
   h.focusInput();
   h.type("007");
   h.blurInput();
-  assertEquals(h.state(), "idle", "the blur returns to idle");
+  deepStrictEqual(h.state(), "idle", "the blur returns to idle");
   // The blur reformats: "007" is the number 7.
-  assertEquals(h.api.value, "7", "the blur reformats the value");
-  assertEquals(h.events.focusChange, [
+  deepStrictEqual(h.api.value, "7", "the blur reformats the value");
+  deepStrictEqual(h.events.focusChange, [
     { focused: true, value: "007", valueAsNumber: 7 },
     // The blur reformats before it reports, so the report carries the new value.
     { focused: false, value: "7", valueAsNumber: 7 },
   ], "focus-change reports both ends");
-  assertEquals(
+  deepStrictEqual(
     h.events.valueCommit,
     [{ value: "7", valueAsNumber: 7 }],
     "the blur commits",
   );
 });
 
-Deno.test("Given the scrubber grabbed / When the press arrives / Then the scrubbing state is reachable", () => {
+test("Given the scrubber grabbed / When the press arrives / Then the scrubbing state is reachable", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber();
-  assertEquals(h.state(), "scrubbing", "the machine is scrubbing");
-  assertEquals(h.api.scrubbing, true, "the rail reports it");
-  assertEquals(h.state(), "scrubbing", "the focus survives the gesture");
+  deepStrictEqual(h.state(), "scrubbing", "the machine is scrubbing");
+  deepStrictEqual(h.api.scrubbing, true, "the rail reports it");
+  deepStrictEqual(h.state(), "scrubbing", "the focus survives the gesture");
   h.dropScrubber();
-  assertEquals(h.state(), "focused", "the lift ends the gesture");
-  assertEquals(h.api.scrubbing, false, "and the rail clears it");
+  deepStrictEqual(h.state(), "focused", "the lift ends the gesture");
+  deepStrictEqual(h.api.scrubbing, false, "and the rail clears it");
 });
 
-Deno.test("Given an idle input / When a spin control is pressed / Then the focus leaves idle", () => {
+test("Given an idle input / When a spin control is pressed / Then the focus leaves idle", () => {
   const h = mount();
   h.pressTrigger("increment");
-  assertEquals(h.state(), "focused", "a press focuses the input");
-  assertEquals(h.events.focusChange.length, 1, "focus reports once");
-  assertEquals(h.api.value, "1", "and the press steps immediately");
+  deepStrictEqual(h.state(), "focused", "a press focuses the input");
+  deepStrictEqual(h.events.focusChange.length, 1, "focus reports once");
+  deepStrictEqual(h.api.value, "1", "and the press steps immediately");
 });
 
-Deno.test("Given a scrubbing gesture / When the drag leaves the rail / Then a stray press-up still ends it", () => {
+test("Given a scrubbing gesture / When the drag leaves the rail / Then a stray press-up still ends it", () => {
   const h = mount({ defaultValue: "4" });
   h.grabScrubber();
   h.dragScrubber(140);
   h.dropScrubber();
-  assertEquals(h.api.value, "5", "the drag stepped once per move");
-  assertEquals(h.api.scrubbing, false, "and the gesture is over");
+  deepStrictEqual(h.api.value, "5", "the drag stepped once per move");
+  deepStrictEqual(h.api.scrubbing, false, "and the gesture is over");
 });
 
 // ---- the value pipeline ---------------------------------------------------
@@ -478,120 +479,120 @@ Deno.test("Given a scrubbing gesture / When the drag leaves the rail / Then a st
 // format — so each case below is one of those steps that the port has to get
 // right, with hand-authored expected values.
 
-Deno.test("Given a value above the max / When it is set / Then it clamps to the max", () => {
+test("Given a value above the max / When it is set / Then it clamps to the max", () => {
   const h = mount({ min: "0", max: "20" });
   h.api.setValue(50);
-  assertEquals(h.api.value, "20", "the value clamps to the max");
-  assertEquals(h.api.valueAsNumber, 20, "and the number follows");
-  assertEquals(
+  deepStrictEqual(h.api.value, "20", "the value clamps to the max");
+  deepStrictEqual(h.api.valueAsNumber, 20, "and the number follows");
+  deepStrictEqual(
     h.events.valueChange,
     [{ value: "20", valueAsNumber: 20 }],
     "value-change reports the move",
   );
 });
 
-Deno.test("Given a value below the min / When it is set / Then it clamps to the min", () => {
+test("Given a value below the min / When it is set / Then it clamps to the min", () => {
   const h = mount({ min: "5", max: "20" });
   h.api.setValue(-3);
-  assertEquals(h.api.value, "5", "the value clamps to the min");
+  deepStrictEqual(h.api.value, "5", "the value clamps to the min");
 });
 
-Deno.test("Given allowOverflow / When a value passes the bound / Then it is kept", () => {
+test("Given allowOverflow / When a value passes the bound / Then it is kept", () => {
   const h = mount({ min: "0", max: "20", allowOverflow: true });
   h.api.setValue(50);
-  assertEquals(h.api.value, "50", "the value passes the max");
-  assertEquals(h.api.invalid, true, "and the api reports it out of range");
-  assertEquals(h.events.valueInvalid, [
+  deepStrictEqual(h.api.value, "50", "the value passes the max");
+  deepStrictEqual(h.api.invalid, true, "and the api reports it out of range");
+  deepStrictEqual(h.events.valueInvalid, [
     { reason: "rangeOverflow", value: "50", valueAsNumber: 50 },
   ], "the range flip reports the invalid");
 });
 
-Deno.test("Given allowOverflow and a return into range / When the value comes back / Then no second report fires", () => {
+test("Given allowOverflow and a return into range / When the value comes back / Then no second report fires", () => {
   const h = mount({ min: "0", max: "20", allowOverflow: true });
   h.api.setValue(50);
   h.api.setValue(3);
-  assertEquals(h.api.invalid, false, "the value is back in range");
-  assertEquals(
+  deepStrictEqual(h.api.invalid, false, "the value is back in range");
+  deepStrictEqual(
     h.events.valueInvalid.map((entry) => entry.reason),
     ["rangeOverflow"],
     "only the move out of range reports; the return would name an in-range value underflow",
   );
 });
 
-Deno.test("Given an empty value / When it is cleared / Then nothing moves and nothing reports", () => {
+test("Given an empty value / When it is cleared / Then nothing moves and nothing reports", () => {
   const h = mount();
   h.api.clearValue();
-  assertEquals(h.api.value, "", "the value stays empty");
-  assertEquals(h.events.valueChange, [], "and no change is reported");
+  deepStrictEqual(h.api.value, "", "the value stays empty");
+  deepStrictEqual(h.events.valueChange, [], "and no change is reported");
 });
 
-Deno.test("Given an empty value / When it increments / Then the step is the first number", () => {
+test("Given an empty value / When it increments / Then the step is the first number", () => {
   const h = mount();
   h.api.increment();
-  assertEquals(h.api.value, "1", "an absent value steps from zero");
+  deepStrictEqual(h.api.value, "1", "an absent value steps from zero");
   h.api.decrement();
   h.api.decrement();
-  assertEquals(h.api.value, "-1", "and back down again");
+  deepStrictEqual(h.api.value, "-1", "and back down again");
 });
 
-Deno.test("Given a fractional step / When the value steps twice / Then the decimals stay exact", () => {
+test("Given a fractional step / When the value steps twice / Then the decimals stay exact", () => {
   const h = mount({ defaultValue: "0.1", step: "0.1" });
   h.api.increment();
-  assertEquals(h.api.value, "0.2", "one tenth past a tenth");
+  deepStrictEqual(h.api.value, "0.2", "one tenth past a tenth");
   h.api.increment();
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "0.3",
     "and 0.1 + 0.2 is 0.3, not 0.30000000000000004",
   );
 });
 
-Deno.test("Given the bounds as defaults / When setToMin and setToMax run / Then the value takes the bound", () => {
+test("Given the bounds as defaults / When setToMin and setToMax run / Then the value takes the bound", () => {
   const h = mount({ min: "2", max: "8" });
   h.api.setToMax();
-  assertEquals(h.api.value, "8", "the max is authored as a decimal string");
+  deepStrictEqual(h.api.value, "8", "the max is authored as a decimal string");
   h.api.setToMin();
-  assertEquals(h.api.value, "2", "and the min");
+  deepStrictEqual(h.api.value, "2", "and the min");
 });
 
-Deno.test("Given a value at the max / When it increments / Then it is clamped and the trigger reports it", () => {
+test("Given a value at the max / When it increments / Then it is clamped and the trigger reports it", () => {
   const h = mount({ min: "0", max: "5", defaultValue: "5" });
   h.api.increment();
-  assertEquals(h.api.value, "5", "the value is already at the max");
-  assertEquals(h.api.canIncrement, false, "and the api refuses the increment");
-  assertEquals(
+  deepStrictEqual(h.api.value, "5", "the value is already at the max");
+  deepStrictEqual(h.api.canIncrement, false, "and the api refuses the increment");
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     true,
     "the trigger is disabled",
   );
-  assertEquals(
+  deepStrictEqual(
     h.trigger("decrement")["disabled"],
     false,
     "while the other one is not",
   );
 });
 
-Deno.test("Given a value at the min / When it decrements / Then it is clamped and the trigger reports it", () => {
+test("Given a value at the min / When it decrements / Then it is clamped and the trigger reports it", () => {
   const h = mount({ min: "0", max: "5", defaultValue: "0" });
   h.api.decrement();
-  assertEquals(h.api.value, "0", "the value is already at the min");
-  assertEquals(h.api.canDecrement, false, "and the api refuses the decrement");
-  assertEquals(
+  deepStrictEqual(h.api.value, "0", "the value is already at the min");
+  deepStrictEqual(h.api.canDecrement, false, "and the api refuses the decrement");
+  deepStrictEqual(
     h.trigger("decrement")["disabled"],
     true,
     "the trigger is disabled",
   );
 });
 
-Deno.test("Given allowOverflow / When the value sits past the max / Then the trigger stays enabled", () => {
+test("Given allowOverflow / When the value sits past the max / Then the trigger stays enabled", () => {
   const h = mount({
     min: "0",
     max: "5",
     allowOverflow: true,
     defaultValue: "5",
   });
-  assertEquals(h.api.canIncrement, true, "overflow keeps the increment alive");
-  assertEquals(
+  deepStrictEqual(h.api.canIncrement, true, "overflow keeps the increment alive");
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     false,
     "and the trigger with it",
@@ -600,22 +601,22 @@ Deno.test("Given allowOverflow / When the value sits past the max / Then the tri
 
 // ---- the keyboard map -----------------------------------------------------
 
-Deno.test("Given a focused input / When ArrowUp arrives / Then the value steps once", () => {
+test("Given a focused input / When ArrowUp arrives / Then the value steps once", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.press("ArrowUp");
-  assertEquals(h.api.value, "6", "ArrowUp steps by the step");
-  assertEquals(h.pressReported("ArrowUp"), true, "and the key was consumed");
+  deepStrictEqual(h.api.value, "6", "ArrowUp steps by the step");
+  deepStrictEqual(h.pressReported("ArrowUp"), true, "and the key was consumed");
 });
 
-Deno.test("Given a focused input / When ArrowDown arrives / Then the value steps once back", () => {
+test("Given a focused input / When ArrowDown arrives / Then the value steps once back", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.press("ArrowDown");
-  assertEquals(h.api.value, "4", "ArrowDown steps back");
+  deepStrictEqual(h.api.value, "4", "ArrowDown steps back");
 });
 
-Deno.test("Given the modifier keys / When they hold during an arrow / Then the step sizes follow", () => {
+test("Given the modifier keys / When they hold during an arrow / Then the step sizes follow", () => {
   const h = mount({
     defaultValue: "5",
     step: "2",
@@ -624,65 +625,65 @@ Deno.test("Given the modifier keys / When they hold during an arrow / Then the s
   });
   h.focusInput();
   h.press("ArrowUp", { shift: true });
-  assertEquals(h.api.value, "25", "Shift takes the large step");
+  deepStrictEqual(h.api.value, "25", "Shift takes the large step");
   h.press("ArrowUp", { alt: true });
-  assertEquals(h.api.value, "25.5", "Alt takes the small step");
+  deepStrictEqual(h.api.value, "25.5", "Alt takes the small step");
   h.press("ArrowDown", { ctrl: true });
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "23.5",
     "Ctrl alone is not a modifier step, so the plain step applies",
   );
 });
 
-Deno.test("Given a focused input / When Home and End arrive / Then the value takes the bound", () => {
+test("Given a focused input / When Home and End arrive / Then the value takes the bound", () => {
   const h = mount({ defaultValue: "5", min: "-4", max: "9" });
   h.focusInput();
   h.press("Home");
-  assertEquals(h.api.value, "-4", "Home takes the min");
+  deepStrictEqual(h.api.value, "-4", "Home takes the min");
   h.press("End");
-  assertEquals(h.api.value, "9", "End takes the max");
+  deepStrictEqual(h.api.value, "9", "End takes the max");
 });
 
-Deno.test("Given a focused input / When a modified Home arrives / Then the machine never hears it", () => {
+test("Given a focused input / When a modified Home arrives / Then the machine never hears it", () => {
   const h = mount({ defaultValue: "5", min: "-4" });
   h.focusInput();
   h.press("Home", { shift: true });
-  assertEquals(h.api.value, "5", "a modified Home is not navigation");
+  deepStrictEqual(h.api.value, "5", "a modified Home is not navigation");
 });
 
-Deno.test("Given a read-only input / When an arrow arrives / Then nothing moves", () => {
+test("Given a read-only input / When an arrow arrives / Then nothing moves", () => {
   const h = mount({ defaultValue: "5", readOnly: true });
   h.focusInput();
   h.press("ArrowUp");
-  assertEquals(h.api.value, "5", "the keys are inert");
-  assertEquals(
+  deepStrictEqual(h.api.value, "5", "the keys are inert");
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     true,
     "and both triggers are disabled",
   );
 });
 
-Deno.test("Given a composing input / When an arrow arrives / Then the IME keeps the key", () => {
+test("Given a composing input / When an arrow arrives / Then the IME keeps the key", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.press("ArrowUp", { composing: true });
-  assertEquals(h.api.value, "5", "a composing event never steps");
+  deepStrictEqual(h.api.value, "5", "a composing event never steps");
 });
 
-Deno.test("Given a focused input / When Enter arrives / Then the value is reformatted but focus stays", () => {
+test("Given a focused input / When Enter arrives / Then the value is reformatted but focus stays", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.type("5.50");
   h.press("Enter");
-  assertEquals(h.api.value, "5.5", "Enter reformats what was typed");
-  assertEquals(h.state(), "focused", "and the machine still holds focus");
-  assertEquals(
+  deepStrictEqual(h.api.value, "5.5", "Enter reformats what was typed");
+  deepStrictEqual(h.state(), "focused", "and the machine still holds focus");
+  deepStrictEqual(
     h.events.valueCommit,
     [{ value: "5.5", valueAsNumber: 5.5 }],
     "Enter commits",
   );
-  assertEquals(
+  deepStrictEqual(
     h.events.focusChange,
     [
       { focused: true, value: "5", valueAsNumber: 5 },
@@ -693,53 +694,53 @@ Deno.test("Given a focused input / When Enter arrives / Then the value is reform
   );
 });
 
-Deno.test("Given a focused input / When the host types / Then the raw string is kept", () => {
+test("Given a focused input / When the host types / Then the raw string is kept", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.type("12.");
-  assertEquals(h.api.value, "12.", "a partial number is stored verbatim");
-  assertEquals(h.api.valueAsNumber, 12, "and its number is what parsed");
+  deepStrictEqual(h.api.value, "12.", "a partial number is stored verbatim");
+  deepStrictEqual(h.api.valueAsNumber, 12, "and its number is what parsed");
   h.press("ArrowDown");
-  assertEquals(h.api.value, "11", "arithmetic continues from the parsed value");
+  deepStrictEqual(h.api.value, "11", "arithmetic continues from the parsed value");
 });
 
-Deno.test("Given an input / When a character is typed / Then only partial numbers land", () => {
+test("Given an input / When a character is typed / Then only partial numbers land", () => {
   const h = mount({ defaultValue: "5" });
-  assertEquals(h.beforeInput("5", [1, 1], "a"), true, "a letter is refused");
-  assertEquals(h.beforeInput("5", [0, 0], "-"), false, "a leading minus lands");
-  assertEquals(
+  deepStrictEqual(h.beforeInput("5", [1, 1], "a"), true, "a letter is refused");
+  deepStrictEqual(h.beforeInput("5", [0, 0], "-"), false, "a leading minus lands");
+  deepStrictEqual(
     h.beforeInput("5", [1, 1], "-"),
     true,
     "but a minus in the middle is refused",
   );
-  assertEquals(h.beforeInput("5", [1, 1], "."), false, "a decimal point lands");
-  assertEquals(
+  deepStrictEqual(h.beforeInput("5", [1, 1], "."), false, "a decimal point lands");
+  deepStrictEqual(
     h.beforeInput("5.", [2, 2], "3"),
     false,
     "and the fraction after it",
   );
-  assertEquals(h.beforeInput("5", [1, 1], "6"), false, "a digit lands");
-  assertEquals(
+  deepStrictEqual(h.beforeInput("5", [1, 1], "6"), false, "a digit lands");
+  deepStrictEqual(
     h.beforeInput("5.5", [3, 3], "."),
     true,
     "a second decimal point is refused",
   );
 });
 
-Deno.test("Given a focused input with the wheel / When it turns / Then the value steps", () => {
+test("Given a focused input with the wheel / When it turns / Then the value steps", () => {
   const h = mount({ defaultValue: "5", allowMouseWheel: true });
   h.focusInput();
   h.wheelBy(-120);
-  assertEquals(h.api.value, "6", "a wheel up increments");
+  deepStrictEqual(h.api.value, "6", "a wheel up increments");
   h.wheelBy(120);
-  assertEquals(h.api.value, "5", "and a wheel down decrements");
+  deepStrictEqual(h.api.value, "5", "and a wheel down decrements");
 });
 
-Deno.test("Given a focused input without the wheel / When it turns / Then nothing moves", () => {
+test("Given a focused input without the wheel / When it turns / Then nothing moves", () => {
   const h = mount({ defaultValue: "5" });
   h.focusInput();
   h.wheelBy(-120);
-  assertEquals(h.api.value, "5", "the wheel is off by default");
+  deepStrictEqual(h.api.value, "5", "the wheel is off by default");
 });
 
 // ---- the blur branches ----------------------------------------------------
@@ -747,20 +748,20 @@ Deno.test("Given a focused input without the wheel / When it turns / Then nothin
 // Three of them, and they differ on one question: what an out-of-range value
 // that was typed becomes when the field loses focus.
 
-Deno.test("Given a typed out-of-range value / When the input blurs / Then it clamps", () => {
+test("Given a typed out-of-range value / When the input blurs / Then it clamps", () => {
   const h = mount({ min: "0", max: "10", defaultValue: "5" });
   h.focusInput();
   h.type("40");
   h.blurInput();
-  assertEquals(h.api.value, "10", "the blur clamps to the max");
-  assertEquals(
+  deepStrictEqual(h.api.value, "10", "the blur clamps to the max");
+  deepStrictEqual(
     h.events.valueInvalid,
     [],
     "and a clamped value is not an invalid one",
   );
 });
 
-Deno.test("Given a typed out-of-range value with clampValueOnBlur false / When the input blurs / Then it stands and reports", () => {
+test("Given a typed out-of-range value with clampValueOnBlur false / When the input blurs / Then it stands and reports", () => {
   const h = mount({
     min: "0",
     max: "10",
@@ -771,21 +772,21 @@ Deno.test("Given a typed out-of-range value with clampValueOnBlur false / When t
   h.focusInput();
   h.type("40");
   h.blurInput();
-  assertEquals(h.api.value, "40", "the value is left where it was typed");
-  assertEquals(h.api.invalid, true, "the api reports it invalid");
-  assertEquals(
+  deepStrictEqual(h.api.value, "40", "the value is left where it was typed");
+  deepStrictEqual(h.api.invalid, true, "the api reports it invalid");
+  deepStrictEqual(
     h.events.valueCommit,
     [{ value: "40", valueAsNumber: 40 }],
     "and the blur commits",
   );
-  assertEquals(
+  deepStrictEqual(
     h.events.valueInvalid,
     [{ reason: "rangeOverflow", value: "40", valueAsNumber: 40 }],
     "the invalid reports once, on the blur",
   );
 });
 
-Deno.test("Given a typed out-of-range value / When the user is still typing / Then no invalid is reported", () => {
+test("Given a typed out-of-range value / When the user is still typing / Then no invalid is reported", () => {
   const h = mount({
     min: "0",
     max: "10",
@@ -794,29 +795,29 @@ Deno.test("Given a typed out-of-range value / When the user is still typing / Th
   });
   h.focusInput();
   h.type("40");
-  assertEquals(h.api.invalid, true, "the api reports the invalid state");
-  assertEquals(h.events.valueInvalid, [], "but the event waits for the commit");
+  deepStrictEqual(h.api.invalid, true, "the api reports the invalid state");
+  deepStrictEqual(h.events.valueInvalid, [], "but the event waits for the commit");
 });
 
-Deno.test("Given an empty value / When the input blurs / Then it stays empty", () => {
+test("Given an empty value / When the input blurs / Then it stays empty", () => {
   const h = mount({ min: "3" });
   h.focusInput();
   h.blurInput();
-  assertEquals(h.api.value, "", "an empty field is not clamped to the min");
-  assertEquals(h.api.empty, true, "and the api reports the empty value");
+  deepStrictEqual(h.api.value, "", "an empty field is not clamped to the min");
+  deepStrictEqual(h.api.empty, true, "and the api reports the empty value");
 });
 
-Deno.test("Given a value clamped by allowOverflow false / When it is typed above the max / Then the blur reports the commit", () => {
+test("Given a value clamped by allowOverflow false / When it is typed above the max / Then the blur reports the commit", () => {
   const h = mount({ min: "0", max: "10", defaultValue: "5" });
   h.focusInput();
   h.type("10");
   h.blurInput();
-  assertEquals(
+  deepStrictEqual(
     h.events.valueCommit,
     [{ value: "10", valueAsNumber: 10 }],
     "the blur commits",
   );
-  assertEquals(h.events.valueInvalid, [], "and the value is in range");
+  deepStrictEqual(h.events.valueInvalid, [], "and the value is in range");
 });
 
 // ---- the press-and-hold clock ---------------------------------------------
@@ -825,73 +826,73 @@ Deno.test("Given a value clamped by allowOverflow false / When it is typed above
 // data the bag carries, so the clock's contract is read and ticked here
 // exactly as the action would.
 
-Deno.test("Given an idle input / When the control bag is read / Then the clock is disarmed", () => {
+test("Given an idle input / When the control bag is read / Then the clock is disarmed", () => {
   const h = mount();
-  assertEquals(h.clock().enabled, false, "no gesture is live");
-  assertEquals(
+  deepStrictEqual(h.clock().enabled, false, "no gesture is live");
+  deepStrictEqual(
     h.clock().interval,
     300,
     "and the dwell is the interval it would use",
   );
 });
 
-Deno.test("Given a pressed trigger / When the dwell elapses / Then the repeat phase starts", () => {
+test("Given a pressed trigger / When the dwell elapses / Then the repeat phase starts", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("increment");
-  assertEquals(h.api.value, "6", "the press steps immediately");
+  deepStrictEqual(h.api.value, "6", "the press steps immediately");
   const dwell = h.clock();
-  assertEquals(dwell.enabled, true, "the gesture arms the clock");
-  assertEquals(dwell.interval, 300, "at the dwell");
+  deepStrictEqual(dwell.enabled, true, "the gesture arms the clock");
+  deepStrictEqual(dwell.interval, 300, "at the dwell");
   dwell.tick();
-  assertEquals(h.api.value, "6", "the dwell itself steps nothing");
-  assertEquals(h.clock().interval, 50, "the repeat phase has begun");
+  deepStrictEqual(h.api.value, "6", "the dwell itself steps nothing");
+  deepStrictEqual(h.clock().interval, 50, "the repeat phase has begun");
   h.clock().tick();
-  assertEquals(h.api.value, "7", "and the repeat steps");
+  deepStrictEqual(h.api.value, "7", "and the repeat steps");
   h.clock().tick();
-  assertEquals(h.api.value, "8", "and again");
+  deepStrictEqual(h.api.value, "8", "and again");
 });
 
-Deno.test("Given a pressed decrement trigger / When the dwell elapses / Then the repeat runs downward", () => {
+test("Given a pressed decrement trigger / When the dwell elapses / Then the repeat runs downward", () => {
   const h = mount({ defaultValue: "5", min: "0" });
   h.pressTrigger("decrement");
-  assertEquals(h.api.value, "4", "the press steps down");
+  deepStrictEqual(h.api.value, "4", "the press steps down");
   h.clock().tick();
-  assertEquals(h.clock().interval, 50, "the repeat phase has begun");
+  deepStrictEqual(h.clock().interval, 50, "the repeat phase has begun");
   h.clock().tick();
-  assertEquals(h.api.value, "3", "and the repeat continues down");
+  deepStrictEqual(h.api.value, "3", "and the repeat continues down");
 });
 
-Deno.test("Given a released trigger / When the gesture ends / Then the clock is disarmed", () => {
+test("Given a released trigger / When the gesture ends / Then the clock is disarmed", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("increment");
   h.releaseTrigger("increment");
-  assertEquals(h.clock().enabled, false, "the press-up disarms the clock");
-  assertEquals(h.api.value, "6", "and the single step stands");
+  deepStrictEqual(h.clock().enabled, false, "the press-up disarms the clock");
+  deepStrictEqual(h.api.value, "6", "and the single step stands");
 });
 
-Deno.test("Given a trigger the pointer left / When the gesture ends / Then the clock is disarmed", () => {
+test("Given a trigger the pointer left / When the gesture ends / Then the clock is disarmed", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("increment");
   h.leaveTrigger("increment");
-  assertEquals(
+  deepStrictEqual(
     h.clock().enabled,
     false,
     "leaving the trigger ends the gesture",
   );
-  assertEquals(h.api.value, "6", "and the single step stands");
+  deepStrictEqual(h.api.value, "6", "and the single step stands");
 });
 
-Deno.test("Given spinOnPress false / When the dwell elapses / Then the gesture ends without repeating", () => {
+test("Given spinOnPress false / When the dwell elapses / Then the gesture ends without repeating", () => {
   const h = mount({ defaultValue: "5", spinOnPress: false });
   h.pressTrigger("increment");
-  assertEquals(h.api.value, "6", "the press still steps once");
-  assertEquals(h.clock().enabled, true, "the dwell is armed");
+  deepStrictEqual(h.api.value, "6", "the press still steps once");
+  deepStrictEqual(h.clock().enabled, true, "the dwell is armed");
   h.clock().tick();
-  assertEquals(h.api.value, "6", "but no repeat starts");
-  assertEquals(h.clock().enabled, false, "and the gesture is over");
+  deepStrictEqual(h.api.value, "6", "but no repeat starts");
+  deepStrictEqual(h.clock().enabled, false, "and the gesture is over");
 });
 
-Deno.test("Given a press on an out-of-range value / When the dwell elapses / Then the gesture ends", () => {
+test("Given a press on an out-of-range value / When the dwell elapses / Then the gesture ends", () => {
   const h = mount({
     defaultValue: "5",
     min: "0",
@@ -901,122 +902,122 @@ Deno.test("Given a press on an out-of-range value / When the dwell elapses / The
   h.api.setValue(50);
   h.pressTrigger("increment");
   h.clock().tick();
-  assertEquals(h.api.value, "51", "the press stepped once");
-  assertEquals(
+  deepStrictEqual(h.api.value, "51", "the press stepped once");
+  deepStrictEqual(
     h.clock().enabled,
     false,
     "but an out-of-range value earns no repeat",
   );
 });
 
-Deno.test("Given a held trigger / When another value arrives / Then the repeat keeps the armed direction", () => {
+test("Given a held trigger / When another value arrives / Then the repeat keeps the armed direction", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("decrement");
   h.clock().tick();
   h.clock().tick();
-  assertEquals(h.api.value, "3", "the repeat runs downward");
+  deepStrictEqual(h.api.value, "3", "the repeat runs downward");
 });
 
 // ---- the scrubber gesture -------------------------------------------------
 
-Deno.test("Given the scrubber grabbed / When the drag begins / Then the cursor is placed under the pointer", () => {
+test("Given the scrubber grabbed / When the drag begins / Then the cursor is placed under the pointer", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100, clientY: 40 });
   const style = h.bag("cursor")["style"];
-  assertEquals(
+  deepStrictEqual(
     typeof style === "object" && style !== null,
     true,
     "the cursor rides the geometry channel",
   );
-  assertEquals(
+  deepStrictEqual(
     (style as Record<string, string>)["left"],
     "92px",
     "the point is offset by half a cursor, rounded to the device pixel",
   );
-  assertEquals(
+  deepStrictEqual(
     (style as Record<string, string>)["top"],
     "32px",
     "and the y is offset the same way",
   );
 });
 
-Deno.test("Given a scrubbing gesture / When the pointer moves right / Then the value increments", () => {
+test("Given a scrubbing gesture / When the pointer moves right / Then the value increments", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100 });
   h.dragScrubber(140);
-  assertEquals(h.api.value, "6", "a rightward drag steps up");
+  deepStrictEqual(h.api.value, "6", "a rightward drag steps up");
   h.dragScrubber(180);
-  assertEquals(h.api.value, "7", "and each further move steps again");
+  deepStrictEqual(h.api.value, "7", "and each further move steps again");
 });
 
-Deno.test("Given a scrubbing gesture / When the pointer moves left / Then the value decrements", () => {
+test("Given a scrubbing gesture / When the pointer moves left / Then the value decrements", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100 });
   h.dragScrubber(60);
-  assertEquals(h.api.value, "4", "a leftward drag steps down");
+  deepStrictEqual(h.api.value, "4", "a leftward drag steps down");
 });
 
-Deno.test("Given an rtl input / When the pointer moves right / Then the value decrements", () => {
+test("Given an rtl input / When the pointer moves right / Then the value decrements", () => {
   const h = mount({ defaultValue: "5", dir: "rtl" });
   h.grabScrubber({ clientX: 100 });
   h.dragScrubber(140);
-  assertEquals(h.api.value, "4", "the axis is mirrored");
+  deepStrictEqual(h.api.value, "4", "the axis is mirrored");
 });
 
-Deno.test("Given a scrubbing gesture / When the pointer holds still / Then the value does not move", () => {
+test("Given a scrubbing gesture / When the pointer holds still / Then the value does not move", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100 });
   h.dragScrubber(100);
-  assertEquals(h.api.value, "5", "no delta is no hint");
+  deepStrictEqual(h.api.value, "5", "no delta is no hint");
   h.dragScrubber(100);
-  assertEquals(h.api.value, "5", "and still nothing");
+  deepStrictEqual(h.api.value, "5", "and still nothing");
 });
 
-Deno.test("Given a rail that was never grabbed / When a stray move arrives / Then nothing moves", () => {
+test("Given a rail that was never grabbed / When a stray move arrives / Then nothing moves", () => {
   const h = mount({ defaultValue: "5" });
   h.dragScrubber(140);
-  assertEquals(h.api.value, "5", "the gesture is not armed");
-  assertEquals(h.state(), "idle", "and the machine stayed idle");
+  deepStrictEqual(h.api.value, "5", "the gesture is not armed");
+  deepStrictEqual(h.state(), "idle", "and the machine stayed idle");
 });
 
-Deno.test("Given a disabled input / When the rail is grabbed / Then the gesture never starts", () => {
+test("Given a disabled input / When the rail is grabbed / Then the gesture never starts", () => {
   const h = mount({ defaultValue: "5", disabled: true });
   h.grabScrubber({ clientX: 100 });
-  assertEquals(h.state(), "idle", "no gesture starts");
+  deepStrictEqual(h.state(), "idle", "no gesture starts");
   h.dragScrubber(140);
-  assertEquals(h.api.value, "5", "and the drag does nothing");
+  deepStrictEqual(h.api.value, "5", "and the drag does nothing");
 });
 
-Deno.test("Given a scrubbing gesture / When it ends / Then the cursor is cleared and hidden", () => {
+test("Given a scrubbing gesture / When it ends / Then the cursor is cleared and hidden", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100 });
-  assertEquals(
+  deepStrictEqual(
     h.bag("cursor")["hidden"],
     false,
     "the cursor shows while scrubbing",
   );
   h.dropScrubber();
-  assertEquals(
+  deepStrictEqual(
     h.bag("cursor")["hidden"],
     true,
     "and hides when the gesture ends",
   );
-  assertEquals(
+  deepStrictEqual(
     (h.bag("cursor")["style"] as Record<string, string>)["left"],
     "0px",
     "the geometry channel is reset",
   );
 });
 
-Deno.test("Given a scrubbing gesture / When a non-primary press arrives / Then it is ignored", () => {
+test("Given a scrubbing gesture / When a non-primary press arrives / Then it is ignored", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100, button: 2 });
-  assertEquals(h.state(), "idle", "a right press is not a grab");
+  deepStrictEqual(h.state(), "idle", "a right press is not a grab");
 });
 
 // ---- the spin controls ----------------------------------------------------
 
-Deno.test("Given a spin control / When its bag is read / Then the trigger semantics hold", () => {
+test("Given a spin control / When its bag is read / Then the trigger semantics hold", () => {
   const h = mount({
     defaultValue: "5",
     incrementLabel: "more",
@@ -1024,57 +1025,57 @@ Deno.test("Given a spin control / When its bag is read / Then the trigger semant
   });
   const inc = h.trigger("increment");
   const dec = h.trigger("decrement");
-  assertEquals(inc["type"], "button", "the triggers are buttons");
-  assertEquals(inc["tabIndex"], -1, "and stay out of the tab order");
-  assertEquals(
+  deepStrictEqual(inc["type"], "button", "the triggers are buttons");
+  deepStrictEqual(inc["tabIndex"], -1, "and stay out of the tab order");
+  deepStrictEqual(
     inc["aria-controls"],
     "number-input:number-input:input",
     "the control names the input",
   );
-  assertEquals(inc["aria-label"], "more", "the host's increment label");
-  assertEquals(dec["aria-label"], "less", "and its decrement label");
+  deepStrictEqual(inc["aria-label"], "more", "the host's increment label");
+  deepStrictEqual(dec["aria-label"], "less", "and its decrement label");
 });
 
-Deno.test("Given the default labels / When no translation is authored / Then the defaults are used", () => {
+test("Given the default labels / When no translation is authored / Then the defaults are used", () => {
   const h = mount();
-  assertEquals(
+  deepStrictEqual(
     h.trigger("increment")["aria-label"],
     "increment value",
     "the increment default",
   );
-  assertEquals(
+  deepStrictEqual(
     h.trigger("decrement")["aria-label"],
     "decrease value",
     "and the decrement one",
   );
 });
 
-Deno.test("Given a disabled input / When the trigger bags are read / Then both report it", () => {
+test("Given a disabled input / When the trigger bags are read / Then both report it", () => {
   const h = mount({ disabled: true });
-  assertEquals(
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     true,
     "the increment trigger is disabled",
   );
-  assertEquals(
+  deepStrictEqual(
     h.trigger("decrement")["disabled"],
     true,
     "and so is the decrement",
   );
-  assertEquals(h.api.disabled, true, "the root reports it");
-  assertEquals(h.bag("input")["disabled"], true, "and the input is disabled");
+  deepStrictEqual(h.api.disabled, true, "the root reports it");
+  deepStrictEqual(h.bag("input")["disabled"], true, "and the input is disabled");
 });
 
-Deno.test("Given a disabled fieldset / When the form-control action reports / Then the machine follows", () => {
+test("Given a disabled fieldset / When the form-control action reports / Then the machine follows", () => {
   const h = mount({ defaultValue: "5" });
   actionCallback<(value: boolean) => void>(
     h.bag("root"),
     "use:form-control",
     "onDisabledChange",
   )(true);
-  assertEquals(h.api.disabled, true, "the api reports the fieldset");
-  assertEquals(h.bag("input")["disabled"], true, "the input is disabled");
-  assertEquals(
+  deepStrictEqual(h.api.disabled, true, "the api reports the fieldset");
+  deepStrictEqual(h.bag("input")["disabled"], true, "the input is disabled");
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     true,
     "and the triggers with it",
@@ -1084,24 +1085,24 @@ Deno.test("Given a disabled fieldset / When the form-control action reports / Th
     "use:form-control",
     "onDisabledChange",
   )(false);
-  assertEquals(
+  deepStrictEqual(
     h.api.disabled,
     false,
     "re-enabling the fieldset re-enables the control",
   );
 });
 
-Deno.test("Given a form reset / When the action reports it / Then the value returns to the seed", () => {
+test("Given a form reset / When the action reports it / Then the value returns to the seed", () => {
   const h = mount({ defaultValue: "5" });
   h.api.increment();
-  assertEquals(h.api.value, "6", "the value moved");
+  deepStrictEqual(h.api.value, "6", "the value moved");
   actionCallback<() => void>(
     h.bag("root"),
     "use:form-control",
     "onFormReset",
   )();
-  assertEquals(h.api.value, "5", "the reset restores the seed");
-  assertEquals(h.events.valueChange, [
+  deepStrictEqual(h.api.value, "5", "the reset restores the seed");
+  deepStrictEqual(h.events.valueChange, [
     { value: "6", valueAsNumber: 6 },
     { value: "5", valueAsNumber: 5 },
   ], "and both moves report");
@@ -1113,86 +1114,86 @@ Deno.test("Given a form reset / When the action reports it / Then the value retu
 // bridge's effect reads the live prop signals, so a write moves the machine
 // without an event.
 
-Deno.test("Given an authored value / When the host writes it / Then the machine follows without an event", () => {
+test("Given an authored value / When the host writes it / Then the machine follows without an event", () => {
   const h = mount({ value: "1" });
   h.write("value", 8);
-  assertEquals(h.api.value, "8", "the machine follows the write");
-  assertEquals(
+  deepStrictEqual(h.api.value, "8", "the machine follows the write");
+  deepStrictEqual(
     h.events.valueChange,
     [{ value: "8", valueAsNumber: 8 }],
     "and it reports as a change",
   );
 });
 
-Deno.test("Given an authored value / When the host writes it over a default / Then the write wins", () => {
+test("Given an authored value / When the host writes it over a default / Then the write wins", () => {
   const h = mount({ value: "", defaultValue: "5" });
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "",
     "the authored empty value clears what the default seeded",
   );
   h.write("value", "9");
-  assertEquals(h.api.value, "9", "and a later write lands verbatim");
+  deepStrictEqual(h.api.value, "9", "and a later write lands verbatim");
 });
 
-Deno.test("Given an authored value / When the machine itself moves / Then the next host write still wins", () => {
+test("Given an authored value / When the machine itself moves / Then the next host write still wins", () => {
   const h = mount({ value: "1" });
   h.api.increment();
-  assertEquals(h.api.value, "2", "the machine moved");
+  deepStrictEqual(h.api.value, "2", "the machine moved");
   h.write("value", 7);
-  assertEquals(h.api.value, "7", "the host's write re-imposes itself");
+  deepStrictEqual(h.api.value, "7", "the host's write re-imposes itself");
 });
 
-Deno.test("Given a default value / When the host never writes it / Then the machine keeps its own moves", () => {
+test("Given a default value / When the host never writes it / Then the machine keeps its own moves", () => {
   const h = mount({ defaultValue: "5" });
   h.api.increment();
-  assertEquals(h.api.value, "6", "the machine's own move stands");
+  deepStrictEqual(h.api.value, "6", "the machine's own move stands");
   h.write("defaultValue", 9);
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "6",
     "a default write does not alternate the value",
   );
 });
 
-Deno.test("Given an authored value written to what it already holds / Then nothing reports", () => {
+test("Given an authored value written to what it already holds / Then nothing reports", () => {
   const h = mount({ value: "5" });
   h.write("value", "5");
-  assertEquals(h.api.value, "5", "the value is unchanged");
-  assertEquals(h.events.valueChange, [], "and no change is reported");
+  deepStrictEqual(h.api.value, "5", "the value is unchanged");
+  deepStrictEqual(h.events.valueChange, [], "and no change is reported");
 });
 
-Deno.test("Given an authored value the machine cannot parse / When it is written / Then the host's characters stand", () => {
+test("Given an authored value the machine cannot parse / When it is written / Then the host's characters stand", () => {
   const h = mount({ value: "5" });
   h.write("value", "not a number");
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "not a number",
     "a controlled value is the host's, verbatim",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.valueAsNumber,
     Number.NaN,
     "and its number is the absent one",
   );
 });
 
-Deno.test("Given an authored value written as a non-value / When it arrives / Then the machine is left alone", () => {
+test("Given an authored value written as a non-value / When it arrives / Then the machine is left alone", () => {
   const h = mount({ value: "5" });
   h.write("value", { not: "a value" });
-  assertEquals(h.api.value, "5", "an unusable write changes nothing");
+  deepStrictEqual(h.api.value, "5", "an unusable write changes nothing");
 });
 
-Deno.test("Given authored bounds / When they change / Then the scalars the assigns read follow", () => {
+test("Given authored bounds / When they change / Then the scalars the assigns read follow", () => {
   const h = mount({ defaultValue: "5", max: "10" });
   h.api.increment();
-  assertEquals(h.api.value, "6", "the old max allowed the step");
+  deepStrictEqual(h.api.value, "6", "the old max allowed the step");
   h.write("max", 6);
-  assertEquals(h.api.value, "6", "the new max holds it");
+  deepStrictEqual(h.api.value, "6", "the new max holds it");
   h.api.increment();
-  assertEquals(h.api.value, "6", "and nothing more moves");
-  assertEquals(h.api.canIncrement, false, "the api reports the new bound");
-  assertEquals(
+  deepStrictEqual(h.api.value, "6", "and nothing more moves");
+  deepStrictEqual(h.api.canIncrement, false, "the api reports the new bound");
+  deepStrictEqual(
     h.trigger("increment")["disabled"],
     true,
     "and the trigger with it",
@@ -1201,50 +1202,50 @@ Deno.test("Given authored bounds / When they change / Then the scalars the assig
 
 // ---- the aria contract ----------------------------------------------------
 
-Deno.test("Given an input / When its bag is read / Then the spinbutton contract holds", () => {
+test("Given an input / When its bag is read / Then the spinbutton contract holds", () => {
   const h = mount({ defaultValue: "12", min: "0", max: "100" });
   const bag = h.bag("input");
-  assertEquals(bag["role"], "spinbutton", "the input is a spinbutton");
-  assertEquals(bag["aria-roledescription"], "numberfield", "and a numberfield");
-  assertEquals(bag["aria-valuemin"], 0, "the minimum");
-  assertEquals(bag["aria-valuemax"], 100, "the maximum");
-  assertEquals(bag["aria-valuenow"], 12, "the current value");
-  assertEquals(bag["aria-invalid"], false, "an in-range value is valid");
-  assertEquals(bag["type"], "text", "the input is a text field");
-  assertEquals(bag["inputMode"], "decimal", "with the decimal keypad");
-  assertEquals(bag["pattern"], "-?[0-9]*(.[0-9]+)?", "and the default pattern");
-  assertEquals(bag["autoComplete"], "off", "no autofill");
-  assertEquals(bag["spellCheck"], false, "and no spellcheck");
-  assertEquals(bag["readOnly"], false, "it is writable");
-  assertEquals(
+  deepStrictEqual(bag["role"], "spinbutton", "the input is a spinbutton");
+  deepStrictEqual(bag["aria-roledescription"], "numberfield", "and a numberfield");
+  deepStrictEqual(bag["aria-valuemin"], 0, "the minimum");
+  deepStrictEqual(bag["aria-valuemax"], 100, "the maximum");
+  deepStrictEqual(bag["aria-valuenow"], 12, "the current value");
+  deepStrictEqual(bag["aria-invalid"], false, "an in-range value is valid");
+  deepStrictEqual(bag["type"], "text", "the input is a text field");
+  deepStrictEqual(bag["inputMode"], "decimal", "with the decimal keypad");
+  deepStrictEqual(bag["pattern"], "-?[0-9]*(.[0-9]+)?", "and the default pattern");
+  deepStrictEqual(bag["autoComplete"], "off", "no autofill");
+  deepStrictEqual(bag["spellCheck"], false, "and no spellcheck");
+  deepStrictEqual(bag["readOnly"], false, "it is writable");
+  deepStrictEqual(
     bag["id"],
     "number-input:number-input:input",
     "and the part id is namespaced",
   );
 });
 
-Deno.test("Given an empty value / When the bag is read / Then aria-valuenow is absent", () => {
+test("Given an empty value / When the bag is read / Then aria-valuenow is absent", () => {
   const h = mount();
-  assertEquals(
+  deepStrictEqual(
     h.bag("input")["aria-valuenow"],
     undefined,
     "an absent value has no number",
   );
-  assertEquals(h.api.valueAsNumber, Number.NaN, "the api agrees");
+  deepStrictEqual(h.api.valueAsNumber, Number.NaN, "the api agrees");
 });
 
-Deno.test("Given an out-of-range value / When the bag is read / Then aria-invalid is set", () => {
+test("Given an out-of-range value / When the bag is read / Then aria-invalid is set", () => {
   const h = mount({
     min: "0",
     max: "10",
     allowOverflow: true,
     defaultValue: "40",
   });
-  assertEquals(h.bag("input")["aria-invalid"], true, "the input announces it");
-  assertEquals(h.api.invalid, true, "and the api reports it");
+  deepStrictEqual(h.bag("input")["aria-invalid"], true, "the input announces it");
+  deepStrictEqual(h.api.invalid, true, "and the api reports it");
 });
 
-Deno.test("Given an authored invalid / When it is written / Then it wins over the range", () => {
+test("Given an authored invalid / When it is written / Then it wins over the range", () => {
   const h = mount({
     min: "0",
     max: "10",
@@ -1252,88 +1253,88 @@ Deno.test("Given an authored invalid / When it is written / Then it wins over th
     defaultValue: "40",
     allowOverflow: true,
   });
-  assertEquals(h.api.invalid, false, "the host's answer stands");
+  deepStrictEqual(h.api.invalid, false, "the host's answer stands");
   h.write("invalid", true);
-  assertEquals(h.api.invalid, true, "and turning it on works");
+  deepStrictEqual(h.api.invalid, true, "and turning it on works");
 });
 
-Deno.test("Given a control / When its bag is read / Then the group contract holds", () => {
+test("Given a control / When its bag is read / Then the group contract holds", () => {
   const h = mount({ defaultValue: "5", disabled: true });
   const bag = h.bag("control");
-  assertEquals(bag["role"], "group", "the control groups the field");
-  assertEquals(bag["aria-disabled"], true, "and reports disabled");
-  assertEquals(bag["aria-invalid"], false, "while the value is valid");
-  assertEquals(
+  deepStrictEqual(bag["role"], "group", "the control groups the field");
+  deepStrictEqual(bag["aria-disabled"], true, "and reports disabled");
+  deepStrictEqual(bag["aria-invalid"], false, "while the value is valid");
+  deepStrictEqual(
     bag["id"],
     "number-input:number-input:control",
     "the part id is namespaced",
   );
 });
 
-Deno.test("Given a label / When its bag is read / Then it names the input", () => {
+test("Given a label / When its bag is read / Then it names the input", () => {
   const h = mount({ required: true });
   const bag = h.bag("label");
-  assertEquals(
+  deepStrictEqual(
     bag["for"],
     "number-input:number-input:input",
     "the label names the input",
   );
-  assertEquals(h.api.required, true, "and reports required");
-  assertEquals(
+  deepStrictEqual(h.api.required, true, "and reports required");
+  deepStrictEqual(
     bag["id"],
     "number-input:number-input:label",
     "with a namespaced id",
   );
 });
 
-Deno.test("Given the input in the document / When the label is clicked / Then the field takes focus", () => {
+test("Given the input in the document / When the label is clicked / Then the field takes focus", () => {
   const h = mount({ defaultValue: "5" });
   const input = attachInput();
   handler<(event: unknown) => void>(h.bag("label"), "onClick")(undefined);
-  assertEquals(input.focused.length, 1, "the label focuses the field once");
-  assertEquals(h.state(), "idle", "and the machine is untouched by the label");
+  deepStrictEqual(input.focused.length, 1, "the label focuses the field once");
+  deepStrictEqual(h.state(), "idle", "and the machine is untouched by the label");
 });
 
-Deno.test("Given focusInputOnChange false / When the label is clicked / Then the field keeps its focus", () => {
+test("Given focusInputOnChange false / When the label is clicked / Then the field keeps its focus", () => {
   const h = mount({ defaultValue: "5", focusInputOnChange: false });
   const input = attachInput();
   handler<(event: unknown) => void>(h.bag("label"), "onClick")(undefined);
-  assertEquals(input.focused.length, 0, "the host opted out of the focus");
+  deepStrictEqual(input.focused.length, 0, "the host opted out of the focus");
 });
 
-Deno.test("Given the input in the document / When a trigger is pressed / Then the field takes focus", () => {
+test("Given the input in the document / When a trigger is pressed / Then the field takes focus", () => {
   const h = mount({ defaultValue: "5" });
   const input = attachInput();
   h.pressTrigger("increment");
-  assertEquals(input.focused.length, 1, "a press focuses the field");
-  assertEquals(h.api.value, "6", "and the press steps once");
+  deepStrictEqual(input.focused.length, 1, "a press focuses the field");
+  deepStrictEqual(h.api.value, "6", "and the press steps once");
 });
 
-Deno.test("Given the input in the document / When the scrubber is grabbed / Then the field takes focus", () => {
+test("Given the input in the document / When the scrubber is grabbed / Then the field takes focus", () => {
   const h = mount({ defaultValue: "5" });
   const input = attachInput();
   h.grabScrubber({ clientX: 100 });
-  assertEquals(input.focused.length, 1, "the grab focuses the field");
-  assertEquals(h.state(), "scrubbing", "and the gesture is live");
+  deepStrictEqual(input.focused.length, 1, "the grab focuses the field");
+  deepStrictEqual(h.state(), "scrubbing", "and the gesture is live");
 });
 
-Deno.test("Given the cursor part / When its bag is read / Then the coordinates ride the style object", () => {
+test("Given the cursor part / When its bag is read / Then the coordinates ride the style object", () => {
   const h = mount({ defaultValue: "5" });
   h.grabScrubber({ clientX: 100, clientY: 40 });
   const style = h.bag("cursor")["style"] as Record<string, string>;
   const keys = Object.keys(style);
-  assertEquals(keys.length, 2, "the channel carries the two coordinates");
-  assertEquals(
+  deepStrictEqual(keys.length, 2, "the channel carries the two coordinates");
+  deepStrictEqual(
     keys.every((key) => key === "left" || key === "top"),
     true,
     "and they are plain style properties",
   );
-  assertEquals(
+  deepStrictEqual(
     h.bag("cursor")["aria-hidden"],
     true,
     "the cursor is decorative",
   );
-  assertEquals(
+  deepStrictEqual(
     h.bag("cursor")["id"],
     "number-input:number-input:cursor",
     "with a namespaced id",
@@ -1347,43 +1348,43 @@ Deno.test("Given the cursor part / When its bag is read / Then the coordinates r
 // api on every machine move, so a fresh bag per read detaches and re-attaches
 // every listener each move.
 
-Deno.test("Given an open input / When the value moves / Then the bag is rebuilt and follows it", () => {
+test("Given an open input / When the value moves / Then the bag is rebuilt and follows it", () => {
   const h = mount({ defaultValue: "5" });
   const before = h.bag("input");
   h.api.increment();
   const after = h.bag("input");
-  assertEquals(
+  deepStrictEqual(
     before === after,
     false,
     "the value moved, so the bag was rebuilt",
   );
-  assertEquals(after["value"], "6", "and the new bag carries the new value");
-  assertEquals(after["aria-valuenow"], 6, "with the new number");
+  deepStrictEqual(after["value"], "6", "and the new bag carries the new value");
+  deepStrictEqual(after["aria-valuenow"], 6, "with the new number");
 });
 
-Deno.test("Given an open input / When nothing moves / Then re-reading the bags returns the same objects", () => {
+test("Given an open input / When nothing moves / Then re-reading the bags returns the same objects", () => {
   const h = mount({ defaultValue: "5" });
-  assertEquals(h.bag("root") === h.bag("root"), true, "the root bag is stable");
-  assertEquals(h.bag("input") === h.bag("input"), true, "so is the input bag");
-  assertEquals(
+  deepStrictEqual(h.bag("root") === h.bag("root"), true, "the root bag is stable");
+  deepStrictEqual(h.bag("input") === h.bag("input"), true, "so is the input bag");
+  deepStrictEqual(
     h.bag("control") === h.bag("control"),
     true,
     "and the control bag",
   );
-  assertEquals(
+  deepStrictEqual(
     h.trigger("increment") === h.trigger("increment"),
     true,
     "and the trigger bag",
   );
 });
 
-Deno.test("Given an open input / When the value moves / Then the part handlers keep their identity", () => {
+test("Given an open input / When the value moves / Then the part handlers keep their identity", () => {
   const h = mount({ defaultValue: "5" });
   const before = h.bag("input")["onKeydown"];
   h.api.increment();
   // The bag is rebuilt for the new value, but the handlers are the connect's
   // own closures — a listener that changes identity is re-attached every move.
-  assertEquals(
+  deepStrictEqual(
     h.bag("input")["onKeydown"] === before,
     true,
     "the handler identity survives a move",
@@ -1391,37 +1392,37 @@ Deno.test("Given an open input / When the value moves / Then the part handlers k
   const scrubber = h.bag("scrubber")["onPointerDown"];
   h.grabScrubber();
   h.api.increment();
-  assertEquals(
+  deepStrictEqual(
     h.bag("scrubber")["onPointerDown"] === scrubber,
     true,
     "and the scrubber's too",
   );
 });
 
-Deno.test("Given an open input / When the api is read / Then the connect is one object for the element's life", () => {
+test("Given an open input / When the api is read / Then the connect is one object for the element's life", () => {
   const h = mount({ defaultValue: "5" });
   const first = h.api.getInputProps;
   h.api.increment();
-  assertEquals(
+  deepStrictEqual(
     h.api.getInputProps === first,
     true,
     "the api surface is stable across moves",
   );
 });
 
-Deno.test("Given a gesture / When the trigger bag is read mid-press / Then the data state follows the machine", () => {
+test("Given a gesture / When the trigger bag is read mid-press / Then the data state follows the machine", () => {
   const h = mount({ defaultValue: "5" });
   h.pressTrigger("increment");
-  assertEquals(h.api.focused, true, "the control reports focus");
-  assertEquals(h.api.focused, true, "and so does the value text");
+  deepStrictEqual(h.api.focused, true, "the control reports focus");
+  deepStrictEqual(h.api.focused, true, "and so does the value text");
   h.releaseTrigger("increment");
-  assertEquals(h.api.focused, true, "the gesture ended but focus stays");
+  deepStrictEqual(h.api.focused, true, "the gesture ended but focus stays");
 });
 
-Deno.test("Given an input / When it is disposed / Then the machine stops", () => {
+test("Given an input / When it is disposed / Then the machine stops", () => {
   const h = mount({ defaultValue: "5" });
   h.dispose();
   h.api.increment();
-  assertEquals(h.api.value, "5", "a stopped service takes no more moves");
-  assertEquals(h.state(), "idle", "and holds its last state");
+  deepStrictEqual(h.api.value, "5", "a stopped service takes no more moves");
+  deepStrictEqual(h.state(), "idle", "and holds its last state");
 });

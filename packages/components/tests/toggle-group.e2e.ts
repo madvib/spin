@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM toggle-group presses in a real browser — click
  * toggles, arrows rove with loop wrap, and the imperative command drives
@@ -6,14 +7,14 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `toggle-group:<element id>:<part>`. */
 const ROOT_ID = '[id="toggle-group:format"]';
 const item = (value: string): string =>
   `[id="toggle-group:format:item:${value}"]`;
 
-Deno.test("spin-toggle-group e2e", () =>
+test("spin-toggle-group e2e", () =>
   runComponentSuite(
     { port: 5257, route: "/toggle-group", ready: ROOT_ID },
     async ({ page }) => {

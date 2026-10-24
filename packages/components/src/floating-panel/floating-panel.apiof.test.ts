@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { FloatingPanelApi } from "./floating-panel.presentation.ts";
 
-Deno.test("FloatingPanelApi promises the component's surface", () => {
+test("FloatingPanelApi promises the component's surface", () => {
   const keys: (keyof FloatingPanelApi)[] = [
     "state",
     "isOpen",
@@ -22,7 +23,7 @@ Deno.test("FloatingPanelApi promises the component's surface", () => {
     "getCloseTriggerProps",
     "getResizeTriggerProps",
   ];
-  assertEquals(keys.length, 18);
+  deepStrictEqual(keys.length, 18);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<
@@ -38,7 +39,7 @@ Deno.test("FloatingPanelApi promises the component's surface", () => {
     true;
   const restoreTyped: AssertExact<FloatingPanelApi["restore"], () => void> =
     true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setOpenTyped,

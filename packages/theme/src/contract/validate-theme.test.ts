@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
 import { treeToJson } from "../authoring/mutate.ts";
 import { validateTheme } from "./validate-theme.ts";
@@ -80,49 +81,49 @@ function issueAt(report: ThemeReport, path: string) {
   return found;
 }
 
-Deno.test("a theme that declares every role it owes is valid", () => {
+test("a theme that declares every role it owes is valid", () => {
   // The scaffold is the smallest theme that satisfies the contract, so it is
   // the document the module says nothing is wrong with — the answer every
   // consumer reads.
   const report = validateTheme(complete());
 
-  assertEquals(report.valid, true);
-  assertEquals(report.issues, []);
-  assertEquals(report.error, undefined);
+  deepStrictEqual(report.valid, true);
+  deepStrictEqual(report.issues, []);
+  deepStrictEqual(report.error, undefined);
 });
 
-Deno.test("a theme missing a role it owes is reported at that role", () => {
+test("a theme missing a role it owes is reported at that role", () => {
   // The preview refuses to build a theme that is missing a role, so the
   // judgement that says a theme is fine cannot be the one the build makes:
   // the two would answer the same question differently.
   const report = validateTheme(without(complete(), "color.text"));
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.text").message.includes("color.text"));
 });
 
-Deno.test("a theme with a value a browser will not take is reported at that token", () => {
+test("a theme with a value a browser will not take is reported at that token", () => {
   // The value is judged where it sits: a colour that is not a colour is a
   // mistake an author can find, and a path that says where is what lets them.
   const report = validateTheme(withValue(complete(), "color.primary", "#zzz"));
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.primary").message.length > 0);
 });
 
-Deno.test("a document that is not JSON is reported as such", () => {
+test("a document that is not JSON is reported as such", () => {
   // A file an author is halfway through writing is not a theme yet, and the
   // studio has to say why rather than show nothing.
   const report = validateTheme("{ not json at all\n");
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(
     (report.error ?? "").includes("invalid JSON"),
     `the reason is not the parse's own: ${report.error}`,
   );
 });
 
-Deno.test("the floors are measured in the mode the theme is judged in", () => {
+test("the floors are measured in the mode the theme is judged in", () => {
   // A palette is re-picked in dark, and a pair that reads on white can vanish
   // on charcoal. Judged in dark, the theme is judged as it reads there.
   const dark = validateTheme(
@@ -130,7 +131,7 @@ Deno.test("the floors are measured in the mode the theme is judged in", () => {
     { mode: "dark" },
   );
 
-  assertEquals(dark.valid, false);
+  deepStrictEqual(dark.valid, false);
   assert(
     issueAt(dark, "color.on-primary").message.includes(
       "below the 4.5:1 floor",
@@ -142,33 +143,33 @@ Deno.test("the floors are measured in the mode the theme is judged in", () => {
   const light = validateTheme(
     inMode(complete(), "color.primary", "dark", "#ffffff"),
   );
-  assertEquals(light.valid, true);
+  deepStrictEqual(light.valid, true);
 });
 
-Deno.test("the modes a caller states are the modes the theme serves", () => {
+test("the modes a caller states are the modes the theme serves", () => {
   // A value written for a mode the theme does not serve is never shown, so
   // the claim is the caller's to make — and the module judges the claim.
   const doc = inMode(complete(), "color.primary", "dark", "#222222");
   const unserved = validateTheme(doc, { modes: ["light"] });
 
-  assertEquals(unserved.valid, false);
+  deepStrictEqual(unserved.valid, false);
   assert(issueAt(unserved, "color.primary").message.includes("does not serve"));
 
   // The same document, judged by a caller that says the theme serves dark:
   // the override is shown, and the theme owes nothing.
   const served = validateTheme(doc, { modes: ["light", "dark"] });
 
-  assertEquals(served.valid, true);
-  assertEquals(served.issues, []);
+  deepStrictEqual(served.valid, true);
+  deepStrictEqual(served.issues, []);
 });
 
-Deno.test("the roles a caller states are the roles the document owes", () => {
+test("the roles a caller states are the roles the document owes", () => {
   // The base roles are the module's own list, so a caller that judges a
   // theme against more than the base surface states the extra paths itself.
   const report = validateTheme(complete(), {
     required: ["color.never-declared"],
   });
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.never-declared").message.length > 0);
 });

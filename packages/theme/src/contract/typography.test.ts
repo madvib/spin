@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   ELEMENT_TYPE_ROLES,
   elementTypeElements,
@@ -23,7 +24,7 @@ import { starterThemes } from "@spin/theme/themes";
  * a theme gets by saying nothing is an answer that exists.
  */
 
-Deno.test("the per-element typography is optional", () => {
+test("the per-element typography is optional", () => {
   // A theme that says nothing about a heading gets the system's answer, so
   // the group cannot be required — and the schema must not say it is.
   const schema = themeSchema();
@@ -36,7 +37,7 @@ Deno.test("the per-element typography is optional", () => {
     required?: string[];
   } | undefined;
   assert(element !== undefined, "the schema must know the group");
-  assertEquals(
+  deepStrictEqual(
     element.required,
     undefined,
     "the group a theme may leave out must not be required",
@@ -46,23 +47,23 @@ Deno.test("the per-element typography is optional", () => {
     required?: string[];
   } | undefined;
   assert(h1 !== undefined, "the schema must know the first heading");
-  assertEquals(
+  deepStrictEqual(
     h1.required,
     undefined,
     "a heading's decisions are the theme's to make, not the schema's to demand",
   );
 });
 
-Deno.test("a theme that declares no per-element typography is valid", () => {
+test("a theme that declares no per-element typography is valid", () => {
   // The whole point of the fallback: the group is a decision a theme MAY
   // make, so a document without it owes nothing.
   const parsed = parseTokens(starterThemes.silk);
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
-  assertEquals(report.issues, []);
+  deepStrictEqual(report.issues, []);
 });
 
-Deno.test("every per-element path is a path the theme language has", () => {
+test("every per-element path is a path the theme language has", () => {
   // A fallback the theme language does not have is an answer that cannot be
   // given, and the rule that spends it would reach for nothing.
   const known = new Set([
@@ -99,12 +100,12 @@ Deno.test("every per-element path is a path the theme language has", () => {
   }
 });
 
-Deno.test("every per-element path is named after the element it belongs to", () => {
+test("every per-element path is named after the element it belongs to", () => {
   // The path IS the identity: `font.element.h1.size` is the size of an `h1`,
   // and a path that named another element would be a decision the wrong rule
   // spends.
   for (const role of ELEMENT_TYPE_ROLES) {
-    assertEquals(
+    deepStrictEqual(
       role.path,
       `font.element.${role.element}.${role.field}`,
       `${role.path} must name its own element and field`,
@@ -112,7 +113,7 @@ Deno.test("every per-element path is named after the element it belongs to", () 
   }
 });
 
-Deno.test("every element the contract names has all three decisions", () => {
+test("every element the contract names has all three decisions", () => {
   // A half-declared element is an element the theme can set a face for and
   // not a size for, which reads as an accident rather than a decision.
   for (const element of elementTypeElements()) {
@@ -124,18 +125,18 @@ Deno.test("every element the contract names has all three decisions", () => {
       );
     }
   }
-  assertEquals(
+  deepStrictEqual(
     elementTypePaths().length,
     elementTypeElements().length * 3,
     "every element carries exactly three decisions",
   );
 });
 
-Deno.test("the declaration for a path is the one that path names", () => {
+test("the declaration for a path is the one that path names", () => {
   for (const path of elementTypePaths()) {
     const role = elementTypeRole(path);
     assert(role !== undefined, `${path} must be declared`);
-    assertEquals(role.path, path);
-    assertEquals(elementTypeFallback(path), role.fallback);
+    deepStrictEqual(role.path, path);
+    deepStrictEqual(elementTypeFallback(path), role.fallback);
   }
 });

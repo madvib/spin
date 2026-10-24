@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import {
@@ -68,47 +69,47 @@ function tree(): TokenTree {
   return parsed.tree;
 }
 
-Deno.test("tokenValue answers what a token is worth in the mode asked for", () => {
-  assertEquals(tokenValue(tree(), "light", "color.primary"), "#112233");
-  assertEquals(tokenValue(tree(), "dark", "color.primary"), "#445566");
+test("tokenValue answers what a token is worth in the mode asked for", () => {
+  deepStrictEqual(tokenValue(tree(), "light", "color.primary"), "#112233");
+  deepStrictEqual(tokenValue(tree(), "dark", "color.primary"), "#445566");
 });
 
-Deno.test("tokenValue follows a reference to the value it points at", () => {
-  assertEquals(tokenValue(tree(), "light", "color.link"), "#112233");
-  assertEquals(tokenValue(tree(), "light", "color.surface-sunken"), "#eeeeee");
+test("tokenValue follows a reference to the value it points at", () => {
+  deepStrictEqual(tokenValue(tree(), "light", "color.link"), "#112233");
+  deepStrictEqual(tokenValue(tree(), "light", "color.surface-sunken"), "#eeeeee");
 });
 
-Deno.test("tokenValue follows a reference written as a dark override", () => {
-  assertEquals(tokenValue(tree(), "dark", "color.surface-sunken"), "#1f1f1f");
+test("tokenValue follows a reference written as a dark override", () => {
+  deepStrictEqual(tokenValue(tree(), "dark", "color.surface-sunken"), "#1f1f1f");
 });
 
-Deno.test("tokenValue answers undefined for a path the theme does not declare", () => {
-  assertEquals(tokenValue(tree(), "light", "color.accent"), undefined);
+test("tokenValue answers undefined for a path the theme does not declare", () => {
+  deepStrictEqual(tokenValue(tree(), "light", "color.accent"), undefined);
 });
 
-Deno.test("paletteChips shows the roles this theme declares, in palette order", () => {
-  assertEquals(
+test("paletteChips shows the roles this theme declares, in palette order", () => {
+  deepStrictEqual(
     paletteChips(TEXT, "light").map((chip) => chip.path),
     ["color.primary", "color.link"],
   );
 });
 
-Deno.test("paletteChips paints each chip with a utility named after its token", () => {
+test("paletteChips paints each chip with a utility named after its token", () => {
   const chip = paletteChips(TEXT, "light").find((c) => c.path === "color.link");
-  assertEquals(chip?.paint, "bg-link");
-  assertEquals(chip?.label, "Link");
+  deepStrictEqual(chip?.paint, "bg-link");
+  deepStrictEqual(chip?.label, "Link");
 });
 
-Deno.test("paletteChips reads the mode it is asked to show", () => {
+test("paletteChips reads the mode it is asked to show", () => {
   const dark = paletteChips(TEXT, "dark").find((c) =>
     c.path === "color.primary"
   );
-  assertEquals(dark?.value, "#445566");
+  deepStrictEqual(dark?.value, "#445566");
 });
 
-Deno.test("summarySwatches reads one palette per mode the theme declares", () => {
+test("summarySwatches reads one palette per mode the theme declares", () => {
   const groups = summarySwatches(TEXT);
-  assertEquals(
+  deepStrictEqual(
     groups.map((group) => group.mode),
     ["light", "dark"],
   );
@@ -116,60 +117,60 @@ Deno.test("summarySwatches reads one palette per mode the theme declares", () =>
     groups.find((group) => group.mode === mode)?.chips.find((chip) =>
       chip.path === "color.primary"
     )?.value;
-  assertEquals(primary("light"), "#112233");
-  assertEquals(primary("dark"), "#445566");
+  deepStrictEqual(primary("light"), "#112233");
+  deepStrictEqual(primary("dark"), "#445566");
 });
 
-Deno.test("summarySwatches reads a theme that declares one mode as one palette", () => {
+test("summarySwatches reads a theme that declares one mode as one palette", () => {
   const solo = summarySwatches(JSON.stringify({
     modes: ["light"],
     color: { $type: "color", primary: { $value: "#0f1115" } },
   }));
-  assertEquals(
+  deepStrictEqual(
     solo.map((group) => group.mode),
     ["light"],
   );
-  assertEquals(
+  deepStrictEqual(
     solo[0]?.chips.find((chip) => chip.path === "color.primary")?.value,
     "#0f1115",
   );
 });
 
-Deno.test("summarySwatches answers a document that does not parse with nothing", () => {
+test("summarySwatches answers a document that does not parse with nothing", () => {
   // The overview keeps rendering while an author is mid-edit: a summary of a
   // half-typed document is empty, not a crash.
-  assertEquals(summarySwatches("{not json"), []);
+  deepStrictEqual(summarySwatches("{not json"), []);
 });
 
-Deno.test("surfaceSteps reads the ladder from the page down", () => {
-  assertEquals(
+test("surfaceSteps reads the ladder from the page down", () => {
+  deepStrictEqual(
     surfaceSteps(TEXT, "light").map((step) => step.path),
     ["color.surface-sunken", "color.surface", "color.surface-raised"],
   );
 });
 
-Deno.test("surfaceSteps shows the dark value of a step that is a reference", () => {
+test("surfaceSteps shows the dark value of a step that is a reference", () => {
   const dark = surfaceSteps(TEXT, "dark");
-  assertEquals(
+  deepStrictEqual(
     dark.find((s) => s.path === "color.surface-sunken")?.value,
     "#1f1f1f",
   );
-  assertEquals(dark.find((s) => s.path === "color.surface")?.value, "#fafafa");
+  deepStrictEqual(dark.find((s) => s.path === "color.surface")?.value, "#fafafa");
 });
 
-Deno.test("faceSpecimens shows the slots this theme declares, leading with the display face", () => {
-  assertEquals(
+test("faceSpecimens shows the slots this theme declares, leading with the display face", () => {
+  deepStrictEqual(
     faceSpecimens(TEXT, "light").map((face) => face.slot),
     ["heading", "sans", "mono"],
   );
 });
 
-Deno.test("faceSpecimens carries the stack and the utility that draws it", () => {
+test("faceSpecimens carries the stack and the utility that draws it", () => {
   const heading = faceSpecimens(TEXT, "light").find((f) =>
     f.slot === "heading"
   );
-  assertEquals(heading?.stack, "Georgia, serif");
-  assertEquals(heading?.paint, "font-heading");
+  deepStrictEqual(heading?.stack, "Georgia, serif");
+  deepStrictEqual(heading?.paint, "font-heading");
 });
 
 /**
@@ -177,16 +178,16 @@ Deno.test("faceSpecimens carries the stack and the utility that draws it", () =>
  * as a specimen says nothing. The three that remain are the scale's ends and
  * its middle — the sample an overview gives of a scale too long to show whole.
  */
-Deno.test("spaceSteps reads the ends and the middle of the scale", () => {
-  assertEquals(
+test("spaceSteps reads the ends and the middle of the scale", () => {
+  deepStrictEqual(
     spaceSteps(TEXT, "light").map((step) => step.path),
     ["spacing.1", "spacing.4", "spacing.16"],
   );
 });
 
-Deno.test("durationUtility names a duration the way the stylesheet spells it", () => {
-  assertEquals(durationUtility("motion.duration.fast"), "duration-fast");
-  assertEquals(durationUtility("motion.duration.base"), "duration-base");
+test("durationUtility names a duration the way the stylesheet spells it", () => {
+  deepStrictEqual(durationUtility("motion.duration.fast"), "duration-fast");
+  deepStrictEqual(durationUtility("motion.duration.base"), "duration-base");
 });
 
 /** What the RPC sends: components with examples, and components without. */
@@ -223,14 +224,14 @@ const LIBRARY = [
   },
 ];
 
-Deno.test("elementSamples samples the components that have examples", () => {
+test("elementSamples samples the components that have examples", () => {
   const samples = elementSamples(LIBRARY);
-  assertEquals(
+  deepStrictEqual(
     samples.map((sample) => sample.component),
     ["button", "alert", "badge"],
   );
   // One row per component: the card is a sample of the vocabulary, not a
   // second copy of the gallery's every variant.
-  assertEquals(samples[0]?.row.name, "default");
-  assertEquals(samples[0]?.row.html, "<button>Ok</button>");
+  deepStrictEqual(samples[0]?.row.name, "default");
+  deepStrictEqual(samples[0]?.row.html, "<button>Ok</button>");
 });

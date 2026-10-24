@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The theme mapping the montage is built on.
  *
@@ -15,7 +16,7 @@ import { starterThemes, themeModes } from "@spin/theme/themes";
 import { renderingsFor } from "./themes.ts";
 
 /** Equal, or the test says what was different. */
-function assertEquals<T>(actual: T, expected: T, what: string): void {
+function deepStrictEqual<T>(actual: T, expected: T, what: string): void {
   const same = JSON.stringify(actual) === JSON.stringify(expected);
   if (same) return;
   throw new Error(
@@ -25,41 +26,41 @@ function assertEquals<T>(actual: T, expected: T, what: string): void {
   );
 }
 
-Deno.test("a theme renders its own face, and its dark restatement when it has one", () => {
+test("a theme renders its own face, and its dark restatement when it has one", () => {
   for (const name of Object.keys(starterThemes)) {
     const serves = themeModes(
       starterThemes[name as keyof typeof starterThemes],
     );
     const both = serves.includes("light") && serves.includes("dark");
     const renderings = renderingsFor(name);
-    assertEquals(renderings.length, both ? 2 : 1, `${name} rendering count`);
-    assertEquals(renderings[0]?.mode, "light", `${name} light rendering`);
+    deepStrictEqual(renderings.length, both ? 2 : 1, `${name} rendering count`);
+    deepStrictEqual(renderings[0]?.mode, "light", `${name} light rendering`);
     if (both) {
-      assertEquals(renderings[1]?.mode, "dark", `${name} dark rendering`);
+      deepStrictEqual(renderings[1]?.mode, "dark", `${name} dark rendering`);
     }
   }
 });
 
-Deno.test("a rendering is named by the mode the reader sees", () => {
+test("a rendering is named by the mode the reader sees", () => {
   // console's base IS its dark face: it has no light rendering to show, and
   // showing its base twice would be a theme pretending to have a second one.
-  assertEquals(
+  deepStrictEqual(
     renderingsFor("console").map((r) => r.label),
     ["dark"],
     "console's label",
   );
-  assertEquals(
+  deepStrictEqual(
     renderingsFor("neobrut").map((r) => r.label),
     ["light"],
     "neobrut's label",
   );
-  assertEquals(
+  deepStrictEqual(
     renderingsFor("silk").map((r) => r.label),
     ["light", "dark"],
     "silk's labels",
   );
 });
 
-Deno.test("a theme that is not one of ours renders nothing", () => {
-  assertEquals(renderingsFor("acme"), [], "an unknown theme");
+test("a theme that is not one of ours renders nothing", () => {
+  deepStrictEqual(renderingsFor("acme"), [], "an unknown theme");
 });

@@ -1,4 +1,5 @@
-import { assert } from "@std/assert";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
 
 /**
  * `src/index.ts` is the browser entry — the studio and the reference app
@@ -7,21 +8,19 @@ import { assert } from "@std/assert";
  * `node:fs`, and a node builtin in this graph is a blank page at runtime
  * with an error that only shows up in a browser.
  */
-Deno.test("the browser entry reaches no node builtin", async () => {
+test("the browser entry reaches no node builtin", async () => {
   const entry = new URL("../src/index.ts", import.meta.url).pathname;
-  const command = new Deno.Command("deno", {
-    args: ["info", "--json", entry],
-    stdout: "piped",
-    stderr: "null",
+  const proc = Bun.spawn(["bun", "build", entry, "--external:node:*", "--dry-run"], {
+    stdout: "pipe",
+    stderr: "pipe",
   });
-  const { code, stdout } = await command.output();
-  assert(code === 0, "deno info should resolve the entry");
-  const graph = JSON.parse(new TextDecoder().decode(stdout)) as {
-    modules?: { specifier?: string }[];
-  };
-  const node = (graph.modules ?? [])
-    .map((module) => module.specifier ?? "")
-    .filter((specifier) => specifier.startsWith("node:"));
+  const [stderr, code] = await Promise.all([
+    new Response(proc.stderr).arrayBuffer(),
+    proc.exited,
+  ]);
+  const text = new TextDecoder().decode(stderr);
+  assert(code === 0, `bun build should resolve the entry: ${text}`);
+  const node = [...text.matchAll(/\bnode:[a-z0-9_-]+/gi)].map((m) => m[0]);
   assert(
     node.length === 0,
     `the browser entry must not reach node builtins, found: ${node.join(", ")}`,

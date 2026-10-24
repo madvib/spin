@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { primitiveComponents } from "@spin/preset";
 import { componentExamples } from "../src/rules/primitives/examples-index.ts";
 import { listedComponents } from "../src/primitives-procedures.ts";
@@ -15,7 +16,7 @@ import { listedComponents } from "../src/primitives-procedures.ts";
 
 const listed = listedComponents();
 
-Deno.test("every browsable component ships examples", () => {
+test("every browsable component ships examples", () => {
   for (const component of listed) {
     assert(
       component.examples !== undefined,
@@ -28,31 +29,31 @@ Deno.test("every browsable component ships examples", () => {
   }
 });
 
-Deno.test("every authored example set is reachable from the gallery", () => {
-  assertEquals(
+test("every authored example set is reachable from the gallery", () => {
+  deepStrictEqual(
     new Set(listed.map((component) => component.name)),
     new Set(Object.keys(componentExamples)),
   );
 });
 
-Deno.test("manifest data rides along where the manifest models the component", () => {
+test("manifest data rides along where the manifest models the component", () => {
   const button = listed.find((component) => component.name === "button");
   const manifest = primitiveComponents.button;
   assert(button !== undefined);
-  assertEquals(button.tags, [...manifest.tags]);
-  assertEquals(button.variants, [...manifest.variants]);
-  assertEquals(button.reads, [...manifest.reads]);
+  deepStrictEqual(button.tags, [...manifest.tags]);
+  deepStrictEqual(button.variants, [...manifest.variants]);
+  deepStrictEqual(button.reads, [...manifest.reads]);
 });
 
-Deno.test("a component the manifest does not model still lists with an empty vocabulary", () => {
+test("a component the manifest does not model still lists with an empty vocabulary", () => {
   const input = listed.find((component) => component.name === "input");
   assert(input !== undefined, "input ships examples and must be browsable");
-  assertEquals(input.tags, []);
-  assertEquals(input.variants, []);
-  assertEquals(input.reads, []);
+  deepStrictEqual(input.tags, []);
+  deepStrictEqual(input.variants, []);
+  deepStrictEqual(input.reads, []);
 });
 
-Deno.test("a component's wiring agrees with the attributes its examples use", () => {
+test("a component's wiring agrees with the attributes its examples use", () => {
   // A script that names an attribute no row sets is wiring left over from a
   // fixture that changed: it reads as supported and does nothing. A script
   // with no data attribute anywhere in its rows is the same defect with no

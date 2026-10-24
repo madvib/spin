@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
 import { colorRoles, colorTargets, neutralRamp } from "./colors.ts";
@@ -50,81 +51,81 @@ function role(path: string) {
   return found;
 }
 
-Deno.test("a theme's colours fall into the three families", () => {
+test("a theme's colours fall into the three families", () => {
   const families = new Map(
     colorRoles(tree(), true).map((entry) => [entry.path, entry.family]),
   );
-  assertEquals(families.get("color.primary"), "brand");
-  assertEquals(families.get("color.link"), "brand");
-  assertEquals(families.get("color.surface"), "neutral");
-  assertEquals(families.get("color.text"), "neutral");
-  assertEquals(families.get("color.semantic.success"), "status");
-  assertEquals(families.get("color.on-semantic-success"), "status");
+  deepStrictEqual(families.get("color.primary"), "brand");
+  deepStrictEqual(families.get("color.link"), "brand");
+  deepStrictEqual(families.get("color.surface"), "neutral");
+  deepStrictEqual(families.get("color.text"), "neutral");
+  deepStrictEqual(families.get("color.semantic.success"), "status");
+  deepStrictEqual(families.get("color.on-semantic-success"), "status");
 });
 
-Deno.test("the ramp's steps are not roles: they are the ramp's own spelling", () => {
+test("the ramp's steps are not roles: they are the ramp's own spelling", () => {
   const paths = colorRoles(tree(), true).map((entry) => entry.path);
-  assertEquals(paths.includes("color.neutral.100"), false);
-  assertEquals(neutralRamp(tree()).map((step) => step.step), ["100", "800"]);
+  deepStrictEqual(paths.includes("color.neutral.100"), false);
+  deepStrictEqual(neutralRamp(tree()).map((step) => step.step), ["100", "800"]);
 });
 
-Deno.test("a role's value says whether it is set or computed", () => {
+test("a role's value says whether it is set or computed", () => {
   const set = role("color.primary");
-  assertEquals(set.base.computed, false);
-  assertEquals(set.base.reference, null);
-  assertEquals(set.base.value, "#112233");
+  deepStrictEqual(set.base.computed, false);
+  deepStrictEqual(set.base.reference, null);
+  deepStrictEqual(set.base.value, "#112233");
 
   const computed = role("color.link");
-  assertEquals(computed.base.computed, true);
-  assertEquals(computed.base.reference, "color.primary");
+  deepStrictEqual(computed.base.computed, true);
+  deepStrictEqual(computed.base.reference, "color.primary");
   // And what it resolves to: a reference is worth the colour it points at.
-  assertEquals(computed.base.value, "#112233");
+  deepStrictEqual(computed.base.value, "#112233");
 });
 
-Deno.test("a colour is worth a hex, whatever the document wrote", () => {
+test("a colour is worth a hex, whatever the document wrote", () => {
   const accent = role("color.accent");
-  assertEquals(accent.base.value, "oklch(60% 0.1 200)");
-  assertEquals(accent.base.hex, "#0d9298");
+  deepStrictEqual(accent.base.value, "oklch(60% 0.1 200)");
+  deepStrictEqual(accent.base.hex, "#0d9298");
 });
 
-Deno.test("a mode that restates a role says so, and a mode that does not falls back", () => {
+test("a mode that restates a role says so, and a mode that does not falls back", () => {
   const primary = role("color.primary");
-  assertEquals(primary.restated, true);
-  assertEquals(primary.dark?.value, "#445566");
+  deepStrictEqual(primary.restated, true);
+  deepStrictEqual(primary.dark?.value, "#445566");
 
   const secondary = role("color.secondary");
-  assertEquals(secondary.restated, false);
+  deepStrictEqual(secondary.restated, false);
   // The dark slot falls back to the base, and says the base's value.
-  assertEquals(secondary.dark?.value, "#334455");
+  deepStrictEqual(secondary.dark?.value, "#334455");
 });
 
-Deno.test("a dark reference resolves against the dark values", () => {
+test("a dark reference resolves against the dark values", () => {
   // The theme points its sunken surface at a step of the ramp, and the step
   // is restated for the dark mode: the surface follows the ramp.
   const sunken = role("color.surface-sunken");
-  assertEquals(sunken.base.value, "#eeeeee");
-  assertEquals(sunken.dark?.value, "#1f1f1f");
-  assertEquals(sunken.dark?.computed, true);
-  assertEquals(sunken.dark?.reference, "color.neutral.800");
+  deepStrictEqual(sunken.base.value, "#eeeeee");
+  deepStrictEqual(sunken.dark?.value, "#1f1f1f");
+  deepStrictEqual(sunken.dark?.computed, true);
+  deepStrictEqual(sunken.dark?.reference, "color.neutral.800");
 });
 
-Deno.test("a theme that serves no dark mode has no dark column", () => {
+test("a theme that serves no dark mode has no dark column", () => {
   const roles = colorRoles(tree(), false);
-  assertEquals(roles.every((entry) => entry.dark === null), true);
+  deepStrictEqual(roles.every((entry) => entry.dark === null), true);
 });
 
-Deno.test("the tokens a role can point at are the theme's own colours", () => {
+test("the tokens a role can point at are the theme's own colours", () => {
   const targets = colorTargets(tree(), "light");
   const paths = targets.map((target) => target.path);
-  assertEquals(paths.includes("color.neutral.100"), true);
-  assertEquals(paths.includes("color.primary"), true);
+  deepStrictEqual(paths.includes("color.neutral.100"), true);
+  deepStrictEqual(paths.includes("color.primary"), true);
   // The ramp's steps are offerable: pointing a surface at a step of the
   // ramp is how a theme keeps its greys in step.
-  assertEquals(
+  deepStrictEqual(
     targets.find((target) => target.path === "color.neutral.100")?.ramp,
     true,
   );
-  assertEquals(
+  deepStrictEqual(
     targets.find((target) => target.path === "color.primary")?.ramp,
     false,
   );

@@ -1,14 +1,7 @@
 {
-  "tasks": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "check": "deno check src/"
-  },
   "imports": {
     "@solidjs/router": "npm:@solidjs/router@^1.0.0",
     "@spin/preset": "../../packages/preset/src/index.ts",
-
     "@spin/theme": "../../packages/theme/src/index.ts",
     "@spin/theme/skill": "../../packages/theme/src/skill/index.ts",
     "@spin/theme/themes": "../../packages/theme/src/themes/index.ts",

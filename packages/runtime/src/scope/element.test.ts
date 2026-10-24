@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 
 // The shim installs its own globals. Declaring them here, rather than in the
@@ -39,7 +40,7 @@ Object.assign(globalThis, {
   Node,
 });
 
-Deno.test("a property set before connection is the value the component reads", () => {
+test("a property set before connection is the value the component reads", () => {
   define("spin-before", {
     props: ["label"],
     build({ el, props }) {
@@ -55,10 +56,10 @@ Deno.test("a property set before connection is the value the component reads", (
   el.label = "set-early";
   document.body.appendChild(el);
 
-  assertEquals(el.textContent, "set-early");
+  deepStrictEqual(el.textContent, "set-early");
 });
 
-Deno.test("a property set after connection updates what the component renders", () => {
+test("a property set after connection updates what the component renders", () => {
   define("spin-after", {
     props: ["label"],
     build({ el, props }) {
@@ -73,13 +74,13 @@ Deno.test("a property set after connection updates what the component renders", 
   };
   el.label = "first";
   document.body.appendChild(el);
-  assertEquals(el.textContent, "first");
+  deepStrictEqual(el.textContent, "first");
 
   el.label = "second";
-  assertEquals(el.textContent, "second");
+  deepStrictEqual(el.textContent, "second");
 });
 
-Deno.test("a prop read inside an effect re-runs when the property changes", () => {
+test("a prop read inside an effect re-runs when the property changes", () => {
   let runs = 0;
 
   define("spin-effect", {
@@ -97,13 +98,13 @@ Deno.test("a prop read inside an effect re-runs when the property changes", () =
   };
   el.count = 0;
   document.body.appendChild(el);
-  assertEquals(runs, 1);
+  deepStrictEqual(runs, 1);
 
   el.count = 1;
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 });
 
-Deno.test("a primitive attribute reaches the component as a parsed value", () => {
+test("a primitive attribute reaches the component as a parsed value", () => {
   define("spin-attribute", {
     attributes: {
       disabled: (value) => value === "true",
@@ -121,15 +122,15 @@ Deno.test("a primitive attribute reaches the component as a parsed value", () =>
   el.setAttribute("level", "3");
   document.body.appendChild(el);
 
-  assertEquals(el.getAttribute("seen"), "true:3");
+  deepStrictEqual(el.getAttribute("seen"), "true:3");
 
   // The parser is the component's, so a later write is parsed the same way and
   // lands in the same prop a property write would.
   el.setAttribute("disabled", "false");
-  assertEquals(el.getAttribute("seen"), "false:3");
+  deepStrictEqual(el.getAttribute("seen"), "false:3");
 });
 
-Deno.test("twenty connect and disconnect cycles leave nothing live", () => {
+test("twenty connect and disconnect cycles leave nothing live", () => {
   const source = signal(0);
   let runs = 0;
 
@@ -148,16 +149,16 @@ Deno.test("twenty connect and disconnect cycles leave nothing live", () => {
     document.body.removeChild(el);
   }
 
-  assertEquals(runs, 20);
+  deepStrictEqual(runs, 20);
 
   // The source outlives every element, so this write is the only thing that can
   // tell a cascade from twenty independent leaks.
   source(1);
 
-  assertEquals(runs, 20);
+  deepStrictEqual(runs, 20);
 });
 
-Deno.test("reconnecting an element rebuilds it and leaves the first build dead", () => {
+test("reconnecting an element rebuilds it and leaves the first build dead", () => {
   const source = signal(0);
   let runs = 0;
 
@@ -175,15 +176,15 @@ Deno.test("reconnecting an element rebuilds it and leaves the first build dead",
   document.body.removeChild(el);
   document.body.appendChild(el);
 
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 
   // Two live connections would make this three.
   source(1);
-  assertEquals(runs, 3);
-  assertEquals(el.textContent, "1");
+  deepStrictEqual(runs, 3);
+  deepStrictEqual(el.textContent, "1");
 });
 
-Deno.test("each connection gets its own scope", () => {
+test("each connection gets its own scope", () => {
   const scopes: object[] = [];
 
   define("spin-scope", {
@@ -197,11 +198,11 @@ Deno.test("each connection gets its own scope", () => {
   document.body.removeChild(el);
   document.body.appendChild(el);
 
-  assertEquals(scopes.length, 2);
-  assertEquals(scopes[0] === scopes[1], false);
+  deepStrictEqual(scopes.length, 2);
+  deepStrictEqual(scopes[0] === scopes[1], false);
 });
 
-Deno.test("a malformed JSON array attribute lands as empty rather than throwing", () => {
+test("a malformed JSON array attribute lands as empty rather than throwing", () => {
   define("spin-malformed", {
     attributes: {
       tags: attrParsers["string[]"],
@@ -222,10 +223,10 @@ Deno.test("a malformed JSON array attribute lands as empty rather than throwing"
   el.setAttribute("items", "{oops");
   document.body.appendChild(el);
 
-  assertEquals(el.getAttribute("seen"), "[]|[]");
+  deepStrictEqual(el.getAttribute("seen"), "[]|[]");
 });
 
-Deno.test("a host-written object/array arrives coerced, not raw, at the channel", () => {
+test("a host-written object/array arrives coerced, not raw, at the channel", () => {
   define("spin-host-array", {
     props: ["items"],
     attributes: {
@@ -245,13 +246,13 @@ Deno.test("a host-written object/array arrives coerced, not raw, at the channel"
   document.body.appendChild(el);
 
   // The syntax layer's object-array grammar: plain objects survive, the rest drop.
-  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
+  deepStrictEqual(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
 
   el.items = [{ value: "b" }];
-  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "b" }]));
+  deepStrictEqual(el.getAttribute("seen"), JSON.stringify([{ value: "b" }]));
 });
 
-Deno.test("a host-written JSON string property arrives parsed at the channel", () => {
+test("a host-written JSON string property arrives parsed at the channel", () => {
   define("spin-host-string", {
     props: ["items"],
     attributes: {
@@ -270,5 +271,5 @@ Deno.test("a host-written JSON string property arrives parsed at the channel", (
   el.items = JSON.stringify([{ value: "a" }]);
   document.body.appendChild(el);
 
-  assertEquals(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
+  deepStrictEqual(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
 });

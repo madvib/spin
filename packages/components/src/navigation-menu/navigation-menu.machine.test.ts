@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { navigationMenu } from "./navigation-menu.presentation.ts";
@@ -86,22 +87,22 @@ const closeNow = (h: Harness): void => {
   h.api.hide();
 };
 
-Deno.test("Given a closed menu / When an item enters / Then it opens and reports", () => {
+test("Given a closed menu / When an item enters / Then it opens and reports", () => {
   const h = harness();
-  assertEquals(h.api.open, false);
+  deepStrictEqual(h.api.open, false);
   open(h, "docs");
-  assertEquals(h.api.value, "docs", "the item opens");
-  assertEquals(h.api.open, true, "the menu is in its open mode");
-  assertEquals(h.changes, [">docs"], "one value-change");
+  deepStrictEqual(h.api.value, "docs", "the item opens");
+  deepStrictEqual(h.api.open, true, "the menu is in its open mode");
+  deepStrictEqual(h.changes, [">docs"], "one value-change");
   h.dispose();
 });
 
-Deno.test("Given an open menu / When another item enters / Then the value swaps", () => {
+test("Given an open menu / When another item enters / Then the value swaps", () => {
   const h = harness();
   open(h, "docs");
   open(h, "guides");
-  assertEquals(h.api.value, "guides", "the swap lands");
-  assertEquals(
+  deepStrictEqual(h.api.value, "guides", "the swap lands");
+  deepStrictEqual(
     h.changes,
     [">docs", "docs>guides"],
     "each move reports its origin",
@@ -109,78 +110,78 @@ Deno.test("Given an open menu / When another item enters / Then the value swaps"
   h.dispose();
 });
 
-Deno.test("Given a stale close from the left item / When another holds the value / Then it is ignored", () => {
+test("Given a stale close from the left item / When another holds the value / Then it is ignored", () => {
   const h = harness();
   // Open docs, then swap to guides; docs' close report is now stale.
   open(h, "docs");
   open(h, "guides");
   const docsParam = hoverParam(itemBag(h, "docs"));
   handler<() => void>(docsParam, "onClose")();
-  assertEquals(
+  deepStrictEqual(
     h.api.value,
     "guides",
     "the stale close does not close the menu",
   );
-  assertEquals(h.api.open, true, "and the mode holds");
+  deepStrictEqual(h.api.open, true, "and the mode holds");
   // The live item's close still closes.
   handler<() => void>(hoverParam(itemBag(h, "guides")), "onClose")();
-  assertEquals(h.api.open, false, "the live close closes");
+  deepStrictEqual(h.api.open, false, "the live close closes");
   h.dispose();
 });
 
-Deno.test("Given an open menu / When the same item re-enters / Then nothing changes", () => {
+test("Given an open menu / When the same item re-enters / Then nothing changes", () => {
   const h = harness();
   open(h, "docs");
   open(h, "docs");
-  assertEquals(h.changes, [">docs"], "a re-enter is a no-op");
+  deepStrictEqual(h.changes, [">docs"], "a re-enter is a no-op");
   h.dispose();
 });
 
-Deno.test("Given an open menu / When close reports / Then it returns to idle", () => {
+test("Given an open menu / When close reports / Then it returns to idle", () => {
   const h = harness();
   open(h, "docs");
   closeNow(h);
-  assertEquals(h.api.open, false, "the menu closes");
-  assertEquals(h.api.value, "", "and the value clears");
-  assertEquals(h.changes, [">docs", "docs>"], "the close reports the origin");
+  deepStrictEqual(h.api.open, false, "the menu closes");
+  deepStrictEqual(h.api.value, "", "and the value clears");
+  deepStrictEqual(h.changes, [">docs", "docs>"], "the close reports the origin");
   h.dispose();
 });
 
-Deno.test("Given an open item / When its link is clicked / Then it toggles shut", () => {
+test("Given an open item / When its link is clicked / Then it toggles shut", () => {
   const h = harness();
   open(h, "docs");
   handler<() => void>(itemBag(h, "docs"), "onClick")();
-  assertEquals(h.api.value, "", "the toggle closes the open item");
-  assertEquals(h.api.open, false, "and the mode follows");
+  deepStrictEqual(h.api.value, "", "the toggle closes the open item");
+  deepStrictEqual(h.api.open, false, "and the mode follows");
   h.dispose();
 });
 
-Deno.test("Given a closed item / When its link is clicked / Then it toggles open", () => {
+test("Given a closed item / When its link is clicked / Then it toggles open", () => {
   const h = harness();
   handler<() => void>(itemBag(h, "guides"), "onClick")();
-  assertEquals(h.api.value, "guides", "the toggle opens the closed item");
+  deepStrictEqual(h.api.value, "guides", "the toggle opens the closed item");
   h.dispose();
 });
 
-Deno.test("Given the item bags / When read / Then the hover-delay carries both clocks", () => {
+test("Given the item bags / When read / Then the hover-delay carries both clocks", () => {
   const h = harness({ openDelay: 100, closeDelay: 50 });
   const param = hoverParam(itemBag(h, "docs"));
-  assertEquals(param["openDelay"], 100, "the open clock comes from scope");
-  assertEquals(param["closeDelay"], 50, "and the close clock");
+  deepStrictEqual(param["openDelay"], 100, "the open clock comes from scope");
+  deepStrictEqual(param["closeDelay"], 50, "and the close clock");
   h.dispose();
 });
 
-Deno.test("Given the content bag / When the item is not open / Then the panel is hidden", () => {
+test("Given the content bag / When the item is not open / Then the panel is hidden", () => {
   const h = harness();
   const item = h.items[0];
   if (item === undefined) throw new Error("no item");
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemContentProps(item)["hidden"],
     true,
     "the closed panel is hidden",
   );
   open(h, "docs");
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemContentProps(item)["hidden"],
     false,
     "the open panel shows",
@@ -188,15 +189,15 @@ Deno.test("Given the content bag / When the item is not open / Then the panel is
   h.dispose();
 });
 
-Deno.test("Given an authored value / When it changes / Then the machine alternates", () => {
+test("Given an authored value / When it changes / Then the machine alternates", () => {
   const h = harness({ value: "docs" });
-  assertEquals(h.api.open, true, "the authored seed opens");
+  deepStrictEqual(h.api.open, true, "the authored seed opens");
   h.dispose();
 });
 
-Deno.test("Given a disabled menu / When an item is clicked / Then nothing opens", () => {
+test("Given a disabled menu / When an item is clicked / Then nothing opens", () => {
   const h = harness({ disabled: true });
   handler<() => void>(itemBag(h, "docs"), "onClick")();
-  assertEquals(h.api.open, false, "the disabled click is refused");
+  deepStrictEqual(h.api.open, false, "the disabled click is refused");
   h.dispose();
 });

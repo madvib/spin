@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   createGenerator,
   type ExtendedTokenInfo,
@@ -95,7 +96,7 @@ const SPENDERS: Record<string, string> = {
  */
 const UNSPENT: readonly string[] = ["switch"];
 
-Deno.test("each painted element spends the tokens of its own group", () => {
+test("each painted element spends the tokens of its own group", () => {
   // A group nothing spends is a lie, and a token spent by the wrong element
   // is a coupling the theme cannot see. The read is observed from the rules
   // themselves, so it cannot drift from what they do.
@@ -115,7 +116,7 @@ Deno.test("each painted element spends the tokens of its own group", () => {
   }
 });
 
-Deno.test("every group the contract knows has a component that spends it", () => {
+test("every group the contract knows has a component that spends it", () => {
   // The other half of the same claim: a group with no spender at all is a
   // group the contract invented. Every group is either spent or named as a
   // known exception.
@@ -125,7 +126,7 @@ Deno.test("every group the contract knows has a component that spends it", () =>
   }
 });
 
-Deno.test("a theme that omits an element's token gets the shared scale's answer", async () => {
+test("a theme that omits an element's token gets the shared scale's answer", async () => {
   // The fallback is what makes a group safe to leave out: the theme's own
   // scale answers, not the browser. A card that says nothing about its
   // corner wears the page's radius — and the theme's own radius step, so the
@@ -144,19 +145,19 @@ Deno.test("a theme that omits an element's token gets the shared scale's answer"
       "border-radius"
     ];
 
-  assertEquals(
+  deepStrictEqual(
     radiusOf(full),
     "var(--card-radius)",
     "the card wears the corner the theme gave it",
   );
-  assertEquals(
+  deepStrictEqual(
     radiusOf(partial),
     "var(--radius-md)",
     "a card that says nothing wears the page's radius",
   );
 });
 
-Deno.test("a theme that omits avatar, icon and badge tokens still dresses them from the shared scales", async () => {
+test("a theme that omits avatar, icon and badge tokens still dresses them from the shared scales", async () => {
   // The fallbacks are a contract with the SHARED scales, and the shared scales
   // are every starter's. A fallback that worked in silk and fell through in
   // synthwave would be a component that changes shape with the theme.
@@ -172,7 +173,7 @@ Deno.test("a theme that omits avatar, icon and badge tokens still dresses them f
       await generate('<div class="avatar"></div>', without),
       "avatar",
     );
-    assertEquals(
+    deepStrictEqual(
       avatar.find((y) => "width" in y.body)?.body["width"],
       "var(--spacing-10)",
       `${name}: an avatar with no avatar.md token falls back to spacing.10`,
@@ -182,7 +183,7 @@ Deno.test("a theme that omits avatar, icon and badge tokens still dresses them f
       await generate('<span class="icon-md"></span>', without),
       "icon-md",
     );
-    assertEquals(
+    deepStrictEqual(
       icon.find((y) => "font-size" in y.body)?.body["font-size"],
       "var(--font-size-md)",
       `${name}: an icon with no icon.md token falls back to font.size.md`,
@@ -192,7 +193,7 @@ Deno.test("a theme that omits avatar, icon and badge tokens still dresses them f
       await generate("<badge>Tag</badge>", without),
       "badge",
     );
-    assertEquals(
+    deepStrictEqual(
       badge.find((y) => "border" in y.body)?.body["border"],
       "var(--border-width) solid var(--color-border)",
       `${name}: a badge with no badge.edge token falls back to border.width`,
@@ -200,7 +201,7 @@ Deno.test("a theme that omits avatar, icon and badge tokens still dresses them f
   }
 });
 
-Deno.test("the info badge wears the ink on the info fill", async () => {
+test("the info badge wears the ink on the info fill", async () => {
   // Info is the fourth status a product actually uses, and it is a required
   // role with its own ink. A badge that reached for the primary fill for an
   // informational status would be saying "this is the action" instead.
@@ -216,7 +217,7 @@ Deno.test("the info badge wears the ink on the info fill", async () => {
   );
 });
 
-Deno.test("the danger button and the danger badge wear the required ink", async () => {
+test("the danger button and the danger badge wear the required ink", async () => {
   // The ink on the error fill is a REQUIRED role with a floor, so the
   // surfaces that paint that fill must wear it. A surface that spent a
   // second name for the same ink would leave a theme that satisfies the

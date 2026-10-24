@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -170,15 +171,15 @@ function handle(api: SplitterApi): Record<string, unknown> {
   >;
 }
 
-Deno.test("panels parse from JSON and split the group evenly", () => {
-  assertEquals(parsePanels(PANELS).map((panel) => panel.id), ["a", "b"]);
-  assertEquals(parsePanels("[]"), []);
-  assertEquals(parsePanels("nope"), []);
+test("panels parse from JSON and split the group evenly", () => {
+  deepStrictEqual(parsePanels(PANELS).map((panel) => panel.id), ["a", "b"]);
+  deepStrictEqual(parsePanels("[]"), []);
+  deepStrictEqual(parsePanels("nope"), []);
   const { api } = mount();
-  assertEquals(api.getSizes(), [50, 50]);
+  deepStrictEqual(api.getSizes(), [50, 50]);
 });
 
-Deno.test("a handle drag redistributes the percents", () => {
+test("a handle drag redistributes the percents", () => {
   const { api, events } = mount();
   const drag = dragParam(handle(api));
   drag.onStart?.(press(210));
@@ -187,37 +188,37 @@ Deno.test("a handle drag redistributes the percents", () => {
   drag.onMove?.(delta(250));
   // +10% moves a->b: [60, 40]. The grab itself moves nothing, so the move
   // is the only resize.
-  assertEquals(api.getSizes(), [60, 40]);
-  assertEquals(events.resize.length, 1);
+  deepStrictEqual(api.getSizes(), [60, 40]);
+  deepStrictEqual(events.resize.length, 1);
   drag.onEnd?.({ cancelled: false });
   assert(!api.dragging);
-  assertEquals(events.resizeEnd.length, 1);
-  assertEquals(events.resizeEnd[0]?.size, [60, 40]);
+  deepStrictEqual(events.resizeEnd.length, 1);
+  deepStrictEqual(events.resizeEnd[0]?.size, [60, 40]);
 });
 
-Deno.test("arrows resize the focused handle", () => {
+test("arrows resize the focused handle", () => {
   const { api } = mount();
   handler<() => void>(handle(api), "onFocus")();
   handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.getSizes(), [51, 49]);
+  deepStrictEqual(api.getSizes(), [51, 49]);
   handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
     keydown("ArrowLeft"),
   );
-  assertEquals(api.getSizes(), [50, 50]);
+  deepStrictEqual(api.getSizes(), [50, 50]);
 });
 
-Deno.test("arrows refuse without a focused handle", () => {
+test("arrows refuse without a focused handle", () => {
   const { api, events } = mount();
   handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.getSizes(), [50, 50]);
-  assertEquals(events.resize.length, 0);
+  deepStrictEqual(api.getSizes(), [50, 50]);
+  deepStrictEqual(events.resize.length, 0);
 });
 
-Deno.test("Enter collapses and re-expands a collapsible panel", () => {
+test("Enter collapses and re-expands a collapsible panel", () => {
   const { api } = mount({
     panels: '[{"id":"a","collapsible":true,"minSize":10},{"id":"b"}]',
   });
@@ -226,14 +227,14 @@ Deno.test("Enter collapses and re-expands a collapsible panel", () => {
     keydown("Enter"),
   );
   assert(api.isPanelCollapsed("a"));
-  assertEquals(api.getPanelSize("a"), 0);
+  deepStrictEqual(api.getPanelSize("a"), 0);
   handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
     keydown("Enter"),
   );
   assert(!api.isPanelCollapsed("a"));
 });
 
-Deno.test("collapsePanel and expandPanel commands work", () => {
+test("collapsePanel and expandPanel commands work", () => {
   const { api } = mount({
     panels: '[{"id":"a","collapsible":true,"minSize":10},{"id":"b"}]',
   });
@@ -242,19 +243,19 @@ Deno.test("collapsePanel and expandPanel commands work", () => {
   api.expandPanel("a");
   assert(!api.isPanelCollapsed("a"));
   // Expand restores the pre-collapse snapshot, not the minimum.
-  assertEquals(api.getPanelSize("a"), 50);
+  deepStrictEqual(api.getPanelSize("a"), 50);
 });
 
-Deno.test("authored size seeds the layout and a host write moves it", () => {
+test("authored size seeds the layout and a host write moves it", () => {
   const { api, events, write } = mount({ size: "[30, 70]" });
-  assertEquals(api.getSizes(), [30, 70]);
-  assertEquals(events.resize.length, 0);
+  deepStrictEqual(api.getSizes(), [30, 70]);
+  deepStrictEqual(events.resize.length, 0);
   write("size", "[40, 60]");
-  assertEquals(api.getSizes(), [40, 60]);
-  assertEquals(events.resize.length, 1);
+  deepStrictEqual(api.getSizes(), [40, 60]);
+  deepStrictEqual(events.resize.length, 1);
 });
 
-Deno.test("minSize clamps a drag", () => {
+test("minSize clamps a drag", () => {
   const { api } = mount({
     panels: '[{"id":"a","minSize":40},{"id":"b"}]',
   });
@@ -262,5 +263,5 @@ Deno.test("minSize clamps a drag", () => {
   drag.onStart?.(press(210));
   drag.onMove?.(delta(10));
   // a cannot shrink below 40.
-  assertEquals(api.getSizes(), [40, 60]);
+  deepStrictEqual(api.getSizes(), [40, 60]);
 });

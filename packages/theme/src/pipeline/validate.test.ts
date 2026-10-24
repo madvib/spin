@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "./parse.ts";
 import { everyTokenTypeIsDecided, validateTokens } from "./validate.ts";
 import type {
@@ -57,28 +58,28 @@ const VALID: TokenTree = [
   },
 ];
 
-Deno.test("validateTokens accepts a well-formed token tree", () => {
+test("validateTokens accepts a well-formed token tree", () => {
   const report = validateTokens(VALID);
 
-  assertEquals(report.valid, true);
+  deepStrictEqual(report.valid, true);
 });
 
-Deno.test("validateTokens accepts a tree once every required token is present", () => {
+test("validateTokens accepts a tree once every required token is present", () => {
   const report = validateTokens(VALID, {
     required: ["color.brand", "space.sm"],
   });
 
-  assertEquals(report.valid, true);
+  deepStrictEqual(report.valid, true);
 });
 
-Deno.test("validateTokens reports a required token that is absent", () => {
+test("validateTokens reports a required token that is absent", () => {
   const report = validateTokens(VALID, { required: ["color.muted"] });
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.muted").message.trim().length > 0);
 });
 
-Deno.test("validateTokens matches required tokens by exact path, not by leaf name", () => {
+test("validateTokens matches required tokens by exact path, not by leaf name", () => {
   const elsewhere: TokenTree = [{
     kind: "group",
     name: "surface",
@@ -95,22 +96,22 @@ Deno.test("validateTokens matches required tokens by exact path, not by leaf nam
   }];
   const report = validateTokens(elsewhere, { required: ["color.brand"] });
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.brand").message.trim().length > 0);
 });
 
-Deno.test("validateTokens names every absent required token", () => {
+test("validateTokens names every absent required token", () => {
   const report = validateTokens(VALID, {
     required: ["color.muted", "space.xl"],
   });
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   for (const path of ["color.muted", "space.xl"]) {
     assert(issueAt(report, path).message.trim().length > 0);
   }
 });
 
-Deno.test("validateTokens rejects a token whose type is not a known DTCG type", () => {
+test("validateTokens rejects a token whose type is not a known DTCG type", () => {
   const bogus: TokenTree = [{
     kind: "group",
     name: "color",
@@ -128,11 +129,11 @@ Deno.test("validateTokens rejects a token whose type is not a known DTCG type", 
   }];
   const report = validateTokens(bogus);
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.brand").message.trim().length > 0);
 });
 
-Deno.test("validateTokens rejects an alias that points at a token which is not in the tree", () => {
+test("validateTokens rejects an alias that points at a token which is not in the tree", () => {
   const dangling: TokenTree = [{
     kind: "group",
     name: "color",
@@ -149,11 +150,11 @@ Deno.test("validateTokens rejects an alias that points at a token which is not i
   }];
   const report = validateTokens(dangling);
 
-  assertEquals(report.valid, false);
+  deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.action").message.trim().length > 0);
 });
 
-Deno.test("validateTokens gives every reported issue a message and a path", () => {
+test("validateTokens gives every reported issue a message and a path", () => {
   const report = validateTokens(VALID, { required: ["color.muted"] });
 
   for (const issue of report.issues) {
@@ -168,7 +169,7 @@ Deno.test("validateTokens gives every reported issue a message and a path", () =
   }
 });
 
-Deno.test("every token type has a validation decision", () => {
+test("every token type has a validation decision", () => {
   // Adding a type to the vocabulary without deciding whether it is checked
   // would otherwise pass silently: the rule table is a partial record, so a
   // missing key reads as "no rule" rather than "not yet decided".
@@ -178,7 +179,7 @@ Deno.test("every token type has a validation decision", () => {
   );
 });
 
-Deno.test("an unchecked type accepts any non-empty value", () => {
+test("an unchecked type accepts any non-empty value", () => {
   // The deliberate half of the decision: a type with no rule must not reject a
   // value that is structurally fine, or the split above is a lie.
   const parsed = parseTokens({
@@ -191,7 +192,7 @@ Deno.test("an unchecked type accepts any non-empty value", () => {
     },
   });
   if (!parsed.ok) throw new Error(parsed.error);
-  assertEquals(
+  deepStrictEqual(
     validateTokens(parsed.tree).issues.filter((issue) =>
       issue.path.startsWith("font.family")
     ),

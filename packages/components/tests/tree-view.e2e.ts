@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-tree-view e2e: the explorer contract — indent rails, branch-only
  * chevrons, the mode-gated checkbox, and the keyboard map.
@@ -11,7 +12,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const TREE = "spin-tree-view";
 
@@ -39,7 +40,7 @@ const rows = (
     return out;
   }, TREE);
 
-Deno.test("spin-tree-view e2e", () =>
+test("spin-tree-view e2e", () =>
   runComponentSuite({
     port: 5246,
     route: "/tree-view",

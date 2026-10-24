@@ -1,4 +1,8 @@
-import { assert, assertEquals } from "@std/assert";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { spin } from "../src/plugin.ts";
 import { starterThemes } from "@spin/theme/themes";
 import presetIcons from "@unocss/preset-icons";
@@ -41,27 +45,27 @@ function referencePlugin(): ViteOptions {
   return options;
 }
 
-Deno.test("the id the app imports resolves to the plugin's own module", () => {
+test("the id the app imports resolves to the plugin's own module", () => {
   const plugin = referencePlugin();
-  assertEquals(plugin.resolveId!("uno.css"), "/__uno.css");
+  deepStrictEqual(plugin.resolveId!("uno.css"), "/__uno.css");
 });
 
-Deno.test("an id the app does not import is left to someone else", () => {
+test("an id the app does not import is left to someone else", () => {
   const plugin = referencePlugin();
-  assertEquals(plugin.resolveId!("/src/app.tsx"), null);
+  deepStrictEqual(plugin.resolveId!("/src/app.tsx"), null);
 });
 
-Deno.test("a project without themes in config reads spin/*.json from disk", async () => {
+test("a project without themes in config reads spin/*.json from disk", async () => {
   // The out-of-the-box path: a theme dropped in `spin/` is live with no
   // config, which is the shape a real app has.
-  const root = await Deno.makeTempDir();
-  await Deno.mkdir(`${root}/spin`);
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
+  await mkdir(`${root}/spin`);
   const doc = structuredClone(starterThemes.silk) as Record<
     string,
     Record<string, Record<string, string>>
   >;
   doc.color.primary.$value = "#b91c1c";
-  await Deno.writeTextFile(
+  await writeFile(
     `${root}/spin/brand.json`,
     JSON.stringify(doc),
   );
@@ -76,10 +80,10 @@ Deno.test("a project without themes in config reads spin/*.json from disk", asyn
     css.includes("--color-primary: #b91c1c"),
     "the disk theme's primary lands in the sheet",
   );
-  await Deno.remove(root, { recursive: true });
+  await rm(root, { recursive: true });
 });
 
-Deno.test("the boot theme's variables are declared at the root", async () => {
+test("the boot theme's variables are declared at the root", async () => {
   // A custom property cannot inherit upward. Scoped only to `[data-theme]`,
   // the variables are invisible to `body {}` — so the typography primitives'
   // own base rule falls back to the browser's default font, which is how a

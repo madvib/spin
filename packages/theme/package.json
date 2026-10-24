@@ -1,0 +1,56 @@
+{
+  "name": "@spin/theme",
+  "version": "0.1.0",
+  "description": "DTCG JSON in, token trees out \u2014 the theme pipeline behind spin.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./base": {
+      "types": "./src/base/index.ts",
+      "default": "./src/base/index.ts"
+    },
+    "./themes": {
+      "types": "./src/themes/index.ts",
+      "default": "./src/themes/index.ts"
+    },
+    "./skill": {
+      "types": "./src/skill/index.ts",
+      "default": "./src/skill/index.ts"
+    },
+    "./theme-types": {
+      "types": "./src/theme-types.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "skill"
+  ],
+  "dependencies": {
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@spin/theme": "workspace:*",
+    "valibot": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "schema": "bun eval \"const { spinThemeJsonSchema } = await import('./src/contract/schema.ts');await Deno.writeTextFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n');console.log('wrote schema.json');\"",
+    "types": "bun eval \"const { parseTokens, generateTypes } = await import('./src/index.ts');const { silkTheme } = await import('./src/themes/index.ts');const parsed = parseTokens(silkTheme);if (!parsed.ok) throw new Error(parsed.error);await Deno.writeTextFile('src/theme-types.d.ts', generateTypes(parsed.tree));console.log('wrote src/theme-types.d.ts');\"",
+    "skill": "bun eval \"const { renderSkill } = await import('./src/skill/index.ts');const template = await Deno.readTextFile('./skill/SKILL.md');console.log(renderSkill(template));\""
+  }
+}

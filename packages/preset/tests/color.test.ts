@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator, escapeRegExp, toEscapedSelector } from "@unocss/core";
 import { parseTokens, treeToJson } from "@spin/theme";
 import type { TokenTree } from "@spin/theme";
@@ -170,14 +171,14 @@ function valueFor(
  * rather than broken, and the ordinary vocabulary rule catches it the way it
  * catches a typo. What the sheet must NOT carry is the colour itself.
  */
-Deno.test("an arbitrary colour produces no rule at all", async () => {
+test("an arbitrary colour produces no rule at all", async () => {
   const uno = await generator();
   const alive: string[] = [];
   for (const cls of rawColorClasses()) {
     const { css } = await uno.generate(cls, { preflights: false });
     if (css.trim() !== "") alive.push(cls);
   }
-  assertEquals(
+  deepStrictEqual(
     alive,
     [],
     `these classes carry a colour written by hand and still produce a rule: ${
@@ -193,20 +194,20 @@ Deno.test("an arbitrary colour produces no rule at all", async () => {
  * no opinion about them — which is exactly why they are allowed to be
  * written by hand. Each one still lands in the sheet.
  */
-Deno.test("an arbitrary size still produces a rule", async () => {
-  assertEquals(
+test("an arbitrary size still produces a rule", async () => {
+  deepStrictEqual(
     valueFor(await sheetFor("w-[13px]"), "w-[13px]", "width"),
     "13px",
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(await sheetFor("top-[3px]"), "top-[3px]", "top"),
     "3px",
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(await sheetFor("text-[15px]"), "text-[15px]", "font-size"),
     "15px",
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(
       await sheetFor("w-[calc(100%-1rem)]"),
       "w-[calc(100%-1rem)]",
@@ -224,19 +225,19 @@ Deno.test("an arbitrary size still produces a rule", async () => {
  * the difference the refusal protects — the token follows the theme, and
  * the raw colour never did.
  */
-Deno.test("a token colour still paints, and reads the token", async () => {
+test("a token colour still paints, and reads the token", async () => {
   const bg = await sheetFor("bg-primary");
-  assertEquals(
+  deepStrictEqual(
     valueFor(bg, "bg-primary", "background-color"),
     "var(--color-primary)",
   );
   const text = await sheetFor("text-neutral-300");
-  assertEquals(
+  deepStrictEqual(
     valueFor(text, "text-neutral-300", "color"),
     "var(--color-neutral-300)",
   );
   const border = await sheetFor("border-primary");
-  assertEquals(
+  deepStrictEqual(
     valueFor(border, "border-primary", "border-color"),
     "var(--color-primary)",
   );
@@ -263,8 +264,8 @@ Deno.test("a token colour still paints, and reads the token", async () => {
  * way — so `bg-transparent` says exactly what it means. The bracketed
  * spelling is an arbitrary value, and an arbitrary value is a number.
  */
-Deno.test("the sanctioned colour keywords still paint", async () => {
-  assertEquals(
+test("the sanctioned colour keywords still paint", async () => {
+  deepStrictEqual(
     valueFor(
       await sheetFor("bg-transparent"),
       "bg-transparent",
@@ -272,7 +273,7 @@ Deno.test("the sanctioned colour keywords still paint", async () => {
     ),
     "transparent",
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(await sheetFor("text-currentColor"), "text-currentColor", "color"),
     "currentColor",
   );
@@ -287,7 +288,7 @@ Deno.test("the sanctioned colour keywords still paint", async () => {
  * stroke's width, the `current` keyword — because the guard refuses a
  * COLOUR and nothing else.
  */
-Deno.test("the wind4 layer refuses a raw colour and keeps the rest", async () => {
+test("the wind4 layer refuses a raw colour and keeps the rest", async () => {
   const uno = await generator();
   for (
     const cls of [
@@ -307,17 +308,17 @@ Deno.test("the wind4 layer refuses a raw colour and keeps the rest", async () =>
     ]
   ) {
     const { css } = await uno.generate(cls, { preflights: false });
-    assertEquals(
+    deepStrictEqual(
       css.trim(),
       "",
       `${cls} carries a raw colour and still paints`,
     );
   }
-  assertEquals(
+  deepStrictEqual(
     valueFor(await sheetFor("fill-current"), "fill-current", "fill"),
     "currentColor",
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(await sheetFor("stroke-2"), "stroke-2", "stroke-width"),
     "2px",
   );
@@ -334,7 +335,7 @@ Deno.test("the wind4 layer refuses a raw colour and keeps the rest", async () =>
  * wherever it appears in a value — a shadow whose colour is written by hand
  * carries one just as surely as the colour does.
  */
-Deno.test("a value that carries a colour is a colour", () => {
+test("a value that carries a colour is a colour", () => {
   for (const value of RAW_COLORS.map((colour) => colour.slice(1, -1))) {
     assert(
       carriesRawColor(value),
@@ -358,7 +359,7 @@ Deno.test("a value that carries a colour is a colour", () => {
  * from eating the numbers: a length, a percentage, a time, an expression
  * of those, and a quoted string that happens to spell a colour.
  */
-Deno.test("a value that carries no colour is left alone", () => {
+test("a value that carries no colour is left alone", () => {
   for (
     const value of [
       "13px",
@@ -391,7 +392,7 @@ Deno.test("a value that carries no colour is left alone", () => {
  * A bracket is where an arbitrary value lives, so the bracket is where the
  * colour has to be looked for.
  */
-Deno.test("a class carries a colour only inside its brackets", () => {
+test("a class carries a colour only inside its brackets", () => {
   assert(hasRawColor("fill-[#000]"));
   assert(hasRawColor("ring-[rgb(0,0,0)]"));
   assert(hasRawColor("bg-[oklch(0.5_0.1_20)]"));

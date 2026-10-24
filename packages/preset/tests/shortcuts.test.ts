@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
@@ -39,7 +40,7 @@ function declarationsOf(css: string, selector: string): string {
   return css.slice(index + selector.length + 1, close);
 }
 
-Deno.test("a project's shortcut stands for the utilities it composes", async () => {
+test("a project's shortcut stands for the utilities it composes", async () => {
   const css = await sheet(
     { themes: { light: theme }, shortcuts: { stack: "flex flex-col gap-4" } },
     '<div class="stack"></div>',
@@ -56,7 +57,7 @@ Deno.test("a project's shortcut stands for the utilities it composes", async () 
   );
 });
 
-Deno.test("a shortcut spends the theme's spacing, not a number", async () => {
+test("a shortcut spends the theme's spacing, not a number", async () => {
   const css = await sheet(
     { themes: { light: theme }, shortcuts: { stack: "flex flex-col gap-4" } },
     '<div class="stack"></div>',
@@ -67,7 +68,7 @@ Deno.test("a shortcut spends the theme's spacing, not a number", async () => {
   );
 });
 
-Deno.test("a shortcut the markup never uses ships nothing", async () => {
+test("a shortcut the markup never uses ships nothing", async () => {
   const css = await sheet(
     {
       themes: { light: theme },
@@ -75,26 +76,26 @@ Deno.test("a shortcut the markup never uses ships nothing", async () => {
     },
     '<div class="p-4"></div>',
   );
-  assertEquals(
+  deepStrictEqual(
     css.includes(".my-stack{"),
     false,
     "an unused shortcut is still in the sheet",
   );
 });
 
-Deno.test("a project without shortcuts composes nothing of its own", async () => {
+test("a project without shortcuts composes nothing of its own", async () => {
   const css = await sheet(
     { themes: { light: theme } },
     '<div class="my-stack"></div>',
   );
-  assertEquals(
+  deepStrictEqual(
     css.includes(".my-stack{"),
     false,
     "a class the project did not declare generated a rule",
   );
 });
 
-Deno.test("the standard compositions ship with the preset", async () => {
+test("the standard compositions ship with the preset", async () => {
   const css = await sheet(
     { themes: { light: theme } },
     '<div class="stack-sm split panel overline"></div>',

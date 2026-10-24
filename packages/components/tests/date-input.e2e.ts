@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-date-input e2e: per-segment editing behind the app-controller handle.
  *
@@ -9,7 +10,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const SEGMENTS = "#date [role='spinbutton']";
 
@@ -27,7 +28,7 @@ const waitReadout = (page: Page, value: string): Promise<void> =>
     { timeout: 5000 },
   ).then(() => undefined);
 
-Deno.test("spin-date-input e2e", () =>
+test("spin-date-input e2e", () =>
   runComponentSuite(
     { port: 5234, route: "/date-input", ready: SEGMENTS },
     async ({ page }) => {

@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import {
@@ -125,9 +126,9 @@ function setup(initialProps: Record<string, unknown> = {}) {
   };
 }
 
-Deno.test("tree-view: collapsed start exposes top-level rows with branch and leaf kinds", () => {
+test("tree-view: collapsed start exposes top-level rows with branch and leaf kinds", () => {
   const h = setup();
-  assertEquals(
+  deepStrictEqual(
     h.api.getVisibleRows().map((r) => ({
       value: r.node.value,
       depth: r.depth,
@@ -139,15 +140,15 @@ Deno.test("tree-view: collapsed start exposes top-level rows with branch and lea
   );
   const srcRow = h.rowOf("src");
   const readmeRow = h.rowOf("README.md");
-  assertEquals(h.api.isBranch(srcRow), true);
-  assertEquals(h.api.isBranch(readmeRow), false);
-  assertEquals(h.api.getItemIconProps(srcRow)["data-kind"], "branch-closed");
-  assertEquals(h.api.getItemIconProps(readmeRow)["data-kind"], "leaf");
-  assertEquals(h.api.getRailProps(srcRow)["hidden"], true);
+  deepStrictEqual(h.api.isBranch(srcRow), true);
+  deepStrictEqual(h.api.isBranch(readmeRow), false);
+  deepStrictEqual(h.api.getItemIconProps(srcRow)["data-kind"], "branch-closed");
+  deepStrictEqual(h.api.getItemIconProps(readmeRow)["data-kind"], "leaf");
+  deepStrictEqual(h.api.getRailProps(srcRow)["hidden"], true);
   h.dispose();
 });
 
-Deno.test("tree-view: clicking a branch selects and toggles expansion when expandOnClick is true", () => {
+test("tree-view: clicking a branch selects and toggles expansion when expandOnClick is true", () => {
   const h = setup();
   const srcRow = h.rowOf("src");
   const onClick = handler<(e: MouseEvent) => void>(
@@ -156,23 +157,23 @@ Deno.test("tree-view: clicking a branch selects and toggles expansion when expan
   );
   onClick(click());
 
-  assertEquals(h.api.expandedValue, ["src"]);
-  assertEquals(h.api.selectedValue, ["src"]);
-  assertEquals(
+  deepStrictEqual(h.api.expandedValue, ["src"]);
+  deepStrictEqual(h.api.selectedValue, ["src"]);
+  deepStrictEqual(
     h.api.getVisibleRows().map((r) => r.node.value),
     ["src", "components", "index.ts", "README.md"],
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemIconProps(h.rowOf("src"))["data-kind"],
     "branch-open",
   );
-  assertEquals(h.api.getRailProps(h.rowOf("components"))["hidden"], false);
-  assertEquals(h.expandedChanges, [{ expandedValue: ["src"] }]);
-  assertEquals(h.selectionChanges, [{ selectedValue: ["src"] }]);
+  deepStrictEqual(h.api.getRailProps(h.rowOf("components"))["hidden"], false);
+  deepStrictEqual(h.expandedChanges, [{ expandedValue: ["src"] }]);
+  deepStrictEqual(h.selectionChanges, [{ selectedValue: ["src"] }]);
   h.dispose();
 });
 
-Deno.test("tree-view: expandOnClick false selects a clicked branch without expanding it", () => {
+test("tree-view: expandOnClick false selects a clicked branch without expanding it", () => {
   const h = setup({ expandOnClick: false });
   const onClick = handler<(e: MouseEvent) => void>(
     h.api.getBranchControlProps(h.rowOf("src")),
@@ -180,16 +181,16 @@ Deno.test("tree-view: expandOnClick false selects a clicked branch without expan
   );
   onClick(click());
 
-  assertEquals(h.api.selectedValue, ["src"]);
-  assertEquals(h.api.expandedValue, []);
-  assertEquals(h.api.getVisibleRows().map((r) => r.node.value), [
+  deepStrictEqual(h.api.selectedValue, ["src"]);
+  deepStrictEqual(h.api.expandedValue, []);
+  deepStrictEqual(h.api.getVisibleRows().map((r) => r.node.value), [
     "src",
     "README.md",
   ]);
   h.dispose();
 });
 
-Deno.test("tree-view: ArrowRight expands a closed branch, then moves into its first child, and ArrowLeft walks back to parent", () => {
+test("tree-view: ArrowRight expands a closed branch, then moves into its first child, and ArrowLeft walks back to parent", () => {
   const h = setup();
   const press = (value: string, key: string, mods?: { shift?: boolean }) => {
     const fn = handler<(e: KeyboardEvent) => void>(
@@ -201,28 +202,28 @@ Deno.test("tree-view: ArrowRight expands a closed branch, then moves into its fi
 
   // Expand "src" via ArrowRight
   press("src", "ArrowRight");
-  assertEquals(h.api.expandedValue, ["src"]);
+  deepStrictEqual(h.api.expandedValue, ["src"]);
 
   // Second ArrowRight on expanded "src" focuses first child "components"
   press("src", "ArrowRight");
-  assertEquals(h.api.focusedValue, "components");
+  deepStrictEqual(h.api.focusedValue, "components");
 
   // ArrowDown moves to "index.ts" (depth 1, after sibling branch "components")
   press("components", "ArrowDown");
-  assertEquals(h.api.focusedValue, "index.ts");
+  deepStrictEqual(h.api.focusedValue, "index.ts");
 
   // ArrowLeft from "index.ts" (depth 1) focuses its parent "src" (depth 0),
   // NOT its preceding sibling branch "components" (depth 1)
   press("index.ts", "ArrowLeft");
-  assertEquals(h.api.focusedValue, "src");
+  deepStrictEqual(h.api.focusedValue, "src");
 
   // ArrowLeft on expanded "src" collapses it
   press("src", "ArrowLeft");
-  assertEquals(h.api.expandedValue, []);
+  deepStrictEqual(h.api.expandedValue, []);
   h.dispose();
 });
 
-Deno.test("tree-view: Home, End, and star (*) navigation across visible rows", () => {
+test("tree-view: Home, End, and star (*) navigation across visible rows", () => {
   const h = setup({ defaultExpandedValue: ["src"] });
   const press = (value: string, key: string) => {
     const fn = handler<(e: KeyboardEvent) => void>(
@@ -233,22 +234,22 @@ Deno.test("tree-view: Home, End, and star (*) navigation across visible rows", (
   };
 
   press("src", "End");
-  assertEquals(h.api.focusedValue, "README.md");
+  deepStrictEqual(h.api.focusedValue, "README.md");
 
   press("README.md", "Home");
-  assertEquals(h.api.focusedValue, "src");
+  deepStrictEqual(h.api.focusedValue, "src");
 
   // Star expands all visible branches ("src" and "components")
   press("src", "*");
-  assertEquals(h.api.expandedValue, ["src", "components"]);
-  assertEquals(
+  deepStrictEqual(h.api.expandedValue, ["src", "components"]);
+  deepStrictEqual(
     h.api.getVisibleRows().map((r) => r.node.value),
     ["src", "components", "button.ts", "index.ts", "README.md"],
   );
   h.dispose();
 });
 
-Deno.test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and checkboxes", () => {
+test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and checkboxes", () => {
   const h = setup({
     selectionMode: "multiple",
     defaultExpandedValue: ["src"],
@@ -266,11 +267,11 @@ Deno.test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and
   };
 
   clickRow("index.ts");
-  assertEquals(h.api.selectedValue, ["index.ts"]);
+  deepStrictEqual(h.api.selectedValue, ["index.ts"]);
 
   // Ctrl+click adds README.md
   clickRow("README.md", { ctrl: true });
-  assertEquals(h.api.selectedValue, ["index.ts", "README.md"]);
+  deepStrictEqual(h.api.selectedValue, ["index.ts", "README.md"]);
 
   // Shift+ArrowUp from README.md focuses index.ts and keeps multi-selection
   const onKeydown = handler<(e: KeyboardEvent) => void>(
@@ -278,7 +279,7 @@ Deno.test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and
     "onKeydown",
   );
   onKeydown(keydown("ArrowDown", { shift: true }));
-  assertEquals(h.api.focusedValue, "index.ts");
+  deepStrictEqual(h.api.focusedValue, "index.ts");
 
   // Checkbox toggle
   const onCheck = handler<(e: MouseEvent) => void>(
@@ -286,17 +287,17 @@ Deno.test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and
     "onClick",
   );
   onCheck(click());
-  assertEquals(h.api.checkedValue, ["index.ts"]);
-  assertEquals(h.checkedChanges, [{ checkedValue: ["index.ts"] }]);
+  deepStrictEqual(h.api.checkedValue, ["index.ts"]);
+  deepStrictEqual(h.checkedChanges, [{ checkedValue: ["index.ts"] }]);
   h.dispose();
 });
 
-Deno.test("tree-view: renaming a node submits on Enter and cancels on Escape", () => {
+test("tree-view: renaming a node submits on Enter and cancels on Escape", () => {
   const h = setup({ rename: true });
   h.api.startRenaming("README.md");
-  assertEquals(h.api.state, "renaming");
-  assertEquals(h.api.renamingValue, "README.md");
-  assertEquals(h.api.focusedValue, "README.md");
+  deepStrictEqual(h.api.state, "renaming");
+  deepStrictEqual(h.api.renamingValue, "README.md");
+  deepStrictEqual(h.api.focusedValue, "README.md");
 
   const renameBag = h.api.getRenameInputProps(h.rowOf("README.md"));
   const onRenameKey = handler<(e: KeyboardEvent) => void>(
@@ -306,9 +307,9 @@ Deno.test("tree-view: renaming a node submits on Enter and cancels on Escape", (
 
   // Escape cancels without changing label
   onRenameKey(keydown("Escape"));
-  assertEquals(h.api.state, "idle");
-  assertEquals(h.api.renamingValue, null);
-  assertEquals(h.rowOf("README.md").node.label, "README.md");
+  deepStrictEqual(h.api.state, "idle");
+  deepStrictEqual(h.api.renamingValue, null);
+  deepStrictEqual(h.rowOf("README.md").node.label, "README.md");
 
   // Start renaming again and submit via Enter
   h.api.startRenaming("README.md");
@@ -320,13 +321,13 @@ Deno.test("tree-view: renaming a node submits on Enter and cancels on Escape", (
   );
   onRenameKey2(submitEvent as unknown as KeyboardEvent);
 
-  assertEquals(h.api.state, "idle");
-  assertEquals(h.api.renamingValue, null);
-  assertEquals(h.rowOf("README.md").node.label, "CONTRIBUTING.md");
+  deepStrictEqual(h.api.state, "idle");
+  deepStrictEqual(h.api.renamingValue, null);
+  deepStrictEqual(h.rowOf("README.md").node.label, "CONTRIBUTING.md");
   h.dispose();
 });
 
-Deno.test("tree-view: lazy branch loading grafts children and emits load-complete", async () => {
+test("tree-view: lazy branch loading grafts children and emits load-complete", async () => {
   const lazyTree: readonly TreeNodeShape[] = [
     { value: "remote", label: "remote" },
   ];
@@ -339,7 +340,7 @@ Deno.test("tree-view: lazy branch loading grafts children and emits load-complet
   });
 
   // With loadChildren present, a childless node without `children: []` is a loadable branch
-  assertEquals(h.api.isBranch(h.rowOf("remote")), true);
+  deepStrictEqual(h.api.isBranch(h.rowOf("remote")), true);
 
   const onClick = handler<(e: MouseEvent) => void>(
     h.api.getBranchControlProps(h.rowOf("remote")),
@@ -348,11 +349,11 @@ Deno.test("tree-view: lazy branch loading grafts children and emits load-complet
   onClick(click());
 
   await new Promise((r) => setTimeout(r, 10));
-  assertEquals(h.api.loadingStatus["remote"], "loaded");
-  assertEquals(
+  deepStrictEqual(h.api.loadingStatus["remote"], "loaded");
+  deepStrictEqual(
     h.api.getVisibleRows().map((r) => r.node.value),
     ["remote", "remote/child.ts"],
   );
-  assertEquals(h.loadCompletes, [{ value: "remote" }]);
+  deepStrictEqual(h.loadCompletes, [{ value: "remote" }]);
   h.dispose();
 });

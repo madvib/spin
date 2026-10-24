@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { pagination } from "./pagination.presentation.ts";
@@ -86,73 +87,73 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   return { api: bridge.api, root, events, write };
 }
 
-Deno.test("next and prev walk within the pages", () => {
+test("next and prev walk within the pages", () => {
   const { api, events } = mount();
-  assertEquals(api.page, 1);
-  assertEquals(api.totalPages, 10);
+  deepStrictEqual(api.page, 1);
+  deepStrictEqual(api.totalPages, 10);
   handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 2);
+  deepStrictEqual(api.page, 2);
   handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 1);
-  assertEquals(events.pageChange.map((change) => change.page), [2, 1]);
+  deepStrictEqual(api.page, 1);
+  deepStrictEqual(events.pageChange.map((change) => change.page), [2, 1]);
 });
 
-Deno.test("prev refuses page one and next refuses the last page", () => {
+test("prev refuses page one and next refuses the last page", () => {
   const { api, events } = mount();
   handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 1);
-  assertEquals(events.pageChange.length, 0);
+  deepStrictEqual(api.page, 1);
+  deepStrictEqual(events.pageChange.length, 0);
   api.setPage(10);
   handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 10);
-  assertEquals(events.pageChange.length, 1);
+  deepStrictEqual(api.page, 10);
+  deepStrictEqual(events.pageChange.length, 1);
 });
 
-Deno.test("out-of-range pages are refused", () => {
+test("out-of-range pages are refused", () => {
   const { api, events } = mount();
   api.setPage(99);
-  assertEquals(api.page, 1);
+  deepStrictEqual(api.page, 1);
   api.setPage(0);
-  assertEquals(api.page, 1);
-  assertEquals(events.pageChange.length, 0);
+  deepStrictEqual(api.page, 1);
+  deepStrictEqual(events.pageChange.length, 0);
 });
 
-Deno.test("first and last jump the ends", () => {
+test("first and last jump the ends", () => {
   const { api } = mount();
   handler<(e: MouseEvent) => void>(api.getLastTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 10);
+  deepStrictEqual(api.page, 10);
   handler<(e: MouseEvent) => void>(api.getFirstTriggerProps(), "onClick")(
     click(),
   );
-  assertEquals(api.page, 1);
+  deepStrictEqual(api.page, 1);
 });
 
-Deno.test("a page-size change that strands the page resets to one", () => {
+test("a page-size change that strands the page resets to one", () => {
   const { api, events } = mount();
   api.setPage(9);
-  assertEquals(api.page, 9);
+  deepStrictEqual(api.page, 9);
   api.setPageSize(20);
-  assertEquals(api.page, 1);
-  assertEquals(api.totalPages, 5);
-  assertEquals(events.pageSizeChange.length, 1);
-  assertEquals(events.pageSizeChange[0]?.pageSize, 20);
+  deepStrictEqual(api.page, 1);
+  deepStrictEqual(api.totalPages, 5);
+  deepStrictEqual(events.pageSizeChange.length, 1);
+  deepStrictEqual(events.pageSizeChange[0]?.pageSize, 20);
 });
 
-Deno.test("the window shows siblings, boundaries and ellipses", () => {
+test("the window shows siblings, boundaries and ellipses", () => {
   const { api } = mount();
   api.setPage(5);
   const kinds = api.getItems().map((item) => item.type);
-  assertEquals(kinds, [
+  deepStrictEqual(kinds, [
     "page",
     "ellipsis",
     "page",
@@ -161,7 +162,7 @@ Deno.test("the window shows siblings, boundaries and ellipses", () => {
     "ellipsis",
     "page",
   ]);
-  assertEquals(
+  deepStrictEqual(
     api.getItems().filter((item) => item.type === "page").map((item) =>
       item.type === "page" ? item.value : -1
     ),
@@ -169,18 +170,18 @@ Deno.test("the window shows siblings, boundaries and ellipses", () => {
   );
 });
 
-Deno.test("authored page seeds the nav and a host write moves it", () => {
+test("authored page seeds the nav and a host write moves it", () => {
   const { api, events, write } = mount({ page: 3 });
-  assertEquals(api.page, 3);
-  assertEquals(events.pageChange.length, 0);
+  deepStrictEqual(api.page, 3);
+  deepStrictEqual(events.pageChange.length, 0);
   write("page", 7);
-  assertEquals(api.page, 7);
-  assertEquals(events.pageChange.length, 1);
+  deepStrictEqual(api.page, 7);
+  deepStrictEqual(events.pageChange.length, 1);
 });
 
-Deno.test("clicking a page item selects that page and updates pageRange", () => {
+test("clicking a page item selects that page and updates pageRange", () => {
   const { api, events } = mount({ count: 95, pageSize: 10 });
-  assertEquals(api.pageRange, { start: 0, end: 10 });
+  deepStrictEqual(api.pageRange, { start: 0, end: 10 });
 
   const itemBag = api.getItemProps({
     type: "page",
@@ -189,16 +190,16 @@ Deno.test("clicking a page item selects that page and updates pageRange", () => 
     label: "10",
   }) as Record<string, unknown>;
   handler<(e: MouseEvent) => void>(itemBag, "onClick")(click());
-  assertEquals(api.page, 10);
-  assertEquals(api.pageRange, { start: 90, end: 95 });
-  assertEquals(events.pageChange.map((e) => e.page), [10]);
+  deepStrictEqual(api.page, 10);
+  deepStrictEqual(api.pageRange, { start: 90, end: 95 });
+  deepStrictEqual(events.pageChange.map((e) => e.page), [10]);
 });
 
-Deno.test("host count write recalculates totalPages and resets a stranded page to one", () => {
+test("host count write recalculates totalPages and resets a stranded page to one", () => {
   const { api, write } = mount({ count: 100, pageSize: 10 });
   api.setPage(8);
-  assertEquals(api.page, 8);
+  deepStrictEqual(api.page, 8);
   write("count", 30);
-  assertEquals(api.totalPages, 3);
-  assertEquals(api.page, 1);
+  deepStrictEqual(api.totalPages, 3);
+  deepStrictEqual(api.page, 1);
 });

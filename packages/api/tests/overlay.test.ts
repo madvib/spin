@@ -7,7 +7,7 @@
  * function.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -58,24 +58,24 @@ describe("the overlay", () => {
 
   it("starts closed, with disk in charge", async () => {
     const state = await readOverlay();
-    assertEquals(state.open, false);
-    assertEquals(state.themes, {});
+    deepStrictEqual(state.open, false);
+    deepStrictEqual(state.themes, {});
   });
 
   it("a document written over RPC is what the cell holds", async () => {
     const opened = await openOverlay({
       default: { color: { primary: "#b91c1c" } },
     });
-    assertEquals(opened.names, ["default"]);
-    assertEquals(opened.open, true);
+    deepStrictEqual(opened.names, ["default"]);
+    deepStrictEqual(opened.open, true);
 
     const state = await readOverlay();
-    assertEquals(state.open, true);
+    deepStrictEqual(state.open, true);
     const themes = state.themes.default as Record<
       string,
       Record<string, string>
     >;
-    assertEquals(themes.color?.primary, "#b91c1c");
+    deepStrictEqual(themes.color?.primary, "#b91c1c");
   });
 
   it("a saved theme reads clean and survives a fresh boot", async () => {
@@ -88,15 +88,15 @@ describe("the overlay", () => {
       `/project/themes/write`,
       { name: "app", text: JSON.stringify(doc) },
     );
-    assertEquals(written.error, null);
+    deepStrictEqual(written.error, null);
     const state = await readOverlay();
-    assertEquals(state.dirty, [], "a save clears the dirty set");
+    deepStrictEqual(state.dirty, [], "a save clears the dirty set");
     await closeOverlay();
     const reread = await clientFor<{ text: string | null }>(
       `/project/themes/read`,
       { name: "app" },
     );
-    assertEquals(
+    deepStrictEqual(
       JSON.parse(reread.text ?? "{}").color.primary.$value,
       "#b91c1c",
       "disk holds what was written",
@@ -106,10 +106,10 @@ describe("the overlay", () => {
   it("closing the overlay puts disk back in charge", async () => {
     await openOverlay({ default: { color: { primary: "#b91c1c" } } });
     const closed = await closeOverlay();
-    assertEquals(closed.open, false);
+    deepStrictEqual(closed.open, false);
 
     const state = await readOverlay();
     assert(state.open === false);
-    assertEquals(state.themes, {});
+    deepStrictEqual(state.themes, {});
   });
 });

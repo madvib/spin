@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -176,86 +177,86 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   return { api: bridge.api, root, events, write };
 }
 
-Deno.test("polar math: top is 0, right is 90, bottom is 180", () => {
+test("polar math: top is 0, right is 90, bottom is 180", () => {
   // Center (110,110): straight up, right, down.
-  assertEquals(Math.round(pointAngle(110, 110, 110, 10)), 0);
-  assertEquals(Math.round(pointAngle(110, 110, 210, 110)), 90);
-  assertEquals(Math.round(pointAngle(110, 110, 110, 210)), 180);
+  deepStrictEqual(Math.round(pointAngle(110, 110, 110, 10)), 0);
+  deepStrictEqual(Math.round(pointAngle(110, 110, 210, 110)), 90);
+  deepStrictEqual(Math.round(pointAngle(110, 110, 110, 210)), 180);
 });
 
-Deno.test("a dial press jumps the value and the release commits", () => {
+test("a dial press jumps the value and the release commits", () => {
   const { api, events } = mount();
-  assertEquals(api.value, 0);
+  deepStrictEqual(api.value, 0);
   // Right of center: ~90 degrees.
   pressControl(api.getControlProps(), press(210, 110));
-  assertEquals(api.value, 90);
+  deepStrictEqual(api.value, 90);
   assert(api.dragging);
   // Bottom of center: ~180.
   dragParam(api.getControlProps()).onMove?.(move(110, 210, 210, 110));
-  assertEquals(api.value, 180);
+  deepStrictEqual(api.value, 180);
   dragParam(api.getControlProps()).onEnd?.({ cancelled: false });
   assert(!api.dragging);
-  assertEquals(events.valueChangeEnd.length, 1);
-  assertEquals(events.valueChangeEnd[0]?.value, 180);
+  deepStrictEqual(events.valueChangeEnd.length, 1);
+  deepStrictEqual(events.valueChangeEnd[0]?.value, 180);
 });
 
-Deno.test("arrows step the focused thumb and Home/End jump", () => {
+test("arrows step the focused thumb and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(api.getThumbProps(), "onFocus")();
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, 1);
+  deepStrictEqual(api.value, 1);
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
     keydown("End"),
   );
-  assertEquals(api.value, 359);
+  deepStrictEqual(api.value, 359);
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
     keydown("Home"),
   );
-  assertEquals(api.value, 0);
+  deepStrictEqual(api.value, 0);
 });
 
-Deno.test("arrows refuse without focus", () => {
+test("arrows refuse without focus", () => {
   const { api, events } = mount();
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, 0);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, 0);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("a disabled dial refuses presses and keys", () => {
+test("a disabled dial refuses presses and keys", () => {
   const { api, events } = mount({ disabled: true });
-  assertEquals(dragParam(api.getControlProps()).enabled, false);
+  deepStrictEqual(dragParam(api.getControlProps()).enabled, false);
   pressControl(api.getControlProps(), press(210, 110));
-  assertEquals(api.value, 0);
+  deepStrictEqual(api.value, 0);
   handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, 0);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, 0);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("setValue clamps to the dial", () => {
+test("setValue clamps to the dial", () => {
   const { api } = mount();
   api.setValue(400);
-  assertEquals(api.value, 359);
+  deepStrictEqual(api.value, 359);
   api.setValue(-10);
-  assertEquals(api.value, 0);
+  deepStrictEqual(api.value, 0);
 });
 
-Deno.test("authored value seeds the dial and a host write moves it", () => {
+test("authored value seeds the dial and a host write moves it", () => {
   const { api, events, write } = mount({ value: 45 });
-  assertEquals(api.value, 45);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, 45);
+  deepStrictEqual(events.valueChange.length, 0);
   write("value", 135);
-  assertEquals(api.value, 135);
-  assertEquals(events.valueChange.length, 1);
+  deepStrictEqual(api.value, 135);
+  deepStrictEqual(events.valueChange.length, 1);
 });
 
-Deno.test("constrainAngle wraps the top of the dial", () => {
-  assertEquals(constrainAngle(359, 1), 0);
+test("constrainAngle wraps the top of the dial", () => {
+  deepStrictEqual(constrainAngle(359, 1), 0);
   // The snap goes UP to the grid, not to the nearest.
-  assertEquals(constrainAngle(90.4, 1), 91);
+  deepStrictEqual(constrainAngle(90.4, 1), 91);
 });

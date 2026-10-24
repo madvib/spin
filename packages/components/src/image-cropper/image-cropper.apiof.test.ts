@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { ImageCropperApi } from "./image-cropper.presentation.ts";
 import type { CropRect } from "./image-cropper.state.ts";
 
@@ -6,7 +7,7 @@ import type { CropRect } from "./image-cropper.state.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("ImageCropperApi promises the component's surface", () => {
+test("ImageCropperApi promises the component's surface", () => {
   const keys: (keyof ImageCropperApi)[] = [
     "state",
     "handles",
@@ -34,7 +35,7 @@ Deno.test("ImageCropperApi promises the component's surface", () => {
     "getHandleProps",
     "getGridProps",
   ];
-  assertEquals(keys.length, 25);
+  deepStrictEqual(keys.length, 25);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -51,7 +52,7 @@ Deno.test("ImageCropperApi promises the component's surface", () => {
     ImageCropperApi["getCropData"],
     () => CropRect
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setZoomTyped,

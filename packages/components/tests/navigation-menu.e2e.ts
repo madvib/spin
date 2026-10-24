@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-navigation-menu e2e: the closed/open modes and the dwell clocks,
  * behind the app-controller handle.
@@ -10,7 +11,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const ITEMS = "#nav [role='menuitem']";
 const PANELS = "#nav [role='menu']";
@@ -36,7 +37,7 @@ const hover = async (page: Page, index: number): Promise<void> => {
   await page.mouse.move(point.x, point.y);
 };
 
-Deno.test("spin-navigation-menu e2e", () =>
+test("spin-navigation-menu e2e", () =>
   runComponentSuite({
     port: 5238,
     route: "/navigation-menu",

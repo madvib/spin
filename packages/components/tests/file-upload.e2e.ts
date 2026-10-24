@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-file-upload e2e: the dropzone modes and the validation split,
  * behind the app-controller handle.
@@ -10,7 +11,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#upload-value";
 const DROPZONE = "#upload [role='button']";
@@ -48,7 +49,7 @@ const rowTexts = (page: Page): Promise<string[]> =>
     )
   );
 
-Deno.test("spin-file-upload e2e", () =>
+test("spin-file-upload e2e", () =>
   runComponentSuite(
     { port: 5237, route: "/file-upload", ready: DROPZONE },
     async ({ page }) => {

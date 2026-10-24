@@ -1,4 +1,8 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { contrastRatio } from "../pipeline/color.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { generateCss } from "../pipeline/generate.ts";
@@ -10,19 +14,19 @@ import { spinThemeJsonSchema, validateLegibility } from "./schema.ts";
 
 function example(name: string): unknown {
   return JSON.parse(
-    Deno.readTextFileSync(
+    readFileSync(
       new URL(`../../src/themes/${name}`, import.meta.url),
     ),
   );
 }
 
-Deno.test("the derived schema requires exactly the declared roles", () => {
+test("the derived schema requires exactly the declared roles", () => {
   // The contract is one declaration; the schema is a derivation. This is the
   // check that makes that true rather than aspirational: every declared role is
   // required, and nothing else is.
   const schema = spinThemeJsonSchema() as Record<string, unknown>;
   const required = new Set(requiredLeaves(schema));
-  assertEquals(
+  deepStrictEqual(
     [...required].sort(),
     [...requiredPaths()].sort(),
     "the schema requires the declaration and nothing else",
@@ -64,24 +68,24 @@ function isGroup(node: Record<string, unknown> | undefined): boolean {
   return Object.keys(properties).some((key) => !key.startsWith("$"));
 }
 
-Deno.test("schema.json matches the derived builder output", async () => {
+test("schema.json matches the derived builder output", async () => {
   const artifact = JSON.parse(
-    await Deno.readTextFile(new URL("../../schema.json", import.meta.url)),
+    await readFile(new URL("../../schema.json", import.meta.url), "utf8"),
   );
   const derived = spinThemeJsonSchema();
-  assertEquals(artifact, derived);
+  deepStrictEqual(artifact, derived);
 });
 for (
   const name of ["silk.json", "neobrut.json", "console.json"]
 ) {
-  Deno.test(`${name} meets every legibility floor`, () => {
+  test(`${name} meets every legibility floor`, () => {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);
-    assertEquals(validateLegibility(parsed.tree), []);
+    deepStrictEqual(validateLegibility(parsed.tree), []);
   });
 }
 
-Deno.test("a theme missing a required role fails the contract", () => {
+test("a theme missing a required role fails the contract", () => {
   const parsed = parseTokens({
     color: {
       $type: "color",
@@ -93,7 +97,7 @@ Deno.test("a theme missing a required role fails the contract", () => {
   assert(report.issues.some((issue) => issue.path === "color.text"));
 });
 
-Deno.test("an illegible pair fails legibility", () => {
+test("an illegible pair fails legibility", () => {
   const parsed = parseTokens({
     color: {
       $type: "color",
@@ -121,7 +125,7 @@ Deno.test("an illegible pair fails legibility", () => {
   assert(issues.some((issue) => issue.path === "color.text"));
 });
 
-Deno.test("every role documents itself and can be scaffolded", () => {
+test("every role documents itself and can be scaffolded", () => {
   assert(
     BASE_ROLES.every((role) => role.doc.length > 0 && role.value.length > 0),
     "every role documents itself and can be scaffolded",
@@ -170,7 +174,7 @@ function resolve(vars: Record<string, string>, name: string): string {
   throw new Error(`${name} did not resolve to a literal value`);
 }
 
-Deno.test("every starter declares the dead pair, and it reads in every mode", () => {
+test("every starter declares the dead pair, and it reads in every mode", () => {
   // A disabled control is not a dimmer control: dimming spends opacity on the
   // whole element, so the ink dims with the fill, and a white label on a
   // blue button lands at 1.56:1. The pair is what keeps a dead control
@@ -197,7 +201,7 @@ Deno.test("every starter declares the dead pair, and it reads in every mode", ()
   }
 });
 
-Deno.test("the dead pair is a role the contract asks every theme for", () => {
+test("the dead pair is a role the contract asks every theme for", () => {
   // Both halves, and the floor that holds them together: the ink on the
   // dead fill is a text pairing, so it owes the text floor.
   const paths = requiredPaths();
@@ -205,14 +209,14 @@ Deno.test("the dead pair is a role the contract asks every theme for", () => {
   assert(paths.includes("color.on-disabled"), "the ink on it is a role");
   const floor = BASE_ROLES.find((role) => role.path === "color.disabled")
     ?.floor;
-  assertEquals(floor, {
+  deepStrictEqual(floor, {
     fg: "color.on-disabled",
     bg: "color.disabled",
     min: 4.5,
   });
 });
 
-Deno.test("a theme that declares the dead pair validates", () => {
+test("a theme that declares the dead pair validates", () => {
   // The pair is a pair: a theme that states one half of it is a theme whose
   // dead control has a fill with no ink, which is the illegibility the roles
   // exist to remove.
@@ -256,6 +260,6 @@ Deno.test("a theme that declares the dead pair validates", () => {
   });
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
-  assertEquals(report.issues, []);
-  assertEquals(validateLegibility(parsed.tree), []);
+  deepStrictEqual(report.issues, []);
+  deepStrictEqual(validateLegibility(parsed.tree), []);
 });

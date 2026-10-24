@@ -1,36 +1,37 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { extractScript, stripScript } from "./script-block.ts";
 
-Deno.test("extractScript finds the block", () => {
+test("extractScript finds the block", () => {
   const src = `<script lang="ts">\nconst x = 1;\n</script>\n<div></div>`;
-  assertEquals(extractScript(src), "\nconst x = 1;\n");
+  deepStrictEqual(extractScript(src), "\nconst x = 1;\n");
 });
 
-Deno.test("extractScript returns undefined without a block", () => {
-  assertEquals(extractScript(`<div></div>`), undefined);
+test("extractScript returns undefined without a block", () => {
+  deepStrictEqual(extractScript(`<div></div>`), undefined);
 });
 
-Deno.test("stripScript keeps imports, types, and machine calls", () => {
+test("stripScript keeps imports, types, and machine calls", () => {
   const body = `import { slider } from "../slider.machine.ts";
 import type { SliderArgs } from "../slider.state.ts";
 type Props = { value: number[] };
 interface Ctx { v: number }
 const ctl = slider({ value: [50] });`;
   const out = stripScript(body);
-  assertEquals(out.bindings, ["ctl"]);
-  assertEquals(out.stripped, []);
+  deepStrictEqual(out.bindings, ["ctl"]);
+  deepStrictEqual(out.stripped, []);
 });
 
-Deno.test("stripScript strips effects", () => {
+test("stripScript strips effects", () => {
   const body = `const ctl = slider({ value: [50] });
 await load();
 el.addEventListener("x", f);`;
   const out = stripScript(body);
-  assertEquals(out.bindings, ["ctl"]);
-  assertEquals(out.stripped.length, 2);
+  deepStrictEqual(out.bindings, ["ctl"]);
+  deepStrictEqual(out.stripped.length, 2);
 });
 
-Deno.test("stripScript keeps multi-line imports, types, and machine calls with nested parens", () => {
+test("stripScript keeps multi-line imports, types, and machine calls with nested parens", () => {
   const body = `import {
   slider,
 } from "../slider.machine.ts";
@@ -43,13 +44,13 @@ const ctl = slider({
   markers: [0, 50, 100],
 });`;
   const out = stripScript(body);
-  assertEquals(out.bindings, ["ctl"]);
-  assertEquals(out.calls.length, 1);
-  assertEquals(out.calls[0]?.name, "ctl");
-  assertEquals(out.calls[0]?.factory, "slider");
-  assertEquals(
+  deepStrictEqual(out.bindings, ["ctl"]);
+  deepStrictEqual(out.calls.length, 1);
+  deepStrictEqual(out.calls[0]?.name, "ctl");
+  deepStrictEqual(out.calls[0]?.factory, "slider");
+  deepStrictEqual(
     out.calls[0]?.args,
     "{\n  value: [20, 80],\n  markers: [0, 50, 100],\n}",
   );
-  assertEquals(out.stripped, []);
+  deepStrictEqual(out.stripped, []);
 });

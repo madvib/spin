@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM toast drives its machine in a real browser — the queue,
  * the lifecycle, the region's posture and the geometry channel.
@@ -5,7 +6,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const REGION = '[id="toast:region:group"]';
 const ROWS = `${REGION} [role="status"]`;
@@ -53,7 +54,7 @@ async function waitReport(page: Page, report: string): Promise<void> {
   );
 }
 
-Deno.test("spin-toast e2e", () =>
+test("spin-toast e2e", () =>
   runComponentSuite(
     { port: 5221, route: "/toast", ready: REGION },
     async ({ page }) => {

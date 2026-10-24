@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: spin-cascade-select drives its machine in a real browser — the
  * trigger contract, the level stack that grows with the highlight, the
@@ -5,14 +6,14 @@
  * over a disabled row, the controlled command surface, and the hidden input
  * that carries the value to a form.
  *
- * A `Deno.test` (not a program run by `deno run`): the shared harness the
+ * A `test` (not a program run by `deno run`): the shared harness the
  * slider, carousel and accordion e2e files use, so the task and the file shape
  * match.
  */
 
 import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Parts are addressed by the machine's id scheme: `cascade:<id>:<part>`. */
 const ROOT_EL = "spin-cascade-select";
@@ -52,7 +53,7 @@ async function pressRow(page: Page, selector: string): Promise<void> {
   );
 }
 
-Deno.test("spin-cascade-select e2e", () =>
+test("spin-cascade-select e2e", () =>
   runComponentSuite(
     { port: 5214, route: "/cascade", ready: TRIGGER },
     async ({ page }) => {

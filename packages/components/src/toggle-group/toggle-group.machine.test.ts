@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { toggleGroup } from "./toggle-group.presentation.ts";
@@ -103,44 +104,44 @@ function item(api: ToggleGroupApi, value: string): Record<string, unknown> {
   return api.getItemProps(row) as Record<string, unknown>;
 }
 
-Deno.test("a click toggles the value and a second click deselects", () => {
+test("a click toggles the value and a second click deselects", () => {
   const { api, events } = mount();
-  assertEquals(api.value, []);
+  deepStrictEqual(api.value, []);
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
-  assertEquals(api.value, ["bold"]);
+  deepStrictEqual(api.value, ["bold"]);
   assert(api.isPressed("bold"));
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
-  assertEquals(api.value, []);
-  assertEquals(events.valueChange.map((change) => change.value), [
+  deepStrictEqual(api.value, []);
+  deepStrictEqual(events.valueChange.map((change) => change.value), [
     ["bold"],
     [],
   ]);
 });
 
-Deno.test("multiple mode accumulates values", () => {
+test("multiple mode accumulates values", () => {
   const { api, events } = mount({ multiple: true });
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
   handler<(e: MouseEvent) => void>(item(api, "italic"), "onClick")(click());
-  assertEquals(api.value, ["bold", "italic"]);
+  deepStrictEqual(api.value, ["bold", "italic"]);
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
-  assertEquals(api.value, ["italic"]);
-  assertEquals(events.valueChange.length, 3);
+  deepStrictEqual(api.value, ["italic"]);
+  deepStrictEqual(events.valueChange.length, 3);
 });
 
-Deno.test("arrows move the focused id with loop wrap", () => {
+test("arrows move the focused id with loop wrap", () => {
   const { api } = mount();
   handler<() => void>(item(api, "bold"), "onFocus")();
   handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(
+  deepStrictEqual(
     api.getItemState({ value: "italic", label: "italic" }).focused,
     true,
   );
   handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(
+  deepStrictEqual(
     api.getItemState({ value: "underline", label: "underline" }).focused,
     true,
   );
@@ -148,56 +149,56 @@ Deno.test("arrows move the focused id with loop wrap", () => {
   handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(
+  deepStrictEqual(
     api.getItemState({ value: "bold", label: "bold" }).focused,
     true,
   );
 });
 
-Deno.test("Home and End jump the focused id", () => {
+test("Home and End jump the focused id", () => {
   const { api } = mount();
   handler<() => void>(item(api, "italic"), "onFocus")();
   handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(
     keydown("End"),
   );
-  assertEquals(
+  deepStrictEqual(
     api.getItemState({ value: "underline", label: "underline" }).focused,
     true,
   );
   handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(
     keydown("Home"),
   );
-  assertEquals(
+  deepStrictEqual(
     api.getItemState({ value: "bold", label: "bold" }).focused,
     true,
   );
 });
 
-Deno.test("a disabled item refuses clicks and keys", () => {
+test("a disabled item refuses clicks and keys", () => {
   const { api, events } = mount({
     items:
       '[{"value":"bold","label":"Bold","disabled":true},{"value":"italic","label":"Italic"}]',
   });
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
-  assertEquals(api.value, []);
+  deepStrictEqual(api.value, []);
   handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, []);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, []);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("authored value seeds the group and a host write moves it", () => {
+test("authored value seeds the group and a host write moves it", () => {
   const { api, events, write } = mount({ value: ["italic"] });
-  assertEquals(api.value, ["italic"]);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, ["italic"]);
+  deepStrictEqual(events.valueChange.length, 0);
   write("value", ["bold"]);
-  assertEquals(api.value, ["bold"]);
-  assertEquals(events.valueChange.length, 1);
+  deepStrictEqual(api.value, ["bold"]);
+  deepStrictEqual(events.valueChange.length, 1);
 });
 
-Deno.test("an authored defaultValue alone selects (uncontrolled seed)", () => {
+test("an authored defaultValue alone selects (uncontrolled seed)", () => {
   const { api } = mount({ defaultValue: ["bold"] });
-  assertEquals(api.value, ["bold"]);
+  deepStrictEqual(api.value, ["bold"]);
   assert(api.isPressed("bold"));
 });

@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { TimerApi } from "./timer.presentation.ts";
 
-Deno.test("TimerApi promises the component's surface", () => {
+test("TimerApi promises the component's surface", () => {
   const keys: (keyof TimerApi)[] = [
     "state",
     "running",
@@ -30,7 +31,7 @@ Deno.test("TimerApi promises the component's surface", () => {
     "getSeparatorIndexes",
     "getActionTriggerIndexes",
   ];
-  assertEquals(keys.length, 26);
+  deepStrictEqual(keys.length, 26);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<
@@ -42,7 +43,7 @@ Deno.test("TimerApi promises the component's surface", () => {
   const resumeTyped: AssertExact<TimerApi["resume"], () => void> = true;
   const resetTyped: AssertExact<TimerApi["reset"], () => void> = true;
   const restartTyped: AssertExact<TimerApi["restart"], () => void> = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, startTyped, pauseTyped, resumeTyped, resetTyped, restartTyped]
       .every(Boolean),
     true,

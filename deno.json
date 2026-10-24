@@ -62,25 +62,6 @@
     "vite": "npm:vite@8",
     "vite-plugin-solid": "npm:vite-plugin-solid@^2.11.14"
   },
-  "tasks": {
-    "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run packages/ apps/studio/src/",
-    "lint": "deno lint",
-    "fmt": "deno fmt",
-    "check": "deno check packages/*/src packages/*/tests internal/ scripts/",
-    "build:dist": "deno run -A scripts/build-dist.ts",
-    "check:dist": "deno run -A scripts/check-exports.ts",
-    "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json packages/ apps/",
-    "visual": "cd apps/reference && deno task visual",
-    "serve": "cd apps/reference && deno task dev",
-    "dev": "deno task dev:studio & deno task dev:daemon & wait",
-    "dev:docs": "cd apps/docs && deno task dev",
-    "build:docs": "cd apps/docs && deno task build",
-    "dev:daemon": "cd packages/api && deno task dev --root ../../examples/fixture-app --port 0",
-    "dev:studio": "cd apps/studio && deno task dev",
-    "build:studio": "cd apps/studio && deno task build",
-    "skill": "cd packages/theme && deno task skill",
-    "e2e": "cd apps/studio && deno task e2e"
-  },
   "fmt": {
     "exclude": [
       "node_modules",
@@ -107,7 +88,6 @@
   "compilerOptions": {
     "strict": true,
     "lib": [
-      "deno.window",
       "dom",
       "dom.iterable"
     ]

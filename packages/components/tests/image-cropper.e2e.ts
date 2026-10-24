@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM image-cropper drives its machine in a real browser —
  * measurement, selection drag, handle resize, wheel zoom, keyboard nudge,
@@ -14,7 +15,7 @@ const VIEWPORT = at("photo", "viewport");
 const SELECTION = at("photo", "selection");
 const HANDLE_SE = at("photo", "handle:se");
 
-Deno.test("spin-image-cropper e2e", () =>
+test("spin-image-cropper e2e", () =>
   runComponentSuite({
     port: 5249,
     route: "/image-cropper",

@@ -1,4 +1,5 @@
-import { assert } from "@std/assert";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "../src/index.ts";
 import { readFile } from "node:fs/promises";
@@ -57,7 +58,7 @@ async function variantOf(
 }
 
 for (const variant of IMPLEMENTED) {
-  Deno.test(`a ${variant}: variant applies under its pseudo-class`, async () => {
+  test(`a ${variant}: variant applies under its pseudo-class`, async () => {
     const result = await variantOf(variant, "bg-primary");
     assert(
       result.matched,
@@ -68,7 +69,7 @@ for (const variant of IMPLEMENTED) {
   });
 }
 
-Deno.test("a variant and its base both ship", async () => {
+test("a variant and its base both ship", async () => {
   // A variant is an ADDITION, not a replacement: the base still applies, and
   // both rules must be present for the cascade to have anything to order.
   const uno = await createGenerator({
@@ -85,7 +86,7 @@ Deno.test("a variant and its base both ship", async () => {
   );
 });
 
-Deno.test("a responsive prefix emits the theme's width as a media query", async () => {
+test("a responsive prefix emits the theme's width as a media query", async () => {
   // A custom property is not valid in a media query: an emitting variant
   // produced `(min-width: var(--breakpoint-md))`, which never matches, and
   // every responsive rule in the product was silently dead. The width must

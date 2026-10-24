@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { ratingGroup } from "./rating-group.presentation.ts";
@@ -146,31 +147,31 @@ function item(api: RatingGroupApi, index: number): Record<string, unknown> {
   return api.getItemProps(index) as Record<string, unknown>;
 }
 
-Deno.test("the host's default value seeds the rating", () => {
+test("the host's default value seeds the rating", () => {
   const { api } = mount({ defaultValue: "3.5" });
-  assertEquals(api.value, 3.5);
+  deepStrictEqual(api.value, 3.5);
 });
 
-Deno.test("the host's value owns the rating", () => {
+test("the host's value owns the rating", () => {
   const { api } = mount({ value: "4" });
-  assertEquals(api.value, 4);
+  deepStrictEqual(api.value, 4);
 });
 
-Deno.test("the live value wins over the default value", () => {
+test("the live value wins over the default value", () => {
   const { api } = mount({ value: "4", defaultValue: "3.5" });
-  assertEquals(api.value, 4);
+  deepStrictEqual(api.value, 4);
 });
 
-Deno.test("a click commits the clicked value", () => {
+test("a click commits the clicked value", () => {
   const { api, events } = mount();
-  assertEquals(api.value, -1);
+  deepStrictEqual(api.value, -1);
   handler<() => void>(item(api, 3), "onClick")();
-  assertEquals(api.value, 3);
-  assertEquals(events.valueChange.length, 1);
-  assertEquals(events.valueChange[0]?.value, 3);
+  deepStrictEqual(api.value, 3);
+  deepStrictEqual(events.valueChange.length, 1);
+  deepStrictEqual(events.valueChange[0]?.value, 3);
 });
 
-Deno.test("hover previews without committing", () => {
+test("hover previews without committing", () => {
   const { api, events } = mount();
   handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
     groupOver(),
@@ -179,13 +180,13 @@ Deno.test("hover previews without committing", () => {
     over(4, 30),
   );
   assert(api.hovering);
-  assertEquals(api.hoveredValue, 4);
-  assertEquals(api.value, -1);
-  assertEquals(events.hoverChange.length, 1);
-  assertEquals(events.hoverChange[0]?.hoveredValue, 4);
+  deepStrictEqual(api.hoveredValue, 4);
+  deepStrictEqual(api.value, -1);
+  deepStrictEqual(events.hoverChange.length, 1);
+  deepStrictEqual(events.hoverChange[0]?.hoveredValue, 4);
 });
 
-Deno.test("a hovered click commits the preview, not the item", () => {
+test("a hovered click commits the preview, not the item", () => {
   const { api } = mount();
   handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
     groupOver(),
@@ -194,42 +195,42 @@ Deno.test("a hovered click commits the preview, not the item", () => {
     over(4, 30),
   );
   handler<() => void>(item(api, 2), "onClick")();
-  assertEquals(api.value, 4);
+  deepStrictEqual(api.value, 4);
 });
 
-Deno.test("arrows walk the value and Home/End jump", () => {
+test("arrows walk the value and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(item(api, 3), "onClick")();
-  assertEquals(api.value, 3);
+  deepStrictEqual(api.value, 3);
   // Arrows only drive a focused group: land in focus first.
   handler<() => void>(item(api, 3), "onFocus")();
   const right = handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown");
   right(keydown("ArrowRight"));
-  assertEquals(api.value, 4);
+  deepStrictEqual(api.value, 4);
   const left = handler<(e: KeyboardEvent) => void>(item(api, 4), "onKeydown");
   left(keydown("ArrowLeft"));
-  assertEquals(api.value, 3);
+  deepStrictEqual(api.value, 3);
   handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(
     keydown("Home"),
   );
-  assertEquals(api.value, 1);
+  deepStrictEqual(api.value, 1);
   handler<(e: KeyboardEvent) => void>(item(api, 1), "onKeydown")(
     keydown("End"),
   );
-  assertEquals(api.value, 5);
+  deepStrictEqual(api.value, 5);
 });
 
-Deno.test("Space fills an empty rating and refuses a set one", () => {
+test("Space fills an empty rating and refuses a set one", () => {
   const { api } = mount();
   const focus = handler<(e: MouseEvent) => void>(item(api, 1), "onFocus");
   focus(click());
   handler<(e: KeyboardEvent) => void>(item(api, 1), "onKeydown")(keydown(" "));
-  assertEquals(api.value, 1);
+  deepStrictEqual(api.value, 1);
   handler<(e: KeyboardEvent) => void>(item(api, 1), "onKeydown")(keydown(" "));
-  assertEquals(api.value, 1);
+  deepStrictEqual(api.value, 1);
 });
 
-Deno.test("half steps round to the halfway flag", () => {
+test("half steps round to the halfway flag", () => {
   const { api } = mount({ allowHalf: true });
   handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(
     groupOver(),
@@ -237,38 +238,38 @@ Deno.test("half steps round to the halfway flag", () => {
   handler<(e: PointerEvent) => void>(item(api, 3), "onPointermove")(
     over(3, 10),
   );
-  assertEquals(api.hoveredValue, 2.5);
+  deepStrictEqual(api.hoveredValue, 2.5);
   handler<() => void>(item(api, 3), "onClick")();
-  assertEquals(api.value, 2.5);
+  deepStrictEqual(api.value, 2.5);
 });
 
-Deno.test("a disabled group refuses clicks and keys", () => {
+test("a disabled group refuses clicks and keys", () => {
   const { api, events } = mount({ disabled: true });
   handler<() => void>(item(api, 3), "onClick")();
-  assertEquals(api.value, -1);
+  deepStrictEqual(api.value, -1);
   handler<(e: KeyboardEvent) => void>(item(api, 3), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, -1);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, -1);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("authored value seeds the group and a host write moves it", () => {
+test("authored value seeds the group and a host write moves it", () => {
   const { api, events, write } = mount({ value: 2 });
-  assertEquals(api.value, 2);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, 2);
+  deepStrictEqual(events.valueChange.length, 0);
   write("value", 4);
-  assertEquals(api.value, 4);
-  assertEquals(events.valueChange.length, 1);
+  deepStrictEqual(api.value, 4);
+  deepStrictEqual(events.valueChange.length, 1);
 });
 
-Deno.test("clear empties the rating", () => {
+test("clear empties the rating", () => {
   const { api, events } = mount();
   handler<() => void>(item(api, 3), "onClick")();
-  assertEquals(api.value, 3);
+  deepStrictEqual(api.value, 3);
   api.clearValue();
-  assertEquals(api.value, -1);
-  assertEquals(events.valueChange.length, 2);
+  deepStrictEqual(api.value, -1);
+  deepStrictEqual(events.valueChange.length, 2);
 });
 
 void click;

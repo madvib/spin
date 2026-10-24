@@ -1,20 +1,21 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { expandVariantGroups } from "./expand-groups.ts";
 
-Deno.test("groups expand per variant", () => {
-  assertEquals(
+test("groups expand per variant", () => {
+  deepStrictEqual(
     expandVariantGroups("hidden data-[branch]:(inline-flex)"),
     "hidden data-[branch]:inline-flex",
   );
 });
 
-Deno.test("multiple items share the prefix", () => {
-  assertEquals(
+test("multiple items share the prefix", () => {
+  deepStrictEqual(
     expandVariantGroups("data-[state=open]:(rotate-90 text-x)"),
     "data-[state=open]:rotate-90 data-[state=open]:text-x",
   );
 });
 
-Deno.test("plain utilities pass through", () => {
-  assertEquals(expandVariantGroups("flex gap-2"), "flex gap-2");
+test("plain utilities pass through", () => {
+  deepStrictEqual(expandVariantGroups("flex gap-2"), "flex gap-2");
 });

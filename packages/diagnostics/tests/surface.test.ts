@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "@spin/preset";
 import { starterThemes } from "@spin/theme/themes";
@@ -45,7 +46,7 @@ function declarationsOf(css: string, tag: string): Map<string, string> {
   return out;
 }
 
-Deno.test("the surfaces agree with the stylesheet the theme ships", async () => {
+test("the surfaces agree with the stylesheet the theme ships", async () => {
   const uno = await createGenerator({
     presets: [spinPreset({ themes: starterThemes })],
   });
@@ -54,7 +55,7 @@ Deno.test("the surfaces agree with the stylesheet the theme ships", async () => 
     const shipped = declarationsOf(css, tag);
     const surface = facts.surfaces.element(tag, []);
     for (const [property, value] of surface) {
-      assertEquals(
+      deepStrictEqual(
         shipped.get(property),
         value,
         `the theme puts ${property} on <${tag}>`,
@@ -63,7 +64,7 @@ Deno.test("the surfaces agree with the stylesheet the theme ships", async () => 
   }
 });
 
-Deno.test("a class declares what the stylesheet declares for it", async () => {
+test("a class declares what the stylesheet declares for it", async () => {
   const uno = await createGenerator({
     presets: [spinPreset({ themes: starterThemes })],
   });
@@ -72,7 +73,7 @@ Deno.test("a class declares what the stylesheet declares for it", async () => {
     const shipped = declarationsOf(css, `.${cls}`);
     const utility = facts.surfaces.utility(cls);
     for (const [property, value] of utility) {
-      assertEquals(
+      deepStrictEqual(
         shipped.get(property),
         value,
         `the stylesheet declares ${property} for \`${cls}\``,
@@ -81,12 +82,12 @@ Deno.test("a class declares what the stylesheet declares for it", async () => {
   }
 });
 
-Deno.test("an element the theme does not type has no surface", () => {
+test("an element the theme does not type has no surface", () => {
   // A div is the author's box: the theme says nothing about how it looks,
   // so there is nothing for a class to be measured against.
-  assertEquals([...facts.surfaces.element("div", [])], []);
+  deepStrictEqual([...facts.surfaces.element("div", [])], []);
 });
 
-Deno.test("a class the theme cannot produce declares nothing", () => {
-  assertEquals([...facts.surfaces.utility("not-a-class")], []);
+test("a class the theme cannot produce declares nothing", () => {
+  deepStrictEqual([...facts.surfaces.utility("not-a-class")], []);
 });

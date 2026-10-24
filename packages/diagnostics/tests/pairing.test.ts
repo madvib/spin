@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import plugin from "../src/index.ts";
 
 /**
@@ -35,48 +36,48 @@ function reportsFor(cls: string): Report[] {
   return reports;
 }
 
-Deno.test("ink on a paired fill must be the ink the palette pairs with it", () => {
+test("ink on a paired fill must be the ink the palette pairs with it", () => {
   // The mistake this catches: body ink painted on a filled control. The
   // fill's floor is on `on-primary`, so `text-text` is a pairing nobody
   // validated while the ink the theme measured goes unused.
   const [report] = reportsFor("bg-primary text-text");
-  assertEquals(report?.messageId, "mismatch");
-  assertEquals(report?.data, {
+  deepStrictEqual(report?.messageId, "mismatch");
+  deepStrictEqual(report?.data, {
     ink: "text-text",
     fill: "primary",
     expected: "text-on-primary",
   });
 });
 
-Deno.test("an alias is not the ink the palette declares", () => {
+test("an alias is not the ink the palette declares", () => {
   // `on-danger` is the legacy alias the starters kept for the error fill;
   // the domain's answer is `on-semantic-error`, and two names for one ink is
   // the disagreement the lint exists to stop shipping.
   const [report] = reportsFor("bg-semantic-error text-on-danger");
-  assertEquals(report?.messageId, "mismatch");
-  assertEquals(report?.data?.["expected"], "text-on-semantic-error");
+  deepStrictEqual(report?.messageId, "mismatch");
+  deepStrictEqual(report?.data?.["expected"], "text-on-semantic-error");
 });
 
-Deno.test("a fill that declares no ink flags the ink painted on it", () => {
+test("a fill that declares no ink flags the ink painted on it", () => {
   // The ramp is steps without foregrounds: a step does not flip with the
   // mode while `text-text` does, so a label on a ramp step is legible in one
   // mode and unreadable in the other, and nothing in the theme said either
   // way.
   const [report] = reportsFor("bg-neutral-700 text-text");
-  assertEquals(report?.messageId, "undeclared");
-  assertEquals(report?.data, { ink: "text-text", fill: "neutral-700" });
+  deepStrictEqual(report?.messageId, "undeclared");
+  deepStrictEqual(report?.data, { ink: "text-text", fill: "neutral-700" });
 });
 
-Deno.test("a fill constrains the ink of its own state", () => {
+test("a fill constrains the ink of its own state", () => {
   // A chip brightens its resting ink on the surface, and the fill that
   // arrives under a pointer is the hover state's business: `hover:bg-accent`
   // does not make the resting `text-text-muted` an unpaired ink, and
   // `hover:text-text` under the same hover fill does.
-  assertEquals(
+  deepStrictEqual(
     reportsFor("bg-surface-raised text-text-muted hover:bg-accent"),
     [],
   );
   const [report] = reportsFor("hover:bg-accent hover:text-text");
-  assertEquals(report?.messageId, "mismatch");
-  assertEquals(report?.data?.["expected"], "text-on-accent");
+  deepStrictEqual(report?.messageId, "mismatch");
+  deepStrictEqual(report?.data?.["expected"], "text-on-accent");
 });

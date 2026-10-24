@@ -1,4 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { findProjectRoot, readProjectThemes } from "../src/project.ts";
 
 /**
@@ -11,58 +15,58 @@ import { findProjectRoot, readProjectThemes } from "../src/project.ts";
  * back to the starters.
  */
 
-Deno.test("the nearest ancestor holding a spin directory is the project", async () => {
-  const root = await Deno.makeTempDir();
+test("the nearest ancestor holding a spin directory is the project", async () => {
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/spin`);
-    await Deno.mkdir(`${root}/src/pages`, { recursive: true });
-    assertEquals(findProjectRoot(`${root}/src/pages/page.tsx`), root);
+    await mkdir(`${root}/spin`);
+    await mkdir(`${root}/src/pages`, { recursive: true });
+    deepStrictEqual(findProjectRoot(`${root}/src/pages/page.tsx`), root);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a file outside every project has no root", async () => {
-  const root = await Deno.makeTempDir();
+test("a file outside every project has no root", async () => {
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/src`, { recursive: true });
-    assertEquals(findProjectRoot(`${root}/src/page.tsx`), undefined);
+    await mkdir(`${root}/src`, { recursive: true });
+    deepStrictEqual(findProjectRoot(`${root}/src/page.tsx`), undefined);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("the project's themes are read by name", async () => {
-  const root = await Deno.makeTempDir();
+test("the project's themes are read by name", async () => {
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/spin`);
-    await Deno.writeTextFile(
+    await mkdir(`${root}/spin`);
+    await writeFile(
       `${root}/spin/acme.json`,
       JSON.stringify({ color: { primary: { $value: "#c8102e" } } }),
     );
     const themes = readProjectThemes(root);
-    assertEquals(Object.keys(themes), ["acme"]);
-    assertEquals(themes["acme"], {
+    deepStrictEqual(Object.keys(themes), ["acme"]);
+    deepStrictEqual(themes["acme"], {
       color: { primary: { $value: "#c8102e" } },
     });
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });
 
-Deno.test("a theme that does not parse is skipped, not thrown on", async () => {
+test("a theme that does not parse is skipped, not thrown on", async () => {
   // A half written theme in an editor must not cost the lint the themes
   // the project has.
-  const root = await Deno.makeTempDir();
+  const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.mkdir(`${root}/spin`);
-    await Deno.writeTextFile(`${root}/spin/broken.json`, "{ not json");
-    await Deno.writeTextFile(
+    await mkdir(`${root}/spin`);
+    await writeFile(`${root}/spin/broken.json`, "{ not json");
+    await writeFile(
       `${root}/spin/acme.json`,
       JSON.stringify({ color: { primary: { $value: "#c8102e" } } }),
     );
-    assertEquals(Object.keys(readProjectThemes(root)), ["acme"]);
+    deepStrictEqual(Object.keys(readProjectThemes(root)), ["acme"]);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    await rm(root, { recursive: true });
   }
 });

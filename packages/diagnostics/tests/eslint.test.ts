@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { type ESLint, Linter } from "eslint";
 import eslintPlugin, { plugin, rules } from "../src/eslint.ts";
 import { RULES } from "../src/rules.ts";
@@ -32,14 +33,14 @@ function config(
   };
 }
 
-Deno.test("the plugin carries the rules the oxlint plugin carries", () => {
+test("the plugin carries the rules the oxlint plugin carries", () => {
   // One set of rules, two front ends: the names are the rules' public
   // vocabulary, and both linters answer to them.
-  assertEquals(Object.keys(rules), Object.keys(RULES));
-  assertEquals(Object.keys(typed.rules ?? {}), Object.keys(RULES));
+  deepStrictEqual(Object.keys(rules), Object.keys(RULES));
+  deepStrictEqual(Object.keys(typed.rules ?? {}), Object.keys(RULES));
 });
 
-Deno.test("a flat configuration takes the plugin and it reports", () => {
+test("a flat configuration takes the plugin and it reports", () => {
   // ESLint's own parser, ESLint's own flat config: the plugin is not
   // waiting for a particular parser to be useful.
   const messages = linter().verify(
@@ -47,13 +48,13 @@ Deno.test("a flat configuration takes the plugin and it reports", () => {
     config({ "spin/closed-vocabulary": "error" }),
     "app.jsx",
   );
-  assertEquals(messages.map((message) => message.ruleId), [
+  deepStrictEqual(messages.map((message) => message.ruleId), [
     "spin/closed-vocabulary",
   ]);
-  assertEquals(messages.map((message) => message.messageId), ["unknown"]);
+  deepStrictEqual(messages.map((message) => message.messageId), ["unknown"]);
 });
 
-Deno.test("the dial reaches the rule through the linter's options", () => {
+test("the dial reaches the rule through the linter's options", () => {
   // `strict` reads a type size as the element's own decision; `balanced`
   // reads it as a decision about content. The options travel the way ESLint
   // delivers them: as the rule's first option.
@@ -72,16 +73,16 @@ Deno.test("the dial reaches the rule through the linter's options", () => {
     }),
     "app.jsx",
   );
-  assertEquals(strict.map((message) => message.message), [
+  deepStrictEqual(strict.map((message) => message.message), [
     "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
     "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
-  assertEquals(balanced.map((message) => message.message), [
+  deepStrictEqual(balanced.map((message) => message.message), [
     "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
 });
 
-Deno.test("the plugin's edits are applied by ESLint's fixer", () => {
+test("the plugin's edits are applied by ESLint's fixer", () => {
   // The rule offers the edit; ESLint's fixer applies it. The class the
   // theme cannot produce styles nothing, so dropping it changes nothing.
   const code = `<span className="not-a-class" />`;
@@ -90,11 +91,11 @@ Deno.test("the plugin's edits are applied by ESLint's fixer", () => {
     config({ "spin/closed-vocabulary": "error" }),
     "app.jsx",
   );
-  assertEquals(result.output, `<span className="" />`);
-  assertEquals(result.messages, []);
+  deepStrictEqual(result.output, `<span className="" />`);
+  deepStrictEqual(result.messages, []);
 });
 
-Deno.test("the recommended preset is a flat configuration", () => {
+test("the recommended preset is a flat configuration", () => {
   // The preset is what a configuration spreads: the plugin and the five
   // rules, over the files the rules can read. The parser is the project's
   // own — ESLint's presets never choose one — so the configuration under
@@ -109,16 +110,16 @@ Deno.test("the recommended preset is a flat configuration", () => {
     ],
     "app.jsx",
   );
-  assertEquals(messages.map((message) => message.ruleId), [
+  deepStrictEqual(messages.map((message) => message.ruleId), [
     "spin/closed-vocabulary",
   ]);
 });
 
-Deno.test("the preset bans the override and only advises the wrong element", () => {
+test("the preset bans the override and only advises the wrong element", () => {
   // The stance, as a configuration reads it: a one-off override of a
   // decision the system made is an error, and the wrong element is a
   // warning — it cannot be banned.
   const rules = plugin.configs.recommended[0]?.rules;
-  assertEquals(rules?.["spin/prefer-theme-value"], "error");
-  assertEquals(rules?.["spin/prefer-element"], "warn");
+  deepStrictEqual(rules?.["spin/prefer-theme-value"], "error");
+  deepStrictEqual(rules?.["spin/prefer-element"], "warn");
 });

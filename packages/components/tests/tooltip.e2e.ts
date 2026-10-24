@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * spin-tooltip e2e: the hover-delay and anchor actions behind the same
  * app-controller handle as a machine.
@@ -10,7 +11,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 const READOUT = "#tooltip-open";
 const TRIGGER = "#demo-tooltip button";
@@ -27,7 +28,7 @@ const readout = (page: Page): Promise<boolean> =>
     undefined,
     { timeout: 5000 },
   ).then(() => true);
-Deno.test("spin-tooltip e2e", () =>
+test("spin-tooltip e2e", () =>
   runComponentSuite(
     { port: 5232, route: "/tooltip", ready: TRIGGER },
     async ({ page }) => {

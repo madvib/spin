@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type {
   ComboboxApi,
   ComboboxItemState,
@@ -9,7 +10,7 @@ import type { ComboboxRow } from "./combobox.state.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("ComboboxApi promises the component's surface", () => {
+test("ComboboxApi promises the component's surface", () => {
   const keys: (keyof ComboboxApi)[] = [
     "state",
     "open",
@@ -57,7 +58,7 @@ Deno.test("ComboboxApi promises the component's surface", () => {
     "getItemGroupIndexes",
     "getItemGroupLabelIndexes",
   ];
-  assertEquals(keys.length, 45);
+  deepStrictEqual(keys.length, 45);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -74,7 +75,7 @@ Deno.test("ComboboxApi promises the component's surface", () => {
     ComboboxApi["getItemState"],
     (row: ComboboxRow) => ComboboxItemState
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setOpenTyped,

@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { listbox } from "./listbox.presentation.ts";
@@ -248,135 +249,135 @@ function mount(
   };
 }
 
-Deno.test("focus keeps the highlight empty when there is a selection", () => {
+test("focus keeps the highlight empty when there is a selection", () => {
   // The guarded branch sets focused only: a selection is already visible,
   // so there is nothing to default the highlight to.
   const h = mount(FRUIT_ITEMS, { value: "banana" });
-  assertEquals(h.api.highlightedValue, null);
+  deepStrictEqual(h.api.highlightedValue, null);
   h.focusContent();
-  assertEquals(h.api.focused, true);
-  assertEquals(h.api.highlightedValue, null);
+  deepStrictEqual(h.api.focused, true);
+  deepStrictEqual(h.api.highlightedValue, null);
 });
 
-Deno.test("focus highlights the first item when there is none", () => {
+test("focus highlights the first item when there is none", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
-  assertEquals(h.api.highlightedValue, "apple");
+  deepStrictEqual(h.api.highlightedValue, "apple");
 });
 
-Deno.test("blur clears the focus", () => {
+test("blur clears the focus", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
-  assertEquals(h.api.focused, true);
+  deepStrictEqual(h.api.focused, true);
   h.blurContent();
-  assertEquals(h.api.focused, false);
+  deepStrictEqual(h.api.focused, false);
 });
 
-Deno.test("click selects and highlights", () => {
+test("click selects and highlights", () => {
   const h = mount(FRUIT_ITEMS);
   h.clickRow("banana");
-  assertEquals([...h.api.value], ["banana"]);
-  assertEquals(h.api.highlightedValue, "banana");
-  assertEquals(h.events.valueChange.length, 1);
-  assertEquals(h.events.valueChange[0]?.value, ["banana"]);
-  assertEquals(h.events.select.length, 1);
-  assertEquals(h.events.select[0]?.itemValue, "banana");
+  deepStrictEqual([...h.api.value], ["banana"]);
+  deepStrictEqual(h.api.highlightedValue, "banana");
+  deepStrictEqual(h.events.valueChange.length, 1);
+  deepStrictEqual(h.events.valueChange[0]?.value, ["banana"]);
+  deepStrictEqual(h.events.select.length, 1);
+  deepStrictEqual(h.events.select[0]?.itemValue, "banana");
 });
 
-Deno.test("click on a disabled row selects nothing", () => {
+test("click on a disabled row selects nothing", () => {
   const h = mount(FRUIT_ITEMS);
   h.clickRow("cherry");
-  assertEquals([...h.api.value], []);
-  assertEquals(h.events.valueChange.length, 0);
+  deepStrictEqual([...h.api.value], []);
+  deepStrictEqual(h.events.valueChange.length, 0);
 });
 
-Deno.test("arrow down highlights the next enabled row", () => {
+test("arrow down highlights the next enabled row", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
-  assertEquals(h.api.highlightedValue, "apple");
+  deepStrictEqual(h.api.highlightedValue, "apple");
   h.press("ArrowDown");
-  assertEquals(h.api.highlightedValue, "banana");
+  deepStrictEqual(h.api.highlightedValue, "banana");
   // Cherry is disabled: the walk skips it.
   h.press("ArrowDown");
-  assertEquals(h.api.highlightedValue, "date");
+  deepStrictEqual(h.api.highlightedValue, "date");
 });
 
-Deno.test("arrow up from the top wraps to the last row", () => {
+test("arrow up from the top wraps to the last row", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press("ArrowUp");
-  assertEquals(h.api.highlightedValue, "date");
+  deepStrictEqual(h.api.highlightedValue, "date");
 });
 
-Deno.test("home and end jump to the extremes", () => {
+test("home and end jump to the extremes", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press("End");
-  assertEquals(h.api.highlightedValue, "date");
+  deepStrictEqual(h.api.highlightedValue, "date");
   h.press("Home");
-  assertEquals(h.api.highlightedValue, "apple");
+  deepStrictEqual(h.api.highlightedValue, "apple");
 });
 
-Deno.test("shift-click extends the range in multiple mode", () => {
+test("shift-click extends the range in multiple mode", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.clickRow("apple");
   h.clickRow("date", { shiftKey: true });
-  assertEquals(h.api.value.includes("apple"), true);
-  assertEquals(h.api.value.includes("date"), true);
+  deepStrictEqual(h.api.value.includes("apple"), true);
+  deepStrictEqual(h.api.value.includes("date"), true);
 });
 
-Deno.test("enter selects the highlight", () => {
+test("enter selects the highlight", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press("ArrowDown");
   h.press("Enter");
-  assertEquals([...h.api.value], ["banana"]);
+  deepStrictEqual([...h.api.value], ["banana"]);
 });
 
-Deno.test("space selects the highlight", () => {
+test("space selects the highlight", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press(" ");
-  assertEquals([...h.api.value], ["apple"]);
+  deepStrictEqual([...h.api.value], ["apple"]);
 });
 
-Deno.test("typeahead highlights the matching row", () => {
+test("typeahead highlights the matching row", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press("d");
-  assertEquals(h.api.highlightedValue, "date");
+  deepStrictEqual(h.api.highlightedValue, "date");
 });
 
-Deno.test("hover highlights and leave clears", () => {
+test("hover highlights and leave clears", () => {
   const h = mount(FRUIT_ITEMS);
   h.hoverRow("banana");
-  assertEquals(h.api.highlightedValue, "banana");
+  deepStrictEqual(h.api.highlightedValue, "banana");
   h.leaveRow("banana");
-  assertEquals(h.api.highlightedValue, null);
+  deepStrictEqual(h.api.highlightedValue, null);
 });
 
-Deno.test("selectOnHighlight commits on navigate", () => {
+test("selectOnHighlight commits on navigate", () => {
   const h = mount(FRUIT_ITEMS, { selectOnHighlight: true });
   h.focusContent();
   h.press("ArrowDown");
-  assertEquals([...h.api.value], ["banana"]);
+  deepStrictEqual([...h.api.value], ["banana"]);
 });
 
-Deno.test("multiple toggles with plain clicks in preserve mode", () => {
+test("multiple toggles with plain clicks in preserve mode", () => {
   const h = mount(FRUIT_ITEMS, {
     multiple: true,
     selectionBehavior: "preserve",
   });
   h.clickRow("apple");
   h.clickRow("banana");
-  assertEquals([...h.api.value], ["apple", "banana"]);
+  deepStrictEqual([...h.api.value], ["apple", "banana"]);
 });
 
-Deno.test("shift-click extends the range in multiple mode", () => {
+test("shift-click extends the range in multiple mode", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.clickRow("apple");
   h.clickRow("date", { shiftKey: true });
-  assertEquals(
+  deepStrictEqual(
     [...h.api.value],
     ["apple", "banana", "cherry", "date"].filter((v) => v !== "cherry" || true)
         .slice(0, 4).filter((v) =>
@@ -387,92 +388,92 @@ Deno.test("shift-click extends the range in multiple mode", () => {
       ? [...h.api.value]
       : [],
   );
-  assertEquals(h.api.value.includes("apple"), true);
-  assertEquals(h.api.value.includes("date"), true);
+  deepStrictEqual(h.api.value.includes("apple"), true);
+  deepStrictEqual(h.api.value.includes("date"), true);
 });
 
-Deno.test("escape clears a single selection", () => {
+test("escape clears a single selection", () => {
   const h = mount(FRUIT_ITEMS, { value: "banana" });
   h.focusContent();
   h.press("Escape");
-  assertEquals([...h.api.value], []);
+  deepStrictEqual([...h.api.value], []);
 });
 
-Deno.test("authored value seeds the selection", () => {
+test("authored value seeds the selection", () => {
   const h = mount(FRUIT_ITEMS, { value: "apple" });
-  assertEquals([...h.api.value], ["apple"]);
+  deepStrictEqual([...h.api.value], ["apple"]);
 });
 
-Deno.test("commands move the machine", () => {
+test("commands move the machine", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setValue(["apple", "banana"]);
-  assertEquals([...h.api.value], ["apple", "banana"]);
+  deepStrictEqual([...h.api.value], ["apple", "banana"]);
   h.api.clearValue("apple");
-  assertEquals([...h.api.value], ["banana"]);
+  deepStrictEqual([...h.api.value], ["banana"]);
   h.api.highlightFirst();
-  assertEquals(h.api.highlightedValue, "apple");
+  deepStrictEqual(h.api.highlightedValue, "apple");
   h.api.highlightLast();
-  assertEquals(h.api.highlightedValue, "date");
+  deepStrictEqual(h.api.highlightedValue, "date");
   h.api.clearHighlightValue();
-  assertEquals(h.api.highlightedValue, null);
+  deepStrictEqual(h.api.highlightedValue, null);
   h.api.highlightNext();
-  assertEquals(h.api.highlightedValue, "apple");
+  deepStrictEqual(h.api.highlightedValue, "apple");
   // Single mode: selectAll is a refusal, not a move — the upstream throws,
   // the port keeps the value rather than punishing the host.
   h.api.selectAll();
-  assertEquals([...h.api.value], ["banana"]);
+  deepStrictEqual([...h.api.value], ["banana"]);
   h.api.setValue([]);
   h.api.selectValue("date");
-  assertEquals([...h.api.value], ["date"]);
+  deepStrictEqual([...h.api.value], ["date"]);
   h.api.clearValue();
-  assertEquals([...h.api.value], []);
+  deepStrictEqual([...h.api.value], []);
 });
 
-Deno.test("selectAll fills every enabled row in multiple mode", () => {
+test("selectAll fills every enabled row in multiple mode", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.api.selectAll();
-  assertEquals([...h.api.value], ["apple", "banana", "date"]);
+  deepStrictEqual([...h.api.value], ["apple", "banana", "date"]);
 });
 
-Deno.test("grouped items keep their blocks", () => {
+test("grouped items keep their blocks", () => {
   const h = mount(GROUPED_ITEMS);
   const blocks = h.blocks();
-  assertEquals(blocks.length, 2);
-  assertEquals(blocks[0]?.label, "Pome");
-  assertEquals(blocks[1]?.label, "Nut");
+  deepStrictEqual(blocks.length, 2);
+  deepStrictEqual(blocks[0]?.label, "Pome");
+  deepStrictEqual(blocks[1]?.label, "Nut");
 });
 
-Deno.test("item state reports selection and highlight", () => {
+test("item state reports selection and highlight", () => {
   const h = mount(FRUIT_ITEMS, { value: "apple" });
   h.hoverRow("banana");
   const apple = h.api.getItemState(h.row("apple"));
   const banana = h.api.getItemState(h.row("banana"));
-  assertEquals(apple.selected, true);
-  assertEquals(apple.highlighted, false);
-  assertEquals(banana.selected, false);
-  assertEquals(banana.highlighted, true);
+  deepStrictEqual(apple.selected, true);
+  deepStrictEqual(apple.highlighted, false);
+  deepStrictEqual(banana.selected, false);
+  deepStrictEqual(banana.highlighted, true);
   const cherry = h.api.getItemState(h.row("cherry"));
-  assertEquals(cherry.disabled, true);
+  deepStrictEqual(cherry.disabled, true);
 });
 
-Deno.test("aria contract on the content and the rows", () => {
+test("aria contract on the content and the rows", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusContent();
   h.press("ArrowDown");
   const content = h.api.getContentProps() as Record<string, unknown>;
-  assertEquals(content["role"], "listbox");
-  assertEquals(content["tabindex"], "0");
-  assertEquals(
+  deepStrictEqual(content["role"], "listbox");
+  deepStrictEqual(content["tabindex"], "0");
+  deepStrictEqual(
     content["aria-activedescendant"],
     "listbox:frameworks:item:banana",
   );
   const row = h.api.getItemProps(h.row("banana")) as Record<string, unknown>;
-  assertEquals(row["role"], "option");
-  assertEquals(row["aria-selected"], "false");
+  deepStrictEqual(row["role"], "option");
+  deepStrictEqual(row["aria-selected"], "false");
   h.clickRow("banana");
   const selected = h.api.getItemProps(h.row("banana")) as Record<
     string,
     unknown
   >;
-  assertEquals(selected["aria-selected"], "true");
+  deepStrictEqual(selected["aria-selected"], "true");
 });

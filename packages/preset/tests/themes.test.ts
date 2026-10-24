@@ -1,4 +1,6 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFileSync } from "node:fs";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseTokens, validateTokens } from "@spin/theme";
 import { requiredRolesFor } from "../src/index.ts";
 import { starterThemes } from "@spin/theme/themes";
@@ -13,7 +15,7 @@ import type { TokenLeaf, TokenNode } from "@spin/theme";
  */
 function example(name: string): unknown {
   return JSON.parse(
-    Deno.readTextFileSync(
+    readFileSync(
       new URL(`../../theme/src/themes/${name}`, import.meta.url),
     ),
   );
@@ -21,13 +23,13 @@ function example(name: string): unknown {
 
 /** A base document: the whole surface, nothing layered over it. */
 for (const name of Object.keys(starterThemes).map((stem) => `${stem}.json`)) {
-  Deno.test(`${name} satisfies every required role`, () => {
+  test(`${name} satisfies every required role`, () => {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);
     const report = validateTokens(parsed.tree, {
       required: [...requiredRolesFor()],
     });
-    assertEquals(
+    deepStrictEqual(
       report.issues.filter((issue) => issue.message.startsWith("missing")),
       [],
       `${name} is missing roles the full surface requires`,
@@ -42,7 +44,7 @@ for (const name of Object.keys(starterThemes).map((stem) => `${stem}.json`)) {
  * and reports no other issue; requiring completeness of it would be requiring
  * a dark theme to ignore its own light one.
  */
-Deno.test("a dark MODE restates what it flips and inherits the rest", () => {
+test("a dark MODE restates what it flips and inherits the rest", () => {
   // `dark` is a MODE, not a document: it lives inside the theme and says what
   // changes. So the property to check is that every path it declares is one the
   // theme already declares — a mode that introduced a NEW token would be a

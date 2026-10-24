@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseFile } from "../src/engine.ts";
 import { ancestorsOf } from "../src/scope.ts";
 import { walk } from "../src/walk.ts";
@@ -44,15 +45,15 @@ function chains(): { ancestors: string[]; classes: string[] }[] {
   return out;
 }
 
-Deno.test("the chain holds the elements above, nearest first", () => {
+test("the chain holds the elements above, nearest first", () => {
   const found = chains().map((entry) => entry.ancestors.join(" > ")).sort();
-  assertEquals(found, ["", "prose", "section > prose"]);
+  deepStrictEqual(found, ["", "prose", "section > prose"]);
 });
 
-Deno.test("the chain holds the classes of each element above", () => {
+test("the chain holds the classes of each element above", () => {
   // The scope of a primitive is named by a class as often as by a tag: the
   // same primitive in its classless form claims `<card>` and in its class
   // form claims `.card`.
   const found = chains().map((entry) => entry.classes.join(" > ")).sort();
-  assertEquals(found, ["", "body > column", "column"]);
+  deepStrictEqual(found, ["", "body > column", "column"]);
 });

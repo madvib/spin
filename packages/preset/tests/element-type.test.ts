@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   createGenerator,
   type ExtendedTokenInfo,
@@ -112,51 +113,51 @@ function without(...paths: string[]): Record<string, unknown> {
   return doc;
 }
 
-Deno.test("a theme that states a heading's size moves that heading alone", async () => {
+test("a theme that states a heading's size moves that heading alone", async () => {
   // The decision is per element, so the levels are independent: the first
   // heading moves and the second keeps the step its level takes.
   const doc = withDecision("font.element.h1.size", "dimension", "3rem");
   const result = await generate("<h1>a</h1><h2>b</h2>", doc);
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h1")["font-size"],
     "var(--font-element-h1-size)",
   );
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h2")["font-size"],
     "var(--font-size-2xl)",
   );
 });
 
-Deno.test("a heading that the theme says nothing about keeps the ladder's step", async () => {
+test("a heading that the theme says nothing about keeps the ladder's step", async () => {
   // The fallback IS the ladder: a theme that omits the decision gets the
   // system's answer, which is the step the level takes.
   const result = await generate("<h1>a</h1><h6>b</h6>");
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h1")["font-size"],
     "var(--font-size-3xl)",
   );
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h6")["font-size"],
     "var(--font-size-sm)",
   );
 });
 
-Deno.test("a theme that states a weight moves the weight, not the size", async () => {
+test("a theme that states a weight moves the weight, not the size", async () => {
   // The three decisions are independent: stating one leaves the others
   // exactly where the ladder put them.
   const doc = withDecision("font.element.h2.weight", "fontWeight", "500");
   const result = await generate("<h2>a</h2>", doc);
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h2")["font-weight"],
     "var(--font-element-h2-weight)",
   );
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h2")["font-size"],
     "var(--font-size-2xl)",
   );
 });
 
-Deno.test("a theme that states a face gives the element that face", async () => {
+test("a theme that states a face gives the element that face", async () => {
   // The face is a decision like any other: a quotation the theme sets in the
   // body's face reads in the body's face, and the editorial face is the
   // answer only while the theme has not given another.
@@ -166,44 +167,44 @@ Deno.test("a theme that states a face gives the element that face", async () => 
     "Inter, sans-serif",
   );
   const result = await generate("<blockquote>a</blockquote>", doc);
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "blockquote")["font-family"],
     "var(--font-element-blockquote-family)",
   );
 });
 
-Deno.test("a quotation the theme says nothing about reads the editorial face", async () => {
+test("a quotation the theme says nothing about reads the editorial face", async () => {
   const result = await generate("<blockquote>a</blockquote>");
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "blockquote")["font-family"],
     "var(--font-family-serif)",
   );
 });
 
-Deno.test("a display face that the theme does not name falls back to the body", async () => {
+test("a display face that the theme does not name falls back to the body", async () => {
   // The chain: the display face falls back to the heading family, and the
   // heading family to the body. A theme that names no display voice still
   // has a face for its headings.
   const doc = without("font.family.heading");
   const result = await generate("<h1>a</h1>", doc);
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h1")["font-family"],
     "var(--font-family-body)",
   );
 });
 
-Deno.test("a body face that the theme does not name falls back to the sans", async () => {
+test("a body face that the theme does not name falls back to the sans", async () => {
   // The last step of the chain: with no display face and no body face, the
   // heading still reads in the sans every theme declares.
   const doc = without("font.family.heading", "font.family.body");
   const result = await generate("<h1>a</h1>", doc);
-  assertEquals(
+  deepStrictEqual(
     bodyFor(result, "h1")["font-family"],
     "var(--font-family-sans)",
   );
 });
 
-Deno.test("every element the contract names reads its own decision", async () => {
+test("every element the contract names reads its own decision", async () => {
   // The whole list, in one sweep: an element the contract declares but no
   // rule spends is a decision the theme can make that changes nothing.
   for (const element of elementTypeElements()) {
@@ -214,7 +215,7 @@ Deno.test("every element the contract names reads its own decision", async () =>
       "2rem",
     );
     const result = await generate(`<${element}>a</${element}>`, doc);
-    assertEquals(
+    deepStrictEqual(
       bodyFor(result, element)["font-size"],
       `var(--font-element-${element}-size)`,
       `${element} does not read its own size`,
@@ -222,7 +223,7 @@ Deno.test("every element the contract names reads its own decision", async () =>
   }
 });
 
-Deno.test("every element the contract names reads its own face and weight", async () => {
+test("every element the contract names reads its own face and weight", async () => {
   // The other two decisions, over the same list.
   for (const element of elementTypeElements()) {
     const withFace = withDecision(
@@ -231,7 +232,7 @@ Deno.test("every element the contract names reads its own face and weight", asyn
       "Inter, sans-serif",
     );
     const faced = await generate(`<${element}>a</${element}>`, withFace);
-    assertEquals(
+    deepStrictEqual(
       bodyFor(faced, element)["font-family"],
       `var(--font-element-${element}-family)`,
       `${element} does not read its own face`,
@@ -243,7 +244,7 @@ Deno.test("every element the contract names reads its own face and weight", asyn
       "500",
     );
     const weighted = await generate(`<${element}>a</${element}>`, withWeight);
-    assertEquals(
+    deepStrictEqual(
       bodyFor(weighted, element)["font-weight"],
       `var(--font-element-${element}-weight)`,
       `${element} does not read its own weight`,
@@ -251,11 +252,11 @@ Deno.test("every element the contract names reads its own face and weight", asyn
   }
 });
 
-Deno.test("a theme that states no per-element decision is a complete theme", async () => {
+test("a theme that states no per-element decision is a complete theme", async () => {
   // The group is optional: the rules fall back to the ladder, and a theme
   // that never mentions the group still renders.
   const parsed = await generate("<h1>a</h1><p>b</p><code>c</code>");
-  assertEquals(
+  deepStrictEqual(
     bodyFor(parsed, "h1")["font-size"],
     "var(--font-size-3xl)",
   );

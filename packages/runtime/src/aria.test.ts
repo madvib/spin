@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The ARIA vocabulary's tests.
  *
@@ -9,7 +10,7 @@
  * writes the attribute.
  */
 
-import { assertEquals } from "@std/assert";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import type { PartScope } from "./component/define.ts";
 import { bindSpread } from "./directives/spread.ts";
@@ -58,192 +59,192 @@ function scopeOf(): PartScope {
   };
 }
 
-Deno.test("Given a state / When it is stated / Then the attribute carries it", () => {
-  assertEquals(
+test("Given a state / When it is stated / Then the attribute carries it", () => {
+  deepStrictEqual(
     ariaDisabled(true),
     { "aria-disabled": true },
     "the disabled state",
   );
-  assertEquals(ariaHidden(false), { "aria-hidden": false }, "the hidden state");
-  assertEquals(
+  deepStrictEqual(ariaHidden(false), { "aria-hidden": false }, "the hidden state");
+  deepStrictEqual(
     ariaInvalid(true),
     { "aria-invalid": true },
     "the invalid state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaPressed("true"),
     { "aria-pressed": "true" },
     "the pressed state",
   );
-  assertEquals(ariaBusy("false"), { "aria-busy": "false" }, "the busy state");
-  assertEquals(
+  deepStrictEqual(ariaBusy("false"), { "aria-busy": "false" }, "the busy state");
+  deepStrictEqual(
     ariaRequired(true),
     { "aria-required": true },
     "the required state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaReadOnly(false),
     { "aria-readonly": false },
     "the read-only state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaCurrent("page"),
     { "aria-current": "page" },
     "the current place",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaOrientation("vertical"),
     { "aria-orientation": "vertical" },
     "the orientation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaAutocomplete("both"),
     { "aria-autocomplete": "both" },
     "the completion",
   );
-  assertEquals(ariaRoleDescription("slide"), {
+  deepStrictEqual(ariaRoleDescription("slide"), {
     "aria-roledescription": "slide",
   }, "the role description");
-  assertEquals(
+  deepStrictEqual(
     ariaDescription("a hint"),
     { "aria-description": "a hint" },
     "the description",
   );
 });
 
-Deno.test("Given a state / When it is not known / Then the attribute is there with no value", () => {
-  assertEquals(
+test("Given a state / When it is not known / Then the attribute is there with no value", () => {
+  deepStrictEqual(
     ariaDisabled(undefined),
     { "aria-disabled": undefined },
     "the disabled state",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-disabled" in ariaDisabled(undefined),
     true,
     "the attribute is still in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaHidden(undefined),
     { "aria-hidden": undefined },
     "the hidden state",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-hidden" in ariaHidden(undefined),
     true,
     "the attribute is still in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaInvalid(undefined),
     { "aria-invalid": undefined },
     "the invalid state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaPressed(undefined),
     { "aria-pressed": undefined },
     "the pressed state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaBusy(undefined),
     { "aria-busy": undefined },
     "the busy state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaRequired(undefined),
     { "aria-required": undefined },
     "the required state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaReadOnly(undefined),
     { "aria-readonly": undefined },
     "the read-only state",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaCurrent(undefined),
     { "aria-current": undefined },
     "the current place",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaOrientation(undefined),
     { "aria-orientation": undefined },
     "the orientation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaAutocomplete(undefined),
     { "aria-autocomplete": undefined },
     "the completion",
   );
-  assertEquals(ariaRoleDescription(undefined), {
+  deepStrictEqual(ariaRoleDescription(undefined), {
     "aria-roledescription": undefined,
   }, "the role description");
-  assertEquals(
+  deepStrictEqual(
     ariaDescription(undefined),
     { "aria-description": undefined },
     "the description",
   );
 });
 
-Deno.test("Given a relation / When it names a part / Then the scope mints the id", () => {
+test("Given a relation / When it names a part / Then the scope mints the id", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     ariaDescribedBy(scope, { part: "hint" }),
     { "aria-describedby": "demo:hint" },
     "the described-by relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaLabelledBy(scope, { part: "label" }),
     { "aria-labelledby": "demo:label" },
     "the labelled-by relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaControls(scope, { part: "content" }),
     { "aria-controls": "demo:content" },
     "the controls relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaOwns(scope, { part: "list" }),
     { "aria-owns": "demo:list" },
     "the owns relation",
   );
 });
 
-Deno.test("Given a relation / When it names a slot / Then the scope mints the slotted id", () => {
+test("Given a relation / When it names a slot / Then the scope mints the slotted id", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     ariaControls(scope, { part: "item", slot: "a" }),
     { "aria-controls": "demo:item:a" },
     "the controls relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaLabelledBy(scope, { part: "itemGroupLabel", slot: 3 }),
     { "aria-labelledby": "demo:itemGroupLabel:3" },
     "the labelled-by relation",
   );
 });
 
-Deno.test("Given a relation / When it names ids of its own / Then they are carried as they are", () => {
+test("Given a relation / When it names ids of its own / Then they are carried as they are", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     ariaDescribedBy(scope, { id: "outside" }),
     { "aria-describedby": "outside" },
     "the described-by relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaControls(scope, { id: "outside" }),
     { "aria-controls": "outside" },
     "the controls relation",
   );
 });
 
-Deno.test("Given a relation / When it names several parts / Then the ids are joined by a space", () => {
+test("Given a relation / When it names several parts / Then the ids are joined by a space", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     ariaLabelledBy(scope, {
       parts: [{ part: "label" }, { part: "valueText" }],
     }),
     { "aria-labelledby": "demo:label demo:valueText" },
     "the labelled-by relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaControls(scope, {
       parts: [{ part: "panel", slot: "a" }, { part: "panel", slot: "b" }],
     }),
@@ -252,33 +253,33 @@ Deno.test("Given a relation / When it names several parts / Then the ids are joi
   );
 });
 
-Deno.test("Given a relation / When it names nothing / Then the attribute is there with no value", () => {
+test("Given a relation / When it names nothing / Then the attribute is there with no value", () => {
   const scope = scopeOf();
-  assertEquals(ariaDescribedBy(scope, undefined), {
+  deepStrictEqual(ariaDescribedBy(scope, undefined), {
     "aria-describedby": undefined,
   }, "the described-by relation");
-  assertEquals(
+  deepStrictEqual(
     "aria-describedby" in ariaDescribedBy(scope, undefined),
     true,
     "the attribute is still in the record",
   );
-  assertEquals(ariaLabelledBy(scope, undefined), {
+  deepStrictEqual(ariaLabelledBy(scope, undefined), {
     "aria-labelledby": undefined,
   }, "the labelled-by relation");
-  assertEquals(
+  deepStrictEqual(
     ariaControls(scope, undefined),
     { "aria-controls": undefined },
     "the controls relation",
   );
-  assertEquals(
+  deepStrictEqual(
     ariaOwns(scope, undefined),
     { "aria-owns": undefined },
     "the owns relation",
   );
 });
 
-Deno.test("Given a live region / When it says everything / Then the region is stated", () => {
-  assertEquals(
+test("Given a live region / When it says everything / Then the region is stated", () => {
+  deepStrictEqual(
     liveRegion({ live: "polite", atomic: "false", relevant: "additions text" }),
     {
       "aria-live": "polite",
@@ -289,28 +290,28 @@ Deno.test("Given a live region / When it says everything / Then the region is st
   );
 });
 
-Deno.test("Given a live region / When it says one thing / Then the rest is not in the record", () => {
+test("Given a live region / When it says one thing / Then the rest is not in the record", () => {
   const region = liveRegion({ atomic: true });
-  assertEquals(
+  deepStrictEqual(
     region,
     { "aria-atomic": true },
     "only the atomic state is stated",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-live" in region,
     false,
     "the live state is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-relevant" in region,
     false,
     "the relevant state is not in the record",
   );
 });
 
-Deno.test("Given a trigger / When it opens a region / Then the trigger is stated", () => {
+test("Given a trigger / When it opens a region / Then the trigger is stated", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     disclosureTrigger(scope, {
       expanded: true,
       hasPopup: "listbox",
@@ -325,47 +326,47 @@ Deno.test("Given a trigger / When it opens a region / Then the trigger is stated
   );
 });
 
-Deno.test("Given a trigger / When it states one thing / Then the rest is not in the record", () => {
+test("Given a trigger / When it states one thing / Then the rest is not in the record", () => {
   const scope = scopeOf();
   const trigger = disclosureTrigger(scope, { expanded: false });
-  assertEquals(
+  deepStrictEqual(
     trigger,
     { "aria-expanded": false },
     "only the expanded state is stated",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-haspopup" in trigger,
     false,
     "the popup kind is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-controls" in trigger,
     false,
     "the controlled region is not in the record",
   );
 });
 
-Deno.test("Given a trigger / When it opens no region / Then the attribute is there with no value", () => {
+test("Given a trigger / When it opens no region / Then the attribute is there with no value", () => {
   const scope = scopeOf();
   const trigger = disclosureTrigger(scope, {
     expanded: false,
     controls: undefined,
   });
-  assertEquals(
+  deepStrictEqual(
     trigger["aria-controls"],
     undefined,
     "the controlled region has no value",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-controls" in trigger,
     true,
     "the attribute is still in the record",
   );
 });
 
-Deno.test("Given a list surface / When it holds rows / Then the surface is stated", () => {
+test("Given a list surface / When it holds rows / Then the surface is stated", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     listSurface(scope, {
       labelledBy: { part: "label" },
       activeDescendant: { part: "item", slot: "a" },
@@ -384,54 +385,54 @@ Deno.test("Given a list surface / When it holds rows / Then the surface is state
   );
 });
 
-Deno.test("Given a list surface / When it states one thing / Then the rest is not in the record", () => {
+test("Given a list surface / When it states one thing / Then the rest is not in the record", () => {
   const scope = scopeOf();
   const surface = listSurface(scope, { labelledBy: { part: "label" } });
-  assertEquals(
+  deepStrictEqual(
     surface,
     { "aria-labelledby": "demo:label" },
     "only the name is stated",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-activedescendant" in surface,
     false,
     "the active row is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-multiselectable" in surface,
     false,
     "the selection state is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-required" in surface,
     false,
     "the required state is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-readonly" in surface,
     false,
     "the read-only state is not in the record",
   );
 });
 
-Deno.test("Given a list surface / When no row is active / Then the attribute is there with no value", () => {
+test("Given a list surface / When no row is active / Then the attribute is there with no value", () => {
   const scope = scopeOf();
   const surface = listSurface(scope, { activeDescendant: undefined });
-  assertEquals(
+  deepStrictEqual(
     surface["aria-activedescendant"],
     undefined,
     "the active row has no value",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-activedescendant" in surface,
     true,
     "the attribute is still in the record",
   );
 });
 
-Deno.test("Given a combobox field / When it completes what is typed / Then the field is stated", () => {
+test("Given a combobox field / When it completes what is typed / Then the field is stated", () => {
   const scope = scopeOf();
-  assertEquals(
+  deepStrictEqual(
     comboboxInput(scope, {
       autocomplete: "list",
       controls: { part: "content" },
@@ -448,33 +449,33 @@ Deno.test("Given a combobox field / When it completes what is typed / Then the f
   );
 });
 
-Deno.test("Given a combobox field / When it states one thing / Then the rest is not in the record", () => {
+test("Given a combobox field / When it states one thing / Then the rest is not in the record", () => {
   const scope = scopeOf();
   const field = comboboxInput(scope, { autocomplete: "none" });
-  assertEquals(
+  deepStrictEqual(
     field,
     { "aria-autocomplete": "none" },
     "only the completion is stated",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-controls" in field,
     false,
     "the controlled region is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-expanded" in field,
     false,
     "the expanded state is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-activedescendant" in field,
     false,
     "the active row is not in the record",
   );
 });
 
-Deno.test("Given a thumb / When it rides a range / Then the thumb is stated", () => {
-  assertEquals(
+test("Given a thumb / When it rides a range / Then the thumb is stated", () => {
+  deepStrictEqual(
     sliderThumb({ min: "0", max: "100", now: "42", text: "42 percent" }),
     {
       "aria-valuemin": "0",
@@ -486,37 +487,37 @@ Deno.test("Given a thumb / When it rides a range / Then the thumb is stated", ()
   );
 });
 
-Deno.test("Given a thumb / When the range has no ends / Then the attribute is there with no value", () => {
+test("Given a thumb / When the range has no ends / Then the attribute is there with no value", () => {
   const thumb = sliderThumb({ min: undefined, now: 42 });
-  assertEquals(
+  deepStrictEqual(
     thumb["aria-valuemin"],
     undefined,
     "the lowest value has no value",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-valuemin" in thumb,
     true,
     "the attribute is still in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     thumb["aria-valuenow"],
     42,
     "the value the thumb sits at is a number",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-valuemax" in thumb,
     false,
     "the highest value is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-valuetext" in thumb,
     false,
     "the heard value is not in the record",
   );
 });
 
-Deno.test("Given a row / When it sits in a set / Then the row is stated", () => {
-  assertEquals(
+test("Given a row / When it sits in a set / Then the row is stated", () => {
+  deepStrictEqual(
     optionRow({
       selected: true,
       checked: "false",
@@ -537,33 +538,33 @@ Deno.test("Given a row / When it sits in a set / Then the row is stated", () => 
   );
 });
 
-Deno.test("Given a row / When it states one thing / Then the rest is not in the record", () => {
+test("Given a row / When it states one thing / Then the rest is not in the record", () => {
   const row = optionRow({ selected: false });
-  assertEquals(row, { "aria-selected": false }, "only the selection is stated");
-  assertEquals(
+  deepStrictEqual(row, { "aria-selected": false }, "only the selection is stated");
+  deepStrictEqual(
     "aria-checked" in row,
     false,
     "the checked state is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-posinset" in row,
     false,
     "the place in the set is not in the record",
   );
-  assertEquals(
+  deepStrictEqual(
     "aria-setsize" in row,
     false,
     "the size of the set is not in the record",
   );
-  assertEquals("aria-level" in row, false, "the depth is not in the record");
-  assertEquals(
+  deepStrictEqual("aria-level" in row, false, "the depth is not in the record");
+  deepStrictEqual(
     "aria-disabled" in row,
     false,
     "the unavailable state is not in the record",
   );
 });
 
-Deno.test("Given a fragment / When the framework writes it / Then an attribute with no value is dropped", () => {
+test("Given a fragment / When the framework writes it / Then an attribute with no value is dropped", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
   bindSpread(el, () => ({
@@ -573,24 +574,24 @@ Deno.test("Given a fragment / When the framework writes it / Then an attribute w
       controls: undefined,
     }),
   }));
-  assertEquals(
+  deepStrictEqual(
     el.getAttribute("aria-expanded"),
     "false",
     "a state is written as it reads",
   );
-  assertEquals(
+  deepStrictEqual(
     el.getAttribute("aria-haspopup"),
     "dialog",
     "the popup kind is written",
   );
-  assertEquals(
+  deepStrictEqual(
     el.getAttribute("aria-controls"),
     null,
     "an attribute with no value is dropped",
   );
 });
 
-Deno.test("Given a primitive / When a part spreads it / Then it sits beside the part's own attributes", () => {
+test("Given a primitive / When a part spreads it / Then it sits beside the part's own attributes", () => {
   const scope = scopeOf();
   const bag: Record<string, unknown> = {
     ...disclosureTrigger(scope, {
@@ -600,18 +601,18 @@ Deno.test("Given a primitive / When a part spreads it / Then it sits beside the 
     }),
     id: scope.id("trigger"),
   };
-  assertEquals(
+  deepStrictEqual(
     bag["aria-expanded"],
     false,
     "the trigger states the region is shut",
   );
-  assertEquals(
+  deepStrictEqual(
     bag["aria-haspopup"],
     "dialog",
     "and the kind of popup it opens",
   );
-  assertEquals(bag["aria-controls"], "demo:content", "and the region it opens");
-  assertEquals(
+  deepStrictEqual(bag["aria-controls"], "demo:content", "and the region it opens");
+  deepStrictEqual(
     bag["id"],
     "demo:trigger",
     "and the part keeps its own attributes",

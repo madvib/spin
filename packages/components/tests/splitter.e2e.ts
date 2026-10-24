@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM splitter splits in a real browser — handle drag
  * redistributes the percents, arrows nudge from the keyboard, Enter
@@ -6,7 +7,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `splitter:<element id>:<part>`. */
 const at = (id: string, part: string): string =>
@@ -15,7 +16,7 @@ const ROOT_ID = '[id="splitter:group"]';
 const handle = (pair: string): string => `[id="splitter:group:handle:${pair}"]`;
 const FIRST_HANDLE = handle("nav:main");
 
-Deno.test("spin-splitter e2e", () =>
+test("spin-splitter e2e", () =>
   runComponentSuite(
     { port: 5253, route: "/splitter", ready: ROOT_ID },
     async ({ page }) => {

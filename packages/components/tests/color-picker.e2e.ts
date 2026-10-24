@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM color-picker drives its machine in a real browser —
  * the trigger lifecycle, swatch commit, area drag, channel arrows, hex
@@ -17,7 +18,7 @@ const AREA_THUMB = at("brand", "area-thumb");
 const HUE_THUMB = at("brand", "thumb:hue");
 const INLINE_CONTENT = at("inline", "content");
 
-Deno.test("spin-color-picker e2e", () =>
+test("spin-color-picker e2e", () =>
   runComponentSuite({
     port: 5248,
     route: "/color-picker",

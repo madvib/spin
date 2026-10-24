@@ -1,10 +1,39 @@
 {
   "name": "@spin/animation",
   "version": "0.1.0",
+  "description": "Keyframes, and the animate-* utilities that name them \u2014 the one global CSS namespace.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
   },
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@spin/animation": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "peerDependencies": {
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "codegen": "bun run ./codegen.ts"
+  }
 }

@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { parseTokens, treeToJson } from "@spin/theme";
 import { scaffold, spinPreset } from "../src/index.ts";
@@ -26,7 +27,7 @@ import {
  * work and no error anywhere.
  */
 
-Deno.test("every table entry has a declaration", () => {
+test("every table entry has a declaration", () => {
   // One entry from each kind of table, so a family that stops being assembled
   // fails here rather than at some consumer's build.
   const named = [
@@ -47,7 +48,7 @@ Deno.test("every table entry has a declaration", () => {
   }
 });
 
-Deno.test("the utilities with no table behind them still emit", () => {
+test("the utilities with no table behind them still emit", () => {
   // `STATIC_UTILITIES` is the one list that names utilities without a table:
   // `w-full` and `top-1/2` have no scale step to derive from. They exist as
   // written declarations, and this is the contract that they stay real.
@@ -60,7 +61,7 @@ Deno.test("the utilities with no table behind them still emit", () => {
   }
 });
 
-Deno.test("a declaration states at least one property", () => {
+test("a declaration states at least one property", () => {
   for (
     const [name, decls] of [
       ...Object.entries(STATIC_DECLS),
@@ -71,22 +72,22 @@ Deno.test("a declaration states at least one property", () => {
   }
 });
 
-Deno.test("an opacity utility is its percentage divided by a hundred", () => {
+test("an opacity utility is its percentage divided by a hundred", () => {
   // The one table whose values are computed rather than written, which makes
   // it the one worth pinning.
-  assertEquals(STATIC_DECLS["opacity-50"]?.opacity, "0.5");
-  assertEquals(STATIC_DECLS["opacity-100"]?.opacity, "1");
+  deepStrictEqual(STATIC_DECLS["opacity-50"]?.opacity, "0.5");
+  deepStrictEqual(STATIC_DECLS["opacity-100"]?.opacity, "1");
 });
 
-Deno.test("grid tracks are fixed counts, spans mirror them", () => {
-  assertEquals(STATIC_DECLS["grid-cols-none"] ?? GRID_DECLS["grid-cols-none"], {
+test("grid tracks are fixed counts, spans mirror them", () => {
+  deepStrictEqual(STATIC_DECLS["grid-cols-none"] ?? GRID_DECLS["grid-cols-none"], {
     "grid-template-columns": "none",
   });
-  assertEquals(GRID_DECLS["col-span-4"]?.["grid-column"], "span 4 / span 4");
-  assertEquals(GRID_DECLS["col-span-full"]?.["grid-column"], "1 / -1");
+  deepStrictEqual(GRID_DECLS["col-span-4"]?.["grid-column"], "span 4 / span 4");
+  deepStrictEqual(GRID_DECLS["col-span-full"]?.["grid-column"], "1 / -1");
 });
 
-Deno.test("the display table covers flex and grid", () => {
+test("the display table covers flex and grid", () => {
   for (const name of ["block", "inline", "flex", "hidden"]) {
     assert(STATIC_DECLS[name]?.display, `${name} emits no display`);
   }
@@ -154,7 +155,7 @@ function readsAToken(value: string): boolean {
   return /var\(\s*--/.test(value);
 }
 
-Deno.test("the utilities a component spends emit the declaration it needs", async () => {
+test("the utilities a component spends emit the declaration it needs", async () => {
   // One case per family a component reaches for, each mirroring a real
   // declaration in the primitives: a colour, a logical spacing edge, a radius,
   // a transform, and a capitalisation. The assertion is the DECISION — a
@@ -186,7 +187,7 @@ Deno.test("the utilities a component spends emit the declaration it needs", asyn
   }
 });
 
-Deno.test("a wind4-only family produces a rule", async () => {
+test("a wind4-only family produces a rule", async () => {
   // The vocabulary tables above cover what spin spells for itself. This covers
   // the other half of what a build can spend: families nothing in spin names,
   // which only exist because wind4 is layered underneath. Each must reach a
@@ -211,7 +212,7 @@ Deno.test("a wind4-only family produces a rule", async () => {
   }
 });
 
-Deno.test("a utility we own resolves through our token", async () => {
+test("a utility we own resolves through our token", async () => {
   // Ours must win the families we claim, so `p-4` spends `spacing.4` from the
   // theme. The failure is silent: a wind4 spacing rule answers with a read of
   // `--spacing`, a bare base this theme never declares, so the declaration
@@ -241,7 +242,7 @@ Deno.test("a utility we own resolves through our token", async () => {
   }
 });
 
-Deno.test("no emitted declaration is a self-referential custom property", async () => {
+test("no emitted declaration is a self-referential custom property", async () => {
   // The wind4 preflight bug, which must never return: a theme value is already
   // a reference, so re-emitting it writes `--spacing-2` as a read of itself.
   // That resolves to nothing at computed-value time — declared, correct-looking,
@@ -255,7 +256,7 @@ Deno.test("no emitted declaration is a self-referential custom property", async 
     "p-4 ps-4 bg-surface-raised rounded-lg translate-x-2 uppercase " +
       "m-4 px-4 gap-4 w-4 inset-4 text-lg border-primary",
   );
-  assertEquals(
+  deepStrictEqual(
     css.match(/(--[\w-]+):\s*var\(\s*\1\s*\)/g),
     null,
     `a custom property is declared as a read of itself; it resolves to nothing at computed-value time:\n${css}`,

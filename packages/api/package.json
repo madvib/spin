@@ -1,10 +1,71 @@
 {
   "name": "@spin/api",
   "version": "0.1.0",
+  "description": "The daemon: the procedures, over RPC, that spin's tools share.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
   },
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./daemon": {
+      "types": "./src/daemon.ts",
+      "default": "./src/daemon.ts"
+    },
+    "./serve": {
+      "types": "./src/serve.ts",
+      "default": "./src/serve.ts"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./src/client.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@iconify-json/carbon": "*",
+    "@iconify-json/lucide": "*",
+    "@iconify-json/material-symbols": "*",
+    "@iconify-json/ph": "*",
+    "@iconify-json/tabler": "*",
+    "@orpc/client": "^1.0.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@spin/api": "workspace:*",
+    "@spin/components": "workspace:*",
+    "@spin/diagnostics": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/theme": "workspace:*",
+    "@unocss/core": "^66.10.5",
+    "hono": "^4.13.13",
+    "valibot": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@spin/components": "workspace:*",
+    "@spin/diagnostics": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/project": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "dev": "bun run src/serve.ts",
+    "serve": "bun run src/serve.ts"
+  }
 }

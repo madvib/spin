@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { PinInputApi } from "./pin-input.presentation.ts";
 
-Deno.test("PinInputApi promises the component's surface", () => {
+test("PinInputApi promises the component's surface", () => {
   const keys: (keyof PinInputApi)[] = [
     "focus",
     "setValue",
@@ -20,7 +21,7 @@ Deno.test("PinInputApi promises the component's surface", () => {
     "getInputProps",
     "getItems",
   ];
-  assertEquals(keys.length, 16);
+  deepStrictEqual(keys.length, 16);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const setValueTyped: AssertExact<
@@ -35,7 +36,7 @@ Deno.test("PinInputApi promises the component's surface", () => {
     PinInputApi["getInputProps"],
     (index: number) => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [setValueTyped, setValueAtIndexTyped, getInputPropsTyped].every(Boolean),
     true,
   );

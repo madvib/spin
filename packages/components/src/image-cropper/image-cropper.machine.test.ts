@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -178,16 +179,16 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 /** Seed helper: viewport + default crop, the way measurement produces them. */
 const seedViewport = { x: 0, y: 0, width: 400, height: 300 };
 
-Deno.test("seeds an unmeasured cropper", () => {
+test("seeds an unmeasured cropper", () => {
   const h = mount();
-  assertEquals(h.api.measured, false);
-  assertEquals(h.api.zoom, 1);
-  assertEquals(h.api.rotation, 0);
+  deepStrictEqual(h.api.measured, false);
+  deepStrictEqual(h.api.zoom, 1);
+  deepStrictEqual(h.api.rotation, 0);
 });
 
-Deno.test("viewport press measures and pans", () => {
+test("viewport press measures and pans", () => {
   const h = mount();
-  assertEquals(h.api.measured, false);
+  deepStrictEqual(h.api.measured, false);
   // The image reports its natural size on load; panning needs both sizes.
   handler<(e: Event) => void>(h.api.getImageProps(), "onLoad")({
     currentTarget: { naturalWidth: 800, naturalHeight: 600 },
@@ -197,16 +198,16 @@ Deno.test("viewport press measures and pans", () => {
   const viewport = h.api.getViewportProps() as Record<string, unknown>;
   const pan = dragParam(viewport);
   pan.onStart?.(dragPress(50, 50));
-  assertEquals(h.api.measured, true);
-  assertEquals(h.api.panning, true);
-  assertEquals(h.api.crop.width > 0, true);
+  deepStrictEqual(h.api.measured, true);
+  deepStrictEqual(h.api.panning, true);
+  deepStrictEqual(h.api.crop.width > 0, true);
   pan.onMove?.(dragMove(60, 60, 50, 50));
   pan.onEnd?.({ cancelled: false });
-  assertEquals(h.api.panning, false);
-  assertEquals(h.events.cropChange.length > 0, true);
+  deepStrictEqual(h.api.panning, false);
+  deepStrictEqual(h.events.cropChange.length > 0, true);
 });
 
-Deno.test("the selection drags the crop and the handle resizes it", () => {
+test("the selection drags the crop and the handle resizes it", () => {
   const h = mount();
   handler<(e: Event) => void>(h.api.getImageProps(), "onLoad")({
     currentTarget: { naturalWidth: 800, naturalHeight: 600 },
@@ -216,22 +217,22 @@ Deno.test("the selection drags the crop and the handle resizes it", () => {
   const pan = dragParam(h.api.getViewportProps() as Record<string, unknown>);
   pan.onStart?.(dragPress(50, 50));
   pan.onEnd?.({ cancelled: false });
-  assertEquals(h.api.panning, false);
+  deepStrictEqual(h.api.panning, false);
   // The default crop is 80% of the viewport, centred.
-  assertEquals(h.api.crop.x, 40);
-  assertEquals(h.api.crop.y, 30);
+  deepStrictEqual(h.api.crop.x, 40);
+  deepStrictEqual(h.api.crop.y, 30);
 
   // The selection's gesture drags the crop.
   const selection = dragParam(
     h.api.getSelectionProps() as Record<string, unknown>,
   );
   selection.onStart?.(dragPress(50, 50));
-  assertEquals(h.api.dragging, true);
+  deepStrictEqual(h.api.dragging, true);
   selection.onMove?.(dragMove(70, 60, 50, 50));
-  assertEquals(h.api.crop.x, 60);
-  assertEquals(h.api.crop.y, 40);
+  deepStrictEqual(h.api.crop.x, 60);
+  deepStrictEqual(h.api.crop.y, 40);
   selection.onEnd?.({ cancelled: false });
-  assertEquals(h.api.dragging, false);
+  deepStrictEqual(h.api.dragging, false);
 
   // The handle's gesture resizes the crop: the handle stops the press, so
   // the selection's gesture never arms behind it — and the moves the
@@ -240,47 +241,47 @@ Deno.test("the selection drags the crop and the handle resizes it", () => {
     h.api.getHandleProps({ position: "se" }) as Record<string, unknown>,
   );
   handle.onStart?.(dragPress(350, 250));
-  assertEquals(h.api.dragging, true);
+  deepStrictEqual(h.api.dragging, true);
   handle.onMove?.(dragMove(370, 260, 350, 250));
-  assertEquals(h.api.crop.width, 340);
+  deepStrictEqual(h.api.crop.width, 340);
   handle.onEnd?.({ cancelled: false });
-  assertEquals(h.api.dragging, false);
+  deepStrictEqual(h.api.dragging, false);
 });
 
-Deno.test("zoom clamps to the floor and ceiling", () => {
+test("zoom clamps to the floor and ceiling", () => {
   const h = mount();
   h.api.setZoom(50);
-  assertEquals(h.api.zoom, 8);
+  deepStrictEqual(h.api.zoom, 8);
   h.api.setZoom(-3);
-  assertEquals(h.api.zoom, 0.1);
+  deepStrictEqual(h.api.zoom, 0.1);
   h.api.zoomBy(0.5);
-  assertEquals(Math.round(h.api.zoom * 10) / 10, 0.6);
-  assertEquals(h.events.zoomChange.length, 3);
+  deepStrictEqual(Math.round(h.api.zoom * 10) / 10, 0.6);
+  deepStrictEqual(h.events.zoomChange.length, 3);
 });
 
-Deno.test("rotation clamps to 0..360", () => {
+test("rotation clamps to 0..360", () => {
   const h = mount();
   h.api.setRotation(720);
-  assertEquals(h.api.rotation, 360);
+  deepStrictEqual(h.api.rotation, 360);
   h.api.rotateBy(-45);
-  assertEquals(h.api.rotation, 315);
-  assertEquals(h.events.rotationChange.length, 2);
+  deepStrictEqual(h.api.rotation, 315);
+  deepStrictEqual(h.events.rotationChange.length, 2);
 });
 
-Deno.test("flip toggles per axis", () => {
+test("flip toggles per axis", () => {
   const h = mount();
   h.api.flipHorizontal();
-  assertEquals(h.api.flip.horizontal, true);
-  assertEquals(h.api.flip.vertical, false);
+  deepStrictEqual(h.api.flip.horizontal, true);
+  deepStrictEqual(h.api.flip.vertical, false);
   h.api.flipVertical(true);
-  assertEquals(h.api.flip.vertical, true);
+  deepStrictEqual(h.api.flip.vertical, true);
   h.api.setFlip({ horizontal: false });
-  assertEquals(h.api.flip.horizontal, false);
-  assertEquals(h.api.flip.vertical, true);
-  assertEquals(h.events.flipChange.length, 3);
+  deepStrictEqual(h.api.flip.horizontal, false);
+  deepStrictEqual(h.api.flip.vertical, true);
+  deepStrictEqual(h.events.flipChange.length, 3);
 });
 
-Deno.test("reset restores the defaults", () => {
+test("reset restores the defaults", () => {
   const h = mount();
   h.api.setZoom(3);
   h.api.setRotation(90);
@@ -291,39 +292,39 @@ Deno.test("reset restores the defaults", () => {
   pan.onStart?.(dragPress(50, 50));
   pan.onEnd?.({ cancelled: false });
   h.api.reset();
-  assertEquals(h.api.zoom, 1);
-  assertEquals(h.api.rotation, 0);
-  assertEquals(h.api.crop.width > 0, true);
+  deepStrictEqual(h.api.zoom, 1);
+  deepStrictEqual(h.api.rotation, 0);
+  deepStrictEqual(h.api.crop.width > 0, true);
 });
 
-Deno.test("selection arrows nudge the crop", () => {
+test("selection arrows nudge the crop", () => {
   const h = mount();
   const bag = h.api.getSelectionProps() as Record<string, unknown>;
   // Without a viewport the guards refuse: arrows move nothing.
   handler<(e: KeyboardEvent) => void>(bag, "onKeydown")(keydown("ArrowRight"));
-  assertEquals(h.api.crop.x, 0);
-  assertEquals(h.events.cropChange.length, 0);
+  deepStrictEqual(h.api.crop.x, 0);
+  deepStrictEqual(h.events.cropChange.length, 0);
 });
 
-Deno.test("handles list all eight positions", () => {
+test("handles list all eight positions", () => {
   const h = mount();
   const handles = h.api.handles as readonly CropHandle[];
-  assertEquals(handles.length, 8);
-  assertEquals(handles.includes("se"), true);
-  assertEquals(handles.includes("nw"), true);
+  deepStrictEqual(handles.length, 8);
+  deepStrictEqual(handles.includes("se"), true);
+  deepStrictEqual(handles.includes("nw"), true);
 });
 
-Deno.test("crop data rounds to whole pixels", () => {
+test("crop data rounds to whole pixels", () => {
   const h = mount();
   const data = h.api.getCropData();
-  assertEquals(Number.isInteger(data.x), true);
-  assertEquals(Number.isInteger(data.width), true);
+  deepStrictEqual(Number.isInteger(data.x), true);
+  deepStrictEqual(Number.isInteger(data.width), true);
 });
 
-Deno.test("aria contract on the selection", () => {
+test("aria contract on the selection", () => {
   const h = mount();
   const bag = h.api.getSelectionProps() as Record<string, unknown>;
-  assertEquals(bag["role"], "slider");
-  assertEquals(bag["aria-roledescription"], "2d slider");
-  assertEquals(bag["tabindex"], "0");
+  deepStrictEqual(bag["role"], "slider");
+  deepStrictEqual(bag["aria-roledescription"], "2d slider");
+  deepStrictEqual(bag["tabindex"], "0");
 });

@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   aliasTarget,
   cssVarName,
@@ -20,16 +21,16 @@ import type { TokenTree } from "./types.ts";
  * a helper whose contract has never been stated.
  */
 
-Deno.test("cssVarName joins a token path into a custom property", () => {
-  assertEquals(cssVarName(["color", "primary"]), "--color-primary");
-  assertEquals(
+test("cssVarName joins a token path into a custom property", () => {
+  deepStrictEqual(cssVarName(["color", "primary"]), "--color-primary");
+  deepStrictEqual(
     cssVarName(["color", "semantic", "error"]),
     "--color-semantic-error",
   );
-  assertEquals(cssVarName(["z-index", "dropdown"]), "--z-index-dropdown");
+  deepStrictEqual(cssVarName(["z-index", "dropdown"]), "--z-index-dropdown");
 });
 
-Deno.test("isAliasValue recognises the reference form and nothing else", () => {
+test("isAliasValue recognises the reference form and nothing else", () => {
   assert(isAliasValue("{color.primary}"));
   assert(isAliasValue("{color.semantic.error}"));
   assert(!isAliasValue("#ff0000"), "a hex literal is a value");
@@ -38,13 +39,13 @@ Deno.test("isAliasValue recognises the reference form and nothing else", () => {
   assert(!isAliasValue(42), "only strings can be references");
 });
 
-Deno.test("aliasTarget extracts the path, or null when there is none", () => {
-  assertEquals(aliasTarget("{color.primary}"), "color.primary");
-  assertEquals(aliasTarget("{color.semantic.error}"), "color.semantic.error");
-  assertEquals(aliasTarget("#ff0000"), null);
+test("aliasTarget extracts the path, or null when there is none", () => {
+  deepStrictEqual(aliasTarget("{color.primary}"), "color.primary");
+  deepStrictEqual(aliasTarget("{color.semantic.error}"), "color.semantic.error");
+  deepStrictEqual(aliasTarget("#ff0000"), null);
 });
 
-Deno.test("lookupNode resolves a dotted path against an index", () => {
+test("lookupNode resolves a dotted path against an index", () => {
   const parsed = parseTokens({
     color: { $type: "color", primary: { $value: "#333" } },
   });
@@ -52,29 +53,29 @@ Deno.test("lookupNode resolves a dotted path against an index", () => {
   const index = indexTree(parsed.tree);
 
   const leaf = lookupNode(index, "color.primary");
-  assertEquals(leaf?.kind, "token");
+  deepStrictEqual(leaf?.kind, "token");
 
   const group = lookupNode(index, "color");
-  assertEquals(group?.kind, "group");
+  deepStrictEqual(group?.kind, "group");
 
-  assertEquals(lookupNode(index, "color.absent"), null);
-  assertEquals(lookupNode(index, "absent"), null);
+  deepStrictEqual(lookupNode(index, "color.absent"), null);
+  deepStrictEqual(lookupNode(index, "absent"), null);
 });
 
-Deno.test("detectCycles names each cycle by its DTCG path", () => {
+test("detectCycles names each cycle by its DTCG path", () => {
   const direct = parseTokens({
     a: { $type: "color", $value: "{b}" },
     b: { $type: "color", $value: "{a}" },
   });
   if (!direct.ok) throw new Error(direct.error);
   const cycles = detectCycles(direct.tree);
-  assertEquals(cycles.length, 1, "one cycle");
+  deepStrictEqual(cycles.length, 1, "one cycle");
   assert(cycles[0]?.includes("a"), JSON.stringify(cycles));
   assert(cycles[0]?.includes("b"), JSON.stringify(cycles));
 
   const self = parseTokens({ a: { $type: "color", $value: "{a}" } });
   if (!self.ok) throw new Error(self.error);
-  assertEquals(
+  deepStrictEqual(
     detectCycles(self.tree).length,
     1,
     "a token aliasing itself is a cycle",
@@ -85,10 +86,10 @@ Deno.test("detectCycles names each cycle by its DTCG path", () => {
     b: { $type: "color", $value: "{a}" },
   });
   if (!acyclic.ok) throw new Error(acyclic.error);
-  assertEquals(detectCycles(acyclic.tree), []);
+  deepStrictEqual(detectCycles(acyclic.tree), []);
 });
 
-Deno.test("resolveAliases inlines a reference and reports no cycles or unresolved references", () => {
+test("resolveAliases inlines a reference and reports no cycles or unresolved references", () => {
   const parsed = parseTokens({
     base: { $type: "color", $value: "#333333" },
     primary: { $type: "color", $value: "{base}" },
@@ -96,22 +97,22 @@ Deno.test("resolveAliases inlines a reference and reports no cycles or unresolve
   if (!parsed.ok) throw new Error(parsed.error);
   const resolved = resolveAliases(parsed.tree);
   const index = indexTree(resolved.tree);
-  assertEquals(index.leaves["primary"]?.value, "#333333");
-  assertEquals(resolved.unresolved, []);
-  assertEquals(resolved.cycles, [], "an acyclic document has no cycles");
+  deepStrictEqual(index.leaves["primary"]?.value, "#333333");
+  deepStrictEqual(resolved.unresolved, []);
+  deepStrictEqual(resolved.cycles, [], "an acyclic document has no cycles");
 });
 
-Deno.test("an unresolvable reference is reported, not silently dropped", () => {
+test("an unresolvable reference is reported, not silently dropped", () => {
   const parsed = parseTokens({
     primary: { $type: "color", $value: "{color.absent}" },
   });
   if (!parsed.ok) throw new Error(parsed.error);
   const resolved = resolveAliases(parsed.tree);
-  assertEquals(resolved.unresolved.length, 1);
+  deepStrictEqual(resolved.unresolved.length, 1);
   assert(resolved.unresolved[0]?.includes("primary"));
 });
 
-Deno.test("a cycle is reported once however many tokens feed it", () => {
+test("a cycle is reported once however many tokens feed it", () => {
   const parsed = parseTokens({
     a: { $type: "color", $value: "{b}" },
     b: { $type: "color", $value: "{c}" },
@@ -126,7 +127,7 @@ Deno.test("a cycle is reported once however many tokens feed it", () => {
   );
 });
 
-Deno.test("the index exposes leaves by both path and custom property", () => {
+test("the index exposes leaves by both path and custom property", () => {
   const parsed = parseTokens({
     color: { $type: "color", semantic: { error: { $value: "#b42318" } } },
   });
@@ -140,9 +141,9 @@ Deno.test("the index exposes leaves by both path and custom property", () => {
   // resolves to the same leaf the dotted lookup does.
   const byVar = index.vars["color-semantic-error"];
   assert(byVar, "vars are keyed by the emitted name");
-  assertEquals(byVar.path, ["color", "semantic", "error"]);
-  assertEquals(byVar, index.leaves["color.semantic.error"]);
-  assertEquals(
+  deepStrictEqual(byVar.path, ["color", "semantic", "error"]);
+  deepStrictEqual(byVar, index.leaves["color.semantic.error"]);
+  deepStrictEqual(
     cssVarName(byVar.path),
     "--color-semantic-error",
     "the key is the stylesheet name minus its prefix",

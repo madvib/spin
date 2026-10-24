@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import type { MutationResult } from "./mutate.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { validateTokens } from "../pipeline/validate.ts";
@@ -13,7 +14,7 @@ function treeOf(text: string) {
   return parsed.tree;
 }
 
-Deno.test("setToken updates the value of an existing token", () => {
+test("setToken updates the value of an existing token", () => {
   const result = setToken(scaffoldTheme(), ["color", "primary"], "#ff0000");
   assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
   if (!result.ok) return;
@@ -21,7 +22,7 @@ Deno.test("setToken updates the value of an existing token", () => {
   assert(round.ok, `round-trip must parse: ${JSON.stringify(round)}`);
 });
 
-Deno.test("setToken refuses a $type change on an existing token", () => {
+test("setToken refuses a $type change on an existing token", () => {
   const result = setToken(
     scaffoldTheme(),
     ["color", "primary"],
@@ -29,11 +30,11 @@ Deno.test("setToken refuses a $type change on an existing token", () => {
     "dimension",
   );
   assert(!result.ok, "expected a type-mismatch error");
-  assertEquals(result.code, "type-mismatch");
-  assertEquals(result.path, "color.primary", "the refusal names the token");
+  deepStrictEqual(result.code, "type-mismatch");
+  deepStrictEqual(result.path, "color.primary", "the refusal names the token");
 });
 
-Deno.test("setToken creates a token and its missing parents with a $type", () => {
+test("setToken creates a token and its missing parents with a $type", () => {
   const result = setToken(
     scaffoldTheme(),
     ["color", "brand", "hot"],
@@ -46,17 +47,17 @@ Deno.test("setToken creates a token and its missing parents with a $type", () =>
   assert(round.ok, `created token must round-trip: ${JSON.stringify(round)}`);
 });
 
-Deno.test("setToken refuses to create a token without a $type", () => {
+test("setToken refuses to create a token without a $type", () => {
   const result = setToken(scaffoldTheme(), ["color", "brand"], "#ff0000");
   assert(!result.ok, "expected a missing-$type error");
 });
 
-Deno.test("setToken refuses to overwrite a group", () => {
+test("setToken refuses to overwrite a group", () => {
   const result = setToken(scaffoldTheme(), ["color"], "#ff0000", "color");
   assert(!result.ok, "expected a group-collision error");
 });
 
-Deno.test("removeToken deletes the token and the tree still validates", () => {
+test("removeToken deletes the token and the tree still validates", () => {
   const start = treeOf(
     JSON.stringify({
       color: {
@@ -73,7 +74,7 @@ Deno.test("removeToken deletes the token and the tree still validates", () => {
   assert(round.ok, "tree without the token must still parse");
 });
 
-Deno.test("removeToken reports a missing token and refuses groups", () => {
+test("removeToken reports a missing token and refuses groups", () => {
   const tree = scaffoldTheme();
   const missing = removeToken(tree, ["color", "nope"]);
   assert(!missing.ok, "expected a missing-token error");
@@ -81,7 +82,7 @@ Deno.test("removeToken reports a missing token and refuses groups", () => {
   assert(!group.ok, "expected a group refusal");
 });
 
-Deno.test("renameToken moves the token with its $type intact", () => {
+test("renameToken moves the token with its $type intact", () => {
   const result = renameToken(scaffoldTheme(), ["color", "primary"], [
     "color",
     "brand",
@@ -104,7 +105,7 @@ Deno.test("renameToken moves the token with its $type intact", () => {
     `color.brand must be clean: ${JSON.stringify(issues)}`,
   );
 });
-Deno.test("renameToken refuses an occupied target", () => {
+test("renameToken refuses an occupied target", () => {
   const result = renameToken(
     scaffoldTheme(),
     ["color", "primary"],
@@ -113,15 +114,15 @@ Deno.test("renameToken refuses an occupied target", () => {
   assert(!result.ok, "expected an occupied-target error");
 });
 
-Deno.test("mutations never mutate the input tree", () => {
+test("mutations never mutate the input tree", () => {
   const start = scaffoldTheme();
   const before = treeToJson(start);
   const ok = setToken(start, ["color", "primary"], "#ff0000");
   assert(ok.ok);
-  assertEquals(treeToJson(start), before, "input tree is unchanged");
+  deepStrictEqual(treeToJson(start), before, "input tree is unchanged");
 });
 
-Deno.test("a refusal names its cause, its token, and its specifics", () => {
+test("a refusal names its cause, its token, and its specifics", () => {
   const cases: Array<[string, MutationResult]> = [
     ["set on a group", setToken(scaffoldTheme(), ["color"], "#fff", "color")],
     ["remove what is absent", removeToken(scaffoldTheme(), ["color", "ghost"])],
@@ -145,7 +146,7 @@ Deno.test("a refusal names its cause, its token, and its specifics", () => {
   }
 });
 
-Deno.test("every refusal code is reachable from a public mutation", () => {
+test("every refusal code is reachable from a public mutation", () => {
   // If a code is unreachable it is dead vocabulary: a client would branch on
   // something no operation can return.
   const observed = new Set<string>();
@@ -165,7 +166,7 @@ Deno.test("every refusal code is reachable from a public mutation", () => {
   ) {
     if (!result.ok) observed.add(result.code);
   }
-  assertEquals([...observed].sort(), [
+  deepStrictEqual([...observed].sort(), [
     "empty-path",
     "group-not-token",
     "missing-token",
@@ -202,17 +203,17 @@ function leafAt(text: string, path: string) {
   return node;
 }
 
-Deno.test("editing a base value keeps every $modes slot in the document", () => {
+test("editing a base value keeps every $modes slot in the document", () => {
   const result = setToken(treeOf(MODED), ["color", "primary"], "#ff0000");
   assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
   if (!result.ok) return;
   const text = treeToJson(result.tree);
-  assertEquals(leafAt(text, "color.primary").value, "#ff0000");
-  assertEquals(leafAt(text, "color.primary").modes, { dark: "#eeeeee" });
-  assertEquals(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
+  deepStrictEqual(leafAt(text, "color.primary").value, "#ff0000");
+  deepStrictEqual(leafAt(text, "color.primary").modes, { dark: "#eeeeee" });
+  deepStrictEqual(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
 });
 
-Deno.test("setToken writes a mode override beside an unchanged base value", () => {
+test("setToken writes a mode override beside an unchanged base value", () => {
   const result = setToken(
     treeOf(MODED),
     ["color", "primary"],
@@ -223,11 +224,11 @@ Deno.test("setToken writes a mode override beside an unchanged base value", () =
   assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
   if (!result.ok) return;
   const text = treeToJson(result.tree);
-  assertEquals(leafAt(text, "color.primary").value, "#111111");
-  assertEquals(leafAt(text, "color.primary").modes, { dark: "#aaaaaa" });
+  deepStrictEqual(leafAt(text, "color.primary").value, "#111111");
+  deepStrictEqual(leafAt(text, "color.primary").modes, { dark: "#aaaaaa" });
 });
 
-Deno.test("a mode value equal to the base is stored as no override", () => {
+test("a mode value equal to the base is stored as no override", () => {
   const result = setToken(
     treeOf(MODED),
     ["color", "primary"],
@@ -238,11 +239,11 @@ Deno.test("a mode value equal to the base is stored as no override", () => {
   assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
   if (!result.ok) return;
   const text = treeToJson(result.tree);
-  assertEquals(leafAt(text, "color.primary").modes, undefined);
-  assertEquals(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
+  deepStrictEqual(leafAt(text, "color.primary").modes, undefined);
+  deepStrictEqual(leafAt(text, "color.secondary").modes, { dark: "#dddddd" });
 });
 
-Deno.test("a mode override needs an existing token to override", () => {
+test("a mode override needs an existing token to override", () => {
   const result = setToken(
     treeOf(MODED),
     ["color", "tertiary"],
@@ -251,10 +252,10 @@ Deno.test("a mode override needs an existing token to override", () => {
     "dark",
   );
   assert(!result.ok, "expected a missing-token refusal");
-  assertEquals(result.code, "missing-token");
+  deepStrictEqual(result.code, "missing-token");
 });
 
-Deno.test("renameToken carries $modes to the new path", () => {
+test("renameToken carries $modes to the new path", () => {
   const result = renameToken(treeOf(MODED), ["color", "primary"], [
     "color",
     "brand",
@@ -262,5 +263,5 @@ Deno.test("renameToken carries $modes to the new path", () => {
   assert(result.ok, `expected ok, got ${JSON.stringify(result)}`);
   if (!result.ok) return;
   const text = treeToJson(result.tree);
-  assertEquals(leafAt(text, "color.brand").modes, { dark: "#eeeeee" });
+  deepStrictEqual(leafAt(text, "color.brand").modes, { dark: "#eeeeee" });
 });

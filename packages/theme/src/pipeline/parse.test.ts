@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "./parse.ts";
 import type { ParseResult, TokenGroup, TokenLeaf, TokenTree } from "./types.ts";
 
@@ -86,70 +87,70 @@ const LIGHT_TOKENS = {
   },
 };
 
-Deno.test("parseTokens accepts a DTCG document supplied as a JSON string", () => {
+test("parseTokens accepts a DTCG document supplied as a JSON string", () => {
   const tree = treeOf(parseTokens(JSON.stringify(LIGHT_TOKENS)));
 
-  assertEquals(leafAt(tree, "color.brand").type, "color");
-  assertEquals(leafAt(tree, "color.brand").value, "#ff0000");
-  assertEquals(leafAt(tree, "space.sm").value, "4px");
+  deepStrictEqual(leafAt(tree, "color.brand").type, "color");
+  deepStrictEqual(leafAt(tree, "color.brand").value, "#ff0000");
+  deepStrictEqual(leafAt(tree, "space.sm").value, "4px");
 });
 
-Deno.test("parseTokens yields the same tree for JSON text and for an already-decoded object", () => {
+test("parseTokens yields the same tree for JSON text and for an already-decoded object", () => {
   const fromText = treeOf(parseTokens(JSON.stringify(LIGHT_TOKENS)));
   const fromObject = treeOf(parseTokens(structuredClone(LIGHT_TOKENS)));
 
-  assertEquals(leafValues(fromObject), leafValues(fromText));
+  deepStrictEqual(leafValues(fromObject), leafValues(fromText));
 });
 
-Deno.test("parseTokens exposes the dotted path of a token nested in several groups", () => {
+test("parseTokens exposes the dotted path of a token nested in several groups", () => {
   const tree = treeOf(parseTokens({
     color: { button: { primary: { $type: "color", $value: "#00ff00" } } },
   }));
 
-  assertEquals(leafAt(tree, "color.button.primary").value, "#00ff00");
-  assertEquals(leafAt(tree, "color.button.primary").path, [
+  deepStrictEqual(leafAt(tree, "color.button.primary").value, "#00ff00");
+  deepStrictEqual(leafAt(tree, "color.button.primary").path, [
     "color",
     "button",
     "primary",
   ]);
 });
 
-Deno.test("parseTokens keeps group nodes in the tree alongside their tokens", () => {
+test("parseTokens keeps group nodes in the tree alongside their tokens", () => {
   const tree = treeOf(parseTokens(LIGHT_TOKENS));
   const color = groupAt(tree, "color");
 
-  assertEquals(
+  deepStrictEqual(
     color.children.map((child) => child.name).sort(),
     ["accent", "brand"],
   );
 });
 
-Deno.test("parseTokens carries the $description onto the token", () => {
+test("parseTokens carries the $description onto the token", () => {
   const tree = treeOf(parseTokens(LIGHT_TOKENS));
 
-  assertEquals(leafAt(tree, "color.brand").description, "Primary brand hue");
+  deepStrictEqual(leafAt(tree, "color.brand").description, "Primary brand hue");
 });
 
-Deno.test("parseTokens preserves an alias value verbatim so it can be resolved later", () => {
+test("parseTokens preserves an alias value verbatim so it can be resolved later", () => {
   const tree = treeOf(parseTokens(LIGHT_TOKENS));
 
-  assertEquals(leafAt(tree, "color.accent").value, "{color.brand}");
+  deepStrictEqual(leafAt(tree, "color.accent").value, "{color.brand}");
 });
 
-Deno.test("parseTokens lets a group-level $type stand in for its tokens", () => {
+test("parseTokens lets a group-level $type stand in for its tokens", () => {
   const tree = treeOf(parseTokens({
     color: { $type: "color", brand: { $value: "#123456" } },
   }));
 
-  assertEquals(leafAt(tree, "color.brand").type, "color");
+  deepStrictEqual(leafAt(tree, "color.brand").type, "color");
 });
-Deno.test("parseTokens reports a document that declares no tokens", () => {
+test("parseTokens reports a document that declares no tokens", () => {
   const error = errorOf(parseTokens({}));
 
-  assertEquals(error, "token document contains no tokens");
+  deepStrictEqual(error, "token document contains no tokens");
 });
 
-Deno.test("parseTokens reports malformed JSON with a non-blank message", () => {
+test("parseTokens reports malformed JSON with a non-blank message", () => {
   const error = errorOf(parseTokens('{"color": '));
 
   assert(
@@ -158,7 +159,7 @@ Deno.test("parseTokens reports malformed JSON with a non-blank message", () => {
   );
 });
 
-Deno.test("parseTokens rejects a token that declares a $type but no $value", () => {
+test("parseTokens rejects a token that declares a $type but no $value", () => {
   const error = errorOf(parseTokens({ color: { brand: { $type: "color" } } }));
 
   assert(
@@ -167,7 +168,7 @@ Deno.test("parseTokens rejects a token that declares a $type but no $value", () 
   );
 });
 
-Deno.test("parseTokens rejects a token that declares a $value but no $type", () => {
+test("parseTokens rejects a token that declares a $value but no $type", () => {
   const error = errorOf(
     parseTokens({ color: { brand: { $value: "#ff0000" } } }),
   );
@@ -178,7 +179,7 @@ Deno.test("parseTokens rejects a token that declares a $value but no $type", () 
   );
 });
 
-Deno.test("parseTokens rejects a document that mixes a valid group with a valueless one", () => {
+test("parseTokens rejects a document that mixes a valid group with a valueless one", () => {
   const error = errorOf(parseTokens({
     color: { brand: { $type: "color", $value: "#ff0000" } },
     space: { sm: { $type: "dimension" } },

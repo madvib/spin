@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The specifier table — the bridge between the packages' Deno import-map
  * world and rolldown's bare-specifier world. Its contract:
@@ -12,11 +13,11 @@
  *   from npm has no source tree for the table to point at, and the natural
  *   resolution takes over.
  */
-import { assert, assertGreater, assertLess } from "@std/assert";
-import { stat } from "node:fs/promises";
+import assert from "node:assert/strict";
+import { readdir, stat } from "node:fs/promises";
 import { spinAliases } from "../src/plugin.ts";
 
-Deno.test("the specifier table resolves spin packages to source that exists", async () => {
+test("the specifier table resolves spin packages to source that exists", async () => {
   const entries = await spinAliases();
   assert(entries.length > 0);
 
@@ -31,13 +32,11 @@ Deno.test("the specifier table resolves spin packages to source that exists", as
       // …and it is the package's src dir itself: the index module beside
       // the rewrite target proves the capture can't land on a file's name.
       const names: string[] = [];
-      for await (const item of Deno.readDir(dir)) names.push(item.name);
+      for (const name of await readdir(dir)) names.push(name);
       assert(
         names.includes("index.ts"),
         `${dir} should be the package's src dir`,
       );
-    } else if (entry.replacement === "$1") {
-      // Pure id-shaping (the npm strip): nothing to stat.
     } else {
       // An exact entry: the replacement is a file that is really there.
       const info = await stat(entry.replacement);
@@ -46,7 +45,7 @@ Deno.test("the specifier table resolves spin packages to source that exists", as
   }
 });
 
-Deno.test("prefix entries own subpaths and return the matcher's tail", async () => {
+test("prefix entries own subpaths and return the matcher's tail", async () => {
   const entries = await spinAliases();
   const themePrefix = entries.find(
     (entry) => entry.find instanceof RegExp && entry.replacement.includes("$1"),
@@ -64,7 +63,7 @@ Deno.test("prefix entries own subpaths and return the matcher's tail", async () 
   );
 });
 
-Deno.test("longest match rides first: base, then prefix, then exact", async () => {
+test("longest match rides first: base, then prefix, then exact", async () => {
   const entries = await spinAliases();
   const indexOf = (
     predicate: (value: typeof entries[number]) => boolean,
@@ -76,21 +75,19 @@ Deno.test("longest match rides first: base, then prefix, then exact", async () =
       typeof entry.find === "string" && entry.find.includes("$1"),
   );
   const exact = indexOf((entry) => entry.find === "@spin/theme");
-  assertGreater(base, -1);
-  assertGreater(prefix, -1);
-  assertGreater(exact, -1);
-  assertLess(base, prefix);
-  assertLess(prefix, exact);
+  assert(base > -1);
+  assert(prefix > -1);
+  assert(exact > -1);
+  assert(base < prefix);
+  assert(prefix < exact);
 });
 
-Deno.test("npm specifiers drop their prefix into node_modules", async () => {
+test("no npm: specifiers survive the cutover", async () => {
+  // The cutover stripped every `npm:` prefix at the source, so the alias
+  // table carries no strip rule: bare specifiers resolve natively.
   const entries = await spinAliases();
   const strip = entries.find(
     (entry) => entry.find instanceof RegExp && entry.replacement === "$1",
   );
-  assert(strip, "the npm: strip exists");
-  assert(
-    (strip.find as RegExp).test("npm:@unocss/core"),
-    "specifiers spell npm: when the packages import each other",
-  );
+  assert(!strip, "the npm: strip is gone with the last npm: import");
 });

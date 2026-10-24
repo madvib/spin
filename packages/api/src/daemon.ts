@@ -46,15 +46,16 @@ export function startDaemon(
   options: DaemonOptions & { readonly port?: number },
 ): Daemon {
   const app = createSpinApp({ root: options.root, base: "/rpc" });
-  const server = Deno.serve(
-    { hostname: options.hostname ?? "127.0.0.1", port: options.port ?? 7463 },
-    (request) => app.fetch(request),
-  );
-  const bound = (server.addr as Deno.NetAddr).port;
+  const server = Bun.serve({
+    hostname: options.hostname ?? "127.0.0.1",
+    port: options.port ?? 7463,
+    fetch: (request) => app.fetch(request),
+  });
+  const bound = server.port;
   return {
     url: `http://localhost:${bound}/rpc`,
     close() {
-      server.shutdown();
+      server.stop();
     },
   };
 }

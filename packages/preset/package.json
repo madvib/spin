@@ -1,0 +1,62 @@
+{
+  "name": "@spin/preset",
+  "version": "0.1.1",
+  "description": "The UnoCSS preset over @spin/theme: the utilities, the element library, the plugin.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./plugin": {
+      "types": "./src/plugin.ts",
+      "default": "./src/plugin.ts"
+    },
+    "./config": {
+      "types": "./src/config.ts",
+      "default": "./src/config.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@spin/animation": "workspace:*",
+    "@spin/preset": "workspace:*",
+    "@spin/theme": "workspace:*",
+    "@unocss/core": "66.10.5",
+    "@unocss/preset-attributify": "^66.10.5",
+    "@unocss/preset-icons": "^66.10.5",
+    "@unocss/preset-tagify": "66.10.5",
+    "@unocss/preset-wind4": "66.10.5",
+    "@unocss/transformer-directives": "66.10.5",
+    "@unocss/transformer-variant-group": "66.10.5",
+    "magic-string": "^1.4.1",
+    "unplugin": "^3.4.0",
+    "valibot": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@spin/animation": "workspace:*",
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "codegen": "bun run src/rules/primitives/derive.ts && biome format --write . src/rules/primitives/manifest.ts"
+  }
+}

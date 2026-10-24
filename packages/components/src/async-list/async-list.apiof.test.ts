@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { AsyncListApi, AsyncListRow } from "./async-list.presentation.ts";
 import type { SortDescriptor } from "./async-list.state.ts";
 
@@ -6,7 +7,7 @@ import type { SortDescriptor } from "./async-list.state.ts";
 // command, part, or slot from the def removes it here, and this test
 // names what the component promises. The def is the single source —
 // this list is the contract readers check against, not a second copy.
-Deno.test("AsyncListApi promises the component's surface", () => {
+test("AsyncListApi promises the component's surface", () => {
   const keys: (keyof AsyncListApi)[] = [
     "state",
     "items",
@@ -40,7 +41,7 @@ Deno.test("AsyncListApi promises the component's surface", () => {
     "getItemIndexes",
     "getSortTriggerIndexes",
   ];
-  assertEquals(keys.length, 31);
+  deepStrictEqual(keys.length, 31);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
@@ -57,7 +58,7 @@ Deno.test("AsyncListApi promises the component's surface", () => {
     AsyncListApi["getRows"],
     () => readonly AsyncListRow[]
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       sortTyped,

@@ -21,12 +21,5 @@
     "@unocss/core": "npm:@unocss/core@^66.10.5",
     "@typescript-eslint/parser": "npm:@typescript-eslint/parser@8.71.0",
     "eslint": "npm:eslint@10.11.0"
-  },
-  "tasks": {
-    "test": "deno test --allow-read --allow-write --allow-env --allow-run src/ tests/",
-    "lint": "deno lint",
-    "lint:ox": "deno run -A npm:oxlint@1.85.0 --config .oxlintrc.json",
-    "lint:cli": "deno run --allow-read --allow-write --allow-env src/cli.ts",
-    "fmt": "deno fmt"
   }
 }

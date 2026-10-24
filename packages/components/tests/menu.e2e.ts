@@ -3,81 +3,12 @@
  * contract, the keyboard map (arrows, Home/End, typeahead, Enter, Escape), a
  * submenu level that opens by hover dwell and by ArrowRight, and the rows
  * that stay inert.
- *
- * Written as a program, not a `Deno.test`: the task runs it with `deno run`,
- * which never executes registered tests — a `Deno.test` here would exit 0
- * without opening a browser.
  */
 
-import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { type Browser, chromium, type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
+import { delay, runComponentSuite, step } from "./harness.ts";
 
-const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
-const PORT = 5213;
-const URL = `http://127.0.0.1:${PORT}/menu`;
-
-/** Runs a named step, rethrowing any failure prefixed with the step name. */
-async function step<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(`[${name}] ${(error as Error).message}`, { cause: error });
-  }
-}
-
-/** Builds the specimens app from a clean checkout. */
-async function buildDemo(): Promise<void> {
-  const cmd = new Deno.Command("node", {
-    args: [join(ROOT, "node_modules/vite/bin/vite.js"), "build", SPECIMENS],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { code, stderr } = await cmd.output();
-  assert.equal(
-    code,
-    0,
-    `vite build failed:\n${new TextDecoder().decode(stderr)}`,
-  );
-}
-
-/** Serves the built dist on a fixed port and waits until it answers. */
-async function startServer(): Promise<Deno.ChildProcess> {
-  const cmd = new Deno.Command("node", {
-    args: [
-      join(ROOT, "node_modules/vite/bin/vite.js"),
-      "preview",
-      SPECIMENS,
-      "--port",
-      String(PORT),
-      "--strictPort",
-    ],
-    cwd: ROOT,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = cmd.spawn();
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(URL)).ok) return child;
-    } catch {
-      // server not ready yet
-    }
-    await delay(100);
-  }
-  const stderr = new TextDecoder().decode(
-    await new Response(child.stderr).arrayBuffer(),
-  );
-  try {
-    child.kill();
-  } catch {
-    // already exited
-  }
-  throw new Error(`vite preview did not start on :${PORT}\n${stderr}`);
-}
 
 /**
  * Presses a row at its own coordinates. A row re-renders on every highlight
@@ -97,27 +28,11 @@ async function pressRow(page: Page, selector: string): Promise<void> {
   );
 }
 
-await step("build", buildDemo);
-const server = await step("serve", startServer);
-const pageErrors: string[] = [];
-let browser: Browser | undefined;
-
-try {
-  browser = await step(
-    "launch chromium",
-    () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
-  );
-
-  const page = await browser.newPage();
-  page.on("pageerror", (err) => pageErrors.push(err.message));
-
-  await step("load page", async () => {
-    await page.goto(URL, { waitUntil: "load" });
-    await page.waitForSelector('spin-menu [aria-haspopup="menu"]', {
-      timeout: 5000,
-    });
-  });
+await runComponentSuite({
+  port: PORT,
+  route: "/menu",
+  ready: 'spin-menu [aria-haspopup="menu"]',
+}, async ({ page }) => {
 
   const trigger = page.getByRole("button", { name: "File actions" });
   const owner = ((await trigger.getAttribute("id")) ?? "").replace(
@@ -406,19 +321,5 @@ try {
     assert.equal(await panel.isVisible(), false);
     assert.equal(await page.locator("#menu-open").textContent(), "false");
   });
+});
 
-  await step("no page errors", async () => {
-    assert.deepEqual(
-      pageErrors,
-      [],
-      `page errors detected: ${pageErrors.join(", ")}`,
-    );
-  });
-} finally {
-  if (browser) await browser.close();
-  try {
-    server.kill();
-  } catch {
-    // server already exited
-  }
-}

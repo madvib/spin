@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * The twin gate: a scope's DECLARED DEFAULT must reach the machine.
  *
@@ -17,7 +18,7 @@
  * component is covered the moment it declares a default.
  */
 
-import { assertEquals } from "@std/assert";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { coerceProps, parseScope } from "@spin/runtime";
 import type { PropDecl } from "@spin/syntax";
@@ -182,7 +183,7 @@ for (const [name, component] of Object.entries(COMPONENTS)) {
     ) continue;
     const twin = twinOf(decl.name);
 
-    Deno.test(`${name}: the declared ${decl.name} reaches the machine`, () => {
+    test(`${name}: the declared ${decl.name} reaches the machine`, () => {
       const declared = mount(component, { [decl.name]: value }, []);
       const authored = mount(component, { [twin]: value }, [twin]);
       const differing: string[] = [];
@@ -200,7 +201,7 @@ for (const [name, component] of Object.entries(COMPONENTS)) {
           );
         }
       }
-      assertEquals(
+      deepStrictEqual(
         differing,
         [],
         `the declared ${decl.name} must reach the machine as the authored ${twin} does`,

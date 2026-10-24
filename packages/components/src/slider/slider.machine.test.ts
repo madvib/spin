@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -197,133 +198,133 @@ function thumb(api: SliderApi, index: number): Record<string, unknown> {
   return api.getThumbProps(index);
 }
 
-Deno.test("a track press jumps the thumb and the release commits", () => {
+test("a track press jumps the thumb and the release commits", () => {
   const { api, events } = mount();
-  assertEquals(api.value, [0]);
+  deepStrictEqual(api.value, [0]);
   const control = api.getControlProps();
   pressHandle(control, press(210));
   // x=210 on a 10..410 track: 50% -> 50.
-  assertEquals(api.value, [50]);
+  deepStrictEqual(api.value, [50]);
   assert(api.dragging);
   dragParam(control).onMove?.(move(310, 10, 210, 10));
-  assertEquals(api.value, [75]);
+  deepStrictEqual(api.value, [75]);
   dragParam(control).onEnd?.({ cancelled: false });
   assert(!api.dragging);
   assert(api.focused);
-  assertEquals(events.valueChangeEnd.length, 1);
-  assertEquals(events.valueChangeEnd[0]?.value, [75]);
+  deepStrictEqual(events.valueChangeEnd.length, 1);
+  deepStrictEqual(events.valueChangeEnd[0]?.value, [75]);
 });
 
-Deno.test("a thumb press drags that thumb by its own box", () => {
+test("a thumb press drags that thumb by its own box", () => {
   const { api, events } = mount({ defaultValue: [50] });
   const bag = thumb(api, 0);
   // The thumb's own box: the grab offset is measured against its midpoint.
   pressHandle(bag, { ...press(110), rect: thumbBox() });
   assert(api.dragging);
-  assertEquals(api.value, [50], "the press itself does not move the value");
+  deepStrictEqual(api.value, [50], "the press itself does not move the value");
   dragParam(bag).onMove?.(move(310, 10, 110, 10));
-  assertEquals(api.value, [75]);
+  deepStrictEqual(api.value, [75]);
   dragParam(bag).onEnd?.({ cancelled: false });
   assert(!api.dragging);
   assert(api.focused);
-  assertEquals(events.valueChangeEnd.length, 1);
-  assertEquals(events.valueChangeEnd[0]?.value, [75]);
+  deepStrictEqual(events.valueChangeEnd.length, 1);
+  deepStrictEqual(events.valueChangeEnd[0]?.value, [75]);
 });
 
-Deno.test("the api's state names the machine's mode", () => {
+test("the api's state names the machine's mode", () => {
   const { api } = mount();
-  assertEquals(api.state, "idle", "the slider starts idle");
+  deepStrictEqual(api.state, "idle", "the slider starts idle");
   handler<() => void>(thumb(api, 0), "onFocus")();
-  assertEquals(api.state, "focus", "the focus moves the mode");
+  deepStrictEqual(api.state, "focus", "the focus moves the mode");
 });
 
-Deno.test("arrows step the focused thumb and Home/End jump", () => {
+test("arrows step the focused thumb and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(thumb(api, 0), "onFocus")();
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, [1]);
+  deepStrictEqual(api.value, [1]);
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("End"),
   );
-  assertEquals(api.value, [100]);
+  deepStrictEqual(api.value, [100]);
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("Home"),
   );
-  assertEquals(api.value, [0]);
+  deepStrictEqual(api.value, [0]);
 });
 
-Deno.test("arrows refuse without focus", () => {
+test("arrows refuse without focus", () => {
   const { api, events } = mount();
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, [0]);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, [0]);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("a disabled slider refuses presses and keys", () => {
+test("a disabled slider refuses presses and keys", () => {
   const { api, events } = mount({ disabled: true });
   const control = api.getControlProps();
-  assertEquals(dragParam(control).enabled, false);
+  deepStrictEqual(dragParam(control).enabled, false);
   pressHandle(control, press(210));
-  assertEquals(api.value, [0]);
+  deepStrictEqual(api.value, [0]);
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("ArrowRight"),
   );
-  assertEquals(api.value, [0]);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, [0]);
+  deepStrictEqual(events.valueChange.length, 0);
 });
 
-Deno.test("setValue constrains to the step grid", () => {
+test("setValue constrains to the step grid", () => {
   const { api } = mount();
   api.setValue([33.7]);
   // Step 1: snaps to 34.
-  assertEquals(api.value, [34]);
+  deepStrictEqual(api.value, [34]);
 });
 
-Deno.test("range thumbs keep their order and collide by clamping", () => {
+test("range thumbs keep their order and collide by clamping", () => {
   const { api } = mount({ defaultValue: [20, 80] });
-  assertEquals(api.value, [20, 80]);
+  deepStrictEqual(api.value, [20, 80]);
   // "none" still clamps to the neighbor's window: thumb 0 cannot pass 80.
   api.setThumbValue(0, 90);
-  assertEquals(api.value, [80, 80]);
+  deepStrictEqual(api.value, [80, 80]);
   api.setThumbValue(1, 10);
-  assertEquals(api.value, [80, 80]);
+  deepStrictEqual(api.value, [80, 80]);
 });
 
-Deno.test("authored value seeds the slider and a host write moves it", () => {
+test("authored value seeds the slider and a host write moves it", () => {
   const { api, events, write } = mount({ value: [30] });
-  assertEquals(api.value, [30]);
-  assertEquals(events.valueChange.length, 0);
+  deepStrictEqual(api.value, [30]);
+  deepStrictEqual(events.valueChange.length, 0);
   write("value", [60]);
-  assertEquals(api.value, [60]);
-  assertEquals(events.valueChange.length, 1);
+  deepStrictEqual(api.value, [60]);
+  deepStrictEqual(events.valueChange.length, 1);
 });
 
-Deno.test("increment and decrement commands step the thumb", () => {
+test("increment and decrement commands step the thumb", () => {
   const { api } = mount({ defaultValue: [10] });
   api.increment(0);
-  assertEquals(api.value, [11]);
+  deepStrictEqual(api.value, [11]);
   api.decrement(0);
   api.decrement(0);
-  assertEquals(api.value, [9]);
+  deepStrictEqual(api.value, [9]);
 });
 
-Deno.test("thumb percents feed the geometry channel", () => {
+test("thumb percents feed the geometry channel", () => {
   const { api } = mount({ defaultValue: [25] });
-  assertEquals(api.getThumbPercent(0), 25);
+  deepStrictEqual(api.getThumbPercent(0), 25);
   const bag = thumb(api, 0);
   const style = bag["style"] as Record<string, unknown>;
-  assertEquals(style["insetInlineStart"], "25%");
+  deepStrictEqual(style["insetInlineStart"], "25%");
 });
 
-Deno.test("shift+arrow moves by the parsed large step, not the raw prop", () => {
+test("shift+arrow moves by the parsed large step, not the raw prop", () => {
   const { api } = mount({ defaultValue: [50] });
   handler<() => void>(thumb(api, 0), "onFocus")();
   handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
     keydown("ArrowRight", true),
   );
-  assertEquals(api.value, [60], "largeStep defaults to 10x step");
+  deepStrictEqual(api.value, [60], "largeStep defaults to 10x step");
 });

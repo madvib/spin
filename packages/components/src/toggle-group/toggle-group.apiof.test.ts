@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { ToggleGroupApi } from "./toggle-group.presentation.ts";
 
-Deno.test("ToggleGroupApi promises the component's surface", () => {
+test("ToggleGroupApi promises the component's surface", () => {
   const keys: (keyof ToggleGroupApi)[] = [
     "state",
     "value",
@@ -13,7 +14,7 @@ Deno.test("ToggleGroupApi promises the component's surface", () => {
     "getRootProps",
     "getItemProps",
   ];
-  assertEquals(keys.length, 9);
+  deepStrictEqual(keys.length, 9);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<ToggleGroupApi["state"], "idle" | "focused"> =
@@ -32,7 +33,7 @@ Deno.test("ToggleGroupApi promises the component's surface", () => {
       slot: { value: string; label: string; disabled?: boolean },
     ) => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, setValueTyped, isPressedTyped, getItemPropsTyped].every(
       Boolean,
     ),

@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -162,80 +163,80 @@ function stroke(api: SignaturePadApi): void {
   dragParam(control).onEnd?.({ cancelled: false });
 }
 
-Deno.test("a press starts a stroke and the release commits one path", () => {
+test("a press starts a stroke and the release commits one path", () => {
   const { api, events } = mount();
   assert(api.empty);
   stroke(api);
   assert(!api.empty);
-  assertEquals(api.paths.length, 1);
+  deepStrictEqual(api.paths.length, 1);
   // draw fired on down + two moves + up; draw-end only on the release.
-  assertEquals(events.draw.length, 4);
-  assertEquals(events.drawEnd.length, 1);
-  assertEquals(events.drawEnd[0]?.paths.length, 1);
+  deepStrictEqual(events.draw.length, 4);
+  deepStrictEqual(events.drawEnd.length, 1);
+  deepStrictEqual(events.drawEnd[0]?.paths.length, 1);
 });
 
-Deno.test("moves with no active stroke are refused", () => {
+test("moves with no active stroke are refused", () => {
   const { api, events } = mount();
   dragParam(api.getControlProps()).onMove?.(move(40, 50, 20, 30));
   assert(api.empty);
-  assertEquals(events.draw.length, 0);
+  deepStrictEqual(events.draw.length, 0);
 });
 
-Deno.test("a disabled pad refuses the press", () => {
+test("a disabled pad refuses the press", () => {
   const { api, events } = mount({ disabled: true });
   const control = api.getControlProps();
-  assertEquals(dragParam(control).enabled, false, "the gesture never arms");
+  deepStrictEqual(dragParam(control).enabled, false, "the gesture never arms");
   pressControl(control, press(20, 30));
   assert(api.empty);
-  assertEquals(events.draw.length, 0);
+  deepStrictEqual(events.draw.length, 0);
 });
 
-Deno.test("a read-only pad refuses the press", () => {
+test("a read-only pad refuses the press", () => {
   const { api, events } = mount({ readOnly: true });
   const control = api.getControlProps();
-  assertEquals(dragParam(control).enabled, false, "the gesture never arms");
+  deepStrictEqual(dragParam(control).enabled, false, "the gesture never arms");
   pressControl(control, press(20, 30));
   assert(api.empty);
-  assertEquals(events.draw.length, 0);
+  deepStrictEqual(events.draw.length, 0);
 });
 
-Deno.test("clear empties the committed paths and reports draw-end", () => {
+test("clear empties the committed paths and reports draw-end", () => {
   const { api, events } = mount();
   stroke(api);
-  assertEquals(api.paths.length, 1);
+  deepStrictEqual(api.paths.length, 1);
   api.clear();
   assert(api.empty);
-  assertEquals(api.paths.length, 0);
-  assertEquals(events.drawEnd.length, 2);
-  assertEquals(events.drawEnd[1]?.paths.length, 0);
+  deepStrictEqual(api.paths.length, 0);
+  deepStrictEqual(events.drawEnd.length, 2);
+  deepStrictEqual(events.drawEnd[1]?.paths.length, 0);
 });
 
-Deno.test("authored paths seed the pad and a host write replaces them", () => {
+test("authored paths seed the pad and a host write replaces them", () => {
   const { api, events, write } = mount({ paths: ["M0,0 L10,10"] });
   assert(!api.empty);
-  assertEquals(api.paths, ["M0,0 L10,10"]);
-  assertEquals(events.drawEnd.length, 0);
+  deepStrictEqual(api.paths, ["M0,0 L10,10"]);
+  deepStrictEqual(events.drawEnd.length, 0);
   write("paths", ["M5,5 L6,6"]);
-  assertEquals(api.paths, ["M5,5 L6,6"]);
+  deepStrictEqual(api.paths, ["M5,5 L6,6"]);
 });
 
-Deno.test("defaultPaths seed an uncontrolled pad", () => {
+test("defaultPaths seed an uncontrolled pad", () => {
   const { api } = mount({ defaultPaths: ["M1,1 L2,2", "M3,3 L4,4"] });
-  assertEquals(api.paths, ["M1,1 L2,2", "M3,3 L4,4"]);
+  deepStrictEqual(api.paths, ["M1,1 L2,2", "M3,3 L4,4"]);
 });
 
-Deno.test("the in-progress stroke is visible while drawing", () => {
+test("the in-progress stroke is visible while drawing", () => {
   const { api } = mount();
   const control = api.getControlProps();
   pressControl(control, press(20, 30));
   assert(api.drawing);
-  assertEquals(api.paths.length, 0);
+  deepStrictEqual(api.paths.length, 0);
   dragParam(control).onEnd?.({ cancelled: false });
   assert(!api.drawing);
-  assertEquals(api.paths.length, 1);
+  deepStrictEqual(api.paths.length, 1);
 });
 
-Deno.test("a press on the clear trigger never starts a stroke", () => {
+test("a press on the clear trigger never starts a stroke", () => {
   const { api, events } = mount();
   stroke(api);
   const count = events.draw.length;
@@ -252,7 +253,7 @@ Deno.test("a press on the clear trigger never starts a stroke", () => {
     target: trigger,
   } as unknown as DragPress;
   pressControl(api.getControlProps(), nested);
-  assertEquals(events.draw.length, count);
+  deepStrictEqual(events.draw.length, count);
   click();
   assert(api.empty);
 });

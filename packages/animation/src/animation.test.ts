@@ -1,4 +1,6 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { animationContract, animationCss } from "./index.ts";
 
 /**
@@ -14,7 +16,7 @@ import { animationContract, animationCss } from "./index.ts";
  */
 
 const SOURCE = new URL("./animation.css", import.meta.url);
-const stylesheet = await Deno.readTextFile(SOURCE);
+const stylesheet = await readFile(SOURCE, "utf8");
 const contract = animationContract;
 
 /** The unique names in a list, in the order they appear. */
@@ -43,7 +45,7 @@ function readsIn(css: string): string[] {
   );
 }
 
-Deno.test("every keyframe the manifest names is defined by the stylesheet", () => {
+test("every keyframe the manifest names is defined by the stylesheet", () => {
   const defined = keyframesIn(stylesheet);
   for (const name of contract.keyframes) {
     assert(
@@ -53,7 +55,7 @@ Deno.test("every keyframe the manifest names is defined by the stylesheet", () =
   }
 });
 
-Deno.test("every keyframe the stylesheet defines is named in the manifest", () => {
+test("every keyframe the stylesheet defines is named in the manifest", () => {
   // A keyframe the manifest does not name is a name nothing owns: the next
   // component to define one takes it silently, and the second definition wins.
   const named = contract.keyframes;
@@ -65,7 +67,7 @@ Deno.test("every keyframe the stylesheet defines is named in the manifest", () =
   }
 });
 
-Deno.test("the classes the manifest claims are the classes the stylesheet defines", () => {
+test("the classes the manifest claims are the classes the stylesheet defines", () => {
   // The manifest is the lint plugin's vocabulary: a class it claims is one
   // authored code may write, and one it does not claim is one the sheet has
   // no rule for.
@@ -84,7 +86,7 @@ Deno.test("the classes the manifest claims are the classes the stylesheet define
   }
 });
 
-Deno.test("the custom properties the manifest declares are the ones the stylesheet reads", () => {
+test("the custom properties the manifest declares are the ones the stylesheet reads", () => {
   // A read the manifest does not declare is a variable no theme is told to
   // supply, so it resolves to nothing at computed-value time; a declared read
   // the stylesheet never spends is a variable a theme carries for nothing.
@@ -103,11 +105,11 @@ Deno.test("the custom properties the manifest declares are the ones the styleshe
   }
 });
 
-Deno.test("the shipped stylesheet is the source of truth, not a stale copy", () => {
+test("the shipped stylesheet is the source of truth, not a stale copy", () => {
   // The generated module is what ships; the CSS beside it is what the author
   // edits. A stylesheet edited without a codegen run ships the old one, and
   // every agreement above would be asserted against a file nobody edits.
-  assertEquals(
+  deepStrictEqual(
     animationCss,
     stylesheet,
     "the generated module is stale: run `deno task codegen`",

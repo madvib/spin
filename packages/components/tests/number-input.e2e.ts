@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM number input drives its machine in a real browser —
  * the keyboard map, the press-and-hold, the scrubber drag, the wheel, the
@@ -6,7 +7,7 @@
 
 import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Parts are addressed by the element's id, which the route writes so each
  * instance is addressable: `number-input:<id>:<part>`. */
@@ -22,7 +23,7 @@ const RTL_INPUT = '#rtl [id="number-input:rtl:input"]';
 const readout = async (page: Page, id: string): Promise<string> =>
   (await page.locator(`#number-input-${id}`).textContent()) ?? "";
 
-Deno.test("spin-number-input e2e", () =>
+test("spin-number-input e2e", () =>
   runComponentSuite({
     port: 5231,
     route: "/number-input",

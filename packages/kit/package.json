@@ -1,10 +1,38 @@
 {
   "name": "@spin/kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "description": "Shared Solid pieces: the theme state and the theme picker.",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
   },
-  "main": "./src/index.ts",
-  "module": "./src/index.ts"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@spin/theme": "workspace:*",
+    "solid-js": "^1.9.3"
+  },
+  "peerDependencies": {
+    "@spin/theme": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "test": "bun test tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write ."
+  }
 }

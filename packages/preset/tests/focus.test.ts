@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
@@ -128,7 +129,7 @@ const RING = {
 const BUTTON =
   ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])';
 
-Deno.test("a focused field paints the ring as an outline, and its edge takes the ring's ink", async () => {
+test("a focused field paints the ring as an outline, and its edge takes the ring's ink", async () => {
   // The field is where the doubled edge was worst: the border was the
   // primary and the ring a shadow glued to it, so the reader saw two edges
   // in two colours. Now the edge IS the ring — the border wears the ring's
@@ -138,39 +139,39 @@ Deno.test("a focused field paints the ring as an outline, and its edge takes the
     css,
     ":is(input, textarea):focus-visible",
   );
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     RING["border-color"],
     "the field's edge takes the ring's ink",
   );
 });
 
-Deno.test("a focused button paints the ring as an outline, and its edge takes the ring's ink", async () => {
+test("a focused button paints the ring as an outline, and its edge takes the ring's ink", async () => {
   const css = await sheetFor("<button>Deploy</button>");
   const focused = declarationsFor(
     css,
     `${BUTTON}:focus-visible:not(:disabled):not([aria-disabled="true"])`,
   );
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     RING["border-color"],
     "the button's edge takes the ring's ink",
   );
 });
 
-Deno.test("a focused ghost button keeps its edge, so the ring is the only edge", async () => {
+test("a focused ghost button keeps its edge, so the ring is the only edge", async () => {
   // A ghost is paint-free: no fill, no edge. A ring-coloured border beside
   // the ring would be the second edge the ring exists to replace, so the
   // ghost keeps its transparent edge while it is focused.
@@ -179,61 +180,61 @@ Deno.test("a focused ghost button keeps its edge, so the ring is the only edge",
     css,
     `${BUTTON}.ghost:focus-visible:not(:disabled):not([aria-disabled="true"])`,
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     "transparent",
     "the ghost's edge stays invisible",
   );
 });
 
-Deno.test("a focused checkbox paints the ring as an outline, and its edge takes the ring's ink", async () => {
+test("a focused checkbox paints the ring as an outline, and its edge takes the ring's ink", async () => {
   const css = await sheetFor('<input type="checkbox">');
   const focused = declarationsFor(
     css,
     'input[type="checkbox"]:not([role]):focus-visible',
   );
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     RING["border-color"],
     "the box's edge takes the ring's ink",
   );
 });
 
-Deno.test("a focused switch paints the ring as an outline, and its edge takes the ring's ink", async () => {
+test("a focused switch paints the ring as an outline, and its edge takes the ring's ink", async () => {
   const css = await sheetFor('<input type="checkbox" role="switch">');
   const focused = declarationsFor(
     css,
     'input[type="checkbox"][role="switch"]:focus-visible',
   );
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     RING["border-color"],
     "the track's edge takes the ring's ink",
   );
 });
 
-Deno.test("a focused radio paints the ring as an outline, and its edge takes the ring's ink", async () => {
+test("a focused radio paints the ring as an outline, and its edge takes the ring's ink", async () => {
   const css = await sheetFor('<input type="radio">');
   const focused = declarationsFor(css, 'input[type="radio"]:focus-visible');
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
-  assertEquals(
+  deepStrictEqual(
     focused["border-color"],
     RING["border-color"],
     "the radio's edge takes the ring's ink",
@@ -241,30 +242,30 @@ Deno.test("a focused radio paints the ring as an outline, and its edge takes the
 });
 
 
-Deno.test("a focused summary paints the theme's ring, not the browser's", async () => {
+test("a focused summary paints the theme's ring, not the browser's", async () => {
   // the theme's offset around it. The ring is the theme's now.
   const css = await sheetFor("<details><summary>More</summary></details>");
   const focused = declarationsFor(css, "summary:focus-visible");
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
 });
 
-Deno.test("a focused link paints the ring as an outline, at the theme's offset", async () => {
+test("a focused link paints the ring as an outline, at the theme's offset", async () => {
   const css = await sheetFor('<a href="#">Docs</a>');
   const focused = declarationsFor(css, "a:focus-visible");
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
 });
 
-Deno.test("a hidden element that takes focus wears the theme's ring", async () => {
+test("a hidden element that takes focus wears the theme's ring", async () => {
   // The escape puts a hidden element back on the page when it is focused.
   // It comes back wearing the theme's ring, so a keyboard reader can see
   // where the focus went.
@@ -273,15 +274,15 @@ Deno.test("a hidden element that takes focus wears the theme's ring", async () =
     css,
     ':is([aria-hidden="false"][hidden], .visually-hidden):focus-visible',
   );
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
+  deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
+  deepStrictEqual(
     focused["outline-offset"],
     RING["outline-offset"],
     "the ring stands off the edge by the theme's offset",
   );
 });
 
-Deno.test("a pointer that lands on a control leaves no ring", async () => {
+test("a pointer that lands on a control leaves no ring", async () => {
   // The ring is drawn on :focus-visible, so a mouse press leaves none — and
   // the browser's own ring is taken away with it, because the browser's is
   // not the theme's.
@@ -290,15 +291,15 @@ Deno.test("a pointer that lands on a control leaves no ring", async () => {
     css,
     ":is(input, textarea):focus:not(:focus-visible)",
   );
-  assertEquals(field["outline"], "none", "the field's own ring goes");
+  deepStrictEqual(field["outline"], "none", "the field's own ring goes");
   const button = declarationsFor(
     css,
     `${BUTTON}:focus:not(:focus-visible)`,
   );
-  assertEquals(button["outline"], "none", "the button's own ring goes");
+  deepStrictEqual(button["outline"], "none", "the button's own ring goes");
 });
 
-Deno.test("the ring is painted for engines without :focus-visible", async () => {
+test("the ring is painted for engines without :focus-visible", async () => {
   // An engine that cannot tell a keyboard focus from a pointer focus still
   // shows the ring: the rule is stated for it, inside the at-rule that says
   // the engine lacks the selector.
@@ -311,12 +312,12 @@ Deno.test("the ring is painted for engines without :focus-visible", async () => 
     css,
     ":is(input, textarea):focus",
   );
-  assertEquals(
+  deepStrictEqual(
     fallback["outline"],
     RING.outline,
     "the ring is an outline there too",
   );
-  assertEquals(
+  deepStrictEqual(
     fallback["border-color"],
     RING["border-color"],
     "and the edge takes the ring's ink there too",

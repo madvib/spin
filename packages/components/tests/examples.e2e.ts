@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the library's EXAMPLES — the product's own markup.
  *
@@ -19,7 +20,7 @@ import { runComponentSuite, step } from "./harness.ts";
 const exampleTag = (machine: string, stem: string): string =>
   `${machine}-${stem}`;
 
-Deno.test("spin examples e2e", () =>
+test("spin examples e2e", () =>
   runComponentSuite({
     port: 5253,
     route: "/#/components/component-slider",

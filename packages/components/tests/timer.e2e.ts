@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM timer drives its clock in a real browser — the aria
  * contract, the trigger contract per phase, a clock that starts, holds and
@@ -26,7 +27,7 @@ const fill = (area: string): string => `${area} > div:nth-child(2) > div`;
 /** The track the fill lives in. */
 const track = (area: string): string => `${area} > div:nth-child(2)`;
 
-Deno.test("spin-timer e2e", () =>
+test("spin-timer e2e", () =>
   runComponentSuite(
     { port: 5217, route: "/timer", ready: STOPWATCH_ROOT },
     async ({ page }) => {

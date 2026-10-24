@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { dateInput } from "./date-input.presentation.ts";
@@ -102,43 +103,43 @@ function texts(api: DateInputApi): string[] {
   ) => segment.text);
 }
 
-Deno.test("Given no value / When read / Then every segment shows its placeholder", () => {
+test("Given no value / When read / Then every segment shows its placeholder", () => {
   const h = harness();
-  assertEquals(
+  deepStrictEqual(
     texts(h.api),
     ["mm", "dd", "yyyy"],
     "month, day, year placeholders",
   );
-  assertEquals(h.api.valueAsString, "", "no string without a date");
+  deepStrictEqual(h.api.valueAsString, "", "no string without a date");
   h.dispose();
 });
 
-Deno.test("Given a default ISO value / When started / Then the fields fill from it", () => {
+test("Given a default ISO value / When started / Then the fields fill from it", () => {
   const h = harness({ defaultValue: "2024-02-29" });
-  assertEquals(
+  deepStrictEqual(
     texts(h.api),
     ["02", "29", "2024"],
     "the leap day fills month, day, year",
   );
-  assertEquals(h.api.valueAsString, "2024-02-29", "and the string round-trips");
+  deepStrictEqual(h.api.valueAsString, "2024-02-29", "and the string round-trips");
   h.dispose();
 });
 
-Deno.test("Given focus on the month / When digits type / Then the segment fills and advances", () => {
+test("Given focus on the month / When digits type / Then the segment fills and advances", () => {
   const h = harness();
   handler<() => void>(h.api.getSegmentProps(0), "onFocus")();
   handler<(e: InputEvent) => void>(h.api.getSegmentProps(0), "onBeforeInput")(
     beforeInput("1"),
   );
-  assertEquals(texts(h.api)[0], "01", "a partial digit shows padded");
+  deepStrictEqual(texts(h.api)[0], "01", "a partial digit shows padded");
   handler<(e: InputEvent) => void>(h.api.getSegmentProps(0), "onBeforeInput")(
     beforeInput("2"),
   );
-  assertEquals(texts(h.api)[0], "12", "the second digit completes the segment");
+  deepStrictEqual(texts(h.api)[0], "12", "the second digit completes the segment");
   h.dispose();
 });
 
-Deno.test("Given February 2024 / When the day exceeds the month / Then it clamps to the leap day", () => {
+test("Given February 2024 / When the day exceeds the month / Then it clamps to the leap day", () => {
   const h = harness({ defaultValue: "2024-02-15" });
   // Month is segment 0, day is segment 1: focus the day and type 30.
   handler<() => void>(h.api.getSegmentProps(1), "onFocus")();
@@ -148,32 +149,32 @@ Deno.test("Given February 2024 / When the day exceeds the month / Then it clamps
   handler<(e: InputEvent) => void>(h.api.getSegmentProps(1), "onBeforeInput")(
     beforeInput("0"),
   );
-  assertEquals(texts(h.api)[1], "29", "February 2024 holds 29 days, not 30");
+  deepStrictEqual(texts(h.api)[1], "29", "February 2024 holds 29 days, not 30");
   h.dispose();
 });
 
-Deno.test("Given a focused segment / When ArrowUp fires / Then the field cycles within its limits", () => {
+test("Given a focused segment / When ArrowUp fires / Then the field cycles within its limits", () => {
   const h = harness({ defaultValue: "2024-12-15" });
   handler<() => void>(h.api.getSegmentProps(0), "onFocus")();
   handler<(e: KeyboardEvent) => void>(h.api.getSegmentProps(0), "onKeyDown")(
     keydown("ArrowUp"),
   );
-  assertEquals(texts(h.api)[0], "01", "December cycles to January");
+  deepStrictEqual(texts(h.api)[0], "01", "December cycles to January");
   handler<(e: KeyboardEvent) => void>(h.api.getSegmentProps(0), "onKeyDown")(
     keydown("ArrowDown"),
   );
-  assertEquals(texts(h.api)[0], "12", "and back down to December");
+  deepStrictEqual(texts(h.api)[0], "12", "and back down to December");
   h.dispose();
 });
 
-Deno.test("Given a complete date / When the value moves / Then value-change reports the ISO string", () => {
+test("Given a complete date / When the value moves / Then value-change reports the ISO string", () => {
   const h = harness({ defaultValue: "2024-01-15" });
   handler<() => void>(h.api.getSegmentProps(2), "onFocus")();
   handler<(e: KeyboardEvent) => void>(h.api.getSegmentProps(2), "onKeyDown")(
     keydown("ArrowUp"),
   );
-  assertEquals(h.changes.length, 1, "one change for the year move");
-  assertEquals(
+  deepStrictEqual(h.changes.length, 1, "one change for the year move");
+  deepStrictEqual(
     h.changes[0]?.valueAsString,
     "2025-01-15",
     "and the string names the new year",
@@ -181,17 +182,17 @@ Deno.test("Given a complete date / When the value moves / Then value-change repo
   h.dispose();
 });
 
-Deno.test("Given a pasted ISO date / When it parses / Then the value replaces wholesale", () => {
+test("Given a pasted ISO date / When it parses / Then the value replaces wholesale", () => {
   const h = harness();
   handler<() => void>(h.api.getSegmentProps(0), "onFocus")();
   handler<(e: ClipboardEvent) => void>(h.api.getSegmentProps(0), "onPaste")(
     clipboard("2025-07-04"),
   );
-  assertEquals(h.api.valueAsString, "2025-07-04", "the pasted date lands");
+  deepStrictEqual(h.api.valueAsString, "2025-07-04", "the pasted date lands");
   handler<(e: ClipboardEvent) => void>(h.api.getSegmentProps(0), "onPaste")(
     clipboard("not a date"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.valueAsString,
     "2025-07-04",
     "an unparseable paste is refused",
@@ -199,31 +200,31 @@ Deno.test("Given a pasted ISO date / When it parses / Then the value replaces wh
   h.dispose();
 });
 
-Deno.test("Given a min bound / When a paste lands below it / Then the value clamps to the bound", () => {
+test("Given a min bound / When a paste lands below it / Then the value clamps to the bound", () => {
   const h = harness({ min: "2024-06-01" });
   handler<() => void>(h.api.getSegmentProps(0), "onFocus")();
   handler<(e: ClipboardEvent) => void>(h.api.getSegmentProps(0), "onPaste")(
     clipboard("2024-01-15"),
   );
-  assertEquals(h.api.valueAsString, "2024-06-01", "the floor holds");
+  deepStrictEqual(h.api.valueAsString, "2024-06-01", "the floor holds");
   h.dispose();
 });
 
-Deno.test("Given an empty segment / When Backspace fires / Then focus steps to the previous segment", () => {
+test("Given an empty segment / When Backspace fires / Then focus steps to the previous segment", () => {
   const h = harness({ defaultValue: "2024-01-15" });
   handler<() => void>(h.api.getSegmentProps(1), "onFocus")();
   handler<(e: KeyboardEvent) => void>(h.api.getSegmentProps(1), "onKeyDown")(
     keydown("Backspace"),
   );
   // Day holds 15, so backspace clears it first; a second backspace steps back.
-  assertEquals(texts(h.api)[1], "dd", "the filled day clears first");
+  deepStrictEqual(texts(h.api)[1], "dd", "the filled day clears first");
   handler<(e: KeyboardEvent) => void>(h.api.getSegmentProps(1), "onKeyDown")(
     keydown("Backspace"),
   );
   h.dispose();
 });
 
-Deno.test("Given an imperative setValue / When called / Then the fields fill without focus", () => {
+test("Given an imperative setValue / When called / Then the fields fill without focus", () => {
   const h = harness();
   h.api.setValue({
     year: 2025,
@@ -233,23 +234,23 @@ Deno.test("Given an imperative setValue / When called / Then the fields fill wit
     minute: 0,
     second: 0,
   });
-  assertEquals(
+  deepStrictEqual(
     texts(h.api),
     ["07", "04", "2025"],
     "the command writes every segment",
   );
   h.api.clearValue();
-  assertEquals(
+  deepStrictEqual(
     texts(h.api),
     ["mm", "dd", "yyyy"],
     "clear returns the placeholders",
   );
-  assertEquals(h.api.valueAsString, "", "and the string empties");
+  deepStrictEqual(h.api.valueAsString, "", "and the string empties");
   h.dispose();
 });
 
-Deno.test("Given an authored value prop / When it changes / Then the machine alternates to it", () => {
+test("Given an authored value prop / When it changes / Then the machine alternates to it", () => {
   const h = harness({ value: "2024-03-10" });
-  assertEquals(h.api.valueAsString, "2024-03-10", "the authored seed lands");
+  deepStrictEqual(h.api.valueAsString, "2024-03-10", "the authored seed lands");
   h.dispose();
 });

@@ -1,4 +1,6 @@
-import { assertEquals, assertThrows } from "@std/assert";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
+import { deepStrictEqual } from "node:assert/strict";
 import {
   batch,
   computed,
@@ -19,7 +21,7 @@ import {
  * first test is the only thing standing between a component and that bug.
  */
 
-Deno.test("an effect created in a scope stops when the scope is disposed", () => {
+test("an effect created in a scope stops when the scope is disposed", () => {
   const count = signal(0);
   const owner = scope();
   let runs = 0;
@@ -31,17 +33,17 @@ Deno.test("an effect created in a scope stops when the scope is disposed", () =>
     });
   });
 
-  assertEquals(runs, 1);
+  deepStrictEqual(runs, 1);
 
   count(1);
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 
   owner.dispose();
   count(2);
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 });
 
-Deno.test("disposing a scope reaches the scopes nested inside it", () => {
+test("disposing a scope reaches the scopes nested inside it", () => {
   const count = signal(0);
   const outer = scope();
   let outerRuns = 0;
@@ -62,16 +64,16 @@ Deno.test("disposing a scope reaches the scopes nested inside it", () => {
   });
 
   count(1);
-  assertEquals(outerRuns, 2);
-  assertEquals(innerRuns, 2);
+  deepStrictEqual(outerRuns, 2);
+  deepStrictEqual(innerRuns, 2);
 
   outer.dispose();
   count(2);
-  assertEquals(outerRuns, 2);
-  assertEquals(innerRuns, 2);
+  deepStrictEqual(outerRuns, 2);
+  deepStrictEqual(innerRuns, 2);
 });
 
-Deno.test("each run gets its own effects and keeps them alive until dispose", () => {
+test("each run gets its own effects and keeps them alive until dispose", () => {
   const count = signal(0);
   const owner = scope();
   let first = 0;
@@ -90,95 +92,95 @@ Deno.test("each run gets its own effects and keeps them alive until dispose", ()
     });
   });
 
-  assertEquals([first, second], [1, 1]);
+  deepStrictEqual([first, second], [1, 1]);
 
   count(1);
-  assertEquals([first, second], [2, 2]);
+  deepStrictEqual([first, second], [2, 2]);
 
   owner.dispose();
   count(2);
-  assertEquals([first, second], [2, 2]);
+  deepStrictEqual([first, second], [2, 2]);
 });
 
-Deno.test("run hands back what the callback returned", () => {
+test("run hands back what the callback returned", () => {
   const owner = scope();
   const doubled = owner.run(() => 21 * 2);
-  assertEquals(doubled, 42);
+  deepStrictEqual(doubled, 42);
   owner.dispose();
 });
 
-Deno.test("owned teardown runs once when the scope is disposed", () => {
+test("owned teardown runs once when the scope is disposed", () => {
   const owner = scope();
   let tears = 0;
   owner.own(() => tears++);
 
-  assertEquals(tears, 0);
+  deepStrictEqual(tears, 0);
 
   owner.dispose();
-  assertEquals(tears, 1);
+  deepStrictEqual(tears, 1);
 });
 
-Deno.test("teardown runs newest first", () => {
+test("teardown runs newest first", () => {
   const owner = scope();
   const order: string[] = [];
   owner.own(() => order.push("outer"));
   owner.own(() => order.push("inner"));
 
   owner.dispose();
-  assertEquals(order, ["inner", "outer"]);
+  deepStrictEqual(order, ["inner", "outer"]);
 });
 
-Deno.test("own outside a run reaches the scope that is running", () => {
+test("own outside a run reaches the scope that is running", () => {
   const owner = scope();
   let tears = 0;
   owner.run(() => {
     own(() => tears++);
   });
 
-  assertEquals(tears, 0);
+  deepStrictEqual(tears, 0);
 
   owner.dispose();
-  assertEquals(tears, 1);
+  deepStrictEqual(tears, 1);
 });
 
-Deno.test("teardown registered after dispose releases immediately", () => {
+test("teardown registered after dispose releases immediately", () => {
   const owner = scope();
   owner.dispose();
 
   let tears = 0;
   owner.own(() => tears++);
-  assertEquals(tears, 1);
+  deepStrictEqual(tears, 1);
 });
 
-Deno.test("a scope released twice tears down once", () => {
+test("a scope released twice tears down once", () => {
   const owner = scope();
   let tears = 0;
   owner.own(() => tears++);
 
   owner.dispose();
   owner.dispose();
-  assertEquals(tears, 1);
+  deepStrictEqual(tears, 1);
 });
 
-Deno.test("own outside a scope reports where it went wrong", () => {
-  assertThrows(
+test("own outside a scope reports where it went wrong", () => {
+  assert.throws(
     () => own(() => {}),
     Error,
     "own: called outside of scope.run",
   );
 });
 
-Deno.test("run on a disposed scope reports where it went wrong", () => {
+test("run on a disposed scope reports where it went wrong", () => {
   const owner = scope();
   owner.dispose();
-  assertThrows(
+  assert.throws(
     () => owner.run(() => 1),
     Error,
     "scope.run: the scope is disposed",
   );
 });
 
-Deno.test("batch collapses many writes into one effect run", () => {
+test("batch collapses many writes into one effect run", () => {
   const first = signal(0);
   const second = signal(0);
   const owner = scope();
@@ -192,24 +194,24 @@ Deno.test("batch collapses many writes into one effect run", () => {
     });
   });
 
-  assertEquals(runs, 1);
+  deepStrictEqual(runs, 1);
 
   batch(() => {
     first(1);
     second(1);
   });
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 
   first(2);
-  assertEquals(runs, 3);
+  deepStrictEqual(runs, 3);
   owner.dispose();
 });
 
-Deno.test("batch returns what the callback returned", () => {
-  assertEquals(batch(() => "value"), "value");
+test("batch returns what the callback returned", () => {
+  deepStrictEqual(batch(() => "value"), "value");
 });
 
-Deno.test("a nested batch flushes once, at the outer edge", () => {
+test("a nested batch flushes once, at the outer edge", () => {
   const count = signal(0);
   const owner = scope();
   let runs = 0;
@@ -226,13 +228,13 @@ Deno.test("a nested batch flushes once, at the outer edge", () => {
     batch(() => {
       count(2);
     });
-    assertEquals(runs, 1);
+    deepStrictEqual(runs, 1);
   });
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
   owner.dispose();
 });
 
-Deno.test("untrack reads a value without subscribing the effect", () => {
+test("untrack reads a value without subscribing the effect", () => {
   const tracked = signal(0);
   const quiet = signal(0);
   const owner = scope();
@@ -247,20 +249,20 @@ Deno.test("untrack reads a value without subscribing the effect", () => {
     });
   });
 
-  assertEquals([runs, seen], [1, 0]);
+  deepStrictEqual([runs, seen], [1, 0]);
 
   tracked(1);
-  assertEquals([runs, seen], [2, 0]);
+  deepStrictEqual([runs, seen], [2, 0]);
 
   // The effect did not re-run, so `seen` still holds the value it last read.
   // The signal moved on regardless, and an untracked read sees the new one.
   quiet(1);
-  assertEquals([runs, seen, untrack(() => quiet())], [2, 0, 1]);
+  deepStrictEqual([runs, seen, untrack(() => quiet())], [2, 0, 1]);
 
   owner.dispose();
 });
 
-Deno.test("untrack restores the subscription of the effect around it", () => {
+test("untrack restores the subscription of the effect around it", () => {
   const tracked = signal(0);
   const owner = scope();
   let runs = 0;
@@ -275,32 +277,32 @@ Deno.test("untrack restores the subscription of the effect around it", () => {
   });
 
   tracked(1);
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
   owner.dispose();
 });
 
-Deno.test("computed derives from the signals it reads", () => {
+test("computed derives from the signals it reads", () => {
   const first = signal(1);
   const second = signal(2);
   const total = computed(() => first() * 10 + second());
 
-  assertEquals(total(), 12);
+  deepStrictEqual(total(), 12);
 
   first(3);
-  assertEquals(total(), 32);
+  deepStrictEqual(total(), 32);
 });
 
-Deno.test("a computed survives the scope that made it", () => {
+test("a computed survives the scope that made it", () => {
   const source = signal(1);
   const owner = scope();
   const doubled = owner.run(() => computed(() => source() * 2));
 
   owner.dispose();
   source(5);
-  assertEquals(doubled(), 10);
+  deepStrictEqual(doubled(), 10);
 });
 
-Deno.test("trigger re-runs the effects that read what fn read", () => {
+test("trigger re-runs the effects that read what fn read", () => {
   const count = signal(0);
   const owner = scope();
   let runs = 0;
@@ -312,15 +314,15 @@ Deno.test("trigger re-runs the effects that read what fn read", () => {
     });
   });
 
-  assertEquals(runs, 1);
+  deepStrictEqual(runs, 1);
 
   trigger(() => count());
-  assertEquals(runs, 2);
+  deepStrictEqual(runs, 2);
 
   owner.dispose();
 });
 
-Deno.test("an effect's cleanup runs again on the next run", () => {
+test("an effect's cleanup runs again on the next run", () => {
   const count = signal(0);
   const owner = scope();
   let cleanups = 0;
@@ -335,8 +337,8 @@ Deno.test("an effect's cleanup runs again on the next run", () => {
   });
 
   count(1);
-  assertEquals([runs, cleanups], [2, 1]);
+  deepStrictEqual([runs, cleanups], [2, 1]);
 
   owner.dispose();
-  assertEquals([runs, cleanups], [2, 2]);
+  deepStrictEqual([runs, cleanups], [2, 2]);
 });

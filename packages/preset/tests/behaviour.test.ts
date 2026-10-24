@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   createGenerator,
   type ExtendedTokenInfo,
@@ -195,7 +196,7 @@ const COMPONENTS: ReadonlyArray<
   },
 ];
 
-Deno.test("a component ships for the document that names it, and only then", async () => {
+test("a component ships for the document that names it, and only then", async () => {
   // Breaks if a component's rules stop being registered for its tag, or if
   // the element extractor stops turning a tag into a token.
   const none = await generate("<div>plain</div>");
@@ -213,7 +214,7 @@ Deno.test("a component ships for the document that names it, and only then", asy
   }
 });
 
-Deno.test("primitives: false ships no component rules", async () => {
+test("primitives: false ships no component rules", async () => {
   // Breaks if the primitives option stops gating rule registration.
   const markup = COMPONENTS.map((component) => component.markup).join("");
   const result = await generate(markup, { primitives: false });
@@ -225,7 +226,7 @@ Deno.test("primitives: false ships no component rules", async () => {
   }
 });
 
-Deno.test("a primitives list enables only the components it names", async () => {
+test("a primitives list enables only the components it names", async () => {
   // Breaks if a partial list enables everything, or enables the wrong set.
   const result = await generate("<button>Go</button><badge>New</badge>", {
     primitives: ["button"],
@@ -241,7 +242,7 @@ Deno.test("a primitives list enables only the components it names", async () => 
   );
 });
 
-Deno.test("classless: false makes a primitive claim its class, not its tag", async () => {
+test("classless: false makes a primitive claim its class, not its tag", async () => {
   // Breaks if claim() ignores the mode, or returns the tag when classless
   // is off — either way the wrong element matches the rule.
   const markup = "<details><summary>More</summary></details>";
@@ -267,7 +268,7 @@ Deno.test("classless: false makes a primitive claim its class, not its tag", asy
   );
 });
 
-Deno.test("a cross-engine pseudo-element never shares a selector list", async () => {
+test("a cross-engine pseudo-element never shares a selector list", async () => {
   // Breaks if two yields carrying a -moz- pseudo-element get identical
   // bodies, because uno merges them into one selector list and the engine
   // that does not understand the selector drops the whole rule.
@@ -280,7 +281,7 @@ Deno.test("a cross-engine pseudo-element never shares a selector list", async ()
     "the -moz- pseudo-element rules must ship at all",
   );
   for (const parts of crossEngine) {
-    assertEquals(
+    deepStrictEqual(
       parts.length,
       1,
       `a -moz- pseudo-element shares a selector list: ${parts.join(", ")}`,
@@ -288,7 +289,7 @@ Deno.test("a cross-engine pseudo-element never shares a selector list", async ()
   }
 });
 
-Deno.test("a theme that omits a token omits its declaration and nothing else", async () => {
+test("a theme that omits a token omits its declaration and nothing else", async () => {
   // Breaks if a missing token is emitted anyway — a dangling reference or an
   // invented fallback adds a declaration the full theme never stated — or if
   // the component drops its other declarations with it.
@@ -350,7 +351,7 @@ Deno.test("a theme that omits a token omits its declaration and nothing else", a
   );
 });
 
-Deno.test("a quiet variant states its own resting posture", async () => {
+test("a quiet variant states its own resting posture", async () => {
   // Breaks if the secondary goes back to wearing the base rule's resting
   // shadow: in a hard-edged theme that is the loudest offset on the page,
   // spent by the fill whose background is a surface — a surface floating on
@@ -362,10 +363,10 @@ Deno.test("a quiet variant states its own resting posture", async () => {
       "secondary",
     ),
   );
-  assertEquals(body["box-shadow"], "none");
+  deepStrictEqual(body["box-shadow"], "none");
 });
 
-Deno.test("a bare control takes the component tokens' movement back", async () => {
+test("a bare control takes the component tokens' movement back", async () => {
   // The movement is part of the button's own tokens the same way the shadow
   // is, and the opt-out takes those tokens back with the paint: chrome
   // around a control does not move when it is pointed at. Generated against
@@ -383,10 +384,10 @@ Deno.test("a bare control takes the component tokens' movement back", async () =
       "bare",
     ),
   );
-  assertEquals(body["transform"], "none");
+  deepStrictEqual(body["transform"], "none");
 });
 
-Deno.test("the motion clamp ships whenever an animated component does", async () => {
+test("the motion clamp ships whenever an animated component does", async () => {
   // Breaks if the motion policy preflight is removed, or made conditional on
   // the component set rather than shipping with the animated component.
   const { css, matched } = await generate("<progress></progress>");
@@ -397,7 +398,7 @@ Deno.test("the motion clamp ships whenever an animated component does", async ()
   );
 });
 
-Deno.test("a boolean token decides a component's shape", async () => {
+test("a boolean token decides a component's shape", async () => {
   // The mechanism the studio surface will lean on: a theme answers a
   // yes/no question about a component and the rule reads the answer. A flag
   // that is on ships the styling that goes with it; a theme that omits the
@@ -442,7 +443,7 @@ Deno.test("a boolean token decides a component's shape", async () => {
   );
 });
 
-Deno.test("a badge with no badge group in the theme renders from global tokens", async () => {
+test("a badge with no badge group in the theme renders from global tokens", async () => {
   // Breaks if the badge rule stops falling back to global tokens when the
   // theme has no badge group — the badge would emit no font-size or padding,
   // rendering as an unstyled element.
@@ -492,7 +493,7 @@ function yieldsOf(
     }));
 }
 
-Deno.test("the disclosure reveals its content instead of popping", async () => {
+test("the disclosure reveals its content instead of popping", async () => {
   // Breaks if the `::details-content` clamp and its transition are dropped:
   // the content then appears in one frame, which is the layout jump the
   // platform path exists to remove. Both states must ship, because the
@@ -540,7 +541,7 @@ Deno.test("the disclosure reveals its content instead of popping", async () => {
   );
 });
 
-Deno.test("the divider turns on its side without carrying its horizontal edge", async () => {
+test("the divider turns on its side without carrying its horizontal edge", async () => {
   // Breaks if the vertical variant states no length, no room beside it, or
   // draws its line on the block edge — which is where the horizontal divider
   // draws its own.
@@ -568,7 +569,7 @@ Deno.test("the divider turns on its side without carrying its horizontal edge", 
   );
 });
 
-Deno.test("the divider ships a dashed rule beside the solid one", async () => {
+test("the divider ships a dashed rule beside the solid one", async () => {
   // Breaks if the dashed variant drops the border, or draws nothing the base
   // rule does not — a second tone of separation is the whole point of it.
   const body = declarations(
@@ -584,7 +585,7 @@ Deno.test("the divider ships a dashed rule beside the solid one", async () => {
   );
 });
 
-Deno.test("an avatar is the containing block its status dot positions against", async () => {
+test("an avatar is the containing block its status dot positions against", async () => {
   // Breaks if the face stops being positioned: the dot then measures itself
   // against the nearest positioned ancestor, which is not the face.
   const body = declarations(
@@ -599,7 +600,7 @@ Deno.test("an avatar is the containing block its status dot positions against", 
   );
 });
 
-Deno.test("an avatar ring is painted outside the face", async () => {
+test("an avatar ring is painted outside the face", async () => {
   // Breaks if the ring becomes a border: a face is fixed to the theme's edge
   // in a border-box, so a border inside it shrinks the image the rule exists
   // to frame.
@@ -615,7 +616,7 @@ Deno.test("an avatar ring is painted outside the face", async () => {
   );
 });
 
-Deno.test("an avatar's status dot is placed in the trailing corner", async () => {
+test("an avatar's status dot is placed in the trailing corner", async () => {
   // Breaks if the dot returns to flow — it would then push the face's box
   // instead of sitting on it — or stops spending the success token.
   const body = declarations(
@@ -651,7 +652,7 @@ Deno.test("an avatar's status dot is placed in the trailing corner", async () =>
  * The semantic-typography components are exempt because they ARE the ladder:
  * `prose` renders h1 through h6 and the code family shares its type helper.
  */
-Deno.test("no component's type out-sizes the page's own heading", () => {
+test("no component's type out-sizes the page's own heading", () => {
   const EXEMPT = new Set(["prose", "hr", "kbd"]);
   const parsed = parseTokens(
     JSON.stringify({ font: theme["font"] }),
@@ -696,7 +697,7 @@ Deno.test("no component's type out-sizes the page's own heading", () => {
  * content in a `<prose>` to look like typography would be a system that owns
  * typography only where a document happens to be.
  */
-Deno.test("the theme's typography is spent outside a document column", async () => {
+test("the theme's typography is spent outside a document column", async () => {
   const result = await generate(
     "<p>a</p><ul><li>a</li></ul><h2>a</h2><blockquote>a</blockquote>" +
       "<pre><code>a</code></pre><figure><figcaption>a</figcaption></figure>",

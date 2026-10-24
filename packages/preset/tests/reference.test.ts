@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { scaleClass } from "../src/reference/build.ts";
 
 /**
@@ -9,10 +10,10 @@ import { scaleClass } from "../src/reference/build.ts";
  * utility no rule matches, which left a scale's preview unstyled the moment
  * an edge other than `all` was chosen.
  */
-Deno.test("scaleClass writes an axis back as the suffix of the prefix", () => {
-  assertEquals(scaleClass("p", "", "4"), "p-4");
-  assertEquals(scaleClass("p", "x", "4"), "px-4");
-  assertEquals(scaleClass("p", "t", "8"), "pt-8");
-  assertEquals(scaleClass("p", "l", "1"), "pl-1");
-  assertEquals(scaleClass("gap", "", "2"), "gap-2");
+test("scaleClass writes an axis back as the suffix of the prefix", () => {
+  deepStrictEqual(scaleClass("p", "", "4"), "p-4");
+  deepStrictEqual(scaleClass("p", "x", "4"), "px-4");
+  deepStrictEqual(scaleClass("p", "t", "8"), "pt-8");
+  deepStrictEqual(scaleClass("p", "l", "1"), "pl-1");
+  deepStrictEqual(scaleClass("gap", "", "2"), "gap-2");
 });

@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { starterThemes } from "@spin/theme/themes";
 import {
   type AncestorFacts,
@@ -77,20 +78,20 @@ function other(tag: string, classes: string) {
   return checkPreferElement(facts, element(tag, classes), SPIN);
 }
 
-Deno.test("a variant that clears the fill leaves the ink to the author", () => {
+test("a variant that clears the fill leaves the ink to the author", () => {
   // The bare button has no fill, so the ink the base declares — the ink on
   // the primary fill — is not the button's ink. `text-text` is the author's
   // own answer, and the rule says nothing about it.
-  assertEquals(override("button", "bare text-text"), []);
-  assertEquals(override("button", "bare text-text-muted"), []);
+  deepStrictEqual(override("button", "bare text-text"), []);
+  deepStrictEqual(override("button", "bare text-text-muted"), []);
 });
 
-Deno.test("the size a variant did not claim is still the theme's", () => {
+test("the size a variant did not claim is still the theme's", () => {
   // The bare button says nothing about its size, so the base's size stands
   // and a class that changes it is a second opinion about the theme's.
   const [finding] = override("button", "bare text-lg");
-  assertEquals(finding?.messageId, "override");
-  assertEquals(finding?.data, {
+  deepStrictEqual(finding?.messageId, "override");
+  deepStrictEqual(finding?.data, {
     tag: "button",
     cls: "text-lg",
     family: "typography",
@@ -99,43 +100,43 @@ Deno.test("the size a variant did not claim is still the theme's", () => {
   });
 });
 
-Deno.test("a class the variant cleared is not dead weight", () => {
+test("a class the variant cleared is not dead weight", () => {
   // The bare variant clears the edge, so `border` is not what the button
   // already says — it is what the variant took away. Dropping it would
   // change the page.
-  assertEquals(redundant("button", "bare border"), []);
+  deepStrictEqual(redundant("button", "bare border"), []);
   // And without the variant the class IS what the element says.
   const [finding] = redundant("button", "border");
-  assertEquals(finding?.messageId, "redundant");
-  assertEquals(finding?.data["properties"], "border-width, border-style");
+  deepStrictEqual(finding?.messageId, "redundant");
+  deepStrictEqual(finding?.data["properties"], "border-width, border-style");
 });
 
-Deno.test("the variant's own answer is dead weight", () => {
+test("the variant's own answer is dead weight", () => {
   // The secondary button wears the page's ink, so `text-text` says what it
   // already says.
   const [finding] = redundant("button", "secondary text-text");
-  assertEquals(finding?.messageId, "redundant");
-  assertEquals(finding?.data, {
+  deepStrictEqual(finding?.messageId, "redundant");
+  deepStrictEqual(finding?.data, {
     tag: "button",
     cls: "text-text",
     properties: "color",
   });
 });
 
-Deno.test("a class that sets what the variant claimed is not a fight", () => {
+test("a class that sets what the variant claimed is not a fight", () => {
   // The ghost button has no fill, and a class that puts one back is the
   // variant's own answer or a deliberate override — neither is a second
   // opinion about the base.
-  assertEquals(override("button", "ghost bg-primary"), []);
-  assertEquals(override("button", "secondary bg-primary"), []);
+  deepStrictEqual(override("button", "ghost bg-primary"), []);
+  deepStrictEqual(override("button", "secondary bg-primary"), []);
 });
 
-Deno.test("the remedy names only the variants that carry the decision", () => {
+test("the remedy names only the variants that carry the decision", () => {
   // The remedy has to be a way out. A variant that says nothing about the
   // decision the class overrode is not one, and offering it sends the author
   // to a door that does not open.
   const [fill] = override("button", "bg-surface-raised");
-  assertEquals(
+  deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, fill!),
     "`<button>` sets its own fill; `bg-surface-raised` fights it. " +
       "Use a variant (`bare`, `contrast`, …) or the theme's value.",
@@ -143,38 +144,38 @@ Deno.test("the remedy names only the variants that carry the decision", () => {
   // No button variant carries the corner, so the theme's radius is the way
   // out — and the message says so.
   const [corner] = override("button", "rounded-full");
-  assertEquals(
+  deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, corner!),
     "`<button>` sets its own fill; `rounded-full` fights it. " +
       "Use the theme's value.",
   );
 });
 
-Deno.test("the remedy never offers a variant the element already wears", () => {
+test("the remedy never offers a variant the element already wears", () => {
   // The size variant the element wears is the size it is: offering it again
   // is not advice.
   const [worn] = override("button", "s-sm px-3");
-  assertEquals(
+  deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, worn!),
     "the theme owns the space between blocks; `px-3` fights it. " +
       "Use a variant (`s-lg`) or the theme's value.",
   );
 });
 
-Deno.test("a variant paints the element it belongs to and no other", () => {
+test("a variant paints the element it belongs to and no other", () => {
   // The secondary variant's selector names the button, so a span that wears
   // the class is not wearing the variant: the rule reads what the element
   // is, and a span is not a button.
-  assertEquals(facts.surfaces.variants("button", ["bare", "secondary"]), [
+  deepStrictEqual(facts.surfaces.variants("button", ["bare", "secondary"]), [
     "bare",
     "secondary",
   ]);
-  assertEquals(facts.surfaces.variants("span", ["secondary"]), []);
+  deepStrictEqual(facts.surfaces.variants("span", ["secondary"]), []);
 });
 
-Deno.test("a decision the variant claimed is not another element's", () => {
+test("a decision the variant claimed is not another element's", () => {
   // The ghost card has no fill, so the ink is not the card's to decide and
   // the rule does not point at the link that carries the link ink.
-  assertEquals(other("card", "text-link").length, 1);
-  assertEquals(other("card", "card-ghost text-link"), []);
+  deepStrictEqual(other("card", "text-link").length, 1);
+  deepStrictEqual(other("card", "card-ghost text-link"), []);
 });

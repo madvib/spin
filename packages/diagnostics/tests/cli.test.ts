@@ -1,4 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { CliUsageError, formatJson, parseArgs, run } from "../src/cli.ts";
 import { filesUnder, lint } from "../src/service.ts";
 
@@ -25,9 +29,9 @@ const CLEAN = `export function App() {
 
 /** A directory holding the two files. */
 async function fixture(): Promise<string> {
-  const directory = await Deno.makeTempDir();
-  await Deno.writeTextFile(`${directory}/dirty.tsx`, DIRTY);
-  await Deno.writeTextFile(`${directory}/clean.tsx`, CLEAN);
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
+  await writeFile(`${directory}/dirty.tsx`, DIRTY);
+  await writeFile(`${directory}/clean.tsx`, CLEAN);
   return directory;
 }
 
@@ -45,84 +49,84 @@ async function findingsOf(
   return report.findings;
 }
 
-Deno.test("the CLI reports what the rules decided", async () => {
+test("the CLI reports what the rules decided", async () => {
   const directory = await fixture();
   try {
     const findings = await findingsOf(directory);
-    assertEquals(findings.map((finding) => finding.ruleId), [
+    deepStrictEqual(findings.map((finding) => finding.ruleId), [
       "spin/closed-vocabulary",
     ]);
-    assertEquals(findings.map((finding) => finding.messageId), ["unknown"]);
-    assertEquals(findings.map((finding) => finding.line), [2]);
-    assertEquals(findings.map((finding) => finding.column), [16]);
-    assertEquals(findings.map((finding) => finding.file), [
+    deepStrictEqual(findings.map((finding) => finding.messageId), ["unknown"]);
+    deepStrictEqual(findings.map((finding) => finding.line), [2]);
+    deepStrictEqual(findings.map((finding) => finding.column), [16]);
+    deepStrictEqual(findings.map((finding) => finding.file), [
       `${directory}/dirty.tsx`,
     ]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the CLI reads the files under a path, not the ones beside it", async () => {
+test("the CLI reads the files under a path, not the ones beside it", async () => {
   const directory = await fixture();
   try {
     const files = await filesUnder(directory);
-    assertEquals(files.toSorted(), [
+    deepStrictEqual(files.toSorted(), [
       `${directory}/clean.tsx`,
       `${directory}/dirty.tsx`,
     ]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the dials are the rule's own", async () => {
-  const directory = await Deno.makeTempDir();
+test("the dials are the rule's own", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.writeTextFile(
+    await writeFile(
       `${directory}/app.tsx`,
       `export const App = () => <button className="text-sm bg-primary" />;\n`,
     );
     const strict = await findingsOf(directory, ["--strictness", "strict"]);
     const balanced = await findingsOf(directory, ["--strictness", "balanced"]);
-    assertEquals(strict.map((finding) => finding.message), [
+    deepStrictEqual(strict.map((finding) => finding.message), [
       "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
       "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
     ]);
-    assertEquals(balanced.map((finding) => finding.message), [
+    deepStrictEqual(balanced.map((finding) => finding.message), [
       "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
     ]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the CLI applies the edits its findings carry", async () => {
-  const directory = await Deno.makeTempDir();
+test("the CLI applies the edits its findings carry", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(
+    await writeFile(
       file,
       `export const App = () => <span className="not-a-class" />;\n`,
     );
     // A class the theme cannot produce styles nothing, so dropping it
     // changes nothing — and the CLI drops it.
     const code = await run(["lint", file, "--fix"], () => {});
-    assertEquals(code, 0);
-    assertEquals(
-      await Deno.readTextFile(file),
+    deepStrictEqual(code, 0);
+    deepStrictEqual(
+      await readFile(file, "utf8"),
       `export const App = () => <span className="" />;\n`,
     );
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the CLI says what it fixed", async () => {
-  const directory = await Deno.makeTempDir();
+test("the CLI says what it fixed", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(
+    await writeFile(
       file,
       `export const App = () => <span className="not-a-class" />;\n`,
     );
@@ -130,14 +134,14 @@ Deno.test("the CLI says what it fixed", async () => {
     const code = await run(["lint", file, "--fix"], (line) => lines.push(line));
     // The finding was settled by the edit, so there is nothing left to
     // report: the exit code says so.
-    assertEquals(code, 0);
-    assertEquals(lines, [""]);
+    deepStrictEqual(code, 0);
+    deepStrictEqual(lines, [""]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the JSON format is a machine's answer", async () => {
+test("the JSON format is a machine's answer", async () => {
   const directory = await fixture();
   try {
     const findings = await findingsOf(directory);
@@ -145,18 +149,18 @@ Deno.test("the JSON format is a machine's answer", async () => {
       findings: { ruleId: string; line: number; column: number }[];
       summary: { findings: number; files: number };
     };
-    assertEquals(report.findings.map((finding) => finding.ruleId), [
+    deepStrictEqual(report.findings.map((finding) => finding.ruleId), [
       "spin/closed-vocabulary",
     ]);
-    assertEquals(report.findings.map((finding) => finding.line), [2]);
-    assertEquals(report.findings.map((finding) => finding.column), [16]);
-    assertEquals(report.summary, { findings: 1, files: 1 });
+    deepStrictEqual(report.findings.map((finding) => finding.line), [2]);
+    deepStrictEqual(report.findings.map((finding) => finding.column), [16]);
+    deepStrictEqual(report.summary, { findings: 1, files: 1 });
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("the exit code is what a script reads", async () => {
+test("the exit code is what a script reads", async () => {
   const directory = await fixture();
   try {
     const lines: string[] = [];
@@ -164,8 +168,8 @@ Deno.test("the exit code is what a script reads", async () => {
       ["lint", `${directory}/dirty.tsx`],
       (line) => lines.push(line),
     );
-    assertEquals(dirty, 1);
-    assertEquals(
+    deepStrictEqual(dirty, 1);
+    deepStrictEqual(
       lines.join("\n"),
       [
         `${directory}/dirty.tsx`,
@@ -179,13 +183,13 @@ Deno.test("the exit code is what a script reads", async () => {
       ["lint", `${directory}/clean.tsx`],
       (line) => lines.push(line),
     );
-    assertEquals(clean, 0);
+    deepStrictEqual(clean, 0);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("a path that cannot be read is reported", async () => {
+test("a path that cannot be read is reported", async () => {
   const lines: string[] = [];
   const warnings: string[] = [];
   const code = await run(
@@ -193,99 +197,99 @@ Deno.test("a path that cannot be read is reported", async () => {
     (line) => lines.push(line),
     (line) => warnings.push(line),
   );
-  assertEquals(code, 2);
-  assertEquals(warnings, ['Cannot read "/nowhere/at/all".']);
+  deepStrictEqual(code, 2);
+  deepStrictEqual(warnings, ['Cannot read "/nowhere/at/all".']);
 });
 
-Deno.test("a file that does not parse is reported, not swallowed", async () => {
+test("a file that does not parse is reported, not swallowed", async () => {
   // The CLI has no linter to fall back on, so a file it cannot read is
   // something the person running it has to know about.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await Deno.writeTextFile(`${directory}/broken.tsx`, `export const = ;\n`);
+    await writeFile(`${directory}/broken.tsx`, `export const = ;\n`);
     const warnings: string[] = [];
     const code = await run(
       ["lint", `${directory}/broken.tsx`],
       () => {},
       (line) => warnings.push(line),
     );
-    assertEquals(code, 2);
-    assertEquals(warnings, [`Could not read "${directory}/broken.tsx".`]);
+    deepStrictEqual(code, 2);
+    deepStrictEqual(warnings, [`Could not read "${directory}/broken.tsx".`]);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("an advisory is reported and does not fail the run", async () => {
+test("an advisory is reported and does not fail the run", async () => {
   // The wrong element cannot be banned: a span carrying the size the theme
   // gives the heading may be deliberate. So the rule is a suggestion, the
   // finding is a warning, and the run still passes.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(
+    await writeFile(
       file,
       `export const App = () => <span className="text-3xl" />;\n`,
     );
     const findings = await findingsOf(directory);
-    assertEquals(
+    deepStrictEqual(
       findings.map((finding) => [finding.ruleId, finding.severity]),
       [
         ["spin/prefer-element", "warning"],
       ],
     );
     const lines: string[] = [];
-    assertEquals(await run(["lint", file], (line) => lines.push(line)), 0);
+    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 0);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("an error fails the run", async () => {
+test("an error fails the run", async () => {
   // The other way round: an override of a decision the system made is
   // banned, and a banned thing fails the run.
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
-    await Deno.writeTextFile(
+    await writeFile(
       file,
       `export const App = () => <h3 className="text-sm" />;\n`,
     );
     const findings = await findingsOf(directory);
-    assertEquals(
+    deepStrictEqual(
       findings.map((finding) => [finding.ruleId, finding.severity]),
       [
         ["spin/prefer-theme-value", "error"],
       ],
     );
     const lines: string[] = [];
-    assertEquals(await run(["lint", file], (line) => lines.push(line)), 1);
+    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 1);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("an option the CLI does not know is a usage error", () => {
+test("an option the CLI does not know is a usage error", () => {
   let thrown: unknown;
   try {
     parseArgs(["lint", "--nonsense", "src"]);
   } catch (error) {
     thrown = error;
   }
-  assertEquals(thrown instanceof CliUsageError, true);
+  deepStrictEqual(thrown instanceof CliUsageError, true);
 });
 
-Deno.test("a command the CLI does not know is a usage error", () => {
+test("a command the CLI does not know is a usage error", () => {
   let thrown: unknown;
   try {
     parseArgs(["diagnose", "src"]);
   } catch (error) {
     thrown = error;
   }
-  assertEquals(thrown instanceof CliUsageError, true);
+  deepStrictEqual(thrown instanceof CliUsageError, true);
 });
 
-Deno.test("the rendered checks need the app's own facts", () => {
+test("the rendered checks need the app's own facts", () => {
   // The checks cannot guess an app's routes or its themes, so the command
   // says so rather than measuring a page nobody named.
   let thrown: unknown;
@@ -294,18 +298,18 @@ Deno.test("the rendered checks need the app's own facts", () => {
   } catch (error) {
     thrown = error;
   }
-  assertEquals(thrown instanceof CliUsageError, true);
+  deepStrictEqual(thrown instanceof CliUsageError, true);
 });
 
-Deno.test("the check command names the app and its configuration", () => {
+test("the check command names the app and its configuration", () => {
   const command = parseArgs([
     "check",
     "--config",
     "./visual/check.ts",
     "http://localhost:5173",
   ]);
-  assertEquals(command.kind, "check");
+  deepStrictEqual(command.kind, "check");
   if (command.kind !== "check") return;
-  assertEquals(command.url, "http://localhost:5173");
-  assertEquals(command.config, "./visual/check.ts");
+  deepStrictEqual(command.url, "http://localhost:5173");
+  deepStrictEqual(command.config, "./visual/check.ts");
 });

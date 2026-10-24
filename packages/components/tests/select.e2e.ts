@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM select drives its machine in a real browser — the
  * closed combobox trigger, one click opening the panel with its four
@@ -8,7 +9,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Browser, chromium, type Page } from "npm:playwright-core";
+import { type Browser, chromium, type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `select:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="select:${id}:${part}"]`;
@@ -24,7 +25,7 @@ const M_ITEM = (value: string): string => at("multi", `item:${value}`);
 const readout = async (page: Page, id: string): Promise<string> =>
   (await page.locator(`#${id}`).textContent()) ?? "";
 
-Deno.test("spin-select e2e", () =>
+test("spin-select e2e", () =>
   runComponentSuite(
     { port: 5229, route: "/select", ready: S_TRIGGER },
     async ({ page }) => {

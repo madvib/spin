@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { starterThemes } from "@spin/theme/themes";
 import { createThemeState } from "../src/theme-state.ts";
 
@@ -16,19 +17,19 @@ function storage(name: string) {
   return { theme: `kit-test-${name}:theme`, mode: `kit-test-${name}:mode` };
 }
 
-Deno.test("a stored theme the app does not hold falls back to one it does", () => {
+test("a stored theme the app does not hold falls back to one it does", () => {
   const state = createThemeState({
     documents: { console: starterThemes.console, silk: starterThemes.silk },
     initialTheme: "silk",
     storage: storage("unknown"),
     followSystem: false,
   });
-  assertEquals(state.theme(), "silk");
+  deepStrictEqual(state.theme(), "silk");
   state.setTheme("no-such-theme");
-  assertEquals(state.theme(), "silk", "an unknown name is ignored");
+  deepStrictEqual(state.theme(), "silk", "an unknown name is ignored");
 });
 
-Deno.test("a mode the theme does not serve is clamped to one it does", () => {
+test("a mode the theme does not serve is clamped to one it does", () => {
   // Console's own face is dark and it serves no light rendering; a reader
   // arriving from a light theme must not be shown a mode it does not have.
   const state = createThemeState({
@@ -38,12 +39,12 @@ Deno.test("a mode the theme does not serve is clamped to one it does", () => {
     storage: storage("clamp"),
     followSystem: false,
   });
-  assertEquals(state.theme(), "console");
-  assertEquals(state.modes(), ["dark"]);
-  assertEquals(state.mode(), "dark");
+  deepStrictEqual(state.theme(), "console");
+  deepStrictEqual(state.modes(), ["dark"]);
+  deepStrictEqual(state.mode(), "dark");
 });
 
-Deno.test("the system request resolves to the platform's mode when served", () => {
+test("the system request resolves to the platform's mode when served", () => {
   const state = createThemeState({
     documents: { silk: starterThemes.silk },
     initialTheme: "silk",
@@ -53,10 +54,10 @@ Deno.test("the system request resolves to the platform's mode when served", () =
   });
   // `followSystem` off still resolves the request against the platform's
   // current preference; silk serves both, so the answer is one of them.
-  assertEquals(["light", "dark"].includes(state.mode()), true);
+  deepStrictEqual(["light", "dark"].includes(state.mode()), true);
 });
 
-Deno.test("a two-mode theme keeps the mode the reader asked for", () => {
+test("a two-mode theme keeps the mode the reader asked for", () => {
   const state = createThemeState({
     documents: { silk: starterThemes.silk },
     initialTheme: "silk",
@@ -64,7 +65,7 @@ Deno.test("a two-mode theme keeps the mode the reader asked for", () => {
     storage: storage("two-mode"),
     followSystem: false,
   });
-  assertEquals(state.mode(), "dark");
+  deepStrictEqual(state.mode(), "dark");
   state.setMode("light");
-  assertEquals(state.mode(), "light");
+  deepStrictEqual(state.mode(), "light");
 });

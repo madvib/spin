@@ -1,3 +1,5 @@
+import { readFile, rm, stat, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 /**
  * The studio's theme actions, end to end.
  *
@@ -11,7 +13,7 @@
  * the project lives. Every theme a test creates is taken away again.
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { test, withPage } from "./harness.ts";
 import { type StudioPage, studioUrl } from "./studio.ts";
 import {
@@ -40,7 +42,7 @@ const PRIMARY = '[id="token-color.primary-light"]';
 /** Whether a file is there. */
 async function there(path: string): Promise<boolean> {
   try {
-    await Deno.stat(path);
+    await stat(path);
     return true;
   } catch {
     return false;
@@ -50,7 +52,7 @@ async function there(path: string): Promise<boolean> {
 /** Take a file away, whether it is there or not. */
 async function take(path: string): Promise<void> {
   try {
-    await Deno.remove(path);
+    await rm(path);
   } catch {
     // It was not there to begin with.
   }
@@ -135,8 +137,8 @@ test("a theme created from the studio lands on disk, in the registry, and seated
       // the file on disk is the theme it was copied from, byte for byte
       const source = listed.find((theme) => theme.name === "silk");
       assert(source !== undefined, "the registry lists no theme to copy");
-      const written = await Deno.readTextFile(file);
-      assertEquals(
+      const written = await readFile(file, "utf8");
+      deepStrictEqual(
         written,
         source.text,
         "the copy on disk is the theme it was copied from",
@@ -183,7 +185,7 @@ test("a copy is independent of the theme it was copied from", async () => {
         "the save control was not available for the edit",
       );
       await page.settle(1200);
-      const originText = await Deno.readTextFile(originFile);
+      const originText = await readFile(originFile, "utf8");
       assert(
         declaredValue(originText, ["color", "primary"]) === "#b91c1c",
         "the origin's file does not hold the edit that was saved",
@@ -205,13 +207,13 @@ test("a copy is independent of the theme it was copied from", async () => {
       );
       await page.settle(1200);
 
-      const derivedText = await Deno.readTextFile(derivedFile);
+      const derivedText = await readFile(derivedFile, "utf8");
       assert(
         declaredValue(derivedText, ["color", "primary"]) === "#166534",
         "the copy's file does not hold the edit that was saved",
       );
-      assertEquals(
-        await Deno.readTextFile(originFile),
+      deepStrictEqual(
+        await readFile(originFile, "utf8"),
         originText,
         "the origin's file changed when the copy was edited",
       );
@@ -254,7 +256,7 @@ test("an edit is dirty until it is saved, and the save reaches the disk", async 
         "the save control was not available for the edit",
       );
       await page.settle(1200);
-      const written = await Deno.readTextFile(file);
+      const written = await readFile(file, "utf8");
       assert(
         declaredValue(written, ["color", "primary"]) === "#b91c1c",
         "the file on disk does not hold the edit that was saved",
@@ -545,7 +547,7 @@ test("a theme scaffolded from the required roles lands on disk and builds", asyn
       );
 
       // the file holds the roles every theme must declare
-      const written = await Deno.readTextFile(file);
+      const written = await readFile(file, "utf8");
       assert(
         declaredValue(written, ["color", "text"]) !== null,
         "the scaffold does not declare the text role",
@@ -591,7 +593,7 @@ test("a theme deleted from the registry leaves the disk", async () => {
       );
       await page.settle(1200);
 
-      await assertEquals(
+      await deepStrictEqual(
         await there(file),
         false,
         "the file the delete removed is still on disk",
@@ -615,7 +617,7 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
     const file = themeFile(root, name);
     await take(file);
     try {
-      await Deno.writeTextFile(file, "{ not json at all\n");
+      await writeFile(file, "{ not json at all\n");
       await page.reload();
       await page.settle(1500);
       const seated = await seatTheme(page, name);

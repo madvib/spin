@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { ThemeDocument } from "@spin/theme";
 import { starterThemes } from "@spin/theme/themes";
 import {
@@ -45,21 +46,21 @@ function projectTheme(): ThemeDocument {
   };
 }
 
-Deno.test("a class the project's theme produces is not reported", () => {
+test("a class the project's theme produces is not reported", () => {
   // The step exists only in this project's theme, so only this project's
   // vocabulary can know it. The starters alone would call it unknown.
   const facts = factsFor([projectTheme()]);
-  assertEquals(reported(facts, "p-72"), []);
+  deepStrictEqual(reported(facts, "p-72"), []);
 });
 
-Deno.test("a class no theme produces is reported", () => {
+test("a class no theme produces is reported", () => {
   // The same class, against a vocabulary whose themes do not declare the
   // step: nothing generates it, so the rule has to say so.
   const facts = factsFor(Object.values(starterThemes));
-  assertEquals(reported(facts, "p-72"), ["p-72"]);
+  deepStrictEqual(reported(facts, "p-72"), ["p-72"]);
 });
 
-Deno.test("a class nothing produces carries the edit that drops it", () => {
+test("a class nothing produces carries the edit that drops it", () => {
   // The class generates no CSS, so it styles nothing: dropping it changes
   // nothing, and the finding says so with the edit that does it.
   const facts = factsFor(Object.values(starterThemes));
@@ -75,25 +76,25 @@ Deno.test("a class nothing produces carries the edit that drops it", () => {
     position: { line: 1, column: 1 },
   };
   const [finding] = checkClosedVocabulary(facts, node);
-  assertEquals(finding?.fix, { range: [0, 4], text: "" });
+  deepStrictEqual(finding?.fix, { range: [0, 4], text: "" });
 });
 
-Deno.test("a scale step the starters declare is part of the vocabulary", () => {
+test("a scale step the starters declare is part of the vocabulary", () => {
   // The whole point of the union: the scaffold a theme starts from has no
   // scales at all, so a vocabulary built from it calls every step unknown.
   const facts = factsFor(Object.values(starterThemes));
-  assertEquals(
+  deepStrictEqual(
     reported(facts, "text-xs text-sm gap-2 font-mono rounded-md p-3"),
     [],
   );
 });
 
-Deno.test("the product's own compositions are vocabulary without a project declaration", () => {
+test("the product's own compositions are vocabulary without a project declaration", () => {
   // `stack`, `row`, `split`, `panel` and `overline` ship with the preset, so a
   // project writes them without declaring them. A lint that called them
   // unknown would flag the product's own pages.
   const facts = factsFor(Object.values(starterThemes));
-  assertEquals(
+  deepStrictEqual(
     reported(
       facts,
       "stack stack-sm stack-lg row row-sm split panel overline cluster",
@@ -102,36 +103,36 @@ Deno.test("the product's own compositions are vocabulary without a project decla
   );
 });
 
-Deno.test("with no project theme, the starters' vocabulary applies", () => {
+test("with no project theme, the starters' vocabulary applies", () => {
   // A project that has not forked a theme still renders: it serves the
   // starters. The vocabulary is theirs, and only theirs.
   const facts = projectFacts({}, new Set());
-  assertEquals(reported(facts, "text-xs gap-2 rounded-md"), []);
-  assertEquals(reported(facts, "my-stack"), ["my-stack"]);
+  deepStrictEqual(reported(facts, "text-xs gap-2 rounded-md"), []);
+  deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });
 
-Deno.test("a class the animation layer defines is part of the vocabulary", () => {
+test("a class the animation layer defines is part of the vocabulary", () => {
   // `animate-spin` is a real class — the animation package defines it — and
   // a lint that called it unknown would be wrong.
   const facts = factsFor(Object.values(starterThemes));
-  assertEquals(reported(facts, "animate-spin animate-fade-in"), []);
+  deepStrictEqual(reported(facts, "animate-spin animate-fade-in"), []);
 });
 
-Deno.test("when nothing can be read, the rule abstains", () => {
+test("when nothing can be read, the rule abstains", () => {
   // No theme at all is not a theme with nothing in it: it is a vocabulary
   // nobody could read, and the rule says nothing rather than flag every
   // class in the file.
   const facts = factsFor([]);
-  assertEquals(reported(facts, "bg-primary p-72 stack-sm"), []);
+  deepStrictEqual(reported(facts, "bg-primary p-72 stack-sm"), []);
 });
 
-Deno.test("a class the project declares is known beside the starters", () => {
+test("a class the project declares is known beside the starters", () => {
   // The project's own themes and the starters are one vocabulary: a project
   // serves the starters it has not forked, so both are in play.
   const facts = projectFacts(
     { acme: projectTheme() },
     new Set(),
   );
-  assertEquals(reported(facts, "p-72 text-xs"), []);
-  assertEquals(reported(facts, "my-stack"), ["my-stack"]);
+  deepStrictEqual(reported(facts, "p-72 text-xs"), []);
+  deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });

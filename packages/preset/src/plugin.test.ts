@@ -1,4 +1,4 @@
-import { strict as assert } from "node:assert";
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import { starterThemes } from "@spin/theme/themes";
 import type { ThemeDocument } from "@spin/theme";

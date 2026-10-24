@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { fileUpload } from "./file-upload.presentation.ts";
@@ -88,22 +89,22 @@ const file = (name: string, size = 100, type = ""): FileRecord => ({
 const names = (api: FileUploadApi): string[] =>
   api.acceptedFiles.map((entry) => entry.name);
 
-Deno.test("Given an empty dropzone / When files arrive through the input / Then they validate and land", () => {
+test("Given an empty dropzone / When files arrive through the input / Then they validate and land", () => {
   const h = harness({ multiple: true });
   h.chooseFiles([file("a.png", 4, "image/png")]);
-  assertEquals(names(h.api), ["a.png"], "the accepted file lands");
-  assertEquals(h.changes, ["a.png"], "one value-change");
+  deepStrictEqual(names(h.api), ["a.png"], "the accepted file lands");
+  deepStrictEqual(h.changes, ["a.png"], "one value-change");
   h.dispose();
 });
 
-Deno.test("Given an accept rule / When a mismatched file arrives / Then it is rejected with the rule", () => {
+test("Given an accept rule / When a mismatched file arrives / Then it is rejected with the rule", () => {
   const h = harness({ multiple: true, accept: "image/*" });
   h.chooseFiles([
     file("a.png", 4, "image/png"),
     file("a.txt", 4, "text/plain"),
   ]);
-  assertEquals(names(h.api), ["a.png"], "the image is accepted");
-  assertEquals(
+  deepStrictEqual(names(h.api), ["a.png"], "the image is accepted");
+  deepStrictEqual(
     h.api.rejectedFiles.map((item) => `${item.file.name}:${item.code}`),
     ["a.txt:accept"],
     "the text file names its rule",
@@ -111,11 +112,11 @@ Deno.test("Given an accept rule / When a mismatched file arrives / Then it is re
   h.dispose();
 });
 
-Deno.test("Given a size bound / When a too-large file arrives / Then it is rejected", () => {
+test("Given a size bound / When a too-large file arrives / Then it is rejected", () => {
   const h = harness({ multiple: true, maxSize: 100 });
   h.chooseFiles([file("big.bin", 101)]);
-  assertEquals(names(h.api), [], "nothing accepted");
-  assertEquals(
+  deepStrictEqual(names(h.api), [], "nothing accepted");
+  deepStrictEqual(
     h.api.rejectedFiles.map((item) => item.code),
     ["too-large"],
     "the rule is the bound",
@@ -123,14 +124,14 @@ Deno.test("Given a size bound / When a too-large file arrives / Then it is rejec
   h.dispose();
 });
 
-Deno.test("Given a single-mode dropzone / When two files arrive / Then only the first lands", () => {
+test("Given a single-mode dropzone / When two files arrive / Then only the first lands", () => {
   const h = harness();
   h.chooseFiles([file("a.png", 4, "image/png"), file("b.png", 4, "image/png")]);
-  assertEquals(names(h.api), ["a.png"], "single mode keeps the first");
+  deepStrictEqual(names(h.api), ["a.png"], "single mode keeps the first");
   h.dispose();
 });
 
-Deno.test("Given a filled dropzone / When a drop arrives / Then multiple mode appends", () => {
+test("Given a filled dropzone / When a drop arrives / Then multiple mode appends", () => {
   const h = harness({ multiple: true });
   h.chooseFiles([file("a.png", 4, "image/png")]);
   handler<(e: DragEvent) => void>(h.api.getDropzoneProps(), "onDrop")({
@@ -139,11 +140,11 @@ Deno.test("Given a filled dropzone / When a drop arrives / Then multiple mode ap
       files: [{ name: "b.png", size: 4, type: "image/png", path: "" }],
     },
   } as unknown as DragEvent);
-  assertEquals(names(h.api), ["a.png", "b.png"], "the drop appends");
+  deepStrictEqual(names(h.api), ["a.png", "b.png"], "the drop appends");
   h.dispose();
 });
 
-Deno.test("Given a count cap / When a drop would exceed it / Then the extra is rejected", () => {
+test("Given a count cap / When a drop would exceed it / Then the extra is rejected", () => {
   const h = harness({ multiple: true, maxFiles: 2 });
   h.chooseFiles([file("a.png", 4, "image/png"), file("b.png", 4, "image/png")]);
   handler<(e: DragEvent) => void>(h.api.getDropzoneProps(), "onDrop")({
@@ -152,8 +153,8 @@ Deno.test("Given a count cap / When a drop would exceed it / Then the extra is r
       files: [{ name: "c.png", size: 4, type: "image/png", path: "" }],
     },
   } as unknown as DragEvent);
-  assertEquals(names(h.api), ["a.png", "b.png"], "the cap holds");
-  assertEquals(
+  deepStrictEqual(names(h.api), ["a.png", "b.png"], "the cap holds");
+  deepStrictEqual(
     h.api.rejectedFiles.map((item) => `${item.file.name}:${item.code}`),
     ["c.png:too-many"],
     "and reports the rule",
@@ -161,14 +162,14 @@ Deno.test("Given a count cap / When a drop would exceed it / Then the extra is r
   h.dispose();
 });
 
-Deno.test("Given the modes / When focus and drag arrive / Then the dropzone reports them", () => {
+test("Given the modes / When focus and drag arrive / Then the dropzone reports them", () => {
   const h = harness();
   const dropzone = h.api.getDropzoneProps();
-  assertEquals(dropzone["data-focus"], undefined, "not focused at rest");
+  deepStrictEqual(dropzone["data-focus"], undefined, "not focused at rest");
   handler<() => void>(dropzone, "onFocus")();
-  assertEquals(h.api.getDropzoneProps()["data-focus"], "", "focus is reported");
+  deepStrictEqual(h.api.getDropzoneProps()["data-focus"], "", "focus is reported");
   handler<() => void>(h.api.getDropzoneProps(), "onBlur")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getDropzoneProps()["data-focus"],
     undefined,
     "blur returns to idle",
@@ -176,13 +177,13 @@ Deno.test("Given the modes / When focus and drag arrive / Then the dropzone repo
   handler<(e: DragEvent) => void>(h.api.getDropzoneProps(), "onDragOver")({
     preventDefault: () => undefined,
   } as unknown as DragEvent);
-  assertEquals(
+  deepStrictEqual(
     h.api.getDropzoneProps()["data-dragging"],
     "",
     "a drag over enters dragging",
   );
   handler<() => void>(h.api.getDropzoneProps(), "onDragLeave")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getDropzoneProps()["data-dragging"],
     undefined,
     "and leaving returns",
@@ -190,24 +191,24 @@ Deno.test("Given the modes / When focus and drag arrive / Then the dropzone repo
   h.dispose();
 });
 
-Deno.test("Given a filled dropzone / When removeFile is called / Then the row leaves", () => {
+test("Given a filled dropzone / When removeFile is called / Then the row leaves", () => {
   const h = harness({ multiple: true });
   h.chooseFiles([file("a.png", 4, "image/png"), file("b.png", 4, "image/png")]);
   h.api.removeFile("a.png");
-  assertEquals(names(h.api), ["b.png"], "the named file leaves");
+  deepStrictEqual(names(h.api), ["b.png"], "the named file leaves");
   h.dispose();
 });
 
-Deno.test("Given a seeded value / When the host alternates it / Then the machine follows", () => {
+test("Given a seeded value / When the host alternates it / Then the machine follows", () => {
   const h = harness({
     value: '[{"name":"a.png","size":4,"type":"image/png"}]',
     multiple: true,
   });
-  assertEquals(names(h.api), ["a.png"], "the seed lands");
+  deepStrictEqual(names(h.api), ["a.png"], "the seed lands");
   const cell = h.props["value"];
   if (cell === undefined) throw new Error("no value cell");
   cell('[{"name":"b.png","size":4,"type":"image/png"}]');
-  assertEquals(
+  deepStrictEqual(
     names(h.api),
     ["b.png"],
     "the host's write alternates the selection",
@@ -215,19 +216,19 @@ Deno.test("Given a seeded value / When the host alternates it / Then the machine
   h.dispose();
 });
 
-Deno.test("Given the item bags / When read / Then the size text is the human form", () => {
+test("Given the item bags / When read / Then the size text is the human form", () => {
   const h = harness({ multiple: true });
   h.chooseFiles([file("a.png", 2048, "image/png")]);
   const row = h.api.getAcceptedRows()[0];
   if (row === undefined) throw new Error("no row");
-  assertEquals(h.api.getItemSizeText(row), "2 KB", "the row shows bytes as KB");
-  assertEquals(
+  deepStrictEqual(h.api.getItemSizeText(row), "2 KB", "the row shows bytes as KB");
+  deepStrictEqual(
     h.api.getItemSizeText({ value: "a.png", file: file("a.png", 4) }),
     "4 B",
     "small files stay in bytes",
   );
   const bag = h.api.getItemDeleteTriggerProps(row);
-  assertEquals(
+  deepStrictEqual(
     bag["aria-label"],
     "Remove a.png",
     "the delete trigger names its row",
@@ -235,10 +236,10 @@ Deno.test("Given the item bags / When read / Then the size text is the human for
   h.dispose();
 });
 
-Deno.test("Given an imperative clear / When called / Then the selection empties", () => {
+test("Given an imperative clear / When called / Then the selection empties", () => {
   const h = harness({ multiple: true });
   h.chooseFiles([file("a.png", 4, "image/png")]);
   h.api.clear();
-  assertEquals(names(h.api), [], "clear empties");
+  deepStrictEqual(names(h.api), [], "clear empties");
   h.dispose();
 });

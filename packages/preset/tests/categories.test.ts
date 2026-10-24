@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import {
   elementNamed,
@@ -34,7 +35,7 @@ function glyphName(icon: string): string {
   return icon.startsWith(LUCIDE_CLASS) ? icon.slice(LUCIDE_CLASS.length) : icon;
 }
 
-Deno.test("every component the library ships is filed in a group", () => {
+test("every component the library ships is filed in a group", () => {
   const groups = new Set(PRIMITIVE_CATEGORIES.map((category) => category.id));
   const missing: string[] = [];
   for (const id of Object.keys(componentExamples)) {
@@ -47,10 +48,10 @@ Deno.test("every component the library ships is filed in a group", () => {
       missing.push(`${id} is filed in ${element.category}, which is no group`);
     }
   }
-  assertEquals(missing, [], missing.join(", "));
+  deepStrictEqual(missing, [], missing.join(", "));
 });
 
-Deno.test("every group carries at least one element", () => {
+test("every group carries at least one element", () => {
   // A group with nothing in it is a heading over nothing: the rail would
   // draw a band the reader could not act on.
   const empty = PRIMITIVE_CATEGORIES
@@ -58,30 +59,30 @@ Deno.test("every group carries at least one element", () => {
       !PRIMITIVE_ELEMENTS.some((element) => element.category === category.id)
     )
     .map((category) => category.label);
-  assertEquals(empty, [], `empty groups: ${empty.join(", ")}`);
+  deepStrictEqual(empty, [], `empty groups: ${empty.join(", ")}`);
 });
 
-Deno.test("every glyph is a name the lucide collection carries", () => {
+test("every glyph is a name the lucide collection carries", () => {
   const unknown: string[] = [];
   for (const element of PRIMITIVE_ELEMENTS) {
     const name = glyphName(element.icon);
     if (!(name in LUCIDE)) unknown.push(`${element.name} wears ${name}`);
   }
-  assertEquals(
+  deepStrictEqual(
     unknown,
     [],
     `the lucide collection has no such glyph: ${unknown.join(", ")}`,
   );
 });
 
-Deno.test("the manifest carries the taxonomy the elements are filed by", () => {
+test("the manifest carries the taxonomy the elements are filed by", () => {
   // The manifest is what every consumer reads, so a taxonomy that lives only
   // in the authoring module is a taxonomy the studio cannot see.
-  assertEquals(
+  deepStrictEqual(
     primitiveCategories.map((category) => category.id),
     PRIMITIVE_CATEGORIES.map((category) => category.id),
   );
-  assertEquals(
+  deepStrictEqual(
     primitiveElements.map((element) => element.name),
     PRIMITIVE_ELEMENTS.map((element) => element.name),
   );
@@ -91,12 +92,12 @@ Deno.test("the manifest carries the taxonomy the elements are filed by", () => {
       authored !== undefined,
       `${element.name} is in the manifest and in no taxonomy`,
     );
-    assertEquals(element.category, authored.category, element.name);
-    assertEquals(element.icon, authored.icon, element.name);
+    deepStrictEqual(element.category, authored.category, element.name);
+    deepStrictEqual(element.icon, authored.icon, element.name);
   }
 });
 
-Deno.test("a component's contract carries the group and the glyph it wears", () => {
+test("a component's contract carries the group and the glyph it wears", () => {
   // The rail reads the taxonomy, but the contract is what a component IS —
   // and a component whose contract filed it elsewhere would be drawn in one
   // place and filed in another.
@@ -111,5 +112,5 @@ Deno.test("a component's contract carries the group and the glyph it wears", () 
       mismatched.push(`${name}: ${contract.icon} vs ${element.icon}`);
     }
   }
-  assertEquals(mismatched, [], mismatched.join(", "));
+  deepStrictEqual(mismatched, [], mismatched.join(", "));
 });

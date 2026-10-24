@@ -7,6 +7,7 @@
  */
 
 import { dirname, join, relative, resolve } from "node:path";
+import { readFile, stat } from "node:fs/promises";
 
 /** The import specifiers of a file, with the text around them. */
 const SPECIFIER = /\b(?:from|import)\s*\(?\s*(["'])([^"']+)\1/g;
@@ -14,15 +15,21 @@ const SPECIFIER = /\b(?:from|import)\s*\(?\s*(["'])([^"']+)\1/g;
 /**
  * The specifiers a file imports.
  *
- * The imports are the statements at the top of the file — what the bundler
- * or the compiler wrote — and the code follows. The scan stops at the first
- * statement that is not an import, so a string inside the code (a script the
- * plugin injects, a config a module generates) is not mistaken for a
- * dependency.
+ * Every import statement in the file, wherever it sits. Bun's build keeps
+ * the modules separate (one entry per module, imports external), so an
+ * import may follow a banner comment or a helper the emitter wrote above
+ * it — stopping at the first non-import statement would miss those. A
+ * string inside the code is still not mistaken for a dependency: only
+ * `import`/`export ... from` statements are read.
  */
 export function importSpecifiers(text: string): string[] {
   const found: string[] = [];
   let statement = "";
+  // Inside a template literal the emitter wrote, an `import ... from`
+  // line is generated content (a script tag, a config scaffold), not a
+  // dependency. Backtick counting is approximate, but a missed toggle
+  // only risks a skipped import, never a false one.
+  let templateDepth = 0;
   for (const line of text.split("\n")) {
     const trimmed = line.trim();
     if (statement === "") {
@@ -33,10 +40,23 @@ export function importSpecifiers(text: string): string[] {
       ) {
         continue;
       }
-      if (!/^(import|export)\b/.test(trimmed)) break;
+      // A statement that is not an import or re-export ends any
+      // multi-line import being read, and is otherwise skipped: imports
+      // may follow code the emitter wrote above them.
+      if (!/^(import|export)\b/.test(trimmed)) {
+        statement = "";
+        templateDepth += (line.match(/`/g) ?? []).length;
+        continue;
+      }
     }
     statement += trimmed + "\n";
     if (!trimmed.endsWith(";")) continue;
+    // A statement completed inside a template literal is content, not
+    // an import — but only when the literal opened before it.
+    if (templateDepth % 2 === 1) {
+      statement = "";
+      continue;
+    }
     for (const match of statement.matchAll(SPECIFIER)) found.push(match[2]);
     statement = "";
   }
@@ -72,7 +92,7 @@ export async function reachableFiles(
       : file.replace(/\.js$/, ".d.ts");
     if (await exists(`${dist}/${companion}`)) queue.push(companion);
     if (!isModule(file)) continue;
-    for (const specifier of importSpecifiers(await Deno.readTextFile(path))) {
+    for (const specifier of importSpecifiers(await readFile(path, "utf8"))) {
       if (!specifier.startsWith(".")) continue;
       const next = relative(dist, resolve(dirname(path), specifier));
       if (await exists(join(dist, next))) queue.push(next);
@@ -83,7 +103,7 @@ export async function reachableFiles(
 
 async function exists(path: string): Promise<boolean> {
   try {
-    await Deno.stat(path);
+    await stat(path);
     return true;
   } catch {
     return false;

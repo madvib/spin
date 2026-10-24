@@ -16,7 +16,7 @@
  *   STUDIO_URL=http://localhost:5174 deno task e2e
  */
 
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { test, withPage } from "./harness.ts";
 import { StudioPage, studioUrl } from "./studio.ts";
 
@@ -195,7 +195,7 @@ test("a drag paints the pane before it commits", async () => {
       );
       // The row was rebuilt with the new value; the pointer's control is the
       // one the author is still in.
-      assertEquals(
+      deepStrictEqual(
         probe.focused,
         "token-spacing.4",
         "the commit did not keep focus on the control",
@@ -271,19 +271,19 @@ test("undo, redo and reset put the field back on the document's word", async () 
       })()`);
 
       assert(probe.error === undefined, `the shadow row is ${probe.error}`);
-      assertEquals(probe.committed, "2px", "the field took the edit");
-      assertEquals(
+      deepStrictEqual(probe.committed, "2px", "the field took the edit");
+      deepStrictEqual(
         probe.afterReset,
         probe.before,
         "reset put the field back on the theme's value",
       );
-      assertEquals(probe.edited, "3px", "the second edit landed");
-      assertEquals(
+      deepStrictEqual(probe.edited, "3px", "the second edit landed");
+      deepStrictEqual(
         probe.afterUndo,
         probe.before,
         "undo moved the field with the document",
       );
-      assertEquals(
+      deepStrictEqual(
         probe.afterRedo,
         "3px",
         "redo moved the field with the document",
@@ -339,7 +339,7 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
     })()`);
 
     assert(probe.error === undefined, `the role picker is ${probe.error}`);
-    assertEquals(
+    deepStrictEqual(
       probe.after,
       probe.before,
       "the refused colour stayed in the field",
@@ -349,7 +349,7 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
         (probe.said ?? "").includes("floor"),
       `no refusal beside the role: "${probe.said ?? ""}"`,
     );
-    assertEquals(
+    deepStrictEqual(
       probe.saved,
       true,
       "a refused value moved the document",
@@ -409,7 +409,7 @@ test("the font field hands its list to the keyboard", async () => {
         };
       })()`,
     );
-    assertEquals(
+    deepStrictEqual(
       inside.inList,
       true,
       `ArrowDown did not enter the list (focus: "${inside.focused}")`,
@@ -427,8 +427,8 @@ test("the font field hands its list to the keyboard", async () => {
         };
       })()`,
     );
-    assertEquals(closed.open, false, "Escape did not close the list");
-    assertEquals(
+    deepStrictEqual(closed.open, false, "Escape did not close the list");
+    deepStrictEqual(
       closed.focus,
       "field",
       "Escape did not return the reader to the field",
@@ -503,7 +503,7 @@ test("the keyboard drives undo, redo and save", async () => {
       const afterUndo = await page.eval<string>(
         `[...document.querySelectorAll('button[aria-label^="Reset shadow."]')][0]?.parentElement?.querySelector('input[type="text"]')?.value ?? ""`,
       );
-      assertEquals(
+      deepStrictEqual(
         afterUndo,
         flow.before,
         "Mod+Z did not move the field with the document",
@@ -514,7 +514,7 @@ test("the keyboard drives undo, redo and save", async () => {
       const afterRedo = await page.eval<string>(
         `[...document.querySelectorAll('button[aria-label^="Reset shadow."]')][0]?.parentElement?.querySelector('input[type="text"]')?.value ?? ""`,
       );
-      assertEquals(afterRedo, "3px", "Mod+Shift+Z did not redo the edit");
+      deepStrictEqual(afterRedo, "3px", "Mod+Shift+Z did not redo the edit");
 
       await page.page.keyboard.press("Control+s");
       await page.settle(1600);
@@ -586,8 +586,8 @@ test("the theme and mode panels take the keyboard", async () => {
         };
       })()`,
     );
-    assertEquals(opened.open, true, "ArrowDown did not open the panel");
-    assertEquals(
+    deepStrictEqual(opened.open, true, "ArrowDown did not open the panel");
+    deepStrictEqual(
       opened.active,
       current,
       "the panel did not land on the theme in force",
@@ -598,7 +598,7 @@ test("the theme and mode panels take the keyboard", async () => {
     const moved = await page.eval<string | null>(
       `document.activeElement?.getAttribute("data-theme") ?? null`,
     );
-    assertEquals(moved, next, "ArrowDown did not walk the rows");
+    deepStrictEqual(moved, next, "ArrowDown did not walk the rows");
 
     await page.page.keyboard.press("Escape");
     await page.settle(300);
@@ -612,8 +612,8 @@ test("the theme and mode panels take the keyboard", async () => {
         };
       })()`,
     );
-    assertEquals(closed.open, false, "Escape did not close the panel");
-    assertEquals(
+    deepStrictEqual(closed.open, false, "Escape did not close the panel");
+    deepStrictEqual(
       closed.focus,
       "theme-picker",
       "Escape did not return the reader to the control",
@@ -626,7 +626,7 @@ test("the theme and mode panels take the keyboard", async () => {
     await page.page.keyboard.press("Enter");
     await page.settle(900);
     const seated = await page.editingName();
-    assertEquals(
+    deepStrictEqual(
       seated,
       next,
       "Enter did not seat the row the keyboard was on",
@@ -648,8 +648,8 @@ test("the theme and mode panels take the keyboard", async () => {
         };
       })()`,
     );
-    assertEquals(modeOpen.open, true, "ArrowDown did not open the mode menu");
-    assertEquals(
+    deepStrictEqual(modeOpen.open, true, "ArrowDown did not open the mode menu");
+    deepStrictEqual(
       modeOpen.current,
       true,
       "the mode menu did not land on the mode in force",
@@ -678,13 +678,13 @@ test("the theme and mode survive a reload", async () => {
     const flipped = await page.chooseMode("dark");
     assert(flipped === "pressed", `the dark control is ${flipped}`);
     const before = await state(page);
-    assertEquals(before.name, "synthwave", "the wrong theme was seated");
-    assertEquals(before.mode, "dark", "the wrong mode was chosen");
+    deepStrictEqual(before.name, "synthwave", "the wrong theme was seated");
+    deepStrictEqual(before.mode, "dark", "the wrong mode was chosen");
 
     await page.reload();
     const after = await state(page);
-    assertEquals(after.name, "synthwave", "the reload lost the seated theme");
-    assertEquals(after.mode, "dark", "the reload lost the chosen mode");
+    deepStrictEqual(after.name, "synthwave", "the reload lost the seated theme");
+    deepStrictEqual(after.mode, "dark", "the reload lost the chosen mode");
   });
 });
 
@@ -727,7 +727,7 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
           return { rows, expected };
         })()`,
       );
-      assertEquals(
+      deepStrictEqual(
         dialog.rows,
         dialog.expected,
         "the dialog did not offer one source row per theme",
@@ -772,7 +772,7 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
       );
       made = forked.name;
       const seated = await page.editingName();
-      assertEquals(seated, made, "the fork was made but not seated");
+      deepStrictEqual(seated, made, "the fork was made but not seated");
     } finally {
       if (made !== undefined) {
         await rpc(page, "/project/themes/remove", { name: made });
@@ -813,9 +813,9 @@ test("a range readout accepts typed numbers and the element map picks and resets
           pane: getComputedStyle(pane).getPropertyValue("--spacing-4").trim(),
         };
       })()`);
-      assertEquals(typed.error, undefined);
-      assertEquals(typed.thumb, "1.75");
-      assertEquals(typed.pane, "1.75rem");
+      deepStrictEqual(typed.error, undefined);
+      deepStrictEqual(typed.thumb, "1.75");
+      deepStrictEqual(typed.pane, "1.75rem");
 
       await page.goto(`${studioUrl()}/type`);
       const elementMap = await page.eval<{
@@ -844,10 +844,10 @@ test("a range readout accepts typed numbers and the element map picks and resets
         const afterReset = (trigger()?.textContent ?? "").trim();
         return { before, picked, hasReset, afterReset };
       })()`);
-      assertEquals(elementMap.error, undefined);
-      assertEquals(elementMap.picked, "sm");
-      assertEquals(elementMap.hasReset, true);
-      assertEquals(elementMap.afterReset, elementMap.before);
+      deepStrictEqual(elementMap.error, undefined);
+      deepStrictEqual(elementMap.picked, "sm");
+      deepStrictEqual(elementMap.hasReset, true);
+      deepStrictEqual(elementMap.afterReset, elementMap.before);
     } finally {
       await page.clearOverlay(studioUrl());
     }

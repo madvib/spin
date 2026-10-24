@@ -1,4 +1,6 @@
-import { assert, assertEquals, assertStringIncludes } from "@std/assert";
+/** @jsxImportSource solid-js */
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { renderToString } from "solid-js/web";
 import { Logo, Mark } from "../src/index.ts";
 
@@ -39,55 +41,55 @@ async function hero(reduced: boolean): Promise<string> {
   }
 }
 
-Deno.test("the kit's entry point carries both marks", () => {
-  assertEquals(typeof Mark, "function");
-  assertEquals(typeof Logo, "function");
+test("the kit's entry point carries both marks", () => {
+  deepStrictEqual(typeof Mark, "function");
+  deepStrictEqual(typeof Logo, "function");
   assert(Mark !== Logo, "the hero and the corner mark are two pieces");
 });
 
-Deno.test("the corner mark draws at the size it is given", async () => {
+test("the corner mark draws at the size it is given", async () => {
   // A rail, a header, a page: the sizes a corner mark actually appears at.
   const rail = await renderToString(() => <Logo size="sm" />);
-  assertStringIncludes(rail, 'width="20"');
-  assertStringIncludes(rail, 'height="20"');
-  assertStringIncludes(rail, "h-5 w-5");
+  assert(rail.includes('width="20"'));
+  assert(rail.includes('height="20"'));
+  assert(rail.includes("h-5 w-5"));
 
   const header = await renderToString(() => <Logo size="md" />);
-  assertStringIncludes(header, 'width="32"');
-  assertStringIncludes(header, 'height="32"');
-  assertStringIncludes(header, "h-8 w-8");
+  assert(header.includes('width="32"'));
+  assert(header.includes('height="32"'));
+  assert(header.includes("h-8 w-8"));
 });
 
-Deno.test("the corner mark is one drawing at every size", async () => {
+test("the corner mark is one drawing at every size", async () => {
   // A mark that is redrawn per size is two marks to keep true.
   const rail = await renderToString(() => <Logo size="sm" />);
   const header = await renderToString(() => <Logo size="md" />);
-  assertEquals(paths(rail), paths(header));
+  deepStrictEqual(paths(rail), paths(header));
 });
 
-Deno.test("the corner mark is painted in the ink it inherits", async () => {
+test("the corner mark is painted in the ink it inherits", async () => {
   // One ink, so the mark wears whatever surface it lands on: the web is one
   // filled path, painted in the colour it inherits.
   const html = await renderToString(() => <Logo size="sm" />);
-  assertStringIncludes(html, 'fill="currentColor"');
+  assert(html.includes('fill="currentColor"'));
 });
 
-Deno.test("the corner mark carries the wordmark in the brand face", async () => {
+test("the corner mark carries the wordmark in the brand face", async () => {
   // The mark carries the picture; the word carries the name.
   const html = await renderToString(() => <Logo size="sm" />);
-  assertStringIncludes(html, "font-brand");
-  assertStringIncludes(html, ">spin<");
+  assert(html.includes("font-brand"));
+  assert(html.includes(">spin<"));
 });
 
-Deno.test("the hero is whole and still when motion is not wanted", async () => {
+test("the hero is whole and still when motion is not wanted", async () => {
   // Every thread drawn, the spider where it hangs: the drawing, finished.
   const html = await hero(true);
-  assertStringIncludes(html, 'stroke-dashoffset="0"');
-  assertStringIncludes(html, 'opacity="1"');
+  assert(html.includes('stroke-dashoffset="0"'));
+  assert(html.includes('opacity="1"'));
 });
 
-Deno.test("the hero draws itself in when motion is welcome", async () => {
+test("the hero draws itself in when motion is welcome", async () => {
   // The spokes start hidden and are drawn out from the hub.
   const html = await hero(false);
-  assertStringIncludes(html, 'stroke-dashoffset="1"');
+  assert(html.includes('stroke-dashoffset="1"'));
 });

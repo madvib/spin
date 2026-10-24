@@ -5,16 +5,16 @@
  * absent both, the daemon's own default. Not discovery: the daemon binds a
  * fixed address at config time, and a client that runs it does too.
  *
- *   deno run --allow-net --allow-env src/main.ts --daemon http://127.0.0.1:7463/rpc
+ *   bun run src/main.ts --daemon http://127.0.0.1:7463/rpc
  */
 
 import { createSpinClient } from "@spin/api";
 import { StdioServerTransport } from "./sdk.ts";
 import { buildSpinMcpServer } from "./server.ts";
 
-const flag = Deno.args.indexOf("--daemon");
-const url = (flag >= 0 ? Deno.args[flag + 1] : undefined) ??
-  Deno.env.get("SPIN_DAEMON_URL") ??
+const flag = process.argv.indexOf("--daemon");
+const url = (flag >= 0 ? process.argv[flag + 1] : undefined) ??
+  process.env["SPIN_DAEMON_URL"] ??
   "http://127.0.0.1:7463/rpc";
 
 const server = buildSpinMcpServer(createSpinClient(url));

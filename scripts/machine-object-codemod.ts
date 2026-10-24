@@ -26,6 +26,7 @@
  *   result falls back to the default)
  */
 
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 const COMPONENTS = "packages/components/src";
 
 /** The extent of an expression, stopping at a top-level `,`, `;` or `:`. */
@@ -77,14 +78,14 @@ const HELPER =
 
 let done = 0;
 let skipped: string[] = [];
-for (const entry of Deno.readDirSync(COMPONENTS)) {
-  if (!entry.isDirectory) continue;
+for (const entry of readdirSync(COMPONENTS, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
   const dir = `${COMPONENTS}/${entry.name}`;
-  for (const file of Deno.readDirSync(dir)) {
-    if (!file.isFile || !file.name.endsWith(".machine.ts")) continue;
+  for (const file of readdirSync(dir, { withFileTypes: true })) {
+    if (!file.isFile() || !file.name.endsWith(".machine.ts")) continue;
     if (file.name.endsWith(".machine.test.ts")) continue;
     const path = `${dir}/${file.name}`;
-    let source = await Deno.readTextFile(path);
+    let source = readFileSync(path, "utf8");
 
     // 1. the factory header -> the machine object
     const head =
@@ -226,7 +227,7 @@ for (const entry of Deno.readDirSync(COMPONENTS)) {
       }
     }
 
-    await Deno.writeTextFile(path, source);
+    writeFileSync(path, source);
     done += 1;
   }
 }

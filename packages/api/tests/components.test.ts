@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "@std/assert";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { mkdtempSync } from "node:fs";
@@ -32,7 +32,7 @@ describe("daemon components over HTTP", () => {
     const listed = await client.components.list({});
     const tree = listed.find((c) => c.name === "tree-view");
     assert(tree !== undefined, "tree-view is listed");
-    assertEquals(tree.examples, ["basic", "loading"]);
+    deepStrictEqual(tree.examples, ["basic", "loading"]);
     assert(tree.manifest.parts.includes("root"), "the manifest names parts");
     assert(tree.manifest.slots.includes("item"), "and slots");
     assert(tree.manifest.readers.length > 0, "and readers");
@@ -43,7 +43,7 @@ describe("daemon components over HTTP", () => {
     const { examples } = await client.components.examples({
       name: "tree-view",
     });
-    assertEquals(examples.length, 2);
+    deepStrictEqual(examples.length, 2);
     const basic = examples.find((v) => v.name === "basic");
     assert(basic !== undefined);
     assert(
@@ -58,8 +58,8 @@ describe("daemon components over HTTP", () => {
       example: "basic",
       root: dir,
     });
-    assertEquals(copied.error, null);
-    assertEquals(copied.file, join("spin", "tree-view", "basic.html"));
+    deepStrictEqual(copied.error, null);
+    deepStrictEqual(copied.file, join("spin", "tree-view", "basic.html"));
     const written = join(dir, "spin", "tree-view", "basic.html");
     assert(existsSync(written), "the file lands in the project");
     assert(
@@ -74,7 +74,7 @@ describe("daemon components over HTTP", () => {
       example: "nope",
       root: dir,
     });
-    assertEquals(copied.file, null);
+    deepStrictEqual(copied.file, null);
     assert(copied.error !== null);
   });
 });

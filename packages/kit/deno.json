@@ -9,11 +9,6 @@
     "solid-js/web": "npm:solid-js@^1.9.3/web",
     "solid-js/jsx-runtime": "./src/ssr-jsx.ts"
   },
-  "tasks": {
-    "test": "deno test --allow-read --allow-net tests/",
-    "lint": "deno lint",
-    "fmt": "deno fmt"
-  },
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js"

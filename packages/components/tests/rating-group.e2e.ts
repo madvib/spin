@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM rating-group rates in a real browser — click to
  * commit, hover to preview, arrows/Home/End from the keyboard, and the
@@ -6,7 +7,7 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `rating-group:<element id>:<part>`. */
 const at = (id: string, part: string): string =>
@@ -15,7 +16,7 @@ const CONTROL = at("stars", "control");
 const item = (index: number): string =>
   `[id="rating-group:stars:item:${index}"]`;
 
-Deno.test("spin-rating-group e2e", () =>
+test("spin-rating-group e2e", () =>
   runComponentSuite(
     { port: 5251, route: "/rating-group", ready: CONTROL },
     async ({ page }) => {

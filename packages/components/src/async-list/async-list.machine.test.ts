@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { asyncList } from "./async-list.presentation.ts";
@@ -209,41 +210,41 @@ function typing(input: HTMLInputElement, value: string): InputEvent {
 
 // ---- the start state ------------------------------------------------------
 
-Deno.test("Given a fresh list / When nothing is authored / Then idle holds nothing", () => {
+test("Given a fresh list / When nothing is authored / Then idle holds nothing", () => {
   const h = mount();
-  assertEquals(state(h.api), "idle", "the mount state is idle");
-  assertEquals(h.api.items, [], "and it holds no items");
-  assertEquals(h.api.empty, true, "so the list is empty");
-  assertEquals(h.api.loading, false, "nothing is loading");
-  assertEquals(h.api.sorting, false, "and nothing is sorting");
-  assertEquals(h.api.filterText, "", "the filter text starts empty");
-  assertEquals(h.api.cursor, undefined, "there is no cursor");
-  assertEquals(h.api.error, undefined, "and no error");
-  assertEquals(h.api.hasMore, false, "so there is no next page");
-  assertEquals(h.api.sortDescriptor, undefined, "and no sort descriptor");
-  assertEquals(h.loadCalls.length, 0, "no load ran");
+  deepStrictEqual(state(h.api), "idle", "the mount state is idle");
+  deepStrictEqual(h.api.items, [], "and it holds no items");
+  deepStrictEqual(h.api.empty, true, "so the list is empty");
+  deepStrictEqual(h.api.loading, false, "nothing is loading");
+  deepStrictEqual(h.api.sorting, false, "and nothing is sorting");
+  deepStrictEqual(h.api.filterText, "", "the filter text starts empty");
+  deepStrictEqual(h.api.cursor, undefined, "there is no cursor");
+  deepStrictEqual(h.api.error, undefined, "and no error");
+  deepStrictEqual(h.api.hasMore, false, "so there is no next page");
+  deepStrictEqual(h.api.sortDescriptor, undefined, "and no sort descriptor");
+  deepStrictEqual(h.loadCalls.length, 0, "no load ran");
   h.dispose();
 });
 
-Deno.test("Given initial values / When the list mounts / Then the seed is the state", () => {
+test("Given initial values / When the list mounts / Then the seed is the state", () => {
   const h = mount({
     initialItems: MANIFEST,
     initialFilterText: "deno",
     initialSortDescriptor: { column: "name", direction: "ascending" },
   });
-  assertEquals(
+  deepStrictEqual(
     values(h.api),
     ["deno", "bun", "node"],
     "the seeded items are the rows",
   );
-  assertEquals(h.api.empty, false, "so the list is not empty");
-  assertEquals(h.api.filterText, "deno", "the filter text is seeded");
-  assertEquals(
+  deepStrictEqual(h.api.empty, false, "so the list is not empty");
+  deepStrictEqual(h.api.filterText, "deno", "the filter text is seeded");
+  deepStrictEqual(
     h.api.sortDescriptor,
     { column: "name", direction: "ascending" },
     "the sort descriptor is seeded",
   );
-  assertEquals(
+  deepStrictEqual(
     labels(h.api),
     ["Deno", "Bun", "Node"],
     "and each row shows its label",
@@ -251,57 +252,57 @@ Deno.test("Given initial values / When the list mounts / Then the seed is the st
   h.dispose();
 });
 
-Deno.test("Given autoReload / When the list mounts / Then the first page is fetched", async () => {
+test("Given autoReload / When the list mounts / Then the first page is fetched", async () => {
   const h = mount({ autoReload: true });
-  assertEquals(state(h.api), "loading", "an autoReload mount fetches on entry");
-  assertEquals(h.loadCalls.length, 1, "one load ran");
-  assertEquals(h.loadCalls[0]?.cursor, null, "and it starts from no cursor");
-  assertEquals(h.api.loading, true, "the api reports the load");
-  assertEquals(
+  deepStrictEqual(state(h.api), "loading", "an autoReload mount fetches on entry");
+  deepStrictEqual(h.loadCalls.length, 1, "one load ran");
+  deepStrictEqual(h.loadCalls[0]?.cursor, null, "and it starts from no cursor");
+  deepStrictEqual(h.api.loading, true, "the api reports the load");
+  deepStrictEqual(
     h.api.getListProps()["aria-busy"],
     true,
     "the list region announces it",
   );
   await h.resolveLoad(0, MANIFEST, "page-2");
-  assertEquals(
+  deepStrictEqual(
     state(h.api),
     "idle",
     "the resolved page returns the list to idle",
   );
-  assertEquals(values(h.api), ["deno", "bun", "node"], "and it holds the page");
-  assertEquals(h.api.hasMore, true, "a cursor means there is a next page");
-  assertEquals(h.success, [{ items: MANIFEST }], "onSuccess reports the page");
+  deepStrictEqual(values(h.api), ["deno", "bun", "node"], "and it holds the page");
+  deepStrictEqual(h.api.hasMore, true, "a cursor means there is a next page");
+  deepStrictEqual(h.success, [{ items: MANIFEST }], "onSuccess reports the page");
   h.dispose();
 });
 
 // ---- RELOAD ---------------------------------------------------------------
 
-Deno.test("Given a loaded list / When reload runs / Then the items are replaced", async () => {
+test("Given a loaded list / When reload runs / Then the items are replaced", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, "page-2");
   h.api.reload();
-  assertEquals(state(h.api), "loading", "a reload fetches again");
-  assertEquals(h.api.items, [], "the held items are cleared while it runs");
+  deepStrictEqual(state(h.api), "loading", "a reload fetches again");
+  deepStrictEqual(h.api.items, [], "the held items are cleared while it runs");
   await h.resolveLoad(1, [{ value: "go", label: "Go" }], null);
-  assertEquals(values(h.api), ["go"], "the new page replaces the old one");
-  assertEquals(h.api.hasMore, false, "and a null cursor ends the paging");
-  assertEquals(
+  deepStrictEqual(values(h.api), ["go"], "the new page replaces the old one");
+  deepStrictEqual(h.api.hasMore, false, "and a null cursor ends the paging");
+  deepStrictEqual(
     h.loadCalls[1]?.cursor,
     null,
     "a reload restarts from no cursor",
   );
-  assertEquals(h.api.cursor, undefined, "the api reports no cursor");
+  deepStrictEqual(h.api.cursor, undefined, "the api reports no cursor");
   h.dispose();
 });
 
-Deno.test("Given a loading list / When reload runs again / Then the superseded fetch is dropped", async () => {
+test("Given a loading list / When reload runs again / Then the superseded fetch is dropped", async () => {
   const h = mount({ autoReload: true });
   h.api.reload();
-  assertEquals(h.loadCalls.length, 2, "the reload started a second fetch");
+  deepStrictEqual(h.loadCalls.length, 2, "the reload started a second fetch");
   // The superseded load resolves late and its page must land nowhere.
   await h.resolveLoad(0, MANIFEST, "late-cursor");
-  assertEquals(h.api.items, [], "the stale page is dropped");
-  assertEquals(
+  deepStrictEqual(h.api.items, [], "the stale page is dropped");
+  deepStrictEqual(
     state(h.api),
     "loading",
     "and the newest fetch is still in flight",
@@ -311,58 +312,58 @@ Deno.test("Given a loading list / When reload runs again / Then the superseded f
 
 // ---- LOAD_MORE ------------------------------------------------------------
 
-Deno.test("Given a page with a cursor / When loadMore runs / Then the page is appended", async () => {
+test("Given a page with a cursor / When loadMore runs / Then the page is appended", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, [{ value: "a", label: "A" }], "cursor-2");
   h.api.loadMore();
-  assertEquals(state(h.api), "loading", "load-more fetches");
-  assertEquals(
+  deepStrictEqual(state(h.api), "loading", "load-more fetches");
+  deepStrictEqual(
     h.loadCalls[1]?.cursor,
     "cursor-2",
     "from the cursor the page left behind",
   );
   await h.resolveLoad(1, [{ value: "b", label: "B" }], null);
-  assertEquals(values(h.api), ["a", "b"], "the page is appended, not replaced");
-  assertEquals(h.api.hasMore, false, "the list is exhausted");
-  assertEquals(h.success.length, 2, "each page reports once");
+  deepStrictEqual(values(h.api), ["a", "b"], "the page is appended, not replaced");
+  deepStrictEqual(h.api.hasMore, false, "the list is exhausted");
+  deepStrictEqual(h.success.length, 2, "each page reports once");
   h.dispose();
 });
 
-Deno.test("Given an exhausted list / When loadMore runs / Then nothing is fetched", async () => {
+test("Given an exhausted list / When loadMore runs / Then nothing is fetched", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, null);
   h.api.loadMore();
-  assertEquals(state(h.api), "idle", "an exhausted list stays idle");
-  assertEquals(h.loadCalls.length, 1, "and no fetch started");
+  deepStrictEqual(state(h.api), "idle", "an exhausted list stays idle");
+  deepStrictEqual(h.loadCalls.length, 1, "and no fetch started");
   h.dispose();
 });
 
 // ---- FILTER ---------------------------------------------------------------
 
-Deno.test("Given a loaded list / When a filter is set / Then the fetch carries it", async () => {
+test("Given a loaded list / When a filter is set / Then the fetch carries it", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, "page-2");
   h.api.setFilterText("den");
-  assertEquals(state(h.api), "loading", "a filter fetches");
-  assertEquals(h.api.filterText, "den", "the filter text is the machine's now");
-  assertEquals(h.loadCalls[1]?.filterText, "den", "and the fetch carries it");
-  assertEquals(h.loadCalls[1]?.cursor, null, "a filter restarts the paging");
+  deepStrictEqual(state(h.api), "loading", "a filter fetches");
+  deepStrictEqual(h.api.filterText, "den", "the filter text is the machine's now");
+  deepStrictEqual(h.loadCalls[1]?.filterText, "den", "and the fetch carries it");
+  deepStrictEqual(h.loadCalls[1]?.cursor, null, "a filter restarts the paging");
   await h.resolveLoad(1, [{ value: "deno", label: "Deno" }], null);
-  assertEquals(values(h.api), ["deno"], "the filtered page replaces the list");
+  deepStrictEqual(values(h.api), ["deno"], "the filtered page replaces the list");
   h.dispose();
 });
 
-Deno.test("Given a filtered list / When clearFilter runs / Then the filter empties", async () => {
+test("Given a filtered list / When clearFilter runs / Then the filter empties", async () => {
   const h = mount({ initialFilterText: "deno", autoReload: true });
-  assertEquals(
+  deepStrictEqual(
     h.loadCalls[0]?.filterText,
     "deno",
     "the seed reaches the first fetch",
   );
   await h.resolveLoad(0, MANIFEST, null);
   h.api.clearFilter();
-  assertEquals(h.api.filterText, "", "the filter text empties");
-  assertEquals(
+  deepStrictEqual(h.api.filterText, "", "the filter text empties");
+  deepStrictEqual(
     h.loadCalls[1]?.filterText,
     "",
     "and the next fetch carries the empty filter",
@@ -370,15 +371,15 @@ Deno.test("Given a filtered list / When clearFilter runs / Then the filter empti
   h.dispose();
 });
 
-Deno.test("Given a filter typed in the field / When the input fires / Then the machine hears it", async () => {
+test("Given a filter typed in the field / When the input fires / Then the machine hears it", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, null);
   const bag = h.api.getFilterInputProps();
   const input = document.createElement("input");
   handler<(event: InputEvent) => void>(bag, "onInput")(typing(input, "bun"));
-  assertEquals(h.api.filterText, "bun", "the typed text is the machine's");
-  assertEquals(state(h.api), "loading", "and it fetched");
-  assertEquals(
+  deepStrictEqual(h.api.filterText, "bun", "the typed text is the machine's");
+  deepStrictEqual(state(h.api), "loading", "and it fetched");
+  deepStrictEqual(
     h.loadCalls[1]?.filterText,
     "bun",
     "the fetch carries the typed text",
@@ -386,40 +387,40 @@ Deno.test("Given a filter typed in the field / When the input fires / Then the m
   h.dispose();
 });
 
-Deno.test("Given a load in flight / When a filter arrives / Then the superseded fetch is dropped", async () => {
+test("Given a load in flight / When a filter arrives / Then the superseded fetch is dropped", async () => {
   const h = mount({ autoReload: true });
   h.api.setFilterText("b");
-  assertEquals(h.loadCalls.length, 2, "the filter started a second fetch");
+  deepStrictEqual(h.loadCalls.length, 2, "the filter started a second fetch");
   await h.resolveLoad(0, [{ value: "stale", label: "Stale" }], "stale-cursor");
-  assertEquals(values(h.api), [], "the stale page is dropped");
-  assertEquals(state(h.api), "loading", "and the list is still loading");
-  assertEquals(h.api.hasMore, false, "with no cursor from the dropped page");
+  deepStrictEqual(values(h.api), [], "the stale page is dropped");
+  deepStrictEqual(state(h.api), "loading", "and the list is still loading");
+  deepStrictEqual(h.api.hasMore, false, "with no cursor from the dropped page");
   await h.resolveLoad(1, [{ value: "bun", label: "Bun" }], null);
-  assertEquals(values(h.api), ["bun"], "the newest page lands");
+  deepStrictEqual(values(h.api), ["bun"], "the newest page lands");
   h.dispose();
 });
 
 // ---- SORT -----------------------------------------------------------------
 
-Deno.test("Given a sort function / When a sort runs / Then the host sorts and the cursor clears", async () => {
+test("Given a sort function / When a sort runs / Then the host sorts and the cursor clears", async () => {
   const h = mount({
     autoReload: true,
     sortFn: (details: SortDetails) => ({ items: [...details.items].reverse() }),
   });
   await h.resolveLoad(0, MANIFEST, "page-2");
   h.api.sort({ column: "name", direction: "descending" });
-  assertEquals(state(h.api), "sorting", "a sort function sorts");
-  assertEquals(h.api.sorting, true, "and the api says so");
+  deepStrictEqual(state(h.api), "sorting", "a sort function sorts");
+  deepStrictEqual(h.api.sorting, true, "and the api says so");
   // `loading` matches both `loading` and `sorting`: work is in flight.
-  assertEquals(h.api.loading, true, "the api reports the work in flight");
-  assertEquals(h.sortCalls.length, 1, "the host's sort ran once");
-  assertEquals(
+  deepStrictEqual(h.api.loading, true, "the api reports the work in flight");
+  deepStrictEqual(h.sortCalls.length, 1, "the host's sort ran once");
+  deepStrictEqual(
     h.sortCalls[0]?.descriptor,
     { column: "name", direction: "descending" },
     "with the descriptor asked for",
   );
-  assertEquals(h.sortCalls[0]?.items, MANIFEST, "over the loaded items");
-  assertEquals(
+  deepStrictEqual(h.sortCalls[0]?.items, MANIFEST, "over the loaded items");
+  deepStrictEqual(
     h.api.sortDescriptor,
     { column: "name", direction: "descending" },
     "the descriptor is the machine's now",
@@ -427,17 +428,17 @@ Deno.test("Given a sort function / When a sort runs / Then the host sorts and th
   await h.resolveSort(0, [{ value: "node" }, { value: "bun" }, {
     value: "deno",
   }]);
-  assertEquals(
+  deepStrictEqual(
     labels(h.api),
     ["node", "bun", "deno"],
     "the sorted items replace the list",
   );
-  assertEquals(h.api.hasMore, false, "a sort clears the cursor");
-  assertEquals(state(h.api), "idle", "and returns to idle");
+  deepStrictEqual(h.api.hasMore, false, "a sort clears the cursor");
+  deepStrictEqual(state(h.api), "idle", "and returns to idle");
   h.dispose();
 });
 
-Deno.test("Given a sort function answering synchronously / When a sort runs / Then the items are replaced", async () => {
+test("Given a sort function answering synchronously / When a sort runs / Then the items are replaced", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, null);
   // A host may answer with a bare object; the bridge takes both shapes.
@@ -446,9 +447,9 @@ Deno.test("Given a sort function answering synchronously / When a sort runs / Th
     (details: SortDetails) => ({ items: [...details.items].reverse() }),
   );
   h.api.sort({ column: "name", direction: "ascending" });
-  assertEquals(state(h.api), "sorting", "the synchronous answer sorts");
+  deepStrictEqual(state(h.api), "sorting", "the synchronous answer sorts");
   await h.settled();
-  assertEquals(
+  deepStrictEqual(
     labels(h.api),
     ["Node", "Bun", "Deno"],
     "and the reversed items land",
@@ -456,28 +457,28 @@ Deno.test("Given a sort function answering synchronously / When a sort runs / Th
   h.dispose();
 });
 
-Deno.test("Given no sort function / When a sort runs / Then it becomes a fetch", async () => {
+test("Given no sort function / When a sort runs / Then it becomes a fetch", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, "page-2");
   h.api.sort({ column: "name", direction: "ascending" });
-  assertEquals(
+  deepStrictEqual(
     state(h.api),
     "loading",
     "without a sort function a sort fetches",
   );
-  assertEquals(h.sortCalls.length, 0, "nothing was sorted locally");
-  assertEquals(
+  deepStrictEqual(h.sortCalls.length, 0, "nothing was sorted locally");
+  deepStrictEqual(
     h.loadCalls[1]?.sortDescriptor,
     { column: "name", direction: "ascending" },
     "and the fetch carries the descriptor",
   );
-  assertEquals(h.loadCalls[1]?.cursor, null, "from no cursor");
+  deepStrictEqual(h.loadCalls[1]?.cursor, null, "from no cursor");
   await h.resolveLoad(1, [{ value: "bun", label: "Bun" }], "next");
-  assertEquals(values(h.api), ["bun"], "the fetched page lands");
+  deepStrictEqual(values(h.api), ["bun"], "the fetched page lands");
   h.dispose();
 });
 
-Deno.test("Given a sorting list / When another sort runs / Then the superseded sort is dropped", async () => {
+test("Given a sorting list / When another sort runs / Then the superseded sort is dropped", async () => {
   const h = mount({
     autoReload: true,
     sortFn: (details: SortDetails) => ({ items: [...details.items].reverse() }),
@@ -485,44 +486,44 @@ Deno.test("Given a sorting list / When another sort runs / Then the superseded s
   await h.resolveLoad(0, MANIFEST, null);
   h.api.sort({ column: "name", direction: "descending" });
   h.api.sort({ column: "name", direction: "ascending" });
-  assertEquals(h.sortCalls.length, 2, "the newest sort wins");
+  deepStrictEqual(h.sortCalls.length, 2, "the newest sort wins");
   await h.resolveSort(0, [{ value: "stale" }]);
-  assertEquals(
+  deepStrictEqual(
     values(h.api),
     ["deno", "bun", "node"],
     "the superseded sort's result is dropped and the held items stand",
   );
   await h.resolveSort(1, [{ value: "fresh" }]);
-  assertEquals(values(h.api), ["fresh"], "and the newest one lands");
+  deepStrictEqual(values(h.api), ["fresh"], "and the newest one lands");
   h.dispose();
 });
 
 // ---- ERROR and ABORT ------------------------------------------------------
 
-Deno.test("Given a failing load / When it rejects / Then the error is held and reported", async () => {
+test("Given a failing load / When it rejects / Then the error is held and reported", async () => {
   const h = mount({ autoReload: true });
   await h.rejectLoad(0, new Error("offline"));
-  assertEquals(state(h.api), "idle", "a failure returns the list to idle");
-  assertEquals(
+  deepStrictEqual(state(h.api), "idle", "a failure returns the list to idle");
+  deepStrictEqual(
     h.api.error instanceof Error,
     true,
     "the error is held on the api",
   );
-  assertEquals(
+  deepStrictEqual(
     (h.api.error as Error).message,
     "offline",
     "with the host's message",
   );
-  assertEquals(h.failure.length, 1, "and reported once");
-  assertEquals(
+  deepStrictEqual(h.failure.length, 1, "and reported once");
+  deepStrictEqual(
     h.api.getErrorProps()["data-state"],
     "error",
     "the error region states it",
   );
   h.api.reload();
   await h.resolveLoad(1, MANIFEST, null);
-  assertEquals(h.api.error, undefined, "a later load clears the error");
-  assertEquals(
+  deepStrictEqual(h.api.error, undefined, "a later load clears the error");
+  deepStrictEqual(
     values(h.api),
     ["deno", "bun", "node"],
     "and the retried page lands",
@@ -530,43 +531,43 @@ Deno.test("Given a failing load / When it rejects / Then the error is held and r
   h.dispose();
 });
 
-Deno.test("Given a failing load / When it is retried / Then the error clears on the way in", async () => {
+test("Given a failing load / When it is retried / Then the error clears on the way in", async () => {
   const h = mount({ autoReload: true });
   await h.rejectLoad(0, new Error("offline"));
   h.api.reload();
-  assertEquals(h.api.error, undefined, "the next fetch starts clean");
-  assertEquals(state(h.api), "loading", "and is loading");
+  deepStrictEqual(h.api.error, undefined, "the next fetch starts clean");
+  deepStrictEqual(state(h.api), "loading", "and is loading");
   h.dispose();
 });
 
-Deno.test("Given a load in flight / When abort runs / Then the list returns to idle", async () => {
+test("Given a load in flight / When abort runs / Then the list returns to idle", async () => {
   const h = mount({ autoReload: true });
   h.api.abort();
-  assertEquals(state(h.api), "idle", "an abort returns to idle");
-  assertEquals(h.api.loading, false, "nothing is loading");
-  assertEquals(h.api.items, [], "and nothing was loaded");
-  assertEquals(h.success.length, 0, "no success was reported");
-  assertEquals(
+  deepStrictEqual(state(h.api), "idle", "an abort returns to idle");
+  deepStrictEqual(h.api.loading, false, "nothing is loading");
+  deepStrictEqual(h.api.items, [], "and nothing was loaded");
+  deepStrictEqual(h.success.length, 0, "no success was reported");
+  deepStrictEqual(
     h.loadCalls[0]?.signal?.aborted,
     true,
     "the fetch's signal was fired",
   );
   // The abandoned load resolves late and lands nowhere.
   await h.resolveLoad(0, MANIFEST, "page-2");
-  assertEquals(h.api.items, [], "the abandoned page is dropped");
-  assertEquals(state(h.api), "idle", "and the list stays idle");
+  deepStrictEqual(h.api.items, [], "the abandoned page is dropped");
+  deepStrictEqual(state(h.api), "idle", "and the list stays idle");
   h.dispose();
 });
 
-Deno.test("Given an idle list / When abort runs / Then it stays idle", () => {
+test("Given an idle list / When abort runs / Then it stays idle", () => {
   const h = mount();
   h.api.abort();
-  assertEquals(state(h.api), "idle", "an idle list ignores an abort");
-  assertEquals(h.api.loading, false, "and stays idle");
+  deepStrictEqual(state(h.api), "idle", "an idle list ignores an abort");
+  deepStrictEqual(h.api.loading, false, "and stays idle");
   h.dispose();
 });
 
-Deno.test("Given a sorting list / When abort runs / Then the sort is abandoned", async () => {
+test("Given a sorting list / When abort runs / Then the sort is abandoned", async () => {
   const h = mount({
     autoReload: true,
     sortFn: (details: SortDetails) => ({ items: [...details.items] }),
@@ -574,56 +575,56 @@ Deno.test("Given a sorting list / When abort runs / Then the sort is abandoned",
   await h.resolveLoad(0, MANIFEST, null);
   h.api.sort({ column: "name", direction: "ascending" });
   h.api.abort();
-  assertEquals(state(h.api), "idle", "an abort leaves sorting");
-  assertEquals(
+  deepStrictEqual(state(h.api), "idle", "an abort leaves sorting");
+  deepStrictEqual(
     values(h.api),
     ["deno", "bun", "node"],
     "and keeps what the last load produced",
   );
   await h.resolveSort(0, MANIFEST);
-  assertEquals(
+  deepStrictEqual(
     values(h.api),
     ["deno", "bun", "node"],
     "the abandoned sort's result is dropped",
   );
-  assertEquals(h.success.length, 1, "and nothing was reported for it");
+  deepStrictEqual(h.success.length, 1, "and nothing was reported for it");
   h.dispose();
 });
 
 // ---- dependencies ---------------------------------------------------------
 
-Deno.test("Given a dependency / When it changes / Then the list reloads", async () => {
+test("Given a dependency / When it changes / Then the list reloads", async () => {
   const h = mount({ autoReload: true, dependencies: ["a"] });
   await h.resolveLoad(0, MANIFEST, "page-2");
   h.write("dependencies", ["b"]);
-  assertEquals(state(h.api), "loading", "a changed dependency reloads");
-  assertEquals(h.loadCalls.length, 2, "a second fetch started");
-  assertEquals(h.api.items, [], "and the list cleared for it");
+  deepStrictEqual(state(h.api), "loading", "a changed dependency reloads");
+  deepStrictEqual(h.loadCalls.length, 2, "a second fetch started");
+  deepStrictEqual(h.api.items, [], "and the list cleared for it");
   h.write("dependencies", ["b"]);
-  assertEquals(
+  deepStrictEqual(
     h.loadCalls.length,
     2,
     "an unchanged dependency changes nothing",
   );
   await h.resolveLoad(1, MANIFEST, "page-2");
-  assertEquals(state(h.api), "idle", "the reloaded page lands");
+  deepStrictEqual(state(h.api), "idle", "the reloaded page lands");
   h.dispose();
 });
 
-Deno.test("Given no autoReload / When the dependencies are unchanged / Then nothing loads", () => {
+test("Given no autoReload / When the dependencies are unchanged / Then nothing loads", () => {
   const h = mount({ dependencies: ["a"] });
-  assertEquals(state(h.api), "idle", "the mount state is idle");
-  assertEquals(h.loadCalls.length, 0, "and nothing was fetched");
+  deepStrictEqual(state(h.api), "idle", "the mount state is idle");
+  deepStrictEqual(h.loadCalls.length, 0, "and nothing was fetched");
   h.dispose();
 });
 
 // ---- the sentinel ---------------------------------------------------------
 
-Deno.test("Given a list with a cursor / When the sentinel reports / Then the next page loads", async () => {
+test("Given a list with a cursor / When the sentinel reports / Then the next page loads", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, "page-2");
   const bag = h.api.getSentinelProps();
-  assertEquals(
+  deepStrictEqual(
     bag["data-more"],
     "",
     "the sentinel is armed while a cursor exists",
@@ -633,61 +634,61 @@ Deno.test("Given a list with a cursor / When the sentinel reports / Then the nex
     throw new Error("no sentinel param");
   }
   handler<() => void>(param as Record<string, unknown>, "onLoadMore")();
-  assertEquals(state(h.api), "loading", "the sentinel loads the next page");
-  assertEquals(h.loadCalls[1]?.cursor, "page-2", "from the cursor");
+  deepStrictEqual(state(h.api), "loading", "the sentinel loads the next page");
+  deepStrictEqual(h.loadCalls[1]?.cursor, "page-2", "from the cursor");
   h.dispose();
 });
 
-Deno.test("Given an exhausted list / When the sentinel is read / Then it is disarmed", async () => {
+test("Given an exhausted list / When the sentinel is read / Then it is disarmed", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, null);
   const bag = h.api.getSentinelProps();
-  assertEquals(bag["data-more"], undefined, "the sentinel is not armed");
-  assertEquals(bag["hidden"], true, "and it is hidden");
+  deepStrictEqual(bag["data-more"], undefined, "the sentinel is not armed");
+  deepStrictEqual(bag["hidden"], true, "and it is hidden");
   h.dispose();
 });
 
 // ---- the parts ------------------------------------------------------------
 
-Deno.test("Given a loaded list / When the rows are read / Then each row is addressed", async () => {
+test("Given a loaded list / When the rows are read / Then each row is addressed", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, "page-2");
   const row = h.api.getRows()[0];
   if (row === undefined) throw new Error("no row");
   const bag = h.api.getItemProps(row);
-  assertEquals(
+  deepStrictEqual(
     bag["id"],
     "async-list:list:item:deno",
     "the row carries its part id",
   );
-  assertEquals(bag["role"], "listitem", "and its role");
-  assertEquals(bag["data-value"], "deno", "with the value it is addressed by");
-  assertEquals(bag["data-index"], 0, "and its position");
+  deepStrictEqual(bag["role"], "listitem", "and its role");
+  deepStrictEqual(bag["data-value"], "deno", "with the value it is addressed by");
+  deepStrictEqual(bag["data-index"], 0, "and its position");
   const list = h.api.getListProps();
-  assertEquals(list["role"], "list", "the region is a list");
-  assertEquals(list["aria-busy"], false, "and idle");
-  assertEquals(list["data-empty"], undefined, "it is not empty");
+  deepStrictEqual(list["role"], "list", "the region is a list");
+  deepStrictEqual(list["aria-busy"], false, "and idle");
+  deepStrictEqual(list["data-empty"], undefined, "it is not empty");
   h.dispose();
 });
 
-Deno.test("Given a fresh list / When the parts are read / Then the empty state is armed", () => {
+test("Given a fresh list / When the parts are read / Then the empty state is armed", () => {
   const h = mount();
-  assertEquals(
+  deepStrictEqual(
     h.api.getListProps()["data-empty"],
     "",
     "the list reports empty",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getEmptyProps()["data-empty"],
     "",
     "and so does the empty region",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getLoadMoreProps()["data-more"],
     undefined,
     "load-more is not armed",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getSortTriggerProps({
       column: "name",
       direction: "ascending",
@@ -698,33 +699,33 @@ Deno.test("Given a fresh list / When the parts are read / Then the empty state i
   h.dispose();
 });
 
-Deno.test("Given a sorted list / When the sort trigger is read / Then it reports the active column", async () => {
+test("Given a sorted list / When the sort trigger is read / Then it reports the active column", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, MANIFEST, null);
   const ascending: SortTrigger = { column: "name", direction: "ascending" };
   click(h.api.getSortTriggerProps(ascending));
-  assertEquals(state(h.api), "loading", "the trigger sorts");
+  deepStrictEqual(state(h.api), "loading", "the trigger sorts");
   const bag = h.api.getSortTriggerProps(ascending);
-  assertEquals(bag["aria-pressed"], true, "the active direction is pressed");
-  assertEquals(bag["data-active"], "", "and marked");
+  deepStrictEqual(bag["aria-pressed"], true, "the active direction is pressed");
+  deepStrictEqual(bag["data-active"], "", "and marked");
   const other = h.api.getSortTriggerProps({
     column: "name",
     direction: "descending",
   });
-  assertEquals(other["aria-pressed"], false, "the other direction is not");
+  deepStrictEqual(other["aria-pressed"], false, "the other direction is not");
   h.dispose();
 });
 
-Deno.test("Given a loaded list / When the progress part is read / Then it states the phase", async () => {
+test("Given a loaded list / When the progress part is read / Then it states the phase", async () => {
   const h = mount({ autoReload: true });
-  assertEquals(
+  deepStrictEqual(
     h.api.getProgressProps()["data-state"],
     "loading",
     "the bar tracks the phase",
   );
-  assertEquals(h.api.getProgressProps()["aria-busy"], true, "and announces it");
+  deepStrictEqual(h.api.getProgressProps()["aria-busy"], true, "and announces it");
   await h.resolveLoad(0, MANIFEST, null);
-  assertEquals(
+  deepStrictEqual(
     h.api.getProgressProps()["data-state"],
     "idle",
     "and follows it back",
@@ -732,21 +733,21 @@ Deno.test("Given a loaded list / When the progress part is read / Then it states
   h.dispose();
 });
 
-Deno.test("Given a filter / When the input part is read / Then it carries the text", () => {
+test("Given a filter / When the input part is read / Then it carries the text", () => {
   const h = mount({ initialFilterText: "deno" });
   const bag = h.api.getFilterInputProps();
-  assertEquals(
+  deepStrictEqual(
     bag["value"],
     "deno",
     "the field carries the machine's filter text",
   );
-  assertEquals(bag["type"], "text", "and is a text field");
+  deepStrictEqual(bag["type"], "text", "and is a text field");
   h.dispose();
 });
 
-Deno.test("Given no filter / When the clear trigger is read / Then it is hidden", () => {
+test("Given no filter / When the clear trigger is read / Then it is hidden", () => {
   const h = mount();
-  assertEquals(
+  deepStrictEqual(
     h.api.getClearFilterProps()["hidden"],
     true,
     "an empty filter has nothing to clear",
@@ -755,8 +756,8 @@ Deno.test("Given no filter / When the clear trigger is read / Then it is hidden"
   handler<(event: InputEvent) => void>(h.api.getFilterInputProps(), "onInput")(
     typing(input, "deno"),
   );
-  assertEquals(h.api.filterText, "deno", "the typed text is the machine's");
-  assertEquals(
+  deepStrictEqual(h.api.filterText, "deno", "the typed text is the machine's");
+  deepStrictEqual(
     h.api.getClearFilterProps()["hidden"],
     false,
     "and a filled filter can be cleared",
@@ -764,18 +765,18 @@ Deno.test("Given no filter / When the clear trigger is read / Then it is hidden"
   h.dispose();
 });
 
-Deno.test("Given items without a value / When the rows are read / Then the index stands in", async () => {
+test("Given items without a value / When the rows are read / Then the index stands in", async () => {
   const h = mount({ autoReload: true });
   await h.resolveLoad(0, [{ label: "No value" }, {
     value: "",
     label: "Empty value",
   }], null);
-  assertEquals(
+  deepStrictEqual(
     values(h.api),
     ["0", "1"],
     "a value-less item keeps its position as its identity",
   );
-  assertEquals(
+  deepStrictEqual(
     labels(h.api),
     ["No value", "Empty value"],
     "and its label shows",
@@ -785,33 +786,33 @@ Deno.test("Given items without a value / When the rows are read / Then the index
 
 // ---- two instances --------------------------------------------------------
 
-Deno.test("Given two lists on one page / When one loads / Then the other keeps its own state", async () => {
+test("Given two lists on one page / When one loads / Then the other keeps its own state", async () => {
   const first = mount({ autoReload: true });
   const second = mount({ autoReload: true, initialFilterText: "x" });
   await first.resolveLoad(0, [{ value: "a", label: "A" }], "cursor-2");
-  assertEquals(values(first.api), ["a"], "the first list holds its own page");
-  assertEquals(first.api.hasMore, true, "and its own cursor");
-  assertEquals(first.api.filterText, "", "with its own filter");
-  assertEquals(
+  deepStrictEqual(values(first.api), ["a"], "the first list holds its own page");
+  deepStrictEqual(first.api.hasMore, true, "and its own cursor");
+  deepStrictEqual(first.api.filterText, "", "with its own filter");
+  deepStrictEqual(
     values(second.api),
     [],
     "the second list never received the first's items",
   );
-  assertEquals(second.api.filterText, "x", "and keeps its own seeded filter");
-  assertEquals(
+  deepStrictEqual(second.api.filterText, "x", "and keeps its own seeded filter");
+  deepStrictEqual(
     second.loadCalls[0]?.filterText,
     "x",
     "its own fetch carried it",
   );
-  assertEquals(
+  deepStrictEqual(
     state(second.api),
     "loading",
     "its own load is the one in flight",
   );
   await second.resolveLoad(0, [{ value: "b", label: "B" }], null);
-  assertEquals(values(second.api), ["b"], "and its own page landed");
-  assertEquals(values(first.api), ["a"], "which never reached the first list");
-  assertEquals(
+  deepStrictEqual(values(second.api), ["b"], "and its own page landed");
+  deepStrictEqual(values(first.api), ["a"], "which never reached the first list");
+  deepStrictEqual(
     first.api.hasMore,
     true,
     "with the first list's cursor untouched",
@@ -822,12 +823,12 @@ Deno.test("Given two lists on one page / When one loads / Then the other keeps i
 
 // ---- the load detail contract ---------------------------------------------
 
-Deno.test("Given a seeded sort / When the first page loads / Then the fetch carries it", () => {
+test("Given a seeded sort / When the first page loads / Then the fetch carries it", () => {
   const h = mount({
     initialSortDescriptor: { column: "name", direction: "ascending" },
   });
   h.api.reload();
-  assertEquals(
+  deepStrictEqual(
     h.loadCalls[0]?.sortDescriptor,
     { column: "name", direction: "ascending" },
     "the seeded descriptor reaches the fetch",
@@ -835,12 +836,12 @@ Deno.test("Given a seeded sort / When the first page loads / Then the fetch carr
   h.dispose();
 });
 
-Deno.test("Given a load / When it is parked / Then its signal is live", () => {
+test("Given a load / When it is parked / Then its signal is live", () => {
   const h = mount({ autoReload: true });
   const signal = h.loadCalls[0]?.signal;
   if (signal === undefined) throw new Error("no signal");
-  assertEquals(signal.aborted, false, "an in-flight fetch is not aborted");
+  deepStrictEqual(signal.aborted, false, "an in-flight fetch is not aborted");
   h.api.abort();
-  assertEquals(signal.aborted, true, "an abort fires it");
+  deepStrictEqual(signal.aborted, true, "an abort fires it");
   h.dispose();
 });

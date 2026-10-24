@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import {
   interactOutside,
@@ -63,7 +64,7 @@ function dispatch(target: Element, type: string): void {
   target.dispatchEvent(new WindowEvent(type, { bubbles: true }));
 }
 
-Deno.test("Given an attached action / When the pointer presses outside the node / Then it reports once", () => {
+test("Given an attached action / When the pointer presses outside the node / Then it reports once", () => {
   const input = document.createElement("input");
   document.body.appendChild(input);
   const outside = document.createElement("button");
@@ -71,37 +72,37 @@ Deno.test("Given an attached action / When the pointer presses outside the node 
   const { reports, param } = watch();
   const result = interactOutside(input, param);
   dispatch(outside, "pointerdown");
-  assertEquals(reports.pointer.length, 1, "the press reports once");
-  assertEquals(
+  deepStrictEqual(reports.pointer.length, 1, "the press reports once");
+  deepStrictEqual(
     reports.pointer[0]?.type,
     "pointerdown",
     "and names the interaction",
   );
-  assertEquals(
+  deepStrictEqual(
     reports.pointer[0]?.detail.focusable,
     true,
     "a button outside is focusable",
   );
-  assertEquals(
+  deepStrictEqual(
     reports.pointer[0]?.defaultPrevented,
     false,
     "the event starts unvetoed",
   );
   result?.destroy?.();
   dispatch(outside, "pointerdown");
-  assertEquals(reports.pointer.length, 1, "destroy releases the listener");
+  deepStrictEqual(reports.pointer.length, 1, "destroy releases the listener");
 });
 
-Deno.test("Given an attached action / When the pointer presses the node itself / Then it stays silent", () => {
+test("Given an attached action / When the pointer presses the node itself / Then it stays silent", () => {
   const input = document.createElement("input");
   document.body.appendChild(input);
   const { reports, param } = watch();
   interactOutside(input, param);
   dispatch(input, "pointerdown");
-  assertEquals(reports.pointer.length, 0, "a press on the node is not outside");
+  deepStrictEqual(reports.pointer.length, 0, "a press on the node is not outside");
 });
 
-Deno.test("Given an attached action / When the interaction is on an excluded part / Then it stays silent", () => {
+test("Given an attached action / When the interaction is on an excluded part / Then it stays silent", () => {
   const input = document.createElement("input");
   const submit = document.createElement("button");
   document.body.append(input, submit);
@@ -113,10 +114,10 @@ Deno.test("Given an attached action / When the interaction is on an excluded par
     exclude: (): readonly (Element | null)[] => [submit],
   });
   dispatch(submit, "pointerdown");
-  assertEquals(reports.pointer.length, 0, "the excluded part is not outside");
+  deepStrictEqual(reports.pointer.length, 0, "the excluded part is not outside");
 });
 
-Deno.test("Given an attached action / When focus moves outside / Then it reports and names the target", () => {
+test("Given an attached action / When focus moves outside / Then it reports and names the target", () => {
   const input = document.createElement("input");
   document.body.appendChild(input);
   const moved = document.createElement("button");
@@ -124,17 +125,17 @@ Deno.test("Given an attached action / When focus moves outside / Then it reports
   const { reports, param } = watch();
   interactOutside(input, param);
   dispatch(moved, "focusin");
-  assertEquals(reports.focus.length, 1, "the focus move reports once");
-  assertEquals(reports.focus[0]?.type, "focus", "and names the interaction");
-  assertEquals(
+  deepStrictEqual(reports.focus.length, 1, "the focus move reports once");
+  deepStrictEqual(reports.focus[0]?.type, "focus", "and names the interaction");
+  deepStrictEqual(
     reports.focus[0]?.detail.focusable,
     true,
     "a focused button is focusable",
   );
-  assertEquals(reports.pointer.length, 0, "and reports nothing as a press");
+  deepStrictEqual(reports.pointer.length, 0, "and reports nothing as a press");
 });
 
-Deno.test("Given a press in flight / When the click's own focus move follows / Then it reports only once", () => {
+test("Given a press in flight / When the click's own focus move follows / Then it reports only once", () => {
   const input = document.createElement("input");
   document.body.appendChild(input);
   const moved = document.createElement("button");
@@ -143,15 +144,15 @@ Deno.test("Given a press in flight / When the click's own focus move follows / T
   interactOutside(input, param);
   dispatch(moved, "pointerdown");
   dispatch(moved, "focusin");
-  assertEquals(reports.pointer.length, 1, "the press reports");
-  assertEquals(
+  deepStrictEqual(reports.pointer.length, 1, "the press reports");
+  deepStrictEqual(
     reports.focus.length,
     0,
     "and the click's focus move does not report again",
   );
   dispatch(input, "pointerup");
   dispatch(moved, "focusin");
-  assertEquals(
+  deepStrictEqual(
     reports.focus.length,
     1,
     "a later focus move reports on its own",

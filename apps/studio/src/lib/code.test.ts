@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { type CodeToken, formatExampleHtml, tokenizeHtml } from "./code.ts";
 
 /**
@@ -12,15 +13,15 @@ const visible = (html: string): CodeToken[] =>
 
 const texts = (html: string) => tokenizeHtml(html).map((t) => t.text).join("");
 
-Deno.test("tokenizeHtml round-trips the markup it splits", () => {
+test("tokenizeHtml round-trips the markup it splits", () => {
   const html =
     `<nav class="breadcrumbs" aria-label="Breadcrumb">\n  <li><a href="#">Home</a></li>\n</nav>`;
-  assertEquals(texts(html), html);
+  deepStrictEqual(texts(html), html);
 });
 
-Deno.test("tokenizeHtml tells an element from the attribute it carries", () => {
+test("tokenizeHtml tells an element from the attribute it carries", () => {
   const tokens = visible(`<button class="danger">Delete</button>`);
-  assertEquals(tokens.filter((t) => t.kind === "tag").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "tag").map((t) => t.text), [
     "<",
     "button",
     ">",
@@ -28,39 +29,39 @@ Deno.test("tokenizeHtml tells an element from the attribute it carries", () => {
     "button",
     ">",
   ]);
-  assertEquals(tokens.filter((t) => t.kind === "attr").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "attr").map((t) => t.text), [
     "class",
   ]);
-  assertEquals(tokens.filter((t) => t.kind === "value").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "value").map((t) => t.text), [
     `="danger"`,
   ]);
-  assertEquals(tokens.filter((t) => t.kind === "text").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "text").map((t) => t.text), [
     "Delete",
   ]);
 });
 
-Deno.test("tokenizeHtml keeps a class list as one run", () => {
+test("tokenizeHtml keeps a class list as one run", () => {
   const values = visible(
     `<i class="i-lucide-x button-icon" data-open="info">`,
   ).filter((t) => t.kind === "value").map((t) => t.text);
-  assertEquals(values, [`="i-lucide-x button-icon"`, `="info"`]);
+  deepStrictEqual(values, [`="i-lucide-x button-icon"`, `="info"`]);
 });
 
-Deno.test("tokenizeHtml reads a void element with no closing tag", () => {
+test("tokenizeHtml reads a void element with no closing tag", () => {
   const tokens = visible(`<input type="checkbox" checked>`);
-  assertEquals(tokens.filter((t) => t.kind === "attr").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "attr").map((t) => t.text), [
     "type",
     "checked",
   ]);
-  assertEquals(tokens.filter((t) => t.kind === "tag").map((t) => t.text), [
+  deepStrictEqual(tokens.filter((t) => t.kind === "tag").map((t) => t.text), [
     "<",
     "input",
     ">",
   ]);
 });
 
-Deno.test("formatExampleHtml indents nested elements one step per depth", () => {
-  assertEquals(
+test("formatExampleHtml indents nested elements one step per depth", () => {
+  deepStrictEqual(
     formatExampleHtml(`<ul class="stack"><li><a href="#">Home</a></li></ul>`),
     [
       `<ul class="stack">`,
@@ -72,29 +73,29 @@ Deno.test("formatExampleHtml indents nested elements one step per depth", () => 
   );
 });
 
-Deno.test("formatExampleHtml keeps a sentence on its element's own line", () => {
-  assertEquals(
+test("formatExampleHtml keeps a sentence on its element's own line", () => {
+  deepStrictEqual(
     formatExampleHtml(`<p>Press <kbd>Enter</kbd> to submit.</p>`),
     `<p>Press <kbd>Enter</kbd> to submit.</p>`,
   );
 });
 
-Deno.test("formatExampleHtml reads the same formatting twice as once", () => {
+test("formatExampleHtml reads the same formatting twice as once", () => {
   const once = formatExampleHtml(
     `<div class="card"><h2>Title</h2><p>Body text</p></div>`,
   );
-  assertEquals(formatExampleHtml(once), once);
+  deepStrictEqual(formatExampleHtml(once), once);
 });
 
-Deno.test("formatExampleHtml copies a verbatim element's own whitespace through", () => {
-  assertEquals(
+test("formatExampleHtml copies a verbatim element's own whitespace through", () => {
+  deepStrictEqual(
     formatExampleHtml(`<pre>col one\n  col two</pre>`),
     `<pre>col one\n  col two</pre>`,
   );
 });
 
-Deno.test("formatExampleHtml gives a third attribute a line of its own", () => {
-  assertEquals(
+test("formatExampleHtml gives a third attribute a line of its own", () => {
+  deepStrictEqual(
     formatExampleHtml(
       `<button type="button" class="secondary" disabled>OK</button>`,
     ),

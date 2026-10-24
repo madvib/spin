@@ -1,5 +1,8 @@
-import { assertEquals } from "@std/assert";
-import { dirname } from "node:path";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
+import { dirname, join } from "node:path";
 import { Linter } from "eslint";
 import * as tsParser from "@typescript-eslint/parser";
 import {
@@ -428,22 +431,17 @@ async function oxlintFindings(
   semantic: SemanticOptions,
 ): Promise<Canonical[]> {
   const config = `${file}.oxlintrc.json`;
-  await Deno.writeTextFile(config, JSON.stringify(oxlintConfig(semantic)));
-  const command = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      "npm:oxlint@1.85.0",
-      "--config",
-      config,
-      "--format=json",
-      file,
-    ],
+  await writeFile(config, JSON.stringify(oxlintConfig(semantic)));
+  const proc = Bun.spawn(["bunx", "oxlint@1.85.0", "--config", config, "--format=json", file], {
     cwd: PACKAGE,
-    stdout: "piped",
-    stderr: "piped",
+    stdout: "pipe",
+    stderr: "pipe",
   });
-  const { code, stdout, stderr } = await command.output();
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(proc.stdout).arrayBuffer(),
+    new Response(proc.stderr).arrayBuffer(),
+    proc.exited,
+  ]);
   // oxlint exits 1 when it has something to report; anything else is a
   // failure of the run itself.
   if (code > 1) {
@@ -485,28 +483,22 @@ async function oxlintFindings(
  */
 async function oxlintFixed(file: string): Promise<string> {
   const config = `${file}.oxlintrc.json`;
-  await Deno.writeTextFile(config, JSON.stringify(oxlintConfig(STRICT)));
-  const command = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      "npm:oxlint@1.85.0",
-      "--config",
-      config,
-      "--fix",
-      file,
-    ],
+  await writeFile(config, JSON.stringify(oxlintConfig(STRICT)));
+  const command = Bun.spawn(["bunx", "oxlint@1.85.0", "--config", config, "--fix", file], {
     cwd: PACKAGE,
-    stdout: "piped",
-    stderr: "piped",
+    stdout: "pipe",
+    stderr: "pipe",
   });
-  const { code, stderr } = await command.output();
+  const [stderr, code] = await Promise.all([
+    new Response(command.stderr).arrayBuffer(),
+    command.exited,
+  ]);
   if (code > 1) {
     throw new Error(
       `oxlint exited with ${code}: ${new TextDecoder().decode(stderr)}`,
     );
   }
-  return await Deno.readTextFile(file);
+  return await readFile(file, "utf8");
 }
 
 /* ------------------------------------------------------------------- cli -- */
@@ -557,13 +549,13 @@ async function serviceFindings(
 
 /** A fixture on disk, with the oxlint configuration beside it. */
 async function fixture(): Promise<string> {
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
   const file = `${directory}/app.tsx`;
-  await Deno.writeTextFile(file, FIXTURE);
+  await writeFile(file, FIXTURE);
   return file;
 }
 
-Deno.test("oxlint, ESLint, the CLI and the service report what the core decided", async () => {
+test("oxlint, ESLint, the CLI and the service report what the core decided", async () => {
   const file = await fixture();
   try {
     const core = coreFindings(file, STRICT);
@@ -583,16 +575,16 @@ Deno.test("oxlint, ESLint, the CLI and the service report what the core decided"
         column: finding.column,
       }));
 
-    assertEquals(sentences(oxlint), sentences(core));
-    assertEquals(sentences(eslint), sentences(core));
-    assertEquals(sentences(cli), sentences(core));
-    assertEquals(sentences(service), sentences(core));
+    deepStrictEqual(sentences(oxlint), sentences(core));
+    deepStrictEqual(sentences(eslint), sentences(core));
+    deepStrictEqual(sentences(cli), sentences(core));
+    deepStrictEqual(sentences(service), sentences(core));
   } finally {
-    await Deno.remove(file, { recursive: true });
+    await rm(file, { recursive: true });
   }
 });
 
-Deno.test("the front ends report the same message ids", async () => {
+test("the front ends report the same message ids", async () => {
   const file = await fixture();
   try {
     const core = coreFindings(file, STRICT);
@@ -606,15 +598,15 @@ Deno.test("the front ends report the same message ids", async () => {
         line: finding.line,
         column: finding.column,
       }));
-    assertEquals(ids(eslint), ids(core));
-    assertEquals(ids(cli), ids(core));
-    assertEquals(ids(service), ids(core));
+    deepStrictEqual(ids(eslint), ids(core));
+    deepStrictEqual(ids(cli), ids(core));
+    deepStrictEqual(ids(service), ids(core));
   } finally {
-    await Deno.remove(file, { recursive: true });
+    await rm(file, { recursive: true });
   }
 });
 
-Deno.test("the front ends make the same edits", async () => {
+test("the front ends make the same edits", async () => {
   const file = await fixture();
   try {
     // The fixture, with the core's own edits applied: what every front end
@@ -624,18 +616,18 @@ Deno.test("the front ends make the same edits", async () => {
 
     // oxlint writes the file it fixes, so it is given a copy to write to.
     const copy = `${file}.copy.tsx`;
-    await Deno.writeTextFile(copy, FIXTURE);
+    await writeFile(copy, FIXTURE);
     const oxlint = await oxlintFixed(copy);
-    await Deno.remove(copy);
+    await rm(copy);
 
-    assertEquals(eslint, expected);
-    assertEquals(oxlint, expected);
+    deepStrictEqual(eslint, expected);
+    deepStrictEqual(oxlint, expected);
   } finally {
-    await Deno.remove(file, { recursive: true });
+    await rm(file, { recursive: true });
   }
 });
 
-Deno.test("the service carries the edits the core decided", async () => {
+test("the service carries the edits the core decided", async () => {
   const file = await fixture();
   try {
     // The service does not write: the finding carries the edit, and the
@@ -648,16 +640,16 @@ Deno.test("the service carries the edits the core decided", async () => {
     const edits = findings
       .map((finding) => finding.fix)
       .filter((fix): fix is NonNullable<typeof fix> => fix !== undefined);
-    assertEquals(
+    deepStrictEqual(
       applyFixes(FIXTURE, edits).code,
       patched(file),
     );
   } finally {
-    await Deno.remove(file, { recursive: true });
+    await rm(file, { recursive: true });
   }
 });
 
-Deno.test("the dials reach every front end", async () => {
+test("the dials reach every front end", async () => {
   const file = await fixture();
   try {
     // `balanced` reads a type size as a decision about content rather than
@@ -675,11 +667,11 @@ Deno.test("the dials reach every front end", async () => {
         line: finding.line,
         column: finding.column,
       }));
-    assertEquals(sentences(oxlint), sentences(core));
-    assertEquals(sentences(eslint), sentences(core));
-    assertEquals(sentences(cli), sentences(core));
-    assertEquals(sentences(service), sentences(core));
+    deepStrictEqual(sentences(oxlint), sentences(core));
+    deepStrictEqual(sentences(eslint), sentences(core));
+    deepStrictEqual(sentences(cli), sentences(core));
+    deepStrictEqual(sentences(service), sentences(core));
   } finally {
-    await Deno.remove(file, { recursive: true });
+    await rm(file, { recursive: true });
   }
 });

@@ -1,4 +1,5 @@
-import { assertEquals } from "jsr:@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { interpret, type Service } from "@spin/runtime/fsm";
@@ -22,64 +23,64 @@ const contextOf = (
   svc: Service<TabsContext, TabsEvents>,
 ): TabsContext => svc.state.context;
 
-Deno.test("tabs starts idle with seeded value", () => {
+test("tabs starts idle with seeded value", () => {
   const svc = tabs({ value: "tab1" });
-  assertEquals(svc.state.value, "idle");
-  assertEquals(contextOf(svc).value, "tab1");
+  deepStrictEqual(svc.state.value, "idle");
+  deepStrictEqual(contextOf(svc).value, "tab1");
 });
 
-Deno.test("tabs select changes value, ignores same value", () => {
+test("tabs select changes value, ignores same value", () => {
   const svc = tabs({ value: "tab1" });
   svc.send({ type: "TAB.SELECT", value: "tab2" });
-  assertEquals(contextOf(svc).value, "tab2");
+  deepStrictEqual(contextOf(svc).value, "tab2");
   svc.send({ type: "TAB.SELECT", value: "tab2" });
-  assertEquals(contextOf(svc).value, "tab2", "the same value changes nothing");
+  deepStrictEqual(contextOf(svc).value, "tab2", "the same value changes nothing");
   svc.send({ type: "TAB.SELECT", value: "" });
-  assertEquals(contextOf(svc).value, "tab2", "an empty value changes nothing");
+  deepStrictEqual(contextOf(svc).value, "tab2", "an empty value changes nothing");
 });
 
-Deno.test("tabs outer set wins outright", () => {
+test("tabs outer set wins outright", () => {
   const svc = tabs({ value: "tab1" });
   svc.send({ type: "VALUE.SET", value: "tab3" });
-  assertEquals(contextOf(svc).value, "tab3");
+  deepStrictEqual(contextOf(svc).value, "tab3");
 });
 
-Deno.test("tabs initial shapes rows: label falls back to the value, content to empty", () => {
+test("tabs initial shapes rows: label falls back to the value, content to empty", () => {
   const shaped = contextOf(tabs({
     items: [{ value: "a" }, { value: "b", label: "Bee", content: "x" }],
   }));
-  assertEquals(shaped.items, [
+  deepStrictEqual(shaped.items, [
     { value: "a", label: "a", content: "" },
     { value: "b", label: "Bee", content: "x" },
   ]);
 });
 
-Deno.test("tabs initial skips rows without a usable value", () => {
+test("tabs initial skips rows without a usable value", () => {
   const shaped = contextOf(tabs({
     items: [{ label: "no value" }, { value: "" }, { value: "ok" }],
   }));
-  assertEquals(shaped.items, [{ value: "ok", label: "ok", content: "" }]);
+  deepStrictEqual(shaped.items, [{ value: "ok", label: "ok", content: "" }]);
 });
 
-Deno.test("tabs initial falls back value, then defaultValue, then the first row", () => {
+test("tabs initial falls back value, then defaultValue, then the first row", () => {
   const items = [{ value: "a", label: "A", content: "" }, {
     value: "b",
     label: "B",
     content: "",
   }];
-  assertEquals(
+  deepStrictEqual(
     contextOf(tabs({ value: "b", defaultValue: "a", items })).value,
     "b",
   );
-  assertEquals(contextOf(tabs({ defaultValue: "b", items })).value, "b");
-  assertEquals(contextOf(tabs({ items })).value, "a");
+  deepStrictEqual(contextOf(tabs({ defaultValue: "b", items })).value, "b");
+  deepStrictEqual(contextOf(tabs({ items })).value, "a");
 });
 
-Deno.test("tabs initial with empty items stays empty and unselected", () => {
+test("tabs initial with empty items stays empty and unselected", () => {
   const shaped = contextOf(tabs({ items: [] }));
-  assertEquals(shaped.items, []);
-  assertEquals(shaped.value, "");
-  assertEquals(contextOf(tabs({})).value, "");
+  deepStrictEqual(shaped.items, []);
+  deepStrictEqual(shaped.value, "");
+  deepStrictEqual(contextOf(tabs({})).value, "");
 });
 
 const win = parseHTML(
@@ -124,7 +125,7 @@ function keydown(key: string): KeyboardEvent {
   return made as unknown as KeyboardEvent;
 }
 
-Deno.test("tabs bridge stamps per-slot trigger and content ids, roles, and aria links", () => {
+test("tabs bridge stamps per-slot trigger and content ids, roles, and aria links", () => {
   const h = mountTabs({ defaultValue: "overview" });
   const first = h.api.items[0]!;
   const second = h.api.items[1]!;
@@ -134,57 +135,57 @@ Deno.test("tabs bridge stamps per-slot trigger and content ids, roles, and aria 
   const panel1 = h.api.getContentProps(first);
   const panel2 = h.api.getContentProps(second);
 
-  assertEquals(trig1["id"], "tabs:t1:trigger:overview");
-  assertEquals(trig2["id"], "tabs:t1:trigger:metrics");
-  assertEquals(trig1["aria-controls"], "tabs:t1:content:overview");
-  assertEquals(trig1["aria-selected"], "true");
-  assertEquals(trig2["aria-selected"], "false");
-  assertEquals(trig1["tabindex"], 0);
-  assertEquals(trig2["tabindex"], -1);
+  deepStrictEqual(trig1["id"], "tabs:t1:trigger:overview");
+  deepStrictEqual(trig2["id"], "tabs:t1:trigger:metrics");
+  deepStrictEqual(trig1["aria-controls"], "tabs:t1:content:overview");
+  deepStrictEqual(trig1["aria-selected"], "true");
+  deepStrictEqual(trig2["aria-selected"], "false");
+  deepStrictEqual(trig1["tabindex"], 0);
+  deepStrictEqual(trig2["tabindex"], -1);
 
-  assertEquals(panel1["id"], "tabs:t1:content:overview");
-  assertEquals(panel2["id"], "tabs:t1:content:metrics");
-  assertEquals(panel1["aria-labelledby"], "tabs:t1:trigger:overview");
-  assertEquals(panel1["hidden"], undefined);
-  assertEquals(panel2["hidden"], true);
+  deepStrictEqual(panel1["id"], "tabs:t1:content:overview");
+  deepStrictEqual(panel2["id"], "tabs:t1:content:metrics");
+  deepStrictEqual(panel1["aria-labelledby"], "tabs:t1:trigger:overview");
+  deepStrictEqual(panel1["hidden"], undefined);
+  deepStrictEqual(panel2["hidden"], true);
   h.dispose();
 });
 
-Deno.test("tabs bridge trigger click and keyboard roving navigation update active tab and emit value-change", () => {
+test("tabs bridge trigger click and keyboard roving navigation update active tab and emit value-change", () => {
   const h = mountTabs({ defaultValue: "overview" });
   const [, second, third] = h.api.items;
 
   const clickSecond = h.api.getTriggerProps(second!)["onClick"] as () => void;
   clickSecond();
-  assertEquals(h.api.value, "metrics");
-  assertEquals(h.changes, ["metrics"]);
+  deepStrictEqual(h.api.value, "metrics");
+  deepStrictEqual(h.changes, ["metrics"]);
 
   // ArrowRight from "metrics" selects "settings"
   const keySecond = h.api.getTriggerProps(second!)["onKeydown"] as (
     e: KeyboardEvent,
   ) => void;
   keySecond(keydown("ArrowRight"));
-  assertEquals(h.api.value, "settings");
+  deepStrictEqual(h.api.value, "settings");
 
   // With loopFocus: true (default), ArrowRight from last wraps to "overview"
   const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (
     e: KeyboardEvent,
   ) => void;
   keyThird(keydown("ArrowRight"));
-  assertEquals(h.api.value, "overview");
+  deepStrictEqual(h.api.value, "overview");
 
   // End jumps to "settings", Home jumps back to "overview"
   const keyFirst = h.api.getTriggerProps(h.api.items[0]!)["onKeydown"] as (
     e: KeyboardEvent,
   ) => void;
   keyFirst(keydown("End"));
-  assertEquals(h.api.value, "settings");
+  deepStrictEqual(h.api.value, "settings");
   keyThird(keydown("Home"));
-  assertEquals(h.api.value, "overview");
+  deepStrictEqual(h.api.value, "overview");
   h.dispose();
 });
 
-Deno.test("tabs bridge loopFocus false stops at first and last tab boundaries", () => {
+test("tabs bridge loopFocus false stops at first and last tab boundaries", () => {
   const h = mountTabs({ defaultValue: "overview", loopFocus: false });
   const [first, , third] = h.api.items;
 
@@ -192,13 +193,13 @@ Deno.test("tabs bridge loopFocus false stops at first and last tab boundaries", 
     e: KeyboardEvent,
   ) => void;
   keyFirst(keydown("ArrowLeft"));
-  assertEquals(h.api.value, "overview");
+  deepStrictEqual(h.api.value, "overview");
 
   h.api.select("settings");
   const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (
     e: KeyboardEvent,
   ) => void;
   keyThird(keydown("ArrowRight"));
-  assertEquals(h.api.value, "settings");
+  deepStrictEqual(h.api.value, "settings");
   h.dispose();
 });

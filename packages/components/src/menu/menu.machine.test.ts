@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { menu } from "./menu.presentation.ts";
@@ -156,77 +157,77 @@ function mount(
   };
 }
 
-Deno.test("Given a fresh menu / When nothing is authored / Then closed is the reachable start state", () => {
+test("Given a fresh menu / When nothing is authored / Then closed is the reachable start state", () => {
   const h = mount(FLAT);
-  assertEquals(h.state(), "closed", "closed is the initial state");
-  assertEquals(h.api.isOpen, false, "the api reports closed");
-  assertEquals(
+  deepStrictEqual(h.state(), "closed", "closed is the initial state");
+  deepStrictEqual(h.api.isOpen, false, "the api reports closed");
+  deepStrictEqual(
     h.api.getTriggerProps()["aria-expanded"],
     false,
     "the trigger reports collapsed",
   );
   h.api.close();
-  assertEquals(h.state(), "closed", "a close from closed is a no-op");
+  deepStrictEqual(h.state(), "closed", "a close from closed is a no-op");
 });
 
-Deno.test("Given defaultOpen true / When the menu mounts / Then the open state is the reachable start", () => {
+test("Given defaultOpen true / When the menu mounts / Then the open state is the reachable start", () => {
   const h = mount(FLAT, { defaultOpen: true });
-  assertEquals(h.state(), "open", "defaultOpen seeds the open state");
-  assertEquals(h.api.isOpen, true, "the api reports open");
-  assertEquals(
+  deepStrictEqual(h.state(), "open", "defaultOpen seeds the open state");
+  deepStrictEqual(h.api.isOpen, true, "the api reports open");
+  deepStrictEqual(
     h.api.getTriggerProps()["aria-expanded"],
     true,
     "the trigger reports expanded",
   );
 });
 
-Deno.test("Given a closed menu / When the trigger is clicked / Then it opens and reports open-change", () => {
+test("Given a closed menu / When the trigger is clicked / Then it opens and reports open-change", () => {
   const h = mount(FLAT);
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  assertEquals(h.state(), "open", "the click opens the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "open", "the click opens the menu");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }],
     "open-change fires once on the way open",
   );
 });
 
-Deno.test("Given an open menu / When the trigger is clicked again / Then it closes and reports open-change", () => {
+test("Given an open menu / When the trigger is clicked again / Then it closes and reports open-change", () => {
   const h = mount(FLAT);
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  assertEquals(h.state(), "closed", "the toggle closes the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "closed", "the toggle closes the menu");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }, { open: false }],
     "both directions report",
   );
 });
 
-Deno.test("Given a closed menu / When the open command runs / Then the machine takes the open state", () => {
+test("Given a closed menu / When the open command runs / Then the machine takes the open state", () => {
   const h = mount(FLAT);
   h.api.open();
-  assertEquals(h.state(), "open", "the command moves to open");
-  assertEquals(
+  deepStrictEqual(h.state(), "open", "the command moves to open");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }],
     "open-change reports the command",
   );
 });
 
-Deno.test("Given an open menu / When the close command runs / Then the machine returns to closed", () => {
+test("Given an open menu / When the close command runs / Then the machine returns to closed", () => {
   const h = mount(FLAT);
   h.api.open();
   h.api.close();
-  assertEquals(h.state(), "closed", "the command returns to closed");
-  assertEquals(
+  deepStrictEqual(h.state(), "closed", "the command returns to closed");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }, { open: false }],
     "open-change reports both moves",
   );
 });
 
-Deno.test("Given an open menu / When the dismissable action reports Escape / Then it closes", () => {
+test("Given an open menu / When the dismissable action reports Escape / Then it closes", () => {
   const h = mount(FLAT);
   h.api.open();
   callback<() => void>(
@@ -234,15 +235,15 @@ Deno.test("Given an open menu / When the dismissable action reports Escape / The
     "use:dismissable",
     "onEscape",
   )();
-  assertEquals(h.state(), "closed", "escape closes the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "closed", "escape closes the menu");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }, { open: false }],
     "the close reports once",
   );
 });
 
-Deno.test("Given an open menu / When a press outside is reported / Then it closes", () => {
+test("Given an open menu / When a press outside is reported / Then it closes", () => {
   const h = mount(FLAT);
   h.api.open();
   callback<(event: PointerEvent) => void>(
@@ -252,36 +253,36 @@ Deno.test("Given an open menu / When a press outside is reported / Then it close
   )({
     target: document.createElement("div"),
   } as unknown as PointerEvent);
-  assertEquals(h.state(), "closed", "an outside press closes the menu");
+  deepStrictEqual(h.state(), "closed", "an outside press closes the menu");
 });
 
-Deno.test("Given an open menu / When the trigger id is excluded / Then the content passes it to dismissable", () => {
+test("Given an open menu / When the trigger id is excluded / Then the content passes it to dismissable", () => {
   const h = mount(FLAT);
   h.api.open();
   const params = h.api.getContentProps()["use:dismissable"] as {
     excludeId?: unknown;
   };
-  assertEquals(
+  deepStrictEqual(
     params.excludeId,
     h.api.getTriggerProps()["id"],
     "the trigger exclusion travels in the action param, not a def query",
   );
 });
 
-Deno.test("Given an authored open prop at mount / When the menu starts / Then it opens without an event", () => {
+test("Given an authored open prop at mount / When the menu starts / Then it opens without an event", () => {
   const h = mount(FLAT, { open: true });
   // mount() authors every override: here `open` is authored at seed time,
   // which is the only moment outer writes reach the machine. Post-mount
   // writes travel as events (a hooks-layer job), never channels.
-  assertEquals(h.state(), "open", "authored open at seed opens the menu");
+  deepStrictEqual(h.state(), "open", "authored open at seed opens the menu");
 });
 
-Deno.test("Given defaultOpen at mount / When the menu starts / Then it opens", () => {
+test("Given defaultOpen at mount / When the menu starts / Then it opens", () => {
   const h = mount(FLAT, { defaultOpen: true });
-  assertEquals(h.state(), "open", "uncontrolled default opens the menu");
+  deepStrictEqual(h.state(), "open", "uncontrolled default opens the menu");
 });
 
-Deno.test("Given a closed menu / When the context menu event carries a point / Then it opens at that point", () => {
+test("Given a closed menu / When the context menu event carries a point / Then it opens at that point", () => {
   const h = mount(FLAT);
   let prevented = false;
   handler<(event: MouseEvent) => void>(
@@ -294,88 +295,88 @@ Deno.test("Given a closed menu / When the context menu event carries a point / T
       prevented = true;
     },
   } as unknown as MouseEvent);
-  assertEquals(h.state(), "open", "the context menu opens the menu");
-  assertEquals(prevented, true, "the native context menu is prevented");
+  deepStrictEqual(h.state(), "open", "the context menu opens the menu");
+  deepStrictEqual(prevented, true, "the native context menu is prevented");
 });
 
-Deno.test("Given a closed menu / When the positioner props are read / Then the anchor action carries placement and no vars", () => {
+test("Given a closed menu / When the positioner props are read / Then the anchor action carries placement and no vars", () => {
   const h = mount(FLAT);
   const bag = h.api.getPositionerProps() as Record<string, unknown>;
-  assertEquals(
+  deepStrictEqual(
     bag["style"],
     undefined,
     "coordinates are the action's writes, not bag styles",
   );
-  assertEquals(
+  deepStrictEqual(
     bag["use:anchor"],
     { placement: "bottom", offset: 8 },
     "the bag declares behavior; the action positions",
   );
 });
 
-Deno.test("Given a closed menu / When the long-press action fires / Then the context menu opens", () => {
+test("Given a closed menu / When the long-press action fires / Then the context menu opens", () => {
   const h = mount(FLAT);
   callback<(point: { x: number; y: number }) => void>(
     h.api.getContextTriggerProps(),
     "use:long-press",
     "onPress",
   )({ x: 40, y: 30 });
-  assertEquals(h.state(), "open", "the long press opens the menu");
+  deepStrictEqual(h.state(), "open", "the long press opens the menu");
 });
 
-Deno.test("Given a closed menu / When ArrowDown arrives on the trigger / Then it opens with the first item highlighted", () => {
+test("Given a closed menu / When ArrowDown arrives on the trigger / Then it opens with the first item highlighted", () => {
   const h = mount(FLAT);
   handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(
     keyboard("ArrowDown"),
   );
-  assertEquals(h.state(), "open", "arrow down opens the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "open", "arrow down opens the menu");
+  deepStrictEqual(
     h.api.highlightedValue,
     "new",
     "the first enabled item is highlighted",
   );
 });
 
-Deno.test("Given a closed menu / When ArrowUp arrives on the trigger / Then it opens with the last item highlighted", () => {
+test("Given a closed menu / When ArrowUp arrives on the trigger / Then it opens with the last item highlighted", () => {
   const h = mount(FLAT);
   handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(
     keyboard("ArrowUp"),
   );
-  assertEquals(h.state(), "open", "arrow up opens the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "open", "arrow up opens the menu");
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "the last enabled item is highlighted, the disabled one skipped",
   );
 });
 
-Deno.test("Given an open menu / When the setHighlighted command runs / Then the highlight moves and reports", () => {
+test("Given an open menu / When the setHighlighted command runs / Then the highlight moves and reports", () => {
   const h = mount(FLAT);
   h.api.open();
   h.api.setHighlighted("copy");
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "the highlight follows the command",
   );
-  assertEquals(
+  deepStrictEqual(
     h.events.highlightChange,
     [{ highlightedValue: "copy" }],
     "highlight-change reports the move",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("copy"))["data-highlighted"],
     "",
     "the row carries data-highlighted",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new"))["data-highlighted"],
     undefined,
     "other rows do not",
   );
 });
 
-Deno.test("Given an open menu / When arrows move the highlight / Then navigation walks the enabled rows", () => {
+test("Given an open menu / When arrows move the highlight / Then navigation walks the enabled rows", () => {
   const h = mount(FLAT);
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -383,28 +384,28 @@ Deno.test("Given an open menu / When arrows move the highlight / Then navigation
     "onKeydown",
   );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "new",
     "the first arrow lands on the first item",
   );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "the next arrow skips the separator and the disabled item",
   );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "without loopFocus the last enabled item is the boundary",
   );
   onKeydown(keyboard("ArrowUp"));
-  assertEquals(h.api.highlightedValue, "new", "arrow up walks back");
+  deepStrictEqual(h.api.highlightedValue, "new", "arrow up walks back");
 });
 
-Deno.test("Given loopFocus / When the highlight runs past the last item / Then it wraps to the first", () => {
+test("Given loopFocus / When the highlight runs past the last item / Then it wraps to the first", () => {
   const h = mount(FLAT, { loopFocus: true });
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -414,14 +415,14 @@ Deno.test("Given loopFocus / When the highlight runs past the last item / Then i
   onKeydown(keyboard("ArrowDown"));
   onKeydown(keyboard("ArrowDown"));
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "new",
     "the wrap returns to the first item",
   );
 });
 
-Deno.test("Given an open menu / When Home and End arrive / Then the highlight jumps to the edges", () => {
+test("Given an open menu / When Home and End arrive / Then the highlight jumps to the edges", () => {
   const h = mount(FLAT);
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -429,13 +430,13 @@ Deno.test("Given an open menu / When Home and End arrive / Then the highlight ju
     "onKeydown",
   );
   onKeydown(keyboard("End"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "End lands on the last enabled item",
   );
   onKeydown(keyboard("Home"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "new",
     "Home lands on the first enabled item",
@@ -448,7 +449,7 @@ const SHARED_PREFIX: MenuEntry[] = [
 ];
 
 /** pressing more keys walks the matches: the buffer accumulates inside 500ms. */
-Deno.test("Given an open menu / When a printable key arrives / Then typeahead jumps to the matching label", () => {
+test("Given an open menu / When a printable key arrives / Then typeahead jumps to the matching label", () => {
   const h = mount(SHARED_PREFIX);
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -456,84 +457,84 @@ Deno.test("Given an open menu / When a printable key arrives / Then typeahead ju
     "onKeydown",
   );
   onKeydown(keyboard("s"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "send",
     "the first label starting with s wins",
   );
   onKeydown(keyboard("e"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "send",
     "the accumulated buffer still matches Send to chat",
   );
   onKeydown(keyboard("t"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "settings",
     "the longer buffer matches Settings",
   );
 });
 
-Deno.test("Given an open menu with a highlighted item / When Enter arrives / Then it selects and closes", () => {
+test("Given an open menu with a highlighted item / When Enter arrives / Then it selects and closes", () => {
   const h = mount(FLAT);
   h.api.open();
   h.api.setHighlighted("copy");
   handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
     keyboard("Enter"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.events.select,
     [{ value: "copy" }],
     "select carries the highlighted value",
   );
-  assertEquals(h.state(), "closed", "closeOnSelect closes the menu");
-  assertEquals(
+  deepStrictEqual(h.state(), "closed", "closeOnSelect closes the menu");
+  deepStrictEqual(
     h.events.openChange,
     [{ open: true }, { open: false }],
     "the close reports once",
   );
 });
 
-Deno.test("Given an open menu / When an item is clicked / Then it selects, closes, and clears the highlight", () => {
+test("Given an open menu / When an item is clicked / Then it selects, closes, and clears the highlight", () => {
   const h = mount(FLAT);
   h.api.open();
   handler<(event: MouseEvent) => void>(
     h.api.getItemProps(h.row("new")),
     "onClick",
   )(mouse());
-  assertEquals(
+  deepStrictEqual(
     h.events.select,
     [{ value: "new" }],
     "select carries the clicked value",
   );
-  assertEquals(h.state(), "closed", "the menu closes after a select");
-  assertEquals(h.api.highlightedValue, null, "the highlight clears on close");
+  deepStrictEqual(h.state(), "closed", "the menu closes after a select");
+  deepStrictEqual(h.api.highlightedValue, null, "the highlight clears on close");
 });
 
-Deno.test("Given closeOnSelect false / When an item is clicked / Then it selects but the menu stays open", () => {
+test("Given closeOnSelect false / When an item is clicked / Then it selects but the menu stays open", () => {
   const h = mount(FLAT, { closeOnSelect: false });
   h.api.open();
   handler<(event: MouseEvent) => void>(
     h.api.getItemProps(h.row("copy")),
     "onClick",
   )(mouse());
-  assertEquals(h.events.select, [{ value: "copy" }], "select still fires");
-  assertEquals(h.state(), "open", "the menu stays open");
+  deepStrictEqual(h.events.select, [{ value: "copy" }], "select still fires");
+  deepStrictEqual(h.state(), "open", "the menu stays open");
 });
 
-Deno.test("Given a disabled item / When it is clicked / Then nothing is selected", () => {
+test("Given a disabled item / When it is clicked / Then nothing is selected", () => {
   const h = mount(FLAT);
   h.api.open();
   handler<(event: MouseEvent) => void>(
     h.api.getItemProps(h.row("cut")),
     "onClick",
   )(mouse());
-  assertEquals(h.events.select, [], "a disabled item selects nothing");
-  assertEquals(h.state(), "open", "the menu stays open");
+  deepStrictEqual(h.events.select, [], "a disabled item selects nothing");
+  deepStrictEqual(h.state(), "open", "the menu stays open");
 });
 
-Deno.test("Given an open menu / When a pointer moves over an item / Then the highlight follows", () => {
+test("Given an open menu / When a pointer moves over an item / Then the highlight follows", () => {
   const h = mount(FLAT);
   h.api.open();
   const onPointerMove = handler<(event: PointerEvent) => void>(
@@ -541,103 +542,103 @@ Deno.test("Given an open menu / When a pointer moves over an item / Then the hig
     "onPointerMove",
   );
   onPointerMove(pointer("mouse"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "the mouse pointer highlights the row",
   );
   onPointerMove(pointer("touch"));
-  assertEquals(
+  deepStrictEqual(
     h.api.highlightedValue,
     "copy",
     "a non-mouse pointer is ignored",
   );
 });
 
-Deno.test("Given a submenu row / When it is clicked / Then the submenu opens on the parent context", () => {
+test("Given a submenu row / When it is clicked / Then the submenu opens on the parent context", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
-  assertEquals(row.children.length, 2, "the row carries its submenu rows");
+  deepStrictEqual(row.children.length, 2, "the row carries its submenu rows");
   handler<(event: MouseEvent) => void>(h.api.getItemProps(row), "onClick")(
     mouse(),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "true",
     "the submenu instance is marked open",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(row)["aria-expanded"],
     true,
     "the trigger row reports expanded",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(row)["aria-haspopup"],
     "menu",
     "the trigger row declares a menu popup",
   );
 });
 
-Deno.test("Given a submenu row / When the hover-intent action opens it / Then the parent context opens it too", () => {
+test("Given a submenu row / When the hover-intent action opens it / Then the parent context opens it too", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "true",
     "the hover dwell opens the submenu",
   );
 });
 
-Deno.test("Given an open submenu / When the hover-intent action reports a close / Then the submenu closes", () => {
+test("Given an open submenu / When the hover-intent action reports a close / Then the submenu closes", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
   const bag = h.api.getItemProps(row);
   callback<() => void>(bag, "use:hover-intent", "onOpen")();
   callback<() => void>(bag, "use:hover-intent", "onClose")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "false",
     "leaving the row closes the submenu",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(row)["aria-expanded"],
     false,
     "the trigger row reports collapsed",
   );
 });
 
-Deno.test("Given an open submenu / When another row is highlighted / Then the submenu closes", () => {
+test("Given an open submenu / When another row is highlighted / Then the submenu closes", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
   h.api.setHighlighted("new");
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "false",
     "highlighting another row closes the submenu",
   );
 });
 
-Deno.test("Given an open menu on a submenu trigger / When ArrowRight arrives / Then the submenu opens", () => {
+test("Given an open menu on a submenu trigger / When ArrowRight arrives / Then the submenu opens", () => {
   const h = mount(NESTED);
   h.api.open();
   h.api.setHighlighted("share");
   handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
     keyboard("ArrowRight"),
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(h.row("share"))["open"],
     "true",
     "arrow right enters the submenu",
   );
 });
 
-Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes and reports the close upward", () => {
+test("Given a submenu instance / When ArrowLeft arrives / Then it closes and reports the close upward", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const seen: string[] = [];
@@ -654,16 +655,16 @@ Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes an
     bridge.api.getContentProps(),
     "onKeydown",
   )(keyboard("ArrowLeft"));
-  assertEquals(seen, ["dismiss"], "a submenu reports its close upward");
-  assertEquals(bridge.api.isOpen, false, "the submenu returns to closed");
+  deepStrictEqual(seen, ["dismiss"], "a submenu reports its close upward");
+  deepStrictEqual(bridge.api.isOpen, false, "the submenu returns to closed");
 });
 
-Deno.test("Given a submenu that closed itself / When the parent hears the close / Then the parent clears it", () => {
+test("Given a submenu that closed itself / When the parent hears the close / Then the parent clears it", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "true",
     "the submenu is open",
@@ -684,14 +685,14 @@ Deno.test("Given a submenu that closed itself / When the parent hears the close 
     }),
   );
 
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "false",
     "the dismissal clears the parent's open submenu",
   );
 });
 
-Deno.test("Given a submenu that is open / When a different instance dismisses / Then the parent keeps it open", () => {
+test("Given a submenu that is open / When a different instance dismisses / Then the parent keeps it open", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
@@ -712,14 +713,14 @@ Deno.test("Given a submenu that is open / When a different instance dismisses / 
     }),
   );
 
-  assertEquals(
+  deepStrictEqual(
     h.api.getSubmenuProps(row)["open"],
     "true",
     "another instance's dismissal is not this one's",
   );
 });
 
-Deno.test("Given closeOnSelect / When a descendant reports a select / Then this level closes", () => {
+test("Given closeOnSelect / When a descendant reports a select / Then this level closes", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const bridge = createMenuBridge(
@@ -732,7 +733,7 @@ Deno.test("Given closeOnSelect / When a descendant reports a select / Then this 
     () => root,
     "submenu",
   );
-  assertEquals(
+  deepStrictEqual(
     bridge.api.isOpen,
     true,
     "the authored open prop holds this level open",
@@ -743,14 +744,14 @@ Deno.test("Given closeOnSelect / When a descendant reports a select / Then this 
   )(
     new CustomEvent("submenuclose", { detail: { select: true } }),
   );
-  assertEquals(
+  deepStrictEqual(
     bridge.api.isOpen,
     false,
     "a select with closeOnSelect closes this level too",
   );
 });
 
-Deno.test("Given closeOnSelect false / When a descendant reports a select / Then this level stays open", () => {
+test("Given closeOnSelect false / When a descendant reports a select / Then this level stays open", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const bridge = createMenuBridge(
@@ -770,79 +771,79 @@ Deno.test("Given closeOnSelect false / When a descendant reports a select / Then
   )(
     new CustomEvent("submenuclose", { detail: { select: true } }),
   );
-  assertEquals(bridge.api.isOpen, true, "a select does not close this level");
+  deepStrictEqual(bridge.api.isOpen, true, "a select does not close this level");
 });
 
-Deno.test("Given items with groups and separators / When the blocks are read / Then rows are grouped and divided", () => {
+test("Given items with groups and separators / When the blocks are read / Then rows are grouped and divided", () => {
   const h = mount([
     { group: "File", items: [{ value: "new", label: "New file" }] },
     { separator: true },
     { value: "copy", label: "Copy" },
   ]);
   const blocks: readonly MenuBlock[] = h.api.getBlocks();
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => block.label),
     ["File", null],
     "a separator splits the list into blocks",
   );
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => block.separator),
     [true, false],
     "only the block before a separator knows it",
   );
-  assertEquals(blocks.map((block) => block.rows.map((row) => row.value)), [[
+  deepStrictEqual(blocks.map((block) => block.rows.map((row) => row.value)), [[
     "new",
   ], ["copy"]], "rows land in their own block");
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => h.api.getSeparatorProps(block)["hidden"]),
     [false, true],
     "a separator block shows, the last block hides it",
   );
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => h.api.getItemGroupProps(block)["role"]),
     ["group", "group"],
     "each block is a group",
   );
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => h.api.getItemGroupProps(block)["aria-labelledby"]),
     [h.api.getItemGroupLabelProps(blocks[0] as MenuBlock)["id"], undefined],
     "a labeled group points at its label, an unlabeled one does not",
   );
-  assertEquals(
+  deepStrictEqual(
     blocks.map((block) => h.api.getItemGroupLabelProps(block)["hidden"]),
     [false, true],
     "a labeled block shows its label, an unlabeled one hides it",
   );
 });
 
-Deno.test("Given a checkable item / When its props are read / Then the checkbox semantics follow the data", () => {
+test("Given a checkable item / When its props are read / Then the checkbox semantics follow the data", () => {
   const h = mount([
     { value: "view", label: "Can view", checked: true },
     { value: "edit", label: "Can edit" },
   ]);
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("view"))["role"],
     "menuitemcheckbox",
     "a checkable item uses the checkbox role",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("view"))["aria-checked"],
     true,
     "the checked state is exposed",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemIndicatorProps(h.row("view"))["data-checked"],
     "",
     "the indicator reports the check",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("edit"))["role"],
     "menuitem",
     "a plain item uses the item role",
   );
 });
 
-Deno.test("Given an item with a shortcut or children / When its props are read / Then the trailing affordances are exposed", () => {
+test("Given an item with a shortcut or children / When its props are read / Then the trailing affordances are exposed", () => {
   const h = mount([
     { value: "new", label: "New file", shortcut: "Ctrl N" },
     {
@@ -851,81 +852,81 @@ Deno.test("Given an item with a shortcut or children / When its props are read /
       children: [{ value: "mail", label: "Email link" }],
     },
   ]);
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemShortcutProps(h.row("new"))["hidden"],
     false,
     "a row with a shortcut shows the part",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemSubmenuIndicatorProps(h.row("new"))["hidden"],
     true,
     "a leaf hides the submenu chevron",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemSubmenuIndicatorProps(h.row("share"))["hidden"],
     false,
     "a submenu row shows the chevron",
   );
   const props = h.api.getSubmenuProps(h.row("share"));
-  assertEquals(
+  deepStrictEqual(
     props["label"],
     "Share",
     "the child instance is told its row's label",
   );
-  assertEquals(props["open"], "false", "the child instance starts closed");
+  deepStrictEqual(props["open"], "false", "the child instance starts closed");
 });
 
-Deno.test("Given items the transport could not shape / When the rows are read / Then nothing renders", () => {
+test("Given items the transport could not shape / When the rows are read / Then nothing renders", () => {
   const h = mount(FLAT);
   h.write("items", "{not shaped}" as unknown as readonly MenuEntry[]);
   // Post-mount writes are inert without an event: the seed ran at mount.
   // A non-array can never reach entries through the typed seed path, so
   // the mount-time tree stands.
-  assertEquals(
+  deepStrictEqual(
     h.api.getBlocks().flatMap((block) => block.rows).map((row) => row.value),
     ["new", "copy", "cut"],
     "post-mount writes do not re-seed",
   );
 });
 
-Deno.test("Given composite false / When the content props are read / Then the surface is a dialog", () => {
+test("Given composite false / When the content props are read / Then the surface is a dialog", () => {
   const h = mount(FLAT, { composite: false });
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps()["role"],
     "dialog",
     "composite false demotes the menu to a dialog",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getTriggerProps()["aria-haspopup"],
     "dialog",
     "the trigger declares a dialog popup",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new"))["role"],
     "menuitem",
     "items keep the menu item role",
   );
 });
 
-Deno.test("Given typeahead false / When a printable key arrives / Then the highlight does not move", () => {
+test("Given typeahead false / When a printable key arrives / Then the highlight does not move", () => {
   const h = mount(FLAT, { typeahead: false });
   h.api.open();
   handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
     keyboard("n"),
   );
-  assertEquals(h.api.highlightedValue, null, "typeahead is off");
+  deepStrictEqual(h.api.highlightedValue, null, "typeahead is off");
 });
 
-Deno.test("Given a submenu row / When the child instance is configured / Then it is told its subtree as JSON", () => {
+test("Given a submenu row / When the child instance is configured / Then it is told its subtree as JSON", () => {
   const h = mount(NESTED);
   const row = h.row("share");
   const props = h.api.getSubmenuProps(row);
-  assertEquals(
+  deepStrictEqual(
     props["items"],
     row.children,
     "the subtree crosses as values; the child transport coerces",
   );
-  assertEquals(
+  deepStrictEqual(
     props["id"],
     "menu:menu:submenu:share",
     "the child instance takes the row's id",
@@ -940,18 +941,18 @@ Deno.test("Given a submenu row / When the child instance is configured / Then it
 // the parent row's aria-controls dangled — which also made the focus call in
 // openSubmenu a no-op, so keyboard focus could not enter a submenu level.
 
-Deno.test("Given a nested instance / When it is handed an already-namespaced id / Then its parts are not double-prefixed", () => {
+test("Given a nested instance / When it is handed an already-namespaced id / Then its parts are not double-prefixed", () => {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const ownerId = "menu:host";
   const nested = createMenuBridge(() => ({ items: FLAT }), () => root, ownerId);
   const contentId = String(nested.api.getContentProps()["id"]);
-  assertEquals(
+  deepStrictEqual(
     contentId,
     `${ownerId}:content`,
     "the nested content part id keeps one namespace",
   );
-  assertEquals(
+  deepStrictEqual(
     String(nested.api.getTriggerProps()["id"]),
     `${ownerId}:trigger`,
     "the nested trigger part id keeps one namespace",
@@ -959,29 +960,29 @@ Deno.test("Given a nested instance / When it is handed an already-namespaced id 
   const row = nested.api.getBlocks().flatMap((block) =>
     nested.api.getRows(block)
   ).find((r) => r.value === "new");
-  assertEquals(
+  deepStrictEqual(
     row === undefined ? "" : String(nested.api.getItemProps(row)["id"]),
     `${ownerId}:item:new`,
   );
 });
 
-Deno.test("Given a submenu trigger row / When the child part ids are read / Then aria-controls points at the child's content", () => {
+test("Given a submenu trigger row / When the child part ids are read / Then aria-controls points at the child's content", () => {
   const h = mount(NESTED, { submenu: true });
   const row = h.row("share");
   const childId = String(h.api.getSubmenuProps(row)["id"]);
-  assertEquals(
+  deepStrictEqual(
     childId,
     "menu:menu:submenu:share",
     "the child element carries the parent's part id",
   );
-  assertEquals(
+  deepStrictEqual(
     String(h.api.getItemProps(row)["aria-controls"]),
     `${childId}:content`,
     "the trigger row points at the child element's own content part",
   );
 });
 
-Deno.test("Given a submenu row is opened by keyboard / When the level is focused / Then the focus target resolves in the document", () => {
+test("Given a submenu row is opened by keyboard / When the level is focused / Then the focus target resolves in the document", () => {
   const h = mount(NESTED, { submenu: true });
   const row = h.row("share");
   const childId = String(h.api.getSubmenuProps(row)["id"]);
@@ -1007,7 +1008,7 @@ Deno.test("Given a submenu row is opened by keyboard / When the level is focused
     `${String(h.api.getItemProps(row)["aria-controls"])}`,
   );
 
-  assertEquals(
+  deepStrictEqual(
     reachable,
     childContent,
     "the row's aria-controls and the child instance's content part are the same element",
@@ -1024,7 +1025,7 @@ Deno.test("Given a submenu row is opened by keyboard / When the level is focused
 // submenu with no pointer event. Rows must be stable objects, and the bags must
 // be cached against the context fields they read.
 
-Deno.test("Given an open menu / When the highlight moves / Then the rows are the same object across reads", () => {
+test("Given an open menu / When the highlight moves / Then the rows are the same object across reads", () => {
   const h = mount(FLAT);
   h.api.open();
   const before = h.api.getBlocks();
@@ -1034,24 +1035,24 @@ Deno.test("Given an open menu / When the highlight moves / Then the rows are the
   );
   onKeydown(keyboard("ArrowDown"));
   const after = h.api.getBlocks();
-  assertEquals(
+  deepStrictEqual(
     after,
     before,
     "the block list is the same array across a machine move",
   );
-  assertEquals(
+  deepStrictEqual(
     after.flatMap((block) => h.api.getRows(block)),
     before.flatMap((block) => h.api.getRows(block)),
     "the rows are the same objects across a machine move",
   );
-  assertEquals(
+  deepStrictEqual(
     before.find((block) => block.rows[0]?.value === "new")?.rows[0],
     after.find((block) => block.rows[0]?.value === "new")?.rows[0],
     "a given row keeps its identity",
   );
 });
 
-Deno.test("Given an open menu / When the highlight moves / Then the row handlers keep their identity", () => {
+test("Given an open menu / When the highlight moves / Then the row handlers keep their identity", () => {
   const h = mount(FLAT);
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -1066,19 +1067,19 @@ Deno.test("Given an open menu / When the highlight moves / Then the row handlers
   };
   onKeydown(keyboard("ArrowDown"));
   const second = h.api.getItemProps(h.row("new"));
-  assertEquals(
+  deepStrictEqual(
     second["onClick"],
     before.onClick,
     "the click handler is not rebuilt per move",
   );
-  assertEquals(
+  deepStrictEqual(
     second["onPointerMove"],
     before.onPointerMove,
     "the pointer handler is not rebuilt per move",
   );
 });
 
-Deno.test("Given an open menu / When the highlight moves / Then the item bag is rebuilt with the new fields", () => {
+test("Given an open menu / When the highlight moves / Then the item bag is rebuilt with the new fields", () => {
   const h = mount(FLAT);
   h.api.open();
   const onKeydown = handler<(event: KeyboardEvent) => void>(
@@ -1086,68 +1087,68 @@ Deno.test("Given an open menu / When the highlight moves / Then the item bag is 
     "onKeydown",
   );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new"))["data-highlighted"],
     "",
     "the highlighted row carries the attribute",
   );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new"))["data-highlighted"],
     undefined,
     "the previous row loses it",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("copy"))["data-highlighted"],
     "",
     "the new row carries it",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new"))["role"],
     "menuitem",
     "the rebuild keeps the row's own static fields",
   );
 });
 
-Deno.test("Given an open menu / When nothing moves / Then re-reading the bags returns the same objects", () => {
+test("Given an open menu / When nothing moves / Then re-reading the bags returns the same objects", () => {
   const h = mount(FLAT, { composite: false });
   h.api.open();
-  assertEquals(
+  deepStrictEqual(
     h.api.getTriggerProps(),
     h.api.getTriggerProps(),
     "the trigger bag is cached",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getContentProps(),
     h.api.getContentProps(),
     "the content bag is cached",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemProps(h.row("new")),
     h.api.getItemProps(h.row("new")),
     "the item bag is cached while its fields hold",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getItemGroupProps(h.api.getBlocks()[0]!),
     h.api.getItemGroupProps(h.api.getBlocks()[0]!),
     "the group bag is cached",
   );
-  assertEquals(
+  deepStrictEqual(
     h.api.getSeparatorProps(h.api.getBlocks()[0]!),
     h.api.getSeparatorProps(h.api.getBlocks()[0]!),
     "the separator bag is cached, and is not the group's",
   );
 });
 
-Deno.test("Given a menu whose items change post-mount / When the bags are read / Then the mount-time tree stands", () => {
+test("Given a menu whose items change post-mount / When the bags are read / Then the mount-time tree stands", () => {
   const h = mount(FLAT);
   const first = h.row("new");
-  assertEquals(h.api.getItemProps(first)["id"], "menu:menu:item:new");
+  deepStrictEqual(h.api.getItemProps(first)["id"], "menu:menu:item:new");
   // Post-mount writes are inert without an event: seed ran at mount.
   // A host that needs a new tree sends an event (a hooks-layer job).
   h.write("items", [{ value: "other", label: "Other" }]);
   const rows = h.api.getBlocks().flatMap((block) => h.api.getRows(block));
-  assertEquals(
+  deepStrictEqual(
     rows.map((row) => row.value),
     ["new", "copy", "cut"],
     "post-mount writes do not re-seed",

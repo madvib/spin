@@ -1,4 +1,6 @@
-import { assert, assertEquals, assertThrows } from "@std/assert";
+import { test } from "bun:test";
+import assert from "node:assert/strict";
+import { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import type { UnocssPluginContext } from "@unocss/core";
 import MagicString from "magic-string";
@@ -178,7 +180,7 @@ function assertSets(
   property: string,
   value: string,
 ): void {
-  assertEquals(
+  deepStrictEqual(
     valueFor(css, utility, property),
     value,
     `${utility} sets no ${property} to \`${value}\` in:\n${css}`,
@@ -212,7 +214,7 @@ async function cssFor(classes: string): Promise<string> {
   return css;
 }
 
-Deno.test("bg-primary resolves to the color token variable", async () => {
+test("bg-primary resolves to the color token variable", async () => {
   assertTokenDriven(
     await cssFor("bg-primary"),
     "bg-primary",
@@ -220,38 +222,38 @@ Deno.test("bg-primary resolves to the color token variable", async () => {
   );
 });
 
-Deno.test("p-4 resolves to the spacing token variable", async () => {
+test("p-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("p-4"), "p-4", "padding");
 });
 
-Deno.test("text-lg resolves to the font-size token variable", async () => {
+test("text-lg resolves to the font-size token variable", async () => {
   assertTokenDriven(await cssFor("text-lg"), "text-lg", "font-size");
 });
 
-Deno.test("rounded-lg resolves to the radius token variable", async () => {
+test("rounded-lg resolves to the radius token variable", async () => {
   assertTokenDriven(await cssFor("rounded-lg"), "rounded-lg", "border-radius");
 });
 
-Deno.test("shadow-md resolves to the shadow token variable", async () => {
+test("shadow-md resolves to the shadow token variable", async () => {
   assertTokenDriven(await cssFor("shadow-md"), "shadow-md", "box-shadow");
 });
 
-Deno.test("flex resolves to display flex", async () => {
+test("flex resolves to display flex", async () => {
   const css = await cssFor("flex");
   assertSets(css, "flex", "display", "flex");
 });
 
-Deno.test("w-full resolves to full width", async () => {
+test("w-full resolves to full width", async () => {
   const css = await cssFor("w-full");
   assertSets(css, "w-full", "width", "100%");
 });
 
-Deno.test("top-1/2 resolves to half inset", async () => {
+test("top-1/2 resolves to half inset", async () => {
   const css = await cssFor("top-1/2");
   assertSets(css, "top-1/2", "top", "50%");
 });
 
-Deno.test("preflight emits the theme variables", async () => {
+test("preflight emits the theme variables", async () => {
   // The decision is that every token a utility READS is one the sheet
   // DECLARES. Asserting the token's own name instead would only prove the
   // fixture spelled it the way the test expects.
@@ -283,45 +285,45 @@ Deno.test("preflight emits the theme variables", async () => {
   }
 });
 
-Deno.test("border-primary resolves to the border color token variable", async () => {
+test("border-primary resolves to the border color token variable", async () => {
   const css = await cssFor("border-primary");
   assertTokenDriven(css, "border-primary", "border-color");
 });
 
-Deno.test("border-neutral-50 resolves to the ramp token variable", async () => {
+test("border-neutral-50 resolves to the ramp token variable", async () => {
   const css = await cssFor("border-neutral-50");
   assertTokenDriven(css, "border-neutral-50", "border-color");
 });
 
-Deno.test("font-sans resolves to the family token variable", async () => {
+test("font-sans resolves to the family token variable", async () => {
   const css = await cssFor("font-sans");
   assertTokenDriven(css, "font-sans", "font-family");
 });
 
-Deno.test("font-bold resolves to the weight token variable", async () => {
+test("font-bold resolves to the weight token variable", async () => {
   const css = await cssFor("font-bold");
   assertTokenDriven(css, "font-bold", "font-weight");
 });
 
-Deno.test("m-4 resolves to the spacing token variable", async () => {
+test("m-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("m-4"), "m-4", "margin");
 });
 
-Deno.test("px-4 resolves to directional padding token variables", async () => {
+test("px-4 resolves to directional padding token variables", async () => {
   const css = await cssFor("px-4");
   assertTokenDriven(css, "px-4", "padding-left");
   assertTokenDriven(css, "px-4", "padding-right");
 });
 
-Deno.test("mt-2 resolves to directional margin token variable", async () => {
+test("mt-2 resolves to directional margin token variable", async () => {
   assertTokenDriven(await cssFor("mt-2"), "mt-2", "margin-top");
 });
 
-Deno.test("gap-4 resolves to the spacing token variable", async () => {
+test("gap-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("gap-4"), "gap-4", "gap");
 });
 
-Deno.test("preflight emits dark overrides for the dark axis", async () => {
+test("preflight emits dark overrides for the dark axis", async () => {
   const base = workingTree();
   const dark = parseTokens({
     dark: { color: { $type: "color", primary: { $value: "#60a5fa" } } },
@@ -357,8 +359,8 @@ Deno.test("preflight emits dark overrides for the dark axis", async () => {
   );
 });
 
-Deno.test("preset refuses a theme missing required tokens", () => {
-  assertThrows(
+test("preset refuses a theme missing required tokens", () => {
+  assert.throws(
     () =>
       spinPreset({
         theme: {
@@ -370,7 +372,7 @@ Deno.test("preset refuses a theme missing required tokens", () => {
   );
 });
 
-Deno.test("named themes emit per-theme blocks and share rules", async () => {
+test("named themes emit per-theme blocks and share rules", async () => {
   const lightDoc = {
     color: {
       $type: "color",
@@ -508,38 +510,38 @@ Deno.test("named themes emit per-theme blocks and share rules", async () => {
   assert(css.includes('[data-theme="neon"]'), `missing neon block in: ${css}`);
 });
 
-Deno.test("block resolves to display block", async () => {
+test("block resolves to display block", async () => {
   assertSets(await cssFor("block"), "block", "display", "block");
 });
 
-Deno.test("inline-flex resolves to display inline-flex", async () => {
+test("inline-flex resolves to display inline-flex", async () => {
   const css = await cssFor("inline-flex");
   assertSets(css, "inline-flex", "display", "inline-flex");
 });
 
-Deno.test("hidden resolves to display none", async () => {
+test("hidden resolves to display none", async () => {
   assertSets(await cssFor("hidden"), "hidden", "display", "none");
 });
 
-Deno.test("opacity-50 defers to the theme, falling back to half", async () => {
+test("opacity-50 defers to the theme, falling back to half", async () => {
   const value = valueFor(await cssFor("opacity-50"), "opacity-50", "opacity");
   assert(
     value !== undefined && readsAToken(value),
     `opacity-50 must read the theme's step, got: ${value}`,
   );
-  assertEquals(fallbackOf(value), "0.5");
+  deepStrictEqual(fallbackOf(value), "0.5");
 });
 
-Deno.test("opacity-100 defers to the theme, falling back to full", async () => {
+test("opacity-100 defers to the theme, falling back to full", async () => {
   const value = valueFor(await cssFor("opacity-100"), "opacity-100", "opacity");
   assert(
     value !== undefined && readsAToken(value),
     `opacity-100 must read the theme's step, got: ${value}`,
   );
-  assertEquals(fallbackOf(value), "1");
+  deepStrictEqual(fallbackOf(value), "1");
 });
 
-Deno.test("tracking-wide spends the theme's ramp when the theme states one", async () => {
+test("tracking-wide spends the theme's ramp when the theme states one", async () => {
   const uno = await generatorFor({
     themes: {
       default: withGroup("font", {
@@ -551,43 +553,43 @@ Deno.test("tracking-wide spends the theme's ramp when the theme states one", asy
   assertTokenDriven(css, "tracking-wide", "letter-spacing");
 });
 
-Deno.test("w-4 resolves to the spacing token variable", async () => {
+test("w-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("w-4"), "w-4", "width");
 });
 
-Deno.test("w-1/2 resolves to half width", async () => {
+test("w-1/2 resolves to half width", async () => {
   assertSets(await cssFor("w-1/2"), "w-1/2", "width", "50%");
 });
 
-Deno.test("w-screen resolves to viewport width", async () => {
+test("w-screen resolves to viewport width", async () => {
   assertSets(await cssFor("w-screen"), "w-screen", "width", "100vw");
 });
 
-Deno.test("h-screen resolves to viewport height", async () => {
+test("h-screen resolves to viewport height", async () => {
   assertSets(await cssFor("h-screen"), "h-screen", "height", "100vh");
 });
 
-Deno.test("max-w-screen-md resolves to the breakpoint token variable", async () => {
+test("max-w-screen-md resolves to the breakpoint token variable", async () => {
   const css = await cssFor("max-w-screen-md");
   assertTokenDriven(css, "max-w-screen-md", "max-width");
 });
 
-Deno.test("min-w-min resolves to min-content", async () => {
+test("min-w-min resolves to min-content", async () => {
   const css = await cssFor("min-w-min");
   assertSets(css, "min-w-min", "min-width", "min-content");
 });
 
-Deno.test("flex-col resolves to column direction", async () => {
+test("flex-col resolves to column direction", async () => {
   const css = await cssFor("flex-col");
   assertSets(css, "flex-col", "flex-direction", "column");
 });
 
-Deno.test("items-center resolves to center alignment", async () => {
+test("items-center resolves to center alignment", async () => {
   const css = await cssFor("items-center");
   assertSets(css, "items-center", "align-items", "center");
 });
 
-Deno.test("overflow-auto resolves to auto overflow", async () => {
+test("overflow-auto resolves to auto overflow", async () => {
   assertSets(
     await cssFor("overflow-auto"),
     "overflow-auto",
@@ -596,27 +598,27 @@ Deno.test("overflow-auto resolves to auto overflow", async () => {
   );
 });
 
-Deno.test("border-2 resolves to two pixel width", async () => {
+test("border-2 resolves to two pixel width", async () => {
   const css = await cssFor("border-2");
   assertSets(css, "border-2", "border-width", "2px");
 });
 
-Deno.test("absolute resolves to absolute position", async () => {
+test("absolute resolves to absolute position", async () => {
   assertSets(await cssFor("absolute"), "absolute", "position", "absolute");
 });
 
-Deno.test("no-underline resolves to no text decoration", async () => {
+test("no-underline resolves to no text decoration", async () => {
   const css = await cssFor("no-underline");
   assertSets(css, "no-underline", "text-decoration", "none");
 });
 
-Deno.test("preflight resets the box model", async () => {
+test("preflight resets the box model", async () => {
   const css = await cssFor("flex");
   assert(css.includes("box-sizing"), `missing reset in: ${css}`);
   assert(css.includes("border-box"), `missing reset in: ${css}`);
 });
 
-Deno.test("the theme layer sets the body from theme tokens", async () => {
+test("the theme layer sets the body from theme tokens", async () => {
   const uno = await generatorFor({
     themes: { default: workingTreeDocument() },
   });
@@ -629,28 +631,28 @@ Deno.test("the theme layer sets the body from theme tokens", async () => {
   );
 });
 
-Deno.test("inset-4 resolves all insets to the spacing token", async () => {
+test("inset-4 resolves all insets to the spacing token", async () => {
   const css = await cssFor("inset-4");
   for (const edge of ["top", "right", "bottom", "left"]) {
     assertTokenDriven(css, "inset-4", edge);
   }
 });
 
-Deno.test("inset-x-0 resolves horizontal insets to zero", async () => {
+test("inset-x-0 resolves horizontal insets to zero", async () => {
   const css = await cssFor("inset-x-0");
   assertSets(css, "inset-x-0", "left", "0");
   assertSets(css, "inset-x-0", "right", "0");
 });
 
-Deno.test("top-0 resolves to zero offset", async () => {
+test("top-0 resolves to zero offset", async () => {
   assertSets(await cssFor("top-0"), "top-0", "top", "0");
 });
 
-Deno.test("left-1/2 resolves to half offset", async () => {
+test("left-1/2 resolves to half offset", async () => {
   assertSets(await cssFor("left-1/2"), "left-1/2", "left", "50%");
 });
 
-Deno.test("anchor-theme-popover names the trigger for its panel", async () => {
+test("anchor-theme-popover names the trigger for its panel", async () => {
   assertSets(
     await cssFor("anchor-theme-popover"),
     "anchor-theme-popover",
@@ -659,7 +661,7 @@ Deno.test("anchor-theme-popover names the trigger for its panel", async () => {
   );
 });
 
-Deno.test("position-anchor-theme-popover pins the panel to its trigger", async () => {
+test("position-anchor-theme-popover pins the panel to its trigger", async () => {
   assertSets(
     await cssFor("position-anchor-theme-popover"),
     "position-anchor-theme-popover",
@@ -668,7 +670,7 @@ Deno.test("position-anchor-theme-popover pins the panel to its trigger", async (
   );
 });
 
-Deno.test("position-area-bottom-span-right opens the panel below its trigger", async () => {
+test("position-area-bottom-span-right opens the panel below its trigger", async () => {
   assertSets(
     await cssFor("position-area-bottom-span-right"),
     "position-area-bottom-span-right",
@@ -677,7 +679,7 @@ Deno.test("position-area-bottom-span-right opens the panel below its trigger", a
   );
 });
 
-Deno.test("position-area-top centers the panel above its trigger", async () => {
+test("position-area-top centers the panel above its trigger", async () => {
   assertSets(
     await cssFor("position-area-top"),
     "position-area-top",
@@ -686,35 +688,35 @@ Deno.test("position-area-top centers the panel above its trigger", async () => {
   );
 });
 
-Deno.test("z-dropdown resolves to the z-index token variable", async () => {
+test("z-dropdown resolves to the z-index token variable", async () => {
   assertTokenDriven(await cssFor("z-dropdown"), "z-dropdown", "z-index");
 });
 
-Deno.test("order-2 resolves to ordinal two", async () => {
+test("order-2 resolves to ordinal two", async () => {
   assertSets(await cssFor("order-2"), "order-2", "order", "2");
 });
 
-Deno.test("invisible resolves to hidden visibility", async () => {
+test("invisible resolves to hidden visibility", async () => {
   const css = await cssFor("invisible");
   assertSets(css, "invisible", "visibility", "hidden");
 });
 
-Deno.test("text-center resolves to centered text", async () => {
+test("text-center resolves to centered text", async () => {
   const css = await cssFor("text-center");
   assertSets(css, "text-center", "text-align", "center");
 });
 
-Deno.test("whitespace-nowrap resolves to no wrapping", async () => {
+test("whitespace-nowrap resolves to no wrapping", async () => {
   const css = await cssFor("whitespace-nowrap");
   assertSets(css, "whitespace-nowrap", "white-space", "nowrap");
 });
 
-Deno.test("break-words resolves to word breaking", async () => {
+test("break-words resolves to word breaking", async () => {
   const css = await cssFor("break-words");
   assertSets(css, "break-words", "overflow-wrap", "break-word");
 });
 
-Deno.test("transition-colors resolves to color properties", async () => {
+test("transition-colors resolves to color properties", async () => {
   const css = await cssFor("transition-colors");
   const value = valueFor(css, "transition-colors", "transition-property");
   assert(
@@ -723,12 +725,12 @@ Deno.test("transition-colors resolves to color properties", async () => {
   );
 });
 
-Deno.test("duration-base resolves to the duration token variable", async () => {
+test("duration-base resolves to the duration token variable", async () => {
   const css = await cssFor("duration-base");
   assertTokenDriven(css, "duration-base", "transition-duration");
 });
 
-Deno.test("duration-loop is not a transition", async () => {
+test("duration-loop is not a transition", async () => {
   // The loop step is the period of an endless animation — the skeleton's
   // pulse, the spinner — and a transition that takes as long as a pulse is
   // not what a transition is. So the class is refused: the endless
@@ -746,48 +748,48 @@ Deno.test("duration-loop is not a transition", async () => {
     },
   });
   const { css } = await uno.generate("duration-loop duration-base");
-  assertEquals(
+  deepStrictEqual(
     valueFor(css, "duration-loop", "transition-duration"),
     undefined,
     `the loop step must not be spendable as a transition:\n${css}`,
   );
-  assertEquals(
+  deepStrictEqual(
     valueFor(css, "duration-base", "transition-duration"),
     "var(--motion-duration-base)",
   );
 });
 
-Deno.test("ease-standard resolves to the easing token variable", async () => {
+test("ease-standard resolves to the easing token variable", async () => {
   const css = await cssFor("ease-standard");
   assertTokenDriven(css, "ease-standard", "transition-timing-function");
 });
 
-Deno.test("cursor-pointer resolves to pointer cursor", async () => {
+test("cursor-pointer resolves to pointer cursor", async () => {
   const css = await cssFor("cursor-pointer");
   assertSets(css, "cursor-pointer", "cursor", "pointer");
 });
 
-Deno.test("pointer-events-none resolves to no events", async () => {
+test("pointer-events-none resolves to no events", async () => {
   const css = await cssFor("pointer-events-none");
   assertSets(css, "pointer-events-none", "pointer-events", "none");
 });
 
-Deno.test("select-none resolves to no selection", async () => {
+test("select-none resolves to no selection", async () => {
   const css = await cssFor("select-none");
   assertSets(css, "select-none", "user-select", "none");
 });
 
-Deno.test("resize-both resolves to both axis resize", async () => {
+test("resize-both resolves to both axis resize", async () => {
   const css = await cssFor("resize-both");
   assertSets(css, "resize-both", "resize", "both");
 });
 
-Deno.test("scroll-smooth resolves to smooth scrolling", async () => {
+test("scroll-smooth resolves to smooth scrolling", async () => {
   const css = await cssFor("scroll-smooth");
   assertSets(css, "scroll-smooth", "scroll-behavior", "smooth");
 });
 
-Deno.test("divide-x puts dividers between children", async () => {
+test("divide-x puts dividers between children", async () => {
   const css = await cssFor("divide-x");
   // The divider must be drawn BETWEEN siblings, so the rule is scoped to the
   // children rather than to the element carrying the class.
@@ -801,7 +803,7 @@ Deno.test("divide-x puts dividers between children", async () => {
   );
 });
 
-Deno.test("divide-primary colors the dividers from the token", async () => {
+test("divide-primary colors the dividers from the token", async () => {
   const css = await cssFor("divide-primary");
   assert(
     /\.divide-primary\s*>\s*:not\(\[hidden\]\)\s*~\s*:not\(\[hidden\]\)/.test(
@@ -812,7 +814,7 @@ Deno.test("divide-primary colors the dividers from the token", async () => {
   assertTokenDriven(css, "divide-primary", "border-color");
 });
 
-Deno.test("extendTheme names resolve as closed utilities", async () => {
+test("extendTheme names resolve as closed utilities", async () => {
   const uno = await createGenerator({
     presets: [spinPreset()],
     extendTheme: (theme) => {
@@ -829,7 +831,7 @@ Deno.test("extendTheme names resolve as closed utilities", async () => {
   assertSets(css, "bg-brand", "background-color", "#bada55");
 });
 
-Deno.test("the preset theme publishes references, not literals", () => {
+test("the preset theme publishes references, not literals", () => {
   // The engine must resolve at the browser: a rule emits a `var(…)` reference
   // and the stylesheet supplies the value, so switching themes is a selector
   // swap rather than a rebuild. Literals exist for tooling, and only there.
@@ -852,14 +854,14 @@ Deno.test("the preset theme publishes references, not literals", () => {
       }
     }
   }
-  assertEquals(
+  deepStrictEqual(
     offenders,
     [],
     `these publish literals: ${offenders.join(", ")}`,
   );
 });
 
-Deno.test("the primitives layer is emitted by default", async () => {
+test("the primitives layer is emitted by default", async () => {
   // A consumer wiring the preset almost always wants the finished controls,
   // so the layer ships unless it is turned off. This is what the studio
   // depends on to render anything.
@@ -873,7 +875,7 @@ Deno.test("the primitives layer is emitted by default", async () => {
   );
 });
 
-Deno.test("the primitives layer can be turned off entirely", async () => {
+test("the primitives layer can be turned off entirely", async () => {
   const { css } = await generatorFor({
     themes: { default: workingTreeDocument() },
     primitives: false,
@@ -890,7 +892,7 @@ Deno.test("the primitives layer can be turned off entirely", async () => {
   assertTokenDriven(utilCss, "bg-primary", "background-color");
 });
 
-Deno.test("the primitives layer can be opted into per component", async () => {
+test("the primitives layer can be opted into per component", async () => {
   // The studio switches components on individually, so a partial list has to
   // emit exactly that subset rather than everything. The button is a rule set
   // now, so naming it registers its rules and they emit for the markup that
@@ -909,7 +911,7 @@ Deno.test("the primitives layer can be opted into per component", async () => {
   );
 });
 
-Deno.test("--at-apply expands token utilities to variable references", async () => {
+test("--at-apply expands token utilities to variable references", async () => {
   // The preset carries the directives transformer, so a consumer's
   // `--at-apply` expands to the same token utility a class would. The
   // expanded declaration reads the CSS variable; the resolved literal never
@@ -945,7 +947,7 @@ Deno.test("--at-apply expands token utilities to variable references", async () 
   );
 });
 
-Deno.test("a wind4-only family produces a rule", async () => {
+test("a wind4-only family produces a rule", async () => {
   // The layering is only worth its cost if the utilities we do NOT own still
   // arrive. Each family here is wind4's alone — nothing in spin spells these
   // — so a rule appearing proves the layer is wired and reachable, which is
@@ -976,7 +978,7 @@ Deno.test("a wind4-only family produces a rule", async () => {
   }
 });
 
-Deno.test("a utility we own resolves through our token", async () => {
+test("a utility we own resolves through our token", async () => {
   // The arrangement this preset makes is that OUR rules win the families we
   // claim, so `p-4` spends `spacing.4` from the theme rather than a
   // wind4-derived scale. The failure this guards is silent and total: a
@@ -1006,7 +1008,7 @@ Deno.test("a utility we own resolves through our token", async () => {
   }
 });
 
-Deno.test("no emitted declaration is a self-referential custom property", async () => {
+test("no emitted declaration is a self-referential custom property", async () => {
   // This is the wind4 preflight bug, and it must never come back. A theme
   // value is already a reference, so a preflight that re-emits it writes
   // `--spacing-2` as a read of `--spacing-2`. A self-reference resolves to
@@ -1021,7 +1023,7 @@ Deno.test("no emitted declaration is a self-referential custom property", async 
       "z-dropdown duration-base ease-standard max-w-screen-md divide-primary",
   );
   const selfReference = /(--[\w-]+):\s*var\(\s*\1\s*\)/g;
-  assertEquals(
+  deepStrictEqual(
     css.match(selfReference),
     null,
     `a custom property is declared as a read of itself; it resolves to nothing at computed-value time:\n${css}`,

@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spin/runtime/testing";
 
 // The shim installs its own globals; declaring them here keeps linkedom's
@@ -87,37 +88,37 @@ type ListElement = HTMLElement & { items?: Item[] };
 const rows = (el: HTMLElement) =>
   [...el.querySelectorAll("p")].map((p) => p.textContent);
 
-Deno.test("a property written before connection is what the component renders", async () => {
+test("a property written before connection is what the component renders", async () => {
   const tag = await compile("spin-seed-before");
   const el = document.createElement(tag) as ListElement;
   el.items = [{ label: "early" }];
   document.body.appendChild(el);
-  assertEquals(rows(el), ["early"]);
+  deepStrictEqual(rows(el), ["early"]);
 });
 
-Deno.test("a property written after connection re-renders the component", async () => {
+test("a property written after connection re-renders the component", async () => {
   const tag = await compile("spin-seed-after");
   const el = document.createElement(tag) as ListElement;
   document.body.appendChild(el);
-  assertEquals(rows(el), []);
+  deepStrictEqual(rows(el), []);
 
   el.items = [{ label: "late" }];
-  assertEquals(rows(el), ["late"]);
+  deepStrictEqual(rows(el), ["late"]);
 });
 
-Deno.test("an attribute is the initial path when no property is written", async () => {
+test("an attribute is the initial path when no property is written", async () => {
   const tag = await compile("spin-seed-attr");
   const el = document.createElement(tag) as ListElement;
   el.setAttribute("items", JSON.stringify([{ label: "from-attribute" }]));
   document.body.appendChild(el);
-  assertEquals(rows(el), ["from-attribute"]);
+  deepStrictEqual(rows(el), ["from-attribute"]);
 });
 
-Deno.test("a property write wins over the attribute on the same element", async () => {
+test("a property write wins over the attribute on the same element", async () => {
   const tag = await compile("spin-seed-precedence");
   const el = document.createElement(tag) as ListElement;
   el.setAttribute("items", JSON.stringify([{ label: "from-attribute" }]));
   el.items = [{ label: "from-property" }];
   document.body.appendChild(el);
-  assertEquals(rows(el), ["from-property"]);
+  deepStrictEqual(rows(el), ["from-property"]);
 });

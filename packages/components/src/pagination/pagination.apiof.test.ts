@@ -1,8 +1,9 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { PaginationApi } from "./pagination.presentation.ts";
 import type { PaginationPageItem } from "./pagination.events.ts";
 
-Deno.test("PaginationApi promises the component's surface", () => {
+test("PaginationApi promises the component's surface", () => {
   const keys: (keyof PaginationApi)[] = [
     "state",
     "page",
@@ -30,7 +31,7 @@ Deno.test("PaginationApi promises the component's surface", () => {
     "getItemProps",
     "getEllipsisProps",
   ];
-  assertEquals(keys.length, 25);
+  deepStrictEqual(keys.length, 25);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<PaginationApi["state"], "idle"> = true;
@@ -46,7 +47,7 @@ Deno.test("PaginationApi promises the component's surface", () => {
     PaginationApi["getItemProps"],
     (slot: PaginationPageItem) => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, setPageTyped, getItemsTyped, getItemPropsTyped].every(Boolean),
     true,
   );

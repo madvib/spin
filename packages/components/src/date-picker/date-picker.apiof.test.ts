@@ -1,11 +1,12 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type {
   DatePickerApi,
   DatePickerCellView,
 } from "./date-picker.presentation.ts";
 import type { DatePickerValue } from "./date-picker.state.ts";
 
-Deno.test("DatePickerApi promises the component's surface", () => {
+test("DatePickerApi promises the component's surface", () => {
   const keys: (keyof DatePickerApi)[] = [
     "state",
     "isOpen",
@@ -31,7 +32,7 @@ Deno.test("DatePickerApi promises the component's surface", () => {
     "getClearTriggerProps",
     "getCellIndexes",
   ];
-  assertEquals(keys.length, 23);
+  deepStrictEqual(keys.length, 23);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<
@@ -62,7 +63,7 @@ Deno.test("DatePickerApi promises the component's surface", () => {
     DatePickerApi["getViewTextRows"],
     () => readonly { readonly value: string; readonly text: string }[]
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [
       stateTyped,
       setValueTyped,

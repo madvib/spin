@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import { contrastRatio } from "@spin/theme";
 import { checks, floorFindings, measureFloors, remedyText } from "./floors.ts";
 import { applyEdits } from "./theme.ts";
@@ -21,91 +22,91 @@ function fixture(success: string, surface = "#ffffff"): string {
   });
 }
 
-Deno.test("a failing floor names the token, the pair, the floor and the ratio", () => {
+test("a failing floor names the token, the pair, the floor and the ratio", () => {
   const findings = floorFindings(fixture("#2f9e44"));
-  assertEquals(findings.length, 1);
+  deepStrictEqual(findings.length, 1);
   const finding = findings[0]!;
-  assertEquals(finding.path, "color.semantic.success");
-  assertEquals(finding.fg, "color.semantic.success");
-  assertEquals(finding.bg, "color.surface");
-  assertEquals(finding.min, 4.5);
+  deepStrictEqual(finding.path, "color.semantic.success");
+  deepStrictEqual(finding.fg, "color.semantic.success");
+  deepStrictEqual(finding.bg, "color.surface");
+  deepStrictEqual(finding.min, 4.5);
   // The ratio is what the pair measures, not what the studio believes about
   // it: the module's own measurement, read back.
-  assertEquals(finding.ratio, contrastRatio("#2f9e44", "#ffffff"));
-  assertEquals(finding.ratio < finding.min, true);
+  deepStrictEqual(finding.ratio, contrastRatio("#2f9e44", "#ffffff"));
+  deepStrictEqual(finding.ratio < finding.min, true);
 });
 
-Deno.test("the value a finding offers is one that clears the floor", () => {
+test("the value a finding offers is one that clears the floor", () => {
   // The contract of the remedy: apply it and the finding is gone. A value
   // that merely sounds right would leave the author where they started.
   const finding = floorFindings(fixture("#2f9e44"))[0]!;
   const cleared = contrastRatio(finding.remedy.value, "#ffffff");
-  assertEquals(cleared >= finding.min, true);
+  deepStrictEqual(cleared >= finding.min, true);
 });
 
-Deno.test("the remedy is the nearest value that clears the floor", () => {
+test("the remedy is the nearest value that clears the floor", () => {
   // Nearer than the extremes: the remedy overshoots the floor by less than
   // the distance to black, so the author's colour keeps its character instead
   // of being replaced by the end of the ramp.
   const finding = floorFindings(fixture("#2f9e44"))[0]!;
   const overshoot = finding.remedy.ratio - finding.min;
   const toBlack = contrastRatio("#000000", "#ffffff") - finding.min;
-  assertEquals(overshoot < toBlack, true);
+  deepStrictEqual(overshoot < toBlack, true);
 });
 
-Deno.test("a remedy says which way the token has to move", () => {
+test("a remedy says which way the token has to move", () => {
   // A pale colour on a light surface can only be fixed by going down; the
   // direction is what tells the author which way to move the slider.
   const onWhite = floorFindings(fixture("#2f9e44"))[0]!;
-  assertEquals(onWhite.remedy.direction, "darker");
+  deepStrictEqual(onWhite.remedy.direction, "darker");
 
   // And a dark colour on a dark surface by going up.
   const onBlack = floorFindings(fixture("#123456", "#000000"))[0]!;
-  assertEquals(onBlack?.remedy.direction, "lighter");
+  deepStrictEqual(onBlack?.remedy.direction, "lighter");
 });
 
-Deno.test("a floor that holds is not a finding", () => {
-  assertEquals(floorFindings(fixture("#0b5c22")).length, 0);
+test("a floor that holds is not a finding", () => {
+  deepStrictEqual(floorFindings(fixture("#0b5c22")).length, 0);
 });
 
-Deno.test("a document that does not parse has no findings", () => {
-  assertEquals(floorFindings("{not json").length, 0);
+test("a document that does not parse has no findings", () => {
+  deepStrictEqual(floorFindings("{not json").length, 0);
 });
 
-Deno.test("the remedy text names the value and the ratio it reaches", () => {
+test("the remedy text names the value and the ratio it reaches", () => {
   const finding = floorFindings(fixture("#2f9e44"))[0]!;
   const text = remedyText(finding.remedy);
-  assertEquals(text.includes(finding.remedy.value), true);
-  assertEquals(text.includes("color.surface"), true);
-  assertEquals(text.includes("Darken"), true);
+  deepStrictEqual(text.includes(finding.remedy.value), true);
+  deepStrictEqual(text.includes("color.surface"), true);
+  deepStrictEqual(text.includes("Darken"), true);
 });
 
-Deno.test("a measured floor is the ratio the pair makes", () => {
+test("a measured floor is the ratio the pair makes", () => {
   // The page reads the same pairs the checks read, in a mode: the number it
   // shows is the one the theme module measures.
   const measured = measureFloors(fixture("#2f9e44"), "light");
   const success = measured.find((floor) =>
     floor.fg === "color.semantic.success"
   );
-  assertEquals(success?.min, 4.5);
-  assertEquals(success?.ratio, contrastRatio("#2f9e44", "#ffffff"));
+  deepStrictEqual(success?.min, 4.5);
+  deepStrictEqual(success?.ratio, contrastRatio("#2f9e44", "#ffffff"));
 });
 
-Deno.test("a failing floor offers a value that clears it", () => {
+test("a failing floor offers a value that clears it", () => {
   const success = measureFloors(fixture("#2f9e44"), "light").find((floor) =>
     floor.fg === "color.semantic.success"
   );
-  assertEquals(success?.remedy !== null, true);
+  deepStrictEqual(success?.remedy !== null, true);
   const cleared = contrastRatio(success?.remedy as string, "#ffffff");
-  assertEquals(cleared >= 4.5, true);
+  deepStrictEqual(cleared >= 4.5, true);
 });
 
-Deno.test("a floor that holds offers nothing: there is nothing to fix", () => {
+test("a floor that holds offers nothing: there is nothing to fix", () => {
   const success = measureFloors(fixture("#0b5c22"), "light").find((floor) =>
     floor.fg === "color.semantic.success"
   );
-  assertEquals((success?.ratio ?? 0) >= 4.5, true);
-  assertEquals(success?.remedy, null);
+  deepStrictEqual((success?.ratio ?? 0) >= 4.5, true);
+  deepStrictEqual(success?.remedy, null);
 });
 
 /**
@@ -126,19 +127,19 @@ function darkFailure(): string {
   });
 }
 
-Deno.test("the checks read a restatement, and name the mode it fails in", () => {
+test("the checks read a restatement, and name the mode it fails in", () => {
   // The base keeps the floor; the dark value does not. A check that read the
   // base alone would say the document clears every floor, which is the
   // false sentence the panel used to say.
   const found = checks(darkFailure()).filter((check) =>
     check.path === "color.semantic.success"
   );
-  assertEquals(found.length, 1);
-  assertEquals(found[0]!.message.includes("in dark"), true);
-  assertEquals(found[0]!.remedy?.mode, "dark");
+  deepStrictEqual(found.length, 1);
+  deepStrictEqual(found[0]!.message.includes("in dark"), true);
+  deepStrictEqual(found[0]!.remedy?.mode, "dark");
 });
 
-Deno.test("the fix a restatement finding offers is written into that mode", () => {
+test("the fix a restatement finding offers is written into that mode", () => {
   // The contract of the remedy: apply it where it says, and the finding is
   // gone — while the base, which was never the problem, keeps its value.
   const finding = checks(darkFailure()).find((check) =>
@@ -153,7 +154,7 @@ Deno.test("the fix a restatement finding offers is written into that mode", () =
   const after = checks(next).filter((check) =>
     check.path === "color.semantic.success"
   );
-  assertEquals(after.length, 0);
+  deepStrictEqual(after.length, 0);
   // The write landed in the restatement, and the base — which was never the
   // problem — still holds the value the author chose.
   const doc = JSON.parse(next) as {
@@ -164,11 +165,11 @@ Deno.test("the fix a restatement finding offers is written into that mode", () =
     };
   };
   const held = doc.color.semantic.success;
-  assertEquals(held.$value, "#0b5c22");
-  assertEquals(held.$modes?.dark, remedy.value);
+  deepStrictEqual(held.$value, "#0b5c22");
+  deepStrictEqual(held.$modes?.dark, remedy.value);
 });
 
-Deno.test("a mode is measured on the values it shows", () => {
+test("a mode is measured on the values it shows", () => {
   // The dark slot restates the surface, so the pair the dark mode shows is
   // not the pair the light mode shows.
   const document = JSON.stringify({
@@ -184,6 +185,6 @@ Deno.test("a mode is measured on the values it shows", () => {
   const dark = measureFloors(document, "dark").find((floor) =>
     floor.fg === "color.semantic.success"
   );
-  assertEquals(light?.ratio, contrastRatio("#2f9e44", "#ffffff"));
-  assertEquals(dark?.ratio, contrastRatio("#2f9e44", "#101010"));
+  deepStrictEqual(light?.ratio, contrastRatio("#2f9e44", "#ffffff"));
+  deepStrictEqual(dark?.ratio, contrastRatio("#2f9e44", "#101010"));
 });

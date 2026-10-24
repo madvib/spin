@@ -7,19 +7,22 @@
  * test that forgot to clean up.
  */
 
-import { assert } from "@std/assert";
+import assert from "node:assert/strict";
 import type { Browser } from "playwright-core";
 import { launchBrowser, StudioPage } from "./studio.ts";
 
+import { beforeAll, afterAll, test as bunTest } from "bun:test";
+
 let browser: Browser | undefined;
 
-Deno.test.beforeAll(async () => {
+beforeAll(async () => {
   browser = await launchBrowser();
 });
 
-Deno.test.afterAll(async () => {
+afterAll(async () => {
   await browser?.close();
 });
+
 
 /**
  * A test that drives a browser.
@@ -30,9 +33,9 @@ Deno.test.afterAll(async () => {
  */
 export function test(
   name: string,
-  fn: (t: Deno.TestContext) => Promise<void>,
+  fn: (t?: any) => Promise<void>,
 ): void {
-  Deno.test({ name, fn, sanitizeOps: false, sanitizeResources: false });
+  bunTest(name, fn);
 }
 
 /**

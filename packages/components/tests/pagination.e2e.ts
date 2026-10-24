@@ -1,3 +1,4 @@
+import { test } from "bun:test";
 /**
  * E2E: the forked-FSM pagination pages in a real browser — triggers walk
  * and jump the ends, numbers jump, and the imperative commands drive the
@@ -6,14 +7,14 @@
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "npm:playwright-core";
+import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `pagination:<element id>:<part>`. */
 const at = (part: string): string => `[id="pagination:pages:${part}"]`;
 const ROOT_ID = '[id="pagination:pages"]';
 const item = (value: number): string => at(`item:${value}`);
 
-Deno.test("spin-pagination e2e", () =>
+test("spin-pagination e2e", () =>
   runComponentSuite(
     { port: 5255, route: "/pagination", ready: ROOT_ID },
     async ({ page }) => {

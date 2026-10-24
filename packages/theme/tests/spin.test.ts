@@ -1,4 +1,6 @@
-import { assert, assertEquals } from "@std/assert";
+import { readFileSync } from "node:fs";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   contrastRatio,
   indexTree,
@@ -24,7 +26,7 @@ const SPIN = new URL("../src/themes/spin.json", import.meta.url);
 
 /** The spin document, parsed. */
 function spinTree(): TokenTree {
-  const parsed = parseTokens(JSON.parse(Deno.readTextFileSync(SPIN)));
+  const parsed = parseTokens(JSON.parse(readFileSync(SPIN)));
   if (!parsed.ok) throw new Error(`spin.json did not parse: ${parsed.error}`);
   return parsed.tree;
 }
@@ -91,7 +93,7 @@ function shadowWeight(value: string): number {
   );
 }
 
-Deno.test("the spin theme declares every role, and restates it for the night press", () => {
+test("the spin theme declares every role, and restates it for the night press", () => {
   // The same gate every theme gets, run on the theme our own surfaces wear:
   // the roles are present, the values are sound, and the dark mode is a
   // promise kept for every colour and focus leaf rather than half kept.
@@ -99,17 +101,17 @@ Deno.test("the spin theme declares every role, and restates it for the night pre
     required: requiredPaths(),
     modes: ["light", "dark"],
   });
-  assertEquals(report.issues, []);
+  deepStrictEqual(report.issues, []);
   assert(report.valid);
 });
 
-Deno.test("every legibility floor holds in both of the spin theme's modes", () => {
+test("every legibility floor holds in both of the spin theme's modes", () => {
   // The package validates the base document's floors; the dark mode is where a
   // palette quietly fails, because the ink and the surface are both re-picked
   // and a colour that read on paper can vanish on charcoal.
   const tree = spinTree();
   for (const mode of ["light", "dark"]) {
-    assertEquals(
+    deepStrictEqual(
       validateLegibility(treeInMode(tree, mode)).map((issue) =>
         `${issue.path}: ${issue.message}`
       ),
@@ -119,7 +121,7 @@ Deno.test("every legibility floor holds in both of the spin theme's modes", () =
   }
 });
 
-Deno.test("every fill the spin theme paints carries a readable ink, in both modes", () => {
+test("every fill the spin theme paints carries a readable ink, in both modes", () => {
   // The ink pairing is the theme's own answer to "what goes on this fill?",
   // and a fill whose ink cannot be read is a button nobody can read. Every
   // pair is measured in the mode it is painted in.
@@ -149,7 +151,7 @@ Deno.test("every fill the spin theme paints carries a readable ink, in both mode
   }
 });
 
-Deno.test("the spin theme's text and its link read on the page, in both modes", () => {
+test("the spin theme's text and its link read on the page, in both modes", () => {
   // The page is the surface everything is read against, and the link is the
   // one colour in running text: a link nobody can read is a page that lies.
   const tree = spinTree();
@@ -174,7 +176,7 @@ Deno.test("the spin theme's text and its link read on the page, in both modes", 
   }
 });
 
-Deno.test("the spin theme separates with rules, and cuts only its overlays", () => {
+test("the spin theme separates with rules, and cuts only its overlays", () => {
   // The depth ladder is flat: a card rests on the page with no shadow at all,
   // and only an overlay is cut out of the sheet — a hard offset with no blur.
   // A blurred shadow anywhere in the theme would be a lit surface, which is
@@ -185,19 +187,19 @@ Deno.test("the spin theme separates with rules, and cuts only its overlays", () 
   for (const mode of ["light", "dark"]) {
     const values = shadows.map((path) => valueInMode(tree, mode, path));
     for (const value of values) {
-      assertEquals(
+      deepStrictEqual(
         shadowParts(value).blur,
         0,
         `${mode}: "${value}" is blurred, and this theme is drawn rather than lit`,
       );
     }
     const weights = values.map(shadowWeight);
-    assertEquals(
+    deepStrictEqual(
       weights[0],
       0,
       `${mode}: the resting step must carry no elevation`,
     );
-    assertEquals(
+    deepStrictEqual(
       weights[1],
       0,
       `${mode}: the middle step must carry no elevation`,
@@ -213,19 +215,19 @@ Deno.test("the spin theme separates with rules, and cuts only its overlays", () 
   }
 });
 
-Deno.test("the spin theme's button rests flat and is cut loose when it is touched", () => {
+test("the spin theme's button rests flat and is cut loose when it is touched", () => {
   // The button's character: a printed caption on a block of ink, flat at rest
   // and lifted by a hard offset on hover — drawn, not lit.
   const tree = spinTree();
   for (const mode of ["light", "dark"]) {
     const rest = valueInMode(tree, mode, "button.shadow");
-    assertEquals(
+    deepStrictEqual(
       shadowWeight(rest),
       0,
       `${mode}: a button at rest must sit on the page, not above it`,
     );
     const hover = valueInMode(tree, mode, "button.shadow-hover");
-    assertEquals(
+    deepStrictEqual(
       shadowParts(hover).blur,
       0,
       `${mode}: the hover lift must be hard, not blurred`,
@@ -237,7 +239,7 @@ Deno.test("the spin theme's button rests flat and is cut loose when it is touche
   }
 });
 
-Deno.test("the spin theme's type scale ends in a display step that is a scale, not a size", () => {
+test("the spin theme's type scale ends in a display step that is a scale, not a size", () => {
   // A headline reads as a headline because of the jump: the top step is
   // several times the body, and the step is named for the job it does.
   const tree = spinTree();
@@ -258,7 +260,7 @@ Deno.test("the spin theme's type scale ends in a display step that is a scale, n
     );
   }
   const top = steps[steps.length - 1]!;
-  assertEquals(
+  deepStrictEqual(
     top.path,
     "font.size.display",
     "the top of the scale is the poster",

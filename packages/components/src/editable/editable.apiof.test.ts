@@ -1,7 +1,8 @@
-import { assertEquals } from "@std/assert";
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 import type { EditableApi } from "./editable.presentation.ts";
 
-Deno.test("EditableApi promises the component's surface", () => {
+test("EditableApi promises the component's surface", () => {
   const keys: (keyof EditableApi)[] = [
     "state",
     "editing",
@@ -23,7 +24,7 @@ Deno.test("EditableApi promises the component's surface", () => {
     "getSubmitTriggerProps",
     "getCancelTriggerProps",
   ];
-  assertEquals(keys.length, 19);
+  deepStrictEqual(keys.length, 19);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<EditableApi["state"], "preview" | "edit"> =
@@ -36,7 +37,7 @@ Deno.test("EditableApi promises the component's surface", () => {
     EditableApi["getInputProps"],
     () => Record<string, unknown>
   > = true;
-  assertEquals(
+  deepStrictEqual(
     [stateTyped, setValueTyped, getInputPropsTyped].every(Boolean),
     true,
   );
