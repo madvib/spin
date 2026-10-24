@@ -14,19 +14,18 @@ product's look without touching its markup.
 
 ### Packages
 
-| Package             | What it is                                                                  |
-| ------------------- | --------------------------------------------------------------------------- |
-| `@spin/theme`       | The token pipeline: parse, validate, mutate, scaffold, emit.                |
-| `@spin/preset`      | The UnoCSS preset: the utilities, the element library, the plugin.          |
-| `@spin/project`     | The project: where it is, what it holds, and the operations over its files. |
-| `@spin/animation`   | Keyframes, and the `animate-*` utilities that name them.                    |
-| `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them. |
-| `@spin/api`         | The daemon: the procedures, over RPC, that the tools share.                 |
-| `@spin/mcp`         | The MCP server over those procedures, for agents.                           |
-| `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                  |
-| `@spin/runtime`     | The component runtime: signals, bridges, syntax, and directives.            |
-| `@spin/components`  | The machine components: headless statecharts with typed bridges.            |
-| `@spin/hooks`       | Framework bindings for spin components: Solid and React.                    |
+Three packages ship under `@spinjs`. Everything else is an app, an example,
+internal tooling, or source inside one of the three.
+
+| Package               | What it is                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| `@spinjs/runtime`     | The component runtime: signals, bridges, elements, directives, machines. Browser dependency. |
+| `@spinjs/components`  | The machine components: per-component subpaths plus `/react`, `/solid`, `/controller`.       |
+| `@spinjs/spin`        | The toolchain: themes, the preset and `spin()` plugin, the daemon, lints, MCP server.        |
+
+Public subpaths: `@spinjs/spin/vite` (the plugin), `@spinjs/spin/eslint`,
+`@spinjs/spin/cli` (the `spin` bin), `@spinjs/spin/mcp`, plus the toolchain
+areas (`theme`, `preset`, `project`, `diagnostics`, `api`, `animation`).
 
 ### Apps
 
@@ -77,10 +76,8 @@ The manifests are not published yet; publishing is a decision, not a default.
 
 ## Where to read more
 
-- [`packages/theme/README.md`](packages/theme/README.md) — the token pipeline's
+- [`packages/spin/README.md`](packages/spin/README.md) — the toolchain's
   contract.
-- [`packages/preset/README.md`](packages/preset/README.md) — the utilities, the
-  element library, and the plugin's options.
 - [`apps/docs`](apps/docs) — the documentation site; `bun run dev:docs` runs
   it, and its install page carries the per-bundler recipes.
 

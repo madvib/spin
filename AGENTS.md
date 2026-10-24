@@ -19,9 +19,9 @@ to build from, and oracles that mechanically verify the result.
 
 ## Conventions
 
-- **Bun workspace.** Library packages stay zero-install (URL imports or the
-  `@spin/*` workspace names; `npm:` specifiers where an npm dep is needed). Apps
-  run under Bun too and may use `node_modules` via Bun's npm support.
+- **Bun workspace.** Library packages stay zero-install (the `@spinjs/*`
+  workspace names). Apps run under Bun too and may use `node_modules` via
+  Bun's npm support.
 - **TypeScript only.** Strict mode, built-in types, no ambient declaration
   files.
 - **Tests first (TDD).** Write the failing test, then the implementation. A
@@ -79,31 +79,27 @@ where history lives.
 
 ## Packages
 
-| Package             | Role                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------ |
-| `@spin/theme`       | Token pipeline: parse, validate, mutate, scaffold, emit CSS variables. Knows nothing of components.    |
-| `@spin/animation`   | Keyframes and the `animate-*` utilities that name them — the one global CSS namespace, given one home. |
-| `@spin/preset`      | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
-| `@spin/project`     | The project: where it is, what it holds, and the operations over its files.                            |
-| `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them.                            |
-| `@spin/runtime`     | The component runtime: signals, bridges, the syntax the components compile from, and the directives.   |
-| `@spin/components`  | The machine components: headless statecharts with typed bridges, examples, and RPC procedures.          |
-| `@spin/hooks`       | Framework bindings for spin components: Solid and React.                                               |
-| `@spin/api`         | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
-| `@spin/mcp`         | The MCP server over those procedures, for agents.                                                      |
-| `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                                             |
+| Package              | Role                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `@spinjs/runtime`    | The component runtime: signals, bridges, elements, directives, machines. No workspace dependencies.   |
+| `@spinjs/components` | The machine components: per-component subpaths plus `/react`, `/solid`, `/controller`.                |
+| `@spinjs/spin`       | The toolchain: themes, the preset and `spin()` plugin, the daemon, lints, MCP server.                 |
+
+Public subpaths: `@spinjs/spin/vite`, `/eslint`, `/cli`, `/mcp`, plus the
+toolchain areas (`theme`, `preset`, `project`, `diagnostics`, `api`,
+`animation`).
 
 ### The element library
 
-The primitives are a layer, not a package: they live in the preset, as RULES
-under `packages/preset/src/rules/primitives/` — one file per element, beside the
+The primitives are a layer, not a package: they live in the toolchain, as RULES
+under `packages/spin/src/preset/rules/primitives/` — one file per element, beside the
 examples that show it. There are no component stylesheets; an element ships by
 being matched.
 
 What the old `.css` + manifest package did is still here, in the shape the rules
 can carry it: each element's contract with the theme is written down in
-`packages/preset/src/rules/primitives/manifest.ts`, and `bun run codegen` in
-the preset derives that manifest by probing the rules themselves, so the
+`packages/spin/src/preset/rules/primitives/manifest.ts`, and `bun run codegen` in
+the toolchain derives that manifest by probing the rules themselves, so the
 manifest cannot disagree with the code that produces it. The lint plugin and the
 docs site read that manifest; nothing maintains a second list.
 
@@ -121,18 +117,16 @@ Supporting trees:
 
 ### Package rules
 
-- A package that is not `@spin/theme` MUST NOT hardcode a token value. Read it
+- A module that is not the theme area MUST NOT hardcode a token value. Read it
   from the theme.
-- A package that is not `@spin/preset` MUST NOT reference UnoCSS internals.
-- A package that is not `@spin/project` MUST NOT read or write a project's
-  files. The project owns where its themes and its configuration live; ask it.
-- `@spin/diagnostics` MUST NOT re-implement theme resolution; it asks the theme.
-  Dependencies point downward: diagnostics → project → preset → theme;
-  diagnostics → preset → theme; diagnostics → animation → theme; project →
-  preset → theme; api → project → preset → theme; api → preset → theme; mcp →
-  api.
-- Every package owns its `deno.json`, exports only from `src/index.ts`, and has
-  its own `test` / `lint` / `fmt` tasks.
+- Only the preset area references UnoCSS internals.
+- Only the project area reads or writes a project's files. The project owns
+  where its themes and its configuration live; ask it.
+- The diagnostics area MUST NOT re-implement theme resolution; it asks the theme.
+  Dependencies point downward: spin areas → components → runtime; runtime
+  depends on nothing.
+- Every package owns its `package.json`, exports only from `src/` subpaths, and
+  has its own `test` / `lint` / `fmt` tasks.
 
 ## Testing culture
 

@@ -32,8 +32,8 @@
 import { dirname, join, relative, resolve } from "node:path";
 import { mkdir, rm, copyFile, chmod, stat, symlink, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { renderSkill } from "../packages/theme/src/skill/index.ts";
-import { reachableFiles } from "./dist-graph.ts";
+import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
+import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
 import { build } from "tsdown";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,7 +48,7 @@ const COPY_PREFIX = ".dist-";
  * can follow.
  */
 const SKILL_RENDERERS: Record<string, (template: string) => string> = {
-  "@spinjs/theme": (template) => renderSkill(template),
+  "@spinjs/spin": (template) => renderSkill(template),
 };
 
 /** A package's `package.json`, as far as the build cares. */
@@ -554,6 +554,32 @@ async function buildPackage(
         target,
         await readFile(join(dir, file), "utf8"),
       );
+    }
+
+    // A declaration with no runtime to write: the source names it (`import
+    // type ... from "./x.d.ts"` becomes `./x.js` in the emit), but tsdown
+    // writes no module for a file with no values. The module ships as the
+    // empty module it is, so the import the declarations name resolves.
+    for (const file of await walk(dist)) {
+      if (!file.endsWith(".d.ts")) continue;
+      const js = file.replace(/\.d\.ts$/, ".js");
+      if (await exists(join(dist, js))) continue;
+      let wanted = false;
+      for (const other of await walk(dist)) {
+        if (!other.endsWith(".js") && !other.endsWith(".d.ts")) continue;
+        const text = await readFile(join(dist, other), "utf8");
+        for (const specifier of importSpecifiers(text)) {
+          if (!specifier.startsWith(".")) continue;
+          const next = relative(dist, resolve(dirname(join(dist, other)), specifier));
+          if (next === js) {
+            wanted = true;
+            break;
+          }
+        }
+        if (wanted) break;
+      }
+      if (!wanted) continue;
+      await writeFile(join(dist, js), "export {};\n");
     }
 
     // The paths the bundle records name the copy, which is a build step:

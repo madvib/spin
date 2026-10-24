@@ -185,10 +185,9 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
-    "@spinjs/preset": "workspace:*",
-    "@spinjs/theme": "workspace:*",
     "@types/react": "^19.0.0",
-    "@unocss/core": "66.10.5"
+    "@unocss/core": "66.10.5",
+    "@spinjs/spin": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

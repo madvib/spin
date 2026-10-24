@@ -14,13 +14,13 @@
  * method that no longer exists.
  */
 import { renderSkill } from "@spinjs/theme/skill";
-import template from "../../../packages/theme/skill/SKILL.md?raw";
-import darkTech from "../../../packages/theme/skill/dark-tech-cinematic.md?raw";
-import editorial from "../../../packages/theme/skill/editorial-minimalism.md?raw";
-import agency from "../../../packages/theme/skill/high-end-agency.md?raw";
-import brutalism from "../../../packages/theme/skill/industrial-brutalism.md?raw";
-import morph from "../../../packages/theme/skill/morphism.md?raw";
-import soft from "../../../packages/theme/skill/warm-soft-saas.md?raw";
+import template from "../../../packages/spin/skill/SKILL.md?raw";
+import darkTech from "../../../packages/spin/skill/dark-tech-cinematic.md?raw";
+import editorial from "../../../packages/spin/skill/editorial-minimalism.md?raw";
+import agency from "../../../packages/spin/skill/high-end-agency.md?raw";
+import brutalism from "../../../packages/spin/skill/industrial-brutalism.md?raw";
+import morph from "../../../packages/spin/skill/morphism.md?raw";
+import soft from "../../../packages/spin/skill/warm-soft-saas.md?raw";
 
 /** Where the skill is served from, so an agent can install it. */
 export const SKILL_DIR = "/skill/spin-theme";

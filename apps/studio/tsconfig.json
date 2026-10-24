@@ -23,52 +23,52 @@
         "./src/*"
       ],
       "@spinjs/theme": [
-        "../../packages/theme/src/index.ts"
+        "../../packages/spin/src/theme/index.ts"
       ],
       "@spinjs/theme/themes": [
-        "../../packages/theme/src/themes/index.ts"
+        "../../packages/spin/src/theme/themes/index.ts"
       ],
       "@spinjs/theme/theme-types": [
-        "../../packages/theme/src/theme-types.d.ts"
+        "../../packages/spin/src/theme/theme-types.d.ts"
       ],
       "@spinjs/kit": [
-        "../../packages/kit/src/index.ts"
+        "../../packages/spin/src/kit/index.ts"
       ],
       "@spinjs/api/client": [
-        "../../packages/api/src/client.ts"
+        "../../packages/spin/src/api/client.ts"
       ],
       "@spinjs/api": [
-        "../../packages/api/src/index.ts"
+        "../../packages/spin/src/api/index.ts"
       ],
       "@spinjs/project": [
-        "../../packages/project/src/index.ts"
+        "../../packages/spin/src/project/index.ts"
       ],
       "@spinjs/project/sync": [
-        "../../packages/project/src/sync.ts"
+        "../../packages/spin/src/project/sync.ts"
       ],
       "@spinjs/diagnostics": [
-        "../../packages/diagnostics/src/index.ts"
+        "../../packages/spin/src/diagnostics/index.ts"
       ],
       "@spinjs/preset": [
-        "../../packages/preset/src/index.ts"
+        "../../packages/spin/src/preset/index.ts"
       ],
       "@spinjs/preset/config": [
-        "../../packages/preset/src/config.ts"
+        "../../packages/spin/src/preset/config.ts"
       ],
       "@unocss/core": [
         "./node_modules/@unocss/core/dist/index.d.mts"
       ],
       "@spinjs/theme/base": [
-        "../../packages/theme/src/base/index.ts"
+        "../../packages/spin/src/theme/base/index.ts"
       ],
       "@spinjs/animation": [
-        "../../packages/animation/src/index.ts"
+        "../../packages/spin/src/animation/index.ts"
       ]
     }
   },
   "include": [
     "src",
-    "../../packages/preset/src/solid.d.ts",
+    "../../packages/spin/src/preset/solid.d.ts",
     "vite.config.ts"
   ],
   "exclude": [

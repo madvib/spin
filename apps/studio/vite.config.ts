@@ -2,8 +2,8 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { mountSpinApp } from "../../packages/api/src/index.ts";
-import { spin } from "../../packages/preset/src/plugin.ts";
+import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
+import { spin } from "../../packages/spin/src/preset/plugin.ts";
 import carbon from "@iconify-json/carbon/icons.json" with { type: "json" };
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import materialSymbols from "@iconify-json/material-symbols/icons.json" with {
@@ -59,10 +59,10 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("@unocss") || id.includes("packages/preset")) {
+          if (id.includes("@unocss") || id.includes("packages/spin/src/preset")) {
             return "preset";
           }
-          if (id.includes("packages/theme")) {
+          if (id.includes("packages/spin/src/theme")) {
             return "theme";
           }
           if (id.includes("node_modules")) {
@@ -140,7 +140,7 @@ export default defineConfig(({ command }) => ({
           // glyph names into the studio's sheet. Mirrors the reference app.
           resolve(
             import.meta.dirname,
-            "../../packages/preset/src/rules/primitives/*.examples.ts",
+            "../../packages/spin/src/preset/rules/primitives/*.examples.ts",
           ),
           // The taxonomy names the glyph each element wears. The icon preset
           // generates a rule for a name that is written down and for no name
@@ -148,7 +148,7 @@ export default defineConfig(({ command }) => ({
           // without the names reaching the scanner. Mirrors the reference app.
           resolve(
             import.meta.dirname,
-            "../../packages/preset/src/rules/primitives/categories.ts",
+            "../../packages/spin/src/preset/rules/primitives/categories.ts",
           ),
           // The kit's shared components carry classes too — a section, a
           // specimen, the theme picker — and a class the scan does not see is
@@ -156,7 +156,7 @@ export default defineConfig(({ command }) => ({
           // its source is part of every app's content.
           resolve(
             import.meta.dirname,
-            "../../packages/kit/src/**/*.{tsx,ts}",
+            "../../packages/spin/src/kit/**/*.{tsx,ts}",
           ),
           // Machine component examples: `.html` files compiled by
           // spinElements above. Mirrors the reference app.

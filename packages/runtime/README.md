@@ -1,3 +1,3 @@
-# @spin/runtime
+# @spinjs/runtime
 
 The component runtime: signals, bridges, elements plugin, and directives.

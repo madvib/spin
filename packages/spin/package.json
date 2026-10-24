@@ -1,0 +1,280 @@
+{
+  "name": "@spinjs/spin",
+  "version": "0.1.0",
+  "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/preset/index.ts",
+      "default": "./src/preset/index.ts"
+    },
+    "./vite": {
+      "types": "./src/preset/plugin.ts",
+      "default": "./src/preset/plugin.ts"
+    },
+    "./eslint": {
+      "types": "./src/diagnostics/eslint.ts",
+      "default": "./src/diagnostics/eslint.ts"
+    },
+    "./cli": {
+      "types": "./src/diagnostics/cli.ts",
+      "default": "./src/diagnostics/cli.ts"
+    },
+    "./mcp": {
+      "types": "./src/mcp/main.ts",
+      "default": "./src/mcp/main.ts"
+    },
+    "./theme": {
+      "types": "./src/theme/index.ts",
+      "default": "./src/theme/index.ts"
+    },
+    "./theme/base": {
+      "types": "./src/theme/base/index.ts",
+      "default": "./src/theme/base/index.ts"
+    },
+    "./theme/themes": {
+      "types": "./src/theme/themes/index.ts",
+      "default": "./src/theme/themes/index.ts"
+    },
+    "./theme/skill": {
+      "types": "./src/theme/skill/index.ts",
+      "default": "./src/theme/skill/index.ts"
+    },
+    "./theme/theme-types": {
+      "types": "./src/theme/theme-types.d.ts"
+    },
+    "./preset": {
+      "types": "./src/preset/index.ts",
+      "default": "./src/preset/index.ts"
+    },
+    "./preset/plugin": {
+      "types": "./src/preset/plugin.ts",
+      "default": "./src/preset/plugin.ts"
+    },
+    "./preset/config": {
+      "types": "./src/preset/config.ts",
+      "default": "./src/preset/config.ts"
+    },
+    "./preset/elements": {
+      "types": "./src/preset/elements.ts",
+      "default": "./src/preset/elements.ts"
+    },
+    "./preset/compile": {
+      "types": "./src/preset/compile.ts",
+      "default": "./src/preset/compile.ts"
+    },
+    "./project": {
+      "types": "./src/project/index.ts",
+      "default": "./src/project/index.ts"
+    },
+    "./project/sync": {
+      "types": "./src/project/sync.ts",
+      "default": "./src/project/sync.ts"
+    },
+    "./diagnostics": {
+      "types": "./src/diagnostics/index.ts",
+      "default": "./src/diagnostics/index.ts"
+    },
+    "./diagnostics/eslint": {
+      "types": "./src/diagnostics/eslint.ts",
+      "default": "./src/diagnostics/eslint.ts"
+    },
+    "./diagnostics/cli": {
+      "types": "./src/diagnostics/cli.ts",
+      "default": "./src/diagnostics/cli.ts"
+    },
+    "./api": {
+      "types": "./src/api/index.ts",
+      "default": "./src/api/index.ts"
+    },
+    "./api/daemon": {
+      "types": "./src/api/daemon.ts",
+      "default": "./src/api/daemon.ts"
+    },
+    "./api/serve": {
+      "types": "./src/api/serve.ts",
+      "default": "./src/api/serve.ts"
+    },
+    "./api/client": {
+      "types": "./src/api/client.ts",
+      "default": "./src/api/client.ts"
+    },
+    "./mcp/main": {
+      "types": "./src/mcp/main.ts",
+      "default": "./src/mcp/main.ts"
+    },
+    "./animation": {
+      "types": "./src/animation/index.ts",
+      "default": "./src/animation/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "skill",
+    "schema.json"
+  ],
+  "bin": {
+    "spin": "./dist/diagnostics/cli.js"
+  },
+  "dependencies": {
+    "@iconify-json/carbon": "^1.2.28",
+    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/material-symbols": "^1.2.95",
+    "@iconify-json/ph": "^1.2.2",
+    "@iconify-json/tabler": "^1.2.42",
+    "@modelcontextprotocol/server": "2.4.0",
+    "@orpc/client": "^1.0.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "@typescript-eslint/parser": "8.71.0",
+    "@unocss/core": "66.10.5",
+    "@unocss/preset-wind4": "66.10.5",
+    "@unocss/transformer-directives": "66.10.5",
+    "@unocss/transformer-variant-group": "66.10.5",
+    "hono": "^4.13.13",
+    "unplugin": "^3.4.0",
+    "valibot": "^1.0.0",
+    "zod": "^4.2.0"
+  },
+  "peerDependencies": {
+    "@spinjs/components": "workspace:*",
+    "@spinjs/runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@types/react": "^19.0.0",
+    "@unocss/core": "66.10.5",
+    "@unocss/preset-attributify": "66.10.5",
+    "@unocss/preset-icons": "66.10.5",
+    "@unocss/preset-tagify": "66.10.5",
+    "eslint": "^9.39.4",
+    "magic-string": "^1.4.1",
+    "solid-js": "^1.9.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/preset/index.d.ts",
+        "default": "./dist/preset/index.js"
+      },
+      "./vite": {
+        "types": "./dist/preset/plugin.d.ts",
+        "default": "./dist/preset/plugin.js"
+      },
+      "./eslint": {
+        "types": "./dist/diagnostics/eslint.d.ts",
+        "default": "./dist/diagnostics/eslint.js"
+      },
+      "./cli": {
+        "types": "./dist/diagnostics/cli.d.ts",
+        "default": "./dist/diagnostics/cli.js"
+      },
+      "./mcp": {
+        "types": "./dist/mcp/main.d.ts",
+        "default": "./dist/mcp/main.js"
+      },
+      "./theme": {
+        "types": "./dist/theme/index.d.ts",
+        "default": "./dist/theme/index.js"
+      },
+      "./theme/base": {
+        "types": "./dist/theme/base/index.d.ts",
+        "default": "./dist/theme/base/index.js"
+      },
+      "./theme/themes": {
+        "types": "./dist/theme/themes/index.d.ts",
+        "default": "./dist/theme/themes/index.js"
+      },
+      "./theme/skill": {
+        "types": "./dist/theme/skill/index.d.ts",
+        "default": "./dist/theme/skill/index.js"
+      },
+      "./theme/theme-types": {
+        "types": "./dist/theme/theme-types.d.ts"
+      },
+      "./preset": {
+        "types": "./dist/preset/index.d.ts",
+        "default": "./dist/preset/index.js"
+      },
+      "./preset/plugin": {
+        "types": "./dist/preset/plugin.d.ts",
+        "default": "./dist/preset/plugin.js"
+      },
+      "./preset/config": {
+        "types": "./dist/preset/config.d.ts",
+        "default": "./dist/preset/config.js"
+      },
+      "./preset/elements": {
+        "types": "./dist/preset/elements.d.ts",
+        "default": "./dist/preset/elements.js"
+      },
+      "./preset/compile": {
+        "types": "./dist/preset/compile.d.ts",
+        "default": "./dist/preset/compile.js"
+      },
+      "./project": {
+        "types": "./dist/project/index.d.ts",
+        "default": "./dist/project/index.js"
+      },
+      "./project/sync": {
+        "types": "./dist/project/sync.d.ts",
+        "default": "./dist/project/sync.js"
+      },
+      "./diagnostics": {
+        "types": "./dist/diagnostics/index.d.ts",
+        "default": "./dist/diagnostics/index.js"
+      },
+      "./diagnostics/eslint": {
+        "types": "./dist/diagnostics/eslint.d.ts",
+        "default": "./dist/diagnostics/eslint.js"
+      },
+      "./diagnostics/cli": {
+        "types": "./dist/diagnostics/cli.d.ts",
+        "default": "./dist/diagnostics/cli.js"
+      },
+      "./api": {
+        "types": "./dist/api/index.d.ts",
+        "default": "./dist/api/index.js"
+      },
+      "./api/daemon": {
+        "types": "./dist/api/daemon.d.ts",
+        "default": "./dist/api/daemon.js"
+      },
+      "./api/serve": {
+        "types": "./dist/api/serve.d.ts",
+        "default": "./dist/api/serve.js"
+      },
+      "./api/client": {
+        "types": "./dist/api/client.d.ts",
+        "default": "./dist/api/client.js"
+      },
+      "./mcp/main": {
+        "types": "./dist/mcp/main.d.ts",
+        "default": "./dist/mcp/main.js"
+      },
+      "./animation": {
+        "types": "./dist/animation/index.d.ts",
+        "default": "./dist/animation/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "bun test src/ tests/",
+    "lint": "oxlint",
+    "fmt": "biome format --write .",
+    "codegen": "bun run src/preset/rules/primitives/derive.ts && biome format --write . src/preset/rules/primitives/manifest.ts && bun run codegen-animation.ts",
+    "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/theme/skill/index.ts'; const rendered = renderSkill(await readFile('./skill/SKILL.md', 'utf8')); await writeFile('./skill/SKILL.md', rendered); console.log('wrote skill/SKILL.md');\"",
+    "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/theme/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n'); console.log('wrote schema.json');\"",
+    "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes } from './src/theme/index.ts'; import { spinTheme } from './src/theme/themes/index.ts'; const parsed = parseTokens(spinTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme/theme-types.d.ts');\""
+  }
+}

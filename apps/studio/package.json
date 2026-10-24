@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@spinjs/theme": "workspace:*",
-    "playwright-core": "^1.63.0"
+    "playwright-core": "^1.63.0",
+    "@spinjs/spin": "workspace:*"
   },
   "scripts": {
     "dev": "vite dev",

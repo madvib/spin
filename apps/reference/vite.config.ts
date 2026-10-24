@@ -2,8 +2,8 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "../../packages/preset/src/plugin.ts";
-import { mountSpinApp } from "../../packages/api/src/index.ts";
+import { spin } from "../../packages/spin/src/preset/plugin.ts";
+import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
@@ -38,7 +38,7 @@ export default defineConfig({
         filesystem: [
           resolve(
             here,
-            "../../packages/preset/src/rules/primitives/*.examples.ts",
+            "../../packages/spin/src/preset/rules/primitives/*.examples.ts",
           ),
           // The taxonomy names the glyph each element wears. The icon preset
           // generates a rule for a name that is written down and for no name
@@ -46,11 +46,11 @@ export default defineConfig({
           // draw nothing at all.
           resolve(
             here,
-            "../../packages/preset/src/rules/primitives/categories.ts",
+            "../../packages/spin/src/preset/rules/primitives/categories.ts",
           ),
           // The kit's shared components: the section, the specimen, the theme
           // picker. Their classes are part of this app's content.
-          resolve(here, "../../packages/kit/src/**/*.{tsx,ts}"),
+          resolve(here, "../../packages/spin/src/kit/**/*.{tsx,ts}"),
           resolve(here, "src/**/*.{tsx,ts}"),
           // Machine component examples: `.html` files compiled by
           // spinElements above. Their static + class-object utilities must

@@ -1,0 +1,72 @@
+import type { ThemeRef } from "../../theme/index.ts";
+import { themeKey } from "../../theme/index.ts";
+import type { ThemeTokenPath } from "../../theme/theme-types.d.ts";
+import type { ElementTypePath } from "../../theme/index.ts";
+
+export interface ThemeContext {
+  theme?: unknown;
+}
+
+/**
+ * The theme map out of the rule context.
+ *
+ * Values are the references `themeRef` built, so a rule reads one and returns
+ * it — there is no path to join and no name to spell. A name the theme does
+ * not carry is simply absent, which is what makes an undeclared token emit
+ * nothing rather than fall back.
+ */
+export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
+  const theme = ctx?.theme;
+  return typeof theme === "object" && theme !== null
+    ? theme as ThemeRef
+    : undefined;
+}
+
+/**
+ * A canonical token, by its dotted path.
+ *
+ * The parameter is the generated path union, so a read spelled wrong is a
+ * compile error rather than a declaration that silently never applies. A
+ * path the theme does not declare — a scale step a minimal theme omits — is
+ * undefined by design, and the caller states its own fallback.
+ *
+ * A theme names its tokens under the canonical paths and nowhere else: there
+ * is no second spelling a reader has to know about.
+ *
+ * The per-element typography paths are read here too, and they are part of
+ * the union because the CONTRACT declares them: a theme may state what a
+ * heading reads, and a rule that spends that decision asks for it by the same
+ * path it is written under.
+ */
+export function token(
+  ctx: ThemeContext | undefined,
+  path: ThemeTokenPath | ElementTypePath,
+): string | undefined {
+  return themeOf(ctx)?.[themeKey(path)];
+}
+
+/**
+ * A token a class name carries, where the name is data.
+ *
+ * The utility families resolve the suffix the author typed, so this lookup is
+ * dynamic by nature: `named(ctx, "spacing", "4")` is `--spacing-4`, and the
+ * family is the flat name prefix — the words the class itself is made of.
+ */
+export function named(
+  ctx: ThemeContext | undefined,
+  family: string,
+  name: string,
+): string | undefined {
+  return themeOf(ctx)?.[`${family}-${name}`];
+}
+
+/**
+ * The names one family carries: every flat key under `family-`, stripped back
+ * to the name a class would write. For autocomplete templates.
+ */
+export function namesIn(theme: ThemeRef, family: string): string[] {
+  const prefix = `${family}-`;
+  return Object.keys(theme)
+    .filter((key) => key.startsWith(prefix))
+    .map((key) => key.slice(prefix.length));
+}

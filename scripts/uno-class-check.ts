@@ -19,8 +19,8 @@ import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { readdir, readFile } from "node:fs/promises";
 import { classTokens, expandVariantGroups, parse } from "../packages/runtime/src/syntax/index.ts";
-import { spinPreset } from "../packages/preset/src/index.ts";
-import { starterThemes } from "../packages/theme/src/themes/index.ts";
+import { spinPreset } from "../packages/spin/src/preset/index.ts";
+import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [
@@ -80,7 +80,7 @@ for (const root of SOURCES) {
 // The `animate-*` utilities are not Uno rules — they ship as plain CSS from
 // `@spinjs/animation`'s preflight — so they are allowlisted rather than
 // generated: the generator would never match them either way.
-import { animationVariants } from "../packages/animation/src/index.ts";
+import { animationVariants } from "../packages/spin/src/animation/index.ts";
 const ANIMATED = animationVariants();
 const uno = await createGenerator({
   presets: [

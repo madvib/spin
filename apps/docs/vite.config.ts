@@ -4,19 +4,19 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "../../packages/preset/src/plugin.ts";
-import { mountSpinApp } from "../../packages/api/src/index.ts";
-import { renderSkill } from "../../packages/theme/src/skill/index.ts";
+import { spin } from "../../packages/spin/src/preset/plugin.ts";
+import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
+import { renderSkill } from "../../packages/spin/src/theme/skill/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;
 
 /** Where the house skill is served, and the file it is assembled from. */
 const SKILL_URL = "/skill/spin-theme/SKILL.md";
-const SKILL_TEMPLATE = resolve(here, "../../packages/theme/skill/SKILL.md");
+const SKILL_TEMPLATE = resolve(here, "../../packages/spin/skill/SKILL.md");
 
 /** The style references, and the directory they travel in. */
-const SKILL_DIR = resolve(here, "../../packages/theme/skill");
+const SKILL_DIR = resolve(here, "../../packages/spin/skill");
 const STYLES_URL = "/skill/spin-theme";
 
 /**
@@ -107,7 +107,7 @@ export default defineConfig({
           // safelist of our own.
           resolve(
             here,
-            "../../packages/preset/src/rules/primitives/*.examples.ts",
+            "../../packages/spin/src/preset/rules/primitives/*.examples.ts",
           ),
           resolve(here, "src/**/*.{tsx,ts}"),
           // Machine component examples: `.html` files compiled by

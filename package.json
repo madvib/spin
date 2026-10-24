@@ -26,15 +26,9 @@
     "valibot": "^1.0.0",
     "vite": "8",
     "vite-plugin-solid": "^2.11.14",
-    "@spinjs/animation": "workspace:*",
-    "@spinjs/api": "workspace:*",
     "@spinjs/components": "workspace:*",
-    "@spinjs/diagnostics": "workspace:*",
-    "@spinjs/kit": "workspace:*",
-    "@spinjs/preset": "workspace:*",
-    "@spinjs/project": "workspace:*",
     "@spinjs/runtime": "workspace:*",
-    "@spinjs/theme": "workspace:*"
+    "@spinjs/spin": "workspace:*"
   },
   "scripts": {
     "test": "bun test packages/ apps/studio/src/",

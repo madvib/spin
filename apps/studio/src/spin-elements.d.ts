@@ -3,4 +3,4 @@
  * in the one shared augmentation rather than a second copy that would drift
  * from it.
  */
-/// <reference path="../../../packages/preset/src/solid.d.ts" />
+/// <reference path="../../../packages/spin/src/preset/solid.d.ts" />

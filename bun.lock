@@ -9,15 +9,9 @@
         "@orpc/client": "^1.0.0",
         "@orpc/contract": "^1.0.0",
         "@orpc/server": "^1.0.0",
-        "@spinjs/animation": "workspace:*",
-        "@spinjs/api": "workspace:*",
         "@spinjs/components": "workspace:*",
-        "@spinjs/diagnostics": "workspace:*",
-        "@spinjs/kit": "workspace:*",
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/project": "workspace:*",
         "@spinjs/runtime": "workspace:*",
-        "@spinjs/theme": "workspace:*",
+        "@spinjs/spin": "workspace:*",
         "@typescript-eslint/parser": "8.71.0",
         "@unocss/core": "66.10.5",
         "@unocss/preset-icons": "66.10.5",
@@ -42,8 +36,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@solidjs/router": "^1.0.0",
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/theme": "workspace:*",
+        "@spinjs/spin": "workspace:*",
         "solid-js": "^1.9.3",
       },
     },
@@ -51,7 +44,7 @@
       "name": "@spinjs/reference",
       "version": "0.1.0",
       "dependencies": {
-        "@spinjs/preset": "workspace:*",
+        "@spinjs/spin": "workspace:*",
         "solid-js": "^1.9.3",
       },
     },
@@ -59,44 +52,13 @@
       "name": "@spinjs/studio",
       "version": "0.1.0",
       "dependencies": {
-        "@spinjs/theme": "workspace:*",
+        "@spinjs/spin": "workspace:*",
         "playwright-core": "^1.63.0",
       },
     },
     "internal/check": {
       "name": "@spin/check",
       "version": "0.1.0",
-    },
-    "packages/animation": {
-      "name": "@spinjs/animation",
-      "version": "0.1.0",
-      "peerDependencies": {
-        "@spinjs/theme": "workspace:*",
-      },
-    },
-    "packages/api": {
-      "name": "@spinjs/api",
-      "version": "0.1.0",
-      "dependencies": {
-        "@iconify-json/carbon": "^1.2.28",
-        "@iconify-json/lucide": "^1.2.0",
-        "@iconify-json/material-symbols": "^1.2.95",
-        "@iconify-json/ph": "^1.2.2",
-        "@iconify-json/tabler": "^1.2.42",
-        "@orpc/client": "^1.0.0",
-        "@orpc/contract": "^1.0.0",
-        "@orpc/server": "^1.0.0",
-        "@unocss/core": "66.10.5",
-        "hono": "^4.13.13",
-        "valibot": "^1.0.0",
-      },
-      "peerDependencies": {
-        "@spinjs/components": "workspace:*",
-        "@spinjs/diagnostics": "workspace:*",
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/project": "workspace:*",
-        "@spinjs/theme": "workspace:*",
-      },
     },
     "packages/components": {
       "name": "@spinjs/components",
@@ -107,94 +69,13 @@
         "perfect-freehand": "^1.2.3",
       },
       "devDependencies": {
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/theme": "workspace:*",
+        "@spinjs/spin": "workspace:*",
         "@types/react": "^19.0.0",
         "@unocss/core": "66.10.5",
       },
       "peerDependencies": {
         "react": "^19.0.0",
         "solid-js": "^1.9.0",
-      },
-    },
-    "packages/diagnostics": {
-      "name": "@spinjs/diagnostics",
-      "version": "0.1.0",
-      "bin": {
-        "spin": "./dist/cli.js",
-      },
-      "dependencies": {
-        "@typescript-eslint/parser": "8.71.0",
-      },
-      "devDependencies": {
-        "@unocss/core": "66.10.5",
-        "eslint": "^9.39.4",
-      },
-      "peerDependencies": {
-        "@spinjs/animation": "workspace:*",
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/project": "workspace:*",
-        "@spinjs/runtime": "workspace:*",
-        "@spinjs/theme": "workspace:*",
-      },
-    },
-    "packages/kit": {
-      "name": "@spinjs/kit",
-      "version": "0.1.1",
-      "dependencies": {
-        "solid-js": "^1.9.3",
-      },
-      "peerDependencies": {
-        "@spinjs/theme": "workspace:*",
-      },
-    },
-    "packages/mcp": {
-      "name": "@spinjs/mcp",
-      "version": "0.1.0",
-      "dependencies": {
-        "@modelcontextprotocol/server": "2.4.0",
-        "zod": "^4.2.0",
-      },
-      "devDependencies": {
-        "@modelcontextprotocol/client": "2.4.0",
-      },
-      "peerDependencies": {
-        "@spinjs/api": "workspace:*",
-        "@spinjs/theme": "workspace:*",
-      },
-    },
-    "packages/preset": {
-      "name": "@spinjs/preset",
-      "version": "0.1.1",
-      "dependencies": {
-        "@orpc/contract": "^1.0.0",
-        "@orpc/server": "^1.0.0",
-        "@spinjs/runtime": "workspace:*",
-        "@unocss/core": "66.10.5",
-        "@unocss/preset-wind4": "66.10.5",
-        "@unocss/transformer-directives": "66.10.5",
-        "@unocss/transformer-variant-group": "66.10.5",
-        "unplugin": "^3.4.0",
-        "valibot": "^1.0.0",
-      },
-      "devDependencies": {
-        "@iconify-json/lucide": "^1.2.0",
-        "@unocss/preset-attributify": "66.10.5",
-        "@unocss/preset-icons": "66.10.5",
-        "@unocss/preset-tagify": "66.10.5",
-        "magic-string": "^1.4.1",
-      },
-      "peerDependencies": {
-        "@spinjs/animation": "workspace:*",
-        "@spinjs/theme": "workspace:*",
-      },
-    },
-    "packages/project": {
-      "name": "@spinjs/project",
-      "version": "0.1.0",
-      "peerDependencies": {
-        "@spinjs/preset": "workspace:*",
-        "@spinjs/theme": "workspace:*",
       },
     },
     "packages/runtime": {
@@ -205,13 +86,47 @@
         "linkedom": "^0.18.0",
       },
     },
-    "packages/theme": {
-      "name": "@spinjs/theme",
+    "packages/spin": {
+      "name": "@spinjs/spin",
       "version": "0.1.0",
+      "bin": {
+        "spin": "./dist/diagnostics/cli.js",
+      },
       "dependencies": {
+        "@iconify-json/carbon": "^1.2.28",
+        "@iconify-json/lucide": "^1.2.0",
+        "@iconify-json/material-symbols": "^1.2.95",
+        "@iconify-json/ph": "^1.2.2",
+        "@iconify-json/tabler": "^1.2.42",
+        "@modelcontextprotocol/server": "2.4.0",
+        "@orpc/client": "^1.0.0",
         "@orpc/contract": "^1.0.0",
         "@orpc/server": "^1.0.0",
+        "@typescript-eslint/parser": "8.71.0",
+        "@unocss/core": "66.10.5",
+        "@unocss/preset-wind4": "66.10.5",
+        "@unocss/transformer-directives": "66.10.5",
+        "@unocss/transformer-variant-group": "66.10.5",
+        "hono": "^4.13.13",
+        "unplugin": "^3.4.0",
         "valibot": "^1.0.0",
+        "zod": "^4.2.0",
+      },
+      "devDependencies": {
+        "@iconify-json/lucide": "^1.2.0",
+        "@modelcontextprotocol/client": "2.4.0",
+        "@types/react": "^19.0.0",
+        "@unocss/core": "66.10.5",
+        "@unocss/preset-attributify": "66.10.5",
+        "@unocss/preset-icons": "66.10.5",
+        "@unocss/preset-tagify": "66.10.5",
+        "eslint": "^9.39.4",
+        "magic-string": "^1.4.1",
+        "solid-js": "^1.9.3",
+      },
+      "peerDependencies": {
+        "@spinjs/components": "workspace:*",
+        "@spinjs/runtime": "workspace:*",
       },
     },
   },
@@ -376,31 +291,17 @@
 
     "@spin/check": ["@spin/check@workspace:internal/check"],
 
-    "@spinjs/animation": ["@spinjs/animation@workspace:packages/animation"],
-
-    "@spinjs/api": ["@spinjs/api@workspace:packages/api"],
-
     "@spinjs/components": ["@spinjs/components@workspace:packages/components"],
 
-    "@spinjs/diagnostics": ["@spinjs/diagnostics@workspace:packages/diagnostics"],
-
     "@spinjs/docs": ["@spinjs/docs@workspace:apps/docs"],
-
-    "@spinjs/kit": ["@spinjs/kit@workspace:packages/kit"],
-
-    "@spinjs/mcp": ["@spinjs/mcp@workspace:packages/mcp"],
-
-    "@spinjs/preset": ["@spinjs/preset@workspace:packages/preset"],
-
-    "@spinjs/project": ["@spinjs/project@workspace:packages/project"],
 
     "@spinjs/reference": ["@spinjs/reference@workspace:apps/reference"],
 
     "@spinjs/runtime": ["@spinjs/runtime@workspace:packages/runtime"],
 
-    "@spinjs/studio": ["@spinjs/studio@workspace:apps/studio"],
+    "@spinjs/spin": ["@spinjs/spin@workspace:packages/spin"],
 
-    "@spinjs/theme": ["@spinjs/theme@workspace:packages/theme"],
+    "@spinjs/studio": ["@spinjs/studio@workspace:apps/studio"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 

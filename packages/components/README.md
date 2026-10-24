@@ -1,4 +1,4 @@
-# @spin/components
+# @spinjs/components
 
 Elements and the machines that earn one.
 
@@ -17,7 +17,7 @@ phases are states no one else holds.
 ## The primitives own the widgets
 
 Form controls and display widgets — switch, checkbox, radio, field, badge, kbd,
-stat, meter, progress, alert, table — belong to `@spin/preset`'s primitives and
+stat, meter, progress, alert, table — belong to `@spinjs/spin/preset`'s primitives and
 the theme's component groups. A component here must not re-implement a
 primitive's contract, and a primitive's wiring (hidden-input sync, press
 tracking, focus-visible) is never machine material.
@@ -57,8 +57,8 @@ spin-<name>/
 One import registers everything:
 
 ```ts
-import "@spin/components/elements";
+import "@spinjs/components/elements";
 ```
 
-Each component is separately importable (`@spin/components/combobox`) and pulls
+Each component is separately importable (`@spinjs/components/combobox`) and pulls
 only its own machine.

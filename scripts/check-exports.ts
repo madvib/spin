@@ -26,7 +26,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
-import { renderSkill } from "../packages/theme/src/skill/index.ts";
+import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES_DIR = join(REPO, "packages");
@@ -189,13 +189,13 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
         `${name}: the package has a skill, and the built package does not ` +
           `carry it`,
       );
-    } else if (pkg.name === "@spinjs/theme") {
+    } else if (pkg.name === "@spinjs/spin") {
       const rendered = renderSkill(await readFile(skillMd, "utf8"));
       const current = await readFile(skillMd, "utf8");
       if (rendered !== current) {
         findings.fail(
           `${name}: skill/SKILL.md is not the rendered checklist — run ` +
-            `bun run skill in packages/theme`,
+            `bun run skill in packages/spin`,
         );
       }
     }
