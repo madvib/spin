@@ -33,7 +33,21 @@ export interface SearchEntry {
   readonly category: "Guide" | "Component" | "Utility" | "Token";
 }
 
-/** Every searchable thing, read off the sources the pages render. */
+/** Machine component names, read off the example directories the gallery
+ * renders — the same directories, so a machine with examples to show is
+ * searchable and one without them is not. */
+const MACHINE_NAMES: readonly string[] = [
+  ...new Set(
+    Object.keys(
+      import.meta.glob("../../../packages/components/src/*/examples/*.html", {
+        query: "?raw",
+        import: "default",
+        eager: true,
+      }),
+    ).map((path) => path.split("/").at(-3) ?? ""),
+  ),
+].filter((name) => name !== "").sort();
+
 function buildIndex(): readonly SearchEntry[] {
   const out: SearchEntry[] = [];
   for (const group of DOCS_GROUPS) {
@@ -56,6 +70,14 @@ function buildIndex(): readonly SearchEntry[] {
         category: "Component",
       });
     }
+  }
+  for (const name of MACHINE_NAMES) {
+    out.push({
+      title: name,
+      subtitle: "interactive machine",
+      href: `/components/machine-${name}`,
+      category: "Component",
+    });
   }
   for (const section of SECTIONS) {
     out.push({
