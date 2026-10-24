@@ -729,7 +729,7 @@ function StepChoice(props: {
     <StepPicker
       label={props.label}
       value={props.value}
-      steps={props.steps}
+      steps={props.steps.map((s) => ({ ...s, path: `${props.group}.${s.name}` }))}
       onPick={(step) => props.onCommit(`{${props.group}.${step.name}}`)}
     />
   );

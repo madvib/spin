@@ -13,7 +13,7 @@
  * studio that writes the right value with a dead preview is caught only by
  * watching the pane while the pointer is down.
  *
- *   STUDIO_URL=http://localhost:5174 deno task e2e
+ *   STUDIO_URL=http://localhost:5174 bun run e2e
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";

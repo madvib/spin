@@ -12,7 +12,7 @@ import { CHILD_PATHS, ROUTE_PATHS } from "../src/lib/routes.ts";
 
 /** The studio under test; the dev server's default port, overridable. */
 export function studioUrl(): string {
-  return (Deno.env.get("STUDIO_URL") ?? "http://localhost:5173").replace(
+  return (process.env.STUDIO_URL ?? "http://localhost:5173").replace(
     /\/$/,
     "",
   );
@@ -20,7 +20,7 @@ export function studioUrl(): string {
 
 /** The app the studio edits and previews. */
 export function appUrl(): string {
-  return (Deno.env.get("APP_URL") ?? "http://localhost:5174").replace(
+  return (process.env.APP_URL ?? "http://localhost:5174").replace(
     /\/$/,
     "",
   );
@@ -29,7 +29,7 @@ export function appUrl(): string {
 /** One browser for the whole file; `SPIN_CHROMIUM` names a binary if needed. */
 export function launchBrowser(): Promise<Browser> {
   return chromium.launch({
-    executablePath: Deno.env.get("SPIN_CHROMIUM") ?? undefined,
+    executablePath: process.env.SPIN_CHROMIUM ?? undefined,
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
   });
 }

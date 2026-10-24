@@ -1,15 +1,15 @@
 /**
  * The studio's end-to-end tests.
  *
- * They drive a running studio and a running host app — `deno task dev` at
+ * They drive a running studio and a running host app — `bun run dev` at
  * the repository root, or the two dev servers on whatever ports they took —
  * the way an author drives them, and read the project back through the
  * studio's own RPC channel: the overlay it publishes, the stylesheet the app
  * renders, the document the reader gets. The app under test is `APP_URL`,
  * reached through the `?app=` door the studio already offers.
  *
- *   deno task e2e
- *   STUDIO_URL=http://localhost:9173 APP_URL=http://localhost:9174 deno task e2e
+ *   bun run e2e
+ *   STUDIO_URL=http://localhost:9173 APP_URL=http://localhost:9174 bun run e2e
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";

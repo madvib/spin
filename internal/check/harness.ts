@@ -19,6 +19,7 @@
  * changed, and `--allow-baseline` makes "what changed" the exit code.
  */
 
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { chromium, type Page } from "playwright-core";
 import {
   AUDIT_GLOBAL,
@@ -798,7 +799,7 @@ class Driver {
   }
 
   async screenshot(name: string): Promise<string> {
-    await Deno.mkdir(this.#options.outDir, { recursive: true });
+    await mkdir(this.#options.outDir, { recursive: true });
     const path = `${this.#options.outDir}/${name}.png`;
     // A frozen frame. An animation captured mid-sweep is a different image
     // every run, and a capture that cannot be compared is not evidence.
@@ -898,7 +899,7 @@ interface Baseline {
 
 async function readBaseline(path: string): Promise<Baseline | null> {
   try {
-    const parsed = JSON.parse(await Deno.readTextFile(path)) as {
+    const parsed = JSON.parse(await readFile(path, "utf8")) as {
       findings?: unknown;
     };
     return {
@@ -959,8 +960,8 @@ async function writeBaseline(
   // target, then rename over it.
   const payload = `${JSON.stringify(baseline, null, 1)}\n`;
   const temporary = `${path}.partial`;
-  await Deno.writeTextFile(temporary, payload);
-  await Deno.rename(temporary, path);
+  await writeFile(temporary, payload, "utf8");
+  await rename(temporary, path);
   console.log(`baseline written to ${path}: ${findings.length} findings`);
 }
 
@@ -1356,7 +1357,7 @@ async function checkReachable(url: string): Promise<string | null> {
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     return `the app under test is not reachable at ${url} (${reason}). ` +
-      `Start it first: deno task serve`;
+      `Start it first: bun run serve`;
   } finally {
     clearTimeout(timer);
   }

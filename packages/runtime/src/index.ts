@@ -80,7 +80,6 @@ export interface MachineEventContract<TDetail = unknown> {
    * out: Zag's payload shapes are per-machine and untyped at this seam,
    * so the mapper narrows and the event carries the narrowed type.
    */
-  // deno-lint-ignore no-explicit-any
   readonly detail: (change: any) => TDetail;
 }
 export interface MachineDef {

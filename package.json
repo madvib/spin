@@ -43,10 +43,10 @@
     "dev": "bun run dev:studio & bun run dev:daemon & wait",
     "dev:docs": "cd apps/docs && bun run dev",
     "build:docs": "cd apps/docs && bun run build",
-    "dev:daemon": "cd packages/api && bun run dev --root ../../examples/fixture-app --port 0",
+    "dev:daemon": "cd packages/spin && bun run src/api/daemon.ts --root ../../examples/fixture-app --port 0",
     "dev:studio": "cd apps/studio && bun run dev",
     "build:studio": "cd apps/studio && bun run build",
-    "skill": "cd packages/theme && bun run skill",
+    "skill": "cd packages/spin && bun run skill",
     "e2e": "cd apps/studio && bun run e2e"
   },
   "devDependencies": {

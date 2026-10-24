@@ -1,4 +1,3 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-net --allow-run --allow-env --allow-sys
 /**
  * The reference's visual check: the harness config, and nothing else.
  *
@@ -7,21 +6,22 @@
  * geometry claims, the page conventions it boots with. Everything mechanical
  * lives in `internal/check`:
  *
- *   deno task visual                                   # the whole matrix
- *   deno task visual -- --route components/button      # one route
- *   deno task visual -- --write-baseline               # refresh the baseline
+ *   bun run visual                                     # the whole matrix
+ *   bun run visual -- --route components/button        # one route
+ *   bun run visual -- --write-baseline                 # refresh the baseline
  */
 
+import { readdir, readFile } from "node:fs/promises";
 import {
   type CheckConfig,
   type Route,
   runCheck,
 } from "../../../internal/check/harness.ts";
-import { SECTIONS } from "../../../packages/preset/src/organization.ts";
+import { SECTIONS } from "../../../packages/spin/src/preset/organization.ts";
 import {
   starterThemes,
   themeModes,
-} from "../../../packages/theme/src/themes/index.ts";
+} from "../../../packages/spin/src/theme/themes/index.ts";
 import { PRIMITIVES } from "../src/primitives.ts";
 import { APP_ROUTES } from "../src/routes.ts";
 import { geometryAudit, geometryClaimsFor } from "./geometry.ts";
@@ -75,11 +75,11 @@ async function projectThemes(): Promise<
   // harness lives in `visual/`, the project lives in the app's root.
   const directory = `${BASE}../spin`;
   try {
-    for await (const entry of Deno.readDir(directory)) {
-      if (!entry.isFile || !entry.name.endsWith(".json")) continue;
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
       try {
         out[entry.name.replace(/\.json$/, "")] = JSON.parse(
-          await Deno.readTextFile(`${directory}/${entry.name}`),
+          await readFile(`${directory}/${entry.name}`, "utf8"),
         ) as Parameters<typeof themeModes>[0];
       } catch {
         // Skipped: see above.
@@ -135,10 +135,10 @@ export const config: CheckConfig = {
 };
 
 if (import.meta.main) {
-  runCheck(config, Deno.args)
-    .then((code) => Deno.exit(code))
+  runCheck(config, process.argv.slice(2))
+    .then((code) => process.exit(code))
     .catch((error: unknown) => {
       console.error(error instanceof Error ? error.message : String(error));
-      Deno.exit(2);
+      process.exit(2);
     });
 }

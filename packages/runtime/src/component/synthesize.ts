@@ -616,7 +616,6 @@ export function defineComponent<
   const events: Record<string, MachineEventContract<Record<string, unknown>>> =
     {};
   for (const [name, event] of Object.entries(def.events)) {
-    // deno-lint-ignore no-explicit-any
     events[name] = { on: event.prop, detail: (change: any) => change };
   }
 

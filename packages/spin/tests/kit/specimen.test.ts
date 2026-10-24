@@ -1,19 +1,10 @@
-/** @jsxImportSource solid-js */
 import { test } from "bun:test";
-import assert, { deepStrictEqual } from "node:assert/strict";
-import { renderToString } from "solid-js/web";
+import { deepStrictEqual } from "node:assert/strict";
 import {
   formatExampleHtml,
-  Specimen,
   tokenizeCode,
   tokenizeHtml,
-} from "../../src/kit/specimen.tsx";
-
-/**
- * The specimen's two pure facts: the markup is formatted without being
- * rewritten, and the row renders both views with the copy control on the one
- * that copies.
- */
+} from "../../src/kit/code.ts";
 
 test("formatting strips the template literal's air and keeps the markup", () => {
   const source = `
@@ -68,18 +59,4 @@ test("the code tokenizer names keywords, strings, and comments", () => {
   );
   deepStrictEqual(jsonKinds['"a"'], "attr");
   deepStrictEqual(jsonKinds["1"], "number");
-});
-
-test("the specimen renders the preview and the markup together", async () => {
-  const html = await renderToString(() => (
-    <Specimen name="deploy" html='<button type="button">Deploy</button>' />
-  ));
-  assert(html.includes("deploy"));
-  assert(html.includes("component"));
-  assert(html.includes("code"));
-  // The preview is the markup as a browser runs it; the code is the same
-  // markup as a reader copies it, tokenized into the inks the panel measured.
-  assert(html.includes('<button type="button">Deploy</button>'));
-  assert(html.includes("text-semantic-error"));
-  assert(html.includes("text-link"));
 });

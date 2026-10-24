@@ -8,10 +8,7 @@
  * tsc --noEmit over the set. A mistyped machine arg is a build error
  * here, not a silent runtime wrong-value.
  *
- *   deno run -A scripts/script-check.ts
- *
- * The exit code is the point: this belongs beside `deno check`, not in a
- * human's memory of which args are typed.
+ *   bun run scripts/script-check.ts
  */
 
 import { readdir, readFile, writeFile, rm } from "node:fs/promises";
@@ -124,7 +121,7 @@ async function main(): Promise<void> {
       return;
     }
     const { spawnSync } = await import("node:child_process");
-    const r = spawnSync("deno", ["check", "--no-lock", ...modules], { cwd: ROOT, encoding: "utf8" });
+    const r = spawnSync("bunx", ["tsc", "--noEmit", "--strict", "--target", "esnext", "--module", "esnext", "--moduleResolution", "bundler", "--allowImportingTsExtensions", "--skipLibCheck", ...modules], { cwd: ROOT, encoding: "utf8" });
     const code = r.status ?? 1;
     const out = (r.stdout ?? "") + (r.stderr ?? "");
     for (const f of failures) console.log(`FAIL ${f}`);

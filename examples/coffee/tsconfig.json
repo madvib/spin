@@ -15,36 +15,17 @@
     "esModuleInterop": true,
     "allowJs": true,
     "types": [
-      "vite/client",
-      "node"
+      "vite/client"
     ],
     "paths": {
       "~/*": [
         "./src/*"
-      ],
-      "@spin/theme": [
-        "../../packages/theme/src/index.ts"
-      ],
-      "@spin/preset": [
-        "../../packages/preset/src/index.ts"
-      ],
-      "@unocss/core": [
-        "./node_modules/@unocss/core/dist/index.d.mts"
-      ],
-      "@spin/primitives-procedures": [
-        "../../packages/preset/src/primitives-procedures.ts"
-      ],
-      "@spin/theme/base": [
-        "../../packages/theme/src/base/index.ts"
-      ],
-      "@spin/animation": [
-        "../../packages/animation/src/index.ts"
       ]
     }
   },
   "include": [
     "src",
-    "../../packages/preset/src/solid.d.ts",
+    "../../packages/spin/src/preset/solid.d.ts",
     "vite.config.ts"
   ]
 }

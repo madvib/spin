@@ -1,3 +1,4 @@
+import { readdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
@@ -68,10 +69,10 @@ for (const route of routes) {
  * A shot for a route that no longer exists is a picture of a page nobody can
  * reach, and it stays in the tree forever because nothing else touches it.
  */
-for (const entry of Deno.readDirSync(SHOTS)) {
-  if (!entry.isFile || !entry.name.endsWith(".png")) continue;
+for (const entry of readdirSync(SHOTS, { withFileTypes: true })) {
+  if (!entry.isFile() || !entry.name.endsWith(".png")) continue;
   if (names.includes(entry.name.replace(/\.png$/, ""))) continue;
-  await Deno.remove(join(SHOTS, entry.name));
+  rmSync(join(SHOTS, entry.name));
   console.log(`stale: ${entry.name}`);
 }
 await browser.close();

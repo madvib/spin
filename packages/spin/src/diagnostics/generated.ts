@@ -25,7 +25,6 @@ import { starterThemes } from "../theme/themes/index.ts";
 /** The directories a scan does not walk into. */
 const SKIPPED = new Set([
   ".git",
-  ".deno",
   ".output",
   ".vite",
   "coverage",

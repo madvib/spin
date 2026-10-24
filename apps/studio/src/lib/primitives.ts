@@ -20,6 +20,8 @@ export interface RpcExample {
   readonly mountHtml?: string;
   /** The example stem (`basic`), for the copy-to-project call. */
   readonly stem?: string;
+  /** Runs against the row after it mounts, for property-driven examples. */
+  readonly onLoad?: string;
 }
 
 /** One component, with its examples, in one payload. */

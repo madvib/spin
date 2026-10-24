@@ -101,12 +101,14 @@ function ExampleSection(props: {
     }
   };
   return (
-    <section class="mb-4">
-      <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h3 class="flex items-center gap-2">
-          <Marker />
-          {props.row.name}
-        </h3>
+    <Specimen
+      name={props.row.name}
+      html={props.row.mountHtml ?? props.row.html}
+      source={props.row.html}
+      onLoad={props.onLoad ?? props.row.onLoad}
+      stage={`spin-preview ${measure}`}
+      panelClass={`mx-auto ${measure ? SPECIMEN_MEASURE : "max-w-full"}`}
+      actions={
         <Show when={props.row.stem !== undefined}>
           <button
             type="button"
@@ -116,15 +118,8 @@ function ExampleSection(props: {
             {copiedFile() ?? "copy to project"}
           </button>
         </Show>
-      </div>
-      <Specimen
-        name={props.row.name}
-        html={props.row.mountHtml ?? props.row.html}
-        source={props.row.html}
-        onLoad={props.onLoad ?? props.row.onLoad}
-        stage={`spin-preview ${measure}`}
-      />
-    </section>
+      }
+    />
   );
 }
 

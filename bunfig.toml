@@ -1,3 +1,0 @@
-# Solid JSX for .tsx: automatic runtime with solid-js as the source.
-jsx = "react-jsx"
-jsxImportSource = "solid-js"

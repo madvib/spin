@@ -97,7 +97,6 @@ const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|html?)$/;
 /** The directories a scan does not walk into. */
 const SKIPPED = new Set([
   ".git",
-  ".deno",
   ".output",
   ".vite",
   "coverage",

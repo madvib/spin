@@ -10,15 +10,6 @@
     "target": "esnext",
     "strict": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "baseUrl": ".",
-    "paths": {
-      "solid-js/jsx-runtime": [
-        "./packages/kit/src/ssr-jsx.ts"
-      ],
-      "solid-js/jsx-dev-runtime": [
-        "./packages/kit/src/ssr-jsx.ts"
-      ]
-    }
+    "allowImportingTsExtensions": true
   }
 }

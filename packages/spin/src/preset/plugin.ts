@@ -358,11 +358,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
 
 import { spinPreset } from "./index.ts";
 
-// The Deno global the plugin defaults its root from. Declared, not
-// imported: bundler consumers typecheck this file without Deno types, and
-// `configResolved` overwrites the default before anything generates.
-declare const Deno: { cwd(): string } | undefined;
-
 /**
  * The id `load` answers to.
  *
@@ -519,7 +514,7 @@ export function projectThemes(
   return { ...starterThemes, ...overrides };
 }
 
-const spinMain = createUnplugin<SpinPluginOptions>((options) => {
+const spinMain = createUnplugin<SpinPluginOptions | undefined, false>((options = {}) => {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts.
   let root = process.cwd();
@@ -669,11 +664,10 @@ spinOverlay("${studioBase}/rpc"${
  */
 export const spin = {
   vite(options?: SpinPluginOptions) {
-    const stages: unknown[] = [spinMain.vite(options)];
     if (options?.elements !== undefined && options.elements !== false) {
-      stages.unshift(spinElementsPlugin.vite(options.elements));
+      return [spinElementsPlugin.vite(options.elements), spinMain.vite(options)];
     }
-    return stages;
+    return [spinMain.vite(options)];
   },
   rollup(options?: SpinPluginOptions) {
     return spinMain.rollup(options);

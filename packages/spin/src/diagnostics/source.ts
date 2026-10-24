@@ -54,7 +54,6 @@ const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|html?)$/;
  */
 const SKIPPED = new Set([
   ".git",
-  ".deno",
   ".output",
   ".vite",
   "coverage",
