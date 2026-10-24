@@ -8,13 +8,13 @@
   <label class="mb-1 block text-sm font-medium text-text" {...machine.getLabelProps()}>Release Tag</label>
   <div class="flex items-center gap-2">
     <div class="min-w-0 flex-1 rounded-md border border-solid border-border bg-surface-raised" {...machine.getAreaProps()}>
-      <span class="block truncate cursor-text px-2.5 py-1.5 text-sm text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
-      <input class="w-full bg-transparent px-2.5 py-1.5 text-sm text-text outline-none" {...machine.getInputProps()} />
+      <span class="block truncate cursor-text px-3 py-1 text-sm text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
+      <input class="bare w-full bg-transparent px-3 py-1 outline-none" {...machine.getInputProps()} />
     </div>
     <div class="flex shrink-0 items-center gap-1" {...machine.getControlProps()}>
-      <button class={["rounded-md border border-solid border-border bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-text hover:bg-surface", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}>Edit</button>
-      <button class={["rounded-md border border-solid border-primary bg-primary px-2.5 py-1.5 text-xs font-medium text-on-primary", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}>Save</button>
-      <button class={["rounded-md border border-solid border-border bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-muted hover:text-text", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}>Cancel</button>
+      <button class={["secondary s-sm", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}>Edit</button>
+      <button class={["s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}>Save</button>
+      <button class={["secondary s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}>Cancel</button>
     </div>
   </div>
 </div>

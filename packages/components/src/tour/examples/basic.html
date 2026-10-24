@@ -1,39 +1,61 @@
 <script lang="ts">
-  import { tour } from "../tour.presentation.ts";
+import { tour } from "../tour.presentation.ts";
 
-  const machine = tour({
-    label: "Tour",
-    steps: '[{"id":"welcome","target":"#tour-basic-target","title":"Welcome","description":"This button starts nothing, but the spotlight finds it."},{"id":"confirm","target":"#tour-basic-confirm","title":"Confirm","description":"The spotlight follows to the next target."},{"id":"done","title":"Done","description":"No target — the card stands alone."}]',
-  });
+const machine = tour({
+  label: "Tour",
+  steps:
+    '[{"id":"welcome","target":"#tour-basic-target","title":"Welcome","description":"This button starts nothing, but the spotlight finds it."},{"id":"confirm","target":"#tour-basic-confirm","title":"Confirm","description":"The spotlight follows to the next target."},{"id":"done","title":"Done","description":"No target — the card stands alone."}]',
+});
 </script>
 
-<div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4">
-  <button id="tour-basic-target" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Feature button</button>
-  <button id="tour-basic-confirm" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">Confirm button</button>
-  <button class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary" onClick={machine.start}>Start tour</button>
+<div class="mx-auto flex w-full max-w-[20rem] flex-col items-center gap-4">
+  <button id="tour-basic-target"
+    class="secondary s-sm">Feature button</button>
+  <button id="tour-basic-confirm"
+    class="secondary s-sm">Confirm button</button>
+  <button
+    class="s-sm"
+    onClick={machine.start}>Start tour</button>
 </div>
 <div class="contents" {...machine.getRootProps()}>
-  <div class={["pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate", { "opacity-0": !machine.active }]} {...machine.getBackdropProps()}></div>
+  <div
+    class={["pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate", { "opacity-0": !machine.active }]}
+    {...machine.getBackdropProps()}></div>
 
-  <div class={["pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate", { "opacity-0": !machine.active }]} {...machine.getSpotlightProps()}></div>
+  <div
+    class={["pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate", { "opacity-0": !machine.active }]}
+    {...machine.getSpotlightProps()}></div>
 
-  <div class={["fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate", { "pointer-events-none": !machine.active, "invisible": !machine.active, "opacity-0": !machine.active }]} {...machine.getPositionerProps()}>
+  <div
+    class={["fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate", { "pointer-events-none": !machine.active, "invisible": !machine.active, "opacity-0": !machine.active }]}
+    {...machine.getPositionerProps()}>
     <div class="flex flex-col gap-2" {...machine.getContentProps()}>
       <template for={machine.getTextRows()} as={row} key={row.key}>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-sm font-medium text-text" {...machine.getTitleProps()}>{row.title}</span>
-          <span class="text-xs text-muted tabular-nums" {...machine.getProgressTextProps()}>{row.progress}</span>
+          <span class="text-sm font-medium text-text"
+            {...machine.getTitleProps()}>{row.title}</span>
+          <span class="text-xs text-muted tabular-nums"
+            {...machine.getProgressTextProps()}>{row.progress}</span>
         </div>
-        <p class="m-0 text-xs text-muted" {...machine.getDescriptionProps()}>{row.description}</p>
+        <p class="text-xs text-muted"
+          {...machine.getDescriptionProps()}>{row.description}</p>
       </template>
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-1">
-          <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getPrevTriggerProps()}>Back</button>
-          <button class="rounded-sm bg-primary px-2 py-0.5 text-xs font-medium text-on-primary transition-opacity duration-fast ease-decelerate hover:opacity-90" {...machine.getNextTriggerProps()}>Next</button>
+          <button
+            class="ghost s-sm"
+            {...machine.getPrevTriggerProps()}>Back</button>
+          <button
+            class="s-sm"
+            {...machine.getNextTriggerProps()}>Next</button>
         </div>
         <div class="flex items-center gap-1">
-          <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getSkipTriggerProps()}>Skip</button>
-          <button class="rounded-sm p-0.5 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getDismissTriggerProps()}>
+          <button
+            class="ghost s-sm"
+            {...machine.getSkipTriggerProps()}>Skip</button>
+          <button
+            class="ghost icon s-sm"
+            {...machine.getDismissTriggerProps()}>
             <span class="i-lucide-x text-xs" aria-hidden="true"></span>
           </button>
         </div>

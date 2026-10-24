@@ -1,25 +1,34 @@
 <script lang="ts">
-  import { timer } from "../timer.presentation.ts";
+import { timer } from "../timer.presentation.ts";
 
-  const machine = timer({
-    startMs: "30000",
-    countdown: true,
-  });
+const machine = timer({
+ startMs: "30000",
+ countdown: true,
+});
 </script>
-<div class="mx-auto w-full max-w-xs" {...machine.getRootProps()}>
-  <div class="rounded-lg bg-semantic-warning p-4 text-center text-on-primary" {...machine.getAreaProps()}>
-    <div class="mb-3 flex items-center justify-center gap-2"><span class="i-lucide-dumbbell text-lg"></span><span class="text-lg font-bold">Rest Time</span></div>
-    <div class="text-5xl font-bold tabular-nums">
-      <template for={machine.getUnits()} as={unit} key={unit.type}>
-        <div class="flex flex-col items-center" show={unit.type === "seconds"} {...machine.getItemProps({ type: unit.type })}>
-          <span class="min-w-[2ch] text-center" {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-        </div>
-      </template>
+<div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
+ <div class="rounded-lg bg-semantic-warning p-4 text-center text-on-primary"
+  {...machine.getAreaProps()}>
+  <div
+   class="mb-3 flex items-center justify-center gap-2"><span class="i-lucide-dumbbell text-lg"></span><span class="text-lg font-bold">Rest Time</span></div>
+  <div class="text-3xl font-bold tabular-nums">
+   <template for={machine.getUnits()} as={unit} key={unit.type}>
+    <div class="flex flex-col items-center" show={unit.type === "seconds"}
+     {...machine.getItemProps({ type: unit.type })}>
+     <span class="min-w-[2ch] text-center"
+      {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
     </div>
-    <div class="mt-1 text-sm opacity-80">seconds</div>
-    <div class="mt-4 flex items-center justify-center gap-2" {...machine.getControlProps()}>
-      <button aria-label="Pause" class="grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30" {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-sm"></span></button>
-      <button aria-label="Reset" class="grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30" {...machine.getActionTriggerProps({ action: "reset" })}><span class="i-lucide-rotate-ccw text-sm"></span></button>
-    </div>
+   </template>
   </div>
+  <div class="mt-1 text-sm opacity-80">seconds</div>
+  <div class="mt-4 flex items-center justify-center gap-2"
+   {...machine.getControlProps()}>
+   <button aria-label="Pause"
+    class="ghost icon s-sm grid h-10 w-10 place-items-center"
+    {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-sm"></span></button>
+   <button aria-label="Reset"
+    class="ghost icon s-sm grid h-10 w-10 place-items-center"
+    {...machine.getActionTriggerProps({ action: "reset" })}><span class="i-lucide-rotate-ccw text-sm"></span></button>
+  </div>
+ </div>
 </div>

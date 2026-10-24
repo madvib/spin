@@ -169,9 +169,16 @@ function ExampleSection(props: {
   const tokens = createMemo(() => tokenizeHtml(markup()));
   const code = () => view() === "code";
   const copyExample = async (): Promise<void> => {
-    if (props.componentName === undefined || props.row.stem === undefined) return;
-    const result = await copyComponentExample(props.componentName, props.row.stem);
-    if (result.error === null && result.file !== null) setCopiedFile(result.file);
+    if (props.componentName === undefined || props.row.stem === undefined) {
+      return;
+    }
+    const result = await copyComponentExample(
+      props.componentName,
+      props.row.stem,
+    );
+    if (result.error === null && result.file !== null) {
+      setCopiedFile(result.file);
+    }
   };
   return (
     <section class="mb-4">
@@ -492,9 +499,20 @@ export default function ComponentPage() {
               {component.examples?.note ?? ""}
             </p>
 
-            <Show when={component.kind === "machine" && component.manifest !== undefined}>
-              <div class="mt-3 flex flex-wrap gap-1" aria-label="Machine contract">
-                <For each={Object.entries(component.manifest!) as [string, readonly string[]][]}>
+            <Show
+              when={component.kind === "machine" &&
+                component.manifest !== undefined}
+            >
+              <div
+                class="mt-3 flex flex-wrap gap-1"
+                aria-label="Machine contract"
+              >
+                <For
+                  each={Object.entries(component.manifest!) as [
+                    string,
+                    readonly string[],
+                  ][]}
+                >
                   {([tier, names]) => (
                     <Show when={names.length > 0}>
                       <span class="rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
@@ -575,7 +593,11 @@ export default function ComponentPage() {
 
             <For each={rows()}>
               {(row) => (
-                <ExampleSection row={row} onLoad={component.examples?.onLoad} componentName={component.name} />
+                <ExampleSection
+                  row={row}
+                  onLoad={component.examples?.onLoad}
+                  componentName={component.name}
+                />
               )}
             </For>
 

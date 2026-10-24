@@ -1,4 +1,4 @@
-import { signal, type ControllerDef } from "@spin/runtime";
+import { type ControllerDef, signal } from "@spin/runtime";
 import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
 
 /**
@@ -36,7 +36,13 @@ export const hoverCardManifest = {
   parts: [],
   slots: [],
   readers: ["open"],
-  methods: ["show", "hide", "getRootProps", "getTriggerProps", "getContentProps"],
+  methods: [
+    "show",
+    "hide",
+    "getRootProps",
+    "getTriggerProps",
+    "getContentProps",
+  ],
 } as const;
 
 export interface HoverCardApi {
@@ -63,16 +69,22 @@ function intAttr(el: Element, name: string, fallback: number): number {
 let instanceCounter = 0;
 
 export function attachHoverCard(el: Element): HoverCardApi {
-  const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
+  const readOpen = (): boolean =>
+    panelOf(el)?.matches(":popover-open") ?? false;
   const disabled = el.hasAttribute("disabled");
   const openDelay = intAttr(el, "open-delay", 600);
   const closeDelay = intAttr(el, "close-delay", 300);
   let placement: AnchorPlacement = ((): AnchorPlacement => {
     const raw = el.getAttribute("placement");
-    return raw === "top" || raw === "bottom" || raw === "left" || raw === "right" ? raw : "bottom";
+    return raw === "top" || raw === "bottom" || raw === "left" ||
+        raw === "right"
+      ? raw
+      : "bottom";
   })();
   const emit = (open: boolean): void => {
-    el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
+    el.dispatchEvent(
+      new CustomEvent("open-change", { detail: { open }, bubbles: true }),
+    );
   };
 
   // The `toggle` event does not bubble, but a capture listener on the
@@ -93,9 +105,17 @@ export function attachHoverCard(el: Element): HoverCardApi {
     panel.hidePopover();
   };
 
-  const geometry = signal<AnchorGeometry>({ x: 0, y: 0, w: 0, h: 0, placement: "bottom" });
+  const geometry = signal<AnchorGeometry>({
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+    placement: "bottom",
+  });
 
-  const instance = el.id !== "" ? el.id : `${"hover-card-"}${++instanceCounter}`;
+  const instance = el.id !== ""
+    ? el.id
+    : `${"hover-card-"}${++instanceCounter}`;
   const triggerId = `${instance}:trigger`;
   const panelId = `${instance}:panel`;
 
@@ -112,16 +132,14 @@ export function attachHoverCard(el: Element): HoverCardApi {
       "data-scope": "hover-card",
       "data-part": "root",
       "data-state": readOpen() ? "open" : "closed",
-      ...(disabled
-        ? {}
-        : {
-          "use:hover-delay": {
-            openDelay,
-            closeDelay,
-            onOpen: show,
-            onClose: hide,
-          },
-        }),
+      ...(disabled ? {} : {
+        "use:hover-delay": {
+          openDelay,
+          closeDelay,
+          onOpen: show,
+          onClose: hide,
+        },
+      }),
     }),
     getTriggerProps: () => ({
       id: triggerId,

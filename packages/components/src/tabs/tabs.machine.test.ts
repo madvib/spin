@@ -62,8 +62,15 @@ Deno.test("tabs initial skips rows without a usable value", () => {
 });
 
 Deno.test("tabs initial falls back value, then defaultValue, then the first row", () => {
-  const items = [{ value: "a", label: "A", content: "" }, { value: "b", label: "B", content: "" }];
-  assertEquals(contextOf(tabs({ value: "b", defaultValue: "a", items })).value, "b");
+  const items = [{ value: "a", label: "A", content: "" }, {
+    value: "b",
+    label: "B",
+    content: "",
+  }];
+  assertEquals(
+    contextOf(tabs({ value: "b", defaultValue: "a", items })).value,
+    "b",
+  );
   assertEquals(contextOf(tabs({ defaultValue: "b", items })).value, "b");
   assertEquals(contextOf(tabs({ items })).value, "a");
 });
@@ -75,7 +82,9 @@ Deno.test("tabs initial with empty items stays empty and unselected", () => {
   assertEquals(contextOf(tabs({})).value, "");
 });
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -151,17 +160,23 @@ Deno.test("tabs bridge trigger click and keyboard roving navigation update activ
   assertEquals(h.changes, ["metrics"]);
 
   // ArrowRight from "metrics" selects "settings"
-  const keySecond = h.api.getTriggerProps(second!)["onKeydown"] as (e: KeyboardEvent) => void;
+  const keySecond = h.api.getTriggerProps(second!)["onKeydown"] as (
+    e: KeyboardEvent,
+  ) => void;
   keySecond(keydown("ArrowRight"));
   assertEquals(h.api.value, "settings");
 
   // With loopFocus: true (default), ArrowRight from last wraps to "overview"
-  const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (e: KeyboardEvent) => void;
+  const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (
+    e: KeyboardEvent,
+  ) => void;
   keyThird(keydown("ArrowRight"));
   assertEquals(h.api.value, "overview");
 
   // End jumps to "settings", Home jumps back to "overview"
-  const keyFirst = h.api.getTriggerProps(h.api.items[0]!)["onKeydown"] as (e: KeyboardEvent) => void;
+  const keyFirst = h.api.getTriggerProps(h.api.items[0]!)["onKeydown"] as (
+    e: KeyboardEvent,
+  ) => void;
   keyFirst(keydown("End"));
   assertEquals(h.api.value, "settings");
   keyThird(keydown("Home"));
@@ -173,12 +188,16 @@ Deno.test("tabs bridge loopFocus false stops at first and last tab boundaries", 
   const h = mountTabs({ defaultValue: "overview", loopFocus: false });
   const [first, , third] = h.api.items;
 
-  const keyFirst = h.api.getTriggerProps(first!)["onKeydown"] as (e: KeyboardEvent) => void;
+  const keyFirst = h.api.getTriggerProps(first!)["onKeydown"] as (
+    e: KeyboardEvent,
+  ) => void;
   keyFirst(keydown("ArrowLeft"));
   assertEquals(h.api.value, "overview");
 
   h.api.select("settings");
-  const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (e: KeyboardEvent) => void;
+  const keyThird = h.api.getTriggerProps(third!)["onKeydown"] as (
+    e: KeyboardEvent,
+  ) => void;
   keyThird(keydown("ArrowRight"));
   assertEquals(h.api.value, "settings");
   h.dispose();

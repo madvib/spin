@@ -45,7 +45,9 @@ Deno.test("rows from an earlier sync stay subscribed after a later sync", () => 
   assertEquals(
     runs.some((r) => r === "run:a"),
     true,
-    `row from the first sync re-runs on a later tick (runs=[${runs.join("|")}])`,
+    `row from the first sync re-runs on a later tick (runs=[${
+      runs.join("|")
+    }])`,
   );
 });
 
@@ -107,12 +109,20 @@ Deno.test("the for re-syncs on the machine-move signal", () => {
       return { nodes: [el] };
     },
   });
-  assertEquals(host.querySelectorAll("div").length, 1, "the seeded row renders");
+  assertEquals(
+    host.querySelectorAll("div").length,
+    1,
+    "the seeded row renders",
+  );
 
   // A machine move: the context object mutates, and the move signal flips.
   ctx.rows = ["a", "b"];
   machineTick(machineTick() + 1);
-  assertEquals(host.querySelectorAll("div").length, 2, "the new row renders from the move");
+  assertEquals(
+    host.querySelectorAll("div").length,
+    2,
+    "the new row renders from the move",
+  );
 });
 
 Deno.test("multi-root rows keep source order (item then twin)", () => {
@@ -139,7 +149,13 @@ Deno.test("multi-root rows keep source order (item then twin)", () => {
     .filter((n) => n.nodeName !== "#comment")
     .map((n) => (n as Element).textContent ?? "?")
     .join("");
-  assertEquals(order, "h:m:s:",
-    `row twins follow their item (got ${[...host.childNodes].map((n) => (n as Element).textContent ?? "?").join("|")})`,
+  assertEquals(
+    order,
+    "h:m:s:",
+    `row twins follow their item (got ${
+      [...host.childNodes].map((n) => (n as Element).textContent ?? "?").join(
+        "|",
+      )
+    })`,
   );
 });

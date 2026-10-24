@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { slider } from "../slider.presentation.ts";
+import { slider } from "../slider.presentation.ts";
 
-  const machine = slider({ value: [50] });
+const machine = slider({ value: [50] });
 </script>
 
 <div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
-  <div class={["mb-4 text-sm text-muted", { "text-primary": machine.state === "focus" }]} {...machine.getValueTextProps()}>{machine.valueText}</div>
+  <div
+    class={["mb-4 text-sm text-text-muted", { "text-primary": machine.state === "focus" }]}
+    {...machine.getValueTextProps()}>{machine.valueText}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"
     {...machine.getControlProps()}
   >
-<div
+    <div
       class="relative h-2 w-full overflow-hidden rounded-full bg-surface-sunken"
       {...machine.getTrackProps()}
     >
@@ -19,9 +21,9 @@
         {...machine.getRangeProps()}
       ></div>
     </div>
-<template for={machine.getThumbIndexes()} as={row} key={row}>
+    <template for={machine.getThumbIndexes()} as={row} key={row}>
       <span
-        class={["absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
+        class={["bare absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
         {...machine.getThumbProps(row)}
       ></span>
       <input {...machine.getHiddenInputProps(row)} />

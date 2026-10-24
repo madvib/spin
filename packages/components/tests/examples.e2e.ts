@@ -16,7 +16,8 @@ import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 
 /** The example's element: the machine and the example's stem. */
-const exampleTag = (machine: string, stem: string): string => `${machine}-${stem}`;
+const exampleTag = (machine: string, stem: string): string =>
+  `${machine}-${stem}`;
 
 Deno.test("spin examples e2e", () =>
   runComponentSuite({
@@ -27,7 +28,17 @@ Deno.test("spin examples e2e", () =>
   }, async ({ page }) => {
     await step("the examples mount", async () => {
       // The slider's seven examples, each its own element.
-      for (const stem of ["basic", "fractional", "marks", "range", "stepped", "ticks", "vertical"]) {
+      for (
+        const stem of [
+          "basic",
+          "fractional",
+          "marks",
+          "range",
+          "stepped",
+          "ticks",
+          "vertical",
+        ]
+      ) {
         const tag = exampleTag("slider", stem);
         const count = await page.locator(tag).count();
         assert.equal(count, 1, `${tag} is on the page`);
@@ -60,7 +71,10 @@ Deno.test("spin examples e2e", () =>
       );
       await page.locator("slider-basic [role='slider']").first().focus();
       const cls = await readout.getAttribute("class");
-      assert.ok(cls?.includes("text-primary"), `the focus class applied (got "${cls}")`);
+      assert.ok(
+        cls?.includes("text-primary"),
+        `the focus class applied (got "${cls}")`,
+      );
     });
 
     await step("the focus ring follows the focused thumb only", async () => {
@@ -72,8 +86,14 @@ Deno.test("spin examples e2e", () =>
       await thumbs.nth(0).focus();
       const cls0 = await thumbs.nth(0).getAttribute("class") ?? "";
       const cls1 = await thumbs.nth(1).getAttribute("class") ?? "";
-      assert.ok(cls0.includes("ring-2"), `the focused thumb rings (got "${cls0}")`);
-      assert.ok(!cls1.includes("ring-2"), `the other thumb does not (got "${cls1}")`);
+      assert.ok(
+        cls0.includes("ring-2"),
+        `the focused thumb rings (got "${cls0}")`,
+      );
+      assert.ok(
+        !cls1.includes("ring-2"),
+        `the other thumb does not (got "${cls1}")`,
+      );
     });
 
     await step("the thumbs render where their values are", async () => {
@@ -82,13 +102,25 @@ Deno.test("spin examples e2e", () =>
       const thumb = page.locator("slider-basic [role='slider']").first();
       await thumb.waitFor({ state: "attached", timeout: 5000 });
       const style = await thumb.getAttribute("style") ?? "";
-      assert.match(style, /inset-inline-start:\s*50%/, `the thumb sits at 50% (got "${style}")`);
+      assert.match(
+        style,
+        /inset-inline-start:\s*50%/,
+        `the thumb sits at 50% (got "${style}")`,
+      );
       // Range: two thumbs at 20 and 80.
       const thumbs = page.locator("slider-range [role='slider']");
       const s0 = await thumbs.nth(0).getAttribute("style") ?? "";
       const s1 = await thumbs.nth(1).getAttribute("style") ?? "";
-      assert.match(s0, /inset-inline-start:\s*20%/, `thumb 0 at 20% (got "${s0}")`);
-      assert.match(s1, /inset-inline-start:\s*80%/, `thumb 1 at 80% (got "${s1}")`);
+      assert.match(
+        s0,
+        /inset-inline-start:\s*20%/,
+        `thumb 0 at 20% (got "${s0}")`,
+      );
+      assert.match(
+        s1,
+        /inset-inline-start:\s*80%/,
+        `thumb 1 at 80% (got "${s1}")`,
+      );
     });
 
     await step("every example's machine has a state", async () => {

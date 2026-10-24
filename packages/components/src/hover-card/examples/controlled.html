@@ -1,21 +1,27 @@
 <scope>props={ label: string = "Controlled Hover Card" } consume={ hoverCard }</scope>
 
-<div class="w-full space-y-6 p-6">
-  <div class="space-y-3">
-    <h3 class="m-0 text-sm font-medium text-text">External Controls</h3>
+<div class="w-full stack-lg p-6">
+  <div class="stack-sm">
+    <h3 class="text-sm font-medium text-text">External Controls</h3>
     <div class="flex gap-2">
-      <button id="hc-show" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Show Hover Card</button>
-      <button id="hc-hide" class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Hide Hover Card</button>
+      <button id="hc-show" class="s-sm">Show Hover Card</button>
+      <button id="hc-hide" class="s-sm">Hide Hover Card</button>
     </div>
-    <p class="m-0 text-sm text-muted">Current state: <span class="font-medium" id="hc-state">Closed</span></p>
+    <p
+      class="text-sm text-text-muted">Current state: <span class="font-medium" id="hc-state">Closed</span></p>
   </div>
-  <div class="flex items-center justify-center py-12" {...hoverCard.getRootProps()}>
-    <span {...hoverCard.getTriggerProps()} class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text transition-colors hover:bg-surface">{label}</span>
+  <div class="flex items-center justify-center py-12"
+    {...hoverCard.getRootProps()}>
+    <span {...hoverCard.getTriggerProps()}
+      class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm text-text transition-colors hover:bg-surface">{label}</span>
 
-    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-      <div class="space-y-3">
-        <h4 class="m-0 text-sm font-semibold text-text">Controlled Hover Card</h4>
-        <p class="m-0 text-sm text-muted">This hover card's open state is controlled externally via the buttons above.</p>
+    <div {...hoverCard.getContentProps()}
+      class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+      <div class="stack-sm">
+        <h4
+          class="text-sm text-text">Controlled Hover Card</h4>
+        <p
+          class="text-sm text-text-muted">This hover card's open state is controlled externally via the buttons above.</p>
       </div>
     </div>
   </div>

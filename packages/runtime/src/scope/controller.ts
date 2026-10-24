@@ -46,7 +46,9 @@ export function controllerView(
   const calls: Record<string, (...args: never[]) => unknown> = {};
   for (const name of commands ?? []) {
     const method = record[name];
-    if (typeof method === "function") calls[name] = method as (...args: never[]) => unknown;
+    if (typeof method === "function") {
+      calls[name] = method as (...args: never[]) => unknown;
+    }
   }
   return { commands: calls, state };
 }

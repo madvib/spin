@@ -9,9 +9,9 @@ import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 import { type Page } from "npm:playwright-core";
 
-
 /** Part ids are the machine's scheme: `combobox:<element id>:<part>`. */
-const at = (id: string, part: string): string => `[id="combobox:${id}:${part}"]`;
+const at = (id: string, part: string): string =>
+  `[id="combobox:${id}:${part}"]`;
 const FW_INPUT = at("frameworks", "input");
 const FW_TRIGGER = at("frameworks", "trigger");
 const FW_ITEM = (value: string): string => at("frameworks", `item:${value}`);
@@ -23,9 +23,16 @@ const readout = async (page: Page, id: string): Promise<string> =>
   (await page.locator(`#${id}`).textContent()) ?? "";
 
 Deno.test("spin-combobox e2e", () =>
-  runComponentSuite({ port: 5228, route: "/combobox", ready: FW_INPUT,
+  runComponentSuite({
+    port: 5228,
+    route: "/combobox",
+    ready: FW_INPUT,
     settle: async (page) => {
-    assert.equal(await readout(page, "combobox-value"), "svelte", "the default value reports up");
+      assert.equal(
+        await readout(page, "combobox-value"),
+        "svelte",
+        "the default value reports up",
+      );
     },
   }, async ({ page }) => {
     await step("arrows open the panel and walk the rows", async () => {
@@ -35,7 +42,11 @@ Deno.test("spin-combobox e2e", () =>
         "true",
         "clicking the field opens the panel",
       );
-      assert.equal(await readout(page, "combobox-open"), "open", "open-change reports it");
+      assert.equal(
+        await readout(page, "combobox-open"),
+        "open",
+        "open-change reports it",
+      );
       assert.equal(
         await page.locator(FW_INPUT).getAttribute("aria-activedescendant"),
         "combobox:frameworks:item:svelte",
@@ -73,7 +84,11 @@ Deno.test("spin-combobox e2e", () =>
     await step("Enter selects the highlight and closes", async () => {
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Enter");
-      assert.equal(await readout(page, "combobox-value"), "vue", "Enter selects the highlight");
+      assert.equal(
+        await readout(page, "combobox-value"),
+        "vue",
+        "Enter selects the highlight",
+      );
       assert.equal(
         await page.locator(FW_INPUT).getAttribute("aria-expanded"),
         "false",
@@ -99,7 +114,11 @@ Deno.test("spin-combobox e2e", () =>
     await step("the multiple instance stays open on Enter", async () => {
       await page.locator(TOP_INPUT).click();
       await page.keyboard.press("Enter");
-      assert.equal(await readout(page, "combobox-toppings"), "cheese", "the pick lands");
+      assert.equal(
+        await readout(page, "combobox-toppings"),
+        "cheese",
+        "the pick lands",
+      );
       assert.equal(
         await page.locator(TOP_INPUT).getAttribute("aria-expanded"),
         "true",
@@ -117,7 +136,11 @@ Deno.test("spin-combobox e2e", () =>
         "the walk completes the row into the field",
       );
       await page.keyboard.press("Enter");
-      assert.equal(await readout(page, "combobox-inline"), "athens", "Enter commits the completion");
+      assert.equal(
+        await readout(page, "combobox-inline"),
+        "athens",
+        "Enter commits the completion",
+      );
     });
 
     await step("the host opens the controlled panel from outside", async () => {
@@ -138,9 +161,19 @@ Deno.test("spin-combobox e2e", () =>
     });
 
     await step("the imperative commands move the single instance", async () => {
-      await page.getByRole("button", { name: 'el.selectValue("deno")' }).click();
-      assert.equal(await readout(page, "combobox-value"), "deno", "selectValue writes the selection");
-      await page.getByRole("button", { name: 'el.setInputValue("sve")' }).click();
-      assert.equal(await readout(page, "combobox-typed"), "sve", "setInputValue writes the field");
+      await page.getByRole("button", { name: 'el.selectValue("deno")' })
+        .click();
+      assert.equal(
+        await readout(page, "combobox-value"),
+        "deno",
+        "selectValue writes the selection",
+      );
+      await page.getByRole("button", { name: 'el.setInputValue("sve")' })
+        .click();
+      assert.equal(
+        await readout(page, "combobox-typed"),
+        "sve",
+        "setInputValue writes the field",
+      );
     });
   }));

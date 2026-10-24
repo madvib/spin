@@ -1,6 +1,11 @@
 import { defaultTwin } from "@spin/runtime";
 
-export type TimePart = "days" | "hours" | "minutes" | "seconds" | "milliseconds";
+export type TimePart =
+  | "days"
+  | "hours"
+  | "minutes"
+  | "seconds"
+  | "milliseconds";
 
 export interface Time<T = number> {
   readonly days: T;
@@ -45,32 +50,51 @@ export function validateTimer(
   interval: number,
 ): void {
   if (typeof interval !== "number" || interval <= 0) {
-    throw new Error(`[timer] Invalid interval: ${interval}. Must be a positive number.`);
+    throw new Error(
+      `[timer] Invalid interval: ${interval}. Must be a positive number.`,
+    );
   }
   if (startMs !== undefined && (typeof startMs !== "number" || startMs < 0)) {
-    throw new Error(`[timer] Invalid startMs: ${startMs}. Must be a non-negative number.`);
+    throw new Error(
+      `[timer] Invalid startMs: ${startMs}. Must be a non-negative number.`,
+    );
   }
-  if (targetMs !== undefined && (typeof targetMs !== "number" || targetMs < 0)) {
-    throw new Error(`[timer] Invalid targetMs: ${targetMs}. Must be a non-negative number.`);
+  if (
+    targetMs !== undefined && (typeof targetMs !== "number" || targetMs < 0)
+  ) {
+    throw new Error(
+      `[timer] Invalid targetMs: ${targetMs}. Must be a non-negative number.`,
+    );
   }
-  if (countdown && startMs !== undefined && targetMs !== undefined && startMs <= targetMs) {
+  if (
+    countdown && startMs !== undefined && targetMs !== undefined &&
+    startMs <= targetMs
+  ) {
     throw new Error(
       `[timer] Invalid countdown configuration: startMs (${startMs}) must be greater than targetMs (${targetMs}).`,
     );
   }
-  if (!countdown && startMs !== undefined && targetMs !== undefined && startMs >= targetMs) {
+  if (
+    !countdown && startMs !== undefined && targetMs !== undefined &&
+    startMs >= targetMs
+  ) {
     throw new Error(
       `[timer] Invalid stopwatch configuration: startMs (${startMs}) must be less than targetMs (${targetMs}).`,
     );
   }
-  if (countdown && targetMs === undefined && startMs !== undefined && startMs <= 0) {
+  if (
+    countdown && targetMs === undefined && startMs !== undefined && startMs <= 0
+  ) {
     throw new Error(
       `[timer] Invalid countdown configuration: startMs (${startMs}) must be greater than 0 when no targetMs is provided.`,
     );
   }
 }
 
-export function initial(args: TimerArgs, authored: (name: string) => boolean): TimerContext {
+export function initial(
+  args: TimerArgs,
+  authored: (name: string) => boolean,
+): TimerContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -79,7 +103,9 @@ export function initial(args: TimerArgs, authored: (name: string) => boolean): T
   const targetMs = written("targetMs") ? parseMs(args.targetMs) : undefined;
   const countdown = written("countdown") ? args.countdown === true : false;
   const rawInterval = written("interval") ? args.interval : undefined;
-  const interval = typeof rawInterval === "number" ? Math.trunc(rawInterval) : 1000;
+  const interval = typeof rawInterval === "number"
+    ? Math.trunc(rawInterval)
+    : 1000;
   validateTimer(startMs, targetMs, countdown, interval);
   const start = startMs ?? 0;
   return {

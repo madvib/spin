@@ -18,9 +18,11 @@ Deno.test("TabsApi promises the component's surface", () => {
   ];
   assertEquals(keys.length, 8);
   // Derived member signatures: state union and typed command tuples.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<TabsApi["state"], "idle" | "focused"> = true;
-  const selectTyped: AssertExact<TabsApi["select"], (value: string) => void> = true;
+  const selectTyped: AssertExact<TabsApi["select"], (value: string) => void> =
+    true;
   const valueTyped: AssertExact<TabsApi["value"], string> = true;
   assertEquals(
     [

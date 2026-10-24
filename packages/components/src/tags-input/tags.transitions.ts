@@ -1,23 +1,29 @@
 import type { TagsContext } from "./tags.state.ts";
 import {
   canAdd,
-  isAtMax,
-  withSelectLog,
-  valueAtIndex,
-  clampIndex,
-  uniq,
   caretAtStart,
+  clampIndex,
+  isAtMax,
+  uniq,
+  valueAtIndex,
+  withSelectLog,
 } from "./tags.state.ts";
 import type { TagsEvent } from "./tags.events.ts";
 
-export const setInputValue = (_ctx: TagsContext, e: TagsEvent): Partial<TagsContext> => {
+export const setInputValue = (
+  _ctx: TagsContext,
+  e: TagsEvent,
+): Partial<TagsContext> => {
   if (e.type === "TYPE" || e.type === "SET_INPUT_VALUE" || e.type === "PASTE") {
     return { inputValue: e.value };
   }
   return {};
 };
 
-export const addTagFromPaste = (ctx: TagsContext, e: TagsEvent): Partial<TagsContext> => {
+export const addTagFromPaste = (
+  ctx: TagsContext,
+  e: TagsEvent,
+): Partial<TagsContext> => {
   if (e.type !== "PASTE") return {};
   const inputValue = ctx.sanitizeValue(ctx.inputValue);
   const values = ctx.delimiter.length > 0
@@ -37,7 +43,10 @@ export const addTagFromPaste = (ctx: TagsContext, e: TagsEvent): Partial<TagsCon
   };
 };
 
-export const deleteTag = (ctx: TagsContext, e: TagsEvent): Partial<TagsContext> => {
+export const deleteTag = (
+  ctx: TagsContext,
+  e: TagsEvent,
+): Partial<TagsContext> => {
   if (e.type !== "CLEAR_TAG" && e.type !== "CLICK_DELETE_TAG") return {};
   const removed = ctx.value[e.index];
   if (removed === undefined) return {};
@@ -63,7 +72,9 @@ export const deleteHighlighted = (ctx: TagsContext): Partial<TagsContext> => {
 
 export const clearInputValue = (): Partial<TagsContext> => ({ inputValue: "" });
 
-export const clearHighlight = (): Partial<TagsContext> => ({ highlightedIndex: null });
+export const clearHighlight = (): Partial<TagsContext> => ({
+  highlightedIndex: null,
+});
 
 export const highlightPrev = (ctx: TagsContext): Partial<TagsContext> => {
   const at = ctx.highlightedIndex;
@@ -76,10 +87,16 @@ export const highlightLast = (ctx: TagsContext): Partial<TagsContext> =>
 
 export const highlightAtIndex = (ctx: TagsContext): Partial<TagsContext> => {
   const index = ctx.editedIndex;
-  return withSelectLog(ctx, index === null ? null : clampIndex(index, ctx.value.length));
+  return withSelectLog(
+    ctx,
+    index === null ? null : clampIndex(index, ctx.value.length),
+  );
 };
 
-export const beginEdit = (ctx: TagsContext, e: TagsEvent): Partial<TagsContext> => {
+export const beginEdit = (
+  ctx: TagsContext,
+  e: TagsEvent,
+): Partial<TagsContext> => {
   const index = e.type === "DOUBLE_CLICK_TAG" ? e.index : ctx.highlightedIndex;
   if (index === null) return {};
   const value = valueAtIndex(ctx, index);
@@ -99,7 +116,8 @@ export const clearEditAll = (): Partial<TagsContext> => ({
   highlightedIndex: null,
 });
 
-export const hasHighlighted = (ctx: TagsContext): boolean => ctx.highlightedIndex !== null;
+export const hasHighlighted = (ctx: TagsContext): boolean =>
+  ctx.highlightedIndex !== null;
 
 export const canInsert = (ctx: TagsContext): boolean =>
   canAdd(ctx) && ctx.sanitizeValue(ctx.inputValue).length > 0;
@@ -114,7 +132,8 @@ export const addOnPaste = (ctx: TagsContext): boolean => ctx.addOnPaste;
 export const canLeaveInput = (ctx: TagsContext, event: TagsEvent): boolean =>
   ctx.value.length > 0 && caretAtStart(event);
 
-export const caretNotAtStart = (_ctx: TagsContext, event: TagsEvent): boolean => !caretAtStart(event);
+export const caretNotAtStart = (_ctx: TagsContext, event: TagsEvent): boolean =>
+  !caretAtStart(event);
 
-export { canAdd, isAtMax, caretAtStart };
+export { canAdd, caretAtStart, isAtMax };
 export { addFromInput } from "./tags.state.ts";

@@ -53,6 +53,8 @@ import TypographyEditor from "./TypographyEditor.tsx";
 import BorderEditor from "./BorderEditor.tsx";
 import TransitionEditor from "./TransitionEditor.tsx";
 import GradientEditor from "./GradientEditor.tsx";
+import { createSpinComponent } from "@spin/hooks/solid";
+import "./spin-step-list.html";
 
 /**
  * A row of a panel.
@@ -88,7 +90,9 @@ let panelCount = 0;
  * A panel over the page: an affordance, and what it opens.
  *
  * The dismissal is the platform's own — a click elsewhere, or Escape — the
- * two things a reader reaches for when a panel is in the way.
+ * two things a reader reaches for when a panel is in the way. The rows are
+ * a `spin-step-list`: the listbox machine owns the highlight, the arrows,
+ * the typeahead, and the pick, and the panel owns only the overlay.
  */
 function Panel(props: {
   /** What the control is called, for the reader and for the pointer. */
@@ -116,25 +120,17 @@ function Panel(props: {
   let trigger: HTMLButtonElement | undefined;
   let panel: HTMLDivElement | undefined;
 
-  const items = (): HTMLElement[] => [
-    ...(panel?.querySelectorAll<HTMLElement>(
-      '[role="option"]:not([disabled])',
-    ) ?? []),
-  ];
-  const chosen = (): HTMLElement | undefined =>
-    items().find((item) => item.getAttribute("aria-selected") === "true");
-
-  /** Open, and land a keyboard reader on the answer in force. */
-  function show(edge: "first" | "last" | "current"): void {
+  /**
+   * Open, and land a keyboard reader on the answer in force.
+   *
+   * Focus lands on the list itself: the machine highlights the value in
+   * force when focus arrives, so the arrows start from the document rather
+   * than from the top of the ladder.
+   */
+  function show(): void {
     setOpenPanel(id);
     queueMicrotask(() => {
-      const list = items();
-      const target = edge === "first"
-        ? list[0]
-        : edge === "last"
-        ? list[list.length - 1]
-        : chosen() ?? list[0];
-      target?.focus();
+      panel?.querySelector<HTMLElement>('[role="listbox"]')?.focus();
     });
   }
 
@@ -154,17 +150,18 @@ function Panel(props: {
   });
 
   const onTriggerKey = (event: KeyboardEvent) => {
-    // The picker opens on the step in force, so the arrow keys start from
-    // the document rather than from the top of the ladder.
+    // The picker opens on the step in force: the machine highlights the
+    // value when focus arrives, so the arrow keys start from the document
+    // rather than from the top of the ladder.
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
-      show("current");
+      show();
       return;
     }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       if (open()) dismiss();
-      else show("current");
+      else show();
       return;
     }
     if (event.key === "Escape" && open()) {
@@ -174,34 +171,9 @@ function Panel(props: {
   };
 
   const onPanelKey = (event: KeyboardEvent) => {
-    const list = items();
-    if (list.length === 0) return;
-    const at = list.indexOf(document.activeElement as HTMLElement);
-    const move = (index: number) => {
-      event.preventDefault();
-      list[(index + list.length) % list.length]?.focus();
-    };
-    switch (event.key) {
-      case "ArrowDown":
-        move(at < 0 ? 0 : at + 1);
-        break;
-      case "ArrowUp":
-        move(at < 0 ? list.length - 1 : at - 1);
-        break;
-      case "Home":
-        move(0);
-        break;
-      case "End":
-        move(list.length - 1);
-        break;
-      case "Escape":
-        event.preventDefault();
-        dismiss();
-        break;
-      case "Tab":
-        hide();
-        break;
-    }
+    // The machine owns the rows' keys; leaving the panel closes it, and
+    // focus is moving somewhere on purpose.
+    if (event.key === "Tab") hide();
   };
 
   return (
@@ -216,7 +188,7 @@ function Panel(props: {
         class="secondary s-sm row-sm min-w-0 gap-2 text-text-muted hover:border-primary hover:text-text"
         onClick={() => {
           if (open()) hide();
-          else setOpenPanel(id);
+          else show();
         }}
         onKeyDown={onTriggerKey}
       >
@@ -225,7 +197,6 @@ function Panel(props: {
       <div
         ref={panel}
         hidden={!open()}
-        role="listbox"
         aria-label={props.label}
         class={PANEL}
         onKeyDown={onPanelKey}
@@ -233,6 +204,80 @@ function Panel(props: {
         {props.children(dismiss)}
       </div>
     </div>
+  );
+}
+
+declare module "solid-js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "spin-step-list": {
+        ref?: HTMLElement | ((el: HTMLElement) => void);
+        id?: string;
+        "prop:items"?: readonly {
+          value: string;
+          label: string;
+          disabled?: boolean;
+          group?: string;
+        }[];
+        "prop:value"?: string;
+        "prop:onValueChange"?: (detail: {
+          value: readonly string[];
+          items: readonly { value: string; label: string }[];
+        }) => void;
+      };
+    }
+  }
+}
+
+/**
+ * The ladder's rows, owned by the listbox machine.
+ *
+ * The steps are the theme's own — name beside value — and the value in
+ * force is the machine's controlled answer. A pick the document refuses
+ * leaves the value where it was, because the prop never moves.
+ */
+function StepList(props: {
+  /** The theme's own steps for the part. */
+  steps: readonly LadderStep[];
+  /** The value currently in force. */
+  value: string;
+  /** Called with the picked step's value. */
+  onPick: (value: string) => void;
+}) {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const list = createSpinComponent(element);
+  // The controlled channel: the steps and the value in force go down, the
+  // pick comes up. Bound in an effect, not passed as props: the bridge
+  // reads its callbacks when it builds, and a prop set after that read
+  // never becomes a subscription.
+  createEffect(() => {
+    const ctl = list();
+    if (ctl === undefined) return undefined;
+    return ctl.bind(
+      {
+        items: props.steps.map((step) => ({
+          value: step.value,
+          label: step.name,
+        })),
+        value: props.value,
+      },
+      {
+        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+          const picked = event.detail.value[0];
+          if (picked !== undefined) props.onPick(picked);
+        },
+      },
+    );
+  });
+  return (
+    <spin-step-list
+      ref={setElement}
+      prop:items={props.steps.map((step) => ({
+        value: step.value,
+        label: step.name,
+      }))}
+      prop:value={props.value}
+    />
   );
 }
 
@@ -248,6 +293,7 @@ function Panel(props: {
  * field takes the value instead: the theme's own scale is the first answer,
  * and a field is the fallback rather than the rule.
  */
+
 export function StepPicker(props: {
   /** What the control is called, for the reader and for the pointer. */
   label: string;
@@ -268,25 +314,15 @@ export function StepPicker(props: {
       trigger={<span class="truncate">{shown()}</span>}
     >
       {(close) => (
-        <For each={props.steps}>
-          {(step) => (
-            <button
-              type="button"
-              role="option"
-              aria-selected={step.value === props.value}
-              class={ROW}
-              onClick={() => {
-                props.onPick(step);
-                close();
-              }}
-            >
-              <span class="truncate">{step.name}</span>
-              <span class="ms-auto truncate text-xs text-text-muted">
-                {step.value}
-              </span>
-            </button>
-          )}
-        </For>
+        <StepList
+          steps={props.steps}
+          value={props.value}
+          onPick={(value) => {
+            const step = props.steps.find((entry) => entry.value === value);
+            if (step !== undefined) props.onPick(step);
+            close();
+          }}
+        />
       )}
     </Panel>
   );
@@ -331,25 +367,14 @@ export function StepField(props: {
           trigger={<span class="truncate">{shown()}</span>}
         >
           {(close) => (
-            <For each={props.steps}>
-              {(step) => (
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={step.value === props.value}
-                  class={ROW}
-                  onClick={() => {
-                    props.onPick(step.value);
-                    close();
-                  }}
-                >
-                  <span class="truncate">{step.name}</span>
-                  <span class="ms-auto truncate text-xs text-text-muted">
-                    {step.value}
-                  </span>
-                </button>
-              )}
-            </For>
+            <StepList
+              steps={props.steps}
+              value={props.value}
+              onPick={(value) => {
+                props.onPick(value);
+                close();
+              }}
+            />
           )}
         </Panel>
       </Show>

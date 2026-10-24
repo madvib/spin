@@ -1,20 +1,24 @@
 <scope>props={ label: string = "Hover for bottom positioning", placement: string = "bottom" } consume={ hoverCard }</scope>
 
-<div class="w-full space-y-6 p-6">
-  <div class="space-y-3">
-    <h3 class="m-0 text-sm font-medium text-text">Select Position</h3>
+<div class="w-full stack-lg p-6">
+  <div class="stack-sm">
+    <h3 class="text-sm font-medium text-text">Select Position</h3>
     <div class="flex flex-wrap gap-2" data-positions>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="top">Top</button>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="bottom">Bottom</button>
+      <button class="secondary s-sm" data-placement-choice="top">Top</button>
+      <button class="secondary s-sm" data-placement-choice="bottom">Bottom</button>
     </div>
   </div>
-  <div class="flex items-center justify-center py-12" {...hoverCard.getRootProps()}>
-    <span {...hoverCard.getTriggerProps()} class="cursor-pointer rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary">Hover for {placement} positioning</span>
+  <div class="flex items-center justify-center py-12"
+    {...hoverCard.getRootProps()}>
+    <span {...hoverCard.getTriggerProps()}
+      class="cursor-pointer rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary">Hover for {placement} positioning</span>
 
-    <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-      <div class="space-y-2">
-        <h4 class="m-0 text-sm font-semibold text-text">Custom Positioning</h4>
-        <p class="m-0 text-sm text-muted">The card prefers the {placement} side and flips when the viewport vetoes it.</p>
+    <div {...hoverCard.getContentProps()}
+      class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+      <div class="stack-sm">
+        <h4 class="text-sm text-text">Custom Positioning</h4>
+        <p
+          class="text-sm text-text-muted">The card prefers the {placement} side and flips when the viewport vetoes it.</p>
       </div>
     </div>
   </div>

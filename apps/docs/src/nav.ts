@@ -6,6 +6,7 @@
  * from the preset's own taxonomy, so a primitive added to the rules appears
  * in the rail on the next build with no list to maintain.
  */
+import { COMPONENT_ICONS } from "@spin/components";
 import {
   primitiveCategories,
   primitiveContracts,
@@ -95,5 +96,34 @@ export const COMPONENT_GROUPS: readonly ComponentNavGroup[] =
           icon: element.icon,
           href: `/components/${element.name}`,
         })),
-    }))
-    .filter((group) => group.items.length > 0);
+    }));
+
+/**
+ * The machines' rail group, read off the example directories the gallery
+ * renders — the same directories search reads, so a machine with examples
+ * to show is listed and one without them is not. One group: machines are
+ * one tier, and regrouping the gallery is not asked.
+ */
+export const MACHINE_GROUPS: readonly ComponentNavGroup[] = [
+  {
+    id: "machines",
+    label: "Machines",
+    items: [
+      ...new Set(
+        Object.keys(
+          import.meta.glob(
+            "../../../packages/components/src/*/examples/*.html",
+            { query: "?raw", import: "default", eager: true },
+          ),
+        ).map((path) => path.split("/").at(-3) ?? ""),
+      ),
+    ]
+      .filter((name) => name !== "")
+      .sort()
+      .map((name) => ({
+        name,
+        icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
+        href: `/components/machine-${name}`,
+      })),
+  },
+].filter((group) => group.items.length > 0);

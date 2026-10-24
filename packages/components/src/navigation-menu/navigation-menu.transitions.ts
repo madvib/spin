@@ -3,7 +3,9 @@ import type { NavigationMenuEvents } from "./navigation-menu.events.ts";
 import type { NavigationMenuContext } from "./navigation-menu.state.ts";
 import { asText } from "./navigation-menu.state.ts";
 
-type NavigationMenuAssign<K extends keyof NavigationMenuEvents = keyof NavigationMenuEvents> = AssignFor<
+type NavigationMenuAssign<
+  K extends keyof NavigationMenuEvents = keyof NavigationMenuEvents,
+> = AssignFor<
   NavigationMenuContext,
   NavigationMenuEvents,
   K
@@ -31,4 +33,6 @@ export const openItem: NavigationMenuAssign<"ITEM.ENTER"> = (ctx, event) => ({
 });
 
 export const swapItem: NavigationMenuAssign<"ITEM.ENTER"> = (ctx, event) =>
-  event.value === ctx.value ? {} : { previousValue: ctx.value, value: event.value };
+  event.value === ctx.value
+    ? {}
+    : { previousValue: ctx.value, value: event.value };

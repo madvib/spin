@@ -1,37 +1,53 @@
 <script lang="ts">
-  import { menu } from "../menu.presentation.ts";
+import { menu } from "../menu.presentation.ts";
 
-  const machine = menu({
-    items: '[{"value":"profile","label":"Profile"},{"value":"settings","label":"Settings"},{"value":"billing","label":"Billing"},{"separator":true},{"value":"help","label":"Help & Support"},{"separator":true},{"value":"logout","label":"Log out"}]',
-  });
+const machine = menu({
+  items:
+    '[{"value":"profile","label":"Profile"},{"value":"settings","label":"Settings"},{"value":"billing","label":"Billing"},{"separator":true},{"value":"help","label":"Help & Support"},{"separator":true},{"value":"logout","label":"Log out"}]',
+});
 </script>
 <div class="relative inline-block">
   <div class="relative" {...machine.getContextTriggerProps()}>
-    <button class="group inline-flex items-center gap-3 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors duration-fast hover:bg-surface" {...machine.getTriggerProps()}>
+    <button
+      class="secondary s-sm inline-flex items-center gap-3"
+      {...machine.getTriggerProps()}>
       <span class="truncate">John Doe</span>
-      <span aria-hidden="true" class={["text-xs text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.isOpen }]} {...machine.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
+      <span aria-hidden="true"
+        class={["text-xs text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.isOpen }]}
+        {...machine.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
     </button>
   </div>
   <div {...machine.getPositionerProps()}>
     <div {...machine.getContentProps()}>
       <div class="px-3 py-2 border-b border-solid border-border">
         <div class="text-sm font-medium text-text">John Doe</div>
-        <div class="text-xs text-muted">john@example.com</div>
+        <div class="text-xs text-text-muted">john@example.com</div>
       </div>
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span class="block px-2 pb-1 text-xs font-medium text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+          <span class="block px-2 pb-1 text-xs font-medium text-text-muted"
+            {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
-            <div class={["group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-text transition-colors duration-fast cursor-default", { "bg-surface": machine.highlightedValue === row.value, "opacity-50": row.disabled }]} {...machine.getItemProps(row)}>
-              <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
-              <span class="shrink-0 text-xs text-muted" {...machine.getItemShortcutProps(row)}>{row.shortcut}</span>
-              <span aria-hidden="true" class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100": row.checked, "opacity-100": row.checked }]} {...machine.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
-              <span aria-hidden="true" class={["shrink-0 text-xs text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.isOpen }]} {...machine.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
-              <spin-menu class="absolute left-full top-0" {...machine.getSubmenuProps(row)} submenu />
+            <div
+              class={["bare group relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "bg-surface": machine.highlightedValue === row.value, "opacity-50": row.disabled }]}
+              {...machine.getItemProps(row)}>
+              <span class="min-w-0 flex-1 truncate"
+                {...machine.getItemTextProps(row)}>{row.label}</span>
+              <span class="shrink-0 text-xs text-text-muted"
+                {...machine.getItemShortcutProps(row)}>{row.shortcut}</span>
+              <span aria-hidden="true"
+                class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100": row.checked, "opacity-100": row.checked }]}
+                {...machine.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+              <span aria-hidden="true"
+                class={["shrink-0 text-xs text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.isOpen }]}
+                {...machine.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
+              <spin-menu class="absolute left-full top-0"
+                {...machine.getSubmenuProps(row)} submenu />
             </div>
           </template>
         </div>
-        <div class="my-1 border-t border-border" {...machine.getSeparatorProps(block)}></div>
+        <div class="my-1 border-t border-border"
+          {...machine.getSeparatorProps(block)}></div>
       </template>
     </div>
   </div>

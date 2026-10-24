@@ -17,7 +17,9 @@ import type {
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -41,7 +43,9 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function keydown(
   key: string,
-  modifiers: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }> = {},
+  modifiers: Readonly<
+    { shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }
+  > = {},
 ): KeyboardEvent {
   const made: Record<string, unknown> = {
     key,
@@ -57,10 +61,19 @@ function keydown(
   return made as unknown as KeyboardEvent;
 }
 
-const pointer = (pointerType: string): PointerEvent => ({ pointerType }) as PointerEvent;
+const pointer = (pointerType: string): PointerEvent =>
+  ({ pointerType }) as PointerEvent;
 
 const click = (
-  modifiers: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number }> = {},
+  modifiers: Readonly<
+    {
+      shift?: boolean;
+      meta?: boolean;
+      ctrl?: boolean;
+      alt?: boolean;
+      button?: number;
+    }
+  > = {},
 ): MouseEvent =>
   ({
     shiftKey: modifiers.shift === true,
@@ -103,9 +116,25 @@ interface Harness {
   blocks(): readonly ComboboxBlock[];
   /** The machine's phase, as the recipe's state attribute reports it. */
   phase(): string;
-  press(key: string, modifiers?: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }>): void;
+  press(
+    key: string,
+    modifiers?: Readonly<
+      { shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }
+    >,
+  ): void;
   type(text: string): void;
-  clickRow(value: string, modifiers?: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number }>): void;
+  clickRow(
+    value: string,
+    modifiers?: Readonly<
+      {
+        shift?: boolean;
+        meta?: boolean;
+        ctrl?: boolean;
+        alt?: boolean;
+        button?: number;
+      }
+    >,
+  ): void;
   hoverRow(value: string, pointerType?: string): void;
   leaveRow(value: string): void;
   focusInput(): void;
@@ -145,15 +174,29 @@ function mount(
   };
   write("items", items);
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (change: ComboboxValueChange) => events.valueChange.push(change));
-  write("onHighlightChange", (change: ComboboxHighlightChange) => events.highlightChange.push(change));
-  write("onInputValueChange", (change: ComboboxInputValueChange) => events.inputValueChange.push(change));
-  write("onOpenChange", (change: ComboboxOpenChange) => events.openChange.push(change));
+  write(
+    "onValueChange",
+    (change: ComboboxValueChange) => events.valueChange.push(change),
+  );
+  write(
+    "onHighlightChange",
+    (change: ComboboxHighlightChange) => events.highlightChange.push(change),
+  );
+  write(
+    "onInputValueChange",
+    (change: ComboboxInputValueChange) => events.inputValueChange.push(change),
+  );
+  write(
+    "onOpenChange",
+    (change: ComboboxOpenChange) => events.openChange.push(change),
+  );
   write("onSelect", (change: ComboboxSelect) => events.select.push(change));
   const bridge = createComboboxBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -182,29 +225,54 @@ function mount(
       handler<(event: KeyboardEvent) => void>(inputBag(), "onKeydown")(event);
       consumed = event.defaultPrevented === true;
     },
-    type: (text) => handler<(event: InputEvent) => void>(inputBag(), "onInput")(typing(text)),
+    type: (text) =>
+      handler<(event: InputEvent) => void>(inputBag(), "onInput")(typing(text)),
     clickRow: (value, modifiers) => {
-      handler<(event: MouseEvent) => void>(bridge.api.getItemProps(find(value)), "onClick")(
+      handler<(event: MouseEvent) => void>(
+        bridge.api.getItemProps(find(value)),
+        "onClick",
+      )(
         click(modifiers),
       );
     },
     hoverRow: (value, pointerType = "mouse") => {
-      handler<(event: PointerEvent) => void>(bridge.api.getItemProps(find(value)), "onPointerMove")(
+      handler<(event: PointerEvent) => void>(
+        bridge.api.getItemProps(find(value)),
+        "onPointerMove",
+      )(
         pointer(pointerType),
       );
     },
     leaveRow: (value) => {
-      handler<() => void>(bridge.api.getItemProps(find(value)), "onPointerLeave")();
+      handler<() => void>(
+        bridge.api.getItemProps(find(value)),
+        "onPointerLeave",
+      )();
     },
     focusInput: () => handler<() => void>(inputBag(), "onFocus")(),
     blurInput: () => handler<() => void>(inputBag(), "onBlur")(),
-    clickTrigger: () => handler<(event: MouseEvent) => void>(bridge.api.getTriggerProps(), "onClick")(
-      click(),
-    ),
+    clickTrigger: () =>
+      handler<(event: MouseEvent) => void>(
+        bridge.api.getTriggerProps(),
+        "onClick",
+      )(
+        click(),
+      ),
     clickClearTrigger: () =>
-      handler<(event: MouseEvent) => void>(bridge.api.getClearTriggerProps(), "onClick")(click()),
-    pressOutside: () => handler<() => void>(bridge.api.getRootProps(), "use:dismissable" as never)(),
-    pressEscape: () => handler<() => void>(bridge.api.getRootProps(), "use:dismissable" as never)(),
+      handler<(event: MouseEvent) => void>(
+        bridge.api.getClearTriggerProps(),
+        "onClick",
+      )(click()),
+    pressOutside: () =>
+      handler<() => void>(
+        bridge.api.getRootProps(),
+        "use:dismissable" as never,
+      )(),
+    pressEscape: () =>
+      handler<() => void>(
+        bridge.api.getRootProps(),
+        "use:dismissable" as never,
+      )(),
     prevented: () => consumed,
     focused: () => bridge.api.focused,
     write,
@@ -226,7 +294,7 @@ const layer = (h: Harness): { onEscape: () => void; onOutside: () => void } =>
   h.api.getRootProps()["use:dismissable"] as unknown as {
     onEscape: () => void;
     onOutside: () => void;
-};
+  };
 
 // ---- the start state ------------------------------------------------------
 
@@ -235,11 +303,19 @@ Deno.test("Given a fresh combobox / When nothing is authored / Then idle is the 
   assertEquals(h.phase(), "idle", "the machine starts unfocused and closed");
   assertEquals(h.api.open, false, "the api reports closed");
   assertEquals(h.api.focused, false, "and unfocused");
-  assertEquals(h.api.getInputProps()["aria-expanded"], false, "the input agrees");
+  assertEquals(
+    h.api.getInputProps()["aria-expanded"],
+    false,
+    "the input agrees",
+  );
   assertEquals(SELECTED(h), [], "nothing is selected");
   assertEquals(INPUT_TEXT(h), "", "the field is empty");
   assertEquals(HIGHLIGHTED(h), null, "nothing is highlighted");
-  assertEquals(h.api.getBlocks().length, 1, "the collection renders as one unlabelled group");
+  assertEquals(
+    h.api.getBlocks().length,
+    1,
+    "the collection renders as one unlabelled group",
+  );
   assertEquals(h.api.empty, false, "rows exist");
   assertEquals(h.events.valueChange, [], "mounting reports nothing");
   assertEquals(h.events.openChange, [], "and no open change");
@@ -253,13 +329,21 @@ Deno.test("Given a seeded combobox / When it mounts / Then the defaults are the 
   });
   assertEquals(SELECTED(h), ["banana"], "defaultValue seeds the selection");
   assertEquals(INPUT_TEXT(h), "Ban", "defaultInputValue seeds the field");
-  assertEquals(HIGHLIGHTED(h), "date", "defaultHighlightedValue seeds the highlight");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "date",
+    "defaultHighlightedValue seeds the highlight",
+  );
   assertEquals(h.events.valueChange, [], "seeding reports nothing");
 });
 
 Deno.test("Given a single-mode combobox with a value and no text / When it mounts / Then the field holds the selection", () => {
   const h = mount(FRUIT_ITEMS, { defaultValue: "banana" });
-  assertEquals(INPUT_TEXT(h), "Banana", "the default replace behaviour writes the value's string");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Banana",
+    "the default replace behaviour writes the value's string",
+  );
 });
 
 Deno.test("Given a multiple-mode combobox with a value and no text / When it mounts / Then the field stays empty", () => {
@@ -268,22 +352,45 @@ Deno.test("Given a multiple-mode combobox with a value and no text / When it mou
 });
 
 Deno.test("Given a clear selectionBehaviour / When a single combobox mounts with a value / Then the field is empty", () => {
-  const h = mount(FRUIT_ITEMS, { defaultValue: "banana", selectionBehavior: "clear" });
-  assertEquals(INPUT_TEXT(h), "", "clear empties the field whatever the selection is");
+  const h = mount(FRUIT_ITEMS, {
+    defaultValue: "banana",
+    selectionBehavior: "clear",
+  });
+  assertEquals(
+    INPUT_TEXT(h),
+    "",
+    "clear empties the field whatever the selection is",
+  );
 });
 
 Deno.test("Given defaultOpen / When the combobox mounts / Then suggesting is the reachable start state", () => {
   const h = mount(FRUIT_ITEMS, { defaultOpen: true });
-  assertEquals(h.phase(), "suggesting", "the initial state opens into suggesting");
+  assertEquals(
+    h.phase(),
+    "suggesting",
+    "the initial state opens into suggesting",
+  );
   assertEquals(h.api.open, true, "the api reports open");
-  assertEquals(h.api.getInputProps()["aria-expanded"], true, "the input agrees");
+  assertEquals(
+    h.api.getInputProps()["aria-expanded"],
+    true,
+    "the input agrees",
+  );
 });
 
 Deno.test("Given an authored value / When the combobox mounts / Then the selection is imposed at mount", () => {
   const h = mount(FRUIT_ITEMS, { value: "date" });
   assertEquals(SELECTED(h), ["date"], "the authored value is imposed");
-  assertEquals(INPUT_TEXT(h), "Date", "and the field's replace behaviour follows it");
-  assertEquals(h.events.valueChange, [], "imposing the seeded value reports nothing");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Date",
+    "and the field's replace behaviour follows it",
+  );
+  assertEquals(
+    h.events.valueChange,
+    [],
+    "imposing the seeded value reports nothing",
+  );
 });
 
 // ---- idle -----------------------------------------------------------------
@@ -293,7 +400,11 @@ Deno.test("Given a closed unfocused combobox / When the input takes focus / Then
   h.focusInput();
   assertEquals(h.phase(), "focused", "the focus arrives in the focused phase");
   assertEquals(h.focused(), true, "the api reports the field focused");
-  assertEquals(HIGHLIGHTED(h), null, "the focused phase's entry clears the highlight");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "the focused phase's entry clears the highlight",
+  );
 });
 
 Deno.test("Given a focused combobox / When the input blurs / Then idle is reachable again", () => {
@@ -320,26 +431,42 @@ Deno.test("Given a closed unfocused combobox / When the trigger is clicked / The
 Deno.test("Given a closed unfocused combobox with a selection / When the trigger is clicked / Then the selected row is adopted", () => {
   const h = mount(FRUIT_ITEMS, { defaultValue: "date" });
   h.clickTrigger();
-  assertEquals(HIGHLIGHTED(h), "date", "the selection's first row, in collection order");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "date",
+    "the selection's first row, in collection order",
+  );
 });
 
 Deno.test("Given a closed unfocused combobox / When the input is clicked / Then interacting is reachable with the input-click reason", () => {
   const h = mount(FRUIT_ITEMS);
-  handler<(event: MouseEvent) => void>(h.api.getInputProps(), "onClick")(click());
+  handler<(event: MouseEvent) => void>(h.api.getInputProps(), "onClick")(
+    click(),
+  );
   assertEquals(h.phase(), "interacting", "the input click opens the panel");
-  assertEquals(h.events.openChange.at(-1), { open: true, reason: "input-click", value: [] }, "and reports why");
+  assertEquals(h.events.openChange.at(-1), {
+    open: true,
+    reason: "input-click",
+    value: [],
+  }, "and reports why");
 });
 
 Deno.test("Given a closed unfocused combobox / When Enter arrives / Then nothing moves", () => {
   const h = mount(FRUIT_ITEMS);
   h.press("Enter");
-  assertEquals(h.phase(), "idle", "a closed unfocused field has no panel to act on");
+  assertEquals(
+    h.phase(),
+    "idle",
+    "a closed unfocused field has no panel to act on",
+  );
   assertEquals(SELECTED(h), [], "and selects nothing");
 });
 
 Deno.test("Given openOnClick false / When the input is clicked / Then the panel stays closed", () => {
   const h = mount(FRUIT_ITEMS, { openOnClick: false });
-  handler<(event: MouseEvent) => void>(h.api.getInputProps(), "onClick")(click());
+  handler<(event: MouseEvent) => void>(h.api.getInputProps(), "onClick")(
+    click(),
+  );
   assertEquals(h.phase(), "idle", "the click is not a request to open");
 });
 
@@ -349,7 +476,11 @@ Deno.test("Given a focused combobox / When text is typed / Then suggesting is re
   const h = mount(FRUIT_ITEMS);
   h.focusInput();
   h.type("ban");
-  assertEquals(h.phase(), "suggesting", "typing opens the panel over the suggestion");
+  assertEquals(
+    h.phase(),
+    "suggesting",
+    "typing opens the panel over the suggestion",
+  );
   assertEquals(h.api.open, true, "the api reports open");
   assertEquals(INPUT_TEXT(h), "ban", "the field holds what was typed");
   assertEquals(
@@ -368,7 +499,11 @@ Deno.test("Given openOnChange false / When text is typed / Then the panel stays 
   const h = mount(FRUIT_ITEMS, { openOnChange: false });
   h.focusInput();
   h.type("ban");
-  assertEquals(h.phase(), "focused", "the field takes the text without opening");
+  assertEquals(
+    h.phase(),
+    "focused",
+    "the field takes the text without opening",
+  );
   assertEquals(INPUT_TEXT(h), "ban", "the text is the machine's");
 });
 
@@ -377,7 +512,11 @@ Deno.test("Given the autohighlight behaviour / When text is typed / Then the fir
   h.focusInput();
   h.type("b");
   assertEquals(h.phase(), "suggesting", "the panel opens over the suggestion");
-  assertEquals(HIGHLIGHTED(h), "apple", "the auto highlight adopts the first row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "the auto highlight adopts the first row",
+  );
 });
 
 Deno.test("Given the none behaviour / When text is typed / Then no row is adopted", () => {
@@ -393,7 +532,11 @@ Deno.test("Given a focused combobox with custom text / When Escape arrives / The
   h.focusInput();
   h.type("zzz");
   h.press("Escape");
-  assertEquals(INPUT_TEXT(h), "Banana", "the authored value's string comes back");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Banana",
+    "the authored value's string comes back",
+  );
 });
 
 Deno.test("Given a focused combobox with a custom value allowed / When Escape arrives / Then the text is kept", () => {
@@ -410,15 +553,27 @@ Deno.test("Given a focused combobox / When the field blurs / Then idle is reacha
   h.type("zzz");
   assertEquals(h.phase(), "focused", "typing without opening stays put");
   h.blurInput();
-  assertEquals(h.phase(), "idle", "losing the field closes the unfocused panel");
-  assertEquals(INPUT_TEXT(h), "zzz", "and the focused phase never reverts the text");
+  assertEquals(
+    h.phase(),
+    "idle",
+    "losing the field closes the unfocused panel",
+  );
+  assertEquals(
+    INPUT_TEXT(h),
+    "zzz",
+    "and the focused phase never reverts the text",
+  );
 });
 
 Deno.test("Given a focused combobox / When ArrowDown arrives / Then interacting is reachable with the first row", () => {
   const h = mount(FRUIT_ITEMS);
   h.focusInput();
   h.press("ArrowDown");
-  assertEquals(h.phase(), "interacting", "the arrow opens the panel and hands control over");
+  assertEquals(
+    h.phase(),
+    "interacting",
+    "the arrow opens the panel and hands control over",
+  );
   assertEquals(HIGHLIGHTED(h), "apple", "the first row is adopted");
 });
 
@@ -426,14 +581,22 @@ Deno.test("Given a focused combobox with a selection / When ArrowUp arrives / Th
   const h = mount(FRUIT_ITEMS, { defaultValue: "date" });
   h.focusInput();
   h.press("ArrowUp");
-  assertEquals(HIGHLIGHTED(h), "date", "the selection answers before the collection's last row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "date",
+    "the selection answers before the collection's last row",
+  );
 });
 
 Deno.test("Given a focused multiple combobox with a selection / When ArrowUp arrives / Then the selection's first row is adopted", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true, defaultValue: "date,apple" });
   h.focusInput();
   h.press("ArrowUp");
-  assertEquals(HIGHLIGHTED(h), "apple", "the selection is sorted into collection order");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "the selection is sorted into collection order",
+  );
 });
 
 Deno.test("Given a focused combobox completing inline / When an arrow arrives / Then the panel opens with no highlight", () => {
@@ -441,7 +604,11 @@ Deno.test("Given a focused combobox completing inline / When an arrow arrives / 
   h.focusInput();
   h.press("ArrowDown");
   assertEquals(h.phase(), "interacting", "the panel opens");
-  assertEquals(HIGHLIGHTED(h), null, "and the completion has adopted nothing yet");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "and the completion has adopted nothing yet",
+  );
 });
 
 // ---- interacting ----------------------------------------------------------
@@ -457,9 +624,17 @@ const driving = (
 Deno.test("Given an interacting combobox / When ArrowDown arrives / Then the highlight walks the enabled rows", () => {
   const h = mount(FRUIT_ITEMS);
   driving(h);
-  assertEquals(HIGHLIGHTED(h), "apple", "the opening arrow adopts the first row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "the opening arrow adopts the first row",
+  );
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "banana", "ArrowDown walks to the next enabled row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "banana",
+    "ArrowDown walks to the next enabled row",
+  );
   // cherry is disabled, so the walk steps over it.
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "date", "a disabled row is skipped");
@@ -475,7 +650,11 @@ Deno.test("Given loopFocus / When the arrows run past the edges / Then the highl
   h.press("ArrowDown");
   h.press("ArrowDown");
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "apple", "the wrap starts again at the first row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "the wrap starts again at the first row",
+  );
   h.press("ArrowUp");
   assertEquals(HIGHLIGHTED(h), "date", "and ends at the last");
 });
@@ -494,14 +673,22 @@ Deno.test("Given an inline completion on the last row / When ArrowDown arrives /
   const h = mount(FRUIT_ITEMS, { inputBehavior: "autocomplete" });
   h.focusInput();
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), null, "the opening arrow leaves the highlight alone");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "the opening arrow leaves the highlight alone",
+  );
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "apple", "the walk starts at the first row");
   h.press("ArrowDown");
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "date", "the walk reaches the last row");
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), null, "and the next arrow clears the completion");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "and the next arrow clears the completion",
+  );
   assertEquals(h.phase(), "interacting", "the panel stays up");
 });
 
@@ -520,7 +707,11 @@ Deno.test("Given an interacting combobox / When text is typed / Then suggesting 
   driving(h);
   h.type("dat");
   assertEquals(h.phase(), "suggesting", "typing hands the panel to the input");
-  assertEquals(HIGHLIGHTED(h), null, "and drops the highlight the collection no longer explains");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "and drops the highlight the collection no longer explains",
+  );
 });
 
 Deno.test("Given an inline completion / When text is typed / Then the highlight is kept", () => {
@@ -528,8 +719,16 @@ Deno.test("Given an inline completion / When text is typed / Then the highlight 
   driving(h);
   h.press("ArrowDown");
   h.type("app");
-  assertEquals(h.phase(), "suggesting", "the panel stays in the suggesting phase");
-  assertEquals(HIGHLIGHTED(h), "apple", "and the completion's row survives the typing");
+  assertEquals(
+    h.phase(),
+    "suggesting",
+    "the panel stays in the suggesting phase",
+  );
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "and the completion's row survives the typing",
+  );
 });
 
 Deno.test("Given an interacting combobox / When the pointer moves over a row / Then the highlight follows", () => {
@@ -538,7 +737,11 @@ Deno.test("Given an interacting combobox / When the pointer moves over a row / T
   h.hoverRow("date");
   assertEquals(HIGHLIGHTED(h), "date", "the pointer adopts the row");
   h.hoverRow("date");
-  assertEquals(HIGHLIGHTED(h), "date", "and a second move over the same row changes nothing");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "date",
+    "and a second move over the same row changes nothing",
+  );
 });
 
 Deno.test("Given an interacting combobox / When a touch pointer moves over a row / Then the highlight stays", () => {
@@ -561,8 +764,16 @@ Deno.test("Given an interacting combobox / When a row is clicked / Then it selec
   driving(h);
   h.clickRow("date");
   assertEquals(SELECTED(h), ["date"], "the click selects");
-  assertEquals(INPUT_TEXT(h), "Date", "and the replace behaviour writes the label");
-  assertEquals(h.phase(), "focused", "closeOnSelect lands the panel in the focused phase");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Date",
+    "and the replace behaviour writes the label",
+  );
+  assertEquals(
+    h.phase(),
+    "focused",
+    "closeOnSelect lands the panel in the focused phase",
+  );
   assertEquals(
     h.events.openChange.at(-1),
     { open: false, reason: "item-select", value: ["date"] },
@@ -580,8 +791,16 @@ Deno.test("Given a multiple combobox with closeOnSelect false / When a row is cl
   driving(h);
   h.clickRow("apple");
   h.clickRow("date");
-  assertEquals(SELECTED(h), ["apple", "date"], "picks accumulate in click order");
-  assertEquals(h.phase(), "interacting", "the panel stays open for the next pick");
+  assertEquals(
+    SELECTED(h),
+    ["apple", "date"],
+    "picks accumulate in click order",
+  );
+  assertEquals(
+    h.phase(),
+    "interacting",
+    "the panel stays open for the next pick",
+  );
   assertEquals(
     h.events.select,
     [
@@ -609,7 +828,11 @@ Deno.test("Given an interacting combobox / When Escape arrives / Then focused is
   driving(h);
   layer(h).onEscape();
   assertEquals(h.phase(), "focused", "the layer's escape closes the panel");
-  assertEquals(HIGHLIGHTED(h), null, "and the focused phase's entry clears the highlight");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "and the focused phase's entry clears the highlight",
+  );
   assertEquals(
     h.events.openChange.at(-1),
     { open: false, reason: "escape-key", value: [] },
@@ -628,7 +851,11 @@ Deno.test("Given an interacting combobox / When an outside press arrives / Then 
   const h = mount(FRUIT_ITEMS);
   driving(h);
   layer(h).onOutside();
-  assertEquals(h.phase(), "idle", "the outside press dismisses to the unfocused phase");
+  assertEquals(
+    h.phase(),
+    "idle",
+    "the outside press dismisses to the unfocused phase",
+  );
   assertEquals(
     h.events.openChange.at(-1),
     { open: false, reason: "interact-outside", value: [] },
@@ -641,7 +868,11 @@ Deno.test("Given an interacting combobox with custom text / When an outside pres
   h.api.setOpen(true);
   h.type("zzz");
   layer(h).onOutside();
-  assertEquals(INPUT_TEXT(h), "Banana", "the outside press puts the authored value back");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Banana",
+    "the outside press puts the authored value back",
+  );
 });
 
 Deno.test("Given an interacting combobox with a custom value allowed / When an outside press arrives / Then the text is kept", () => {
@@ -649,19 +880,31 @@ Deno.test("Given an interacting combobox with a custom value allowed / When an o
   h.api.setOpen(true);
   h.type("zzz");
   layer(h).onOutside();
-  assertEquals(INPUT_TEXT(h), "zzz", "a permitted custom value survives the dismissal");
+  assertEquals(
+    INPUT_TEXT(h),
+    "zzz",
+    "a permitted custom value survives the dismissal",
+  );
 });
 
 Deno.test("Given a disabled combobox / When a row is clicked or a key arrives / Then nothing moves", () => {
   const h = mount(FRUIT_ITEMS, { disabled: true });
   h.api.setOpen(true);
-  assertEquals(h.phase(), "interacting", "the host's open word still opens the panel");
+  assertEquals(
+    h.phase(),
+    "interacting",
+    "the host's open word still opens the panel",
+  );
   h.clickRow("apple");
   h.press("ArrowDown");
   h.press("Enter");
   assertEquals(SELECTED(h), [], "the keyboard and the pointer are both inert");
   assertEquals(HIGHLIGHTED(h), null, "and the highlight does not move");
-  assertEquals(h.api.getItemState(h.row("apple")).disabled, true, "every row reports disabled");
+  assertEquals(
+    h.api.getItemState(h.row("apple")).disabled,
+    true,
+    "every row reports disabled",
+  );
 });
 
 // ---- suggesting -----------------------------------------------------------
@@ -673,9 +916,17 @@ Deno.test("Given a suggesting combobox / When the arrows arrive / Then interacti
   assertEquals(h.phase(), "suggesting", "typing reaches the suggestion");
   h.press("ArrowDown");
   assertEquals(h.phase(), "interacting", "the arrow hands control to the user");
-  assertEquals(HIGHLIGHTED(h), "apple", "and walks from nothing to the first row");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "and walks from nothing to the first row",
+  );
   h.press("ArrowDown");
-  assertEquals(HIGHLIGHTED(h), "banana", "the next arrow walks from the highlight");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "banana",
+    "the next arrow walks from the highlight",
+  );
   h.press("ArrowUp");
   assertEquals(HIGHLIGHTED(h), "apple", "and ArrowUp walks back");
 });
@@ -695,8 +946,15 @@ Deno.test("Given a suggesting combobox / When the collection changes / Then the 
   const h = mount(FRUIT_ITEMS, { inputBehavior: "autohighlight" });
   h.focusInput();
   h.type("a");
-  h.write("items", [{ value: "apple", label: "Apple" }, { value: "pear", label: "Pear" }]);
-  assertEquals(HIGHLIGHTED(h), "apple", "the new collection's first row is adopted");
+  h.write("items", [{ value: "apple", label: "Apple" }, {
+    value: "pear",
+    label: "Pear",
+  }]);
+  assertEquals(
+    HIGHLIGHTED(h),
+    "apple",
+    "the new collection's first row is adopted",
+  );
 });
 
 Deno.test("Given a suggesting combobox whose highlight vanished / When the collection changes / Then it is dropped", () => {
@@ -707,7 +965,11 @@ Deno.test("Given a suggesting combobox whose highlight vanished / When the colle
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "banana", "the walk reached banana");
   h.write("items", [{ value: "apple", label: "Apple" }]);
-  assertEquals(HIGHLIGHTED(h), null, "a row the collection no longer holds is dropped");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "a row the collection no longer holds is dropped",
+  );
 });
 
 Deno.test("Given a suggesting combobox / When the pointer moves over a row / Then interacting is reachable", () => {
@@ -715,7 +977,11 @@ Deno.test("Given a suggesting combobox / When the pointer moves over a row / The
   h.focusInput();
   h.type("a");
   h.hoverRow("date");
-  assertEquals(h.phase(), "interacting", "the pointer hands control to the user");
+  assertEquals(
+    h.phase(),
+    "interacting",
+    "the pointer hands control to the user",
+  );
   assertEquals(HIGHLIGHTED(h), "date", "and adopts the row");
 });
 
@@ -724,7 +990,11 @@ Deno.test("Given a suggesting combobox / When Escape arrives / Then the panel cl
   h.focusInput();
   h.type("zzz");
   layer(h).onEscape();
-  assertEquals(h.phase(), "focused", "the suggestion's escape closes the panel");
+  assertEquals(
+    h.phase(),
+    "focused",
+    "the suggestion's escape closes the panel",
+  );
   assertEquals(INPUT_TEXT(h), "zzz", "and the text is the user's");
 });
 
@@ -774,8 +1044,16 @@ Deno.test("Given a clear selectionBehaviour / When a pick runs / Then the field 
 Deno.test("Given a combobox / When setValue runs / Then the array is assigned verbatim", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setValue(["date", "banana"]);
-  assertEquals(SELECTED(h), ["date", "banana"], "the value set is not mode-aware");
-  assertEquals(INPUT_TEXT(h), "Date, Banana", "and the field's replace behaviour follows");
+  assertEquals(
+    SELECTED(h),
+    ["date", "banana"],
+    "the value set is not mode-aware",
+  );
+  assertEquals(
+    INPUT_TEXT(h),
+    "Date, Banana",
+    "and the field's replace behaviour follows",
+  );
 });
 
 Deno.test("Given a combobox / When clearValue runs without an argument / Then everything clears", () => {
@@ -783,7 +1061,11 @@ Deno.test("Given a combobox / When clearValue runs without an argument / Then ev
   h.api.clearValue();
   assertEquals(SELECTED(h), [], "the selection empties");
   assertEquals(INPUT_TEXT(h), "", "and so does the field");
-  assertEquals(h.api.getClearTriggerProps()["hidden"], true, "the clear trigger hides itself");
+  assertEquals(
+    h.api.getClearTriggerProps()["hidden"],
+    true,
+    "the clear trigger hides itself",
+  );
 });
 
 Deno.test("Given a multiple combobox / When clearValue runs with a value / Then only that value clears", () => {
@@ -808,15 +1090,27 @@ Deno.test("Given a combobox / When the clear trigger is clicked / Then the panel
 
 Deno.test("Given a combobox with nothing selected / When the clear trigger's props are read / Then it is hidden", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.api.getClearTriggerProps()["hidden"], true, "an empty selection hides the trigger");
+  assertEquals(
+    h.api.getClearTriggerProps()["hidden"],
+    true,
+    "an empty selection hides the trigger",
+  );
   h.api.selectValue("apple");
-  assertEquals(h.api.getClearTriggerProps()["hidden"], false, "a selection shows it");
+  assertEquals(
+    h.api.getClearTriggerProps()["hidden"],
+    false,
+    "a selection shows it",
+  );
 });
 
 Deno.test("Given a combobox / When setHighlightValue and clearHighlightValue run / Then the highlight moves and reports", () => {
   const h = mount(FRUIT_ITEMS);
   h.api.setHighlightValue("cherry");
-  assertEquals(HIGHLIGHTED(h), "cherry", "the value is adopted even though it is disabled");
+  assertEquals(
+    HIGHLIGHTED(h),
+    "cherry",
+    "the value is adopted even though it is disabled",
+  );
   assertEquals(
     h.events.highlightChange.at(-1),
     { highlightedValue: "cherry", highlightedItem: h.row("cherry") },
@@ -837,19 +1131,34 @@ Deno.test("Given a combobox / When syncSelectedItems runs / Then the field is re
   h.api.setValue(["date"]);
   h.api.setInputValue("other text");
   h.api.syncSelectedItems();
-  assertEquals(INPUT_TEXT(h), "Date", "the watch's recomputation puts the label back");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Date",
+    "the watch's recomputation puts the label back",
+  );
 });
 
 Deno.test("Given items whose labels are missing / When a pick runs / Then the value is the label", () => {
   const h = mount([{ value: "apple" }, { value: "banana", label: "" }]);
   h.api.selectValue("apple");
-  assertEquals(INPUT_TEXT(h), "apple", "a missing label falls back to the value");
+  assertEquals(
+    INPUT_TEXT(h),
+    "apple",
+    "a missing label falls back to the value",
+  );
   assertEquals(h.api.valueAsString, "apple", "the api's string does too");
 });
 
 Deno.test("Given items without a value / When the rows are read / Then they are dropped", () => {
-  const h = mount([{ value: "apple", label: "Apple" }, { label: "no value" }, { value: "", label: "blank" }]);
-  assertEquals(ALL_VALUES(h), ["apple"], "an entry without a usable value renders no row");
+  const h = mount([{ value: "apple", label: "Apple" }, { label: "no value" }, {
+    value: "",
+    label: "blank",
+  }]);
+  assertEquals(
+    ALL_VALUES(h),
+    ["apple"],
+    "an entry without a usable value renders no row",
+  );
 });
 
 // ---- the inline completion ------------------------------------------------
@@ -865,9 +1174,17 @@ Deno.test("Given an inline completion / When arrows move the highlight / Then th
   h.press("ArrowDown");
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "banana", "the walk reached banana");
-  assertEquals(h.api.inputValue, "Banana", "the field shows the completed label");
+  assertEquals(
+    h.api.inputValue,
+    "Banana",
+    "the field shows the completed label",
+  );
   h.api.setInputValue("b");
-  assertEquals(h.api.inputValue, "b", "the machine's own text is what the host wrote");
+  assertEquals(
+    h.api.inputValue,
+    "b",
+    "the machine's own text is what the host wrote",
+  );
 });
 
 Deno.test("Given an inline completion / When the pointer moves over a row / Then nothing is completed", () => {
@@ -877,7 +1194,11 @@ Deno.test("Given an inline completion / When the pointer moves over a row / Then
   h.press("ArrowDown");
   h.hoverRow("date");
   assertEquals(HIGHLIGHTED(h), "date", "the pointer moves the highlight");
-  assertEquals(h.api.inputValue, "b", "but the pointer never completes into the field");
+  assertEquals(
+    h.api.inputValue,
+    "b",
+    "but the pointer never completes into the field",
+  );
 });
 
 Deno.test("Given a completion whose row has no label / When the arrow arrives / Then the row's value completes the field", () => {
@@ -886,7 +1207,11 @@ Deno.test("Given a completion whose row has no label / When the arrow arrives / 
   h.type("q");
   h.press("ArrowDown");
   assertEquals(HIGHLIGHTED(h), "zz", "the row is adopted");
-  assertEquals(h.api.inputValue, "zz", "and the value stands in for the missing label");
+  assertEquals(
+    h.api.inputValue,
+    "zz",
+    "and the value stands in for the missing label",
+  );
 });
 
 // ---- the keyboard map -----------------------------------------------------
@@ -896,7 +1221,11 @@ Deno.test("Given an open combobox / When Enter arrives / Then the highlight sele
   driving(h);
   h.press("Enter");
   assertEquals(SELECTED(h), ["apple"], "Enter selects the highlight");
-  assertEquals(INPUT_TEXT(h), "Apple", "and the field's replace behaviour follows");
+  assertEquals(
+    INPUT_TEXT(h),
+    "Apple",
+    "and the field's replace behaviour follows",
+  );
   assertEquals(h.phase(), "focused", "closeOnSelect closes the panel");
 });
 
@@ -912,7 +1241,11 @@ Deno.test("Given an open combobox / When Enter arrives / Then the keystroke is c
   const h = mount(FRUIT_ITEMS);
   driving(h);
   h.press("Enter");
-  assertEquals(h.prevented(), true, "a consumed Enter does not submit the host's form");
+  assertEquals(
+    h.prevented(),
+    true,
+    "a consumed Enter does not submit the host's form",
+  );
 });
 
 Deno.test("Given alwaysSubmitOnEnter / When Enter arrives / Then the keystroke is the host's", () => {
@@ -929,7 +1262,11 @@ Deno.test("Given an open combobox with custom text and no highlight / When Enter
   h.type("zzz");
   h.press("Enter");
   assertEquals(SELECTED(h), [], "nothing is selected");
-  assertEquals(INPUT_TEXT(h), "", "the refused text reverts to the selection's string");
+  assertEquals(
+    INPUT_TEXT(h),
+    "",
+    "the refused text reverts to the selection's string",
+  );
   assertEquals(h.phase(), "focused", "and the panel closes");
 });
 
@@ -988,7 +1325,11 @@ Deno.test("Given a readOnly combobox / When a key arrives on the input / Then it
   const h = mount(FRUIT_ITEMS, { readOnly: true });
   h.focusInput();
   h.press("ArrowDown");
-  assertEquals(h.phase(), "focused", "a read-only field does not open the panel");
+  assertEquals(
+    h.phase(),
+    "focused",
+    "a read-only field does not open the panel",
+  );
 });
 
 Deno.test("Given a closed combobox / When Home and End arrive / Then the panel does not open", () => {
@@ -996,7 +1337,11 @@ Deno.test("Given a closed combobox / When Home and End arrive / Then the panel d
   h.focusInput();
   h.press("Home");
   h.press("End");
-  assertEquals(h.phase(), "focused", "the extremes are caret moves while the panel is shut");
+  assertEquals(
+    h.phase(),
+    "focused",
+    "the extremes are caret moves while the panel is shut",
+  );
 });
 
 Deno.test("Given an RTL combobox / When the props are read / Then every part reports the direction", () => {
@@ -1011,17 +1356,40 @@ Deno.test("Given an RTL combobox / When the props are read / Then every part rep
 // ---- the aria contract ----------------------------------------------------
 
 Deno.test("Given a combobox / When the input's props are read / Then the combobox semantics hold", () => {
-  const h = mount(FRUIT_ITEMS, { defaultHighlightedValue: "banana", placeholder: "Search" });
+  const h = mount(FRUIT_ITEMS, {
+    defaultHighlightedValue: "banana",
+    placeholder: "Search",
+  });
   const input = h.api.getInputProps();
   assertEquals(input["role"], "combobox", "the input is the combobox");
   assertEquals(input["type"], "text", "and a text field");
   assertEquals(input["aria-expanded"], false, "a closed panel reports it");
-  assertEquals(input["aria-autocomplete"], "list", "and the inline behaviour off");
-  assertEquals(input["aria-controls"], "combobox:frameworks:content", "the input controls the panel");
-  assertEquals(input["placeholder"], "Search", "the host's placeholder is the field's");
-  assertEquals(input["autoComplete"], "off", "the browser's own completion is off");
+  assertEquals(
+    input["aria-autocomplete"],
+    "list",
+    "and the inline behaviour off",
+  );
+  assertEquals(
+    input["aria-controls"],
+    "combobox:frameworks:content",
+    "the input controls the panel",
+  );
+  assertEquals(
+    input["placeholder"],
+    "Search",
+    "the host's placeholder is the field's",
+  );
+  assertEquals(
+    input["autoComplete"],
+    "off",
+    "the browser's own completion is off",
+  );
   h.api.setOpen(true);
-  assertEquals(h.api.getInputProps()["aria-expanded"], true, "an open panel reports it");
+  assertEquals(
+    h.api.getInputProps()["aria-expanded"],
+    true,
+    "an open panel reports it",
+  );
   assertEquals(
     h.api.getInputProps()["aria-activedescendant"],
     "combobox:frameworks:item:banana",
@@ -1031,7 +1399,11 @@ Deno.test("Given a combobox / When the input's props are read / Then the combobo
 
 Deno.test("Given an inline completion / When the input's props are read / Then aria-autocomplete is both", () => {
   const h = mount(FRUIT_ITEMS, { inputBehavior: "autocomplete" });
-  assertEquals(h.api.getInputProps()["aria-autocomplete"], "both", "an inline completion announces both");
+  assertEquals(
+    h.api.getInputProps()["aria-autocomplete"],
+    "both",
+    "an inline completion announces both",
+  );
 });
 
 Deno.test("Given an open combobox / When the content's props are read / Then the listbox semantics hold", () => {
@@ -1039,8 +1411,16 @@ Deno.test("Given an open combobox / When the content's props are read / Then the
   h.api.setOpen(true);
   const content = h.api.getContentProps();
   assertEquals(content["role"], "listbox", "the composite panel is a listbox");
-  assertEquals(content["aria-labelledby"], "combobox:frameworks:label", "labelled by the label part");
-  assertEquals(content["aria-multiselectable"], true, "a multi mode announces it");
+  assertEquals(
+    content["aria-labelledby"],
+    "combobox:frameworks:label",
+    "labelled by the label part",
+  );
+  assertEquals(
+    content["aria-multiselectable"],
+    true,
+    "a multi mode announces it",
+  );
   assertEquals(content["data-state"], "open", "and reports the state");
   assertEquals(content["data-empty"], undefined, "a collection is not empty");
 });
@@ -1048,18 +1428,42 @@ Deno.test("Given an open combobox / When the content's props are read / Then the
 Deno.test("Given an empty collection / When the content's props are read / Then the empty flag is carried", () => {
   const h = mount([]);
   assertEquals(h.api.empty, true, "the api reports empty");
-  assertEquals(h.api.getContentProps()["data-empty"], "", "and the panel carries the flag");
+  assertEquals(
+    h.api.getContentProps()["data-empty"],
+    "",
+    "and the panel carries the flag",
+  );
   assertEquals(h.api.getListProps()["data-empty"], "", "so does the list");
 });
 
 Deno.test("Given a non-composite combobox / When the content's props are read / Then the panel is a dialog", () => {
   const h = mount(FRUIT_ITEMS, { composite: false, multiple: true });
   h.api.setOpen(true);
-  assertEquals(h.api.getContentProps()["role"], "dialog", "the non-composite panel is a dialog");
-  assertEquals(h.api.getContentProps()["aria-multiselectable"], undefined, "and announces nothing");
-  assertEquals(h.api.getListProps()["role"], "listbox", "the list carries the listbox role");
-  assertEquals(h.api.getListProps()["aria-multiselectable"], true, "and the multi announcement");
-  assertEquals(h.api.getTriggerProps()["aria-haspopup"], "dialog", "the trigger announces a dialog");
+  assertEquals(
+    h.api.getContentProps()["role"],
+    "dialog",
+    "the non-composite panel is a dialog",
+  );
+  assertEquals(
+    h.api.getContentProps()["aria-multiselectable"],
+    undefined,
+    "and announces nothing",
+  );
+  assertEquals(
+    h.api.getListProps()["role"],
+    "listbox",
+    "the list carries the listbox role",
+  );
+  assertEquals(
+    h.api.getListProps()["aria-multiselectable"],
+    true,
+    "and the multi announcement",
+  );
+  assertEquals(
+    h.api.getTriggerProps()["aria-haspopup"],
+    "dialog",
+    "the trigger announces a dialog",
+  );
 });
 
 Deno.test("Given a row / When its props are read / Then the option semantics follow the state", () => {
@@ -1067,22 +1471,46 @@ Deno.test("Given a row / When its props are read / Then the option semantics fol
   h.api.setOpen(true);
   const selected = h.api.getItemProps(h.row("banana"));
   assertEquals(selected["role"], "option", "the row is an option");
-  assertEquals(selected["aria-selected"], true, "the selected row announces it");
+  assertEquals(
+    selected["aria-selected"],
+    true,
+    "the selected row announces it",
+  );
   assertEquals(selected["data-selected"], "", "and carries the selection");
-  assertEquals(selected["id"], "combobox:frameworks:item:banana", "the id is the namespaced item id");
+  assertEquals(
+    selected["id"],
+    "combobox:frameworks:item:banana",
+    "the id is the namespaced item id",
+  );
   const disabled = h.api.getItemProps(h.row("cherry"));
-  assertEquals(disabled["aria-disabled"], true, "the disabled row announces it");
+  assertEquals(
+    disabled["aria-disabled"],
+    true,
+    "the disabled row announces it",
+  );
   assertEquals(disabled["data-disabled"], "", "and carries the data flag");
   const plain = h.api.getItemProps(h.row("apple"));
-  assertEquals(plain["aria-selected"], false, "an unselected row announces false, not absent");
+  assertEquals(
+    plain["aria-selected"],
+    false,
+    "an unselected row announces false, not absent",
+  );
   assertEquals(plain["data-highlighted"], undefined, "and is not highlighted");
 });
 
 Deno.test("Given a highlighted row / When its props are read / Then the highlight is carried", () => {
   const h = mount(FRUIT_ITEMS, { defaultHighlightedValue: "date" });
   h.api.setOpen(true);
-  assertEquals(h.api.getItemProps(h.row("date"))["data-highlighted"], "", "the row carries it");
-  assertEquals(h.api.getItemProps(h.row("apple"))["data-highlighted"], undefined, "another row does not");
+  assertEquals(
+    h.api.getItemProps(h.row("date"))["data-highlighted"],
+    "",
+    "the row carries it",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("apple"))["data-highlighted"],
+    undefined,
+    "another row does not",
+  );
   assertEquals(
     h.api.getItemState(h.row("date")),
     { value: "date", disabled: false, highlighted: true, selected: false },
@@ -1096,15 +1524,27 @@ Deno.test("Given a group / When its props are read / Then the group semantics ho
   const group = h.api.getItemGroupProps(block);
   assertEquals(group["role"], "group", "the block is a group");
   const label = h.api.getItemGroupLabelProps(block);
-  assertEquals(group["aria-labelledby"], label["id"], "labelled by its label part");
+  assertEquals(
+    group["aria-labelledby"],
+    label["id"],
+    "labelled by its label part",
+  );
   assertEquals(label["role"], "presentation", "the label is presentational");
-  assertEquals(h.api.getRows(block).map((row) => row.value), ["apple", "pear"], "and holds its rows");
+  assertEquals(
+    h.api.getRows(block).map((row) => row.value),
+    ["apple", "pear"],
+    "and holds its rows",
+  );
   assertEquals(h.blocks()[1]?.label, "Nut", "the second group is the host's");
 });
 
 Deno.test("Given an unlabelled group / When its label's props are read / Then the label is hidden", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.api.getItemGroupLabelProps(h.blocks()[0]!)["hidden"], true, "no label is hidden");
+  assertEquals(
+    h.api.getItemGroupLabelProps(h.blocks()[0]!)["hidden"],
+    true,
+    "no label is hidden",
+  );
 });
 
 Deno.test("Given a combobox / When the trigger's props are read / Then the disclosure semantics hold", () => {
@@ -1112,20 +1552,36 @@ Deno.test("Given a combobox / When the trigger's props are read / Then the discl
   const trigger = h.api.getTriggerProps();
   assertEquals(trigger["type"], "button", "the trigger is a button");
   assertEquals(trigger["aria-haspopup"], "listbox", "announcing a listbox");
-  assertEquals(trigger["aria-expanded"], false, "collapsed while the panel is shut");
+  assertEquals(
+    trigger["aria-expanded"],
+    false,
+    "collapsed while the panel is shut",
+  );
   assertEquals(trigger["aria-controls"], undefined, "and controlling nothing");
-  assertEquals(trigger["tabIndex"], -1, "the field is the tab stop, not the trigger");
+  assertEquals(
+    trigger["tabIndex"],
+    -1,
+    "the field is the tab stop, not the trigger",
+  );
   assertEquals(trigger["data-state"], "closed", "and it reports the state");
   h.api.setOpen(true);
   const open = h.api.getTriggerProps();
   assertEquals(open["aria-expanded"], true, "expanded while the panel is up");
-  assertEquals(open["aria-controls"], "combobox:frameworks:content", "and controlling the panel");
+  assertEquals(
+    open["aria-controls"],
+    "combobox:frameworks:content",
+    "and controlling the panel",
+  );
   assertEquals(open["data-state"], "open", "with the state to match");
 });
 
 Deno.test("Given a focusable trigger / When its props are read / Then it is a tab stop", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.api.getTriggerProps({ focusable: true })["tabIndex"], undefined, "a focusable trigger is reachable");
+  assertEquals(
+    h.api.getTriggerProps({ focusable: true })["tabIndex"],
+    undefined,
+    "a focusable trigger is reachable",
+  );
   assertEquals(
     h.api.getTriggerProps({ focusable: true })["data-focusable"],
     "",
@@ -1136,55 +1592,115 @@ Deno.test("Given a focusable trigger / When its props are read / Then it is a ta
 Deno.test("Given a combobox / When the label's props are read / Then it names the input", () => {
   const h = mount(FRUIT_ITEMS, { invalid: true, required: true });
   const label = h.api.getLabelProps();
-  assertEquals(label["htmlFor"], "combobox:frameworks:input", "the label is for the input");
+  assertEquals(
+    label["htmlFor"],
+    "combobox:frameworks:input",
+    "the label is for the input",
+  );
   assertEquals(label["data-invalid"], "", "and carries the invalid state");
   assertEquals(label["data-required"], "", "and the required state");
 });
 
 Deno.test("Given a disabled combobox / When the props are read / Then every part reports it", () => {
   const h = mount(FRUIT_ITEMS, { disabled: true });
-  assertEquals(h.api.getRootProps()["data-disabled"], "", "the root reports it");
-  assertEquals(h.api.getInputProps()["disabled"], true, "the input is disabled");
-  assertEquals(h.api.getInputProps()["data-disabled"], "", "and carries the flag");
-  assertEquals(h.api.getTriggerProps()["disabled"], true, "the trigger is disabled");
-  assertEquals(h.api.getContentProps()["data-disabled"], "", "the panel reports it");
+  assertEquals(
+    h.api.getRootProps()["data-disabled"],
+    "",
+    "the root reports it",
+  );
+  assertEquals(
+    h.api.getInputProps()["disabled"],
+    true,
+    "the input is disabled",
+  );
+  assertEquals(
+    h.api.getInputProps()["data-disabled"],
+    "",
+    "and carries the flag",
+  );
+  assertEquals(
+    h.api.getTriggerProps()["disabled"],
+    true,
+    "the trigger is disabled",
+  );
+  assertEquals(
+    h.api.getContentProps()["data-disabled"],
+    "",
+    "the panel reports it",
+  );
   assertEquals(h.api.disabled, true, "the api reports it");
 });
 
 Deno.test("Given a readOnly combobox / When the props are read / Then every part reports it", () => {
   const h = mount(FRUIT_ITEMS, { readOnly: true });
-  assertEquals(h.api.getRootProps()["data-readonly"], "", "the root reports it");
-  assertEquals(h.api.getInputProps()["readOnly"], true, "the field is read-only");
+  assertEquals(
+    h.api.getRootProps()["data-readonly"],
+    "",
+    "the root reports it",
+  );
+  assertEquals(
+    h.api.getInputProps()["readOnly"],
+    true,
+    "the field is read-only",
+  );
 });
 
 Deno.test("Given an open combobox / When the trigger's indicator props are read / Then the disclosure indicator rotates", () => {
   const h = mount(FRUIT_ITEMS);
-  assertEquals(h.api.getTriggerIndicatorProps()["data-state"], "closed", "shut, the indicator is closed");
+  assertEquals(
+    h.api.getTriggerIndicatorProps()["data-state"],
+    "closed",
+    "shut, the indicator is closed",
+  );
   h.api.setOpen(true);
   assertEquals(
     h.api.getTriggerIndicatorProps()["data-state"],
     "open",
     "and open, it rotates — the utility engine keys on the state",
   );
-  assertEquals(h.api.getTriggerIndicatorProps()["aria-hidden"], true, "the indicator is decorative");
+  assertEquals(
+    h.api.getTriggerIndicatorProps()["aria-hidden"],
+    true,
+    "the indicator is decorative",
+  );
 });
 
 Deno.test("Given a combobox / When the positioner's props are read / Then the placement is the state the theme keys on", () => {
   const h = mount(FRUIT_ITEMS);
   const closed = h.api.getPositionerProps();
-  assertEquals(closed["data-state"], "closed", "the positioner reports the panel's state");
-  assertEquals(closed["data-placement"], "bottom", "and the authored placement");
+  assertEquals(
+    closed["data-state"],
+    "closed",
+    "the positioner reports the panel's state",
+  );
+  assertEquals(
+    closed["data-placement"],
+    "bottom",
+    "and the authored placement",
+  );
   assertEquals(closed["data-side"], "bottom", "with the side it implies");
   const sided = mount(FRUIT_ITEMS, { placement: "top-start" });
-  assertEquals(sided.api.getPositionerProps()["data-side"], "top", "a compound placement reports its side");
+  assertEquals(
+    sided.api.getPositionerProps()["data-side"],
+    "top",
+    "a compound placement reports its side",
+  );
 });
 
 Deno.test("Given a combobox / When the api's strings are read / Then they are the labels joined in selection order", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true, defaultValue: "date,apple" });
-  assertEquals(h.api.valueAsString, "Date, Apple", "the labels are joined in the selection's order");
+  assertEquals(
+    h.api.valueAsString,
+    "Date, Apple",
+    "the labels are joined in the selection's order",
+  );
   assertEquals(h.api.hasSelectedItems, true, "the api reports a selection");
   assertEquals(h.api.multiple, true, "and the mode");
-  assertEquals(h.api.selectedItems.map((row) => row.value), ["date", "apple"], "the rows resolve in order");
+  assertEquals(
+    h.api.selectedItems.map((row) => row.value),
+    ["date", "apple"],
+    "the rows resolve in order",
+  );
 });
 
 // ---- the reflexes ---------------------------------------------------------
@@ -1206,9 +1722,17 @@ Deno.test("Given an open combobox / When the scroll reflex's active id is read /
   const reveal = h.api.getContentProps()["use:scroll-into-view"] as unknown as {
     activeId: () => string;
   };
-  assertEquals(reveal.activeId(), "combobox:frameworks:item:banana", "the active descendant is revealed");
+  assertEquals(
+    reveal.activeId(),
+    "combobox:frameworks:item:banana",
+    "the active descendant is revealed",
+  );
   h.api.clearHighlightValue();
-  assertEquals(reveal.activeId(), "", "and nothing is revealed with no highlight");
+  assertEquals(
+    reveal.activeId(),
+    "",
+    "and nothing is revealed with no highlight",
+  );
 });
 
 Deno.test("Given a closed combobox with a highlight / When the scroll reflex's active id is read / Then nothing is revealed", () => {
@@ -1241,7 +1765,11 @@ Deno.test("Given two comboboxes on one page / When one moves / Then the other ke
   assertEquals(second.api.inputValue, "", "and its own field");
   assertEquals(first.api.multiple, false, "the first is single");
   assertEquals(second.api.multiple, true, "the second is multiple");
-  assertEquals(ALL_VALUES(second), ["apple", "banana", "cherry", "date"], "both render the same rows");
+  assertEquals(
+    ALL_VALUES(second),
+    ["apple", "banana", "cherry", "date"],
+    "both render the same rows",
+  );
 });
 
 // ---- stability across moves ----------------------------------------------
@@ -1258,10 +1786,17 @@ Deno.test("Given an open combobox / When the highlight moves / Then the rows and
   const rowsBefore = ALL_VALUES(h).map((value) => h.row(value));
   h.press("ArrowDown");
   const rowsAfter = ALL_VALUES(h).map((value) => h.row(value));
-  assertEquals(rowsAfter[0] === rowsBefore[0], true, "the first row keeps its identity");
+  assertEquals(
+    rowsAfter[0] === rowsBefore[0],
+    true,
+    "the first row keeps its identity",
+  );
   assertEquals(rowsAfter[1] === rowsBefore[1], true, "so does the second");
   assertEquals(
-    handler<(event: MouseEvent) => void>(h.api.getItemProps(h.row("banana")), "onClick"),
+    handler<(event: MouseEvent) => void>(
+      h.api.getItemProps(h.row("banana")),
+      "onClick",
+    ),
     handler<(event: MouseEvent) => void>(before, "onClick"),
     "and the click handler is the same function",
   );
@@ -1271,7 +1806,11 @@ Deno.test("Given an open combobox / When the highlight moves / Then the item bag
   const h = mount(FRUIT_ITEMS);
   driving(h);
   const before = h.api.getItemProps(h.row("banana"));
-  assertEquals(before["data-highlighted"], undefined, "banana starts unhighlighted");
+  assertEquals(
+    before["data-highlighted"],
+    undefined,
+    "banana starts unhighlighted",
+  );
   h.press("ArrowDown");
   const after = h.api.getItemProps(h.row("banana"));
   assertEquals(after["data-highlighted"], "", "and reports the highlight");
@@ -1281,8 +1820,16 @@ Deno.test("Given an open combobox / When the highlight moves / Then the item bag
 Deno.test("Given an open combobox / When nothing moves / Then re-reading a bag returns the same object", () => {
   const h = mount(FRUIT_ITEMS, { defaultValue: "apple" });
   h.api.setOpen(true);
-  assertEquals(h.api.getItemProps(h.row("apple")), h.api.getItemProps(h.row("apple")), "the item bag is stable");
-  assertEquals(h.api.getInputProps(), h.api.getInputProps(), "so is the input bag");
+  assertEquals(
+    h.api.getItemProps(h.row("apple")),
+    h.api.getItemProps(h.row("apple")),
+    "the item bag is stable",
+  );
+  assertEquals(
+    h.api.getInputProps(),
+    h.api.getInputProps(),
+    "so is the input bag",
+  );
   assertEquals(h.api.getRootProps(), h.api.getRootProps(), "and the root bag");
   assertEquals(h.api.getBlocks()[0], h.api.getBlocks()[0], "and the block");
 });
@@ -1346,7 +1893,11 @@ Deno.test("Given an open combobox / When setOpen runs with what is already true 
   h.api.setOpen(true);
   const before = h.events.openChange.length;
   h.api.setOpen(true);
-  assertEquals(h.events.openChange.length, before, "asking for the open panel reports nothing");
+  assertEquals(
+    h.events.openChange.length,
+    before,
+    "asking for the open panel reports nothing",
+  );
 });
 
 Deno.test("Given a combobox / When the host's commands run / Then every imperative word works", () => {
@@ -1367,13 +1918,21 @@ Deno.test("Given a combobox / When the host's commands run / Then every imperati
 
 Deno.test("Given a combobox with items the host changed / When the machine's order is stale / Then selection still works", () => {
   const h = mount([{ value: "apple", label: "Apple" }], { multiple: true });
-  h.write("items", [{ value: "apple", label: "Apple" }, { value: "pear", label: "Pear" }]);
+  h.write("items", [{ value: "apple", label: "Apple" }, {
+    value: "pear",
+    label: "Pear",
+  }]);
   h.api.selectValue("pear");
-  assertEquals(SELECTED(h), ["pear"], "the machine reads the new collection order");
+  assertEquals(
+    SELECTED(h),
+    ["pear"],
+    "the machine reads the new collection order",
+  );
   h.api.setOpen(true);
   h.write("items", [{ value: "pear", label: "Pear" }]);
-  assertEquals(HIGHLIGHTED(h), null, "and the open panel re-homes itself over the new rows");
+  assertEquals(
+    HIGHLIGHTED(h),
+    null,
+    "and the open panel re-homes itself over the new rows",
+  );
 });
-
-
-

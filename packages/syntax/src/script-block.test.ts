@@ -47,6 +47,9 @@ const ctl = slider({
   assertEquals(out.calls.length, 1);
   assertEquals(out.calls[0]?.name, "ctl");
   assertEquals(out.calls[0]?.factory, "slider");
-  assertEquals(out.calls[0]?.args, "{\n  value: [20, 80],\n  markers: [0, 50, 100],\n}");
+  assertEquals(
+    out.calls[0]?.args,
+    "{\n  value: [20, 80],\n  markers: [0, 50, 100],\n}",
+  );
   assertEquals(out.stripped, []);
 });

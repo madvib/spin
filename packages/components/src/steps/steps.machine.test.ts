@@ -10,7 +10,9 @@ import type { StepsInvalid, StepsStepChange } from "./steps.machine.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -61,13 +63,24 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("count", 3);
-  write("onStepChange", (details: StepsStepChange) => events.stepChange.push(details));
-  write("onStepComplete", (details: StepsComplete) => events.stepComplete.push(details));
-  write("onStepInvalid", (details: StepsInvalid) => events.stepInvalid.push(details));
+  write(
+    "onStepChange",
+    (details: StepsStepChange) => events.stepChange.push(details),
+  );
+  write(
+    "onStepComplete",
+    (details: StepsComplete) => events.stepComplete.push(details),
+  );
+  write(
+    "onStepInvalid",
+    (details: StepsInvalid) => events.stepInvalid.push(details),
+  );
   const bridge = createStepsBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -80,11 +93,17 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 Deno.test("next advances and prev retreats within the count", () => {
   const { api, events } = mount();
   assertEquals(api.value, 0);
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 1);
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 2);
-  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 1);
   assertEquals(events.stepChange.map((change) => change.step), [1, 2, 1]);
 });
@@ -95,31 +114,46 @@ Deno.test("next clamps at the count and completes", () => {
   assert(api.completed);
   assertEquals(events.stepComplete.length, 1);
   assertEquals(events.stepComplete[0]?.step, 3);
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 3);
 });
 
 Deno.test("a failing validator refuses forward motion and reports invalid", () => {
   const { api, events } = mount({ isStepValid: () => false });
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 0);
   assertEquals(events.stepChange.length, 0);
   assertEquals(events.stepInvalid.length, 1);
-  assertEquals(events.stepInvalid[0], { step: 0, action: "next", targetStep: 1 });
+  assertEquals(events.stepInvalid[0], {
+    step: 0,
+    action: "next",
+    targetStep: 1,
+  });
 });
 
 Deno.test("backward motion is always legal, even when invalid", () => {
   const { api, events } = mount({ isStepValid: () => false });
   api.setStep(0);
   // Backward SET bypasses validation by definition (target <= current).
-  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 0);
   assertEquals(events.stepInvalid.length, 0);
 });
 
 Deno.test("a skippable step bypasses validation", () => {
-  const { api, events } = mount({ isStepValid: () => false, isStepSkippable: (index: number) => index === 0 });
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  const { api, events } = mount({
+    isStepValid: () => false,
+    isStepSkippable: (index: number) => index === 0,
+  });
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.value, 1);
   assertEquals(events.stepInvalid.length, 0);
 });
@@ -147,7 +181,11 @@ Deno.test("authored step seeds the flow at mount", () => {
 Deno.test("a host write post-mount moves nothing without an event", () => {
   const { api, events, write } = mount({ step: 1 });
   write("step", 2);
-  assertEquals(api.value, 1, "post-mount writes are inert; selection travels by event");
+  assertEquals(
+    api.value,
+    1,
+    "post-mount writes are inert; selection travels by event",
+  );
   assertEquals(events.stepChange.length, 0);
   api.setStep(2);
   assertEquals(api.value, 2, "the command sends the event that moves it");

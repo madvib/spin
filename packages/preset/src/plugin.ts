@@ -252,6 +252,11 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       targets: [source.runtimeIndex],
     },
     {
+      find: "@spin/syntax/props",
+      replacement: pkg("../../syntax/src/props.ts"),
+      targets: [source.syntaxIndex],
+    },
+    {
       find: "@spin/syntax",
       replacement: source.syntaxIndex,
       targets: [source.syntaxIndex],

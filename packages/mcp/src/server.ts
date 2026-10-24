@@ -315,11 +315,15 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
       description:
         "The component libraries: CSS primitives (tags, variants, token reads, component tokens, example markup) and machine components (statechart-driven elements with typed bridges, example markup, and copy-to-project). List both, read one component's contract, list a machine's examples, or copy a machine example into the project.",
       inputSchema: {
-        action: z.enum(["list", "contract", "examples", "copy"]).describe("What to return."),
+        action: z.enum(["list", "contract", "examples", "copy"]).describe(
+          "What to return.",
+        ),
         name: z
           .string()
           .optional()
-          .describe("contract/examples/copy: a component name, e.g. 'button' or 'tree-view'."),
+          .describe(
+            "contract/examples/copy: a component name, e.g. 'button' or 'tree-view'.",
+          ),
         example: z
           .string()
           .optional()
@@ -327,7 +331,9 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         root: z
           .string()
           .optional()
-          .describe("copy: the project root to write into (defaults to the daemon root)."),
+          .describe(
+            "copy: the project root to write into (defaults to the daemon root).",
+          ),
       },
     },
     async ({ action, name, example, root }) => {
@@ -354,7 +360,9 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         ]);
       }
       if (action === "examples") {
-        if (name === undefined) return failed("examples needs a component name");
+        if (name === undefined) {
+          return failed("examples needs a component name");
+        }
         const bare = name.replace(/^spin-/, "");
         const ex = await client.components.examples({ name: bare });
         return json({ name: bare, examples: ex.examples });
@@ -377,7 +385,11 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         const summary = (await client.primitives.list({})).find(
           (entry) => entry.name === name,
         );
-        return json({ kind: "primitive" as const, ...contract, examples: summary?.examples ?? null });
+        return json({
+          kind: "primitive" as const,
+          ...contract,
+          examples: summary?.examples ?? null,
+        });
       }
       const bare = name.replace(/^spin-/, "");
       const listed = await client.components.list({});

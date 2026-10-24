@@ -1,5 +1,10 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, type AsyncListArgs, type AsyncListContext, type AsyncListState } from "./async-list.state.ts";
+import {
+  type AsyncListArgs,
+  type AsyncListContext,
+  type AsyncListState,
+  initial,
+} from "./async-list.state.ts";
 import type { AsyncListEvents } from "./async-list.events.ts";
 import {
   clearCursor,
@@ -7,10 +12,10 @@ import {
   clearItems,
   hasCursor,
   hasSortFn,
+  setCursor,
   setError,
   setFilterText,
   setItems,
-  setCursor,
   setSortDescriptor,
 } from "./async-list.transitions.ts";
 

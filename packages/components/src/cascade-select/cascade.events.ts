@@ -13,7 +13,10 @@ export interface CascadeEvents {
   "ITEM_POINTER_ENTER": { value: string[]; hasChildren: boolean };
   "VALUE_SET": { value: string[][] | string };
   "VALUE_CLEAR": {};
-  "HIGHLIGHTED_VALUE_SET": { value: string[]; highlightedValue?: string | string[] };
+  "HIGHLIGHTED_VALUE_SET": {
+    value: string[];
+    highlightedValue?: string | string[];
+  };
   "HIGHLIGHTED_VALUE_CLEAR": {};
   "ITEM_SELECT": { value: string[]; hasChildren: boolean };
   "ITEM_CLEAR": { value: string[] };

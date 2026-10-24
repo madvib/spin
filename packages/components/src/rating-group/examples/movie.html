@@ -1,37 +1,45 @@
 <script lang="ts">
-  import { ratingGroup } from "../rating-group.presentation.ts";
+import { ratingGroup } from "../rating-group.presentation.ts";
 
-  const machine = ratingGroup({ value: "0", allowHalf: true });
+const machine = ratingGroup({ value: "0", allowHalf: true });
 </script>
 
-<div class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface text-text" {...machine.getRootProps()}>
+<div
+  class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface text-text"
+  {...machine.getRootProps()}>
   <div class="flex items-center gap-3 border-b border-solid border-border p-4">
-    <div class="grid h-14 w-10 place-items-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-lg text-white" aria-hidden="true">▶</div>
+    <div
+      class="grid h-14 w-10 place-items-center rounded-md bg-primary text-on-primary text-lg text-on-primary"
+      aria-hidden="true">▶</div>
     <div>
-      <h3 class="text-sm font-semibold">The Great Adventure</h3>
-      <p class="text-xs text-muted">Action • Adventure • 2024</p>
+      <h3 class="text-sm">The Great Adventure</h3>
+      <p class="text-xs text-text-muted">Action • Adventure • 2024</p>
     </div>
   </div>
-  <div class="space-y-4 p-4">
+  <div class="stack p-4">
     <div>
-      <div class="mb-2 block text-xs font-medium" {...machine.getLabelProps()}>Rate this movie</div>
+      <div class="mb-2 block text-xs font-medium"
+        {...machine.getLabelProps()}>Rate this movie</div>
       <div class="inline-flex" {...machine.getControlProps()}>
         <template for={machine.getItems()} as={row} key={row}>
           <span
-            class={["grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all", { "scale-110": machine.getItemState(row).highlighted, "text-purple-400": machine.getItemState(row).highlighted, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+            class={["bare grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all", { "scale-110": machine.getItemState(row).highlighted, "text-primary": machine.getItemState(row).highlighted, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
             {...machine.getItemProps(row)}
           >
-            <span class="relative" aria-hidden="true">★︎<span class="absolute inset-y-0 right-0 w-1/2 overflow-hidden" show={machine.getItemState(row).half}><span class="absolute top-0 right-0 text-border-strong">★︎</span></span></span>
+            <span class="relative"
+              aria-hidden="true">★︎<span class="absolute inset-y-0 right-0 w-1/2 overflow-hidden" show={machine.getItemState(row).half}><span class="absolute top-0 right-0 text-border-strong">★︎</span></span></span>
           </span>
         </template>
       </div>
       <input {...machine.getHiddenInputProps()} />
-      <p class="mt-1 text-xs text-muted" show={machine.value > 0}>You rated this {machine.value} out of 5 stars</p>
+      <p class="mt-1 text-xs text-text-muted"
+        show={machine.value > 0}>You rated this {machine.value} out of 5 stars</p>
     </div>
     <div class="flex gap-2">
-      <button type="button" variant="filled" id="rt-trailer">Watch Trailer</button>
+      <button type="button" variant="filled"
+        id="rt-trailer">Watch Trailer</button>
       <button type="button" id="rt-list">Add to List</button>
     </div>
-    <p class="text-xs text-muted" id="rt-note"></p>
+    <p class="text-xs text-text-muted" id="rt-note"></p>
   </div>
 </div>

@@ -316,9 +316,18 @@ describe("the spin MCP server", () => {
       arguments: { action: "list" },
     });
     const entries = jsonOf(listed) as Array<{ name: string; kind: string }>;
-    assert(entries.some((c) => c.name === "card" && c.kind === "primitive"), "card stays a primitive");
-    assert(entries.some((c) => c.name === "tree-view" && c.kind === "machine"), "tree-view lists as a machine");
-    assert(entries.some((c) => c.name === "select" && c.kind === "machine"), "select lists as a machine");
+    assert(
+      entries.some((c) => c.name === "card" && c.kind === "primitive"),
+      "card stays a primitive",
+    );
+    assert(
+      entries.some((c) => c.name === "tree-view" && c.kind === "machine"),
+      "tree-view lists as a machine",
+    );
+    assert(
+      entries.some((c) => c.name === "select" && c.kind === "machine"),
+      "select lists as a machine",
+    );
 
     const one = await mcp.callTool({
       name: "component",
@@ -326,25 +335,41 @@ describe("the spin MCP server", () => {
     });
     const contract = jsonOf(one) as {
       kind: string;
-      manifest: { parts: string[]; slots: string[]; readers: string[]; methods: string[] };
+      manifest: {
+        parts: string[];
+        slots: string[];
+        readers: string[];
+        methods: string[];
+      };
       examples: { rows: Array<{ name: string; html: string }> };
     };
     assertEquals(contract.kind, "machine");
-    assert(contract.manifest.parts.includes("root"), "the manifest names parts");
+    assert(
+      contract.manifest.parts.includes("root"),
+      "the manifest names parts",
+    );
     assert(contract.manifest.slots.includes("item"), "and slots");
     assert(contract.manifest.readers.length > 0, "and readers");
     assert(contract.examples.rows.length === 2, "and ships two examples");
 
     const copied = await mcp.callTool({
       name: "component",
-      arguments: { action: "copy", name: "tree-view", example: "basic", root: dir },
+      arguments: {
+        action: "copy",
+        name: "tree-view",
+        example: "basic",
+        root: dir,
+      },
     });
     assertEquals(copied.isError, undefined);
     assertEquals(
       (jsonOf(copied) as { file: string }).file,
       join("spin", "tree-view", "basic.html"),
     );
-    assert(existsSync(join(dir, "spin", "tree-view", "basic.html")), "the file lands in the project");
+    assert(
+      existsSync(join(dir, "spin", "tree-view", "basic.html")),
+      "the file lands in the project",
+    );
   });
 
   it("lists the utilities under reader intent", async () => {

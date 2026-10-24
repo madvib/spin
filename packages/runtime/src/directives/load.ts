@@ -3,11 +3,10 @@ import { bindSpread } from "./spread.ts";
 import { on } from "./use.ts";
 import { scope as makeScope } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
-import { runAction as act, type ElementAction } from "./use.ts";
+import { type ElementAction, runAction as act } from "./use.ts";
 import { parse } from "@spin/syntax";
 import type { ComponentIr, Node } from "@spin/syntax";
 import type { Handle } from "../scope/table.ts";
-
 
 export interface LoaderActions {
   // Contravariant by necessity: actions accept specific params, the loader
@@ -23,7 +22,10 @@ export interface LoaderScope {
 }
 
 function resolve(value: unknown): unknown {
-  if (typeof value === "function" && (value as (...a: never[]) => unknown).length === 0) {
+  if (
+    typeof value === "function" &&
+    (value as (...a: never[]) => unknown).length === 0
+  ) {
     try {
       return (value as () => unknown)();
     } catch {
@@ -43,7 +45,10 @@ function readExpr(expr: string, values: LoaderScope): unknown {
   }
 }
 
-function callExpr(expr: string, values: LoaderScope): (...args: never[]) => unknown {
+function callExpr(
+  expr: string,
+  values: LoaderScope,
+): (...args: never[]) => unknown {
   const fn = readExpr(expr, values);
   if (typeof fn === "function") return fn as (...args: never[]) => unknown;
   return () => undefined;
@@ -67,7 +72,9 @@ function wire(
       if (node.kind === "text") {
         const hasExpr = node.parts.some((part) => part.kind === "expr");
         if (!hasExpr) {
-          const text = node.parts.map((part) => part.kind === "static" ? part.value : "").join("");
+          const text = node.parts.map((part) =>
+            part.kind === "static" ? part.value : ""
+          ).join("");
           if (text.length > 0) mount.appendChild(document.createTextNode(text));
           continue;
         }
@@ -91,9 +98,11 @@ function wire(
         mount.appendChild(anchor);
         bindFor<unknown>({
           anchor,
-          items: () => (readExpr(node.source, active) as readonly unknown[]) ?? [],
+          items: () =>
+            (readExpr(node.source, active) as readonly unknown[]) ?? [],
           key: node.key !== undefined
-            ? (item, i) => readExpr(node.key!, { ...active, [node.binding]: item, i })
+            ? (item, i) =>
+              readExpr(node.key!, { ...active, [node.binding]: item, i })
             : (_item, i) => i,
           render: (item) => {
             const frag = document.createDocumentFragment();
@@ -128,7 +137,10 @@ function wire(
         }
       }
       for (const spread of node.spreads) {
-        bindSpread(el, () => readExpr(spread.expr, active) as Record<string, unknown>);
+        bindSpread(
+          el,
+          () => readExpr(spread.expr, active) as Record<string, unknown>,
+        );
       }
       mount.appendChild(el);
       walk(node.children, el, [], active);
@@ -148,7 +160,9 @@ export function load(
   const ir = parse(source);
   const frag = document.createDocumentFragment();
   const owner = makeScope();
-  const effectiveValues = resolve ? { ...values, "@@resolve": resolve } : values;
+  const effectiveValues = resolve
+    ? { ...values, "@@resolve": resolve }
+    : values;
   const stop = owner.run(() => {
     wire(frag, ir, actions, effectiveValues, []);
     return () => owner.dispose();

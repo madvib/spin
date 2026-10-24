@@ -5,22 +5,22 @@
 </script>
 
 <div class="grid gap-2">
-  <button class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...machine.getTriggerProps()}>Open panel</button>
+  <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
     <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none": !machine.isOpen, "invisible": !machine.isOpen, "scale-95": !machine.isOpen, "opacity-0": !machine.isOpen, "h-12": machine.stage === "minimized", "overflow-hidden": machine.stage === "minimized", "h-full": machine.stage === "maximized", "w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
-          <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Basic Panel</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-2 p-4">
-        <p class="m-0 text-sm text-text">A panel that moves, resizes, minimizes, and closes.</p>
-        <ul class="m-0 grid gap-1 pl-4 text-sm text-muted">
+        <p class="text-sm text-text">A panel that moves, resizes, minimizes, and closes.</p>
+        <ul class="grid gap-1 text-sm text-text-muted">
           <li>Draggable header</li>
           <li>Resizable edges</li>
           <li>Minimize, maximize, restore</li>
@@ -28,14 +28,14 @@
         </ul>
       </div>
       
-      <button class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+      <button class="bare absolute inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="bare absolute inset-x-0 bottom-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 right-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 left-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 bottom-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 bottom-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

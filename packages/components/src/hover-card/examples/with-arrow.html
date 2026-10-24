@@ -1,19 +1,25 @@
 <scope>props={ label: string = "Information" } consume={ hoverCard }</scope>
 
-<div class="flex items-center justify-center gap-8 p-12" {...hoverCard.getRootProps()}>
-  <span {...hoverCard.getTriggerProps()} class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 text-sm text-text transition-colors hover:bg-surface">
+<div class="flex items-center justify-center gap-8 p-12"
+  {...hoverCard.getRootProps()}>
+  <span {...hoverCard.getTriggerProps()}
+    class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 text-sm text-text transition-colors hover:bg-surface">
     <span class="i-lucide-info text-sm text-primary" aria-hidden="true"></span>
     <span class="text-sm font-medium">{label}</span>
   </span>
 
-  <div {...hoverCard.getContentProps()} class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-    <span aria-hidden="true" class="absolute -top-1 left-6 h-2 w-2 rotate-45 border-l border-t border-solid border-border bg-surface-raised"></span>
-    <div class="space-y-2">
+  <div {...hoverCard.getContentProps()}
+    class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+    <span aria-hidden="true"
+      class="absolute -top-1 left-6 h-2 w-2 rotate-45 border-l border-t border-solid border-border bg-surface-raised"></span>
+    <div class="stack-sm">
       <div class="flex items-center gap-2">
-        <span class="i-lucide-info text-sm text-primary" aria-hidden="true"></span>
-        <h4 class="m-0 text-sm font-semibold text-text">{label}</h4>
+        <span class="i-lucide-info text-sm text-primary"
+          aria-hidden="true"></span>
+        <h4 class="text-sm text-text">{label}</h4>
       </div>
-      <p class="m-0 text-sm text-muted">This is an informational message with an arrow pointing to the trigger element.</p>
+      <p
+        class="text-sm text-text-muted">This is an informational message with an arrow pointing to the trigger element.</p>
     </div>
   </div>
 </div>

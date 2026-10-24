@@ -6,9 +6,20 @@
  * and land in the same live prop a property write would.
  */
 
-import { scope, signal, type OwnerScope } from "../core/signal.ts";
-import { createScopeTable, type Factory, type Handle, type ScopeTable } from "./table.ts";
-import { coerceBool, coerceInt, coerceJsonArray, coerceObjectArrayItems, coerceString } from "../props.ts";
+import { type OwnerScope, scope, signal } from "../core/signal.ts";
+import {
+  createScopeTable,
+  type Factory,
+  type Handle,
+  type ScopeTable,
+} from "./table.ts";
+import {
+  coerceBool,
+  coerceInt,
+  coerceJsonArray,
+  coerceObjectArrayItems,
+  coerceString,
+} from "../props.ts";
 
 /** Turns an attribute's string into the value the component reads. */
 export type AttributeParser = (value: string | null) => unknown;
@@ -23,8 +34,10 @@ export type AttributeParser = (value: string | null) => unknown;
 export const attrParsers = {
   bool: (value: string | null): boolean | undefined => coerceBool(value, false),
   string: (value: string | null): string => coerceString(value),
-  int: (value: string | null): number | undefined => coerceInt(value, undefined),
-  "string[]": (value: string | null): string[] => coerceJsonArray(value, []) as string[],
+  int: (value: string | null): number | undefined =>
+    coerceInt(value, undefined),
+  "string[]": (value: string | null): string[] =>
+    coerceJsonArray(value, []) as string[],
   "object[]": (value: string | null): unknown[] => coerceJsonArray(value, []),
 } as const satisfies Record<string, AttributeParser>;
 
@@ -91,7 +104,11 @@ const elementScopes = new WeakMap<HTMLElement, OwnerScope>();
  * inside its custom element, so a bag spread on an inner node belongs to that
  * element's scope. */
 function scopeOf(node: Element): OwnerScope | undefined {
-  for (let current: Element | null = node; current !== null; current = current.parentElement) {
+  for (
+    let current: Element | null = node;
+    current !== null;
+    current = current.parentElement
+  ) {
     const owner = elementScopes.get(current as HTMLElement);
     if (owner !== undefined) return owner;
   }
@@ -155,10 +172,14 @@ export function define(tag: string, spec: ElementSpec): void {
 
   function propsFor(el: HTMLElement): Readonly<Record<string, unknown>> {
     return new Proxy({} as Record<string, unknown>, {
-      get: (_target, key) => typeof key === "string" ? propFor(el, key)() : undefined,
+      get: (_target, key) =>
+        typeof key === "string" ? propFor(el, key)() : undefined,
       has: (_target, key) => typeof key === "string" && storeFor(el).has(key),
       ownKeys: () => [...storeFor(el).keys()],
-      getOwnPropertyDescriptor: () => ({ configurable: true, enumerable: true }),
+      getOwnPropertyDescriptor: () => ({
+        configurable: true,
+        enumerable: true,
+      }),
     });
   }
 
@@ -174,7 +195,9 @@ export function define(tag: string, spec: ElementSpec): void {
       // shadow, so `build` reads what the host wrote.
       for (const name of propNames) {
         const own = Object.getOwnPropertyDescriptor(this, name);
-        if (own === undefined || own.get !== undefined || own.set !== undefined) continue;
+        if (
+          own === undefined || own.get !== undefined || own.set !== undefined
+        ) continue;
         const value = own.value;
         delete (this as unknown as Record<string, unknown>)[name];
         propFor(this, name)(value);
@@ -221,20 +244,20 @@ export function define(tag: string, spec: ElementSpec): void {
     }
   }
 
-/**
- * The property-write boundary. A host's write coerces through the runtime's
- * prop grammar, so the store holds grammar-shaped values whichever boundary
- * the host wrote through. String writes take the component's own parser (the
- * attribute path's grammar, verbatim); a host-written object or array takes
- * the object-array branch: plain objects survive, everything else is dropped.
- */
-function coerceWrite(name: string, next: unknown): unknown {
-  const parser = parsers[name];
-  if (parser === undefined) return next;
-  if (typeof next === "string") return parser(next);
-  if (parser !== attrParsers["object[]"]) return next;
-  return coerceObjectArrayItems(next, []);
-}
+  /**
+   * The property-write boundary. A host's write coerces through the runtime's
+   * prop grammar, so the store holds grammar-shaped values whichever boundary
+   * the host wrote through. String writes take the component's own parser (the
+   * attribute path's grammar, verbatim); a host-written object or array takes
+   * the object-array branch: plain objects survive, everything else is dropped.
+   */
+  function coerceWrite(name: string, next: unknown): unknown {
+    const parser = parsers[name];
+    if (parser === undefined) return next;
+    if (typeof next === "string") return parser(next);
+    if (parser !== attrParsers["object[]"]) return next;
+    return coerceObjectArrayItems(next, []);
+  }
 
   for (const name of propNames) {
     Object.defineProperty(Component.prototype, name, {

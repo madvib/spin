@@ -1,8 +1,8 @@
 import {
-  ariaHidden,
-  defineComponent,
   type ApiOf,
+  ariaHidden,
   type ComponentDef,
+  defineComponent,
   type ScopeFor,
 } from "@spin/runtime";
 import { tour as tourMachine } from "./tour.machine.ts";
@@ -11,14 +11,19 @@ import type { TourEvents } from "./tour.events.ts";
 import type { TourDismissChange, TourStepChange } from "./tour.events.ts";
 import type { TourStepRecord } from "./tour.state.ts";
 
-export type { TourArgs, TourState, TourDismissChange, TourStepChange, TourStepRecord };
+export type {
+  TourArgs,
+  TourDismissChange,
+  TourState,
+  TourStepChange,
+  TourStepRecord,
+};
 
 /**
  * Tour definition: the DOM contract as data. The machine owns the modes
  * (inactive/resolving/scrolling/active) and the step index; this file maps
  * props to channels, parts to attribute bags, and commands to sends.
  */
-
 
 type ScopeLike = ScopeFor<TourContext, TourEvents, TourState>;
 
@@ -31,7 +36,10 @@ const RESOLVE_BUDGET_MS = 2000;
 const SCROLL_SETTLE_MS = 150;
 
 /** The target's box, padded: the spotlight's own geometry. */
-const measure = (el: HTMLElement, padding: number): TourContext["spotlight"] => {
+const measure = (
+  el: HTMLElement,
+  padding: number,
+): TourContext["spotlight"] => {
   const rect = el.getBoundingClientRect();
   return {
     x: rect.left - padding,
@@ -52,13 +60,21 @@ const resolveAndScroll = (
     const h = typeof window === "undefined" ? 0 : window.innerHeight;
     const cardW = Math.min(320, w * 0.9);
     const cardH = 160;
-    send({ type: "SPOTLIGHT.SET", x: (w - cardW) / 2, y: (h - cardH) / 2, w: cardW, h: cardH });
+    send({
+      type: "SPOTLIGHT.SET",
+      x: (w - cardW) / 2,
+      y: (h - cardH) / 2,
+      w: cardW,
+      h: cardH,
+    });
     send({ type: "TARGET.RESOLVED" });
     send({ type: "SCROLL.END" });
     return;
   }
   const attempt = (): void => {
-    const el = typeof document === "undefined" ? null : document.querySelector(target);
+    const el = typeof document === "undefined"
+      ? null
+      : document.querySelector(target);
     if (el instanceof HTMLElement) {
       const geo = measure(el, spotlightPadding);
       send({ type: "SPOTLIGHT.SET", x: geo.x, y: geo.y, w: geo.w, h: geo.h });
@@ -66,7 +82,13 @@ const resolveAndScroll = (
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => {
         const settled = measure(el, spotlightPadding);
-        send({ type: "SPOTLIGHT.SET", x: settled.x, y: settled.y, w: settled.w, h: settled.h });
+        send({
+          type: "SPOTLIGHT.SET",
+          x: settled.x,
+          y: settled.y,
+          w: settled.w,
+          h: settled.h,
+        });
         send({ type: "SCROLL.END" });
       }, SCROLL_SETTLE_MS);
       return;
@@ -137,7 +159,11 @@ export const def = {
       attrs: (scope: ScopeLike) => {
         const geo = scope.context.spotlight;
         return {
-          "data-state": scope.state === "active" ? "active" : runningState(scope.state) ? "running" : "closed",
+          "data-state": scope.state === "active"
+            ? "active"
+            : runningState(scope.state)
+            ? "running"
+            : "closed",
           style: {
             left: `${geo.x}px`,
             top: `calc(${geo.y}px + ${geo.h}px + 0.5rem)`,
@@ -212,7 +238,9 @@ export const def = {
     prev: { event: () => ({ type: "STEP.PREV" }) },
     dismiss: { event: () => ({ type: "DISMISS" }) },
     skip: { event: () => ({ type: "SKIP" }) },
-    setStep: { event: ([step]: [step: number]) => ({ type: "STEP.SET", step }) },
+    setStep: {
+      event: ([step]: [step: number]) => ({ type: "STEP.SET", step }),
+    },
     notifyTargetResolved: { event: () => ({ type: "TARGET.RESOLVED" }) },
     notifyTargetNotFound: { event: () => ({ type: "TARGET.NOT_FOUND" }) },
     notifyScrollEnd: { event: () => ({ type: "SCROLL.END" }) },
@@ -255,7 +283,10 @@ export const def = {
       watch: () => [],
       detail: () => ({ step: -1 }),
       select: (event, _before, after: TourContext, states) => {
-        if (states === undefined || runningState(states.was) || !runningState(states.is)) return null;
+        if (
+          states === undefined || runningState(states.was) ||
+          !runningState(states.is)
+        ) return null;
         void event;
         return { step: after.step };
       },
@@ -278,7 +309,10 @@ export const def = {
       watch: () => [],
       detail: () => ({ reason: "dismiss" }),
       select: (event, before: TourContext, after: TourContext, states) => {
-        if (states === undefined || !runningState(states.was) || runningState(states.is)) return null;
+        if (
+          states === undefined || !runningState(states.was) ||
+          runningState(states.is)
+        ) return null;
         const reason = event.type === "SKIP"
           ? "skip"
           : event.type === "TARGET.NOT_FOUND"
@@ -302,7 +336,19 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<TourContext, TourEvents, Record<string, unknown>, TourArgs, TourState>;
+} satisfies ComponentDef<
+  TourContext,
+  TourEvents,
+  Record<string, unknown>,
+  TourArgs,
+  TourState
+>;
 
 export type TourApi = ApiOf<typeof def>;
-export const tour = defineComponent<TourContext, TourEvents, TourApi, TourArgs, TourState>(def);
+export const tour = defineComponent<
+  TourContext,
+  TourEvents,
+  TourApi,
+  TourArgs,
+  TourState
+>(def);

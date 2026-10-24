@@ -38,12 +38,21 @@ export const asText = (raw: unknown): string | null =>
 export function parseItems(raw: unknown): NavItemRecord[] {
   const list: readonly unknown[] = Array.isArray(raw)
     ? raw
-    : (typeof raw === "string" && raw.length > 0 ? ((): unknown[] => {
-      try { const v = JSON.parse(raw); return Array.isArray(v) ? v : []; } catch { return []; }
-    })() : []);
+    : (typeof raw === "string" && raw.length > 0
+      ? ((): unknown[] => {
+        try {
+          const v = JSON.parse(raw);
+          return Array.isArray(v) ? v : [];
+        } catch {
+          return [];
+        }
+      })()
+      : []);
   const items: NavItemRecord[] = [];
   for (const entry of list) {
-    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) continue;
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      continue;
+    }
     const bag: Record<string, unknown> = { ...entry };
     const value: unknown = bag["value"];
     const label: unknown = bag["label"];
@@ -53,7 +62,10 @@ export function parseItems(raw: unknown): NavItemRecord[] {
   return items;
 }
 
-export function initial(args: NavigationMenuArgs = {}, authored: (name: string) => boolean): NavigationMenuContext {
+export function initial(
+  args: NavigationMenuArgs = {},
+  authored: (name: string) => boolean,
+): NavigationMenuContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

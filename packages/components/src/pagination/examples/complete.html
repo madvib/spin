@@ -1,7 +1,12 @@
 <script lang="ts">
-  import { pagination } from "../pagination.presentation.ts";
+import { pagination } from "../pagination.presentation.ts";
 
-  const machine = pagination({ count: 500, pageSize: 10, siblingCount: 1, page: 1 });
+const machine = pagination({
+  count: 500,
+  pageSize: 10,
+  siblingCount: 1,
+  page: 1,
+});
 </script>
 
 <include file="./basic.html" />

@@ -52,7 +52,9 @@ export function nextPage(ctx: PaginationContext): number | null {
   return ctx.page >= totalPages(ctx) ? null : ctx.page + 1;
 }
 
-export function pageRange(ctx: PaginationContext): { start: number; end: number } {
+export function pageRange(
+  ctx: PaginationContext,
+): { start: number; end: number } {
   const start = (ctx.page - 1) * ctx.pageSize;
   return { start, end: Math.min(start + ctx.pageSize, ctx.count) };
 }
@@ -70,10 +72,14 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
   if (total === 1) return [1];
   const leftSibling = Math.max(page - siblingCount, 1);
   const rightSibling = Math.min(page + siblingCount, total);
-  const totalNumbers = Math.min(siblingCount * 2 + 3 + boundaryCount * 2, total);
+  const totalNumbers = Math.min(
+    siblingCount * 2 + 3 + boundaryCount * 2,
+    total,
+  );
   if (total <= totalNumbers) return range(1, total);
   const slots = totalNumbers - 1 - boundaryCount;
-  const showLeft = leftSibling > 1 + boundaryCount + 1 && Math.abs(leftSibling - 1) > boundaryCount + 1;
+  const showLeft = leftSibling > 1 + boundaryCount + 1 &&
+    Math.abs(leftSibling - 1) > boundaryCount + 1;
   const showRight = rightSibling < total - boundaryCount - 1 &&
     Math.abs(total - rightSibling) > boundaryCount + 1;
   let pages: (number | "ellipsis")[] = [];
@@ -107,21 +113,37 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
   return pages;
 }
 
-export function pageItems(ctx: PaginationContext): import("./pagination.events.ts").PaginationPageItem[] {
+export function pageItems(
+  ctx: PaginationContext,
+): import("./pagination.events.ts").PaginationPageItem[] {
   let ellipsis = 0;
   return pageWindow(ctx).map((value) => {
     if (typeof value === "number") {
-      return { type: "page" as const, value, key: `page:${value}`, label: String(value) };
+      return {
+        type: "page" as const,
+        value,
+        key: `page:${value}`,
+        label: String(value),
+      };
     }
     ellipsis += 1;
-    return { type: "ellipsis" as const, index: ellipsis, key: `ellipsis:${ellipsis}`, label: "\u2026" };
+    return {
+      type: "ellipsis" as const,
+      index: ellipsis,
+      key: `ellipsis:${ellipsis}`,
+      label: "\u2026",
+    };
   });
 }
 
-const clampPage = (page: number, total: number): number => Math.min(Math.max(page, 1), total);
+const clampPage = (page: number, total: number): number =>
+  Math.min(Math.max(page, 1), total);
 export { clampPage };
 
-export function initial(args: PaginationArgs, authored: (name: string) => boolean): PaginationContext {
+export function initial(
+  args: PaginationArgs,
+  authored: (name: string) => boolean,
+): PaginationContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

@@ -14,7 +14,8 @@ export type ElementAction<P = unknown> = (
 export function createAction<P>(
   fn: ElementAction<P>,
 ): ElementAction<P> {
-  return (node: Element, param: P) => untrack(() => fn(node, param) ?? undefined);
+  return (node: Element, param: P) =>
+    untrack(() => fn(node, param) ?? undefined);
 }
 
 export function runAction<P>(
@@ -40,7 +41,6 @@ export function runAction<P>(
 }
 
 export type SlotLookup = (name: string) => Node[];
-
 
 export function on<E extends Event = Event>(
   el: EventTarget,

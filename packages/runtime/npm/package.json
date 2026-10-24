@@ -1,6 +1,6 @@
 {
   "name": "@spin/runtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The component runtime: signals, bridges, elements plugin, and directives.",
   "type": "module",
   "license": "MIT",
@@ -14,21 +14,13 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./zag": {
-      "types": "./dist/machine/adapter/index.d.ts",
-      "default": "./dist/machine/adapter/index.js"
-    },
-    "./element": {
-      "types": "./dist/element.d.ts",
-      "default": "./dist/element.js"
-    },
     "./testing": {
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
-    "./adapter": {
-      "types": "./dist/machine/adapter/index.d.ts",
-      "default": "./dist/machine/adapter/index.js"
+    "./fsm": {
+      "types": "./dist/machine/fsm/machine.d.ts",
+      "default": "./dist/machine/fsm/machine.js"
     },
     "./load": {
       "types": "./dist/directives/load.d.ts",
@@ -45,14 +37,21 @@
     "./props": {
       "types": "./dist/props.d.ts",
       "default": "./dist/props.js"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "default": "./dist/actions/index.js"
     }
   },
   "files": [
     "dist",
     "README.md"
   ],
-  "peerDependencies": {
-    "@spin/theme": "^0.1.0"
+  "dependencies": {
+    "@spin/syntax": "^0.1.0",
+    "alien-signals": "^3.2.1",
+    "linkedom": "^0.18.0",
+    "unplugin": "^3.4.0"
   },
   "publishConfig": {
     "access": "public",

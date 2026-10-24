@@ -5,8 +5,8 @@
 </script>
 
 
-<div class="mx-auto flex w-full max-w-xs justify-center">
-  <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-muted" {...machine.getRootProps()}>
+<div class="mx-auto flex w-full max-w-[20rem] justify-center">
+  <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-text-muted" {...machine.getRootProps()}>
     <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
     <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>
       <span class="i-lucide-user text-lg" aria-hidden="true"></span>

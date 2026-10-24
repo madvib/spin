@@ -13,18 +13,23 @@ import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 import { type Page } from "npm:playwright-core";
 
-
 const READOUT = "#popover-open";
 const TOASTS = "#popover-toasts";
 
 /** The platform's own truth: the native popover's open state. */
 const nativeOpen = (page: Page): Promise<boolean> =>
   page.evaluate(() =>
-    document.querySelector("spin-popover [popover]")?.matches(":popover-open") ?? false
+    document.querySelector("spin-popover [popover]")?.matches(
+      ":popover-open",
+    ) ?? false
   );
 
 Deno.test("spin-popover e2e", () =>
-  runComponentSuite({ port: 5224, route: "/popover", ready: "spin-popover button" }, async ({ page }) => {
+  runComponentSuite({
+    port: 5224,
+    route: "/popover",
+    ready: "spin-popover button",
+  }, async ({ page }) => {
     await step("the trigger opens the native popover", async () => {
       assert.equal(await page.locator(READOUT).textContent(), "false");
       await page.getByRole("button", { name: "Open popover" }).click();
@@ -33,7 +38,11 @@ Deno.test("spin-popover e2e", () =>
         undefined,
         { timeout: 5000 },
       );
-      assert.equal(await page.locator(READOUT).textContent(), "true", "the host readout follows the platform");
+      assert.equal(
+        await page.locator(READOUT).textContent(),
+        "true",
+        "the host readout follows the platform",
+      );
       assert.equal(await nativeOpen(page), true, "the native popover is open");
     });
 
@@ -44,7 +53,11 @@ Deno.test("spin-popover e2e", () =>
         undefined,
         { timeout: 5000 },
       );
-      assert.equal(await page.locator(READOUT).textContent(), "false", "the toggle event reported the close");
+      assert.equal(
+        await page.locator(READOUT).textContent(),
+        "false",
+        "the toggle event reported the close",
+      );
     });
 
     await step("imperative commands reach the native methods", async () => {
@@ -64,7 +77,11 @@ Deno.test("spin-popover e2e", () =>
       // nothing, so a wait for the close would be satisfied by the state
       // it waits for. The step asserts that no-op instead.
       await page.getByRole("button", { name: "el.hide()" }).click();
-      assert.equal(await nativeOpen(page), false, "hide on a closed popover leaves it closed");
+      assert.equal(
+        await nativeOpen(page),
+        false,
+        "hide on a closed popover leaves it closed",
+      );
       assert.equal(
         await page.locator(READOUT).textContent(),
         "false",
@@ -90,7 +107,11 @@ Deno.test("spin-popover e2e", () =>
 
     await step("the machine half answers the same handle", async () => {
       await page.getByRole("button", { name: "el.create({...})" }).click();
-      assert.equal(await page.locator(TOASTS).textContent(), "1", "create through the ctl shows one toast");
+      assert.equal(
+        await page.locator(TOASTS).textContent(),
+        "1",
+        "create through the ctl shows one toast",
+      );
       await page.getByRole("button", { name: "el.dismissAll()" }).click();
       // Dismissed rows leave on the remove delay; the region empties after.
       await page.waitForFunction(

@@ -25,10 +25,15 @@ Deno.test("DateInputApi promises the component's surface", () => {
   assertEquals(keys.length, 13);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<DateInputApi["state"], "idle" | "focused"> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<DateInputApi["state"], "idle" | "focused"> =
+    true;
   const focusTyped: AssertExact<DateInputApi["focus"], () => void> = true;
-  const setValueTyped: AssertExact<DateInputApi["setValue"], (value: DateValue | null) => void> = true;
+  const setValueTyped: AssertExact<
+    DateInputApi["setValue"],
+    (value: DateValue | null) => void
+  > = true;
   assertEquals(
     [
       stateTyped,

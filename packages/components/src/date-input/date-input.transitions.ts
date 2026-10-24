@@ -4,15 +4,15 @@ import type { DateInputContext, DateInputField } from "./date-input.state.ts";
 import { clampField } from "./date-input.state.ts";
 import {
   advance,
-  clearEnteredKeys,
   clampValue,
+  clearEnteredKeys,
   commit,
   dateToFields,
   daysInMonth,
   emptyFields,
   FIELD_LIMITS,
-  fieldWidth,
   fieldsToDate,
+  fieldWidth,
   parseValue,
   periodOf,
   segmentFields,
@@ -21,20 +21,23 @@ import {
   valueAsString,
 } from "./date-input.state.ts";
 
-type DateInputAssign<K extends keyof DateInputEvents = keyof DateInputEvents> = AssignFor<
-  DateInputContext,
-  DateInputEvents,
-  K
->;
+type DateInputAssign<K extends keyof DateInputEvents = keyof DateInputEvents> =
+  AssignFor<
+    DateInputContext,
+    DateInputEvents,
+    K
+  >;
 
 export const setValue: DateInputAssign<"VALUE.SET"> = (ctx, e) => {
-  const named =
-    typeof e.value === "string"
-      ? parseValue(e.value)
-      : e.value === null
-        ? null
-        : (e.value as DateInputContext["value"]);
-  if (typeof e.value === "string" && valueAsString(ctx.value) === valueAsString(named)) {
+  const named = typeof e.value === "string"
+    ? parseValue(e.value)
+    : e.value === null
+    ? null
+    : (e.value as DateInputContext["value"]);
+  if (
+    typeof e.value === "string" &&
+    valueAsString(ctx.value) === valueAsString(named)
+  ) {
     return {};
   }
   const value = clampValue(named, ctx.min, ctx.max);
@@ -54,13 +57,24 @@ export const setHourCycle: DateInputAssign<"HOUR_CYCLE.SET"> = (ctx, e) => ({
 
 export const focusSegment: DateInputAssign<"SEGMENT.FOCUS"> = setActiveSegment;
 
-export const isSameSegmentFocus: GuardFor<DateInputContext, DateInputEvents> = (ctx, e) =>
-  e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment;
+export const isSameSegmentFocus: GuardFor<DateInputContext, DateInputEvents> = (
+  ctx,
+  e,
+) => e.type === "SEGMENT.FOCUS" && e.index === ctx.activeSegment;
 
 export const blurSegment: DateInputAssign<"SEGMENT.BLUR"> = (ctx) => {
-  const value = clampValue(fieldsToDate(ctx.fields, ctx.hourCycle), ctx.min, ctx.max);
+  const value = clampValue(
+    fieldsToDate(ctx.fields, ctx.hourCycle),
+    ctx.min,
+    ctx.max,
+  );
   if (value === null) return { activeSegment: -1, enteredKeys: "" };
-  return { activeSegment: -1, enteredKeys: "", value, fields: dateToFields(value, ctx.hourCycle) };
+  return {
+    activeSegment: -1,
+    enteredKeys: "",
+    value,
+    fields: dateToFields(value, ctx.hourCycle),
+  };
 };
 
 export const inputSegment: DateInputAssign<"SEGMENT.INPUT"> = (ctx, e) => {
@@ -77,11 +91,16 @@ export const inputSegment: DateInputAssign<"SEGMENT.INPUT"> = (ctx, e) => {
   const keys = `${ctx.enteredKeys}${e.input}`.slice(-width);
   const numeric = Number.parseInt(keys, 10);
   if (Number.isNaN(numeric)) return {};
-  const next = { ...ctx.fields, [field]: clampField(field, numeric, ctx.fields.year, ctx.fields.month) };
+  const next = {
+    ...ctx.fields,
+    [field]: clampField(field, numeric, ctx.fields.year, ctx.fields.month),
+  };
   if (keys.length < width) return { fields: next, enteredKeys: keys };
   if (keys.length === width && keys.startsWith("0") && field !== "year") {
     const short = Number.parseInt(keys.slice(1), 10);
-    if (!Number.isNaN(short)) return { fields: { ...next, [field]: short }, enteredKeys: keys };
+    if (!Number.isNaN(short)) {
+      return { fields: { ...next, [field]: short }, enteredKeys: keys };
+    }
   }
   return advance(next, ctx, e.index, fields);
 };
@@ -90,15 +109,18 @@ export const adjustSegment: DateInputAssign<"SEGMENT.ADJUST"> = (ctx, e) => {
   const fields = segmentFields(ctx.granularity);
   const field = fields[e.index];
   if (field === undefined) return {};
-  const limits =
-    field === "day"
-      ? { min: 1, max: daysInMonth(ctx.fields.year, ctx.fields.month) }
-      : FIELD_LIMITS[field];
+  const limits = field === "day"
+    ? { min: 1, max: daysInMonth(ctx.fields.year, ctx.fields.month) }
+    : FIELD_LIMITS[field];
   const current = ctx.fields[field];
   const at = current ?? (e.amount > 0 ? limits.max : limits.min);
   const span = limits.max - limits.min + 1;
-  const cycled = limits.min + (((at - limits.min + e.amount) % span + span) % span);
-  const next = { ...ctx.fields, [field]: clampField(field, cycled, ctx.fields.year, ctx.fields.month) };
+  const cycled = limits.min +
+    (((at - limits.min + e.amount) % span + span) % span);
+  const next = {
+    ...ctx.fields,
+    [field]: clampField(field, cycled, ctx.fields.year, ctx.fields.month),
+  };
   return { ...commit(next, ctx), enteredKeys: "" };
 };
 
@@ -108,11 +130,16 @@ export const arrowLeft: DateInputAssign<"SEGMENT.ARROW_LEFT"> = (ctx) => ({
 });
 
 export const arrowRight: DateInputAssign<"SEGMENT.ARROW_RIGHT"> = (ctx) => ({
-  activeSegment: Math.min(segmentFields(ctx.granularity).length - 1, ctx.activeSegment + 1),
+  activeSegment: Math.min(
+    segmentFields(ctx.granularity).length - 1,
+    ctx.activeSegment + 1,
+  ),
   enteredKeys: "",
 });
 
-export const backspaceEmpty: GuardFor<DateInputContext, DateInputEvents> = (ctx) => {
+export const backspaceEmpty: GuardFor<DateInputContext, DateInputEvents> = (
+  ctx,
+) => {
   if (ctx.enteredKeys !== "") return false;
   const fields = segmentFields(ctx.granularity);
   const field = fields[ctx.activeSegment];
@@ -137,7 +164,10 @@ export const homeSegment: DateInputAssign<"SEGMENT.HOME"> = (ctx) => {
   if (field === undefined) return {};
   const value = field === "day" ? 1 : FIELD_LIMITS[field].min;
   return {
-    ...commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx),
+    ...commit({
+      ...ctx.fields,
+      [field]: clampField(field, value, ctx.fields.year, ctx.fields.month),
+    }, ctx),
     enteredKeys: "",
   };
 };
@@ -146,9 +176,14 @@ export const endSegment: DateInputAssign<"SEGMENT.END"> = (ctx) => {
   const fields = segmentFields(ctx.granularity);
   const field = fields[ctx.activeSegment];
   if (field === undefined) return {};
-  const value = field === "day" ? daysInMonth(ctx.fields.year, ctx.fields.month) : FIELD_LIMITS[field].max;
+  const value = field === "day"
+    ? daysInMonth(ctx.fields.year, ctx.fields.month)
+    : FIELD_LIMITS[field].max;
   return {
-    ...commit({ ...ctx.fields, [field]: clampField(field, value, ctx.fields.year, ctx.fields.month) }, ctx),
+    ...commit({
+      ...ctx.fields,
+      [field]: clampField(field, value, ctx.fields.year, ctx.fields.month),
+    }, ctx),
     enteredKeys: "",
   };
 };
@@ -166,5 +201,9 @@ export const pasteSegment: DateInputAssign<"SEGMENT.PASTE"> = (ctx, e) => {
     second: 0,
   };
   const clamped = clampValue(value, ctx.min, ctx.max);
-  return { value: clamped, fields: dateToFields(clamped, ctx.hourCycle), enteredKeys: "" };
+  return {
+    value: clamped,
+    fields: dateToFields(clamped, ctx.hourCycle),
+    enteredKeys: "",
+  };
 };

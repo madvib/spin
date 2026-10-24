@@ -1,6 +1,6 @@
 import { ParseError, type ComponentIr, type Diagnostic, type Node, type ObjectField, type PropDecl, type ScopeBlock } from "./ir.ts";
 import { matchBrace } from "./braces.ts";
-import { isValidJsonDefault } from "@spin/runtime/props";
+import { isValidJsonDefault } from "./props.ts";
 
 const VOID = new Set([
   "area",
@@ -593,7 +593,7 @@ function parseObjectFields(inner: string, start: number, end: number, p: Parser)
   return fields;
 }
 
-export { coerceProps } from "@spin/runtime/props";
+export { coerceProps } from "./props.ts";
 
 export function parse(source: string): ComponentIr {
   const p: Parser = { src: source, pos: 0, errors: [] };

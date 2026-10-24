@@ -1,5 +1,9 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { CarouselArgs, CarouselContext, CarouselState } from "./carousel.state.ts";
+import type {
+  CarouselArgs,
+  CarouselContext,
+  CarouselState,
+} from "./carousel.state.ts";
 import { initial } from "./carousel.state.ts";
 import type { CarouselEvents } from "./carousel.events.ts";
 import {

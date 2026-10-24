@@ -32,10 +32,21 @@ Deno.test("NumberInputApi promises the component's surface", () => {
     "getCursorProps",
   ];
   assertEquals(keys.length, 27);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<NumberInputApi["state"], "idle" | "focused" | "scrubbing"> = true;
-  const setValueTyped: AssertExact<NumberInputApi["setValue"], (value: number | string) => void> = true;
-  const incrementTyped: AssertExact<NumberInputApi["increment"], () => void> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    NumberInputApi["state"],
+    "idle" | "focused" | "scrubbing"
+  > = true;
+  const setValueTyped: AssertExact<
+    NumberInputApi["setValue"],
+    (value: number | string) => void
+  > = true;
+  const incrementTyped: AssertExact<NumberInputApi["increment"], () => void> =
+    true;
   const focusTyped: AssertExact<NumberInputApi["focus"], () => void> = true;
-  assertEquals([stateTyped, setValueTyped, incrementTyped, focusTyped].every(Boolean), true);
+  assertEquals(
+    [stateTyped, setValueTyped, incrementTyped, focusTyped].every(Boolean),
+    true,
+  );
 });

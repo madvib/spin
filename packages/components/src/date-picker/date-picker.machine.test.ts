@@ -3,10 +3,15 @@ import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import { datePicker } from "./date-picker.presentation.ts";
 const createDatePickerBridge = datePicker.createBridge;
-import type { DatePickerApi, DatePickerCellView } from "./date-picker.presentation.ts";
+import type {
+  DatePickerApi,
+  DatePickerCellView,
+} from "./date-picker.presentation.ts";
 import type { DatePickerValue } from "./date-picker.state.ts";
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -39,7 +44,6 @@ const keydown = (key: string): KeyboardEvent => {
   };
   return made as unknown as KeyboardEvent;
 };
-
 
 interface Harness {
   readonly api: DatePickerApi;
@@ -84,28 +88,37 @@ function harness(initial: Record<string, unknown> = {}): Harness {
 }
 
 /** The trigger bag, read afresh — it is cached by the connect. */
-const trigger = (h: Harness): Record<string, unknown> => h.api.getTriggerProps();
+const trigger = (h: Harness): Record<string, unknown> =>
+  h.api.getTriggerProps();
 const cellBag = (h: Harness, day: string): Record<string, unknown> => {
   const hit = h.api.getCells().find((cell) => cellBagDay(cell) === day);
   if (hit === undefined) throw new Error(`no cell for ${day}`);
   return h.api.getCellProps(hit);
 };
 const cellBagDay = (cell: { value: DatePickerValue }): string =>
-  `${`${cell.value.year}`.padStart(4, "0")}-${`${cell.value.month}`.padStart(2, "0")}-${`${cell.value.day}`.padStart(2, "0")}`;
+  `${`${cell.value.year}`.padStart(4, "0")}-${
+    `${cell.value.month}`.padStart(2, "0")
+  }-${`${cell.value.day}`.padStart(2, "0")}`;
 const isoDay = (day: DatePickerValue): string =>
-  `${`${day.year}`.padStart(4, "0")}-${`${day.month}`.padStart(2, "0")}-${`${day.day}`.padStart(2, "0")}`;
+  `${`${day.year}`.padStart(4, "0")}-${`${day.month}`.padStart(2, "0")}-${
+    `${day.day}`.padStart(2, "0")
+  }`;
 
 const strings = (api: DatePickerApi): string[] => [...api.valueAsString];
 
 Deno.test("Given a default value / When started / Then the selection seeds and the trigger shows it", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   assertEquals(strings(h.api), ["2024-02-15"], "the seed lands");
-  assertEquals(h.api.getValueTextRows()[0]?.text, "Feb 15, 2024", "the trigger formats the day");
+  assertEquals(
+    h.api.getValueTextRows()[0]?.text,
+    "Feb 15, 2024",
+    "the trigger formats the day",
+  );
   h.dispose();
 });
 
 Deno.test("Given a closed panel / When the trigger clicks / Then it opens and reports", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
   assertEquals(h.api.isOpen, true, "the panel opens");
   assertEquals(h.openChanges, [true], "one open-change for the move");
@@ -113,27 +126,45 @@ Deno.test("Given a closed panel / When the trigger clicks / Then it opens and re
 });
 
 Deno.test("Given an open single picker / When a day is clicked / Then it selects and closes", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
-  assertEquals(strings(h.api), ["2024-02-20"], "the clicked day replaces the value");
+  assertEquals(
+    strings(h.api),
+    ["2024-02-20"],
+    "the clicked day replaces the value",
+  );
   assertEquals(h.api.isOpen, false, "closeOnSelect closes the panel");
-  assertEquals(h.changes, ["2024-02-20"], "one value-change with the ISO string");
+  assertEquals(
+    h.changes,
+    ["2024-02-20"],
+    "one value-change with the ISO string",
+  );
   h.dispose();
 });
 
 Deno.test("Given an open range picker / When two days are clicked / Then the span selects, backwards included", () => {
-  const h = harness({ defaultFocusedValue: "2024-02-01", selectionMode: "range" });
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    selectionMode: "range",
+  });
   handler<() => void>(trigger(h), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
   assertEquals(strings(h.api), [], "the first click only arms the range");
   handler<() => void>(cellBag(h, "2024-02-14"), "onClick")();
-  assertEquals(strings(h.api), ["2024-02-14", "2024-02-20"], "the earlier day sorts first");
+  assertEquals(
+    strings(h.api),
+    ["2024-02-14", "2024-02-20"],
+    "the earlier day sorts first",
+  );
   h.dispose();
 });
 
 Deno.test("Given an open range picker / When the pointer hovers after arming / Then the preview extends", () => {
-  const h = harness({ defaultFocusedValue: "2024-02-01", selectionMode: "range" });
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    selectionMode: "range",
+  });
   handler<() => void>(trigger(h), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-25"), "onPointerMove")();
@@ -143,18 +174,29 @@ Deno.test("Given an open range picker / When the pointer hovers after arming / T
 });
 
 Deno.test("Given an open multiple picker / When a day is clicked twice / Then it toggles in and out", () => {
-  const h = harness({ defaultFocusedValue: "2024-02-01", selectionMode: "multiple" });
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    selectionMode: "multiple",
+  });
   handler<() => void>(trigger(h), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-22"), "onClick")();
-  assertEquals(strings(h.api), ["2024-02-20", "2024-02-22"], "both days select");
+  assertEquals(
+    strings(h.api),
+    ["2024-02-20", "2024-02-22"],
+    "both days select",
+  );
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
-  assertEquals(strings(h.api), ["2024-02-22"], "the second click removes the day");
+  assertEquals(
+    strings(h.api),
+    ["2024-02-22"],
+    "the second click removes the day",
+  );
   h.dispose();
 });
 
 Deno.test("Given a focused day / When ArrowRight fires / Then focus moves one day and stays in month", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
   const day = cellBag(h, "2024-02-15");
   handler<(e: KeyboardEvent) => void>(day, "onKeyDown")(keydown("ArrowRight"));
@@ -162,15 +204,19 @@ Deno.test("Given a focused day / When ArrowRight fires / Then focus moves one da
 });
 
 Deno.test("Given a focused day at a month start / When ArrowUp fires / Then focus crosses into the previous month", () => {
-  const h = harness({ defaultValue: "[\"2024-03-01\"]" });
+  const h = harness({ defaultValue: '["2024-03-01"]' });
   handler<() => void>(trigger(h), "onClick")();
   const day = cellBag(h, "2024-03-01");
   handler<(e: KeyboardEvent) => void>(day, "onKeyDown")(keydown("ArrowUp"));
-  assertEquals(isoDay(h.api.focusedValue), "2024-02-23", "a week back crosses the month edge");
+  assertEquals(
+    isoDay(h.api.focusedValue),
+    "2024-02-23",
+    "a week back crosses the month edge",
+  );
 });
 
 Deno.test("Given the day view / When the view control clicks / Then it drills to months and back", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
   assertEquals(h.api.view, "day");
   handler<() => void>(h.api.getViewControlProps(), "onClick")();
@@ -183,7 +229,11 @@ Deno.test("Given the day view / When the view control clicks / Then it drills to
   assertEquals(h.api.view, "month", "a year cell names its months");
   handler<() => void>(cellBag(h, "2026-06-01"), "onClick")();
   assertEquals(h.api.view, "day", "a month cell names its days");
-  assertEquals(isoDay(h.api.focusedValue), "2026-06-01", "the focused day follows the drill");
+  assertEquals(
+    isoDay(h.api.focusedValue),
+    "2026-06-01",
+    "the focused day follows the drill",
+  );
 });
 
 Deno.test("Given a min bound / When a day before it is clicked / Then the click is refused", () => {
@@ -197,32 +247,42 @@ Deno.test("Given a min bound / When a day before it is clicked / Then the click 
 });
 
 Deno.test("Given a max bound / When arrows push past it / Then focus clamps to the bound", () => {
-  const h = harness({ defaultValue: "[\"2024-02-28\"]", max: "2024-02-28" });
+  const h = harness({ defaultValue: '["2024-02-28"]', max: "2024-02-28" });
   handler<() => void>(trigger(h), "onClick")();
   const day = cellBag(h, "2024-02-28");
   handler<(e: KeyboardEvent) => void>(day, "onKeyDown")(keydown("ArrowRight"));
-  assertEquals(isoDay(h.api.focusedValue), "2024-02-28", "focus cannot pass the max");
+  assertEquals(
+    isoDay(h.api.focusedValue),
+    "2024-02-28",
+    "focus cannot pass the max",
+  );
 });
 
 Deno.test("Given a leap February / When the grid builds / Then the 29th exists and the tail pads to weeks", () => {
-  const h = harness({ defaultValue: "[\"2024-02-15\"]" });
+  const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
-  const days = h.api.getCells().filter((cell) => !cell.outside && cell.value.month === 2);
+  const days = h.api.getCells().filter((cell) =>
+    !cell.outside && cell.value.month === 2
+  );
   assertEquals(days.length, 29, "February 2024 holds 29 days");
   assertEquals(h.api.getCells().length % 7, 0, "the grid is whole weeks");
 });
 
 Deno.test("Given an authored value prop / When it changes / Then the selection alternates", () => {
-  const h = harness({ value: "[\"2024-01-10\"]" });
+  const h = harness({ value: '["2024-01-10"]' });
   assertEquals(strings(h.api), ["2024-01-10"], "the authored seed lands");
   const value = h.props["value"];
   if (value === undefined) throw new Error("no value cell");
   value("2024-03-20");
-  assertEquals(strings(h.api), ["2024-03-20"], "the host's write alternates the machine");
+  assertEquals(
+    strings(h.api),
+    ["2024-03-20"],
+    "the host's write alternates the machine",
+  );
 });
 
 Deno.test("Given an imperative setValue / When called / Then the selection replaces wholesale", () => {
-  const h = harness({ value: "[\"2024-01-10\"]" });
+  const h = harness({ value: '["2024-01-10"]' });
   h.api.setValue([{ year: 2025, month: 7, day: 4 }]);
   assertEquals(strings(h.api), ["2025-07-04"], "setValue writes the selection");
   h.api.clear();
@@ -231,7 +291,10 @@ Deno.test("Given an imperative setValue / When called / Then the selection repla
 });
 
 Deno.test("Given a closeOnSelect=false picker / When a day is clicked / Then the panel stays open", () => {
-  const h = harness({ defaultFocusedValue: "2024-02-01", closeOnSelect: false });
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    closeOnSelect: false,
+  });
   handler<() => void>(trigger(h), "onClick")();
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
   assertEquals(h.api.isOpen, true, "the picker stays open for the next pick");

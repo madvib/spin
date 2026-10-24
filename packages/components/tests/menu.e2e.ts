@@ -12,7 +12,7 @@
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { type Browser, chromium, type Page } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
@@ -37,7 +37,11 @@ async function buildDemo(): Promise<void> {
     stderr: "piped",
   });
   const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
+  assert.equal(
+    code,
+    0,
+    `vite build failed:\n${new TextDecoder().decode(stderr)}`,
+  );
 }
 
 /** Serves the built dist on a fixed port and waits until it answers. */
@@ -87,7 +91,10 @@ async function pressRow(page: Page, selector: string): Promise<void> {
   await delay(200);
   const settled = await page.locator(selector).boundingBox();
   if (settled === null) throw new Error(`no box for ${selector}`);
-  await page.mouse.click(settled.x + settled.width / 2, settled.y + settled.height / 2);
+  await page.mouse.click(
+    settled.x + settled.width / 2,
+    settled.y + settled.height / 2,
+  );
 }
 
 await step("build", buildDemo);
@@ -96,8 +103,11 @@ const pageErrors: string[] = [];
 let browser: Browser | undefined;
 
 try {
-  browser = await step("launch chromium", () =>
-    chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
+  browser = await step(
+    "launch chromium",
+    () =>
+      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
+  );
 
   const page = await browser.newPage();
   page.on("pageerror", (err) => pageErrors.push(err.message));
@@ -110,7 +120,10 @@ try {
   });
 
   const trigger = page.getByRole("button", { name: "File actions" });
-  const owner = ((await trigger.getAttribute("id")) ?? "").replace(/:trigger$/, "");
+  const owner = ((await trigger.getAttribute("id")) ?? "").replace(
+    /:trigger$/,
+    "",
+  );
   assert.notEqual(owner, "", "the trigger carries its part id");
 
   /** Parts are scoped by the element's id: `menu:<id>:<part>`. */
@@ -139,16 +152,25 @@ try {
       "the menu is labelled by its trigger",
     );
     assert.equal(await panel.isVisible(), false, "the panel starts hidden");
-    assert.equal(await page.locator(`${part("content")} [data-highlighted]`).count(), 0);
+    assert.equal(
+      await page.locator(`${part("content")} [data-highlighted]`).count(),
+      0,
+    );
     assert.equal(await page.locator("#menu-open").textContent(), "false");
-    assert.equal(await page.locator("#menu-selected").textContent(), "nothing selected yet");
+    assert.equal(
+      await page.locator("#menu-selected").textContent(),
+      "nothing selected yet",
+    );
     assert.equal(await page.locator("#menu-highlighted").textContent(), "none");
   });
 
   await step("a click on the trigger opens the panel below it", async () => {
     await trigger.click();
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
-    assert.equal(await trigger.getAttribute("aria-controls"), `${owner}:content`);
+    assert.equal(
+      await trigger.getAttribute("aria-controls"),
+      `${owner}:content`,
+    );
     assert.equal(await panel.getAttribute("data-state"), "open");
     assert.equal(await panel.isVisible(), true);
     assert.equal(await menu.getAttribute("data-state"), "open");
@@ -163,10 +185,14 @@ try {
     await page.waitForTimeout(250);
     const triggerBox = await trigger.boundingBox();
     const panelBox = await panel.boundingBox();
-    if (triggerBox === null || panelBox === null) throw new Error("no box to compare");
+    if (triggerBox === null || panelBox === null) {
+      throw new Error("no box to compare");
+    }
     assert.ok(
       panelBox.y >= triggerBox.y + triggerBox.height - 1,
-      `the panel (y=${panelBox.y}) sits below the trigger (bottom=${triggerBox.y + triggerBox.height})`,
+      `the panel (y=${panelBox.y}) sits below the trigger (bottom=${
+        triggerBox.y + triggerBox.height
+      })`,
     );
     assert.ok(
       panelBox.width >= triggerBox.width - 1,
@@ -274,7 +300,11 @@ try {
       0,
       "the disabled row takes no highlight",
     );
-    assert.equal(await panel.getAttribute("data-state"), "open", "the menu stayed open");
+    assert.equal(
+      await panel.getAttribute("data-state"),
+      "open",
+      "the menu stayed open",
+    );
     assert.equal(await page.locator("#menu-open").textContent(), "true");
     await page.keyboard.press("Escape");
   });
@@ -284,7 +314,11 @@ try {
     await page.locator(row("share")).hover();
     await delay(400);
     const child = page.locator(submenuPanel("share"));
-    assert.equal(await child.getAttribute("data-state"), "open", "the child panel opened");
+    assert.equal(
+      await child.getAttribute("data-state"),
+      "open",
+      "the child panel opened",
+    );
     assert.equal(await child.isVisible(), true, "the child panel is visible");
     assert.equal(
       await child.getByRole("menuitem").count(),
@@ -308,31 +342,44 @@ try {
     );
   });
 
-  await step("selecting inside the submenu reports upward and closes the chain", async () => {
-    await pressRow(page, submenuRow("share", "mail"));
-    assert.equal(await page.locator("#menu-selected").textContent(), "Email link");
-    assert.equal(
-      await page.locator("#menu-open").textContent(),
-      "false",
-      "open-change reported the close of the whole chain",
-    );
-    assert.equal(await panel.getAttribute("data-state"), "closed");
-    assert.equal(
-      await page.locator(submenuPanel("share")).getAttribute("data-state"),
-      "closed",
-      "the child panel closed too",
-    );
-  });
+  await step(
+    "selecting inside the submenu reports upward and closes the chain",
+    async () => {
+      await pressRow(page, submenuRow("share", "mail"));
+      assert.equal(
+        await page.locator("#menu-selected").textContent(),
+        "Email link",
+      );
+      assert.equal(
+        await page.locator("#menu-open").textContent(),
+        "false",
+        "open-change reported the close of the whole chain",
+      );
+      assert.equal(await panel.getAttribute("data-state"), "closed");
+      assert.equal(
+        await page.locator(submenuPanel("share")).getAttribute("data-state"),
+        "closed",
+        "the child panel closed too",
+      );
+    },
+  );
 
   await step("ArrowRight enters the submenu from the keyboard", async () => {
     await trigger.focus();
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("ArrowDown");
-    assert.equal(await page.locator("#menu-highlighted").textContent(), "share");
+    assert.equal(
+      await page.locator("#menu-highlighted").textContent(),
+      "share",
+    );
     await page.keyboard.press("ArrowRight");
     const child = page.locator(submenuPanel("share"));
-    assert.equal(await child.getAttribute("data-state"), "open", "ArrowRight opened it");
+    assert.equal(
+      await child.getAttribute("data-state"),
+      "open",
+      "ArrowRight opened it",
+    );
     assert.equal(await child.isVisible(), true);
   });
 
@@ -361,7 +408,11 @@ try {
   });
 
   await step("no page errors", async () => {
-    assert.deepEqual(pageErrors, [], `page errors detected: ${pageErrors.join(", ")}`);
+    assert.deepEqual(
+      pageErrors,
+      [],
+      `page errors detected: ${pageErrors.join(", ")}`,
+    );
   });
 } finally {
   if (browser) await browser.close();

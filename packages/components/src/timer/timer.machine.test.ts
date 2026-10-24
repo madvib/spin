@@ -10,7 +10,9 @@ import type { Time, TimePart } from "./timer.state.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -34,13 +36,16 @@ interface ClockParam {
   readonly onTick: () => void;
 }
 
-const click = (): MouseEvent => ({ defaultPrevented: false }) as unknown as MouseEvent;
+const click = (): MouseEvent =>
+  ({ defaultPrevented: false }) as unknown as MouseEvent;
 
 /** The clock param object the root bag carries. Bags hand back
  * `Record<string, unknown>`, so the shape is checked once here. */
 function clockOf(bag: Record<string, unknown>): ClockParam {
   const entry: unknown = bag["use:autoplay"];
-  if (typeof entry !== "object" || entry === null) throw new Error("no clock on the root bag");
+  if (typeof entry !== "object" || entry === null) {
+    throw new Error("no clock on the root bag");
+  }
   return entry as ClockParam;
 }
 
@@ -95,7 +100,9 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   const bridge = createTimerBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -111,7 +118,9 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
       clockOf(bridge.api.getRootProps()).onTick();
     },
     press: (action) => {
-      const bag = bridge.api.getActionTriggerProps({ action: action as "start" });
+      const bag = bridge.api.getActionTriggerProps({
+        action: action as "start",
+      });
       handler<(event: MouseEvent) => void>(bag, "onClick")(click());
     },
     units: () => bridge.api.getUnits(),
@@ -121,7 +130,8 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 const time = (api: TimerApi): Time => api.time;
-const formatted = (api: TimerApi): Readonly<Record<TimePart, string>> => api.formattedTime;
+const formatted = (api: TimerApi): Readonly<Record<TimePart, string>> =>
+  api.formattedTime;
 const hidden = (api: TimerApi, action: string): boolean =>
   api.getActionTriggerProps({ action: action as "start" })["hidden"] === true;
 
@@ -132,13 +142,29 @@ Deno.test("Given a fresh timer / When nothing is authored / Then idle holds a ze
   assertEquals(h.api.running, false, "the api reports not running");
   assertEquals(h.api.paused, false, "the api reports not paused");
   assertEquals(h.state(), "idle", "idle is the reachable start state");
-  assertEquals(time(h.api), { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 }, "the count starts at zero");
+  assertEquals(time(h.api), {
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  }, "the count starts at zero");
   assertEquals(
     formatted(h.api),
-    { days: "00", hours: "00", minutes: "00", seconds: "00", milliseconds: "000" },
+    {
+      days: "00",
+      hours: "00",
+      minutes: "00",
+      seconds: "00",
+      milliseconds: "000",
+    },
     "every unit is padded to its width",
   );
-  assertEquals(h.api.progressPercent, 0, "a targetless stopwatch has no progress to report");
+  assertEquals(
+    h.api.progressPercent,
+    0,
+    "a targetless stopwatch has no progress to report",
+  );
   assertEquals(h.events.tick, [], "nothing has ticked");
   assertEquals(h.events.complete, 0, "nothing has completed");
 });
@@ -169,13 +195,23 @@ Deno.test("Given autoStart / When the timer mounts / Then running is the reachab
 
 Deno.test("Given a startMs past a day / When the timer mounts / Then the days unit renders", () => {
   const h = mount({ startMs: 90_061_000 });
-  assertEquals(time(h.api), { days: 1, hours: 1, minutes: 1, seconds: 1, milliseconds: 0 }, "the units carry their own part of the count");
+  assertEquals(time(h.api), {
+    days: 1,
+    hours: 1,
+    minutes: 1,
+    seconds: 1,
+    milliseconds: 0,
+  }, "the units carry their own part of the count");
   assertEquals(
     h.units().map((unit) => unit.type),
     ["days", "hours", "minutes", "seconds"],
     "a run past a day grows the days row",
   );
-  assertEquals(h.units().at(-1)?.last, true, "the last visible unit takes no separator");
+  assertEquals(
+    h.units().at(-1)?.last,
+    true,
+    "the last visible unit takes no separator",
+  );
   assertEquals(
     h.api.getSeparatorProps({ after: "days" })["hidden"],
     false,
@@ -187,7 +223,11 @@ Deno.test("Given a startMs past a day / When the timer mounts / Then the days un
 
 Deno.test("Given an idle timer / When start runs / Then the running phase is reachable and the clock arms", () => {
   const h = mount();
-  assertEquals(h.clock().enabled, false, "a stopped clock's interval is disarmed");
+  assertEquals(
+    h.clock().enabled,
+    false,
+    "a stopped clock's interval is disarmed",
+  );
   h.api.start();
   assertEquals(h.state(), "running", "start moves to running");
   assertEquals(hidden(h.api, "start"), true, "start is answered by hiding it");
@@ -215,7 +255,11 @@ Deno.test("Given a paused timer / When resume runs / Then the running phase is r
   h.api.pause();
   h.api.resume();
   assertEquals(h.state(), "running", "resume returns to running");
-  assertEquals(time(h.api).seconds, 3, "and the count keeps what the tick left");
+  assertEquals(
+    time(h.api).seconds,
+    3,
+    "and the count keeps what the tick left",
+  );
 });
 
 // ---- RESET / RESTART ------------------------------------------------------
@@ -226,7 +270,11 @@ Deno.test("Given a running timer / When reset runs / Then the count goes home an
   h.tick();
   assertEquals(time(h.api).seconds, 4, "the tick counted up");
   h.api.reset();
-  assertEquals(h.state(), "running", "a running clock stays running through a reset");
+  assertEquals(
+    h.state(),
+    "running",
+    "a running clock stays running through a reset",
+  );
   assertEquals(time(h.api).seconds, 3, "the count is back at startMs");
 });
 
@@ -264,7 +312,17 @@ Deno.test("Given a running stopwatch / When a tick arrives / Then the count adva
   h.tick();
   assertEquals(time(h.api).milliseconds, 250, "one interval is counted");
   assertEquals(h.events.tick, [
-    { value: 250, time: { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 250 }, formattedTime: { days: "00", hours: "00", minutes: "00", seconds: "00", milliseconds: "250" } },
+    {
+      value: 250,
+      time: { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 250 },
+      formattedTime: {
+        days: "00",
+        hours: "00",
+        minutes: "00",
+        seconds: "00",
+        milliseconds: "250",
+      },
+    },
   ], "tick reports the new count and its parts");
 });
 
@@ -272,14 +330,22 @@ Deno.test("Given a running stopwatch / When a tick's delta spans two intervals /
   const h = mount({ interval: 1_000 });
   h.api.start();
   h.tick(2_500);
-  assertEquals(time(h.api).seconds, 2, "the part interval below a whole one is dropped");
+  assertEquals(
+    time(h.api).seconds,
+    2,
+    "the part interval below a whole one is dropped",
+  );
 });
 
 Deno.test("Given a running stopwatch / When a tick's delta is under an interval / Then it still counts one", () => {
   const h = mount({ interval: 1_000 });
   h.api.start();
   h.tick(300);
-  assertEquals(time(h.api).seconds, 1, "a tick is worth the interval that just ran");
+  assertEquals(
+    time(h.api).seconds,
+    1,
+    "a tick is worth the interval that just ran",
+  );
 });
 
 Deno.test("Given a running countdown / When a tick arrives / Then the count comes down", () => {
@@ -291,10 +357,19 @@ Deno.test("Given a running countdown / When a tick arrives / Then the count come
 });
 
 Deno.test("Given a countdown at the target / When a tick would pass it / Then the count holds at the target", () => {
-  const h = mount({ countdown: true, startMs: 5_000, targetMs: 1_000, interval: 1_000 });
+  const h = mount({
+    countdown: true,
+    startMs: 5_000,
+    targetMs: 1_000,
+    interval: 1_000,
+  });
   h.api.start();
   h.tick(4_000);
-  assertEquals(time(h.api).seconds, 1, "the count is clamped at targetMs, not past it");
+  assertEquals(
+    time(h.api).seconds,
+    1,
+    "the count is clamped at targetMs, not past it",
+  );
   // The guard reads the count as it was BEFORE the tick's own write: the tick
   // that lands on the target is counted, and the next one ends the run.
   assertEquals(h.state(), "running", "the landing tick is still counted");
@@ -350,7 +425,11 @@ Deno.test("Given a paused timer / When ticks would arrive / Then the clock repor
   h.api.pause();
   const last = h.events.tick.length;
   h.tick();
-  assertEquals(h.events.tick.length, last, "a paused clock is not ticked by the view");
+  assertEquals(
+    h.events.tick.length,
+    last,
+    "a paused clock is not ticked by the view",
+  );
   assertEquals(time(h.api).seconds, 2, "and the count holds");
 });
 
@@ -361,7 +440,11 @@ Deno.test("Given a countdown past its middle / When progress is read / Then it r
   h.api.start();
   assertEquals(h.api.progressPercent, 1, "a fresh countdown is full");
   h.tick(2_500);
-  assertEquals(h.api.progressPercent, 0.5, "half the count is half the progress");
+  assertEquals(
+    h.api.progressPercent,
+    0.5,
+    "half the count is half the progress",
+  );
   h.tick(2_500);
   assertEquals(h.api.progressPercent, 0, "an empty countdown is empty");
 });
@@ -371,9 +454,17 @@ Deno.test("Given a stopwatch with a target / When progress is read / Then it rep
   h.api.start();
   assertEquals(h.api.progressPercent, 0, "a fresh stopwatch is empty");
   h.tick(2_000);
-  assertEquals(h.api.progressPercent, 0.25, "a quarter of the count is a quarter done");
+  assertEquals(
+    h.api.progressPercent,
+    0.25,
+    "a quarter of the count is a quarter done",
+  );
   h.tick(10_000);
-  assertEquals(h.api.progressPercent, 1, "and progress never runs past the target");
+  assertEquals(
+    h.api.progressPercent,
+    1,
+    "and progress never runs past the target",
+  );
 });
 
 // ---- the dom contract -----------------------------------------------------
@@ -385,35 +476,75 @@ Deno.test("Given a running countdown / When the parts are read / Then the contra
   assertEquals(h.api.state, "running", "the root states the phase");
 
   const area = h.api.getAreaProps();
-  assertEquals(area["id"], "timer:timer:area", "the area carries the namespaced id");
+  assertEquals(
+    area["id"],
+    "timer:timer:area",
+    "the area carries the namespaced id",
+  );
   assertEquals(area["role"], "timer", "the area is a timer");
   assertEquals(area["aria-atomic"], true, "and announces itself atomically");
-  assertEquals(area["aria-label"], "1 days 01:01:01", "the area label is the count a screen reader hears");
+  assertEquals(
+    area["aria-label"],
+    "1 days 01:01:01",
+    "the area label is the count a screen reader hears",
+  );
 
   const progress = h.api.getProgressProps();
-  assertEquals(progress["id"], "timer:timer:progress", "the fill carries its part id");
-  assertEquals(progress["style"], { width: "100.000%" }, "a fresh countdown shows a full bar");
+  assertEquals(
+    progress["id"],
+    "timer:timer:progress",
+    "the fill carries its part id",
+  );
+  assertEquals(
+    progress["style"],
+    { width: "100.000%" },
+    "a fresh countdown shows a full bar",
+  );
 
   const item = h.api.getItemProps({ type: "seconds" });
-  assertEquals(item["id"], "timer:timer:item:seconds", "the item carries its part id");
+  assertEquals(
+    item["id"],
+    "timer:timer:item:seconds",
+    "the item carries its part id",
+  );
   assertEquals(item["data-type"], "seconds", "and its part");
-  assertEquals(item["data-value"], 1, "the item's value is the raw unit, sent as data");
+  assertEquals(
+    item["data-value"],
+    1,
+    "the item's value is the raw unit, sent as data",
+  );
   assertEquals(item["hidden"], undefined, "a seconds unit is never hidden");
 
   const value = h.api.getItemValueProps({ type: "seconds" });
-  assertEquals(value["id"], "timer:timer:item-value:seconds", "the value part carries its own id");
+  assertEquals(
+    value["id"],
+    "timer:timer:item-value:seconds",
+    "the value part carries its own id",
+  );
   assertEquals(value["data-type"], "seconds", "and the same part");
 
   const label = h.api.getItemLabelProps({ type: "seconds" });
-  assertEquals(label["id"], "timer:timer:item-label:seconds", "the label part carries its own id");
+  assertEquals(
+    label["id"],
+    "timer:timer:item-label:seconds",
+    "the label part carries its own id",
+  );
 
   const separator = h.api.getSeparatorProps({ after: "minutes" });
   assertEquals(separator["aria-hidden"], true, "a separator is decorative");
-  assertEquals(separator["data-after"], "minutes", "and names the unit it follows");
+  assertEquals(
+    separator["data-after"],
+    "minutes",
+    "and names the unit it follows",
+  );
   assertEquals(separator["hidden"], false, "it shows between visible units");
 
   const trigger = h.api.getActionTriggerProps({ action: "pause" });
-  assertEquals(trigger["id"], "timer:timer:action-trigger:pause", "the trigger carries its own id");
+  assertEquals(
+    trigger["id"],
+    "timer:timer:action-trigger:pause",
+    "the trigger carries its own id",
+  );
   assertEquals(trigger["type"], "button", "and is a button");
   assertEquals(trigger["data-action"], "pause", "naming the command it sends");
 });
@@ -421,7 +552,11 @@ Deno.test("Given a running countdown / When the parts are read / Then the contra
 Deno.test("Given a stopwatch under a day / When the days unit is read / Then it is hidden with its separator", () => {
   const h = mount({ startMs: 61_000 });
   const days = h.api.getItemProps({ type: "days" });
-  assertEquals(days["hidden"], true, "a run that has not reached a day hides the unit");
+  assertEquals(
+    days["hidden"],
+    true,
+    "a run that has not reached a day hides the unit",
+  );
   assertEquals(days["data-value"], 0, "and still carries its zero value");
   assertEquals(
     h.api.getSeparatorProps({ after: "days" })["hidden"],
@@ -459,7 +594,11 @@ Deno.test("Given a timer / When an unknown action is asked for / Then the connec
 Deno.test("Given an authored currentMs / When the host writes a new one / Then the machine takes it", () => {
   const h = mount({ currentMs: 0 });
   h.write("currentMs", 7_500);
-  assertEquals(time(h.api).seconds, 7, "the authored count alternates the machine's");
+  assertEquals(
+    time(h.api).seconds,
+    7,
+    "the authored count alternates the machine's",
+  );
   assertEquals(h.state(), "idle", "and the phase is untouched");
 });
 
@@ -475,12 +614,20 @@ Deno.test("Given an authored startMs / When the host writes a new one / Then the
 
 Deno.test("Given an authored interval / When the host writes a faster one / Then the clock and the step follow", () => {
   const h = mount({ interval: 1_000 });
-  assertEquals(h.clock().interval, 1_000, "the clock runs at the authored interval");
+  assertEquals(
+    h.clock().interval,
+    1_000,
+    "the clock runs at the authored interval",
+  );
   h.api.start();
   h.write("interval", 250);
   assertEquals(h.clock().interval, 250, "a new interval re-arms the clock");
   h.tick(250);
-  assertEquals(time(h.api).milliseconds, 250, "the step follows the new interval");
+  assertEquals(
+    time(h.api).milliseconds,
+    250,
+    "the step follows the new interval",
+  );
 });
 
 Deno.test("Given a date string startMs / When the timer mounts / Then it parses to milliseconds", () => {

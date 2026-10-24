@@ -1,33 +1,41 @@
 <script lang="ts">
-  import { angleSlider } from "../angle-slider.presentation.ts";
+import { angleSlider } from "../angle-slider.presentation.ts";
 
-  const machine = angleSlider({ value: "45" });
+const machine = angleSlider({ value: "45" });
 </script>
 
-<div class="mx-auto flex w-full max-w-xs items-center justify-center" {...machine.getRootProps()}>
+<div class="mx-auto flex w-full max-w-[20rem] items-center justify-center"
+  {...machine.getRootProps()}>
   <div
     class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center rounded-full border border-solid border-border bg-surface-raised select-none"
     {...machine.getControlProps()}
   >
     <span
-      class="pointer-events-none absolute inset-y-0 left-1/2 -ml-px w-[2px]"
+      class="pointer-events-none absolute inset-y-0 left-1/2 ml-0 w-[2px]"
       {...machine.getThumbProps({ needle: true })}
     >
-      <span class="absolute inset-x-0 top-0 block h-[17%] rounded-full bg-primary" aria-hidden="true"></span>
+      <span
+        class="absolute inset-x-0 top-0 block h-[17%] rounded-full bg-primary"
+        aria-hidden="true"></span>
     </span>
-    <div class="pointer-events-none absolute inset-px" {...machine.getMarkerGroupProps()}>
+    <div class="pointer-events-none absolute inset-[1px]"
+      {...machine.getMarkerGroupProps()}>
       <template for={machine.getMarkers()} as={row} key={row}>
         <span
-          class="absolute inset-y-0 left-1/2 -ml-px w-[2px]"
+          class="absolute inset-y-0 left-1/2 ml-0 w-[2px]"
           {...machine.getMarkerProps({ value: row, diameter: true })}
         >
-          <span class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full bg-border-strong", { "bg-primary": machine.getMarkerState(row) === "at-value" }]} aria-hidden="true"></span>
+          <span
+            class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full bg-border-strong", { "bg-primary": machine.getMarkerState(row) === "at-value" }]}
+            aria-hidden="true"></span>
         </span>
       </template>
     </div>
-    <span class="flex flex-col items-center" {...machine.getValueTextProps(machine.valueAsDegree)}>
-      <span class="text-4xl font-bold tabular-nums text-text">{machine.value}°</span>
-      <span class="text-sm font-medium text-muted">degrees</span>
+    <span class="flex flex-col items-center"
+      {...machine.getValueTextProps(machine.valueAsDegree)}>
+      <span
+        class="text-2xl font-bold tabular-nums text-text">{machine.value}°</span>
+      <span class="text-sm font-medium text-text-muted">degrees</span>
     </span>
   </div>
   <input {...machine.getHiddenInputProps()} />

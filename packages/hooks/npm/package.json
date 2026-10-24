@@ -27,9 +27,12 @@
     "dist",
     "README.md"
   ],
+  "dependencies": {
+    "react": "^19.0.0",
+    "solid-js": "^1.9.0"
+  },
   "peerDependencies": {
-    "@spin/runtime": "^0.1.0",
-    "@spin/components": "^0.1.0"
+    "@spin/runtime": "^0.1.0"
   },
   "publishConfig": {
     "access": "public",

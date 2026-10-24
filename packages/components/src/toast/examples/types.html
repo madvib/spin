@@ -1,34 +1,47 @@
 <script lang="ts">
-  import { toast } from "../toast.presentation.ts";
+import { toast } from "../toast.presentation.ts";
 
-  const machine = toast({
-    placement: "bottom",
-  });
+const machine = toast({
+ placement: "bottom",
+});
 </script>
-<div class="mx-auto flex w-full max-w-xs flex-col items-center gap-2">
-  <div class="flex flex-wrap justify-center gap-2">
-    <button data-fire="" data-title="Done" data-description="It worked." data-type="success" data-duration="5000" data-action="" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm">Success</button>
-    <button data-fire="" data-title="Careful" data-description="Check this." data-type="warning" data-duration="5000" data-action="" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm">Warning</button>
-    <button data-fire="" data-title="Failed" data-description="Try again." data-type="error" data-duration="5000" data-action="" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm">Error</button>
-    <button data-fire="" data-title="FYI" data-description="Heads up." data-type="info" data-duration="5000" data-action="" class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm">Info</button>
-  </div>
-  <div
-    class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
-    {...machine.getGroupProps()}
-  >
-    <template for={machine.getToasts()} as={row} key={row.id}>
-      <div
-        class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
-        {...machine.getToastProps(row)}
-      >
-        <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg">
-          <div class="min-w-0 flex-1">
-            <div class="text-sm font-medium text-text" {...machine.getTitleProps(row)}>{row.title}</div>
-            <div class="mt-1 text-sm text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
-          </div>
-          <button class="shrink-0 rounded-md p-1 text-sm text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps(row)}>X</button>
-        </div>
-      </div>
-    </template>
-  </div>
+<div class="mx-auto flex w-full max-w-[20rem] flex-col items-center gap-2">
+ <div class="flex flex-wrap justify-center gap-2">
+  <button data-fire="" data-title="Done" data-description="It worked."
+   data-type="success" data-duration="5000" data-action=""
+   class="secondary s-sm">Success</button>
+  <button data-fire="" data-title="Careful" data-description="Check this."
+   data-type="warning" data-duration="5000" data-action=""
+   class="secondary s-sm">Warning</button>
+  <button data-fire="" data-title="Failed" data-description="Try again."
+   data-type="error" data-duration="5000" data-action=""
+   class="secondary s-sm">Error</button>
+  <button data-fire="" data-title="FYI" data-description="Heads up."
+   data-type="info" data-duration="5000" data-action=""
+   class="secondary s-sm">Info</button>
+ </div>
+ <div
+  class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
+  {...machine.getGroupProps()}
+ >
+  <template for={machine.getToasts()} as={row} key={row.id}>
+   <div
+    class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
+    {...machine.getToastProps(row)}
+   >
+    <div
+     class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg">
+     <div class="min-w-0 flex-1">
+      <div class="text-sm font-medium text-text"
+       {...machine.getTitleProps(row)}>{row.title}</div>
+      <div class="mt-1 text-sm text-text-muted"
+       {...machine.getDescriptionProps(row)}>{row.description}</div>
+     </div>
+     <button
+      class="ghost icon s-sm"
+      {...machine.getCloseTriggerProps(row)}>X</button>
+    </div>
+   </div>
+  </template>
+ </div>
 </div>

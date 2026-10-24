@@ -41,9 +41,19 @@ Deno.test("TreeApi promises the component's surface", () => {
     "getRenameInputIndexes",
   ];
   assertEquals(keys.length, 36);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<TreeApi["state"], "idle" | "renaming"> = true;
-  const startRenamingTyped: AssertExact<TreeApi["startRenaming"], (value: string) => void> = true;
-  const getVisibleRowsTyped: AssertExact<TreeApi["getVisibleRows"], () => readonly VisibleRow[]> = true;
-  assertEquals([stateTyped, startRenamingTyped, getVisibleRowsTyped].every(Boolean), true);
+  const startRenamingTyped: AssertExact<
+    TreeApi["startRenaming"],
+    (value: string) => void
+  > = true;
+  const getVisibleRowsTyped: AssertExact<
+    TreeApi["getVisibleRows"],
+    () => readonly VisibleRow[]
+  > = true;
+  assertEquals(
+    [stateTyped, startRenamingTyped, getVisibleRowsTyped].every(Boolean),
+    true,
+  );
 });

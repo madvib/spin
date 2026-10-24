@@ -1,34 +1,29 @@
 {
   "name": "@spin/runtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": {
     ".": "./src/index.ts",
-    "./zag": "./src/machine/adapter/index.ts",
-    "./element": "./src/element.ts",
     "./testing": "./src/testing.ts",
-    "./adapter": "./src/machine/adapter/index.ts",
+    "./fsm": "./src/machine/fsm/machine.ts",
     "./load": "./src/directives/load.ts",
     "./plugin": "./src/plugin/index.ts",
     "./plugin/elements": "./src/plugin/elements.ts",
-    "./props": "./src/props.ts"
+    "./props": "./src/props.ts",
+    "./actions": "./src/actions/index.ts"
   },
   "imports": {
     "@spin/runtime": "./src/index.ts",
-    "@spin/runtime/zag": "./src/machine/adapter/index.ts",
-    "@spin/runtime/element": "./src/element.ts",
     "@spin/runtime/props": "./src/props.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "alien-signals": "npm:alien-signals@^3.2.1",
-    "@zag-js/core": "npm:@zag-js/core@~1.44.0",
-    "@zag-js/utils": "npm:@zag-js/utils@~1.44.0",
-    "@zag-js/collection": "npm:@zag-js/collection@~1.44.0",
     "@spin/runtime/testing": "./src/testing.ts",
     "linkedom": "npm:linkedom@^0.18.0",
-    "@spin/runtime/adapter": "./src/machine/adapter/index.ts",
-    "@zag-js/types": "npm:@zag-js/types@~1.44.0",
+    "@spin/runtime/fsm": "./src/machine/fsm/machine.ts",
     "@spin/runtime/load": "./src/directives/load.ts",
     "@spin/runtime/plugin": "./src/plugin/index.ts",
     "@spin/runtime/plugin/elements": "./src/plugin/elements.ts",
+    "@spin/syntax": "../syntax/src/index.ts",
+    "@spin/syntax/props": "../syntax/src/props.ts",
     "unplugin": "npm:unplugin@^3.4.0"
   },
   "tasks": {

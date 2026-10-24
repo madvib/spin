@@ -2,8 +2,8 @@ import { assertEquals } from "@std/assert";
 import { parseHTML } from "@spin/runtime/testing";
 import { signal } from "@spin/runtime";
 import {
-  treeView,
   type TreeApi,
+  treeView,
   type VisibleRow,
 } from "./tree-view.presentation.ts";
 import type {
@@ -128,7 +128,10 @@ function setup(initialProps: Record<string, unknown> = {}) {
 Deno.test("tree-view: collapsed start exposes top-level rows with branch and leaf kinds", () => {
   const h = setup();
   assertEquals(
-    h.api.getVisibleRows().map((r) => ({ value: r.node.value, depth: r.depth })),
+    h.api.getVisibleRows().map((r) => ({
+      value: r.node.value,
+      depth: r.depth,
+    })),
     [
       { value: "src", depth: 0 },
       { value: "README.md", depth: 0 },
@@ -159,7 +162,10 @@ Deno.test("tree-view: clicking a branch selects and toggles expansion when expan
     h.api.getVisibleRows().map((r) => r.node.value),
     ["src", "components", "index.ts", "README.md"],
   );
-  assertEquals(h.api.getItemIconProps(h.rowOf("src"))["data-kind"], "branch-open");
+  assertEquals(
+    h.api.getItemIconProps(h.rowOf("src"))["data-kind"],
+    "branch-open",
+  );
   assertEquals(h.api.getRailProps(h.rowOf("components"))["hidden"], false);
   assertEquals(h.expandedChanges, [{ expandedValue: ["src"] }]);
   assertEquals(h.selectionChanges, [{ selectedValue: ["src"] }]);
@@ -176,7 +182,10 @@ Deno.test("tree-view: expandOnClick false selects a clicked branch without expan
 
   assertEquals(h.api.selectedValue, ["src"]);
   assertEquals(h.api.expandedValue, []);
-  assertEquals(h.api.getVisibleRows().map((r) => r.node.value), ["src", "README.md"]);
+  assertEquals(h.api.getVisibleRows().map((r) => r.node.value), [
+    "src",
+    "README.md",
+  ]);
   h.dispose();
 });
 
@@ -245,7 +254,10 @@ Deno.test("tree-view: multiple selection supports Ctrl toggle, Shift extend, and
     defaultExpandedValue: ["src"],
   });
 
-  const clickRow = (value: string, mods?: { shift?: boolean; ctrl?: boolean }) => {
+  const clickRow = (
+    value: string,
+    mods?: { shift?: boolean; ctrl?: boolean },
+  ) => {
     const fn = handler<(e: MouseEvent) => void>(
       h.api.getBranchControlProps(h.rowOf(value)),
       "onClick",
@@ -287,7 +299,10 @@ Deno.test("tree-view: renaming a node submits on Enter and cancels on Escape", (
   assertEquals(h.api.focusedValue, "README.md");
 
   const renameBag = h.api.getRenameInputProps(h.rowOf("README.md"));
-  const onRenameKey = handler<(e: KeyboardEvent) => void>(renameBag, "onKeydown");
+  const onRenameKey = handler<(e: KeyboardEvent) => void>(
+    renameBag,
+    "onKeydown",
+  );
 
   // Escape cancels without changing label
   onRenameKey(keydown("Escape"));

@@ -1,5 +1,5 @@
 # Operational docs (git-ignored, will go stale)
-.agents/specs/
+.agents/
 
 # Daemon discovery (written at start, removed on close)
 spin-connection.json

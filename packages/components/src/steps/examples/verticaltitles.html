@@ -1,7 +1,12 @@
 <script lang="ts">
-  import { steps } from "../steps.presentation.ts";
+import { steps } from "../steps.presentation.ts";
 
-  const machine = steps({ count: 4, titles: ["Step One", "Step Two", "Step Three", "Step Four"], step: 1, orientation: "vertical" });
+const machine = steps({
+ count: 4,
+ titles: ["Step One", "Step Two", "Step Three", "Step Four"],
+ step: 1,
+ orientation: "vertical",
+});
 </script>
 
 <include file="./verticallabels.html" />

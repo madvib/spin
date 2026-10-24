@@ -21,7 +21,6 @@ export interface ParseHost {
 
 export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
 
-
 /** What a part bag reads. All live — the framework calls this per tick
  * and memoizes on the returned signature. */
 export type AnyEvent = { readonly type: string } & Record<string, unknown>;
@@ -70,7 +69,10 @@ export interface PartDef<
    * The bag rebuilds when the scope's fields it read move: the reads are
    * recorded, so a dependency is never named by hand. Optional when the
    * part carries only its auto-stamped `id`, `data-scope`, and `data-part`. */
-  attrs?(scope: PartScope<R, C, P, Ev, S>, arg?: unknown): Record<string, unknown>;
+  attrs?(
+    scope: PartScope<R, C, P, Ev, S>,
+    arg?: unknown,
+  ): Record<string, unknown>;
 }
 
 /** What a slotted bag reads: the part scope plus the slot. Slots are
@@ -110,7 +112,10 @@ export interface SlotDef<
     context: C,
     props: Record<string, unknown>,
   ) => readonly unknown[];
-  attrs(scope: SlotScope<R, C, P, Ev, S>, arg?: unknown): Record<string, unknown>;
+  attrs(
+    scope: SlotScope<R, C, P, Ev, S>,
+    arg?: unknown,
+  ): Record<string, unknown>;
 }
 
 export interface ReaderDef<
@@ -139,7 +144,10 @@ export interface ReaderDef<
  */
 export type InitSpec<C extends object, _E extends EventMap> =
   | Partial<C>
-  | ((props: Readonly<Record<string, unknown>>, authored: (name: string) => boolean) => Partial<C>);
+  | ((
+    props: Readonly<Record<string, unknown>>,
+    authored: (name: string) => boolean,
+  ) => Partial<C>);
 
 /**
  * The machine a component consumes: a factory over the machine's OWN
@@ -244,10 +252,12 @@ export interface ComponentDef<
 > {
   readonly name: string;
   /** The start state, or its computation from parsed props. */
-  readonly start?: S | ((
-    props: Record<string, unknown>,
-    authored: (name: string) => boolean,
-  ) => S);
+  readonly start?:
+    | S
+    | ((
+      props: Record<string, unknown>,
+      authored: (name: string) => boolean,
+    ) => S);
   /** Events sent once after start. */
   readonly establish?: (
     props: Record<string, unknown>,
@@ -312,73 +322,109 @@ export interface ComponentDef<
 }
 
 /** A reader entry's value type, or never when the entry is not a reader. */
-export type ReaderValue<T> = T extends { read(...args: never[]): infer R } ? R : never;
+export type ReaderValue<T> = T extends { read(...args: never[]): infer R } ? R
+  : never;
 
 /** A method entry's api surface: infers tuple parameters from `call`'s
  * `args` parameter when declared, or `() => R` for 0-arg methods. */
-export type MethodValue<T> =
-  T extends { call: (context: never, state?: never) => infer R }
-    ? () => R
-    : T extends {
-        call: (
-          context: never,
-          state: never,
-          args: infer A extends readonly unknown[],
-          ...rest: never[]
-        ) => infer R;
-      }
-      ? (...args: A) => R
-      : never;
+export type MethodValue<T> = T extends
+  { call: (context: never, state?: never) => infer R } ? () => R
+  : T extends {
+    call: (
+      context: never,
+      state: never,
+      args: infer A extends readonly unknown[],
+      ...rest: never[]
+    ) => infer R;
+  } ? (...args: A) => R
+  : never;
 
 /** A command entry's callable surface: infers tuple parameters from
  * `event(args: A, ...)` when declared, or `() => void` for 0-arg commands. */
-export type CommandFn<T> =
-  T extends { event: () => unknown } | { view: () => unknown }
-    ? () => void
-    : T extends { event: (args: infer A extends readonly unknown[], ...rest: never[]) => unknown }
+export type CommandFn<T> = T extends
+  { event: () => unknown } | { view: () => unknown } ? () => void
+  : T extends {
+    event: (
+      args: infer A extends readonly unknown[],
+      ...rest: never[]
+    ) => unknown;
+  } ? (...args: A) => void
+  : T extends { view: (args: infer V) => unknown }
+    ? V extends { readonly args: infer A extends readonly unknown[] }
       ? (...args: A) => void
-      : T extends { view: (args: infer V) => unknown }
-        ? V extends { readonly args: infer A extends readonly unknown[] } ? (...args: A) => void : () => void
-        : never;
+    : () => void
+  : never;
 
 /** A slot entry's `getXProps` surface: infers the slot parameter type `R`
  * from `attrs(scope: SlotScope<R, ...>)`. */
 export type SlotPropsFn<T> = T extends {
-  attrs: (scope: SlotScope<infer R, never, never, never, never>, ...args: never[]) => unknown;
-}
-  ? (slot: R) => Record<string, unknown>
+  attrs: (
+    scope: SlotScope<infer R, never, never, never, never>,
+    ...args: never[]
+  ) => unknown;
+} ? (slot: R) => Record<string, unknown>
   : (slot: unknown) => Record<string, unknown>;
 
 /** The state union a component's machine declares, or `string` when untyped. */
 export type StateOf<D> = D extends {
-  readonly machine?: (...args: never[]) => { readonly initialState: { readonly value: infer S extends string } };
-}
-  ? S
+  readonly machine?: (
+    ...args: never[]
+  ) => { readonly initialState: { readonly value: infer S extends string } };
+} ? S
   : string;
 
 /** The api a component's def implies. */
-export type ApiOf<D extends {
-  readonly readers?: Record<string, unknown>;
-  readonly methods?: Record<string, unknown>;
-  readonly commands?: Record<string, unknown>;
-  readonly parts?: Record<string, unknown>;
-  readonly slots?: Record<string, unknown>;
-}> = {
-  readonly [K in keyof D["readers"] & string as D["readers"] extends Record<K, unknown> ? K : never]: D["readers"] extends Record<K, infer T> ? ReaderValue<T>
-    : never;
-} & {
-  readonly [K in keyof D["methods"] & string as D["methods"] extends Record<K, unknown> ? K : never]: D["methods"] extends Record<K, infer T> ? MethodValue<T>
-    : never;
-} & {
-  readonly [K in keyof D["commands"] & string]: D["commands"] extends Record<K, infer T> ? CommandFn<T>
-    : never;
-} & {
-  readonly [K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`]: (slot?: unknown) => Record<string, unknown>;
-} & {
-  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Indexes`]: NonNullable<D["slots"]> extends Record<K, infer T> ? T extends { indexes(...args: never[]): readonly (infer E)[] } ? () => readonly E[] : () => readonly unknown[] : () => readonly unknown[];
-} & {
-  readonly [K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`]: NonNullable<D["slots"]> extends Record<K, infer T> ? SlotPropsFn<T> : (slot: unknown) => Record<string, unknown>;
-} & {
-  /** The machine's mode, live: the framework's own reader. */
-  readonly state: StateOf<D>;
-};
+export type ApiOf<
+  D extends {
+    readonly readers?: Record<string, unknown>;
+    readonly methods?: Record<string, unknown>;
+    readonly commands?: Record<string, unknown>;
+    readonly parts?: Record<string, unknown>;
+    readonly slots?: Record<string, unknown>;
+  },
+> =
+  & {
+    readonly [
+      K in keyof D["readers"] & string as D["readers"] extends
+        Record<K, unknown> ? K : never
+    ]: D["readers"] extends Record<K, infer T> ? ReaderValue<T>
+      : never;
+  }
+  & {
+    readonly [
+      K in keyof D["methods"] & string as D["methods"] extends
+        Record<K, unknown> ? K : never
+    ]: D["methods"] extends Record<K, infer T> ? MethodValue<T>
+      : never;
+  }
+  & {
+    readonly [K in keyof D["commands"] & string]: D["commands"] extends
+      Record<K, infer T> ? CommandFn<T>
+      : never;
+  }
+  & {
+    readonly [
+      K in keyof NonNullable<D["parts"]> & string as `get${Capitalize<K>}Props`
+    ]: (slot?: unknown) => Record<string, unknown>;
+  }
+  & {
+    readonly [
+      K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<
+        K
+      >}Indexes`
+    ]: NonNullable<D["slots"]> extends Record<K, infer T>
+      ? T extends { indexes(...args: never[]): readonly (infer E)[] }
+        ? () => readonly E[]
+      : () => readonly unknown[]
+      : () => readonly unknown[];
+  }
+  & {
+    readonly [
+      K in keyof NonNullable<D["slots"]> & string as `get${Capitalize<K>}Props`
+    ]: NonNullable<D["slots"]> extends Record<K, infer T> ? SlotPropsFn<T>
+      : (slot: unknown) => Record<string, unknown>;
+  }
+  & {
+    /** The machine's mode, live: the framework's own reader. */
+    readonly state: StateOf<D>;
+  };

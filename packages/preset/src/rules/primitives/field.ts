@@ -11,9 +11,9 @@ import {
  * The tokens a field box spends. Absent ones drop their declaration rather
  * than falling back to a value the theme did not state.
  *
- * Shared by every text-like field — input, select, textarea — because they
- * are one box with three contents. That shared box is `shared.ts`; what is
- * here is only what belongs to `<input>` itself.
+ * Shared by every text-like field — input, textarea — because they are one box
+ * with two contents. That shared box is `shared.ts`; what is here is only
+ * what belongs to `<input>` itself.
  *
  * The focus ring is not here: it is the ring every interactive element
  * shares, and it is read through `shared.ts` so the field and the button
@@ -60,8 +60,8 @@ export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   };
 }
 
-/** Every control that renders a field box: the three text-like elements. */
-export const FIELDS = ":is(input, select, textarea)";
+/** Every control that renders a field box: the two text-like elements. */
+export const FIELDS = ":is(input, textarea)";
 
 /**
  * The fields that are one line of text and therefore one control height.
@@ -73,7 +73,7 @@ export const FIELDS = ":is(input, select, textarea)";
  * one border.
  */
 export const CONTROL_FIELDS =
-  ':is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="file"]):not([type="image"]):not([type="hidden"]), select)';
+  'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="file"]):not([type="image"]):not([type="hidden"])';
 
 /**
  * The types that need opting out of the field box entirely.
@@ -88,7 +88,7 @@ export const CONTROL_FIELDS =
  * right default for a text field.
  */
 export const BOX_TYPES =
-  'input[type="submit"], input[type="reset"], input[type="button"], input[type="file"], input[type="image"], input[type="hidden"]';
+  'input[type="range"], input[type="submit"], input[type="reset"], input[type="button"], input[type="file"], input[type="image"], input[type="hidden"]';
 
 /**
  * The box every text-like field shares: its surface, border, radius,
@@ -96,8 +96,8 @@ export const BOX_TYPES =
  *
  * It is yielded from the `input` rule rather than declared once and reused,
  * because uno keeps only the first rule matching a token — a second rule for
- * the ring would never fire. The cost is that `<select>` and `<textarea>`
- * inherit it, which is the intent: they are the same box.
+ * the ring would never fire. The cost is that `<textarea>` inherits it, which
+ * is the intent: they are the same box.
  *
  * Validity is three colours, not two. `aria-invalid` with no value means the
  * state is unknown, and a field that has not been judged yet should not be
@@ -106,7 +106,7 @@ export const BOX_TYPES =
  */
 export function fieldBox(): Rule {
   const rule: Rule = [
-    /^(?:input|select|textarea)$/,
+    /^(?:input|textarea)$/,
     function* (_m, context) {
       const {
         spacing2,
@@ -203,12 +203,30 @@ export function fieldBox(): Rule {
       };
 
       // The box types lay out their own contents and must not be padded or
-      // stretched like a text field. The selector IS the list of those types —
-      // inverting it with `:not(...)` would zero every text field's padding,
-      // which is the opposite of the intent.
+      // stretched like a text field, including the native range control the
+      // inline `bare` style does not cover. The selector IS the list of those
+      // types — inverting it with `:not(...)` would zero every text field's
+      // padding, which is the opposite of the intent.
       yield {
         [context.symbols.selector]: () => `${FIELDS}:is(${BOX_TYPES})`,
         padding: "0",
+        width: "auto",
+      };
+
+      // The opt-out for chrome-adjacent inline editing: a borderless input or
+      // textarea the surrounding surface owns. It keeps the text and the
+      // placeholder and drops the box — surface, edge, rounding, padding,
+      // floor and shadow — so `editable` and `tags-input` inline editors read
+      // as text, not as a field inside a field.
+      yield {
+        [context.symbols.selector]: () => `${FIELDS}.bare`,
+        "background-color": "transparent",
+        border: "none",
+        "border-radius": "0",
+        "box-shadow": "none",
+        padding: "0",
+        "min-height": "0",
+        height: "auto",
         width: "auto",
       };
 

@@ -19,11 +19,19 @@ Deno.test("AvatarApi promises the component's surface", () => {
   ];
   assertEquals(keys.length, 9);
   // Derived member signatures: state union and typed command tuples.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<AvatarApi["state"], "loading" | "loaded" | "error"> = true;
-  const setSrcTyped: AssertExact<AvatarApi["setSrc"], (src: string) => void> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    AvatarApi["state"],
+    "loading" | "loaded" | "error"
+  > = true;
+  const setSrcTyped: AssertExact<AvatarApi["setSrc"], (src: string) => void> =
+    true;
   const setLoadedTyped: AssertExact<AvatarApi["setLoaded"], () => void> = true;
-  const statusTyped: AssertExact<AvatarApi["status"], "loading" | "error" | "loaded"> = true;
+  const statusTyped: AssertExact<
+    AvatarApi["status"],
+    "loading" | "error" | "loaded"
+  > = true;
   assertEquals(
     [
       stateTyped,

@@ -32,10 +32,10 @@ export function groupRules(roots: readonly string[]): Rule[] {
 }
 
 /** The controls a group joins. A group of things is a group of controls. */
-const MEMBERS = ':is(button, input, select, textarea, badge, [role="button"])';
+const MEMBERS = ':is(button, input, textarea, badge, [role="button"])';
 
 /** The same list as a standalone selector, for composing onto a position. */
-const MEMBER = 'button, input, select, textarea, badge, [role="button"]';
+const MEMBER = 'button, input, textarea, badge, [role="button"]';
 
 function tokens(ctx: ThemeContext | undefined) {
   return {

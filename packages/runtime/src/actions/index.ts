@@ -22,12 +22,16 @@ import { drag } from "./drag.ts";
 import { hoverDelay } from "./hover-delay.ts";
 import { observe } from "./observe.ts";
 import { scrollIntoView } from "./scroll-into-view.ts";
-import { interactOutside } from "../../../components/src/editable/actions/interact-outside.action.ts";
-import { selectOptions } from "../../../components/src/select/actions/select-options.action.ts";
-import { selectFocus } from "../../../components/src/select/actions/select-focus.action.ts";
-import { datePickerFocus } from "../../../components/src/date-picker/actions/date-picker-focus.action.ts";
+import { interactOutside } from "./interact-outside.ts";
+import { selectOptions } from "./select-options.ts";
+import { selectFocus } from "./select-focus.ts";
+import { datePickerFocus } from "./date-picker-focus.ts";
 import { infiniteScroll } from "./infinite-scroll.ts";
-import { toastRegion, toastRow, toastTimer } from "../../../components/src/toast/actions/toast-actions.ts";
+import {
+  toastRegion,
+  toastRow,
+  toastTimer,
+} from "./toast-actions.ts";
 
 export { runAction, createAction } from "./action.ts";
 export type { DragDelta, DragParam, DragPress } from "./drag.ts";
@@ -35,6 +39,22 @@ export type { ElementAction } from "./action.ts";
 export type { AnchorGeometry, AnchorParam, AnchorPlacement } from "./anchor.ts";
 export type { HoverDelayParam } from "./hover-delay.ts";
 export type { ObserveParam } from "./observe.ts";
+export type {
+  InteractOutsideDetail,
+  InteractOutsideEvent,
+  InteractOutsideParam,
+} from "./interact-outside.ts";
+export type {
+  SelectOptionsParam,
+  SelectOptionsRow,
+} from "./select-options.ts";
+export type { SelectFocusParam } from "./select-focus.ts";
+export type { DatePickerFocusParam } from "./date-picker-focus.ts";
+export type {
+  ToastRegionParam,
+  ToastRowParam,
+  ToastTimerParam,
+} from "./toast-actions.ts";
 
 function listen(
   target: EventTarget,

@@ -86,7 +86,14 @@ Deno.test("a state's entry writes land after the transition's", () => {
     initial: "idle",
     context: { count: 0, label: "start" },
     states: {
-      idle: { on: { BUMP: { target: "big", assign: (ctx, event) => ({ count: ctx.count + event.by }) } } },
+      idle: {
+        on: {
+          BUMP: {
+            target: "big",
+            assign: (ctx, event) => ({ count: ctx.count + event.by }),
+          },
+        },
+      },
       big: { entry: [(ctx) => ({ label: `at ${ctx.count}` })] },
     },
   })).start();
@@ -114,7 +121,10 @@ Deno.test("root handlers reach states that declare no on", () => {
     initial: "bare",
     context: { n: 0 },
     on: { BUMP: { assign: (c) => ({ n: c.n + 1 }) } },
-    states: { bare: {}, other: { on: { BUMP: { assign: (c) => ({ n: c.n + 1 }) } } } },
+    states: {
+      bare: {},
+      other: { on: { BUMP: { assign: (c) => ({ n: c.n + 1 }) } } },
+    },
   })).start();
   assertEquals(svc.state.value, "bare");
   svc.send({ type: "BUMP" });

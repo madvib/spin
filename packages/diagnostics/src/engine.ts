@@ -13,7 +13,27 @@
  */
 
 import { parseForESLint } from "@typescript-eslint/parser";
-import type { SemanticOptions, TextEdit } from "./core.ts";
+import {
+  type AttrValue,
+  classTokensOf,
+  type ComponentIr,
+  expandVariantGroups,
+  type Node as SyntaxNode,
+  parse,
+} from "@spin/syntax";
+import {
+  type AncestorFacts,
+  checkClosedVocabulary,
+  checkNoRedundantClass,
+  checkNoUnpairedInk,
+  checkPreferElement,
+  checkPreferThemeValue,
+  type ClassFacts,
+  type Position,
+  type SemanticOptions,
+  type TextEdit,
+} from "./core.ts";
+import { factsForFile } from "./provider.ts";
 import {
   type GateContext,
   type GateNode,
@@ -142,6 +162,225 @@ export function lintTree(
     for (const visitor of visitors.get(node.type) ?? []) visitor(node);
   });
   return findings;
+}
+
+/**
+ * The closed-vocabulary and semantic findings in markup no parser reads.
+ *
+ * An `.html` example is a fragment, not a module: the module parser cannot
+ * read it, so it is walked through the syntax the components are compiled
+ * with instead. Each element's classes are read with the same expression
+ * reader the generator uses, and every enabled rule is asked — the same
+ * decisions the JSX rules make, over the same facts. Findings carry no edit
+ * (without a tree there are no token offsets) and positions are the tag's
+ * own line and column; the author drops the class by hand.
+ */
+export function lintMarkup(
+  filename: string,
+  code: string,
+  run: RuleRun,
+): Diagnostic[] {
+  const stripped = expandVariantGroups(
+    code
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
+      .replace(/<scope>[\s\S]*?<\/scope>\s*/g, ""),
+  );
+  try {
+    return lintComponentIr(filename, stripped, code, run);
+  } catch {
+    // Not a component (a document, a fragment the parser rejects): the text
+    // walk below sees what it can.
+    return lintMarkupText(filename, code, run);
+  }
+}
+
+type AncestorFrame = { readonly tag?: string; readonly classes: string[] };
+
+/** The line and column of a span's start in the source. */
+function positionOfSpan(code: string, offset: number): Position {
+  const before = code.slice(0, offset);
+  return {
+    line: before.split("\n").length,
+    column: offset - (before.lastIndexOf("\n") + 1) + 1,
+  };
+}
+
+/** Push one diagnostic per finding, at the element's own position. */
+function pushFindings(
+  out: Diagnostic[],
+  filename: string,
+  ruleId: RuleName,
+  position: Position,
+  findings: readonly {
+    messageId: string;
+    data: Record<string, string>;
+    remedy?: string;
+  }[],
+): void {
+  const meta = RULES[ruleId].meta;
+  for (const finding of findings) {
+    const remedy = finding.remedy;
+    out.push({
+      file: filename,
+      line: position.line,
+      column: position.column,
+      ruleId: `spin/${ruleId}`,
+      messageId: finding.messageId,
+      message: renderMessage(meta, {
+        messageId: finding.messageId,
+        data: finding.data ?? {},
+        position,
+      }),
+      ...(remedy === undefined ? {} : { remedy }),
+      severity: meta.type === "problem" ? "error" : "warning",
+    });
+  }
+}
+
+/** Walk a component IR, asking every enabled rule at each element. */
+function lintComponentIr(
+  filename: string,
+  stripped: string,
+  code: string,
+  run: RuleRun,
+): Diagnostic[] {
+  const ir: ComponentIr = parse(stripped);
+  const facts = factsForFile(filename);
+  const out: Diagnostic[] = [];
+  const ancestors: AncestorFrame[] = [];
+  const visit = (node: SyntaxNode): void => {
+    if (node.kind === "text") return;
+    if (node.kind === "for") {
+      for (const child of node.body) visit(child);
+      return;
+    }
+    const classAttr = node.attrs.find((attr) => attr.name === "class");
+    if (classAttr !== undefined) {
+      const classes = classTokensOf(classAttr.value as AttrValue);
+      if (classes.length > 0) {
+        const position = positionOfSpan(code, node.span.start);
+        const factsNode: ClassFacts = {
+          tag: node.tag,
+          classes,
+          position,
+          ancestors: ancestors.map((frame): AncestorFacts => ({
+            tag: frame.tag,
+            classes: frame.classes,
+          })),
+        };
+        if (run.rules.includes("closed-vocabulary")) {
+          pushFindings(
+            out,
+            filename,
+            "closed-vocabulary",
+            position,
+            checkClosedVocabulary(facts, factsNode),
+          );
+        }
+        if (run.rules.includes("no-redundant-class")) {
+          pushFindings(
+            out,
+            filename,
+            "no-redundant-class",
+            position,
+            checkNoRedundantClass(facts, factsNode, run.semantic),
+          );
+        }
+        if (run.rules.includes("prefer-theme-value")) {
+          pushFindings(
+            out,
+            filename,
+            "prefer-theme-value",
+            position,
+            checkPreferThemeValue(facts, factsNode, run.semantic),
+          );
+        }
+        if (run.rules.includes("prefer-element")) {
+          pushFindings(
+            out,
+            filename,
+            "prefer-element",
+            position,
+            checkPreferElement(facts, factsNode, run.semantic),
+          );
+        }
+        if (run.rules.includes("no-unpaired-ink")) {
+          pushFindings(
+            out,
+            filename,
+            "no-unpaired-ink",
+            position,
+            checkNoUnpairedInk(facts, factsNode),
+          );
+        }
+      }
+    }
+    const frame: AncestorFrame = {
+      tag: node.tag,
+      classes: classAttr === undefined
+        ? []
+        : classTokensOf(classAttr.value as AttrValue),
+    };
+    ancestors.push(frame);
+    for (const child of node.children) visit(child);
+    ancestors.pop();
+  };
+  for (const node of ir.nodes) visit(node);
+  return out;
+}
+
+/**
+ * The regex fallback: the closed-vocabulary findings in text no parser
+ * reads.
+ *
+ * A document or a fragment the component parser rejects still carries
+ * `class="..."` lists worth checking — the same list whatever file it sits
+ * in — so this reads the lists straight from the text and asks the core's
+ * own decision. No positions inside the list: without a tree there are no
+ * token offsets, so the findings carry no edit, and the author drops the
+ * class by hand.
+ */
+function lintMarkupText(
+  filename: string,
+  code: string,
+  run: RuleRun,
+): Diagnostic[] {
+  if (!run.rules.includes("closed-vocabulary")) return [];
+  const meta = RULES["closed-vocabulary"].meta;
+  const out: Diagnostic[] = [];
+  const pattern = /class\s*=\s*("([^"]*)"|'([^']*)')/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(code)) !== null) {
+    const list = match[2] ?? match[3] ?? "";
+    const classes = list.split(/\s+/).filter(Boolean);
+    if (classes.length === 0) continue;
+    const position = positionOfSpan(code, match.index);
+    for (
+      const finding of checkClosedVocabulary(factsForFile(filename), {
+        tag: undefined,
+        classes,
+        position,
+      })
+    ) {
+      const remedy = finding.remedy;
+      out.push({
+        file: filename,
+        line: position.line,
+        column: position.column,
+        ruleId: "spin/closed-vocabulary",
+        messageId: finding.messageId,
+        message: renderMessage(meta, {
+          messageId: finding.messageId,
+          data: finding.data ?? {},
+          position,
+        }),
+        ...(remedy === undefined ? {} : { remedy }),
+        severity: meta.type === "problem" ? "error" : "warning",
+      });
+    }
+  }
+  return out;
 }
 
 /**

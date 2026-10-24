@@ -19,13 +19,34 @@ Deno.test("RatingGroupApi promises the component's surface", () => {
     "getHiddenInputProps",
   ];
   assertEquals(keys.length, 14);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<RatingGroupApi["state"], "idle" | "focus" | "hover"> = true;
-  const setValueTyped: AssertExact<RatingGroupApi["setValue"], (value: number) => void> = true;
-  const getItemPropsTyped: AssertExact<RatingGroupApi["getItemProps"], (index: number) => Record<string, unknown>> = true;
-  const getItemStateTyped: AssertExact<RatingGroupApi["getItemState"], (index: number) => { readonly highlighted: boolean; readonly half: boolean; readonly checked: boolean }> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    RatingGroupApi["state"],
+    "idle" | "focus" | "hover"
+  > = true;
+  const setValueTyped: AssertExact<
+    RatingGroupApi["setValue"],
+    (value: number) => void
+  > = true;
+  const getItemPropsTyped: AssertExact<
+    RatingGroupApi["getItemProps"],
+    (index: number) => Record<string, unknown>
+  > = true;
+  const getItemStateTyped: AssertExact<
+    RatingGroupApi["getItemState"],
+    (
+      index: number,
+    ) => {
+      readonly highlighted: boolean;
+      readonly half: boolean;
+      readonly checked: boolean;
+    }
+  > = true;
   assertEquals(
-    [stateTyped, setValueTyped, getItemPropsTyped, getItemStateTyped].every(Boolean),
+    [stateTyped, setValueTyped, getItemPropsTyped, getItemStateTyped].every(
+      Boolean,
+    ),
     true,
   );
 });

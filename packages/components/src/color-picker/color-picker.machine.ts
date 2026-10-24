@@ -1,6 +1,10 @@
 /** Color-picker machine: chart only. */
 
-import { createMachine, type Machine, type MachineSpec } from "@spin/runtime/fsm";
+import {
+  createMachine,
+  type Machine,
+  type MachineSpec,
+} from "@spin/runtime/fsm";
 import type {
   ColorFormat,
   ColorPickerArgs,
@@ -14,6 +18,7 @@ import {
   boundAreaValue,
   boundChannelValue,
   clearActiveChannel,
+  isOpenControlled,
   setActiveChannel,
   setAreaFromPoint,
   setChannelFromInput,
@@ -24,10 +29,13 @@ import {
   setValueFromSwatch,
   stepAreaValue,
   stepChannelValue,
-  isOpenControlled,
 } from "./color-picker.transitions.ts";
 
-const config: MachineSpec<ColorPickerContext, ColorPickerEvents, ColorPickerState> = {
+const config: MachineSpec<
+  ColorPickerContext,
+  ColorPickerEvents,
+  ColorPickerState
+> = {
   id: "color-picker",
   initial: "idle",
   context: {
@@ -109,7 +117,9 @@ const config: MachineSpec<ColorPickerContext, ColorPickerEvents, ColorPickerStat
         "CHANNEL_INPUT.BLUR": { assign: setChannelFromInput },
         "SWATCH_TRIGGER.CLICK": [
           {
-            cond: (ctx) => { return ctx.closeOnSelect; },
+            cond: (ctx) => {
+              return ctx.closeOnSelect;
+            },
             target: "focused",
             assign: setValueFromSwatch,
           },
@@ -132,18 +142,20 @@ export function colorPicker(
   args: ColorPickerArgs = {},
   authored: (name: string) => boolean,
 ): Machine<ColorPickerContext, ColorPickerEvents, ColorPickerState> {
-  return createMachine<ColorPickerContext, ColorPickerEvents, ColorPickerState>({
-    ...config,
-    context: initial(args, authored),
-    fields: {
-      value: { event: "VALUE.SET" },
-      format: { event: "FORMAT.SET" },
-      disabled: {},
-      readOnly: {},
-      closeOnSelect: {},
-      inline: {},
-      dir: {},
-      name: {},
+  return createMachine<ColorPickerContext, ColorPickerEvents, ColorPickerState>(
+    {
+      ...config,
+      context: initial(args, authored),
+      fields: {
+        value: { event: "VALUE.SET" },
+        format: { event: "FORMAT.SET" },
+        disabled: {},
+        readOnly: {},
+        closeOnSelect: {},
+        inline: {},
+        dir: {},
+        name: {},
+      },
     },
-  });
+  );
 }

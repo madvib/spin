@@ -10,7 +10,7 @@
 
 import { join } from "node:path";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { type Browser, chromium, type Page } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
 const SPECIMENS = "packages/components/specimens";
@@ -33,7 +33,11 @@ async function buildDemo(): Promise<void> {
     stderr: "piped",
   });
   const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
+  assert.equal(
+    code,
+    0,
+    `vite build failed:\n${new TextDecoder().decode(stderr)}`,
+  );
 }
 
 async function startServer(): Promise<Deno.ChildProcess> {
@@ -65,9 +69,14 @@ async function startServer(): Promise<Deno.ChildProcess> {
 }
 
 /** The specimen table the app publishes in dev. */
-const rail = (page: Page): Promise<{ id: string; path: string; group: string }[]> =>
+const rail = (
+  page: Page,
+): Promise<{ id: string; path: string; group: string }[]> =>
   page.evaluate(
-    () => (window as unknown as { __rail?: { id: string; path: string; group: string }[] }).__rail ?? [],
+    () =>
+      (window as unknown as {
+        __rail?: { id: string; path: string; group: string }[];
+      }).__rail ?? [],
   );
 
 Deno.test("the rail links every specimen", async () => {
@@ -76,10 +85,15 @@ Deno.test("the rail links every specimen", async () => {
   let browser: Browser | undefined;
 
   try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
+    browser = await step(
+      "launch chromium",
+      () =>
+        chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
+    );
 
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 900 },
+    });
     await step("load", async () => {
       await page.goto(PAGE_URL, { waitUntil: "load" });
       await page.waitForSelector("nav a[href]", { timeout: 30000 });
@@ -89,7 +103,9 @@ Deno.test("the rail links every specimen", async () => {
     assert.ok(expected.length > 0, "the app published its specimen table");
 
     const links = await page.evaluate(() =>
-      [...document.querySelectorAll("nav a[href]")].map((node) => node.getAttribute("href") ?? ""),
+      [...document.querySelectorAll("nav a[href]")].map((node) =>
+        node.getAttribute("href") ?? ""
+      )
     );
 
     const missing = expected
@@ -104,11 +120,16 @@ Deno.test("the rail links every specimen", async () => {
       return headings
         .filter((heading) => {
           let next = heading.nextElementSibling;
-          return !(next instanceof Element && next.querySelector("a[href]") !== null);
+          return !(next instanceof Element &&
+            next.querySelector("a[href]") !== null);
         })
         .map((heading) => heading.textContent ?? "");
     });
-    assert.deepEqual(orphanHeadings, [], `groups with no items: ${orphanHeadings.join(", ")}`);
+    assert.deepEqual(
+      orphanHeadings,
+      [],
+      `groups with no items: ${orphanHeadings.join(", ")}`,
+    );
   } finally {
     await browser?.close();
     server.kill();

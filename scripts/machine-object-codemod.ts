@@ -47,7 +47,10 @@ function extent(source: string, from: number): number {
 }
 
 /** A ternary's branches. */
-function ternary(source: string, questionMark: number): { then: string; other: string; end: number } {
+function ternary(
+  source: string,
+  questionMark: number,
+): { then: string; other: string; end: number } {
   const thenEnd = extent(source, questionMark + 1);
   const then = source.slice(questionMark + 1, thenEnd).trim();
   let depth = 0;
@@ -69,7 +72,8 @@ function ternary(source: string, questionMark: number): { then: string; other: s
 }
 
 /** The `written` helper, with or without its comment. */
-const HELPER = /\n(?: {2}\/\/[^\n]*\n)? {2}const written = \(field: string\): boolean =>\n(?: {4}[^\n]*\n)+ {2}(?:authored\(defaultTwin\(field\)\)|\);)\n/;
+const HELPER =
+  /\n(?: {2}\/\/[^\n]*\n)? {2}const written = \(field: string\): boolean =>\n(?: {4}[^\n]*\n)+ {2}(?:authored\(defaultTwin\(field\)\)|\);)\n/;
 
 let done = 0;
 let skipped: string[] = [];
@@ -83,7 +87,9 @@ for (const entry of Deno.readDirSync(COMPONENTS)) {
     let source = await Deno.readTextFile(path);
 
     // 1. the factory header -> the machine object
-    const head = /export function (\w+)\(\s*\n(\s*)args: (\w+) = \{\},\s*\n(\s*)authored: \(name: string\) => boolean,\s*\n\): Machine<([^>]*)> \{\n(\s*)return createMachine<([^>]*)>\(\{\n/.exec(source);
+    const head =
+      /export function (\w+)\(\s*\n(\s*)args: (\w+) = \{\},\s*\n(\s*)authored: \(name: string\) => boolean,\s*\n\): Machine<([^>]*)> \{\n(\s*)return createMachine<([^>]*)>\(\{\n/
+        .exec(source);
     if (head === null) {
       skipped.push(path);
       continue;
@@ -94,7 +100,10 @@ for (const entry of Deno.readDirSync(COMPONENTS)) {
     const ret = head[5]!;
 
     // 2. the contract: the `fields:` block, hoisted out of the call
-    const fieldsAt = source.indexOf("    fields: {", head.index + head[0].length);
+    const fieldsAt = source.indexOf(
+      "    fields: {",
+      head.index + head[0].length,
+    );
     if (fieldsAt < 0) {
       skipped.push(path);
       continue;
@@ -125,8 +134,7 @@ for (const entry of Deno.readDirSync(COMPONENTS)) {
     }
 
     // the object
-    const object =
-      `export const ${fn}: MachineObject<${ctx}, ${evt}> = {\n` +
+    const object = `export const ${fn}: MachineObject<${ctx}, ${evt}> = {\n` +
       `${indent}fields: {${fieldsBody}\n${indent}},\n` +
       `${indent}create: (args: ${argsType}) =>\n` +
       `${indent}${indent}createMachine<${ret}>({${callBody}`;
@@ -197,15 +205,24 @@ for (const entry of Deno.readDirSync(COMPONENTS)) {
     // 5. the import
     if (!/type MachineObject/.test(source.slice(0, 3000))) {
       if (/import \{([^}]*)\} from "@spin\/runtime";/.test(source)) {
-        source = source.replace(/import \{([^}]*)\} from "@spin\/runtime";/, (_m, names: string) => {
-          const list = sorted(names.split(",").map((n) => n.trim()).filter(Boolean));
-          list.push("type MachineObject");
-          return `import { ${sorted(list).join(", ")} } from "@spin/runtime";`;
-        });
+        source = source.replace(
+          /import \{([^}]*)\} from "@spin\/runtime";/,
+          (_m, names: string) => {
+            const list = sorted(
+              names.split(",").map((n) => n.trim()).filter(Boolean),
+            );
+            list.push("type MachineObject");
+            return `import { ${
+              sorted(list).join(", ")
+            } } from "@spin/runtime";`;
+          },
+        );
       } else {
         const at = /^\*\/\n/m.exec(source)?.index ?? 0;
         const at2 = at > 0 ? at + 3 : 0;
-        source = source.slice(0, at2) + '\nimport type { MachineObject } from "@spin/runtime";\n' + source.slice(at2);
+        source = source.slice(0, at2) +
+          '\nimport type { MachineObject } from "@spin/runtime";\n' +
+          source.slice(at2);
       }
     }
 

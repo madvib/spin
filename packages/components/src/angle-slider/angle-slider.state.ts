@@ -37,7 +37,10 @@ const asCount = (raw: unknown): number | null => {
   return null;
 };
 
-export function initial(args: AngleSliderArgs, authored: (name: string) => boolean): AngleSliderContext {
+export function initial(
+  args: AngleSliderArgs,
+  authored: (name: string) => boolean,
+): AngleSliderContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -46,7 +49,9 @@ export function initial(args: AngleSliderArgs, authored: (name: string) => boole
   return {
     value: written("value") ? (asCount(args.value) ?? 0) : 0,
     step,
-    largeStep: written("largeStep") ? (asCount(args.largeStep) ?? 10 * step) : 10 * step,
+    largeStep: written("largeStep")
+      ? (asCount(args.largeStep) ?? 10 * step)
+      : 10 * step,
     dir: written("dir") ? (args.dir === "rtl" ? "rtl" : "ltr") : "ltr",
     disabled: written("disabled") ? args.disabled === true : false,
     readOnly: written("readOnly") ? args.readOnly === true : false,
@@ -103,7 +108,9 @@ export function resolveValue(
     return dir === "rtl" ? mirrorAngle(rawAngle) : rawAngle;
   }
   const clickAngle = value + angularOffset;
-  return dir === "rtl" ? value + clickAngle - rawAngle : rawAngle - angularOffset;
+  return dir === "rtl"
+    ? value + clickAngle - rawAngle
+    : rawAngle - angularOffset;
 }
 
 export function displayAngle(value: number, dir: "ltr" | "rtl"): number {

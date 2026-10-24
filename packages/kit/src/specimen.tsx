@@ -387,7 +387,9 @@ export function Specimen(props: SpecimenProps): JSX.Element {
   );
   const [copied, setCopied] = createSignal(false);
   let timer: number | undefined;
-  const formatted = createMemo(() => formatExampleHtml(props.source ?? props.html));
+  const formatted = createMemo(() =>
+    formatExampleHtml(props.source ?? props.html)
+  );
   const tokens = createMemo(() => tokenizeHtml(formatted()));
 
   createEffect(() => {

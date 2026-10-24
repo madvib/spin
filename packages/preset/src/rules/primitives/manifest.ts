@@ -94,7 +94,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     scope: {
       self: "a11y",
-      paints: [],
+      paints: [
+      ],
     },
     component: [],
   },
@@ -140,11 +141,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "alert",
       paints: [
-        {
-          tag: "alert",
-          where: "global",
-          owns: ["background", "corner", "edge", "ink", "size", "weight"],
-        },
+        { tag: "alert", where: "global", owns: ["background", "corner", "edge", "ink", "size", "weight"] },
       ],
     },
     category: "feedback",
@@ -186,8 +183,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
         { tag: "img", where: "descendant", owns: [] },
       ],
     },
-    category: "display",
-    icon: "i-lucide-circle-user",
     // The ladder is the avatar's whole palette: a face has no palette of its
     // own, and the sizes are the one set of decisions the theme owns for it.
     // Scaffolds carry the shipped defaults so a theme that never decided a
@@ -204,7 +199,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     reads: ["--avatar-md", "--border-width", "--color-surface", "--spacing-10"],
     scope: {
       self: "avatar-group",
-      paints: [],
+      paints: [
+      ],
     },
     category: "display",
     icon: "i-lucide-users",
@@ -265,11 +261,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "badge",
       paints: [
-        {
-          tag: "badge",
-          where: "global",
-          owns: ["background", "corner", "edge", "ink", "size", "weight"],
-        },
+        { tag: "badge", where: "global", owns: ["background", "corner", "edge", "ink", "size", "weight"] },
       ],
     },
     category: "feedback",
@@ -369,28 +361,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "button",
       paints: [
-        {
-          tag: "button",
-          where: "global",
-          owns: [
-            "background",
-            "case",
-            "corner",
-            "decoration",
-            "edge",
-            "elevation",
-            "face",
-            "ink",
-            "size",
-            "tracking",
-            "weight",
-          ],
-        },
-        {
-          tag: "button",
-          where: "descendant",
-          owns: ["background", "corner", "edge", "ink"],
-        },
+        { tag: "button", where: "global", owns: ["background", "case", "corner", "decoration", "edge", "elevation", "face", "ink", "size", "tracking", "weight"] },
+        { tag: "button", where: "descendant", owns: ["background", "corner", "edge", "ink"] },
         { tag: "span", where: "global", owns: [] },
       ],
     },
@@ -459,11 +431,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "card",
       paints: [
-        {
-          tag: "card",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation"],
-        },
+        { tag: "card", where: "global", owns: ["background", "corner", "edge", "elevation"] },
         { tag: "card-action", where: "global", owns: [] },
         { tag: "card-content", where: "global", owns: ["ink"] },
         { tag: "card-description", where: "global", owns: ["ink", "size"] },
@@ -505,11 +473,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "checkbox",
       paints: [
-        {
-          tag: "input",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation", "ink"],
-        },
+        { tag: "input", where: "global", owns: ["background", "corner", "edge", "elevation", "ink"] },
       ],
     },
     category: "inputs",
@@ -546,16 +510,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "details",
       paints: [
-        {
-          tag: "details",
-          where: "global",
-          owns: ["background", "corner", "edge"],
-        },
-        {
-          tag: "summary",
-          where: "global",
-          owns: ["background", "corner", "edge", "ink", "weight"],
-        },
+        { tag: "details", where: "global", owns: ["background", "corner", "edge"] },
+        { tag: "summary", where: "global", owns: ["background", "corner", "edge", "ink", "weight"] },
         { tag: "summary", where: "descendant", owns: [] },
       ],
     },
@@ -582,11 +538,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "dialog",
       paints: [
-        {
-          tag: "dialog",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation", "ink", "opacity"],
-        },
+        { tag: "dialog", where: "global", owns: ["background", "corner", "edge", "elevation", "ink", "opacity"] },
         { tag: "footer", where: "descendant", owns: [] },
         { tag: "h1", where: "descendant", owns: [] },
         { tag: "h2", where: "descendant", owns: [] },
@@ -599,8 +551,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
   field: {
-    tags: ["input", "select", "textarea"],
-    variants: [],
+    tags: ["input", "textarea"],
+    variants: ["bare"],
     reads: [
       "--border-width",
       "--color-border",
@@ -630,21 +582,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "field",
       paints: [
-        {
-          tag: "input",
-          where: "global",
-          owns: ["background", "corner", "edge", "face", "ink", "size"],
-        },
-        {
-          tag: "select",
-          where: "global",
-          owns: ["background", "corner", "edge", "face", "ink", "size"],
-        },
-        {
-          tag: "textarea",
-          where: "global",
-          owns: ["background", "corner", "edge", "face", "ink", "size"],
-        },
+        { tag: "input", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
+        { tag: "textarea", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
       ],
     },
     category: "inputs",
@@ -678,7 +617,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
   group: {
-    tags: ["badge", "button", "input", "select", "textarea"],
+    tags: ["badge", "button", "input", "textarea"],
     variants: [],
     reads: ["--border-width", "--radius-md"],
     scope: {
@@ -687,7 +626,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
         { tag: "badge", where: "descendant", owns: ["corner", "edge"] },
         { tag: "button", where: "descendant", owns: ["corner", "edge"] },
         { tag: "input", where: "descendant", owns: ["corner", "edge"] },
-        { tag: "select", where: "descendant", owns: ["corner", "edge"] },
         { tag: "textarea", where: "descendant", owns: ["corner", "edge"] },
       ],
     },
@@ -757,7 +695,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     scope: {
       self: "icon",
-      paints: [],
+      paints: [
+      ],
     },
     category: "typography",
     icon: "i-lucide-image",
@@ -779,7 +718,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     reads: ["--border-width", "--radius-md"],
     scope: {
       self: "join",
-      paints: [],
+      paints: [
+      ],
     },
     category: "actions",
     icon: "i-lucide-rows-3",
@@ -826,11 +766,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "kbd",
       paints: [
-        {
-          tag: "kbd",
-          where: "global",
-          owns: ["background", "corner", "edge", "face", "ink", "size"],
-        },
+        { tag: "kbd", where: "global", owns: ["background", "corner", "edge", "face", "ink", "size"] },
       ],
     },
     category: "actions",
@@ -887,7 +823,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     scope: {
       self: "mode",
-      paints: [],
+      paints: [
+      ],
     },
     category: "actions",
     icon: "i-lucide-sun-moon",
@@ -916,29 +853,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "popover",
       paints: [
-        {
-          tag: "popover",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation", "ink", "opacity"],
-        },
-        {
-          tag: "tooltip",
-          where: "global",
-          owns: [
-            "background",
-            "corner",
-            "edge",
-            "elevation",
-            "ink",
-            "opacity",
-            "size",
-          ],
-        },
+        { tag: "popover", where: "global", owns: ["background", "corner", "edge", "elevation", "ink", "opacity"] },
+        { tag: "tooltip", where: "global", owns: ["background", "corner", "edge", "elevation", "ink", "opacity", "size"] },
         { tag: "tooltip", where: "descendant", owns: [] },
       ],
     },
-    category: "containers",
-    icon: "i-lucide-message-circle",
     component: [],
   },
   progress: {
@@ -955,11 +874,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "progress",
       paints: [
-        {
-          tag: "progress",
-          where: "global",
-          owns: ["background", "corner", "elevation"],
-        },
+        { tag: "progress", where: "global", owns: ["background", "corner", "elevation"] },
       ],
     },
     category: "feedback",
@@ -1048,39 +963,19 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "prose",
       paints: [
-        {
-          tag: "a",
-          where: "global",
-          owns: ["corner", "decoration", "edge", "ink"],
-        },
+        { tag: "a", where: "global", owns: ["corner", "decoration", "edge", "ink"] },
         { tag: "abbr", where: "global", owns: ["decoration"] },
         { tag: "b", where: "global", owns: ["weight"] },
         { tag: "blockquote", where: "global", owns: ["face"] },
-        {
-          tag: "body",
-          where: "global",
-          owns: ["background", "face", "ink", "size"],
-        },
-        {
-          tag: "code",
-          where: "global",
-          owns: ["background", "corner", "face", "ink", "size"],
-        },
+        { tag: "body", where: "global", owns: ["background", "face", "ink", "size"] },
+        { tag: "code", where: "global", owns: ["background", "corner", "face", "ink", "size"] },
         { tag: "dd", where: "global", owns: [] },
         { tag: "dl", where: "global", owns: [] },
         { tag: "dt", where: "global", owns: ["weight"] },
         { tag: "figcaption", where: "global", owns: ["ink", "size"] },
         { tag: "figure", where: "global", owns: [] },
-        {
-          tag: "h1",
-          where: "global",
-          owns: ["face", "size", "tracking", "weight"],
-        },
-        {
-          tag: "h2",
-          where: "global",
-          owns: ["face", "size", "tracking", "weight"],
-        },
+        { tag: "h1", where: "global", owns: ["face", "size", "tracking", "weight"] },
+        { tag: "h2", where: "global", owns: ["face", "size", "tracking", "weight"] },
         { tag: "h3", where: "global", owns: ["face", "size", "weight"] },
         { tag: "h4", where: "global", owns: ["face", "size", "weight"] },
         { tag: "h5", where: "global", owns: ["face", "size", "weight"] },
@@ -1109,11 +1004,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
         { tag: "ins", where: "descendant", owns: ["decoration", "ink"] },
         { tag: "mark", where: "descendant", owns: ["background", "ink"] },
         { tag: "object", where: "descendant", owns: ["corner", "edge"] },
-        {
-          tag: "pre",
-          where: "descendant",
-          owns: ["background", "corner", "ink"],
-        },
+        { tag: "pre", where: "descendant", owns: ["background", "corner", "ink"] },
         { tag: "svg", where: "descendant", owns: [] },
         { tag: "video", where: "descendant", owns: ["corner"] },
       ],
@@ -1142,61 +1033,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "radio",
       paints: [
-        {
-          tag: "input",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation", "ink"],
-        },
+        { tag: "input", where: "global", owns: ["background", "corner", "edge", "elevation", "ink"] },
       ],
     },
     category: "inputs",
     icon: "i-lucide-circle-dot",
-    component: [],
-  },
-  range: {
-    tags: ["input"],
-    variants: [],
-    reads: [
-      "--border-width",
-      "--color-border",
-      "--color-border-strong",
-      "--color-field",
-      "--color-focus-ring",
-      "--color-primary",
-      "--focus-offset",
-      "--focus-width",
-      "--opacity-50",
-      "--radius-full",
-      "--spacing-3",
-      "--spacing-4",
-    ],
-    scope: {
-      self: "range",
-      paints: [
-        { tag: "input", where: "global", owns: ["corner", "edge", "opacity"] },
-      ],
-    },
-    category: "inputs",
-    icon: "i-lucide-slash",
-    component: [],
-  },
-  rating: {
-    tags: ["input"],
-    variants: ["rating", "rating-star"],
-    reads: [
-      "--color-semantic-warning",
-      "--color-text-muted",
-      "--icon-md",
-      "--spacing-1",
-    ],
-    scope: {
-      self: "rating",
-      paints: [
-        { tag: "input", where: "global", owns: [] },
-      ],
-    },
-    category: "inputs",
-    icon: "i-lucide-star",
     component: [],
   },
   skeleton: {
@@ -1215,7 +1056,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     scope: {
       self: "skeleton",
-      paints: [],
+      paints: [
+      ],
     },
     category: "feedback",
     icon: "i-lucide-square-dashed",
@@ -1240,7 +1082,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
     scope: {
       self: "stat",
-      paints: [],
+      paints: [
+      ],
     },
     category: "display",
     icon: "i-lucide-sigma",
@@ -1275,11 +1118,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "switch",
       paints: [
-        {
-          tag: "input",
-          where: "global",
-          owns: ["background", "corner", "edge", "elevation", "ink"],
-        },
+        { tag: "input", where: "global", owns: ["background", "corner", "edge", "elevation", "ink"] },
       ],
     },
     category: "inputs",
@@ -1312,18 +1151,10 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       self: "table",
       paints: [
         { tag: "caption", where: "global", owns: ["ink", "size"] },
-        {
-          tag: "table",
-          where: "global",
-          owns: ["edge", "face", "ink", "size"],
-        },
+        { tag: "table", where: "global", owns: ["edge", "face", "ink", "size"] },
         { tag: "td", where: "global", owns: ["edge"] },
         { tag: "td", where: "descendant", owns: ["edge", "weight"] },
-        {
-          tag: "th",
-          where: "global",
-          owns: ["background", "edge", "ink", "size", "weight"],
-        },
+        { tag: "th", where: "global", owns: ["background", "edge", "ink", "size", "weight"] },
         { tag: "th", where: "descendant", owns: ["edge", "weight"] },
       ],
     },
@@ -1336,6 +1167,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
   },
 };
+
 
 /* --------------------------------------------------------------- readers --
 
@@ -1455,32 +1287,22 @@ export const primitiveElements: readonly PrimitiveElement[] = [
   { name: "switch", category: "inputs", icon: "i-lucide-toggle-right" },
   { name: "field", category: "inputs", icon: "i-lucide-form" },
   { name: "input", category: "inputs", icon: "i-lucide-text-cursor-input" },
-  { name: "select", category: "inputs", icon: "i-lucide-chevron-down" },
   { name: "textarea", category: "inputs", icon: "i-lucide-text-cursor" },
-  { name: "range", category: "inputs", icon: "i-lucide-slash" },
-  { name: "rating", category: "inputs", icon: "i-lucide-star" },
   { name: "meter", category: "inputs", icon: "i-lucide-gauge" },
   { name: "label", category: "inputs", icon: "i-lucide-tag" },
   { name: "card", category: "containers", icon: "i-lucide-square" },
   { name: "dialog", category: "containers", icon: "i-lucide-message-square" },
   { name: "details", category: "containers", icon: "i-lucide-list" },
-  { name: "popover", category: "containers", icon: "i-lucide-message-circle" },
   { name: "group", category: "containers", icon: "i-lucide-group" },
   { name: "fieldset", category: "containers", icon: "i-lucide-boxes" },
   { name: "hr", category: "containers", icon: "i-lucide-minus" },
   { name: "table", category: "display", icon: "i-lucide-table-2" },
   { name: "stat", category: "display", icon: "i-lucide-sigma" },
-  { name: "avatar", category: "display", icon: "i-lucide-circle-user" },
   { name: "avatar-group", category: "display", icon: "i-lucide-users" },
   { name: "alert", category: "feedback", icon: "i-lucide-triangle-alert" },
   { name: "badge", category: "feedback", icon: "i-lucide-badge-check" },
   { name: "progress", category: "feedback", icon: "i-lucide-loader" },
   { name: "skeleton", category: "feedback", icon: "i-lucide-square-dashed" },
-  {
-    name: "tooltip",
-    category: "feedback",
-    icon: "i-lucide-message-circle-off",
-  },
   { name: "prose", category: "typography", icon: "i-lucide-whole-word" },
   { name: "typography", category: "typography", icon: "i-lucide-type" },
   { name: "icon", category: "typography", icon: "i-lucide-image" },

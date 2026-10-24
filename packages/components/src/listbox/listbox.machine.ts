@@ -1,5 +1,12 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import { initial, parseItems, rowsOf as rowsOfState, type ListboxArgs, type ListboxContext, type ListboxState } from "./listbox.state.ts";
+import {
+  initial,
+  type ListboxArgs,
+  type ListboxContext,
+  type ListboxState,
+  parseItems,
+  rowsOf as rowsOfState,
+} from "./listbox.state.ts";
 import type { ListboxEvents } from "./listbox.events.ts";
 import {
   clearHighlightedValue,
@@ -12,8 +19,8 @@ import {
   setFocused,
   setHighlightedItem,
   setHighlightedValue,
-  syncSelectedItems,
   setValue,
+  syncSelectedItems,
   typeaheadInner,
 } from "./listbox.transitions.ts";
 
@@ -51,11 +58,17 @@ export function listbox(
         on: {
           "CONTENT.FOCUS": [
             {
-              cond: (ctx) => ctx.value.length > 0 || ctx.highlightedValue !== null,
+              cond: (ctx) =>
+                ctx.value.length > 0 || ctx.highlightedValue !== null,
               assign: setFocused,
             },
             {
-              assign: [setFocused, (ctx) => ({ highlightedValue: rowsOfState(ctx.items)[0]?.value ?? null })],
+              assign: [
+                setFocused,
+                (ctx) => ({
+                  highlightedValue: rowsOfState(ctx.items)[0]?.value ?? null,
+                }),
+              ],
             },
           ],
           "CONTENT.BLUR": { assign: () => ({ focused: false }) },

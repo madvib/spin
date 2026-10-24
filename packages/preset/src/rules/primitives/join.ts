@@ -51,7 +51,7 @@ function joinContainer(): Rule {
 
 /**
  * Each part. Geometry ONLY — the radius and the shared edge. A join-item is
- * usually a bare `<button>`, `<input>` or `<select>`, and those already
+ * usually a bare `<button>`, `<input>` or `<textarea>`, and those already
  * carry their colours, borders and states from the button and field rules;
  * the join squares the corners those rules draw and never restyles what they
  * paint, so a join of secondaries is still a join of secondaries.

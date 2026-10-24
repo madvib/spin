@@ -1,7 +1,23 @@
-import { dataAttr, defineComponent, disclosureTrigger, isRecord, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  disclosureTrigger,
+  isRecord,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import type { DragDelta } from "@spin/runtime/actions";
 import { floatingPanel as floatingPanelMachine } from "./floating-panel.machine.ts";
-import { startOpen, type FloatingPanelArgs, type FloatingPanelContext, type FloatingPanelSize, type FloatingPanelStage, type FloatingPanelState } from "./floating-panel.state.ts";
+import {
+  type FloatingPanelArgs,
+  type FloatingPanelContext,
+  type FloatingPanelSize,
+  type FloatingPanelStage,
+  type FloatingPanelState,
+  startOpen,
+} from "./floating-panel.state.ts";
 import type { FloatingPanelEvents } from "./floating-panel.events.ts";
 
 /**
@@ -15,8 +31,6 @@ import type { FloatingPanelEvents } from "./floating-panel.events.ts";
 
 export type { FloatingPanelSize, FloatingPanelStage };
 
-
-
 /** The stage a stage-trigger addresses: ark's vocabulary. "default"
  * is the panel's restored geometry. */
 export interface FloatingPanelStageTrigger {
@@ -25,7 +39,9 @@ export interface FloatingPanelStageTrigger {
 
 export type ResizeEdge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
-const EDGES: Readonly<Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 }>> = {
+const EDGES: Readonly<
+  Record<ResizeEdge, { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 }>
+> = {
   n: { x: 0, y: -1 },
   s: { x: 0, y: 1 },
   e: { x: 1, y: 0 },
@@ -43,20 +59,32 @@ const stageOf = (arg: unknown): FloatingPanelStageTrigger["stage"] => {
 };
 
 const isEdge = (arg: unknown): arg is ResizeEdge =>
-  typeof arg === "string" && (Object.keys(EDGES) as readonly string[]).includes(arg);
+  typeof arg === "string" &&
+  (Object.keys(EDGES) as readonly string[]).includes(arg);
 
 const edgeOf = (arg: unknown): ResizeEdge => (isEdge(arg) ? arg : "se");
 
-type ScopeLike = ScopeFor<FloatingPanelContext, FloatingPanelEvents, FloatingPanelState>;
+type ScopeLike = ScopeFor<
+  FloatingPanelContext,
+  FloatingPanelEvents,
+  FloatingPanelState
+>;
 
-type SlotLike<R> = SlotScopeFor<R, FloatingPanelContext, FloatingPanelEvents, FloatingPanelState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  FloatingPanelContext,
+  FloatingPanelEvents,
+  FloatingPanelState
+>;
 
 type IdFn = (part: string, slot?: unknown) => string;
 
 /** One drag handler set per edge per bridge; the scope reads live through
  * proxies, so a cached closure never goes stale. */
 interface DragHandlers {
-  readonly onStart: (press: { readonly altKey: boolean; readonly shiftKey: boolean }) => void;
+  readonly onStart: (
+    press: { readonly altKey: boolean; readonly shiftKey: boolean },
+  ) => void;
   readonly onMove: (delta: DragDelta) => void;
   readonly onEnd: (end: { readonly cancelled: boolean }) => void;
 }
@@ -75,8 +103,9 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
       else scope.send({ type: "RESIZE.START", ...EDGES[mode] });
     },
     onMove: (delta: DragDelta) => {
-      if (mode === "move") scope.send({ type: "DRAG.MOVE", dx: delta.dx, dy: delta.dy });
-      else scope.send({ type: "RESIZE.MOVE", dx: delta.dx, dy: delta.dy });
+      if (mode === "move") {
+        scope.send({ type: "DRAG.MOVE", dx: delta.dx, dy: delta.dy });
+      } else scope.send({ type: "RESIZE.MOVE", dx: delta.dx, dy: delta.dy });
     },
     onEnd: () => {
       if (mode === "move") scope.send({ type: "DRAG.END" });
@@ -87,11 +116,10 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
-
-
 const def = {
   name: "floating-panel",
-  machine: (props, authored) => floatingPanelMachine(props as FloatingPanelArgs, authored),
+  machine: (props, authored) =>
+    floatingPanelMachine(props as FloatingPanelArgs, authored),
   start: (raw, authored) => (startOpen(raw, authored) ? "open" : "closed"),
   reconcile: ({ context, state, parsed, authored, send }) => {
     // The stage and the open fact are STATE channels: their moves are
@@ -100,9 +128,18 @@ const def = {
     // machine's contract.
     if (authored("stage")) {
       const stage: unknown = parsed["stage"];
-      const outer = stage === "minimized" || stage === "maximized" || stage === "restored" ? stage : null;
+      const outer =
+        stage === "minimized" || stage === "maximized" || stage === "restored"
+          ? stage
+          : null;
       if (outer !== null && context.stage !== outer) {
-        send(outer === "minimized" ? { type: "MINIMIZE" } : outer === "maximized" ? { type: "MAXIMIZE" } : { type: "RESTORE" });
+        send(
+          outer === "minimized"
+            ? { type: "MINIMIZE" }
+            : outer === "maximized"
+            ? { type: "MAXIMIZE" }
+            : { type: "RESTORE" },
+        );
         return true;
       }
     }
@@ -145,7 +182,7 @@ const def = {
           "data-stage": ctx.stage,
           "data-dragging": scope.attr(scope.state === "dragging"),
           "data-resizing": scope.attr(scope.state === "resizing"),
-                    "data-disabled": dataAttr(scope.context.disabled),
+          "data-disabled": dataAttr(scope.context.disabled),
           // The panel is the dismissable surface itself: an outside press
           // closes it, and the escape hatch reaches the machine.
           "use:dismissable": {
@@ -209,7 +246,10 @@ const def = {
           "aria-label": "Move",
           "data-disabled": dataAttr(ctx.stage !== "restored" || disabled),
           tabIndex: ctx.stage === "restored" && !disabled ? 0 : undefined,
-          "use:drag": { enabled: ctx.stage === "restored" && !disabled, ...dragFor(scope, "move") },
+          "use:drag": {
+            enabled: ctx.stage === "restored" && !disabled,
+            ...dragFor(scope, "move"),
+          },
         };
       },
     },
@@ -222,13 +262,20 @@ const def = {
         return {
           id: scope.id("stage", want),
           "data-stage": want,
-          "aria-label":
-            want === "minimized" ? "Minimize" : want === "maximized" ? "Maximize" : "Restore",
+          "aria-label": want === "minimized"
+            ? "Minimize"
+            : want === "maximized"
+            ? "Maximize"
+            : "Restore",
           hidden: self,
           type: "button",
           onClick: (): void =>
             scope.send({
-              type: want === "minimized" ? "MINIMIZE" : want === "maximized" ? "MAXIMIZE" : "RESTORE",
+              type: want === "minimized"
+                ? "MINIMIZE"
+                : want === "maximized"
+                ? "MAXIMIZE"
+                : "RESTORE",
             }),
         };
       },
@@ -263,8 +310,7 @@ const def = {
       },
     },
   },
-  slots: {
-  },
+  slots: {},
   commands: {
     setOpen: { event: () => ({ type: "OPEN" }) },
     close: { event: () => ({ type: "CLOSE" }) },
@@ -314,11 +360,24 @@ const def = {
       watch: (context) => [context.stage],
       detail: (watched: readonly unknown[]) => {
         const stage = watched[0];
-        const known: FloatingPanelStage = stage === "minimized" || stage === "maximized" ? stage : "restored";
+        const known: FloatingPanelStage =
+          stage === "minimized" || stage === "maximized" ? stage : "restored";
         return { stage: known };
       },
     },
   },
-} satisfies ComponentDef<FloatingPanelContext, FloatingPanelEvents, Record<string, unknown>, FloatingPanelArgs, FloatingPanelState>;
+} satisfies ComponentDef<
+  FloatingPanelContext,
+  FloatingPanelEvents,
+  Record<string, unknown>,
+  FloatingPanelArgs,
+  FloatingPanelState
+>;
 export type FloatingPanelApi = ApiOf<typeof def>;
-export const floatingPanel = defineComponent<FloatingPanelContext, FloatingPanelEvents, FloatingPanelApi, FloatingPanelArgs, FloatingPanelState>(def);
+export const floatingPanel = defineComponent<
+  FloatingPanelContext,
+  FloatingPanelEvents,
+  FloatingPanelApi,
+  FloatingPanelArgs,
+  FloatingPanelState
+>(def);

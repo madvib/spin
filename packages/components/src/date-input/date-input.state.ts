@@ -1,7 +1,14 @@
 import { defaultTwin } from "@spin/runtime";
 import type { DateInputEvent } from "./date-input.events.ts";
 
-export type DateInputField = "year" | "month" | "day" | "hour" | "minute" | "second" | "dayPeriod";
+export type DateInputField =
+  | "year"
+  | "month"
+  | "day"
+  | "hour"
+  | "minute"
+  | "second"
+  | "dayPeriod";
 
 export interface DateFieldLimits {
   readonly min: number;
@@ -67,7 +74,9 @@ export const emptyFields = (): DateFields => ({
 
 export type DateGranularity = "day" | "hour" | "minute" | "second";
 
-const GRANULARITY_FIELDS: Readonly<Record<DateGranularity, readonly DateInputField[]>> = {
+const GRANULARITY_FIELDS: Readonly<
+  Record<DateGranularity, readonly DateInputField[]>
+> = {
   day: ["month", "day", "year"],
   hour: ["month", "day", "year", "hour", "dayPeriod"],
   minute: ["month", "day", "year", "hour", "minute", "dayPeriod"],
@@ -126,7 +135,10 @@ const isHourCycle = (raw: unknown): raw is 12 | 24 => raw === 12 || raw === 24;
 const asIso = (raw: unknown): string | null =>
   typeof raw === "string" && raw.length > 0 ? raw : null;
 
-export function initial(args: DateInputArgs, authored: (name: string) => boolean): DateInputContext {
+export function initial(
+  args: DateInputArgs,
+  authored: (name: string) => boolean,
+): DateInputContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -156,8 +168,12 @@ export function initial(args: DateInputArgs, authored: (name: string) => boolean
     readOnly: args.readOnly === true,
     invalid: authored("invalid") ? args.invalid === true : undefined,
     required: args.required === true,
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
   };
 }
 
@@ -176,18 +192,32 @@ export function parseValue(raw: unknown): DateValue | null {
   };
 }
 
-export function segmentFields(granularity: DateGranularity): readonly DateInputField[] {
+export function segmentFields(
+  granularity: DateGranularity,
+): readonly DateInputField[] {
   return GRANULARITY_FIELDS[granularity] ?? GRANULARITY_FIELDS["day"];
 }
 
 export function valueAsString(value: DateValue | null): string {
   if (value === null) return "";
-  const date = new Date(Date.UTC(value.year, value.month - 1, value.day, value.hour, value.minute, value.second));
+  const date = new Date(
+    Date.UTC(
+      value.year,
+      value.month - 1,
+      value.day,
+      value.hour,
+      value.minute,
+      value.second,
+    ),
+  );
   if (Number.isNaN(date.getTime())) return "";
   return date.toISOString().slice(0, 10);
 }
 
-export function fieldsToDate(fields: DateFields, hourCycle: 12 | 24): DateValue | null {
+export function fieldsToDate(
+  fields: DateFields,
+  hourCycle: 12 | 24,
+): DateValue | null {
   const { year, month, day } = fields;
   if (year === null || month === null || day === null) return null;
   let hour = fields.hour ?? 0;
@@ -195,10 +225,20 @@ export function fieldsToDate(fields: DateFields, hourCycle: 12 | 24): DateValue 
     if (fields.dayPeriod === 1) hour = hour === 12 ? 12 : hour + 12;
     else hour = hour === 12 ? 0 : hour;
   }
-  return { year, month, day, hour, minute: fields.minute ?? 0, second: fields.second ?? 0 };
+  return {
+    year,
+    month,
+    day,
+    hour,
+    minute: fields.minute ?? 0,
+    second: fields.second ?? 0,
+  };
 }
 
-export function dateToFields(value: DateValue | null, hourCycle: 12 | 24): DateFields {
+export function dateToFields(
+  value: DateValue | null,
+  hourCycle: 12 | 24,
+): DateFields {
   const fields = emptyFields();
   if (value === null) return fields;
   fields.year = value.year;
@@ -223,27 +263,48 @@ function boundDay(bound: string | null): number | null {
   return Number.isNaN(time) ? null : time;
 }
 
-export function clampValue(value: DateValue | null, min: string | null, max: string | null): DateValue | null {
+export function clampValue(
+  value: DateValue | null,
+  min: string | null,
+  max: string | null,
+): DateValue | null {
   if (value === null) return null;
   const day = Date.parse(valueAsString(value));
   const floor = boundDay(min);
   if (floor !== null && day < floor) {
     const at = new Date(floor);
-    return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate(), hour: 0, minute: 0, second: 0 };
+    return {
+      year: at.getUTCFullYear(),
+      month: at.getUTCMonth() + 1,
+      day: at.getUTCDate(),
+      hour: 0,
+      minute: 0,
+      second: 0,
+    };
   }
   const ceiling = boundDay(max);
   if (ceiling !== null && day > ceiling) {
     const at = new Date(ceiling);
-    return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate(), hour: 0, minute: 0, second: 0 };
+    return {
+      year: at.getUTCFullYear(),
+      month: at.getUTCMonth() + 1,
+      day: at.getUTCDate(),
+      hour: 0,
+      minute: 0,
+      second: 0,
+    };
   }
   return value;
 }
 
 export function fieldWidth(field: DateInputField): number {
   switch (field) {
-    case "year": return 4;
-    case "dayPeriod": return 1;
-    default: return 2;
+    case "year":
+      return 4;
+    case "dayPeriod":
+      return 1;
+    default:
+      return 2;
   }
 }
 
@@ -254,7 +315,10 @@ export function periodOf(input: string): number | null {
   return null;
 }
 
-export function commit(next: DateFields, ctx: DateInputContext): Partial<DateInputContext> {
+export function commit(
+  next: DateFields,
+  ctx: DateInputContext,
+): Partial<DateInputContext> {
   const value = clampValue(fieldsToDate(next, ctx.hourCycle), ctx.min, ctx.max);
   if (value === null) return { fields: next, enteredKeys: "" };
   return { fields: dateToFields(value, ctx.hourCycle), value, enteredKeys: "" };
@@ -267,16 +331,26 @@ export function advance(
   fields: readonly DateInputField[],
 ): Partial<DateInputContext> {
   const committed = commit(next, ctx);
-  return { ...committed, activeSegment: Math.min(index + 1, fields.length - 1) };
+  return {
+    ...committed,
+    activeSegment: Math.min(index + 1, fields.length - 1),
+  };
 }
 
 // transitions helpers exported? setActiveSegment etc move to transitions.
-export const setActiveSegment = (_ctx: DateInputContext, e: DateInputEvent): Partial<DateInputContext> => {
+export const setActiveSegment = (
+  _ctx: DateInputContext,
+  e: DateInputEvent,
+): Partial<DateInputContext> => {
   if (e.type !== "SEGMENT.FOCUS") return {};
   return { activeSegment: e.index };
 };
 
-export const clearEnteredKeys = (): Partial<DateInputContext> => ({ enteredKeys: "" });
-export const setPrevSegment = (ctx: DateInputContext): Partial<DateInputContext> => ({
+export const clearEnteredKeys = (): Partial<DateInputContext> => ({
+  enteredKeys: "",
+});
+export const setPrevSegment = (
+  ctx: DateInputContext,
+): Partial<DateInputContext> => ({
   activeSegment: Math.max(0, ctx.activeSegment - 1),
 });

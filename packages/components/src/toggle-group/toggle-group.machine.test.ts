@@ -9,7 +9,9 @@ import type { ToggleGroupValueChange } from "./toggle-group.events.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -26,7 +28,8 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
   return value as H;
 }
 
-const ITEMS = '[{"value":"bold","label":"Bold"},{"value":"italic","label":"Italic"},{"value":"underline","label":"Underline"}]';
+const ITEMS =
+  '[{"value":"bold","label":"Bold"},{"value":"italic","label":"Italic"},{"value":"underline","label":"Underline"}]';
 
 const click = (defaultPrevented = false): MouseEvent =>
   ({ defaultPrevented }) as unknown as MouseEvent;
@@ -75,11 +78,16 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     write("items", ITEMS);
     authoredKeys.add("items");
   }
-  write("onValueChange", (details: ToggleGroupValueChange) => events.valueChange.push(details));
+  write(
+    "onValueChange",
+    (details: ToggleGroupValueChange) => events.valueChange.push(details),
+  );
   const bridge = createToggleGroupBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -90,7 +98,8 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function item(api: ToggleGroupApi, value: string): Record<string, unknown> {
-  const row = api.getItems().find((entry) => entry.value === value) ?? { value, label: value };
+  const row = api.getItems().find((entry) => entry.value === value) ??
+    { value, label: value };
   return api.getItemProps(row) as Record<string, unknown>;
 }
 
@@ -102,7 +111,10 @@ Deno.test("a click toggles the value and a second click deselects", () => {
   assert(api.isPressed("bold"));
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
   assertEquals(api.value, []);
-  assertEquals(events.valueChange.map((change) => change.value), [["bold"], []]);
+  assertEquals(events.valueChange.map((change) => change.value), [
+    ["bold"],
+    [],
+  ]);
 });
 
 Deno.test("multiple mode accumulates values", () => {
@@ -118,31 +130,59 @@ Deno.test("multiple mode accumulates values", () => {
 Deno.test("arrows move the focused id with loop wrap", () => {
   const { api } = mount();
   handler<() => void>(item(api, "bold"), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "italic", label: "italic" }).focused, true);
-  handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "underline", label: "underline" }).focused, true);
+  handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(
+    keydown("ArrowRight"),
+  );
+  assertEquals(
+    api.getItemState({ value: "italic", label: "italic" }).focused,
+    true,
+  );
+  handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(
+    keydown("ArrowRight"),
+  );
+  assertEquals(
+    api.getItemState({ value: "underline", label: "underline" }).focused,
+    true,
+  );
   // Loop wraps past the last item.
-  handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(keydown("ArrowRight"));
-  assertEquals(api.getItemState({ value: "bold", label: "bold" }).focused, true);
+  handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(
+    keydown("ArrowRight"),
+  );
+  assertEquals(
+    api.getItemState({ value: "bold", label: "bold" }).focused,
+    true,
+  );
 });
 
 Deno.test("Home and End jump the focused id", () => {
   const { api } = mount();
   handler<() => void>(item(api, "italic"), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(keydown("End"));
-  assertEquals(api.getItemState({ value: "underline", label: "underline" }).focused, true);
-  handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(keydown("Home"));
-  assertEquals(api.getItemState({ value: "bold", label: "bold" }).focused, true);
+  handler<(e: KeyboardEvent) => void>(item(api, "italic"), "onKeydown")(
+    keydown("End"),
+  );
+  assertEquals(
+    api.getItemState({ value: "underline", label: "underline" }).focused,
+    true,
+  );
+  handler<(e: KeyboardEvent) => void>(item(api, "underline"), "onKeydown")(
+    keydown("Home"),
+  );
+  assertEquals(
+    api.getItemState({ value: "bold", label: "bold" }).focused,
+    true,
+  );
 });
 
 Deno.test("a disabled item refuses clicks and keys", () => {
   const { api, events } = mount({
-    items: '[{"value":"bold","label":"Bold","disabled":true},{"value":"italic","label":"Italic"}]',
+    items:
+      '[{"value":"bold","label":"Bold","disabled":true},{"value":"italic","label":"Italic"}]',
   });
   handler<(e: MouseEvent) => void>(item(api, "bold"), "onClick")(click());
   assertEquals(api.value, []);
-  handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(item(api, "bold"), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, []);
   assertEquals(events.valueChange.length, 0);
 });

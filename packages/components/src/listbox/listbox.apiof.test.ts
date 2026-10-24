@@ -51,10 +51,17 @@ Deno.test("ListboxApi promises the component's surface", () => {
   assertEquals(keys.length, 40);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<ListboxApi["state"], "idle"> = true;
-  const setValueTyped: AssertExact<ListboxApi["setValue"], (value: readonly string[]) => void> = true;
-  const clearValueTyped: AssertExact<ListboxApi["clearValue"], (value?: string) => void> = true;
+  const setValueTyped: AssertExact<
+    ListboxApi["setValue"],
+    (value: readonly string[]) => void
+  > = true;
+  const clearValueTyped: AssertExact<
+    ListboxApi["clearValue"],
+    (value?: string) => void
+  > = true;
   const valueTyped: AssertExact<ListboxApi["value"], string[]> = true;
   assertEquals(
     [

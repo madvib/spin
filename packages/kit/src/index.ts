@@ -4,3 +4,4 @@ export * from "./section.tsx";
 export * from "./specimen.tsx";
 export * from "./mark.tsx";
 export * from "./web.tsx";
+export * from "./mount-glue.ts";

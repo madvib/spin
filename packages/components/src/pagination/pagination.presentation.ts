@@ -1,9 +1,9 @@
 import {
+  type ApiOf,
   ariaCurrent,
   ariaHidden,
-  defineComponent,
-  type ApiOf,
   type ComponentDef,
+  defineComponent,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
@@ -11,23 +11,36 @@ import {
   nextPage as nextPageFn,
   pageItems,
   pageRange,
-  previousPage,
-  totalPages,
   type PaginationArgs,
   type PaginationContext,
   type PaginationState,
+  previousPage,
+  totalPages,
 } from "./pagination.state.ts";
 import { pagination as paginationMachine } from "./pagination.machine.ts";
-import type { PaginationEvents, PaginationEvent } from "./pagination.events.ts";
+import type { PaginationEvent, PaginationEvents } from "./pagination.events.ts";
 export type { PaginationArgs, PaginationState };
 
 type ScopeLike = ScopeFor<PaginationContext, PaginationEvents, PaginationState>;
-type SlotLike<R> = SlotScopeFor<R, PaginationContext, PaginationEvents, PaginationState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  PaginationContext,
+  PaginationEvents,
+  PaginationState
+>;
 
 /** Stable item-array identity per window. */
 const itemsCache = new Map<string, ReturnType<typeof pageItems>>();
-const windowItems = (context: PaginationContext): ReturnType<typeof pageItems> => {
-  const key = [context.page, context.pageSize, context.count, context.siblingCount, context.boundaryCount].join("|");
+const windowItems = (
+  context: PaginationContext,
+): ReturnType<typeof pageItems> => {
+  const key = [
+    context.page,
+    context.pageSize,
+    context.count,
+    context.siblingCount,
+    context.boundaryCount,
+  ].join("|");
   const hit = itemsCache.get(key);
   if (hit !== undefined) return hit;
   const made = pageItems(context);
@@ -55,7 +68,8 @@ const triggerBag = (
 
 export const def = {
   name: "pagination",
-  machine: (args: PaginationArgs, authored: (name: string) => boolean) => paginationMachine(args, authored),
+  machine: (args: PaginationArgs, authored: (name: string) => boolean) =>
+    paginationMachine(args, authored),
   start: "idle",
   parts: {
     root: {
@@ -66,21 +80,52 @@ export const def = {
     },
     firstTrigger: {
       id: "first",
-      attrs: (scope: ScopeLike) => triggerBag(scope, "firstTrigger", "first-trigger", scope.context.firstLabel, scope.context.page !== 1, "FIRST_PAGE"),
+      attrs: (scope: ScopeLike) =>
+        triggerBag(
+          scope,
+          "firstTrigger",
+          "first-trigger",
+          scope.context.firstLabel,
+          scope.context.page !== 1,
+          "FIRST_PAGE",
+        ),
     },
     prevTrigger: {
       id: "prev",
-      attrs: (scope: ScopeLike) => triggerBag(scope, "prevTrigger", "prev-trigger", scope.context.prevLabel, previousPage(scope.context) !== null, "PREVIOUS_PAGE"),
+      attrs: (scope: ScopeLike) =>
+        triggerBag(
+          scope,
+          "prevTrigger",
+          "prev-trigger",
+          scope.context.prevLabel,
+          previousPage(scope.context) !== null,
+          "PREVIOUS_PAGE",
+        ),
     },
     nextTrigger: {
       id: "next",
-      attrs: (scope: ScopeLike) => triggerBag(scope, "nextTrigger", "next-trigger", scope.context.nextLabel, nextPageFn(scope.context) !== null, "NEXT_PAGE"),
+      attrs: (scope: ScopeLike) =>
+        triggerBag(
+          scope,
+          "nextTrigger",
+          "next-trigger",
+          scope.context.nextLabel,
+          nextPageFn(scope.context) !== null,
+          "NEXT_PAGE",
+        ),
     },
     lastTrigger: {
       id: "last",
       attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
-        return triggerBag(scope, "lastTrigger", "last-trigger", ctx.lastLabel, ctx.page < totalPages(ctx), "LAST_PAGE");
+        return triggerBag(
+          scope,
+          "lastTrigger",
+          "last-trigger",
+          ctx.lastLabel,
+          ctx.page < totalPages(ctx),
+          "LAST_PAGE",
+        );
       },
     },
   },
@@ -89,7 +134,9 @@ export const def = {
       indexes: (context: PaginationContext) => windowItems(context),
       attrs: (scope: SlotLike<ReturnType<typeof pageItems>[number]>) => {
         const item = scope.slot;
-        if (item.type !== "page") return { "data-hidden": "", ...ariaHidden("true"), tabindex: "-1" };
+        if (item.type !== "page") {
+          return { "data-hidden": "", ...ariaHidden("true"), tabindex: "-1" };
+        }
         const current = item.value === scope.context.page;
         return {
           id: scope.id("item", item.value),
@@ -109,7 +156,9 @@ export const def = {
       indexes: (context: PaginationContext) => windowItems(context),
       attrs: (scope: SlotLike<ReturnType<typeof pageItems>[number]>) => {
         const item = scope.slot;
-        if (item.type !== "ellipsis") return { "data-hidden": "", ...ariaHidden("true") };
+        if (item.type !== "ellipsis") {
+          return { "data-hidden": "", ...ariaHidden("true") };
+        }
         return {
           id: scope.id("ellipsis", item.index),
           ...ariaHidden("true"),
@@ -118,8 +167,15 @@ export const def = {
     },
   },
   commands: {
-    setPage: { event: ([page]: [page: number]) => ({ type: "SET_PAGE", page }) },
-    setPageSize: { event: ([size]: [size: number]) => ({ type: "SET_PAGE_SIZE", pageSize: size }) },
+    setPage: {
+      event: ([page]: [page: number]) => ({ type: "SET_PAGE", page }),
+    },
+    setPageSize: {
+      event: ([size]: [size: number]) => ({
+        type: "SET_PAGE_SIZE",
+        pageSize: size,
+      }),
+    },
     goToFirstPage: { event: () => ({ type: "FIRST_PAGE" }) },
     goToLastPage: { event: () => ({ type: "LAST_PAGE" }) },
     goToNextPage: { event: () => ({ type: "NEXT_PAGE" }) },
@@ -152,7 +208,10 @@ export const def = {
     "page-change": {
       prop: "onPageChange",
       watch: (context) => [context.page, context.pageSize],
-      detail: (_watched, _event, _props, context: PaginationContext) => ({ page: context.page, pageSize: context.pageSize }),
+      detail: (_watched, _event, _props, context: PaginationContext) => ({
+        page: context.page,
+        pageSize: context.pageSize,
+      }),
     },
     "page-size-change": {
       prop: "onPageSizeChange",
@@ -170,8 +229,20 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<PaginationContext, PaginationEvents, Record<string, unknown>, PaginationArgs, PaginationState>;
+} satisfies ComponentDef<
+  PaginationContext,
+  PaginationEvents,
+  Record<string, unknown>,
+  PaginationArgs,
+  PaginationState
+>;
 
 export type PaginationApi = ApiOf<typeof def>;
 
-export const pagination = defineComponent<PaginationContext, PaginationEvents, PaginationApi, PaginationArgs, PaginationState>(def);
+export const pagination = defineComponent<
+  PaginationContext,
+  PaginationEvents,
+  PaginationApi,
+  PaginationArgs,
+  PaginationState
+>(def);

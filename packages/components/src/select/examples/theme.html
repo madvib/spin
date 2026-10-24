@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { select } from "../select.presentation.ts";
+import { select } from "../select.presentation.ts";
 
-  const machine = select({
-    items: [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}, {"value": "system", "label": "System"}],
-  });
+const machine = select({
+  items: [{ "value": "light", "label": "Light" }, {
+    "value": "dark",
+    "label": "Dark",
+  }, { "value": "system", "label": "System" }],
+});
 </script>
 <include file="./basic.html" />

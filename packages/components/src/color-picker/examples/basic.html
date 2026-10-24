@@ -1,12 +1,12 @@
 <!-- reconstructed from the canonical element -->
 <script lang="ts">
-  import { colorPicker } from "../color-picker.presentation.ts";
+import { colorPicker } from "../color-picker.presentation.ts";
 
-  const machine = colorPicker({
-    value: "",
-    disabled: false,
-    name: "",
-  });
+const machine = colorPicker({
+  value: "",
+  disabled: false,
+  name: "",
+});
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
@@ -16,7 +16,7 @@
 
   <div class="relative flex items-center gap-2" {...machine.getControlProps()}>
     <button
-      class={["grid h-7 w-10 place-items-center rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "cursor-not-allowed": machine.disabled, "opacity-60": machine.disabled }]}
+      class={["secondary s-sm grid h-7 w-10 place-items-center", { "cursor-not-allowed": machine.disabled, "opacity-60": machine.disabled }]}
       {...machine.getTriggerProps()}
     ><span aria-hidden="true" class="h-4 w-8 rounded-sm border border-solid border-border" style="background: {machine.valueAsString}"> </span></button>
     <span
@@ -24,7 +24,7 @@
       {...machine.getValueTextProps()}
     >{machine.valueAsString}</span>
     <button
-      class="grid h-7 w-7 place-items-center rounded-md border border-solid border-transparent bg-transparent text-muted transition-colors duration-fast ease-decelerate hover:text-text"
+      class="ghost icon s-sm grid h-7 w-7 place-items-center"
       {...machine.getEyeDropperTriggerProps()}
     ><span class="i-lucide-pipette text-sm" aria-hidden="true"></span></button>
     <div
@@ -36,7 +36,8 @@
           class="relative h-40 w-full rounded-md border border-solid border-border"
           {...machine.getAreaProps()}
         >
-          <div class="absolute inset-0 rounded-md" {...machine.getAreaBackgroundProps()}>
+          <div class="absolute inset-0 rounded-md"
+            {...machine.getAreaBackgroundProps()}>
             <div
               class="absolute inset-0 rounded-md"
               style="background-image: linear-gradient(to right, #fff, rgba(255, 255, 255, 0))"
@@ -51,8 +52,10 @@
             {...machine.getAreaThumbProps()}
           ></div>
         </div>
-        <div class="flex items-center gap-2" {...machine.getChannelSliderProps({ channel: "hue" })}>
-          <span class="w-12 text-xs text-muted" {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
+        <div class="flex items-center gap-2"
+          {...machine.getChannelSliderProps({ channel: "hue" })}>
+          <span class="w-12 text-xs text-text-muted"
+            {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
           <div
             class="relative h-3 flex-1 rounded-full border border-solid border-border"
             {...machine.getChannelSliderTrackProps({ channel: "hue" })}
@@ -62,10 +65,13 @@
               {...machine.getChannelSliderThumbProps({ channel: "hue" })}
             ></div>
           </div>
-          <span class="w-8 text-right font-mono text-xs text-muted" {...machine.getChannelSliderValueTextProps({ channel: "hue" })}>{machine.getChannelValue("hue")}</span>
+          <span class="w-8 text-right font-mono text-xs text-text-muted"
+            {...machine.getChannelSliderValueTextProps({ channel: "hue" })}>{machine.getChannelValue("hue")}</span>
         </div>
-        <div class="flex items-center gap-2" {...machine.getChannelSliderProps({ channel: "alpha" })}>
-          <span class="w-12 text-xs text-muted" {...machine.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
+        <div class="flex items-center gap-2"
+          {...machine.getChannelSliderProps({ channel: "alpha" })}>
+          <span class="w-12 text-xs text-text-muted"
+            {...machine.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
           <div
             class="relative h-3 flex-1 rounded-full border border-solid border-border"
             {...machine.getChannelSliderTrackProps({ channel: "alpha" })}
@@ -75,11 +81,12 @@
               {...machine.getChannelSliderThumbProps({ channel: "alpha" })}
             ></div>
           </div>
-          <span class="w-8 text-right font-mono text-xs text-muted" {...machine.getChannelSliderValueTextProps({ channel: "alpha" })}>{machine.getChannelValue("alpha")}</span>
+          <span class="w-8 text-right font-mono text-xs text-text-muted"
+            {...machine.getChannelSliderValueTextProps({ channel: "alpha" })}>{machine.getChannelValue("alpha")}</span>
         </div>
         <div class="flex items-center gap-2">
           <input
-            class="h-7 w-full rounded-md border border-solid border-border bg-surface px-2 font-mono text-sm text-text transition-colors duration-fast ease-decelerate"
+            class="w-full font-mono"
             {...machine.getChannelInputProps({ channel: "hex" })}
           />
           <select
@@ -94,8 +101,6 @@
         </div>
         <input type="hidden" {...machine.getHiddenInputProps()} />
       </div>
-  </div>
-
-
+    </div>
   </div>
 </div>

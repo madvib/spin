@@ -1,13 +1,13 @@
 # Integration tests
 
-Multiple modules across an internal boundary: theme → preset → generator,
-preset → lint vocabulary, runtime → machine → DOM. They live with the root or
+Multiple modules across an internal boundary: theme → preset → generator, preset
+→ lint vocabulary, runtime → machine → DOM. They live with the root or
 composition package that owns the boundary — not beside one leaf module.
 
-The system under test is the composition. Everything inside it is real: the
-real theme document, the real preset, a real UnoCSS generator, a real
-browser for anything that renders. The only doubles are at third-party
-boundaries — a network call, a clock. Never mock our own modules.
+The system under test is the composition. Everything inside it is real: the real
+theme document, the real preset, a real UnoCSS generator, a real browser for
+anything that renders. The only doubles are at third-party boundaries — a
+network call, a clock. Never mock our own modules.
 
 ## Good: the preset styles a document through the real pipeline
 
@@ -16,29 +16,33 @@ boundaries — a network call, a clock. Never mock our own modules.
 // resolve, a rule that stops claiming its element, or a preflight that
 // stops emitting all fail here.
 it("Given a theme / When a document is generated / Then the elements are styled", async () => {
-  const uno = await createGenerator({ presets: [spinPreset({ themes: { default: theme } })] });
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { default: theme } })],
+  });
   const { css } = await uno.generate("<button>Save</button>");
   assert(css.includes("background-color: var(--color-primary)"));
 });
 ```
 
-Three plausible bugs, one test: the token stops resolving, the button rule
-stops claiming `button`, the theme stops reaching the rule.
+Three plausible bugs, one test: the token stops resolving, the button rule stops
+claiming `button`, the theme stops reaching the rule.
 
 ## Bad: the same test, mocked at our boundary
 
 ```ts
 // BAD: the generator is a stub, so the CSS is the stub's.
 it("styles a button", async () => {
-  const uno = { generate: () => ({ css: "background-color: var(--color-primary)" }) };
+  const uno = {
+    generate: () => ({ css: "background-color: var(--color-primary)" }),
+  };
   const { css } = await uno.generate("<button>");
   assert(css.includes("var(--color-primary)"));
 });
 ```
 
-This proves the stub returns what it was told. The real preset, the real
-theme resolution, the real preflight are all unexercised. Delete it; run the
-real generator.
+This proves the stub returns what it was told. The real preset, the real theme
+resolution, the real preflight are all unexercised. Delete it; run the real
+generator.
 
 ## Good: the machine renders into a real DOM
 
@@ -51,12 +55,15 @@ it("Given a tree machine / When the branch is clicked / Then its content is show
   const control = el.querySelector('[data-part="branch-control"]');
   control.click();
   assertEquals(control.getAttribute("data-state"), "open");
-  assertEquals(el.querySelector("ul[data-part=branch-content]").hasAttribute("hidden"), false);
+  assertEquals(
+    el.querySelector("ul[data-part=branch-content]").hasAttribute("hidden"),
+    false,
+  );
 });
 ```
 
-The first click is the case worth keeping: a rebuild-on-state-change
-swallows it, and only a real DOM with a real event order shows that.
+The first click is the case worth keeping: a rebuild-on-state-change swallows
+it, and only a real DOM with a real event order shows that.
 
 ## Bad: the same test, through the unit instead of the seam
 
@@ -95,7 +102,9 @@ undeclared. One direction is a pin; two directions is a proof.
 ```ts
 // GOOD: neither side can drift silently.
 it("Given the catalog / When a rule is looked up / Then every declared group resolves", () => {
-  for (const group of catalogGroups(catalog)) assert(ruleFor(group) !== undefined);
+  for (const group of catalogGroups(catalog)) {
+    assert(ruleFor(group) !== undefined);
+  }
 });
 it("Given the rules / When inspected / Then nothing undeclared rides along", () => {
   for (const name of ruleNames()) assert(isDeclared(catalog, name));
@@ -104,7 +113,7 @@ it("Given the rules / When inspected / Then nothing undeclared rides along", () 
 
 ## Where they live
 
-With the package that owns the boundary. `@spin/preset` owns the
-theme→utility composition, so its suite drives a real generator. A test
-needing the runtime *and* the preset lives where they meet, which is the
-components package — not beside either one.
+With the package that owns the boundary. `@spin/preset` owns the theme→utility
+composition, so its suite drives a real generator. A test needing the runtime
+_and_ the preset lives where they meet, which is the components package — not
+beside either one.

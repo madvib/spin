@@ -1,15 +1,18 @@
 <scope>props={ label: string = "Play", tip: string = "Product Demo" } consume={ tooltip }</scope>
 
-<button {...tooltip.getTriggerProps()} class="relative grid h-36 w-64 place-items-center overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
+<button {...tooltip.getTriggerProps()}
+  class="bare relative grid h-36 w-64 place-items-center overflow-hidden rounded-lg border-border bg-surface-sunken">
   <span class="i-lucide-play text-2xl text-text" aria-hidden="true"></span>
 </button>
 
-<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised p-2 text-xs text-text shadow-md max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-  <div class="space-y-1">
-    <p class="m-0 text-xs font-medium text-text">Product Demo</p>
-    <p class="m-0 text-xs text-muted">Learn platform features in this walkthrough.</p>
+<tooltip {...tooltip.getContentProps()}
+  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div class="stack-xs">
+    <p class="text-xs font-medium text-text">Product Demo</p>
+    <p
+      class="text-xs text-muted">Learn platform features in this walkthrough.</p>
     <div class="flex items-center gap-2 text-xs text-muted">
       <span>4:32</span><span>•</span><span>720p</span><span>•</span><span>2.1M</span>
     </div>
   </div>
-</div>
+</tooltip>

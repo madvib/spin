@@ -75,9 +75,9 @@ export function initial(
   return {
     value: written("value")
       ? ratingValue(
-          (args as Record<string, unknown>).value ??
-            (args as Record<string, unknown>).defaultValue,
-        )
+        (args as Record<string, unknown>).value ??
+          (args as Record<string, unknown>).defaultValue,
+      )
       : -1,
     hoveredValue: -1,
     count: Math.max(1, Math.floor(args.count ?? 5)),

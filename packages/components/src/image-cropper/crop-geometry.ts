@@ -9,7 +9,6 @@
  * machine imports: no more, no less.
  */
 
-
 /** A positioned rectangle. */
 export interface CropRect {
   readonly x: number;
@@ -31,8 +30,7 @@ export interface CropSize {
 }
 
 /** A resize handle's position. */
-export type CropHandle =
-  | "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+export type CropHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
 var { min, max, abs, round } = Math;
 
@@ -42,28 +40,45 @@ var clampValue = (v: number, vmin: number, vmax: number): number =>
 
 var MIN_PINCH_DISTANCE = 1;
 
-var isLeftHandle = (v: CropHandle | string) => v === "w" || v === "nw" || v === "sw";
+var isLeftHandle = (v: CropHandle | string) =>
+  v === "w" || v === "nw" || v === "sw";
 
-var isRightHandle = (v: CropHandle | string) => v === "e" || v === "ne" || v === "se";
+var isRightHandle = (v: CropHandle | string) =>
+  v === "e" || v === "ne" || v === "se";
 
-var isTopHandle = (v: CropHandle | string) => v === "n" || v === "nw" || v === "ne";
+var isTopHandle = (v: CropHandle | string) =>
+  v === "n" || v === "nw" || v === "ne";
 
-var isBottomHandle = (v: CropHandle | string) => v === "s" || v === "sw" || v === "se";
+var isBottomHandle = (v: CropHandle | string) =>
+  v === "s" || v === "sw" || v === "se";
 
-var isCornerHandle = (v: CropHandle | string) => (isLeftHandle(v) || isRightHandle(v)) && (isTopHandle(v) || isBottomHandle(v));
+var isCornerHandle = (v: CropHandle | string) =>
+  (isLeftHandle(v) || isRightHandle(v)) &&
+  (isTopHandle(v) || isBottomHandle(v));
 
-var isHorizontalEdgeHandle = (v: CropHandle | string) => (isLeftHandle(v) || isRightHandle(v)) && !(isTopHandle(v) || isBottomHandle(v));
+var isHorizontalEdgeHandle = (v: CropHandle | string) =>
+  (isLeftHandle(v) || isRightHandle(v)) &&
+  !(isTopHandle(v) || isBottomHandle(v));
 
-var isVerticalEdgeHandle = (v: CropHandle | string) => (isTopHandle(v) || isBottomHandle(v)) && !(isLeftHandle(v) || isRightHandle(v));
+var isVerticalEdgeHandle = (v: CropHandle | string) =>
+  (isTopHandle(v) || isBottomHandle(v)) &&
+  !(isLeftHandle(v) || isRightHandle(v));
 
-var hasAspectRatio = (value: unknown): boolean => typeof value === "number" && value > 0;
+var hasAspectRatio = (value: unknown): boolean =>
+  typeof value === "number" && value > 0;
 
 var resolveSizeLimits = (options: {
   minSize: { width: number; height: number };
   maxSize: { width: number; height: number };
   viewportSize: { width: number; height: number };
   aspectRatio: number | null;
-}): { minWidth: number; minHeight: number; maxWidth: number; maxHeight: number; hasAspect: boolean } => {
+}): {
+  minWidth: number;
+  minHeight: number;
+  maxWidth: number;
+  maxHeight: number;
+  hasAspect: boolean;
+} => {
   // The `hasAspect` gate: the aspect branch only runs when there is one.
   const { minSize, maxSize, viewportSize, aspectRatio } = options;
   let minWidth = min(minSize.width, viewportSize.width);
@@ -82,9 +97,16 @@ var resolveSizeLimits = (options: {
     const minHeightWithAspect = minWidthWithAspect / aspectRatio;
     minWidth = min(minWidthWithAspect, viewportSize.width);
     minHeight = min(minHeightWithAspect, viewportSize.height);
-    let constrainedMaxWidth = min(maxWidth, maxHeight * aspectRatio, viewportSize.width);
+    let constrainedMaxWidth = min(
+      maxWidth,
+      maxHeight * aspectRatio,
+      viewportSize.width,
+    );
     let constrainedMaxHeight = constrainedMaxWidth / aspectRatio;
-    if (constrainedMaxHeight > maxHeight || constrainedMaxHeight > viewportSize.height) {
+    if (
+      constrainedMaxHeight > maxHeight ||
+      constrainedMaxHeight > viewportSize.height
+    ) {
       constrainedMaxHeight = min(maxHeight, viewportSize.height);
       constrainedMaxWidth = constrainedMaxHeight * aspectRatio;
     }
@@ -100,13 +122,21 @@ var resolveSizeLimits = (options: {
 var clampAspectSize = (params: {
   widthValue: number;
   heightValue: number;
-  limits: { minWidth: number; minHeight: number; maxWidth: number; maxHeight: number; hasAspect: boolean };
+  limits: {
+    minWidth: number;
+    minHeight: number;
+    maxWidth: number;
+    maxHeight: number;
+    hasAspect: boolean;
+  };
   viewportRect: { width: number; height: number };
   aspectRatio: number;
 }): { width: number; height: number } => {
   const { widthValue, heightValue, limits, viewportRect, aspectRatio } = params;
   const { minWidth, minHeight, maxWidth, maxHeight } = limits;
-  const constrainWidthFromHeight = (height: number): { width: number; height: number } => {
+  const constrainWidthFromHeight = (
+    height: number,
+  ): { width: number; height: number } => {
     let width = clampValue(height * aspectRatio, minWidth, maxWidth);
     width = min(width, viewportRect.width);
     return { width, height: width / aspectRatio };
@@ -175,8 +205,10 @@ var clampAspectSize = (params: {
   };
   const byWidth = clampByWidth(widthValue);
   const byHeight = clampByHeight(heightValue);
-  const deltaWidth = abs(byWidth.width - widthValue) + abs(byWidth.height - heightValue);
-  const deltaHeight = abs(byHeight.width - widthValue) + abs(byHeight.height - heightValue);
+  const deltaWidth = abs(byWidth.width - widthValue) +
+    abs(byWidth.height - heightValue);
+  const deltaHeight = abs(byHeight.width - widthValue) +
+    abs(byHeight.height - heightValue);
   return deltaHeight < deltaWidth ? byHeight : byWidth;
 };
 
@@ -188,7 +220,8 @@ var applyDeltaToEdges = (params: {
   minSize: { width: number; height: number };
   maxSize: { width: number; height: number };
 }): { left: number; top: number; right: number; bottom: number } => {
-  const { bounds, delta, handlePosition, viewportRect, minSize, maxSize } = params;
+  const { bounds, delta, handlePosition, viewportRect, minSize, maxSize } =
+    params;
   let { left, top, right, bottom } = bounds;
   if (isLeftHandle(handlePosition)) {
     const minLeft = max(0, right - maxSize.width);
@@ -215,7 +248,13 @@ var applyDeltaToEdges = (params: {
 
 var applyAspectToHorizontalResize = (params: {
   bounds: { left: number; top: number; right: number; bottom: number };
-  limits: { minWidth: number; minHeight: number; maxWidth: number; maxHeight: number; hasAspect: boolean };
+  limits: {
+    minWidth: number;
+    minHeight: number;
+    maxWidth: number;
+    maxHeight: number;
+    hasAspect: boolean;
+  };
   viewportRect: { width: number; height: number };
   aspectRatio: number;
   handlePosition: CropHandle | string;
@@ -230,7 +269,7 @@ var applyAspectToHorizontalResize = (params: {
     heightValue: nextHeight,
     limits,
     viewportRect,
-    aspectRatio
+    aspectRatio,
   });
   nextWidth = constrained.width;
   nextHeight = constrained.height;
@@ -249,13 +288,19 @@ var applyAspectToHorizontalResize = (params: {
     left: isRightHandle(handlePosition) ? left : right - nextWidth,
     top: newTop,
     right: isRightHandle(handlePosition) ? left + nextWidth : right,
-    bottom: newBottom
+    bottom: newBottom,
   };
 };
 
 var applyAspectToVerticalResize = (params: {
   bounds: { left: number; top: number; right: number; bottom: number };
-  limits: { minWidth: number; minHeight: number; maxWidth: number; maxHeight: number; hasAspect: boolean };
+  limits: {
+    minWidth: number;
+    minHeight: number;
+    maxWidth: number;
+    maxHeight: number;
+    hasAspect: boolean;
+  };
   viewportRect: { width: number; height: number };
   aspectRatio: number;
   handlePosition: CropHandle | string;
@@ -270,7 +315,7 @@ var applyAspectToVerticalResize = (params: {
     heightValue: nextHeight,
     limits,
     viewportRect,
-    aspectRatio
+    aspectRatio,
   });
   nextWidth = constrained.width;
   nextHeight = constrained.height;
@@ -289,7 +334,7 @@ var applyAspectToVerticalResize = (params: {
     left: newLeft,
     top: isBottomHandle(handlePosition) ? top : bottom - nextHeight,
     right: newRight,
-    bottom: isBottomHandle(handlePosition) ? top + nextHeight : bottom
+    bottom: isBottomHandle(handlePosition) ? top + nextHeight : bottom,
   };
 };
 
@@ -321,25 +366,34 @@ export function computeResizeCrop(options: {
   maxSize: { width: number; height: number };
   aspectRatio: number | null;
 }): { x: number; y: number; width: number; height: number } {
-  const { cropStart, handlePosition, delta, viewportRect, minSize, maxSize, aspectRatio } = options;
+  const {
+    cropStart,
+    handlePosition,
+    delta,
+    viewportRect,
+    minSize,
+    maxSize,
+    aspectRatio,
+  } = options;
   let { x, y, width, height } = cropStart;
   let left = x;
   let top = y;
   let right = x + width;
   let bottom = y + height;
-  const { minWidth, minHeight, maxWidth, maxHeight, hasAspect } = resolveSizeLimits({
-    minSize,
-    maxSize,
-    viewportSize: viewportRect,
-    aspectRatio
-  });
+  const { minWidth, minHeight, maxWidth, maxHeight, hasAspect } =
+    resolveSizeLimits({
+      minSize,
+      maxSize,
+      viewportSize: viewportRect,
+      aspectRatio,
+    });
   const edgesAfterDelta = applyDeltaToEdges({
     bounds: { left, top, right, bottom },
     delta,
     handlePosition,
     viewportRect,
     minSize,
-    maxSize
+    maxSize,
   });
   left = edgesAfterDelta.left;
   top = edgesAfterDelta.top;
@@ -350,7 +404,10 @@ export function computeResizeCrop(options: {
     if (isCornerHandle(handlePosition)) {
       let tempW = right - left;
       let tempH = tempW / aspectRatio;
-      if (tempH > bottom - top || top + tempH > viewportRect.height || left + tempW > viewportRect.width) {
+      if (
+        tempH > bottom - top || top + tempH > viewportRect.height ||
+        left + tempW > viewportRect.width
+      ) {
         tempH = bottom - top;
         tempW = tempH * aspectRatio;
       }
@@ -359,13 +416,13 @@ export function computeResizeCrop(options: {
         heightValue: tempH,
         limits,
         viewportRect,
-        aspectRatio
+        aspectRatio,
       });
       const result = applyCornerResize({
         bounds: { left, top, right, bottom },
         width: constrained.width,
         height: constrained.height,
-        handlePosition
+        handlePosition,
       });
       left = result.left;
       top = result.top;
@@ -377,7 +434,7 @@ export function computeResizeCrop(options: {
         limits,
         viewportRect,
         aspectRatio,
-        handlePosition
+        handlePosition,
       });
       left = result.left;
       top = result.top;
@@ -389,7 +446,7 @@ export function computeResizeCrop(options: {
         limits,
         viewportRect,
         aspectRatio,
-        handlePosition
+        handlePosition,
       });
       left = result.left;
       top = result.top;
@@ -409,7 +466,7 @@ export function computeResizeCrop(options: {
     x: left,
     y: top,
     width: right - left,
-    height: bottom - top
+    height: bottom - top,
   };
 }
 
@@ -419,18 +476,34 @@ export function computeMoveCrop(
   viewportRect: { width: number; height: number },
 ): { x: number; y: number; width: number; height: number } {
   return {
-    x: clampValue(cropStart.x + delta.x, 0, viewportRect.width - cropStart.width),
-    y: clampValue(cropStart.y + delta.y, 0, viewportRect.height - cropStart.height),
+    x: clampValue(
+      cropStart.x + delta.x,
+      0,
+      viewportRect.width - cropStart.width,
+    ),
+    y: clampValue(
+      cropStart.y + delta.y,
+      0,
+      viewportRect.height - cropStart.height,
+    ),
     width: cropStart.width,
-    height: cropStart.height
+    height: cropStart.height,
   };
 }
 
-export var resolveCropAspectRatio = (shape: string, aspectRatio: number | null): number | null => shape === "circle" ? 1 : aspectRatio;
+export var resolveCropAspectRatio = (
+  shape: string,
+  aspectRatio: number | null,
+): number | null => shape === "circle" ? 1 : aspectRatio;
 
-export var getCropSizeLimits = (prop: (name: string) => number): { minSize: { width: number; height: number }; maxSize: { width: number; height: number } } => ({
+export var getCropSizeLimits = (
+  prop: (name: string) => number,
+): {
+  minSize: { width: number; height: number };
+  maxSize: { width: number; height: number };
+} => ({
   minSize: { width: prop("minWidth"), height: prop("minHeight") },
-  maxSize: { width: prop("maxWidth"), height: prop("maxHeight") }
+  maxSize: { width: prop("maxWidth"), height: prop("maxHeight") },
 });
 
 var DEFAULT_VIEWPORT_FILL = 0.8;
@@ -469,21 +542,32 @@ export var computeDefaultCropDimensions = (
   return { width: targetWidth, height: targetHeight };
 };
 
-export var isVisibleRect = (rect: { width: number; height: number }): boolean => rect.width > 0 && rect.height > 0;
+export var isVisibleRect = (rect: { width: number; height: number }): boolean =>
+  rect.width > 0 && rect.height > 0;
 
-export var centerRect = (size: { width: number; height: number }, viewport: { width: number; height: number }): { x: number; y: number } => ({
+export var centerRect = (
+  size: { width: number; height: number },
+  viewport: { width: number; height: number },
+): { x: number; y: number } => ({
   x: max(0, (viewport.width - size.width) / 2),
-  y: max(0, (viewport.height - size.height) / 2)
+  y: max(0, (viewport.height - size.height) / 2),
 });
 
-export var getMaxBounds = (cropSize: { width: number; height: number }, viewportSize: { width: number; height: number }): { x: number; y: number } => ({
+export var getMaxBounds = (
+  cropSize: { width: number; height: number },
+  viewportSize: { width: number; height: number },
+): { x: number; y: number } => ({
   x: max(0, viewportSize.width - cropSize.width),
-  y: max(0, viewportSize.height - cropSize.height)
+  y: max(0, viewportSize.height - cropSize.height),
 });
 
 var ZERO_POINT = { x: 0, y: 0 };
 
-export var clampPoint = (point: { x: number; y: number }, min2: { x: number; y: number }, max2: { x: number; y: number }): { x: number; y: number } => ({
+export var clampPoint = (
+  point: { x: number; y: number },
+  min2: { x: number; y: number },
+  max2: { x: number; y: number },
+): { x: number; y: number } => ({
   x: clampValue(point.x, min2.x, max2.x),
-  y: clampValue(point.y, min2.y, max2.y)
+  y: clampValue(point.y, min2.y, max2.y),
 });

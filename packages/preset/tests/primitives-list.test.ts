@@ -7,7 +7,7 @@ import { listedComponents } from "../src/primitives-procedures.ts";
  * The gallery list is a CONTRACT, not a projection of the manifest.
  *
  * The manifest also holds two entries that are not things anyone browses —
- * `a11y` is a utility family and `field` is the contract input/select/textarea
+ * `a11y` is a utility family and `field` is the contract input/textarea
  * share — and it misses five components whose examples are authored beside
  * rules the manifest does not name at all. Deriving the list from either one
  * alone ships a gallery with dead ends and holes.

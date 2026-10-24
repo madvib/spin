@@ -29,9 +29,9 @@ it("renders the tree", () => {
 ```
 
 A DOM shim is not a browser. It has no layout, so `display` and `hidden` mean
-nothing; it has no real event ordering, so the mousedown-before-click
-sequence that swallows a first click does not exist. Both of this repo's
-real regressions were invisible to a shim and obvious in Chromium.
+nothing; it has no real event ordering, so the mousedown-before-click sequence
+that swallows a first click does not exist. Both of this repo's real regressions
+were invisible to a shim and obvious in Chromium.
 
 ## Bad: the same test, scripted generator claiming e2e
 
@@ -40,7 +40,10 @@ real regressions were invisible to a shim and obvious in Chromium.
 // e2e name — it proves the page loads, not that the preset styled it.
 it("shows a styled button", async () => {
   await page.setContent(`<style>${FIXTURE_CSS}</style><button>Save</button>`);
-  assert(await page.$eval("button", (b) => getComputedStyle(b).backgroundColor) !== "rgba(0, 0, 0, 0)");
+  assert(
+    await page.$eval("button", (b) => getComputedStyle(b).backgroundColor) !==
+      "rgba(0, 0, 0, 0)",
+  );
 });
 ```
 
@@ -51,14 +54,14 @@ generator. Both earn their place; neither substitutes for the other.
 
 - **Start as a stranger.** No build output, no cached bundle, the real entry.
   Anything the test inherits from a previous run is a hidden precondition.
-- **End at the user's boundary.** What is rendered and computed in the
-  browser: the element, its `display`, the pixels. Not what our internals
-  recorded.
+- **End at the user's boundary.** What is rendered and computed in the browser:
+  the element, its `display`, the pixels. Not what our internals recorded.
 - **Real browser, always.** Layout, computed style and event order are the
-  product in this repo. `linkedom` is for unit-level DOM shape only, never
-  for a claim about how something looks or behaves.
-- **Gate, don't skip.** Browser or port absent: the suite gates from outside
-  (a task name, a binary check at the runner), never `if (!hasChrome())
-  return` inside the test. A skipped e2e is a suite that cannot fail.
-- **Slow is honest.** E2E builds and drives a browser. It runs explicitly,
-  not in default green — and that exclusion is declared, not silent.
+  product in this repo. `linkedom` is for unit-level DOM shape only, never for a
+  claim about how something looks or behaves.
+- **Gate, don't skip.** Browser or port absent: the suite gates from outside (a
+  task name, a binary check at the runner), never `if (!hasChrome())
+  return`
+  inside the test. A skipped e2e is a suite that cannot fail.
+- **Slow is honest.** E2E builds and drives a browser. It runs explicitly, not
+  in default green — and that exclusion is declared, not silent.

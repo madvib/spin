@@ -54,11 +54,24 @@ Deno.test("SelectApi promises the component's surface", () => {
   assertEquals(keys.length, 42);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<SelectApi["state"], "idle" | "focused" | "open"> = true;
-  const setValueTyped: AssertExact<SelectApi["setValue"], (value: readonly string[]) => void> = true;
-  const setOpenTyped: AssertExact<SelectApi["setOpen"], (open: boolean) => void> = true;
-  const getItemStateTyped: AssertExact<SelectApi["getItemState"], (row: SelectRow) => SelectItemState> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    SelectApi["state"],
+    "idle" | "focused" | "open"
+  > = true;
+  const setValueTyped: AssertExact<
+    SelectApi["setValue"],
+    (value: readonly string[]) => void
+  > = true;
+  const setOpenTyped: AssertExact<
+    SelectApi["setOpen"],
+    (open: boolean) => void
+  > = true;
+  const getItemStateTyped: AssertExact<
+    SelectApi["getItemState"],
+    (row: SelectRow) => SelectItemState
+  > = true;
   assertEquals(
     [
       stateTyped,

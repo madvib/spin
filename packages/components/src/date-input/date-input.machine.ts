@@ -2,7 +2,7 @@
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import type { DateInputArgs, DateInputContext } from "./date-input.state.ts";
-import { initial, clearEnteredKeys } from "./date-input.state.ts";
+import { clearEnteredKeys, initial } from "./date-input.state.ts";
 import type { DateInputEvents } from "./date-input.events.ts";
 import type { DateInputState } from "./date-input.state.ts";
 import {
@@ -20,8 +20,8 @@ import {
   inputSegment,
   isSameSegmentFocus,
   pasteSegment,
-  setValue,
   setHourCycle,
+  setValue,
 } from "./date-input.transitions.ts";
 
 export type { DateInputState };

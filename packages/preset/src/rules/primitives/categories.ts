@@ -62,9 +62,9 @@ export interface PrimitiveElement {
  * they could find anything, and the row they wanted was somewhere in the
  * middle of it.
  *
- * `field` is the family the input, the select and the textarea share — one
- * rule family, three elements — so it is filed with the inputs even though
- * it is not a row of its own.
+ * `field` is the family the input and the textarea share — one rule family,
+ * two elements — so it is filed with the inputs even though it is not a row
+ * of its own.
  */
 export const PRIMITIVE_ELEMENTS: readonly PrimitiveElement[] = [
   { name: "button", category: "actions", icon: "i-lucide-mouse-pointer-click" },
@@ -77,32 +77,22 @@ export const PRIMITIVE_ELEMENTS: readonly PrimitiveElement[] = [
   { name: "switch", category: "inputs", icon: "i-lucide-toggle-right" },
   { name: "field", category: "inputs", icon: "i-lucide-form" },
   { name: "input", category: "inputs", icon: "i-lucide-text-cursor-input" },
-  { name: "select", category: "inputs", icon: "i-lucide-chevron-down" },
   { name: "textarea", category: "inputs", icon: "i-lucide-text-cursor" },
-  { name: "range", category: "inputs", icon: "i-lucide-slash" },
-  { name: "rating", category: "inputs", icon: "i-lucide-star" },
   { name: "meter", category: "inputs", icon: "i-lucide-gauge" },
   { name: "label", category: "inputs", icon: "i-lucide-tag" },
   { name: "card", category: "containers", icon: "i-lucide-square" },
   { name: "dialog", category: "containers", icon: "i-lucide-message-square" },
   { name: "details", category: "containers", icon: "i-lucide-list" },
-  { name: "popover", category: "containers", icon: "i-lucide-message-circle" },
   { name: "group", category: "containers", icon: "i-lucide-group" },
   { name: "fieldset", category: "containers", icon: "i-lucide-boxes" },
   { name: "hr", category: "containers", icon: "i-lucide-minus" },
   { name: "table", category: "display", icon: "i-lucide-table-2" },
   { name: "stat", category: "display", icon: "i-lucide-sigma" },
-  { name: "avatar", category: "display", icon: "i-lucide-circle-user" },
   { name: "avatar-group", category: "display", icon: "i-lucide-users" },
   { name: "alert", category: "feedback", icon: "i-lucide-triangle-alert" },
   { name: "badge", category: "feedback", icon: "i-lucide-badge-check" },
   { name: "progress", category: "feedback", icon: "i-lucide-loader" },
   { name: "skeleton", category: "feedback", icon: "i-lucide-square-dashed" },
-  {
-    name: "tooltip",
-    category: "feedback",
-    icon: "i-lucide-message-circle-off",
-  },
   { name: "prose", category: "typography", icon: "i-lucide-whole-word" },
   { name: "typography", category: "typography", icon: "i-lucide-type" },
   { name: "icon", category: "typography", icon: "i-lucide-image" },

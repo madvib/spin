@@ -1,29 +1,28 @@
 import {
+  type ApiOf,
   ariaDisabled,
   ariaLabelledBy,
   ariaOrientation,
   ariaReadOnly,
   ariaRoleDescription,
+  type ComponentDef,
   defineComponent,
   isComposing,
   optionRow,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
 import { ratingGroup as ratingGroupMachine } from "./rating-group.machine.ts";
-import type { RatingGroupArgs, RatingGroupContext, RatingGroupState } from "./rating-group.state.ts";
-import {
-  isHovering,
-  isInteractive,
-  itemState,
+import type {
+  RatingGroupArgs,
+  RatingGroupContext,
+  RatingGroupState,
 } from "./rating-group.state.ts";
+import { isHovering, isInteractive, itemState } from "./rating-group.state.ts";
 import type {
   RatingGroupEvents,
   RatingGroupValueChange,
 } from "./rating-group.events.ts";
-
 
 export type { RatingGroupArgs, RatingGroupState, RatingGroupValueChange };
 export type { RatingGroupHoverChange } from "./rating-group.events.ts";
@@ -31,8 +30,17 @@ export type { RatingGroupHoverChange } from "./rating-group.events.ts";
 /** Rating-group definition: the DOM contract as data. */
 
 type _Ctx = RatingGroupContext;
-type ScopeLike = ScopeFor<RatingGroupContext, RatingGroupEvents, RatingGroupState>;
-type SlotLike = SlotScopeFor<number, RatingGroupContext, RatingGroupEvents, RatingGroupState>;
+type ScopeLike = ScopeFor<
+  RatingGroupContext,
+  RatingGroupEvents,
+  RatingGroupState
+>;
+type SlotLike = SlotScopeFor<
+  number,
+  RatingGroupContext,
+  RatingGroupEvents,
+  RatingGroupState
+>;
 
 const itemIndexCache = new Map<number, readonly number[]>();
 const itemIndexes = (length: number): readonly number[] => {
@@ -47,7 +55,8 @@ const itemIndexes = (length: number): readonly number[] => {
 
 export const def = {
   name: "rating-group",
-  machine: (args: RatingGroupArgs, authored) => ratingGroupMachine(args, authored),
+  machine: (args: RatingGroupArgs, authored) =>
+    ratingGroupMachine(args, authored),
   start: "idle",
   parts: {
     root: {},
@@ -111,16 +120,16 @@ export const def = {
         const interactive = isInteractive(context);
         const rtl = (eventTarget: EventTarget | null): boolean =>
           eventTarget instanceof Element &&
-          eventTarget.ownerDocument?.defaultView?.getComputedStyle(eventTarget).direction === "rtl";
+          eventTarget.ownerDocument?.defaultView?.getComputedStyle(eventTarget)
+              .direction === "rtl";
         return {
           id: scope.id("item", index),
           role: "radio",
           "data-disabled": scope.attr(scope.context.disabled),
           "data-readonly": scope.attr(scope.context.readOnly),
-          tabindex:
-            context.readOnly || context.disabled
-              ? (state.checked ? "0" : undefined)
-              : (state.checked ? "0" : "-1"),
+          tabindex: context.readOnly || context.disabled
+            ? (state.checked ? "0" : undefined)
+            : (state.checked ? "0" : "-1"),
           ...ariaRoleDescription("rating"),
           "aria-label": `${index} stars`,
           ...ariaDisabled(context.disabled ? "true" : undefined),
@@ -153,7 +162,9 @@ export const def = {
             if (!isInteractive(scope.context)) return;
             if (isComposing(event)) return;
             const isRtl = rtl(event.target);
-            const move = (type: "ARROW_LEFT" | "ARROW_RIGHT" | "HOME" | "END"): boolean => {
+            const move = (
+              type: "ARROW_LEFT" | "ARROW_RIGHT" | "HOME" | "END",
+            ): boolean => {
               event.preventDefault();
               scope.send({ type });
               return true;
@@ -198,7 +209,9 @@ export const def = {
     },
   },
   commands: {
-    setValue: { event: ([value]: [value: number]) => ({ type: "SET_VALUE", value }) },
+    setValue: {
+      event: ([value]: [value: number]) => ({ type: "SET_VALUE", value }),
+    },
     clearValue: { event: () => ({ type: "CLEAR_VALUE" }) },
   },
   readers: {
@@ -211,7 +224,10 @@ export const def = {
   },
   methods: {
     getItems: { call: (context) => itemIndexes(context.count) },
-    getItemState: { call: (context, _state, [index]: [index: number]) => itemState(context, index) },
+    getItemState: {
+      call: (context, _state, [index]: [index: number]) =>
+        itemState(context, index),
+    },
   },
   events: {
     "value-change": {
@@ -238,7 +254,9 @@ export const def = {
       SPACE: true,
     };
     if (types[event.type] !== true) return;
-    const afterRecord = (after && typeof after === "object") ? after as Record<string, unknown> : {};
+    const afterRecord = (after && typeof after === "object")
+      ? after as Record<string, unknown>
+      : {};
     const ctx = afterRecord["context"];
     if (!ctx || typeof ctx !== "object" || !("value" in ctx)) return;
     const value = ctx.value;
@@ -246,7 +264,19 @@ export const def = {
       focus("item", Math.max(1, Math.ceil(value)));
     }
   },
-} satisfies ComponentDef<RatingGroupContext, RatingGroupEvents, Record<string, unknown>, RatingGroupArgs, RatingGroupState>;
+} satisfies ComponentDef<
+  RatingGroupContext,
+  RatingGroupEvents,
+  Record<string, unknown>,
+  RatingGroupArgs,
+  RatingGroupState
+>;
 
 export type RatingGroupApi = ApiOf<typeof def>;
-export const ratingGroup = defineComponent<RatingGroupContext, RatingGroupEvents, RatingGroupApi, RatingGroupArgs, RatingGroupState>(def);
+export const ratingGroup = defineComponent<
+  RatingGroupContext,
+  RatingGroupEvents,
+  RatingGroupApi,
+  RatingGroupArgs,
+  RatingGroupState
+>(def);

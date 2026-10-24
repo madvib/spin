@@ -5,49 +5,49 @@
 </script>
 
 <div class="grid gap-2">
-  <button class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...machine.getTriggerProps()}>Open panel</button>
+  <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
     <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none": !machine.isOpen, "invisible": !machine.isOpen, "scale-95": !machine.isOpen, "opacity-0": !machine.isOpen, "h-12": machine.stage === "minimized", "overflow-hidden": machine.stage === "minimized", "h-full": machine.stage === "maximized", "w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
-          <span class="i-lucide-grip-vertical shrink-0 text-sm text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
           <span class="truncate text-sm font-medium text-text">Media Player</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid flex-1 content-start gap-4 overflow-y-auto bg-text p-4 text-on-primary">
         <div class="flex items-center gap-3">
           <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-secondary text-on-primary shadow-lg"><span class="i-lucide-volume-2 text-lg" aria-hidden="true"></span></span>
           <div class="min-w-0 flex-1">
-            <p class="m-0 truncate text-sm font-semibold text-on-primary">Midnight Drive</p>
-            <p class="m-0 truncate text-xs text-muted">Neon Coast</p>
+            <p class="truncate text-sm font-semibold text-on-primary">Midnight Drive</p>
+            <p class="truncate text-xs text-text-muted">Neon Coast</p>
           </div>
-          <button type="button" data-fav class="flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-semantic-error"><span class="i-lucide-heart text-md" aria-hidden="true"></span></button>
+          <button type="button" data-fav class="ghost icon s-sm flex h-8 max-h-8 min-h-0 w-8 items-center justify-center text-semantic-error"><span class="i-lucide-heart text-md" aria-hidden="true"></span></button>
         </div>
         <div class="grid gap-1">
           <div class="h-1 overflow-hidden rounded-full bg-surface"><div data-progress class="h-full w-1/3 rounded-full bg-primary"></div></div>
-          <div class="flex justify-between text-xs text-muted"><span data-elapsed>1:12</span><span>3:48</span></div>
+          <div class="flex justify-between text-xs text-text-muted"><span data-elapsed>1:12</span><span>3:48</span></div>
         </div>
         <div class="flex items-center justify-center gap-4">
-          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-muted"><span class="i-lucide-shuffle text-sm" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-muted"><span class="i-lucide-skip-back text-md" aria-hidden="true"></span></button>
-          <button type="button" data-play class="flex h-12 max-h-12 min-h-0 w-12 items-center justify-center rounded-full bg-surface-raised p-0 text-text shadow-lg"><span class="i-lucide-play text-md" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-muted"><span class="i-lucide-skip-forward text-md" aria-hidden="true"></span></button>
-          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center rounded-md p-0 text-muted"><span class="i-lucide-repeat text-sm" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center p-0 text-text-muted"><span class="i-lucide-shuffle text-sm" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center p-0 text-text-muted"><span class="i-lucide-skip-back text-md" aria-hidden="true"></span></button>
+          <button type="button" data-play class="flex h-12 max-h-12 min-h-0 w-12 items-center justify-center rounded-full bg-surface-raised p-0 shadow-lg"><span class="i-lucide-play text-md" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center p-0 text-text-muted"><span class="i-lucide-skip-forward text-md" aria-hidden="true"></span></button>
+          <button type="button" class="ghost flex h-8 max-h-8 min-h-0 w-8 items-center justify-center p-0 text-text-muted"><span class="i-lucide-repeat text-sm" aria-hidden="true"></span></button>
         </div>
         <div class="flex items-center gap-3">
-          <span class="i-lucide-volume-2 text-sm text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-volume-2 text-sm text-text-muted" aria-hidden="true"></span>
           <div class="h-1 flex-1 overflow-hidden rounded-full bg-surface"><div class="h-full w-3/4 rounded-full bg-primary"></div></div>
         </div>
       </div>
-            <button class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+            <button class="bare absolute inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="bare absolute inset-x-0 bottom-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 right-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 left-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 bottom-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 bottom-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

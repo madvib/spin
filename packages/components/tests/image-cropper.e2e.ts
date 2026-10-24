@@ -7,21 +7,26 @@
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 
-
 /** Part ids are the machine's scheme: `image-cropper:<element id>:<part>`. */
-const at = (id: string, part: string): string => `[id="image-cropper:${id}:${part}"]`;
+const at = (id: string, part: string): string =>
+  `[id="image-cropper:${id}:${part}"]`;
 const VIEWPORT = at("photo", "viewport");
 const SELECTION = at("photo", "selection");
 const HANDLE_SE = at("photo", "handle:se");
 
 Deno.test("spin-image-cropper e2e", () =>
-  runComponentSuite({ port: 5249, route: "/image-cropper", ready: VIEWPORT,
+  runComponentSuite({
+    port: 5249,
+    route: "/image-cropper",
+    ready: VIEWPORT,
     settle: async (page) => {
-    await page.waitForFunction(
-      () => document.querySelector('[id="image-cropper:photo:selection"]')?.getAttribute("data-measured") === "",
-      undefined,
-      { timeout: 8000 },
-    );
+      await page.waitForFunction(
+        () =>
+          document.querySelector('[id="image-cropper:photo:selection"]')
+            ?.getAttribute("data-measured") === "",
+        undefined,
+        { timeout: 8000 },
+      );
     },
   }, async ({ page }) => {
     await step("selection drag moves the crop", async () => {
@@ -32,7 +37,11 @@ Deno.test("spin-image-cropper e2e", () =>
       // Center of the selection: a move, not a handle resize.
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();
-      await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 20, { steps: 5 });
+      await page.mouse.move(
+        box.x + box.width / 2 + 40,
+        box.y + box.height / 2 + 20,
+        { steps: 5 },
+      );
       await page.mouse.up();
       const after = await readout.textContent();
       assert.notEqual(after, before, "the drag moved the crop");
@@ -64,9 +73,16 @@ Deno.test("spin-image-cropper e2e", () =>
       const card = page.locator("card").first();
       await card.getByRole("button", { name: "el.zoomBy(0.5)" }).click();
       const readout = await page.locator("text=/zoom:/").first().textContent();
-      assert.ok(readout?.includes("1.5"), `zoom stepped to 1.5, got: ${readout}`);
+      assert.ok(
+        readout?.includes("1.5"),
+        `zoom stepped to 1.5, got: ${readout}`,
+      );
       await card.getByRole("button", { name: "el.rotateBy(90)" }).click();
-      const rotated = await page.locator("text=/rotation:/").first().textContent();
-      assert.ok(rotated?.includes("90"), `rotation stepped to 90, got: ${rotated}`);
+      const rotated = await page.locator("text=/rotation:/").first()
+        .textContent();
+      assert.ok(
+        rotated?.includes("90"),
+        `rotation stepped to 90, got: ${rotated}`,
+      );
     });
   }));

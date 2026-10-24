@@ -44,17 +44,27 @@ function fuzzyCompare(actual: number, expected: number): number {
   return actual > expected ? 1 : -1;
 }
 
-export function fuzzyEqual(actual: number | undefined, expected: number | undefined): boolean {
+export function fuzzyEqual(
+  actual: number | undefined,
+  expected: number | undefined,
+): boolean {
   if (actual === undefined || expected === undefined) return false;
   return fuzzyCompare(actual, expected) === 0;
 }
 
-export function fuzzySizeEqual(a: readonly number[], b: readonly number[]): boolean {
+export function fuzzySizeEqual(
+  a: readonly number[],
+  b: readonly number[],
+): boolean {
   if (a.length !== b.length) return false;
   return a.every((size, index) => fuzzyEqual(size, b[index]));
 }
 
-function clampPanel(panels: SplitterPanel[], index: number, size: number): number {
+function clampPanel(
+  panels: SplitterPanel[],
+  index: number,
+  size: number,
+): number {
   const panel = panels[index];
   if (panel === undefined) return size;
   const collapsedSize = panel.collapsedSize ?? 0;
@@ -72,9 +82,16 @@ function clampPanel(panels: SplitterPanel[], index: number, size: number): numbe
   return parseFloat(size.toFixed(PRECISION));
 }
 
-export function validateSizes(panels: SplitterPanel[], size: readonly number[]): number[] {
+export function validateSizes(
+  panels: SplitterPanel[],
+  size: readonly number[],
+): number[] {
   if (size.length !== panels.length) {
-    throw new Error(`Invalid ${panels.length} panel size: ${size.map((s) => `${s}%`).join(", ")}`);
+    throw new Error(
+      `Invalid ${panels.length} panel size: ${
+        size.map((s) => `${s}%`).join(", ")
+      }`,
+    );
   }
   const next = [...size];
   const total = next.reduce((sum, value) => sum + value, 0);
@@ -128,7 +145,9 @@ export function resizeByDelta(
       const prev = initialSize[expandIndex] ?? 0;
       if (fuzzyEqual(prev, expandPanel.collapsedSize ?? 0)) {
         const local = (expandPanel.minSize ?? 0) - prev;
-        if (fuzzyCompare(local, Math.abs(delta)) > 0) delta = delta < 0 ? -local : local;
+        if (fuzzyCompare(local, Math.abs(delta)) > 0) {
+          delta = delta < 0 ? -local : local;
+        }
       }
     }
     const collapseIndex = delta < 0 ? first : second;
@@ -137,7 +156,9 @@ export function resizeByDelta(
       const prev = initialSize[collapseIndex] ?? 0;
       if (fuzzyEqual(prev, collapsePanel.minSize ?? 0)) {
         const local = prev - (collapsePanel.collapsedSize ?? 0);
-        if (fuzzyCompare(local, Math.abs(delta)) > 0) delta = delta < 0 ? -local : local;
+        if (fuzzyCompare(local, Math.abs(delta)) > 0) {
+          delta = delta < 0 ? -local : local;
+        }
       }
     }
   }
@@ -165,7 +186,13 @@ export function resizeByDelta(
     if (!fuzzyEqual(prev, safe)) {
       applied += prev - safe;
       next[index] = safe;
-      if (applied.toPrecision(3).localeCompare(Math.abs(delta).toPrecision(3), undefined, { numeric: true }) >= 0) break;
+      if (
+        applied.toPrecision(3).localeCompare(
+          Math.abs(delta).toPrecision(3),
+          undefined,
+          { numeric: true },
+        ) >= 0
+      ) break;
     }
     index += delta < 0 ? -1 : 1;
   }
@@ -196,7 +223,10 @@ export function resizeByDelta(
   return next;
 }
 
-export function pivotOf(panels: SplitterPanel[], index: number): [number, number] {
+export function pivotOf(
+  panels: SplitterPanel[],
+  index: number,
+): [number, number] {
   return index === panels.length - 1 ? [index - 1, index] : [index, index + 1];
 }
 
@@ -236,7 +266,11 @@ export function isInteractive(ctx: SplitterContext): boolean {
   return !ctx.disabled;
 }
 
-export function panelCollapsed(panels: SplitterPanel[], size: readonly number[], id: string): boolean {
+export function panelCollapsed(
+  panels: SplitterPanel[],
+  size: readonly number[],
+  id: string,
+): boolean {
   const panel = panels.find((candidate) => candidate.id === id);
   if (panel?.collapsible !== true) return false;
   const index = panels.findIndex((candidate) => candidate.id === id);
@@ -255,11 +289,15 @@ function isPanelEntry(raw: unknown): raw is PanelEntryShape {
 }
 
 export function parsePanels(raw: unknown): SplitterPanel[] {
-  const list: readonly unknown[] = Array.isArray(raw) ? raw : (typeof raw === "string" ? coerceJsonArray(raw, []) : []);
+  const list: readonly unknown[] = Array.isArray(raw)
+    ? raw
+    : (typeof raw === "string" ? coerceJsonArray(raw, []) : []);
   const out: SplitterPanel[] = [];
   for (const item of list) {
     if (!isPanelEntry(item)) continue;
-    const num = (name: "minSize" | "maxSize" | "collapsedSize"): number | undefined => {
+    const num = (
+      name: "minSize" | "maxSize" | "collapsedSize",
+    ): number | undefined => {
       const v: unknown = item[name];
       return typeof v === "number" && Number.isFinite(v) ? v : undefined;
     };
@@ -287,13 +325,20 @@ const sizesOf = (raw: unknown): number[] | null => {
     ? raw
     : coerceJsonArray(typeof raw === "string" ? raw : null, []);
   if (list.length === 0) return null;
-  if (!list.every((item): item is number => typeof item === "number" && Number.isFinite(item))) return null;
+  if (
+    !list.every((item): item is number =>
+      typeof item === "number" && Number.isFinite(item)
+    )
+  ) return null;
   return [...list];
 };
 
 export { sizesOf };
 
-export function initial(args: SplitterArgs = {}, authored: (name: string) => boolean): SplitterContext {
+export function initial(
+  args: SplitterArgs = {},
+  authored: (name: string) => boolean,
+): SplitterContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

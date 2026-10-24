@@ -14,6 +14,7 @@
  */
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spin/components";
 import {
   examplesFor,
   primitiveCategories,
@@ -28,17 +29,6 @@ const MACHINE_SOURCES = import.meta.glob(
   { query: "?raw", import: "default", eager: true },
 ) as Record<string, string>;
 
-const MACHINE_TAXONOMY: readonly {
-  readonly id: string;
-  readonly label: string;
-  readonly members: readonly string[];
-}[] = [
-  { id: "inputs", label: "Inputs", members: ["slider", "tabs", "select", "combobox", "tags-input", "rating-group", "number-input", "pin-input", "color-picker", "date-picker", "date-input", "editable", "file-upload", "toggle-group", "angle-slider"] },
-  { id: "display", label: "Display", members: ["avatar", "carousel", "pagination", "steps", "timer", "tour", "async-list"] },
-  { id: "selection", label: "Selection", members: ["listbox", "menu", "navigation-menu", "tree-view", "cascade-select"] },
-  { id: "layout", label: "Layout", members: ["splitter"] },
-  { id: "media", label: "Media", members: ["image-cropper", "signature-pad", "floating-panel", "hover-card", "popover", "tooltip"] },
-];
 
 const MACHINE_GROUPS: readonly {
   readonly id: string;
@@ -49,19 +39,23 @@ const MACHINE_GROUPS: readonly {
     readonly mountHtml: string;
     readonly manifest: { readonly commands: readonly string[] };
   }[];
-}[] = MACHINE_TAXONOMY.map((group) => ({
+}[] = COMPONENT_GROUPS.map((group) => ({
   id: group.id,
   label: group.label,
   rows: group.members
     .filter((name) =>
-      Object.keys(MACHINE_SOURCES).some((path) => path.split("/").at(-3) === name)
+      Object.keys(MACHINE_SOURCES).some((path) =>
+        path.split("/").at(-3) === name
+      )
     )
     .map((name) => {
-      const first = Object.keys(MACHINE_SOURCES).find((path) => path.split("/").at(-3) === name)
+      const first = Object.keys(MACHINE_SOURCES).find((path) =>
+        path.split("/").at(-3) === name
+      )
         ?.split("/").at(-1)?.slice(0, -".html".length) ?? "basic";
       return {
         name,
-        icon: "i-lucide-box",
+        icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
         mountHtml: `<${name}-${first}></${name}-${first}>`,
         manifest: { commands: [] as string[] },
       };
@@ -145,7 +139,8 @@ export default function ComponentsIndex(): JSX.Element {
         {(group) => (
           <section class="mt-10 scroll-mt-20" id={`machine-${group.id}`}>
             <h2 class="text-text">
-              {group.label} <span class="text-xs text-text-muted">· interactive</span>
+              {group.label}{" "}
+              <span class="text-xs text-text-muted">· interactive</span>
             </h2>
             <div class="mt-4 grid gap-4 md:grid-cols-3">
               <For each={group.rows}>

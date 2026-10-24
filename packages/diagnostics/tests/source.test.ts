@@ -292,3 +292,103 @@ Deno.test("a project with no configuration is told where a shortcut would go", a
     await Deno.remove(root, { recursive: true });
   }
 });
+
+Deno.test("the markup beside the source is linted for the classes it carries", async () => {
+  const root = await Deno.makeTempDir();
+  try {
+    await Deno.mkdir(`${root}/spin`);
+    await Deno.mkdir(`${root}/src`);
+    await Deno.writeTextFile(
+      `${root}/src/card.html`,
+      `<div class="p-72">hi</div>\n`,
+    );
+    await Deno.writeTextFile(
+      `${root}/src/broken.html`,
+      `<div {{{{\n`,
+    );
+    await Deno.writeTextFile(`${root}/vite.config.ts`, `export default {};`);
+    const report = await lintSource(root);
+    const findings = report.groups.flatMap((group) => group.findings);
+    assert(
+      findings.some((finding) =>
+        finding.file.endsWith("card.html") && finding.message.includes("p-72")
+      ),
+      `the unknown class in markup was not reported: ${
+        JSON.stringify(findings.map((finding) => finding.message))
+      }`,
+    );
+    assert(
+      findings.every((finding) => !finding.file.endsWith("broken.html")),
+      "a file the parser cannot read is a file the lint says nothing about",
+    );
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
+Deno.test("markup with an expression class list reports what the literals name", async () => {
+  const root = await Deno.makeTempDir();
+  try {
+    await Deno.mkdir(`${root}/spin`);
+    await Deno.mkdir(`${root}/src`);
+    await Deno.writeTextFile(
+      `${root}/src/panel.html`,
+      `<script lang="ts">export const x = 1;</script>\n<button class={["p-72", { "rounded-md": true }]}>Go</button>\n`,
+    );
+    await Deno.writeTextFile(`${root}/vite.config.ts`, `export default {};`);
+    const report = await lintSource(root);
+    const findings = report.groups.flatMap((group) => group.findings);
+    assert(
+      findings.some((finding) =>
+        finding.file.endsWith("panel.html") &&
+        finding.ruleId === "spin/closed-vocabulary" &&
+        finding.message.includes("p-72")
+      ),
+      `the unknown class inside class={[...]} was not reported: ${
+        JSON.stringify(findings.map((finding) => finding.message))
+      }`,
+    );
+    assert(
+      findings.some((finding) =>
+        finding.file.endsWith("panel.html") &&
+        finding.ruleId === "spin/no-redundant-class" &&
+        finding.message.includes("rounded-md")
+      ),
+      `the redundant class on <button> was not reported: ${
+        JSON.stringify(findings.map((finding) => `${finding.ruleId}: ${finding.message}`))
+      }`,
+    );
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
+Deno.test("a source file with a class expression reports both rules", async () => {
+  const root = await project(
+    `export const App = () => (\n  <button className={["rounded-md", { "p-72": true }]}>Go</button>\n);\n`,
+  );
+  try {
+    const report = await lintSource(root);
+    const findings = report.groups.flatMap((group) => group.findings);
+    assert(
+      findings.some((finding) =>
+        finding.ruleId === "spin/no-redundant-class" &&
+        finding.message.includes("rounded-md")
+      ),
+      `the redundant class in className={[...]} was not reported: ${
+        JSON.stringify(findings.map((finding) => `${finding.ruleId}: ${finding.message}`))
+      }`,
+    );
+    assert(
+      findings.some((finding) =>
+        finding.ruleId === "spin/closed-vocabulary" &&
+        finding.message.includes("p-72")
+      ),
+      `the unknown class in className={[...]} was not reported: ${
+        JSON.stringify(findings.map((finding) => finding.message))
+      }`,
+    );
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});

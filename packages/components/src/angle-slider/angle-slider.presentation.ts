@@ -1,13 +1,24 @@
-import { ariaLabelledBy, dataAttr, defineComponent, focuser, isComposing, sliderThumb, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaLabelledBy,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  focuser,
+  isComposing,
+  type ScopeFor,
+  sliderThumb,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { angleSlider as angleSliderMachine } from "./angle-slider.machine.ts";
 import {
-  displayAngle,
-  isInteractive,
-  valueAsDegree,
   type AngleSliderArgs,
   type AngleSliderContext,
   type AngleSliderState,
+  displayAngle,
+  isInteractive,
+  valueAsDegree,
 } from "./angle-slider.state.ts";
 import type { AngleSliderEvents } from "./angle-slider.events.ts";
 
@@ -49,15 +60,27 @@ export interface AngleSliderValueChangeEnd {
   readonly valueAsDegree: string;
 }
 
-type ScopeLike = ScopeFor<AngleSliderContext, AngleSliderEvents, AngleSliderState>;
+type ScopeLike = ScopeFor<
+  AngleSliderContext,
+  AngleSliderEvents,
+  AngleSliderState
+>;
 
-type SlotLike<R> = SlotScopeFor<R, AngleSliderContext, AngleSliderEvents, AngleSliderState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  AngleSliderContext,
+  AngleSliderEvents,
+  AngleSliderState
+>;
 
 const MARKERS = [0, 45, 90, 135, 180, 225, 270, 315];
 
 /** Rim placement: dial degrees (zero top, clockwise) to a center-based
  * left/top pair on a 100-unit dial. */
-const rimPlacement = (angle: number, radius: number): { left: string; top: string } => {
+const rimPlacement = (
+  angle: number,
+  radius: number,
+): { left: string; top: string } => {
   const radians = ((angle - 90) * Math.PI) / 180;
   const left = 50 + radius * Math.cos(radians);
   const top = 50 + radius * Math.sin(radians);
@@ -67,16 +90,22 @@ const rimPlacement = (angle: number, radius: number): { left: string; top: strin
 const textProp = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 /** A marker's slot may be the bare index, whose number is the value. */
-const markerSlot = (slot: unknown): AngleSliderMarkerSlotProps & { readonly value: number } => {
+const markerSlot = (
+  slot: unknown,
+): AngleSliderMarkerSlotProps & { readonly value: number } => {
   if (typeof slot === "number" && Number.isFinite(slot)) return { value: slot };
-  if (typeof slot !== "object" || slot === null || Array.isArray(slot)) return { value: NaN };
+  if (typeof slot !== "object" || slot === null || Array.isArray(slot)) {
+    return { value: NaN };
+  }
   const bag: Record<string, unknown> = { ...slot };
   const value: unknown = bag["value"];
   const radius: unknown = bag["radius"];
   const diameter: unknown = bag["diameter"];
   return {
     value: typeof value === "number" && Number.isFinite(value) ? value : NaN,
-    ...(typeof radius === "number" && Number.isFinite(radius) ? { radius } : {}),
+    ...(typeof radius === "number" && Number.isFinite(radius)
+      ? { radius }
+      : {}),
     ...(diameter === true ? { diameter: true as const } : {}),
   };
 };
@@ -88,23 +117,39 @@ const thumbSlot = (arg: unknown): AngleSliderThumbSlotProps => {
   const radius: unknown = bag["radius"];
   const needle: unknown = bag["needle"];
   return {
-    ...(typeof radius === "number" && Number.isFinite(radius) ? { radius } : {}),
+    ...(typeof radius === "number" && Number.isFinite(radius)
+      ? { radius }
+      : {}),
     ...(needle === true ? { needle: true as const } : {}),
   };
 };
 
 /** atan2 around the center, in dial degrees (zero top, clockwise). */
-const pointAngle = (centerX: number, centerY: number, clientX: number, clientY: number): number => {
+const pointAngle = (
+  centerX: number,
+  centerY: number,
+  clientX: number,
+  clientY: number,
+): number => {
   const x = clientX - centerX;
   const y = clientY - centerY;
   const deg = Math.atan2(x, y) * (180 / Math.PI) + 180;
   return 360 - deg;
 };
 
-const rawAngle = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
+const rawAngle = (
+  scope: ScopeLike,
+  clientX: number,
+  clientY: number,
+): number | null => {
   const rect = scope.measure("control");
   if (rect === null) return null;
-  return pointAngle(rect.left + rect.width / 2, rect.top + rect.height / 2, clientX, clientY);
+  return pointAngle(
+    rect.left + rect.width / 2,
+    rect.top + rect.height / 2,
+    clientX,
+    clientY,
+  );
 };
 
 /** Whether the press landed on the thumb — the press target carries its own
@@ -120,7 +165,8 @@ const overThumb = (scope: ScopeLike, target: EventTarget | null): boolean => {
 
 const def = {
   name: "angle-slider",
-  machine: (props, authored) => angleSliderMachine(props as AngleSliderArgs, authored),
+  machine: (props, authored) =>
+    angleSliderMachine(props as AngleSliderArgs, authored),
   commitEvents: [
     "DOC.POINTER_UP",
     "THUMB.ARROW_INC",
@@ -158,7 +204,11 @@ const def = {
       attrs: (scope) => ({
         id: scope.id("control"),
         role: "presentation",
-        style: { position: "relative", touchAction: "none", userSelect: "none" },
+        style: {
+          position: "relative",
+          touchAction: "none",
+          userSelect: "none",
+        },
         // The dial's gesture is the runtime's: the press arms it, the moves
         // report where the pointer is on the dial, the release commits.
         "use:drag": {
@@ -176,8 +226,14 @@ const def = {
             if (angle === null) return;
             // A press on the thumb drags relative (grab offset); elsewhere
             // the dial jumps to the pointer.
-            const angularOffset = overThumb(scope, press.target) ? angle - ctx.value : null;
-            scope.send({ type: "CONTROL.POINTER_DOWN", rawAngle: angle, angularOffset });
+            const angularOffset = overThumb(scope, press.target)
+              ? angle - ctx.value
+              : null;
+            scope.send({
+              type: "CONTROL.POINTER_DOWN",
+              rawAngle: angle,
+              angularOffset,
+            });
             focuser(scope.id)("thumb");
           },
           onMove: (delta: DragDelta): void => {
@@ -203,20 +259,27 @@ const def = {
           id: scope.id("thumb"),
           role: "slider",
           "aria-label": ariaLabel.length > 0 ? ariaLabel : undefined,
-          ...ariaLabelledBy(scope, ariaLabel.length > 0 ? undefined : { part: "label" }),
+          ...ariaLabelledBy(
+            scope,
+            ariaLabel.length > 0 ? undefined : { part: "label" },
+          ),
           ...sliderThumb({
             max: "360",
             min: "0",
             now: String(ctx.value),
           }),
-          tabindex: scope.context.readOnly === true || isInteractive(ctx) ? "0" : undefined,
+          tabindex: scope.context.readOnly === true || isInteractive(ctx)
+            ? "0"
+            : undefined,
           // Dot mode positions a rim point for markup to center on; needle
           // mode rotates the markup's own centered line instead.
-          style: slot.needle === true ? {
-            rotate: `${shown}deg`,
-          } : {
-            ...rimPlacement(shown, slot.radius ?? 40),
-          },
+          style: slot.needle === true
+            ? {
+              rotate: `${shown}deg`,
+            }
+            : {
+              ...rimPlacement(shown, slot.radius ?? 40),
+            },
           onFocus: (): void => {
             scope.send({ type: "THUMB.FOCUS" });
           },
@@ -229,10 +292,19 @@ const def = {
             if (!isInteractive(live)) return;
             if (isComposing(event)) return;
             const large = event.shiftKey ? live.largeStep : undefined;
-            const keyed = (type: "THUMB.ARROW_DEC" | "THUMB.ARROW_INC" | "THUMB.HOME" | "THUMB.END"): boolean => {
+            const keyed = (
+              type:
+                | "THUMB.ARROW_DEC"
+                | "THUMB.ARROW_INC"
+                | "THUMB.HOME"
+                | "THUMB.END",
+            ): boolean => {
               event.preventDefault();
               if (type === "THUMB.ARROW_DEC" || type === "THUMB.ARROW_INC") {
-                scope.send({ type, ...(large !== undefined ? { step: large } : {}) });
+                scope.send({
+                  type,
+                  ...(large !== undefined ? { step: large } : {}),
+                });
               } else {
                 scope.send({ type });
               }
@@ -277,7 +349,15 @@ const def = {
   slots: {
     marker: {
       indexes: () => MARKERS,
-      attrs: (scope: SlotLike<{ readonly value: number; readonly radius?: number; readonly diameter?: boolean }>) => {
+      attrs: (
+        scope: SlotLike<
+          {
+            readonly value: number;
+            readonly radius?: number;
+            readonly diameter?: boolean;
+          }
+        >,
+      ) => {
         const slot = markerSlot(scope.slot);
         const context = scope.context;
         const shown = displayAngle(slot.value, context.dir);
@@ -294,19 +374,26 @@ const def = {
           "data-disabled": dataAttr(scope.context.disabled),
           style: {
             // Diameter markup centers itself; the bag keeps rotation only.
-            ...(slot.diameter === true ? {
-              rotate: `${shown}deg`,
-            } : {
-              ...rimPlacement(shown, radius),
-              rotate: `${shown}deg`,
-            }),
+            ...(slot.diameter === true
+              ? {
+                rotate: `${shown}deg`,
+              }
+              : {
+                ...rimPlacement(shown, radius),
+                rotate: `${shown}deg`,
+              }),
           },
         };
       },
     },
   },
   commands: {
-    setValue: { event: (args) => ({ type: "VALUE.SET", value: typeof args[0] === "number" ? args[0] : 0 }) },
+    setValue: {
+      event: (args) => ({
+        type: "VALUE.SET",
+        value: typeof args[0] === "number" ? args[0] : 0,
+      }),
+    },
     // The thumb carries no tabindex while disabled or read-only, so a DOM
     // focus then is a harmless no-op.
     focus: {
@@ -326,7 +413,9 @@ const def = {
     getMarkerState: {
       call: (context: AngleSliderContext, _state, args) => {
         const value = args[0];
-        if (typeof value !== "number" || !Number.isFinite(value)) return "at-value";
+        if (typeof value !== "number" || !Number.isFinite(value)) {
+          return "at-value";
+        }
         if (value < context.value) return "under-value";
         if (value > context.value) return "over-value";
         return "at-value";
@@ -339,7 +428,9 @@ const def = {
       watch: (context: AngleSliderContext) => [context.value],
       detail: (watched: readonly unknown[]) => {
         const value = watched[0];
-        const degrees = typeof value === "number" && Number.isFinite(value) ? value : 0;
+        const degrees = typeof value === "number" && Number.isFinite(value)
+          ? value
+          : 0;
         return { value: degrees, valueAsDegree: `${degrees}deg` };
       },
     },
@@ -349,12 +440,26 @@ const def = {
       watch: (context: AngleSliderContext) => [context.value],
       detail: (watched: readonly unknown[]) => {
         const value = watched[0];
-        const degrees = typeof value === "number" && Number.isFinite(value) ? value : 0;
+        const degrees = typeof value === "number" && Number.isFinite(value)
+          ? value
+          : 0;
         return { value: degrees, valueAsDegree: `${degrees}deg` };
       },
     },
   },
-} satisfies ComponentDef<AngleSliderContext, AngleSliderEvents, Record<string, unknown>, AngleSliderArgs, AngleSliderState>;
+} satisfies ComponentDef<
+  AngleSliderContext,
+  AngleSliderEvents,
+  Record<string, unknown>,
+  AngleSliderArgs,
+  AngleSliderState
+>;
 
 export type AngleSliderApi = ApiOf<typeof def>;
-export const angleSlider = defineComponent<AngleSliderContext, AngleSliderEvents, AngleSliderApi, AngleSliderArgs, AngleSliderState>(def);
+export const angleSlider = defineComponent<
+  AngleSliderContext,
+  AngleSliderEvents,
+  AngleSliderApi,
+  AngleSliderArgs,
+  AngleSliderState
+>(def);

@@ -1,15 +1,29 @@
-import { ariaBusy, ariaDescription, ariaHidden, ariaRoleDescription, dataAttr, defineComponent, isComposing, isRecord, sliderThumb, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaBusy,
+  ariaDescription,
+  ariaHidden,
+  ariaRoleDescription,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  isComposing,
+  isRecord,
+  type ScopeFor,
+  sliderThumb,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { imageCropper as imageCropperMachine } from "./image-cropper.machine.ts";
 import {
-  isGesturing,
-  roundedCrop,
   type CropHandle,
   type CropPoint,
   type CropRect,
   type ImageCropperArgs,
   type ImageCropperContext,
   type ImageCropperState,
+  isGesturing,
+  roundedCrop,
 } from "./image-cropper.state.ts";
 import type { ImageCropperEvents } from "./image-cropper.events.ts";
 
@@ -57,8 +71,17 @@ export interface ImageCropperFlipChange {
   readonly vertical: boolean;
 }
 
-type ScopeLike = ScopeFor<ImageCropperContext, ImageCropperEvents, ImageCropperState>;
-type SlotLike<R> = SlotScopeFor<R, ImageCropperContext, ImageCropperEvents, ImageCropperState>;
+type ScopeLike = ScopeFor<
+  ImageCropperContext,
+  ImageCropperEvents,
+  ImageCropperState
+>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  ImageCropperContext,
+  ImageCropperEvents,
+  ImageCropperState
+>;
 
 const sameRect = (a: CropRect, b: CropRect): boolean =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
@@ -74,11 +97,24 @@ const countOf = (raw: unknown): number | null => {
   return null;
 };
 
-const HANDLES: readonly CropHandle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+const HANDLES: readonly CropHandle[] = [
+  "nw",
+  "n",
+  "ne",
+  "e",
+  "se",
+  "s",
+  "sw",
+  "w",
+];
 
 /** A pointer point relative to the viewport node, measured through the
  * framework — defs never query the DOM. */
-const viewportPoint = (scope: ScopeLike, clientX: number, clientY: number): CropPoint | null => {
+const viewportPoint = (
+  scope: ScopeLike,
+  clientX: number,
+  clientY: number,
+): CropPoint | null => {
   const rect = scope.measure("viewport");
   if (rect === null) return null;
   return { x: clientX - rect.left, y: clientY - rect.top };
@@ -86,14 +122,26 @@ const viewportPoint = (scope: ScopeLike, clientX: number, clientY: number): Crop
 
 /** A press inside the selection belongs to the drag, not the pan: the
  * selection's own press stops there. Duck-typed — the target may be a stub. */
-const insideSelection = (scope: ScopeLike, target: EventTarget | null): boolean => {
+const insideSelection = (
+  scope: ScopeLike,
+  target: EventTarget | null,
+): boolean => {
   if (!(target instanceof Element)) return false;
   if (target.id === scope.id("selection")) return true;
   if (typeof target.closest !== "function") return false;
   return target.closest(`[id="${scope.id("selection")}"]`) !== null;
 };
 
-const HANDLE_NAMES: readonly string[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+const HANDLE_NAMES: readonly string[] = [
+  "n",
+  "s",
+  "e",
+  "w",
+  "ne",
+  "nw",
+  "se",
+  "sw",
+];
 
 const isHandle = (raw: unknown): raw is CropHandle =>
   typeof raw === "string" && (HANDLE_NAMES as readonly string[]).includes(raw);
@@ -102,15 +150,21 @@ const textOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 /** The image's natural size off the load target: positive numbers
  * only. The constructor may not exist (linkedom) — read the shape. */
-const naturalSizeOf = (target: EventTarget | null): { width: number; height: number } | null => {
+const naturalSizeOf = (
+  target: EventTarget | null,
+): { width: number; height: number } | null => {
   if (!isRecord(target)) return null;
   const width: unknown = target["naturalWidth"];
   const height: unknown = target["naturalHeight"];
-  if (typeof width !== "number" || typeof height !== "number" || width === 0) return null;
+  if (typeof width !== "number" || typeof height !== "number" || width === 0) {
+    return null;
+  }
   return { width, height };
 };
 
-const toHandle = (raw: unknown): CropHandle | null => (isHandle(raw) ? raw : null);
+const toHandle = (
+  raw: unknown,
+): CropHandle | null => (isHandle(raw) ? raw : null);
 
 /** A handle slot arg: the recipe's `{ position: row }` or a bare handle
  * name; anything else is the southeast handle. */
@@ -153,15 +207,28 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     case "ArrowLeft":
     case "ArrowRight": {
       event.preventDefault();
-      const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
-      const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
+      const dx = event.key === "ArrowLeft"
+        ? -step
+        : event.key === "ArrowRight"
+        ? step
+        : 0;
+      const dy = event.key === "ArrowUp"
+        ? -step
+        : event.key === "ArrowDown"
+        ? step
+        : 0;
       if (ctx.fixedCropArea) {
         scope.send({ type: "NUDGE_PAN", dx, dy });
         return;
       }
       if (event.altKey) {
-        const handle: CropHandle = event.key === "ArrowUp" || event.key === "ArrowDown" ? "s" : "e";
-        scope.send({ type: "NUDGE_RESIZE", handlePosition: handle, large: event.shiftKey });
+        const handle: CropHandle =
+          event.key === "ArrowUp" || event.key === "ArrowDown" ? "s" : "e";
+        scope.send({
+          type: "NUDGE_RESIZE",
+          handlePosition: handle,
+          large: event.shiftKey,
+        });
         return;
       }
       scope.send({ type: "NUDGE_MOVE", dx, dy });
@@ -172,36 +239,40 @@ const onSelectionKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-
-
 export const def = {
   name: "image-cropper",
-  machine: (args: ImageCropperArgs, authored) => imageCropperMachine(args, authored),
+  machine: (args: ImageCropperArgs, authored) =>
+    imageCropperMachine(args, authored),
   start: "idle",
   parts: {
     root: {
       attrs: (scope: ScopeLike) => {
         const crop = scope.context;
         const rounded = roundedCrop(crop);
-        const measured = crop.viewportRect.width > 0 && crop.viewportRect.height > 0;
+        const measured = crop.viewportRect.width > 0 &&
+          crop.viewportRect.height > 0;
         return {
           role: "group",
           dir: scope.context.dir,
           ...ariaRoleDescription("Image cropper"),
           "aria-label": "Image cropper",
-          ...ariaDescription(`Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${crop.zoom.toFixed(2)}x zoom, ${Math.round(crop.rotation)} degrees rotation.`),
+          ...ariaDescription(
+            `Crop positioned at ${rounded.x}px from the left and ${rounded.y}px from the top with a size of ${rounded.width}px by ${rounded.height}px, ${
+              crop.zoom.toFixed(2)
+            }x zoom, ${Math.round(crop.rotation)} degrees rotation.`,
+          ),
           ...ariaBusy(measured ? undefined : "true"),
           "data-shape": crop.cropShape,
           "data-dragging": scope.attr(scope.state === "dragging"),
           "data-panning": scope.attr(scope.state === "panning"),
-
         };
       },
     },
     viewport: {
       attrs: (scope) => {
         const ctx = scope.context;
-        const measured = ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0;
+        const measured = ctx.viewportRect.width > 0 &&
+          ctx.viewportRect.height > 0;
         const disabled = scope.context.disabled;
         return {
           role: "presentation",
@@ -219,8 +290,24 @@ export const def = {
                 current.x === 0 &&
                 current.y === 0
               ) return;
-              scope.send({ type: "SET_VIEWPORT", viewport: { x: 0, y: 0, width: size.width, height: size.height } });
-              scope.send({ type: "SET_DEFAULT_CROP", viewport: { x: 0, y: 0, width: size.width, height: size.height } });
+              scope.send({
+                type: "SET_VIEWPORT",
+                viewport: {
+                  x: 0,
+                  y: 0,
+                  width: size.width,
+                  height: size.height,
+                },
+              });
+              scope.send({
+                type: "SET_DEFAULT_CROP",
+                viewport: {
+                  x: 0,
+                  y: 0,
+                  width: size.width,
+                  height: size.height,
+                },
+              });
             },
           },
           // The pan is the viewport's own gesture: the runtime's drag
@@ -240,9 +327,29 @@ export const def = {
               const rect = scope.measure("viewport");
               if (rect !== null && rect.width !== 0 && rect.height !== 0) {
                 const current = scope.context.viewportRect;
-                if (!(current.width === rect.width && current.height === rect.height && current.x === 0 && current.y === 0)) {
-                  scope.send({ type: "SET_VIEWPORT", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
-                  scope.send({ type: "SET_DEFAULT_CROP", viewport: { x: 0, y: 0, width: rect.width, height: rect.height } });
+                if (
+                  !(current.width === rect.width &&
+                    current.height === rect.height && current.x === 0 &&
+                    current.y === 0)
+                ) {
+                  scope.send({
+                    type: "SET_VIEWPORT",
+                    viewport: {
+                      x: 0,
+                      y: 0,
+                      width: rect.width,
+                      height: rect.height,
+                    },
+                  });
+                  scope.send({
+                    type: "SET_DEFAULT_CROP",
+                    viewport: {
+                      x: 0,
+                      y: 0,
+                      width: rect.width,
+                      height: rect.height,
+                    },
+                  });
                 }
               }
               scope.send({ type: "PAN_POINTER_DOWN", point });
@@ -273,7 +380,8 @@ export const def = {
         const crop = scope.context;
         const src = scope.context.src;
         const alt = scope.context.alt;
-        const measured = crop.viewportRect.width > 0 && crop.viewportRect.height > 0;
+        const measured = crop.viewportRect.width > 0 &&
+          crop.viewportRect.height > 0;
         return {
           role: "presentation",
           alt: alt.length > 0 ? alt : "",
@@ -282,7 +390,10 @@ export const def = {
           src: src.length > 0 ? src : undefined,
           "data-ready": dataAttr(measured),
           style: {
-            transform: `scale(${crop.zoom}) rotate(${crop.rotation}deg) translate(${crop.offset.x}px, ${crop.offset.y}px) scaleX(${crop.flipHorizontal ? -1 : 1}) scaleY(${crop.flipVertical ? -1 : 1})`,
+            transform:
+              `scale(${crop.zoom}) rotate(${crop.rotation}deg) translate(${crop.offset.x}px, ${crop.offset.y}px) scaleX(${
+                crop.flipHorizontal ? -1 : 1
+              }) scaleY(${crop.flipVertical ? -1 : 1})`,
           },
           onLoad: (event: Event): void => {
             const size = naturalSizeOf(event.currentTarget);
@@ -303,18 +414,25 @@ export const def = {
           role: "slider",
           tabindex: "0",
           "data-dragging": scope.attr(scope.state === "dragging"),
-          "aria-label": `Crop selection area (${ctx.cropShape === "circle" ? "circle" : "rectangle"})`,
+          "aria-label": `Crop selection area (${
+            ctx.cropShape === "circle" ? "circle" : "rectangle"
+          })`,
           ...ariaRoleDescription("2d slider"),
           ...sliderThumb({
             min: "0",
             max: String(maxX),
             now: String(crop.x),
-            text: `Position X ${crop.x}px, Y ${crop.y}px. Size ${crop.width}px by ${crop.height}px.`,
+            text:
+              `Position X ${crop.x}px, Y ${crop.y}px. Size ${crop.width}px by ${crop.height}px.`,
           }),
-          ...ariaDescription("Use arrow keys to move the crop. Hold Alt with arrow keys to resize width or height. Press plus or minus to zoom."),
+          ...ariaDescription(
+            "Use arrow keys to move the crop. Hold Alt with arrow keys to resize width or height. Press plus or minus to zoom.",
+          ),
           "data-disabled": dataAttr(ctx.fixedCropArea),
           "data-shape": ctx.cropShape,
-          "data-measured": dataAttr(ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0),
+          "data-measured": dataAttr(
+            ctx.viewportRect.width > 0 && ctx.viewportRect.height > 0,
+          ),
 
           style: {
             // The crop rect is the machine's own geometry: the bag carries
@@ -347,7 +465,8 @@ export const def = {
               scope.send({ type: "POINTER_UP" });
             },
           },
-          onKeydown: (event: KeyboardEvent): void => onSelectionKeydown(scope, event),
+          onKeydown: (event: KeyboardEvent): void =>
+            onSelectionKeydown(scope, event),
         };
       },
     },
@@ -373,7 +492,11 @@ export const def = {
             onStart: (press: DragPress): void => {
               const point = viewportPoint(scope, press.x, press.y);
               if (point === null) return;
-              scope.send({ type: "POINTER_DOWN", point, handlePosition: slots.position });
+              scope.send({
+                type: "POINTER_DOWN",
+                point,
+                handlePosition: slots.position,
+              });
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
@@ -396,20 +519,26 @@ export const def = {
           ...ariaHidden("true"),
           "data-axis": slots.axis,
           "data-dragging": scope.attr(scope.state === "dragging"),
-
         };
       },
     },
   },
   commands: {
-    setZoom: { event: ([zoom]: [zoom: number]) => ({ type: "SET_ZOOM", zoom }) },
+    setZoom: {
+      event: ([zoom]: [zoom: number]) => ({ type: "SET_ZOOM", zoom }),
+    },
     zoomBy: {
       event: ([delta]: [delta: number], context: ImageCropperContext) => ({
         type: "SET_ZOOM",
         zoom: context.zoom + delta,
       }),
     },
-    setRotation: { event: ([rotation]: [rotation: number]) => ({ type: "SET_ROTATION", rotation }) },
+    setRotation: {
+      event: ([rotation]: [rotation: number]) => ({
+        type: "SET_ROTATION",
+        rotation,
+      }),
+    },
     rotateBy: {
       event: ([degrees]: [degrees: number], context: ImageCropperContext) => ({
         type: "SET_ROTATION",
@@ -434,13 +563,21 @@ export const def = {
       // diff and reports nothing, exactly as the early return did.
       event: (args, context: ImageCropperContext) => {
         const next = args[0];
-        return { type: "SET_FLIP", horizontal: typeof next === "boolean" ? next : !context.flipHorizontal };
+        return {
+          type: "SET_FLIP",
+          horizontal: typeof next === "boolean"
+            ? next
+            : !context.flipHorizontal,
+        };
       },
     },
     flipVertical: {
       event: (args, context: ImageCropperContext) => {
         const next = args[0];
-        return { type: "SET_FLIP", vertical: typeof next === "boolean" ? next : !context.flipVertical };
+        return {
+          type: "SET_FLIP",
+          vertical: typeof next === "boolean" ? next : !context.flipVertical,
+        };
       },
     },
     resize: {
@@ -449,9 +586,19 @@ export const def = {
       event: (args) => {
         const handlePosition = handleOf(args[0]).position;
         const rawDelta = args[1];
-        const delta = typeof rawDelta === "number" ? rawDelta : countOf(rawDelta) ?? 0;
-        const dx = handlePosition.includes("w") ? -delta : handlePosition.includes("e") ? delta : 0;
-        const dy = handlePosition.includes("n") ? -delta : handlePosition.includes("s") ? delta : 0;
+        const delta = typeof rawDelta === "number"
+          ? rawDelta
+          : countOf(rawDelta) ?? 0;
+        const dx = handlePosition.includes("w")
+          ? -delta
+          : handlePosition.includes("e")
+          ? delta
+          : 0;
+        const dy = handlePosition.includes("n")
+          ? -delta
+          : handlePosition.includes("s")
+          ? delta
+          : 0;
         return { type: "RESIZE_CROP", handlePosition, delta: { x: dx, y: dy } };
       },
     },
@@ -463,12 +610,16 @@ export const def = {
     zoom: { read: (context: ImageCropperContext) => context.zoom },
     rotation: { read: (context: ImageCropperContext) => context.rotation },
     flip: {
-      read: (context: ImageCropperContext) => ({ horizontal: context.flipHorizontal, vertical: context.flipVertical }),
+      read: (context: ImageCropperContext) => ({
+        horizontal: context.flipHorizontal,
+        vertical: context.flipVertical,
+      }),
     },
     dragging: { read: (_context, state) => state === "dragging" },
     panning: { read: (_context, state) => state === "panning" },
     measured: {
-      read: (context: ImageCropperContext) => context.viewportRect.width > 0 && context.viewportRect.height > 0,
+      read: (context: ImageCropperContext) =>
+        context.viewportRect.width > 0 && context.viewportRect.height > 0,
     },
   },
   methods: {
@@ -483,7 +634,9 @@ export const def = {
         const crop = context.crop;
         return [crop.x, crop.y, crop.width, crop.height];
       },
-      detail: (_watched, _event, _props, context: ImageCropperContext) => ({ crop: { ...context.crop } }),
+      detail: (_watched, _event, _props, context: ImageCropperContext) => ({
+        crop: { ...context.crop },
+      }),
     },
     "zoom-change": {
       prop: "onZoomChange",
@@ -503,14 +656,28 @@ export const def = {
     },
     "flip-change": {
       prop: "onFlipChange",
-      watch: (context: ImageCropperContext) => [context.flipHorizontal, context.flipVertical],
+      watch: (
+        context: ImageCropperContext,
+      ) => [context.flipHorizontal, context.flipVertical],
       detail: (watched: readonly unknown[]) => ({
         horizontal: watched[0] === true,
         vertical: watched[1] === true,
       }),
     },
   },
-} satisfies ComponentDef<ImageCropperContext, ImageCropperEvents, Record<string, unknown>, ImageCropperArgs, ImageCropperState>;
+} satisfies ComponentDef<
+  ImageCropperContext,
+  ImageCropperEvents,
+  Record<string, unknown>,
+  ImageCropperArgs,
+  ImageCropperState
+>;
 
 export type ImageCropperApi = ApiOf<typeof def>;
-export const imageCropper = defineComponent<ImageCropperContext, ImageCropperEvents, ImageCropperApi, ImageCropperArgs, ImageCropperState>(def);
+export const imageCropper = defineComponent<
+  ImageCropperContext,
+  ImageCropperEvents,
+  ImageCropperApi,
+  ImageCropperArgs,
+  ImageCropperState
+>(def);

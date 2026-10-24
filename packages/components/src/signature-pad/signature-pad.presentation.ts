@@ -1,14 +1,24 @@
-import { ariaDisabled, ariaRoleDescription, dataAttr, defineComponent, focuser, isRecord, type ApiOf, type ComponentDef, type ScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaDisabled,
+  ariaRoleDescription,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  focuser,
+  isRecord,
+  type ScopeFor,
+} from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { signaturePad as signaturePadMachine } from "./signature-pad.machine.ts";
 import {
   isEmpty,
   isInteractive,
-  tuningOf,
   type SignaturePadArgs,
   type SignaturePadContext,
   type SignaturePadState,
   type SignaturePoint,
+  tuningOf,
 } from "./signature-pad.state.ts";
 import type { SignaturePadEvents } from "./signature-pad.events.ts";
 import type { SignaturePadDrawDetails } from "./signature-pad.events.ts";
@@ -21,7 +31,11 @@ export interface SegmentSlotProps {
   readonly path: string;
 }
 
-type ScopeLike = ScopeFor<SignaturePadContext, SignaturePadEvents, SignaturePadState>;
+type ScopeLike = ScopeFor<
+  SignaturePadContext,
+  SignaturePadEvents,
+  SignaturePadState
+>;
 const controlPoint = (
   scope: ScopeLike,
   clientX: number,
@@ -32,8 +46,12 @@ const controlPoint = (
   return { x: clientX - rect.left, y: clientY - rect.top, pressure: 0.5 };
 };
 
-const isClosestable = (value: unknown): value is { closest(selector: string): unknown } => {
-  if (typeof value !== "object" || value === null || !("closest" in value)) return false;
+const isClosestable = (
+  value: unknown,
+): value is { closest(selector: string): unknown } => {
+  if (typeof value !== "object" || value === null || !("closest" in value)) {
+    return false;
+  }
   const closest: unknown = value.closest;
   return typeof closest === "function";
 };
@@ -53,7 +71,6 @@ const segmentPathOf = (arg: unknown): string => {
   return typeof path === "string" ? path : "";
 };
 
-
 const textOf = (arg: unknown): string => typeof arg === "string" ? arg : "";
 
 const drawingFill = (drawing: unknown): string => {
@@ -62,17 +79,25 @@ const drawingFill = (drawing: unknown): string => {
   return typeof fill === "string" && fill.length > 0 ? fill : "currentColor";
 };
 
-
 export const def = {
   name: "signature-pad",
-  machine: (args: SignaturePadArgs, authored) => signaturePadMachine(args, authored),
+  machine: (args: SignaturePadArgs, authored) =>
+    signaturePadMachine(args, authored),
   start: "idle",
   reconcile: ({ context, send }) => {
     // Tuning merges through the machine's SET_TUNING: the merge stays one
     // assign.
     const patch = tuningOf(context.drawing);
-    const keys = ["size", "thinning", "smoothing", "streamline", "simulatePressure"] as const;
-    const stale = keys.some((key) => patch[key] !== undefined && context.tuning[key] !== patch[key]);
+    const keys = [
+      "size",
+      "thinning",
+      "smoothing",
+      "streamline",
+      "simulatePressure",
+    ] as const;
+    const stale = keys.some((key) =>
+      patch[key] !== undefined && context.tuning[key] !== patch[key]
+    );
     if (stale) {
       send({ type: "SET_TUNING", tuning: patch });
       return true;
@@ -109,7 +134,11 @@ export const def = {
           ...ariaDisabled(disabled ? "true" : undefined),
           tabindex: disabled ? undefined : "0",
           "data-disabled": dataAttr(disabled),
-          style: { position: "relative", touchAction: "none", userSelect: "none" },
+          style: {
+            position: "relative",
+            touchAction: "none",
+            userSelect: "none",
+          },
           // The stroke gesture lives in the runtime: the press arms it, the
           // pointer is captured for the gesture's life, and the machine
           // keeps the geometry.
@@ -125,16 +154,26 @@ export const def = {
               // not start a stroke. Any node advertising the trigger part
               // refuses the stroke.
               if (insideClearTrigger(press.target)) return;
-              if (press.metaKey === true || press.ctrlKey === true || press.altKey) return;
+              if (
+                press.metaKey === true || press.ctrlKey === true || press.altKey
+              ) return;
               const point = controlPoint(scope, press.x, press.y);
               if (point === null) return;
-              scope.send({ type: "POINTER_DOWN", point, pressure: press.pressure });
+              scope.send({
+                type: "POINTER_DOWN",
+                point,
+                pressure: press.pressure,
+              });
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "drawing") return;
               const point = controlPoint(scope, delta.x, delta.y);
               if (point === null) return;
-              scope.send({ type: "POINTER_MOVE", point, pressure: delta.pressure });
+              scope.send({
+                type: "POINTER_MOVE",
+                point,
+                pressure: delta.pressure,
+              });
             },
             onEnd: (): void => {
               if (!isInteractive(scope.context)) return;
@@ -183,7 +222,9 @@ export const def = {
           type: "button",
           "aria-label": label,
           "data-disabled": dataAttr(disabled),
-          "data-hidden": dataAttr((ctx.paths ?? []).length === 0 || scope.state === "drawing"),
+          "data-hidden": dataAttr(
+            (ctx.paths ?? []).length === 0 || scope.state === "drawing",
+          ),
           disabled: disabled ? true : undefined,
           onClick: (): void => {
             scope.send({ type: "CLEAR" });
@@ -213,7 +254,9 @@ export const def = {
   readers: {
     empty: { read: (context: SignaturePadContext) => isEmpty(context) },
     drawing: { read: (_context, state) => state === "drawing" },
-    currentPath: { read: (context: SignaturePadContext) => context.currentPath },
+    currentPath: {
+      read: (context: SignaturePadContext) => context.currentPath,
+    },
     paths: { read: (context: SignaturePadContext) => [...context.paths] },
     disabled: { read: (context) => context.disabled === true },
   },
@@ -257,7 +300,19 @@ export const def = {
           : null,
     },
   },
-} satisfies ComponentDef<SignaturePadContext, SignaturePadEvents, Record<string, unknown>, SignaturePadArgs, SignaturePadState>;
+} satisfies ComponentDef<
+  SignaturePadContext,
+  SignaturePadEvents,
+  Record<string, unknown>,
+  SignaturePadArgs,
+  SignaturePadState
+>;
 
 export type SignaturePadApi = ApiOf<typeof def>;
-export const signaturePad = defineComponent<SignaturePadContext, SignaturePadEvents, SignaturePadApi, SignaturePadArgs, SignaturePadState>(def);
+export const signaturePad = defineComponent<
+  SignaturePadContext,
+  SignaturePadEvents,
+  SignaturePadApi,
+  SignaturePadArgs,
+  SignaturePadState
+>(def);

@@ -101,13 +101,12 @@ export const primitiveClaims: Record<string, Claim> = {
       { tag: "header", where: "descendant" },
     ],
   },
-  // The box is one thing with three contents: a field, a select and a
-  // textarea are the same box.
+  // The box is one thing with two contents: a field and a textarea are the
+  // same box.
   field: {
     self: "field",
     paints: [
       { tag: "input", where: "global" },
-      { tag: "select", where: "global" },
       { tag: "textarea", where: "global" },
     ],
   },
@@ -125,7 +124,6 @@ export const primitiveClaims: Record<string, Claim> = {
       { tag: "badge", where: "descendant" },
       { tag: "button", where: "descendant" },
       { tag: "input", where: "descendant" },
-      { tag: "select", where: "descendant" },
       { tag: "textarea", where: "descendant" },
     ],
   },
@@ -150,16 +148,6 @@ export const primitiveClaims: Record<string, Claim> = {
     paints: [{ tag: "progress", where: "global" }],
   },
   radio: { self: "radio", paints: [{ tag: "input", where: "global" }] },
-  range: { self: "range", paints: [{ tag: "input", where: "global" }] },
-  rating: {
-    self: "rating",
-    paints: [
-      // The star, and the stars after the checked one: the value reaches
-      // them through a SIBLING, and a sibling is not an ancestor, so they
-      // are painted wherever they are written.
-      { tag: "input", where: "global" },
-    ],
-  },
   skeleton: { self: "skeleton", paints: [] },
   stat: { self: "stat", paints: [] },
   switch: { self: "switch", paints: [{ tag: "input", where: "global" }] },

@@ -1,17 +1,17 @@
 import {
+  type ApiOf,
   ariaControls,
   ariaHidden,
   ariaInvalid,
   ariaLabelledBy,
   ariaState,
   comboboxInput,
+  type ComponentDef,
   defineComponent,
   disclosureTrigger,
   isComposing,
   listSurface,
   optionRow,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
@@ -20,11 +20,11 @@ import {
   isOpenPhase,
 } from "./combobox.machine.ts";
 import {
-  pickOutcome,
   type ComboboxArgs,
   type ComboboxContext,
   type ComboboxRow,
   type ComboboxState,
+  pickOutcome,
 } from "./combobox.state.ts";
 import type { ComboboxEvents } from "./combobox.events.ts";
 /**
@@ -82,13 +82,15 @@ export interface ComboboxSelect {
   readonly itemValue: string;
 }
 
-
-
 const toRow = (item: ComboboxItem): ComboboxRow | undefined => {
-  if (typeof item.value !== "string" || item.value.length === 0) return undefined;
+  if (typeof item.value !== "string" || item.value.length === 0) {
+    return undefined;
+  }
   return {
     value: item.value,
-    label: typeof item.label === "string" && item.label.length > 0 ? item.label : item.value,
+    label: typeof item.label === "string" && item.label.length > 0
+      ? item.label
+      : item.value,
     disabled: item.disabled === true,
     group: typeof item.group === "string" ? item.group : "",
     index: 0,
@@ -106,7 +108,11 @@ const toRows = (items: readonly ComboboxItem[]): readonly ComboboxRow[] => {
 
 const parseItems = (raw: unknown): readonly ComboboxRow[] => {
   if (!Array.isArray(raw)) return [];
-  return toRows(raw.filter((item): item is ComboboxItem => typeof item === "object" && item !== null));
+  return toRows(
+    raw.filter((item): item is ComboboxItem =>
+      typeof item === "object" && item !== null
+    ),
+  );
 };
 
 const sameKeys = (a: readonly string[], b: readonly string[]): boolean =>
@@ -144,9 +150,17 @@ const OPEN_REASON: Record<string, string> = {
 };
 
 type ScopeLike = ScopeFor<ComboboxContext, ComboboxEvents, ComboboxState>;
-type SlotLike<R> = SlotScopeFor<R, ComboboxContext, ComboboxEvents, ComboboxState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  ComboboxContext,
+  ComboboxEvents,
+  ComboboxState
+>;
 
-const rowsCache = new WeakMap<readonly ComboboxItem[], readonly ComboboxRow[]>();
+const rowsCache = new WeakMap<
+  readonly ComboboxItem[],
+  readonly ComboboxRow[]
+>();
 const rowsOf = (parsed: Record<string, unknown>): readonly ComboboxRow[] => {
   const raw: unknown = parsed["items"];
   if (!Array.isArray(raw)) return [];
@@ -159,7 +173,10 @@ const rowsOf = (parsed: Record<string, unknown>): readonly ComboboxRow[] => {
 
 /** Blocks memoized on the rows' identity: the `for` directive iterates this
  * array, and fresh wrappers per read would re-stamp the groups. */
-const blocksCache = new WeakMap<readonly ComboboxRow[], readonly ComboboxBlock[]>();
+const blocksCache = new WeakMap<
+  readonly ComboboxRow[],
+  readonly ComboboxBlock[]
+>();
 const blocksOf = (rows: readonly ComboboxRow[]): readonly ComboboxBlock[] => {
   const hit = blocksCache.get(rows);
   if (hit !== undefined) return hit;
@@ -176,7 +193,9 @@ const blocksOf = (rows: readonly ComboboxRow[]): readonly ComboboxBlock[] => {
   for (const row of rows) {
     if ((row.group ?? "") !== (previous ?? "")) {
       flush();
-      label = row.group === undefined || row.group.length === 0 ? null : row.group;
+      label = row.group === undefined || row.group.length === 0
+        ? null
+        : row.group;
       previous = row.group;
     }
     group.push(row);
@@ -195,7 +214,6 @@ const resolveKey = (event: KeyboardEvent, dir: string): string => {
   return event.key;
 };
 
-
 /**
  * One step through the collection, mirroring Zag's `getNextValue`: the walk
  * starts at the highlighted row's position — so a highlight sitting on a
@@ -213,7 +231,11 @@ const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   }
   const at = list.findIndex((row) => row.value === current);
   const start = at === -1 ? 0 : at;
-  for (let index = start + delta; index >= 0 && index < list.length; index += delta) {
+  for (
+    let index = start + delta;
+    index >= 0 && index < list.length;
+    index += delta
+  ) {
     const row = list[index];
     if (row !== undefined && !row.disabled) return row.value;
   }
@@ -238,7 +260,9 @@ const walked = (scope: ScopeLike, delta: 1 | -1): Record<string, string> => {
 
 const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented) return;
-  if (scope.context.disabled === true || scope.context.readOnly === true) return;
+  if (scope.context.disabled === true || scope.context.readOnly === true) {
+    return;
+  }
   // A composing keystroke and any modifier are the host's, not the
   // machine's: Zag routes the whole key map behind this guard.
   if (event.ctrlKey || event.shiftKey || isComposing(event)) return;
@@ -249,7 +273,8 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     .filter((label) => label !== undefined)
     .join(", ");
   const dir = event.target instanceof Element
-    ? event.target.ownerDocument?.defaultView?.getComputedStyle(event.target).direction
+    ? event.target.ownerDocument?.defaultView?.getComputedStyle(event.target)
+      .direction
     : "ltr";
   switch (resolveKey(event, typeof dir === "string" ? dir : "ltr")) {
     case "ArrowDown": {
@@ -259,7 +284,11 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
         scope.send({ type: "OPEN" });
         return;
       }
-      scope.send({ type: "INPUT.ARROW_DOWN", keypress: true, ...(isOpen ? walked(scope, 1) : {}) });
+      scope.send({
+        type: "INPUT.ARROW_DOWN",
+        keypress: true,
+        ...(isOpen ? walked(scope, 1) : {}),
+      });
       return;
     }
     case "ArrowUp": {
@@ -269,18 +298,30 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
         scope.send({ type: "CLOSE" });
         return;
       }
-      scope.send({ type: "INPUT.ARROW_UP", keypress: true, ...(isOpen ? walked(scope, -1) : {}) });
+      scope.send({
+        type: "INPUT.ARROW_UP",
+        keypress: true,
+        ...(isOpen ? walked(scope, -1) : {}),
+      });
       return;
     }
     case "Home": {
       const value = edge(scope, "first");
-      scope.send({ type: "INPUT.HOME", keypress: true, ...(isOpen && value !== null ? { value } : {}) });
+      scope.send({
+        type: "INPUT.HOME",
+        keypress: true,
+        ...(isOpen && value !== null ? { value } : {}),
+      });
       if (isOpen) event.preventDefault();
       return;
     }
     case "End": {
       const value = edge(scope, "last");
-      scope.send({ type: "INPUT.END", keypress: true, ...(isOpen && value !== null ? { value } : {}) });
+      scope.send({
+        type: "INPUT.END",
+        keypress: true,
+        ...(isOpen && value !== null ? { value } : {}),
+      });
       if (isOpen) event.preventDefault();
       return;
     }
@@ -297,11 +338,15 @@ const inputKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       // select and close, so a post-send read would see no panel.
       const wasOpen = isOpen;
       const highlighted = ctx.highlightedValue !== null;
-      const rejected = ctx.inputValue !== valueAsString && !ctx.allowCustomValue;
+      const rejected = ctx.inputValue !== valueAsString &&
+        !ctx.allowCustomValue;
       scope.send({ type: "INPUT.ENTER" });
       // The field must not submit its form when the machine consumed the
       // key: a live highlight, or text the collection refuses, is both.
-      if (wasOpen && scope.context.alwaysSubmitOnEnter !== true && (highlighted || rejected)) {
+      if (
+        wasOpen && scope.context.alwaysSubmitOnEnter !== true &&
+        (highlighted || rejected)
+      ) {
         event.preventDefault();
       }
       return;
@@ -320,7 +365,10 @@ type RowHandlerSet = {
   readonly onPointerLeave: () => void;
   readonly onClick: (event: MouseEvent) => void;
 };
-const rowHandlersByBridge = new WeakMap<object, WeakMap<ComboboxRow, RowHandlerSet>>();
+const rowHandlersByBridge = new WeakMap<
+  object,
+  WeakMap<ComboboxRow, RowHandlerSet>
+>();
 const rowHandlers = (
   scope: ScopeLike,
   row: ComboboxRow,
@@ -366,7 +414,10 @@ const rowHandlers = (
   return made;
 };
 
-const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => ({
+const itemStateOf = (
+  scope: ScopeLike,
+  row: ComboboxRow,
+): ComboboxItemState => ({
   value: row.value,
   disabled: scope.context.disabled || row.disabled === true,
   highlighted: scope.context.highlightedValue === row.value,
@@ -376,8 +427,13 @@ const itemStateOf = (scope: ScopeLike, row: ComboboxRow): ComboboxItemState => (
 /** The component's public state: the names the markup may key on. */
 export const def = {
   name: "combobox",
-  machine: (props, authored) => comboboxMachine(props as ComboboxArgs, authored),
-  start: (props) => (props["open"] === true || props["defaultOpen"] === true ? "suggesting" : "idle"),
+  machine: (props, authored) =>
+    comboboxMachine(props as ComboboxArgs, authored),
+  start: (
+    props,
+  ) => (props["open"] === true || props["defaultOpen"] === true
+    ? "suggesting"
+    : "idle"),
   // The idle phase's entry clears the highlight, so the host's seeded
   // highlight is established AFTER the start, where the machine's own entry
   // cannot clear it again.
@@ -396,7 +452,9 @@ export const def = {
     ctx.items = rows;
     if (orderChanged) {
       ctx.order = order;
-      ctx.labels = Object.fromEntries(rows.map((row) => [row.value, row.label]));
+      ctx.labels = Object.fromEntries(
+        rows.map((row) => [row.value, row.label]),
+      );
       // Zag's `watch` on the collection: an open panel re-homes itself
       // over a collection that changed under it.
       if (isOpenPhase(state)) {
@@ -420,7 +478,9 @@ export const def = {
     const isOpenNow = isOpenPhase(after.state);
     // Zag's `open.entry` and `setFinalFocus`: the panel's opening owes the
     // field its focus, and a close the host asked for gives it back.
-    if (wasOpen !== isOpenNow && (isOpenNow || event.type === "CLOSE")) focus("input");
+    if (wasOpen !== isOpenNow && (isOpenNow || event.type === "CLOSE")) {
+      focus("input");
+    }
   },
   parts: {
     root: {
@@ -467,7 +527,10 @@ export const def = {
     positioner: {
       attrs: (scope: ScopeLike) => {
         const _placementRaw = scope.context.placement;
-        const placement = typeof _placementRaw === "string" && _placementRaw.length > 0 ? _placementRaw : "bottom";
+        const placement =
+          typeof _placementRaw === "string" && _placementRaw.length > 0
+            ? _placementRaw
+            : "bottom";
         return {
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           // Zag measures a floating placement and reports it; the recipe
@@ -501,7 +564,9 @@ export const def = {
           value: display,
           ...ariaInvalid(ariaState(scope.context.invalid)),
           ...comboboxInput(scope, {
-            autocomplete: ctx.inputBehavior === "autocomplete" ? "both" : "list",
+            autocomplete: ctx.inputBehavior === "autocomplete"
+              ? "both"
+              : "list",
             controls: { part: "content" },
             expanded: isOpenPhase(scope.state),
             activeDescendant: ctx.highlightedValue === null
@@ -521,11 +586,18 @@ export const def = {
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
             if (scope.context.openOnClick === false) return;
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             scope.send({ type: "INPUT.CLICK" });
           },
-          onInput: (event: { readonly currentTarget: { readonly value: string } }): void => {
-            scope.send({ type: "INPUT.CHANGE", value: event.currentTarget.value });
+          onInput: (
+            event: { readonly currentTarget: { readonly value: string } },
+          ): void => {
+            scope.send({
+              type: "INPUT.CHANGE",
+              value: event.currentTarget.value,
+            });
           },
           onKeydown: (event: KeyboardEvent): void => {
             inputKeydown(scope, event);
@@ -535,7 +607,8 @@ export const def = {
     },
     trigger: {
       attrs: (scope, arg) => {
-        const focusable = typeof arg === "object" && arg !== null && "focusable" in arg && arg.focusable === true;
+        const focusable = typeof arg === "object" && arg !== null &&
+          "focusable" in arg && arg.focusable === true;
         const open = isOpenPhase(scope.state);
         return {
           id: scope.id("trigger"),
@@ -557,14 +630,18 @@ export const def = {
           },
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             if (event.button !== 0) return;
             scope.send({ type: "TRIGGER.CLICK" });
           },
           // A press must not move focus to the button: the field keeps it,
           // which is what keeps the caret where the user left it.
           onPointerDown: (event: PointerEvent): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             if (event.pointerType === "touch") return;
             if (event.button !== 0) return;
             event.preventDefault();
@@ -574,12 +651,23 @@ export const def = {
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented) return;
             if (scope.context.composite !== false) return;
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
-            const key = resolveKey(event, event.target instanceof Element &&
-              event.target.ownerDocument?.defaultView?.getComputedStyle(event.target).direction === "rtl" ? "rtl" : "ltr");
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
+            const key = resolveKey(
+              event,
+              event.target instanceof Element &&
+                event.target.ownerDocument?.defaultView?.getComputedStyle(
+                    event.target,
+                  ).direction === "rtl"
+                ? "rtl"
+                : "ltr",
+            );
             if (key !== "ArrowDown" && key !== "ArrowUp") return;
             event.preventDefault();
-            scope.send({ type: key === "ArrowDown" ? "INPUT.ARROW_DOWN" : "INPUT.ARROW_UP" });
+            scope.send({
+              type: key === "ArrowDown" ? "INPUT.ARROW_DOWN" : "INPUT.ARROW_UP",
+            });
           },
         };
       },
@@ -607,7 +695,9 @@ export const def = {
         },
         onClick: (event: MouseEvent): void => {
           if (event.defaultPrevented) return;
-          if (scope.context.disabled === true || scope.context.readOnly === true) return;
+          if (
+            scope.context.disabled === true || scope.context.readOnly === true
+          ) return;
           scope.send({ type: "VALUE.CLEAR" });
         },
       }),
@@ -616,7 +706,10 @@ export const def = {
       attrs: (scope: ScopeLike) => {
         const ctx = scope.context;
         const _placementRaw = scope.context.placement;
-        const placement = typeof _placementRaw === "string" && _placementRaw.length > 0 ? _placementRaw : "bottom";
+        const placement =
+          typeof _placementRaw === "string" && _placementRaw.length > 0
+            ? _placementRaw
+            : "bottom";
         const rows = scope.context.items;
         return {
           dir: scope.context.dir,
@@ -624,7 +717,9 @@ export const def = {
           tabIndex: -1,
           ...listSurface(scope, {
             labelledBy: { part: "label" },
-            multiSelectable: scope.context.composite !== false && ctx.multiple ? true : undefined,
+            multiSelectable: scope.context.composite !== false && ctx.multiple
+              ? true
+              : undefined,
           }),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           "data-placement": placement,
@@ -655,7 +750,11 @@ export const def = {
           role: composite ? undefined : "listbox",
           ...listSurface(scope, {
             labelledBy: { part: "label" },
-            multiSelectable: composite ? undefined : ctx.multiple ? true : undefined,
+            multiSelectable: composite
+              ? undefined
+              : ctx.multiple
+              ? true
+              : undefined,
           }),
           "data-empty": scope.attr(scope.context.items.length === 0),
         };
@@ -735,18 +834,56 @@ export const def = {
   },
   commands: {
     syncSelectedItems: { event: () => ({ type: "SELECTED_ITEMS.SYNC" }) },
-    setHighlightValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "HIGHLIGHTED_VALUE.SET", value: typeof v === "string" ? v : null }; } },
+    setHighlightValue: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return {
+          type: "HIGHLIGHTED_VALUE.SET",
+          value: typeof v === "string" ? v : null,
+        };
+      },
+    },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
-    selectValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" }; } },
-    setValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "VALUE.SET", value: Array.isArray(v) && v.every((x): x is string => typeof x === "string") ? [...v] : [] }; } },
-    setInputValue: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "INPUT_VALUE.SET", value: typeof v === "string" ? v : "" }; } },
+    selectValue: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return { type: "ITEM.SELECT", value: typeof v === "string" ? v : "" };
+      },
+    },
+    setValue: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return {
+          type: "VALUE.SET",
+          value: Array.isArray(v) &&
+              v.every((x): x is string => typeof x === "string")
+            ? [...v]
+            : [],
+        };
+      },
+    },
+    setInputValue: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return {
+          type: "INPUT_VALUE.SET",
+          value: typeof v === "string" ? v : "",
+        };
+      },
+    },
     clearValue: {
-      event: (args) => args[0] === undefined
-        ? ({ type: "VALUE.CLEAR" })
-        : (() => { const v = args[0]; return { type: "ITEM.CLEAR", value: typeof v === "string" ? v : "" }; })(),
+      event: (args) =>
+        args[0] === undefined ? ({ type: "VALUE.CLEAR" }) : (() => {
+          const v = args[0];
+          return { type: "ITEM.CLEAR", value: typeof v === "string" ? v : "" };
+        })(),
     },
     focus: { view: ({ focus }) => focus("input") },
-    setOpen: { event: ([open]: [open: boolean]) => ({ type: open ? "OPEN" as const : "CLOSE" as const }) },
+    setOpen: {
+      event: ([open]: [open: boolean]) => ({
+        type: open ? "OPEN" as const : "CLOSE" as const,
+      }),
+    },
   },
   readers: {
     open: { read: (_context, state) => isOpenPhase(state) },
@@ -762,14 +899,17 @@ export const def = {
       read: (context) => {
         const ctx = context;
         if (ctx.highlightedValue === null) return null;
-        return ctx.items.find((row) => row.value === ctx.highlightedValue) ?? null;
+        return ctx.items.find((row) => row.value === ctx.highlightedValue) ??
+          null;
       },
     },
     value: { read: (context) => [...context.value] },
     valueAsString: {
       read: (context) => {
         const ctx = context;
-        return ctx.value.map((value) => ctx.labels[value]).filter((label) => label !== undefined).join(", ");
+        return ctx.value.map((value) => ctx.labels[value]).filter((label) =>
+          label !== undefined
+        ).join(", ");
       },
     },
     hasSelectedItems: { read: (context) => context.value.length > 0 },
@@ -794,12 +934,21 @@ export const def = {
     getRows: {
       call: (_context, _state, args) => {
         const block = args[0];
-        if (typeof block !== "object" || block === null || !("rows" in block) || !Array.isArray(block.rows)) return [];
-        return block.rows.filter((row): row is ComboboxRow => typeof row === "object" && row !== null);
+        if (
+          typeof block !== "object" || block === null || !("rows" in block) ||
+          !Array.isArray(block.rows)
+        ) return [];
+        return block.rows.filter((row): row is ComboboxRow =>
+          typeof row === "object" && row !== null
+        );
       },
     },
     getItemState: {
-      call: (context: ComboboxContext, _state, [row]: [row: ComboboxRow]): ComboboxItemState => {
+      call: (
+        context: ComboboxContext,
+        _state,
+        [row]: [row: ComboboxRow],
+      ): ComboboxItemState => {
         return {
           value: row.value,
           disabled: context.disabled || row.disabled === true,
@@ -818,7 +967,8 @@ export const def = {
         const value = watched;
         return {
           value: [...value],
-          items: value.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
+          items: value.map((item) => rows.find((row) => row.value === item))
+            .filter((row) => row !== undefined),
         };
       },
     },
@@ -841,7 +991,8 @@ export const def = {
       watch: (context) => [context.inputValue],
       detail: (watched: readonly [string], event) => ({
         inputValue: watched[0],
-        reason: (event !== undefined ? INPUT_REASON[event.type] : undefined) ?? "script",
+        reason: (event !== undefined ? INPUT_REASON[event.type] : undefined) ??
+          "script",
       }),
     },
     "open-change": {
@@ -849,14 +1000,22 @@ export const def = {
       watch: (_context, state) => [isOpenPhase(state)],
       detail: (watched: readonly [boolean], event, _props, context) => ({
         open: watched[0],
-        reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ?? "script",
-        value: [...(context !== undefined && Array.isArray(context.value) ? context.value : [])],
+        reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ??
+          "script",
+        value: [
+          ...(context !== undefined && Array.isArray(context.value)
+            ? context.value
+            : []),
+        ],
       }),
     },
     select: {
       prop: "onSelect",
       watch: (context) => [...context.value],
-      detail: (watched: readonly string[]) => ({ value: [...watched], itemValue: "" }),
+      detail: (watched: readonly string[]) => ({
+        value: [...watched],
+        itemValue: "",
+      }),
       select: (event, before: ComboboxContext, after: ComboboxContext) => {
         const beforeCtx = before;
         const afterCtx = after;
@@ -869,7 +1028,9 @@ export const def = {
           itemValue = ev;
         } else if (event.type === "INPUT.ENTER") {
           const highlighted = beforeCtx.highlightedValue;
-          if (highlighted === null || !beforeCtx.order.includes(highlighted)) return null;
+          if (highlighted === null || !beforeCtx.order.includes(highlighted)) {
+            return null;
+          }
           outcome = pickOutcome(beforeCtx, highlighted);
           itemValue = highlighted;
         }
@@ -879,7 +1040,19 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<ComboboxContext, ComboboxEvents, Record<string, unknown>, ComboboxArgs, ComboboxState>;
+} satisfies ComponentDef<
+  ComboboxContext,
+  ComboboxEvents,
+  Record<string, unknown>,
+  ComboboxArgs,
+  ComboboxState
+>;
 
 export type ComboboxApi = ApiOf<typeof def>;
-export const combobox = defineComponent<ComboboxContext, ComboboxEvents, ComboboxApi, ComboboxArgs, ComboboxState>(def);
+export const combobox = defineComponent<
+  ComboboxContext,
+  ComboboxEvents,
+  ComboboxApi,
+  ComboboxArgs,
+  ComboboxState
+>(def);

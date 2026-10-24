@@ -11,7 +11,9 @@ Deno.test("emit spread produces bindSpread with scopeExpr rewrite", () => {
 });
 
 Deno.test("emit for-template produces balanced bindFor without .sync wrapper", () => {
-  const ir = parse(`<template for={items} as={row}><span>{row.name}</span></template>`);
+  const ir = parse(
+    `<template for={items} as={row}><span>{row.name}</span></template>`,
+  );
   const { js } = emit(ir);
   assertStringIncludes(js, "bindFor(");
   assertStringIncludes(js, "items: () => ((values.items) ?? [])");
@@ -25,7 +27,9 @@ Deno.test("emit for-template produces balanced bindFor without .sync wrapper", (
 });
 
 Deno.test("row binding avoids render-param shadow inside for-template", () => {
-  const ir = parse(`<template for={items} as={row}><span>{row.name}</span></template>`);
+  const ir = parse(
+    `<template for={items} as={row}><span>{row.name}</span></template>`,
+  );
   const { js } = emit(ir);
   // Inside render, `row` is the local item param, NOT values.row
   assertStringIncludes(js, "let row = item;");
@@ -36,7 +40,9 @@ Deno.test("row binding avoids render-param shadow inside for-template", () => {
 });
 
 Deno.test("object-literal keys survive scopeExpr (carousel index)", () => {
-  const ir = parse(`<template for={items} as={row}><div {...carousel.getItemProps({ index: i })}></div></template>`);
+  const ir = parse(
+    `<template for={items} as={row}><div {...carousel.getItemProps({ index: i })}></div></template>`,
+  );
   const { js } = emit(ir);
   // `index` stays a key, `i` stays the row position — neither becomes values.*
   assertStringIncludes(js, "getItemProps({ index: i })");
@@ -53,7 +59,9 @@ Deno.test("emit binds an attribute to a typed state read", () => {
 });
 
 Deno.test("emit binds a class to a state read", () => {
-  const ir = parse(`<div class={"bg-surface" + (slider.dragging ? " scale-110" : "")}></div>`);
+  const ir = parse(
+    `<div class={"bg-surface" + (slider.dragging ? " scale-110" : "")}></div>`,
+  );
   const { js } = emit(ir);
   assertStringIncludes(js, `"class"`);
   assertStringIncludes(js, "values.slider.dragging");

@@ -40,10 +40,13 @@ function panelOf(el: Element): HTMLElement | null {
 let instanceCounter = 0;
 
 export function attachPopover(el: Element): PopoverApi {
-  const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
+  const readOpen = (): boolean =>
+    panelOf(el)?.matches(":popover-open") ?? false;
 
   const emit = (open: boolean): void => {
-    el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
+    el.dispatchEvent(
+      new CustomEvent("open-change", { detail: { open }, bubbles: true }),
+    );
   };
 
   // The `toggle` event does not bubble, but a capture listener on the

@@ -2,11 +2,11 @@
  * Field examples — the markup a consumer writes, beside the rule that
  * styles it.
  *
- * A bare `<input>`, `<select>` or `<textarea>` carries the base; the tag is
- * the opt-in. There is no `field` class on the control itself and never was
- * one — the tag carries the box. Every class used here resolves against the
- * preset's own catalog; the self-resolution test fails the suite if an
- * example demonstrates what the package cannot do.
+ * A bare `<input>` or `<textarea>` carries the base; the tag is the opt-in.
+ * There is no `field` class on the control itself and never was one — the tag
+ * carries the box. Every class used here resolves against the preset's own
+ * catalog; the self-resolution test fails the suite if an example
+ * demonstrates what the package cannot do.
  */
 
 export interface FieldExample {
@@ -54,44 +54,6 @@ export const INPUT_EXAMPLES: readonly FieldExample[] = [
   },
 ];
 
-export const selectFixtureNote =
-  "A select draws itself rather than wearing the platform's chrome, on the same box a text field takes.";
-
-export const SELECT_EXAMPLES: readonly FieldExample[] = [
-  {
-    name: "Select",
-    html: row(
-      `          <label><select><option>production</option><option>staging</option></select><span>Target</span></label>
-          <label><select disabled><option>preview</option></select><span>Locked by policy</span></label>`,
-    ),
-  },
-  {
-    name: "Select · validity",
-    html: row(
-      `          <label><select aria-invalid><option>v4.12.0</option></select><span>Unjudged</span></label>
-          <label><select aria-invalid="false"><option>v4.12.0</option></select><span>Passed</span></label>
-          <label><select aria-invalid="true"><option>v4.12.0-rc1</option></select><span>Failed</span></label>`,
-    ),
-  },
-  {
-    name: "Select · grouped options",
-    html: row(
-      `          <label><select>
-            <optgroup label="Regions"><option>eu-west-1</option><option>us-east-2</option></optgroup>
-            <optgroup label="Services"><option>checkout-api</option></optgroup>
-          </select><span>Regions and services</span></label>`,
-    ),
-  },
-  {
-    name: "Select · multiple",
-    html: row(
-      `          <label><select multiple size="4">
-            <option selected>eu-west-1</option><option>us-east-2</option>
-            <option>ap-south-1</option><option>sa-east-1</option>
-          </select><span>Regions</span></label>`,
-    ),
-  },
-];
 
 export const textareaFixtureNote =
   "A multi-line box that wraps and resizes vertically, with a min height that keeps a one-row textarea a textarea.";
@@ -121,6 +83,5 @@ export const TEXTAREA_EXAMPLES: readonly FieldExample[] = [
 
 export const FIELD_EXAMPLES: readonly FieldExample[] = [
   ...INPUT_EXAMPLES,
-  ...SELECT_EXAMPLES,
   ...TEXTAREA_EXAMPLES,
 ];

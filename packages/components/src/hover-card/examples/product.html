@@ -1,24 +1,29 @@
 <scope>props={ name: string = "Premium Wireless Headphones", blurb: string = "High-quality wireless headphones with active noise cancellation and 30-hour battery life.", price: string = "$299", rating: string = "(4.8)" } consume={ hoverCard }</scope>
 
 <div class="flex items-center gap-4 p-6" {...hoverCard.getRootProps()}>
-  <span {...hoverCard.getTriggerProps()} class="block h-32 w-32 cursor-pointer overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
-    <span class="grid h-full w-full place-items-center transition-transform hover:scale-105" aria-hidden="true"><span class="i-lucide-headphones text-4xl text-text"></span></span>
+  <span {...hoverCard.getTriggerProps()}
+    class="block h-32 w-32 cursor-pointer overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
+    <span
+      class="grid h-full w-full place-items-center transition-transform hover:scale-105"
+      aria-hidden="true"><span class="i-lucide-headphones text-2xl text-text"></span></span>
   </span>
 
-  <div {...hoverCard.getContentProps()} class="fixed m-0 max-w-[20rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div {...hoverCard.getContentProps()}
+    class="fixed m-0 max-w-[20rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
     <div class="grid aspect-square w-full place-items-center bg-surface-sunken">
-      <span class="i-lucide-headphones text-6xl text-text" aria-hidden="true"></span>
+      <span class="i-lucide-headphones text-display text-text"
+        aria-hidden="true"></span>
     </div>
-    <div class="space-y-4 p-4">
-      <div class="space-y-2">
-        <h3 class="m-0 text-lg font-semibold text-text">{name}</h3>
-        <p class="m-0 text-sm text-muted">{blurb}</p>
+    <div class="stack p-4">
+      <div class="stack-sm">
+        <h3 class="text-lg text-text">{name}</h3>
+        <p class="text-sm text-text-muted">{blurb}</p>
       </div>
       <div class="flex items-center justify-between">
-        <p class="m-0 text-lg font-semibold text-text">{price}</p>
-        <p class="m-0 text-sm text-muted">★★★★☆ {rating}</p>
+        <p class="text-lg font-semibold text-text">{price}</p>
+        <p class="text-sm text-text-muted">★★★★☆ {rating}</p>
       </div>
-      <button class="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Add to Cart</button>
+      <button class="w-full s-sm">Add to Cart</button>
     </div>
   </div>
 </div>

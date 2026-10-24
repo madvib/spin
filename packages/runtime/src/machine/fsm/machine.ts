@@ -81,20 +81,29 @@ export type EventUnion<TMap extends EventMap> = {
 export type EventName<TMap extends EventMap> = EventNames<TMap>;
 
 /** The state a service holds: a value, the context, and what it matches. */
-export interface State<TContext extends object, TState extends string = string> {
+export interface State<
+  TContext extends object,
+  TState extends string = string,
+> {
   readonly value: TState;
   readonly context: TContext;
   readonly matches: (value: string) => boolean;
 }
 
 /** A transition target: a state name, or a record with an optional target. */
-export type Transition<TContext extends object, TEvent, TState extends string = string> =
+export type Transition<
+  TContext extends object,
+  TEvent,
+  TState extends string = string,
+> =
   | TState
   | {
-      readonly target?: TState;
-      readonly cond?: (context: TContext, event: TEvent) => boolean;
-      readonly assign?: Assign<TContext, TEvent> | readonly Assign<TContext, TEvent>[];
-    };
+    readonly target?: TState;
+    readonly cond?: (context: TContext, event: TEvent) => boolean;
+    readonly assign?:
+      | Assign<TContext, TEvent>
+      | readonly Assign<TContext, TEvent>[];
+  };
 
 /** A context write: a pure transform of the context. */
 export type Assign<TContext extends object, TEvent> = (
@@ -165,9 +174,14 @@ export interface Config<
   >;
 }
 
-export type FieldsContract<TContext extends object, TEventMap extends EventMap> = {
-  readonly [K in Extract<keyof TContext, string>]?: FieldContract<TEventMap>;
-} & Readonly<Record<string, FieldContract<TEventMap>>>;
+export type FieldsContract<
+  TContext extends object,
+  TEventMap extends EventMap,
+> =
+  & {
+    readonly [K in Extract<keyof TContext, string>]?: FieldContract<TEventMap>;
+  }
+  & Readonly<Record<string, FieldContract<TEventMap>>>;
 
 export interface Machine<
   TContext extends object,
@@ -201,7 +215,9 @@ export interface Service<
   /** Start (or restart) at an optional state, running that state's entry
    * actions. This is how `defaultOpen`-style seeds work: the service's
    * first state is not always the config's `initial`. */
-  start(state?: TState | State<TContext, TState>): Service<TContext, TEventMap, TState>;
+  start(
+    state?: TState | State<TContext, TState>,
+  ): Service<TContext, TEventMap, TState>;
   stop(): Service<TContext, TEventMap, TState>;
   readonly state: State<TContext, TState>;
   readonly stopped: boolean;
@@ -242,7 +258,10 @@ function toList<T>(value: T | readonly T[]): readonly T[] {
  * a mapped type's indexed access does not distribute over a union of
  * keys, so `on[event.type]` alone would lose the correlation.
  */
-function isEvent<TEventMap extends EventMap, TName extends EventNames<TEventMap>>(
+function isEvent<
+  TEventMap extends EventMap,
+  TName extends EventNames<TEventMap>,
+>(
   event: EventUnion<TEventMap>,
   name: TName,
 ): event is EventOf<TEventMap, TName> {
@@ -367,7 +386,7 @@ export function createMachine<
   };
   const initial = fold(
     config.states[config.initial]?.entry,
-    (config.context ?? ({} as TContext)),
+    config.context ?? ({} as TContext),
     INIT as unknown as EventUnion<TEventMap>,
   );
 
@@ -381,10 +400,9 @@ export function createMachine<
     },
     transition(stateOrValue, eventOrType): State<TContext, TState> {
       const event = toEvent(eventOrType);
-      const from =
-        typeof stateOrValue === "string"
-          ? stateOf(stateOrValue, (config.context ?? ({} as TContext)))
-          : stateOrValue;
+      const from = typeof stateOrValue === "string"
+        ? stateOf(stateOrValue, config.context ?? ({} as TContext))
+        : stateOrValue;
       const current = from.value;
       const ctx = from.context;
       const stateDef = config.states[current];
@@ -401,8 +419,9 @@ export function createMachine<
       ];
       if (candidates.length === 0) return stateOf(current, ctx);
       for (const candidate of candidates) {
-        const { target, cond, assign } =
-          typeof candidate === "string" ? { target: candidate, cond: undefined, assign: undefined } : candidate;
+        const { target, cond, assign } = typeof candidate === "string"
+          ? { target: candidate, cond: undefined, assign: undefined }
+          : candidate;
         if (cond !== undefined && !cond(ctx, event)) continue;
 
         // Internal transition (no target): only this transition's writes
@@ -425,7 +444,9 @@ export function createMachine<
         // state's entry — in that order, each seeing what the last left.
         const context = fold(stateDef?.exit, ctx, event);
         const written = fold(
-          assign === undefined ? undefined : (isList(assign) ? assign : [assign]),
+          assign === undefined
+            ? undefined
+            : (isList(assign) ? assign : [assign]),
           context,
           event as EventOf<TEventMap, typeof name>,
         );
@@ -466,7 +487,9 @@ export function interpret<
       stopped = false;
       if (next !== undefined) {
         const value = typeof next === "string" ? next : next.value;
-        const context = typeof next === "string" ? machine.initialState.context : next.context;
+        const context = typeof next === "string"
+          ? machine.initialState.context
+          : next.context;
         current = {
           value,
           context: fold(

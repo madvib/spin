@@ -5,7 +5,9 @@ import { navigationMenu } from "./navigation-menu.presentation.ts";
 const createNavigationMenuBridge = navigationMenu.createBridge;
 import type { NavigationMenuApi } from "./navigation-menu.presentation.ts";
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -22,7 +24,9 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 /** The hover-delay param a bag carries, with its two reports. */
 function hoverParam(bag: Record<string, unknown>): Record<string, unknown> {
   const param: unknown = bag["use:hover-delay"];
-  if (typeof param !== "object" || param === null) throw new Error("no hover-delay param");
+  if (typeof param !== "object" || param === null) {
+    throw new Error("no hover-delay param");
+  }
   return param as Record<string, unknown>;
 }
 
@@ -49,7 +53,9 @@ function harness(initial: Record<string, unknown> = {}): Harness {
     const bag: Record<string, unknown> = { items: ITEMS, ...initial };
     for (const [name, cell] of store) bag[name] = cell();
     bag["@@authored"] = (name: string): boolean => store.has(name);
-    bag["onValueChange"] = (d: { value: string; previousValue: string }): void => {
+    bag["onValueChange"] = (
+      d: { value: string; previousValue: string },
+    ): void => {
       changes.push(`${d.previousValue}>${d.value}`);
     };
     return bag;
@@ -95,7 +101,11 @@ Deno.test("Given an open menu / When another item enters / Then the value swaps"
   open(h, "docs");
   open(h, "guides");
   assertEquals(h.api.value, "guides", "the swap lands");
-  assertEquals(h.changes, [">docs", "docs>guides"], "each move reports its origin");
+  assertEquals(
+    h.changes,
+    [">docs", "docs>guides"],
+    "each move reports its origin",
+  );
   h.dispose();
 });
 
@@ -106,7 +116,11 @@ Deno.test("Given a stale close from the left item / When another holds the value
   open(h, "guides");
   const docsParam = hoverParam(itemBag(h, "docs"));
   handler<() => void>(docsParam, "onClose")();
-  assertEquals(h.api.value, "guides", "the stale close does not close the menu");
+  assertEquals(
+    h.api.value,
+    "guides",
+    "the stale close does not close the menu",
+  );
   assertEquals(h.api.open, true, "and the mode holds");
   // The live item's close still closes.
   handler<() => void>(hoverParam(itemBag(h, "guides")), "onClose")();
@@ -160,9 +174,17 @@ Deno.test("Given the content bag / When the item is not open / Then the panel is
   const h = harness();
   const item = h.items[0];
   if (item === undefined) throw new Error("no item");
-  assertEquals(h.api.getItemContentProps(item)["hidden"], true, "the closed panel is hidden");
+  assertEquals(
+    h.api.getItemContentProps(item)["hidden"],
+    true,
+    "the closed panel is hidden",
+  );
   open(h, "docs");
-  assertEquals(h.api.getItemContentProps(item)["hidden"], false, "the open panel shows");
+  assertEquals(
+    h.api.getItemContentProps(item)["hidden"],
+    false,
+    "the open panel shows",
+  );
   h.dispose();
 });
 

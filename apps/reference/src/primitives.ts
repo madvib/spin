@@ -17,7 +17,6 @@ export interface PrimitivePage {
 
 const TITLES: Readonly<Record<string, string>> = {
   alert: "Alert",
-  avatar: "Avatar",
   "avatar-group": "Avatar group",
   badge: "Badge",
   breadcrumbs: "Breadcrumbs",
@@ -36,19 +35,14 @@ const TITLES: Readonly<Record<string, string>> = {
   label: "Label",
   meter: "Meter",
   mode: "Mode switch",
-  popover: "Popover",
   progress: "Progress",
   prose: "Prose",
   radio: "Radio",
-  range: "Range",
-  rating: "Rating",
-  select: "Select",
   skeleton: "Skeleton",
   stat: "Stat",
   switch: "Switch",
   table: "Table",
   textarea: "Textarea",
-  tooltip: "Tooltip",
   typography: "Typography",
 };
 

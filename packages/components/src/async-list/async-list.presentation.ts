@@ -1,6 +1,23 @@
-import { ariaBusy, ariaHidden, ariaPressed, dataAttr, defineComponent, isRecord, machineTick, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaBusy,
+  ariaHidden,
+  ariaPressed,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  isRecord,
+  machineTick,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import { asyncList as asyncListMachine } from "./async-list.machine.ts";
-import type { AsyncListArgs, AsyncListContext, AsyncListState, SortDescriptor } from "./async-list.state.ts";
+import type {
+  AsyncListArgs,
+  AsyncListContext,
+  AsyncListState,
+  SortDescriptor,
+} from "./async-list.state.ts";
 import type { AsyncListEvents } from "./async-list.events.ts";
 import { isSortDescriptor, itemsOf } from "./async-list.state.ts";
 /**
@@ -59,16 +76,22 @@ export type SortFn = (details: SortDetails) => SortResult | Promise<SortResult>;
 /** A host function is not something the scope grammar can type, so it
  * rides the prop channel as a property write: declared, read live,
  * checked before it is called. */
-const isLoadFn = (value: unknown): value is LoadFn => typeof value === "function";
+const isLoadFn = (value: unknown): value is LoadFn =>
+  typeof value === "function";
 
-const isSortFn = (value: unknown): value is SortFn => typeof value === "function";
+const isSortFn = (value: unknown): value is SortFn =>
+  typeof value === "function";
 
-const filterTextOf = (event: { readonly type: string } & Record<string, unknown>): string => {
+const filterTextOf = (
+  event: { readonly type: string } & Record<string, unknown>,
+): string => {
   const text: unknown = event["filterText"];
   return typeof text === "string" ? text : "";
 };
 
-const descriptorOf = (event: { readonly type: string } & Record<string, unknown>): SortDescriptor | undefined => {
+const descriptorOf = (
+  event: { readonly type: string } & Record<string, unknown>,
+): SortDescriptor | undefined => {
   const descriptor: unknown = event["sortDescriptor"];
   return isSortDescriptor(descriptor) ? descriptor : undefined;
 };
@@ -109,7 +132,12 @@ const toRow = (item: unknown, index: number): AsyncListRow => {
 type Ctx = AsyncListContext;
 
 type ScopeLike = ScopeFor<AsyncListContext, AsyncListEvents, AsyncListState>;
-type SlotLike<R> = SlotScopeFor<R, AsyncListContext, AsyncListEvents, AsyncListState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  AsyncListContext,
+  AsyncListEvents,
+  AsyncListState
+>;
 
 /** Per-bridge async state: the abort controller, the sequence, and the
  * dependency hash. Keyed by the root element the bridge owns. */
@@ -124,7 +152,13 @@ const viewByRoot = new WeakMap<Element, AsyncView>();
 const viewOf = (root: Element): AsyncView => {
   let view = viewByRoot.get(root);
   if (view === undefined) {
-    view = { aborting: undefined, seq: 0, lastDependencies: undefined, rowsSource: undefined, rowsCache: undefined };
+    view = {
+      aborting: undefined,
+      seq: 0,
+      lastDependencies: undefined,
+      rowsSource: undefined,
+      rowsCache: undefined,
+    };
     viewByRoot.set(root, view);
   }
   return view;
@@ -139,7 +173,9 @@ const advanceSequence = (view: AsyncView): number => {
   return view.seq;
 };
 
-type SettledSend = (event: { readonly type: string } & Record<string, unknown>) => void;
+type SettledSend = (
+  event: { readonly type: string } & Record<string, unknown>,
+) => void;
 
 const startFetch = (
   view: AsyncView,
@@ -154,7 +190,9 @@ const startFetch = (
   const loadMore = event.type === "LOAD_MORE";
   const details: LoadDetails = {
     signal: controller.signal,
-    filterText: event.type === "FILTER" ? filterTextOf(event) : context.filterText,
+    filterText: event.type === "FILTER"
+      ? filterTextOf(event)
+      : context.filterText,
     cursor: loadMore ? context.cursor : null,
     sortDescriptor: event.type === "SORT"
       ? descriptorOf(event)
@@ -221,7 +259,8 @@ const startSort = (
 
 const def = {
   name: "async-list",
-  machine: (args: AsyncListArgs, authored: (name: string) => boolean) => asyncListMachine(args, authored),
+  machine: (args: AsyncListArgs, authored: (name: string) => boolean) =>
+    asyncListMachine(args, authored),
   start: "idle",
   // `autoReload` loads once at mount; the reconcile watcher answers every
   // dependency change after it.
@@ -266,7 +305,9 @@ const def = {
     // The mount hash is captured, never dispatched: the watcher fires on a
     // change only, and the mount load is autoReload's job.
     const raw: unknown = parsed["dependencies"];
-    const dependencies = itemsOf(raw).filter((dependency) => Boolean(dependency)).join(",");
+    const dependencies = itemsOf(raw).filter((dependency) =>
+      Boolean(dependency)
+    ).join(",");
     if (context.dependenciesHash === undefined) {
       context.dependenciesHash = dependencies;
       return moved;
@@ -282,7 +323,9 @@ const def = {
     root: {
       attrs: (scope: ScopeLike) => ({
         "data-state": scope.state,
-        "data-loading": scope.attr(scope.state === "loading" || scope.state === "sorting"),
+        "data-loading": scope.attr(
+          scope.state === "loading" || scope.state === "sorting",
+        ),
       }),
     },
     progress: {
@@ -423,7 +466,8 @@ const def = {
           "data-state": scope.state,
           "data-active": dataAttr(active),
           ...ariaPressed(active),
-          onClick: (): void => scope.send({ type: "SORT", sortDescriptor: trigger }),
+          onClick: (): void =>
+            scope.send({ type: "SORT", sortDescriptor: trigger }),
         };
       },
     },
@@ -433,10 +477,16 @@ const def = {
     reload: { event: () => ({ type: "RELOAD" }) },
     loadMore: { event: () => ({ type: "LOAD_MORE" }) },
     sort: {
-      event: ([descriptor]: [descriptor: SortDescriptor]) => ({ type: "SORT" as const, sortDescriptor: descriptor }),
+      event: ([descriptor]: [descriptor: SortDescriptor]) => ({
+        type: "SORT" as const,
+        sortDescriptor: descriptor,
+      }),
     },
     setFilterText: {
-      event: ([text]: [text: string]) => ({ type: "FILTER" as const, filterText: text }),
+      event: ([text]: [text: string]) => ({
+        type: "FILTER" as const,
+        filterText: text,
+      }),
     },
     clearFilter: { event: () => ({ type: "FILTER", filterText: "" }) },
   },
@@ -481,9 +531,16 @@ const def = {
         event.type === "ERROR" ? { error: event["error"] } : null,
     },
   },
-} satisfies ComponentDef<AsyncListContext, AsyncListEvents, Record<string, unknown>, AsyncListArgs, AsyncListState>;
+} satisfies ComponentDef<
+  AsyncListContext,
+  AsyncListEvents,
+  Record<string, unknown>,
+  AsyncListArgs,
+  AsyncListState
+>;
 
-const toRowIndexed = (item: unknown, index: number): AsyncListRow => toRow(item, index);
+const toRowIndexed = (item: unknown, index: number): AsyncListRow =>
+  toRow(item, index);
 
 /** Rows memoized on the items array's identity: a fresh row object per
  * read would replace the nodes and detach every gesture in flight. A load
@@ -499,4 +556,10 @@ const rowsFor = (items: readonly unknown[]): readonly AsyncListRow[] => {
 };
 
 export type AsyncListApi = ApiOf<typeof def>;
-export const asyncList = defineComponent<AsyncListContext, AsyncListEvents, AsyncListApi, AsyncListArgs, AsyncListState>(def);
+export const asyncList = defineComponent<
+  AsyncListContext,
+  AsyncListEvents,
+  AsyncListApi,
+  AsyncListArgs,
+  AsyncListState
+>(def);

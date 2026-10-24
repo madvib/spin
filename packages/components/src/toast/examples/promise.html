@@ -1,38 +1,41 @@
 <script lang="ts">
-  import { toast } from "../toast.presentation.ts";
+import { toast } from "../toast.presentation.ts";
 
-  const machine = toast({
-    placement: "bottom",
-  });
+const machine = toast({
+ placement: "bottom",
+});
 </script>
 <div
-  class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
-  {...machine.getGroupProps()}
+ class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
+ {...machine.getGroupProps()}
 >
-  <template for={machine.getToasts()} as={row} key={row.id}>
-    <div
-      class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
-      {...machine.getToastProps(row)}
-    >
-      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate">
-        <span
-          aria-hidden="true"
-          data-type={row.type}
-          class="mt-0.5 shrink-0 text-sm text-muted transition-colors duration-fast ease-decelerate"
-        ><span class="i-lucide-circle text-[0.4rem]" aria-hidden="true"></span></span>
-        <div class="min-w-0 flex-1">
-          <div class="text-sm font-medium text-text" {...machine.getTitleProps(row)}>{row.title}</div>
-          <div class="mt-1 text-sm text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
-          <button
-            class="mt-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:ring-2 focus-visible:ring-border-strong"
-            {...machine.getActionTriggerProps(row)}
-          >{row.action}</button>
-        </div>
-        <button
-          class="shrink-0 rounded-md p-1 text-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text focus-visible:ring-2 focus-visible:ring-border-strong"
-          {...machine.getCloseTriggerProps(row)}
-        ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
-      </div>
+ <template for={machine.getToasts()} as={row} key={row.id}>
+  <div
+   class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
+   {...machine.getToastProps(row)}
+  >
+   <div
+    class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition-colors duration-fast ease-decelerate">
+    <span
+     aria-hidden="true"
+     data-type={row.type}
+     class="mt-1 shrink-0 text-sm text-text-muted transition-colors duration-fast ease-decelerate"
+    ><span class="i-lucide-circle text-[0.4rem]" aria-hidden="true"></span></span>
+    <div class="min-w-0 flex-1">
+     <div class="text-sm font-medium text-text"
+      {...machine.getTitleProps(row)}>{row.title}</div>
+     <div class="mt-1 text-sm text-text-muted"
+      {...machine.getDescriptionProps(row)}>{row.description}</div>
+     <button
+      class="secondary s-sm mt-2"
+      {...machine.getActionTriggerProps(row)}
+     >{row.action}</button>
     </div>
-  </template>
+    <button
+     class="ghost icon s-sm"
+     {...machine.getCloseTriggerProps(row)}
+    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+   </div>
+  </div>
+ </template>
 </div>

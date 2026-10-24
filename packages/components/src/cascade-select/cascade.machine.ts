@@ -1,35 +1,35 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
 import {
-  initial,
-  parseCollection,
   type CascadeArgs,
   type CascadeContext,
   type CascadeState,
-  startOpen,
+  initial,
+  parseCollection,
   parsePath,
   parsePaths,
+  startOpen,
 } from "./cascade.state.ts";
 import type { EventUnion } from "@spin/runtime/fsm";
 import type { CascadeEvents } from "./cascade.events.ts";
 import {
-  setValue,
-  clearValue,
-  setHighlightedValue,
   clearHighlightedValue,
-  selectItem,
-  openWithHighlight,
+  clearTriggerAssign,
+  clearValue,
   highlightSelected,
+  hoverHighlightAssign,
+  hoverHighlightGuard,
+  itemClearAssign,
   itemClickCloseGuard,
   itemClickSelectableGuard,
-  hoverHighlightGuard,
-  hoverHighlightAssign,
-  itemClearAssign,
-  clearTriggerAssign,
+  openWithHighlight,
   restoresFocus,
+  selectItem,
+  setHighlightedValue,
+  setValue,
 } from "./cascade.transitions.ts";
 
 export type { CascadeArgs, CascadeContext, CascadeEvents };
-export { parsePath, parsePaths, initial, startOpen };
+export { initial, parsePath, parsePaths, startOpen };
 export type CascadeEvent = EventUnion<CascadeEvents>;
 
 export function cascade(
@@ -85,18 +85,37 @@ export function cascade(
       open: {
         on: {
           CONTROLLED_CLOSE: [
-            { cond: restoresFocus, target: "focused", assign: clearHighlightedValue },
+            {
+              cond: restoresFocus,
+              target: "focused",
+              assign: clearHighlightedValue,
+            },
             { target: "idle", assign: clearHighlightedValue },
           ],
           CLOSE: [
-            { cond: restoresFocus, target: "focused", assign: clearHighlightedValue },
+            {
+              cond: restoresFocus,
+              target: "focused",
+              assign: clearHighlightedValue,
+            },
             { target: "idle", assign: clearHighlightedValue },
           ],
           TRIGGER_CLICK: { target: "focused", assign: clearHighlightedValue },
           ITEM_CLICK: [
-            { cond: itemClickCloseGuard, target: "focused", assign: [selectItem, clearHighlightedValue] },
+            {
+              cond: itemClickCloseGuard,
+              target: "focused",
+              assign: [selectItem, clearHighlightedValue],
+            },
             { cond: itemClickSelectableGuard, assign: selectItem },
-            { assign: (_ctx, e) => (e.type === "ITEM_CLICK" ? { highlightedValue: [...e.value] } : {}) },
+            {
+              assign: (
+                _ctx,
+                e,
+              ) => (e.type === "ITEM_CLICK"
+                ? { highlightedValue: [...e.value] }
+                : {}),
+            },
           ],
           ITEM_POINTER_ENTER: [
             { cond: hoverHighlightGuard, assign: hoverHighlightAssign },

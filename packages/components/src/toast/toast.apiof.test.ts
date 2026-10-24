@@ -36,10 +36,14 @@ Deno.test("ToastApi promises the component's surface", () => {
   ];
   assertEquals(keys.length, 25);
   // Derived member signatures: state union and typed methods.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<ToastApi["state"], "stack" | "overlap"> = true;
   const dismissAllTyped: AssertExact<ToastApi["dismissAll"], () => void> = true;
-  const getToastsTyped: AssertExact<ToastApi["getToasts"], () => readonly ToastEntry[]> = true;
+  const getToastsTyped: AssertExact<
+    ToastApi["getToasts"],
+    () => readonly ToastEntry[]
+  > = true;
   assertEquals(
     [
       stateTyped,

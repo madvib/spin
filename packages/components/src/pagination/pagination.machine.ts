@@ -1,7 +1,11 @@
 /** Pagination machine: one idle state with guarded transitions. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { PaginationArgs, PaginationContext, PaginationState } from "./pagination.state.ts";
+import type {
+  PaginationArgs,
+  PaginationContext,
+  PaginationState,
+} from "./pagination.state.ts";
 import { initial } from "./pagination.state.ts";
 import type { PaginationEvents } from "./pagination.events.ts";
 import {
@@ -29,7 +33,11 @@ export {
   totalPages,
 } from "./pagination.state.ts";
 
-export type { PaginationPageChange, PaginationPageSizeChange, PaginationPageItem } from "./pagination.events.ts";
+export type {
+  PaginationPageChange,
+  PaginationPageItem,
+  PaginationPageSizeChange,
+} from "./pagination.events.ts";
 
 export function pagination(
   args: PaginationArgs = {},

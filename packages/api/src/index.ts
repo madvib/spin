@@ -124,7 +124,9 @@ export function mountSpinApp(
   return ({ server, root: fallback }) => {
     const app = createSpinApp({
       root: resolveRoot(fallback),
-      ...(options?.studioDir === undefined ? {} : { studioDir: options.studioDir }),
+      ...(options?.studioDir === undefined
+        ? {}
+        : { studioDir: options.studioDir }),
     });
     const middlewares = (server as MiddlewareHost).middlewares;
     middlewares.use((req, res, next) => {

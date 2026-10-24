@@ -52,10 +52,20 @@ Deno.test("CascadeApi promises the component's surface", () => {
   assertEquals(keys.length, 40);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<CascadeApi["state"], "idle" | "focused" | "open"> = true;
-  const setValueTyped: AssertExact<CascadeApi["setValue"], (value: readonly string[][]) => void> = true;
-  const getItemsTyped: AssertExact<CascadeApi["getItems"], (level: CascadeLevel) => readonly CascadeItem[]> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    CascadeApi["state"],
+    "idle" | "focused" | "open"
+  > = true;
+  const setValueTyped: AssertExact<
+    CascadeApi["setValue"],
+    (value: readonly string[][]) => void
+  > = true;
+  const getItemsTyped: AssertExact<
+    CascadeApi["getItems"],
+    (level: CascadeLevel) => readonly CascadeItem[]
+  > = true;
   assertEquals(
     [
       stateTyped,

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { signaturePad } from "../signature-pad.presentation.ts";
+import { signaturePad } from "../signature-pad.presentation.ts";
 
-  const machine = signaturePad({});
+const machine = signaturePad({});
 </script>
 <div class="w-full" {...machine.getRootProps()}>
-  <label class="mb-1 block text-sm font-medium text-text" {...machine.getLabelProps()}>Sign below</label>
+  <label class="mb-1 block text-sm font-medium text-text"
+    {...machine.getLabelProps()}>Sign below</label>
   <div
     class={["relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getControlProps()}
@@ -14,9 +15,11 @@
         <path {...machine.getSegmentPathProps({ path: row })}></path>
       </template>
     </svg>
-    <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted" {...machine.getGuideProps()}>Sign here</span>
+    <span
+      class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-text-muted"
+      {...machine.getGuideProps()}>Sign here</span>
     <button
-      class="absolute right-2 top-2 rounded-md border border-solid border-border bg-surface px-2 py-1 text-xs text-text transition-colors duration-fast ease-decelerate"
+      class="absolute right-2 top-2 ghost icon s-sm transition-colors duration-fast ease-decelerate"
       {...machine.getClearTriggerProps("Clear signature")}
     >Clear</button>
   </div>

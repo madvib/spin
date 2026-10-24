@@ -75,8 +75,8 @@ function rulesOf(css: string): Rule[] {
  * A selector list, split where the comma is not inside a bracket.
  *
  * The sheet merges the rules that declare the same thing, so one rule can
- * carry several selectors — and `:is(input, select, textarea)` carries commas
- * of its own. A split that counted them all would cut a selector in half.
+ * carry several selectors — and `:is(input, textarea)` carries commas of its
+ * own. A split that counted them all would cut a selector in half.
  */
 function selectorList(selector: string): string[] {
   const out: string[] = [];
@@ -136,7 +136,7 @@ Deno.test("a focused field paints the ring as an outline, and its edge takes the
   const css = await sheetFor('<input type="text">');
   const focused = declarationsFor(
     css,
-    ":is(input, select, textarea):focus-visible",
+    ":is(input, textarea):focus-visible",
   );
   assertEquals(focused["outline"], RING.outline, "the ring is an outline");
   assertEquals(
@@ -240,33 +240,8 @@ Deno.test("a focused radio paints the ring as an outline, and its edge takes the
   );
 });
 
-Deno.test("a focused slider paints the ring as an outline, and its groove takes the ring's ink", async () => {
-  // A slider's edge is its groove: the border is drawn on the track, never
-  // on the host, so the groove is what takes the ring's ink. The host is the
-  // groove's own thickness, so the ring stands off the groove's edge by the
-  // theme's offset — the same distance every other control's ring stands
-  // from its edge — and lands on the thumb that overhangs the groove.
-  const css = await sheetFor('<input type="range">');
-  const focused = declarationsFor(css, 'input[type="range"]:focus-visible');
-  assertEquals(focused["outline"], RING.outline, "the ring is an outline");
-  assertEquals(
-    focused["outline-offset"],
-    RING["outline-offset"],
-    "the ring stands off the groove's edge by the theme's offset",
-  );
-  const groove = declarationsFor(
-    css,
-    'input[type="range"]:focus-visible::-webkit-slider-runnable-track',
-  );
-  assertEquals(
-    groove["border-color"],
-    RING["border-color"],
-    "the groove's edge takes the ring's ink",
-  );
-});
 
 Deno.test("a focused summary paints the theme's ring, not the browser's", async () => {
-  // The summary wore the browser's own ring — a colour nobody chose — with
   // the theme's offset around it. The ring is the theme's now.
   const css = await sheetFor("<details><summary>More</summary></details>");
   const focused = declarationsFor(css, "summary:focus-visible");
@@ -313,7 +288,7 @@ Deno.test("a pointer that lands on a control leaves no ring", async () => {
   const css = await sheetFor('<input type="text"><button>Deploy</button>');
   const field = declarationsFor(
     css,
-    ":is(input, select, textarea):focus:not(:focus-visible)",
+    ":is(input, textarea):focus:not(:focus-visible)",
   );
   assertEquals(field["outline"], "none", "the field's own ring goes");
   const button = declarationsFor(
@@ -334,7 +309,7 @@ Deno.test("the ring is painted for engines without :focus-visible", async () => 
   );
   const fallback = declarationsFor(
     css,
-    ":is(input, select, textarea):focus",
+    ":is(input, textarea):focus",
   );
   assertEquals(
     fallback["outline"],

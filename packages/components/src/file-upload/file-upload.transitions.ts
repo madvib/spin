@@ -3,7 +3,9 @@ import type { FileUploadEvents } from "./file-upload.events.ts";
 import type { FileUploadContext } from "./file-upload.state.ts";
 import { filesOf, splitFiles } from "./file-upload.state.ts";
 
-type FileUploadAssign<K extends keyof FileUploadEvents = keyof FileUploadEvents> = AssignFor<
+type FileUploadAssign<
+  K extends keyof FileUploadEvents = keyof FileUploadEvents,
+> = AssignFor<
   FileUploadContext,
   FileUploadEvents,
   K
@@ -12,7 +14,9 @@ type FileUploadAssign<K extends keyof FileUploadEvents = keyof FileUploadEvents>
 export const setFiles: FileUploadAssign<"INPUT.CHANGE"> = (ctx, e) => {
   const split = splitFiles(e.files, ctx);
   return {
-    acceptedFiles: ctx.multiple ? [...split.accepted] : split.accepted.slice(0, 1),
+    acceptedFiles: ctx.multiple
+      ? [...split.accepted]
+      : split.accepted.slice(0, 1),
     rejectedFiles: [...split.rejected],
   };
 };
@@ -36,7 +40,10 @@ export const setValue: FileUploadAssign<"VALUE.SET"> = (_ctx, e) => ({
   rejectedFiles: [],
 });
 
-export const clearValue = (): Partial<FileUploadContext> => ({ acceptedFiles: [], rejectedFiles: [] });
+export const clearValue = (): Partial<FileUploadContext> => ({
+  acceptedFiles: [],
+  rejectedFiles: [],
+});
 
 export const removeFile: FileUploadAssign<"FILE.REMOVE"> = (ctx, e) => ({
   acceptedFiles: ctx.acceptedFiles.filter((file) => file.name !== e.name),

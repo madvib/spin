@@ -139,7 +139,9 @@ export function ariaCurrent(place: AriaCurrent | undefined): AriaFragment {
 }
 
 /** The direction a region reads in. */
-export function ariaOrientation(dir: AriaOrientation | undefined): AriaFragment {
+export function ariaOrientation(
+  dir: AriaOrientation | undefined,
+): AriaFragment {
   return { "aria-orientation": dir };
 }
 
@@ -333,9 +335,7 @@ export function comboboxInput<C extends object>(
   },
 ): AriaFragment {
   return {
-    ...("autocomplete" in init
-      ? ariaAutocomplete(init.autocomplete)
-      : {}),
+    ...("autocomplete" in init ? ariaAutocomplete(init.autocomplete) : {}),
     ...("controls" in init
       ? { "aria-controls": targetId(scope, init.controls) }
       : {}),

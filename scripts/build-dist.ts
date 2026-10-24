@@ -235,6 +235,52 @@ const DENO_GLOBALS = `declare namespace Deno {
 const SPECIFIER = /\b(?:from|import)\s*\(?\s*(["'])([^"']+)\1/g;
 
 /**
+ * The ranges of comments in a file, so the import scan skips documentation.
+ *
+ * A doc example names imports its file never resolves — the script block's
+ * own example is one — and rewriting those would corrupt the comment while
+ * checking a dependency the program does not have.
+ */
+function commentRanges(text: string): Array<readonly [number, number]> {
+  const out: Array<readonly [number, number]> = [];
+  let i = 0;
+  let string: string | null = null;
+  while (i < text.length) {
+    const char = text[i] as string;
+    if (string !== null) {
+      if (char === "\\") {
+        i += 2;
+        continue;
+      }
+      if (char === string) string = null;
+      i += 1;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      string = char;
+      i += 1;
+      continue;
+    }
+    if (char === "/" && text[i + 1] === "/") {
+      const end = text.indexOf("\n", i);
+      const stop = end === -1 ? text.length : end;
+      out.push([i, stop]);
+      i = stop;
+      continue;
+    }
+    if (char === "/" && text[i + 1] === "*") {
+      const end = text.indexOf("*/", i + 2);
+      const stop = end === -1 ? text.length : end + 2;
+      out.push([i, stop]);
+      i = stop;
+      continue;
+    }
+    i += 1;
+  }
+  return out;
+}
+
+/**
  * The npm subpath a sibling package publishes a file under.
  *
  * A file that leaves the package is a workspace import, and npm has no
@@ -284,6 +330,7 @@ function rewriteSpecifier(
   boundary: string,
   manifests: Map<string, Manifest>,
   compiled: boolean,
+  text: string,
 ): string {
   if (!specifier.startsWith("./") && !specifier.startsWith("../")) {
     return specifier;
@@ -307,10 +354,15 @@ function rewriteSpecifier(
     sibling,
   );
   if (subpath === null) {
+    const lines = text.split("\n");
+    const at = lines.findIndex((line) => line.includes(specifier));
+    const context = at === -1
+      ? ""
+      : lines.slice(Math.max(0, at - 2), at + 3).join("\n");
     throw new Error(
       `${relative(REPO, fromFile)} imports ${specifier}, but ` +
         `${sibling.name} does not export it — add it to that package's ` +
-        `exports before shipping a dist`,
+        `exports before shipping a dist\n---\n${context}\n---`,
     );
   }
   return subpath === "."
@@ -318,7 +370,7 @@ function rewriteSpecifier(
     : `${sibling.name}/${subpath.replace(/^\.\//, "")}`;
 }
 
-/** Rewrite the specifiers of a file. */
+/** Rewrite the specifiers of a file, leaving documentation alone. */
 function rewriteFile(
   text: string,
   fromFile: string,
@@ -326,16 +378,32 @@ function rewriteFile(
   manifests: Map<string, Manifest>,
   compiled: boolean,
 ): string {
-  return text.replace(SPECIFIER, (whole, _quote: string, specifier: string) => {
-    const rewritten = rewriteSpecifier(
-      specifier,
-      fromFile,
-      boundary,
-      manifests,
-      compiled,
-    );
-    return whole.replace(specifier, rewritten);
-  });
+  const comments = commentRanges(text);
+  const inside = (index: number): boolean =>
+    comments.some(([start, stop]) => index >= start && index < stop);
+  let out = "";
+  let cursor = 0;
+  for (const match of text.matchAll(SPECIFIER)) {
+    const whole = match[0];
+    const specifier = match[2] as string;
+    const index = match.index ?? 0;
+    out += text.slice(cursor, index);
+    if (inside(index)) {
+      out += whole;
+    } else {
+      const rewritten = rewriteSpecifier(
+        specifier,
+        fromFile,
+        boundary,
+        manifests,
+        compiled,
+        text,
+      );
+      out += whole.replace(specifier, rewritten);
+    }
+    cursor = index + whole.length;
+  }
+  return out + text.slice(cursor);
 }
 
 /**
@@ -819,6 +887,16 @@ async function emitDeclarations(
         : `${sibling.name}/${subpath.replace(/^\.\//, "")}`;
       paths[key] = [join(PACKAGES_DIR, name, NPM_DIR, types)];
     }
+  }
+  // The package's own subpaths resolve to the copy under compile: the dist
+  // they name does not exist until this emit finishes, and the copy's files
+  // are the same program the declarations describe. The export paths are
+  // package-relative, so they join at the copy's root, not its `src`.
+  for (const [subpath, file] of Object.entries(manifest.exports)) {
+    const key = subpath === "."
+      ? manifest.name
+      : `${manifest.name}/${subpath.replace(/^\.\//, "")}`;
+    paths[key] = [join(copyDir, file as string)];
   }
 
   const outDir = join(copyDir, "types");

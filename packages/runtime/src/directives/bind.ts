@@ -80,7 +80,11 @@ export function bindProp(el: Element, name: string, get: () => unknown): void {
   });
 }
 
-export function bindDynamic(el: Element, name: string, get: () => unknown): void {
+export function bindDynamic(
+  el: Element,
+  name: string,
+  get: () => unknown,
+): void {
   const isCustom = el.tagName.includes("-");
   if (isCustom) bindProp(el, name, get);
   else bindAttr(el, name, get);
@@ -111,12 +115,14 @@ export function bindValue(el: Element, source: Writable<string>): Binding {
   let stopEffect: () => void = () => {};
   {
     const owner = scope();
-    const stop = owner.run(() => effect(() => {
-      const next = source() as unknown;
-      if (next === last) return;
-      last = next;
-      if (view["value"] !== next) view["value"] = next;
-    }));
+    const stop = owner.run(() =>
+      effect(() => {
+        const next = source() as unknown;
+        if (next === last) return;
+        last = next;
+        if (view["value"] !== next) view["value"] = next;
+      })
+    );
     void stop;
     const dispose = () => owner.dispose();
     stopEffect = dispose;
@@ -141,7 +147,10 @@ export function bindValue(el: Element, source: Writable<string>): Binding {
   };
 }
 
-export function bindChecked(el: HTMLInputElement, source: Writable<boolean>): Binding {
+export function bindChecked(
+  el: HTMLInputElement,
+  source: Writable<boolean>,
+): Binding {
   let last = source();
   el.checked = last;
   const onInput = (): void => {
@@ -155,12 +164,14 @@ export function bindChecked(el: HTMLInputElement, source: Writable<boolean>): Bi
   let stopEffect: () => void = () => {};
   {
     const owner = scope();
-    owner.run(() => effect(() => {
-      const next = source();
-      if (next === last) return;
-      last = next;
-      el.checked = next;
-    }));
+    owner.run(() =>
+      effect(() => {
+        const next = source();
+        if (next === last) return;
+        last = next;
+        el.checked = next;
+      })
+    );
     stopEffect = () => owner.dispose();
   }
   const stop = () => {
@@ -182,8 +193,6 @@ export function bindChecked(el: HTMLInputElement, source: Writable<boolean>): Bi
     stop,
   };
 }
-
-
 
 /**
  * Light-DOM transclusion. At build start the element's existing children are
@@ -211,9 +220,18 @@ export function projectSlots(el: HTMLElement): Map<string, Node[]> {
  * Places assigned nodes (moved, never cloned — state and listeners travel)
  * before `anchor`, or the fallback nodes when nothing was assigned.
  */
-export function placeSlot(host: Node, anchor: Comment, assigned: Node[] | undefined, fallback: Node[]): void {
-  const nodes = assigned !== undefined && assigned.length > 0 ? assigned : fallback;
+export function placeSlot(
+  host: Node,
+  anchor: Comment,
+  assigned: Node[] | undefined,
+  fallback: Node[],
+): void {
+  const nodes = assigned !== undefined && assigned.length > 0
+    ? assigned
+    : fallback;
   for (const n of nodes) {
-    if (n.parentNode !== host || n.nextSibling !== anchor) host.insertBefore(n, anchor);
+    if (n.parentNode !== host || n.nextSibling !== anchor) {
+      host.insertBefore(n, anchor);
+    }
   }
 }

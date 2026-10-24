@@ -39,9 +39,6 @@ other packages read.
 
 @spin/preset/config
   spinConfig · configScaffoldText · SpinConfigOptions
-
-@spin/preset/solid
-  the JSX intrinsic-element types, for TypeScript
 ```
 
 ## Contract

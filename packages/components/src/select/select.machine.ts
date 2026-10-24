@@ -14,7 +14,12 @@ import {
   single,
 } from "./select.transitions.ts";
 
-export { type SelectArgs, type SelectContext, type SelectRow, type SelectState } from "./select.state.ts";
+export {
+  type SelectArgs,
+  type SelectContext,
+  type SelectRow,
+  type SelectState,
+} from "./select.state.ts";
 export { type SelectEvents } from "./select.events.ts";
 
 export function select(
@@ -42,40 +47,49 @@ export function select(
     },
     context: initial(args, authored),
     on: {
-      "SELECTED_ITEMS.SYNC": { assign: (ctx) => {
-        const value = ctx.value.filter((candidate) =>
-          ctx.order.includes(candidate)
-        );
-        const highlighted = ((): string | null => {
-          if (ctx.highlightedValue !== null && ctx.order.includes(ctx.highlightedValue)) {
-            return ctx.highlightedValue;
-          }
-          return value[0] ?? null;
-        })();
-        const sameSelection = value.length === ctx.value.length;
-        const sameHighlight = highlighted === ctx.highlightedValue;
-        if (sameSelection && sameHighlight) return {};
-        return { value, highlightedValue: highlighted };
-      } },
+      "SELECTED_ITEMS.SYNC": {
+        assign: (ctx) => {
+          const value = ctx.value.filter((candidate) =>
+            ctx.order.includes(candidate)
+          );
+          const highlighted = ((): string | null => {
+            if (
+              ctx.highlightedValue !== null &&
+              ctx.order.includes(ctx.highlightedValue)
+            ) {
+              return ctx.highlightedValue;
+            }
+            return value[0] ?? null;
+          })();
+          const sameSelection = value.length === ctx.value.length;
+          const sameHighlight = highlighted === ctx.highlightedValue;
+          if (sameSelection && sameHighlight) return {};
+          return { value, highlightedValue: highlighted };
+        },
+      },
       "HIGHLIGHTED_VALUE.SET": { assign: setHighlighted },
       "HIGHLIGHTED_VALUE.CLEAR": { assign: clearHighlighted },
-      "ITEM.SELECT": { assign: (ctx, event) => {
-        if (ctx.multiple) {
-          return {
-            value: ctx.value.includes(event.value)
-              ? ctx.value.filter((value) => value !== event.value)
-              : [...ctx.value, event.value],
-          };
-        }
-        return { value: [event.value] };
-      } },
+      "ITEM.SELECT": {
+        assign: (ctx, event) => {
+          if (ctx.multiple) {
+            return {
+              value: ctx.value.includes(event.value)
+                ? ctx.value.filter((value) => value !== event.value)
+                : [...ctx.value, event.value],
+            };
+          }
+          return { value: [event.value] };
+        },
+      },
       "ITEM.CLEAR": { assign: clearValue },
       "VALUE.SET": { assign: (_ctx, event) => ({ value: [...event.value] }) },
       "VALUE.CLEAR": { assign: clearValue },
-      "CLEAR.CLICK": { assign: () => ({
-        value: [],
-        highlightedValue: null,
-      }) },
+      "CLEAR.CLICK": {
+        assign: () => ({
+          value: [],
+          highlightedValue: null,
+        }),
+      },
     },
     states: {
       idle: {
@@ -84,7 +98,10 @@ export function select(
           TOGGLE: { target: "open", assign: highlightFirstOrSelected },
           "TRIGGER.CLICK": { target: "open", assign: highlightFirstOrSelected },
           OPEN: { target: "open", assign: highlightFirstOrSelected },
-          "CONTROLLED.OPEN": { target: "open", assign: highlightFirstOrSelected },
+          "CONTROLLED.OPEN": {
+            target: "open",
+            assign: highlightFirstOrSelected,
+          },
         },
       },
       focused: {
@@ -93,47 +110,67 @@ export function select(
           "TRIGGER.CLICK": { target: "open", assign: highlightFirstOrSelected },
           TOGGLE: { target: "open", assign: highlightFirstOrSelected },
           OPEN: { target: "open", assign: highlightFirstOrSelected },
-          "CONTROLLED.OPEN": { target: "open", assign: highlightFirstOrSelected },
+          "CONTROLLED.OPEN": {
+            target: "open",
+            assign: highlightFirstOrSelected,
+          },
           "TRIGGER.ARROW_DOWN": [{ target: "open", assign: highlightFirst }],
           "TRIGGER.ARROW_UP": [{ target: "open", assign: highlightLast }],
           "TRIGGER.ENTER": [{ target: "open", assign: highlightFirst }],
           "TRIGGER.ARROW_RIGHT": [
-            { cond: single, assign: (ctx) => {
-              const at = ctx.value.length === 0 ? -1 : ctx.order.indexOf(ctx.value[0]!);
-              const next = ctx.order[at + 1];
-              return next === undefined ? {} : { value: [next] };
-            } },
+            {
+              cond: single,
+              assign: (ctx) => {
+                const at = ctx.value.length === 0
+                  ? -1
+                  : ctx.order.indexOf(ctx.value[0]!);
+                const next = ctx.order[at + 1];
+                return next === undefined ? {} : { value: [next] };
+              },
+            },
           ],
           "TRIGGER.ARROW_LEFT": [
-            { cond: single, assign: (ctx) => {
-              const at = ctx.value.length === 0
-                ? ctx.order.length
-                : ctx.order.indexOf(ctx.value[0]!);
-              const previous = ctx.order[at - 1];
-              return previous === undefined ? {} : { value: [previous] };
-            } },
+            {
+              cond: single,
+              assign: (ctx) => {
+                const at = ctx.value.length === 0
+                  ? ctx.order.length
+                  : ctx.order.indexOf(ctx.value[0]!);
+                const previous = ctx.order[at - 1];
+                return previous === undefined ? {} : { value: [previous] };
+              },
+            },
           ],
           "TRIGGER.HOME": [
-            { cond: single, assign: (ctx) => ({
-              value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
-            }) },
+            {
+              cond: single,
+              assign: (ctx) => ({
+                value: ctx.order.length === 0 ? ctx.value : [ctx.order[0]!],
+              }),
+            },
           ],
           "TRIGGER.END": [
-            { cond: single, assign: (ctx) => ({
-              value: ctx.order.length === 0
-                ? ctx.value
-                : [ctx.order[ctx.order.length - 1]!],
-            }) },
+            {
+              cond: single,
+              assign: (ctx) => ({
+                value: ctx.order.length === 0
+                  ? ctx.value
+                  : [ctx.order[ctx.order.length - 1]!],
+              }),
+            },
           ],
           "TRIGGER.TYPEAHEAD": [
-            { cond: single, assign: (ctx, event) => {
-              const value = ctx.order.find((candidate) =>
-                (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
-                  event.value.toLowerCase(),
-                )
-              );
-              return value === undefined ? {} : { value: [value] };
-            } },
+            {
+              cond: single,
+              assign: (ctx, event) => {
+                const value = ctx.order.find((candidate) =>
+                  (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
+                    event.value.toLowerCase(),
+                  )
+                );
+                return value === undefined ? {} : { value: [value] };
+              },
+            },
           ],
         },
       },
@@ -169,40 +206,54 @@ export function select(
           ],
           "CONTENT.HOME": { assign: highlightFirst },
           "CONTENT.END": { assign: highlightLast },
-          "CONTENT.ARROW_DOWN": { assign: (ctx) => {
-            const at = (ctx.highlightedValue !== null && ctx.order.includes(ctx.highlightedValue))
-              ? ctx.order.indexOf(ctx.highlightedValue)
-              : -1;
-            if (at === -1) return { highlightedValue: ctx.order[0] ?? null };
-            const next = ctx.order[at + 1];
-            if (next === undefined) {
-              return ctx.loopFocus ? { highlightedValue: ctx.order[0] ?? null } : {};
-            }
-            return { highlightedValue: next };
-          } },
-          "CONTENT.ARROW_UP": { assign: (ctx) => {
-            const at = (ctx.highlightedValue !== null && ctx.order.includes(ctx.highlightedValue))
-              ? ctx.order.indexOf(ctx.highlightedValue)
-              : -1;
-            if (at === -1) {
-              return { highlightedValue: ctx.order[ctx.order.length - 1] ?? null };
-            }
-            const previous = ctx.order[at - 1];
-            if (previous === undefined) {
-              return ctx.loopFocus
-                ? { highlightedValue: ctx.order[ctx.order.length - 1] ?? null }
-                : {};
-            }
-            return { highlightedValue: previous };
-          } },
-          "CONTENT.TYPEAHEAD": { assign: (ctx, event) => {
-            const value = ctx.order.find((candidate) =>
-              (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
-                event.value.toLowerCase(),
-              )
-            );
-            return value === undefined ? {} : { highlightedValue: value };
-          } },
+          "CONTENT.ARROW_DOWN": {
+            assign: (ctx) => {
+              const at = (ctx.highlightedValue !== null &&
+                  ctx.order.includes(ctx.highlightedValue))
+                ? ctx.order.indexOf(ctx.highlightedValue)
+                : -1;
+              if (at === -1) return { highlightedValue: ctx.order[0] ?? null };
+              const next = ctx.order[at + 1];
+              if (next === undefined) {
+                return ctx.loopFocus
+                  ? { highlightedValue: ctx.order[0] ?? null }
+                  : {};
+              }
+              return { highlightedValue: next };
+            },
+          },
+          "CONTENT.ARROW_UP": {
+            assign: (ctx) => {
+              const at = (ctx.highlightedValue !== null &&
+                  ctx.order.includes(ctx.highlightedValue))
+                ? ctx.order.indexOf(ctx.highlightedValue)
+                : -1;
+              if (at === -1) {
+                return {
+                  highlightedValue: ctx.order[ctx.order.length - 1] ?? null,
+                };
+              }
+              const previous = ctx.order[at - 1];
+              if (previous === undefined) {
+                return ctx.loopFocus
+                  ? {
+                    highlightedValue: ctx.order[ctx.order.length - 1] ?? null,
+                  }
+                  : {};
+              }
+              return { highlightedValue: previous };
+            },
+          },
+          "CONTENT.TYPEAHEAD": {
+            assign: (ctx, event) => {
+              const value = ctx.order.find((candidate) =>
+                (ctx.labels[candidate] ?? candidate).toLowerCase().startsWith(
+                  event.value.toLowerCase(),
+                )
+              );
+              return value === undefined ? {} : { highlightedValue: value };
+            },
+          },
           "ITEM.POINTER_MOVE": { assign: setHighlighted },
           "ITEM.POINTER_LEAVE": { assign: clearHighlighted },
         },

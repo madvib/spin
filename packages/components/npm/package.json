@@ -1,6 +1,6 @@
 {
   "name": "@spin/components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The machine components: headless statecharts with typed bridges, examples, and RPC procedures.",
   "type": "module",
   "license": "MIT",
@@ -163,9 +163,15 @@
     "dist",
     "README.md"
   ],
+  "dependencies": {
+    "@orpc/contract": "1",
+    "@orpc/server": "1",
+    "@zag-js/color-utils": "^1.44.0",
+    "perfect-freehand": "^1.2.3",
+    "valibot": "1"
+  },
   "peerDependencies": {
-    "@spin/runtime": "^0.1.0",
-    "@spin/theme": "^0.1.0"
+    "@spin/runtime": "^0.1.0"
   },
   "publishConfig": {
     "access": "public",

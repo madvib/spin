@@ -5,13 +5,13 @@
 </script>
 
 
-<div class="mx-auto flex w-full max-w-xs justify-center">
+<div class="mx-auto flex w-full max-w-[20rem] justify-center">
   <div class="relative">
-    <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-muted" {...machine.getRootProps()}>
+    <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
       <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
       <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>VU</span>
     </span>
-    <span class="absolute -bottom-0.5 -right-0.5 grid h-6 w-6 place-items-center rounded-full border-2 border-solid border-surface bg-primary text-xs text-on-primary">
+    <span class="absolute bottom-0 right-0 grid h-6 w-6 place-items-center rounded-full border-2 border-solid border-surface bg-primary text-xs text-on-primary">
       <span class="i-lucide-check text-xs" aria-hidden="true"></span>
     </span>
   </div>

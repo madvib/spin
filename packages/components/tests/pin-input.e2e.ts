@@ -9,7 +9,6 @@ import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 import { type Page } from "npm:playwright-core";
 
-
 /** Parts are addressed by the element's id, which the route writes so each
  * instance is addressable: `pin-input:<id>:input:<index>`. */
 const PIN = "#pin";
@@ -17,7 +16,8 @@ const PIN = "#pin";
 const PIN_ROOT = '[id="pin-input:pin"]';
 const CELL = (index: number): string => `[id="pin-input:pin:input:${index}"]`;
 const DOTS = "#dots";
-const DOTS_CELL = (index: number): string => `[id="pin-input:dots:input:${index}"]`;
+const DOTS_CELL = (index: number): string =>
+  `[id="pin-input:dots:input:${index}"]`;
 
 const value = async (page: Page): Promise<string> =>
   (await page.locator("#pin-value").textContent()) ?? "";
@@ -30,7 +30,8 @@ const refused = async (page: Page): Promise<string> =>
 const focusedCell = async (page: Page): Promise<string> =>
   page.evaluate(() => {
     const active = document.activeElement;
-    return active instanceof HTMLInputElement && active.id.startsWith("pin-input:pin:input:")
+    return active instanceof HTMLInputElement &&
+        active.id.startsWith("pin-input:pin:input:")
       ? active.id
       : "";
   });
@@ -40,23 +41,45 @@ const cellValue = async (page: Page, index: number): Promise<string> =>
   page.locator(`${PIN} ${CELL(index)}`).inputValue();
 
 /** Distributes a paste through a real ClipboardEvent, the way a browser does. */
-const pasteInto = async (page: Page, selector: string, text: string): Promise<void> =>
+const pasteInto = async (
+  page: Page,
+  selector: string,
+  text: string,
+): Promise<void> =>
   page.evaluate(
     ({ selector, text }) => {
       const node = document.querySelector(selector);
       if (node === null) throw new Error(`no node at ${selector}`);
       const data = new DataTransfer();
       data.setData("text/plain", text);
-      node.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
+      node.dispatchEvent(
+        new ClipboardEvent("paste", {
+          clipboardData: data,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
     },
     { selector, text },
   );
 
 Deno.test("spin-pin-input e2e", () =>
-  runComponentSuite({ port: 5221, route: "/pin-input", ready: `${PIN} ${CELL(0)}` }, async ({ page }) => {
+  runComponentSuite({
+    port: 5221,
+    route: "/pin-input",
+    ready: `${PIN} ${CELL(0)}`,
+  }, async ({ page }) => {
     await step("renders the initial pin", async () => {
-      assert.equal(await page.locator(`${PIN} ${CELL(0)}`).count(), 1, "the first cell renders");
-      assert.equal(await page.locator(`${PIN} input`).count(), 5, "four cells plus the hidden input");
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(0)}`).count(),
+        1,
+        "the first cell renders",
+      );
+      assert.equal(
+        await page.locator(`${PIN} input`).count(),
+        5,
+        "four cells plus the hidden input",
+      );
       assert.equal(
         await page.locator(`${PIN} ${CELL(0)}`).getAttribute("aria-label"),
         "pin code 1 of 4",
@@ -68,111 +91,232 @@ Deno.test("spin-pin-input e2e", () =>
         "the last cell knows the count",
       );
       // One tab stop: the first cell a value has not filled.
-      assert.equal(await page.locator(`${PIN} ${CELL(2)}`).getAttribute("tabindex"), "0", "the first empty cell is the tab stop");
-      assert.equal(await page.locator(`${PIN} ${CELL(0)}`).getAttribute("tabindex"), "-1", "a filled cell is not");
-      assert.equal(await page.locator(`${PIN} ${CELL(0)}`).getAttribute("type"), "tel", "a numeric pin is a telephone field");
-      assert.equal(await page.locator(`${PIN} ${CELL(0)}`).getAttribute("inputmode"), "numeric", "and asks for the numeric keyboard");
-      assert.equal(await page.locator(`${PIN} ${CELL(2)}`).getAttribute("placeholder"), "\u25CB", "an empty cell shows the placeholder");
-      assert.equal(await cellValue(page, 0), "1", "the seed lands in the first cell");
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(2)}`).getAttribute("tabindex"),
+        "0",
+        "the first empty cell is the tab stop",
+      );
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(0)}`).getAttribute("tabindex"),
+        "-1",
+        "a filled cell is not",
+      );
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(0)}`).getAttribute("type"),
+        "tel",
+        "a numeric pin is a telephone field",
+      );
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(0)}`).getAttribute("inputmode"),
+        "numeric",
+        "and asks for the numeric keyboard",
+      );
+      assert.equal(
+        await page.locator(`${PIN} ${CELL(2)}`).getAttribute("placeholder"),
+        "\u25CB",
+        "an empty cell shows the placeholder",
+      );
+      assert.equal(
+        await cellValue(page, 0),
+        "1",
+        "the seed lands in the first cell",
+      );
       assert.equal(await cellValue(page, 2), "", "and the rest are empty");
-      assert.equal(await page.locator(`${PIN} [id="pin-input:pin:hidden"]`).inputValue(), "12", "the hidden input carries the joined pin");
+      assert.equal(
+        await page.locator(`${PIN} [id="pin-input:pin:hidden"]`).inputValue(),
+        "12",
+        "the hidden input carries the joined pin",
+      );
       assert.equal(
         await page.locator(PIN_ROOT).getAttribute("data-complete"),
         null,
         "a half-filled pin is not complete",
       );
-      assert.equal(await page.locator(`${PIN} label`).getAttribute("for"), "pin-input:pin:hidden", "the label names the hidden input");
-      assert.equal(await value(page), "none", "the seed reports no change to the host");
-      assert.equal(await completions(page), "0", "and nothing has completed yet");
+      assert.equal(
+        await page.locator(`${PIN} label`).getAttribute("for"),
+        "pin-input:pin:hidden",
+        "the label names the hidden input",
+      );
+      assert.equal(
+        await value(page),
+        "none",
+        "the seed reports no change to the host",
+      );
+      assert.equal(
+        await completions(page),
+        "0",
+        "and nothing has completed yet",
+      );
     });
 
     await step("typing fills the cells and advances the focus", async () => {
       await page.locator(`${PIN} ${CELL(0)}`).click();
-      assert.equal(await focusedCell(page), "pin-input:pin:input:0", "the click focuses the clicked cell");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:0",
+        "the click focuses the clicked cell",
+      );
       await page.keyboard.press("7");
-      assert.equal(await cellValue(page, 0), "7", "the character lands in the focused cell");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:1", "focus advances to the next cell");
+      assert.equal(
+        await cellValue(page, 0),
+        "7",
+        "the character lands in the focused cell",
+      );
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:1",
+        "focus advances to the next cell",
+      );
       await page.keyboard.press("8");
       assert.equal(await cellValue(page, 1), "8", "the second character lands");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:2", "focus advances again");
-      assert.equal(await value(page), "78", "the host readout follows the typing");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:2",
+        "focus advances again",
+      );
+      assert.equal(
+        await value(page),
+        "78",
+        "the host readout follows the typing",
+      );
     });
 
     await step("the keyboard map walks the cells", async () => {
       // Two cells are filled, so the index cannot walk past the fill.
       await page.keyboard.press("ArrowRight");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:2", "the walk clamps at the fill");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:2",
+        "the walk clamps at the fill",
+      );
       await page.keyboard.press("ArrowLeft");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:1", "ArrowLeft walks back");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:1",
+        "ArrowLeft walks back",
+      );
       await page.keyboard.press("Home");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:0", "Home takes the first cell");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:0",
+        "Home takes the first cell",
+      );
       await page.keyboard.press("End");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:1", "End takes the last filled cell");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:1",
+        "End takes the last filled cell",
+      );
     });
 
     await step("backspace clears the focused cell and steps back", async () => {
       await page.keyboard.press("Backspace");
       assert.equal(await cellValue(page, 1), "", "the filled cell clears");
-      assert.equal(await focusedCell(page), "pin-input:pin:input:0", "and focus steps back");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:0",
+        "and focus steps back",
+      );
       await page.keyboard.press("Backspace");
       assert.equal(await cellValue(page, 0), "", "the last filled cell clears");
-      assert.equal(await value(page), "none", "the host readout follows the backspace");
+      assert.equal(
+        await value(page),
+        "none",
+        "the host readout follows the backspace",
+      );
     });
 
     await step("a refused keystroke is reported, not dropped", async () => {
       await page.keyboard.press("a");
-      assert.equal(await refused(page), "a", "value-invalid carries the refusal");
+      assert.equal(
+        await refused(page),
+        "a",
+        "value-invalid carries the refusal",
+      );
       assert.equal(await value(page), "none", "and the value is untouched");
       assert.equal(await cellValue(page, 0), "", "nothing landed in the cell");
     });
 
-    await step("a paste distributes forward from the focused cell", async () => {
-      // The pin is empty and cell 0 holds focus, so the paste starts there.
-      await pasteInto(page, `${PIN} ${CELL(0)}`, "45");
-      assert.equal(await cellValue(page, 0), "4", "the paste fills from the focused cell");
-      assert.equal(await cellValue(page, 1), "5", "and the cells after it");
-      assert.equal(await value(page), "45", "the host readout is what the paste filled");
-    });
+    await step(
+      "a paste distributes forward from the focused cell",
+      async () => {
+        // The pin is empty and cell 0 holds focus, so the paste starts there.
+        await pasteInto(page, `${PIN} ${CELL(0)}`, "45");
+        assert.equal(
+          await cellValue(page, 0),
+          "4",
+          "the paste fills from the focused cell",
+        );
+        assert.equal(await cellValue(page, 1), "5", "and the cells after it");
+        assert.equal(
+          await value(page),
+          "45",
+          "the host readout is what the paste filled",
+        );
+      },
+    );
 
     await step("filling the last cell completes the pin", async () => {
       await page.keyboard.press("6");
       await page.keyboard.press("7");
       assert.equal(await value(page), "4567", "the pin is full");
-      await page.waitForSelector(`${PIN_ROOT}[data-complete]`, { timeout: 2000 });
+      await page.waitForSelector(`${PIN_ROOT}[data-complete]`, {
+        timeout: 2000,
+      });
       assert.equal(
         await page.locator(PIN_ROOT).getAttribute("data-complete"),
         "",
         "a full pin reports complete",
       );
       assert.equal(await completions(page), "1", "value-complete fired once");
-      assert.equal(await focusedCell(page), "", "and blurOnComplete dropped the focus");
+      assert.equal(
+        await focusedCell(page),
+        "",
+        "and blurOnComplete dropped the focus",
+      );
     });
 
     await step("an invalid paste is refused and reported", async () => {
       await page.locator(`${PIN} ${CELL(0)}`).click();
       await pasteInto(page, `${PIN} ${CELL(0)}`, "zz");
-      assert.equal(await refused(page), "zz", "value-invalid carries the refused paste");
+      assert.equal(
+        await refused(page),
+        "zz",
+        "value-invalid carries the refused paste",
+      );
       assert.equal(await value(page), "4567", "and the pin is untouched");
     });
 
     await step("the host commands drive the machine", async () => {
-      await page.getByRole("button", { name: 'el.setValue(["9", "8", "7"])' }).click();
+      await page.getByRole("button", { name: 'el.setValue(["9", "8", "7"])' })
+        .click();
       assert.equal(await value(page), "987", "setValue writes the value");
       assert.equal(await cellValue(page, 2), "7", "and the cells follow");
-      await page.getByRole("button", { name: "el.setValueAtIndex(3, \"5\")" }).click();
-      assert.equal(await cellValue(page, 3), "5", "setValueAtIndex writes the named cell");
+      await page.getByRole("button", { name: 'el.setValueAtIndex(3, "5")' })
+        .click();
+      assert.equal(
+        await cellValue(page, 3),
+        "5",
+        "setValueAtIndex writes the named cell",
+      );
       await page.getByRole("button", { name: "el.clearValue()" }).click();
       assert.equal(await value(page), "none", "clearValue empties the pin");
       assert.equal(await cellValue(page, 0), "", "every cell is empty");
       await page.getByRole("button", { name: "el.focus()" }).click();
-      assert.equal(await focusedCell(page), "pin-input:pin:input:0", "focus focuses the first cell");
+      assert.equal(
+        await focusedCell(page),
+        "pin-input:pin:input:0",
+        "focus focuses the first cell",
+      );
       await page.keyboard.press("1");
       assert.equal(await value(page), "1", "and the keyboard works afterwards");
     });
 
     await step("a disabled pin is inert", async () => {
       await page.getByRole("button", { name: "disable" }).click();
-      await page.waitForSelector(`${PIN_ROOT}[data-disabled]`, { timeout: 2000 });
+      await page.waitForSelector(`${PIN_ROOT}[data-disabled]`, {
+        timeout: 2000,
+      });
       assert.equal(
         await page.locator(`${PIN} ${CELL(1)}`).getAttribute("disabled"),
         "",
@@ -185,22 +329,42 @@ Deno.test("spin-pin-input e2e", () =>
       await page.keyboard.press("Backspace");
       assert.equal(await value(page), "1", "a disabled pin takes nothing");
       await page.getByRole("button", { name: "enable" }).click();
-      await page.waitForSelector(`${PIN_ROOT}:not([data-disabled])`, { timeout: 2000 });
+      await page.waitForSelector(`${PIN_ROOT}:not([data-disabled])`, {
+        timeout: 2000,
+      });
       await page.locator(`${PIN} ${CELL(1)}`).click();
       await page.keyboard.press("5");
-      assert.equal(await value(page), "15", "re-enabling restores the interaction");
+      assert.equal(
+        await value(page),
+        "15",
+        "re-enabling restores the interaction",
+      );
     });
 
     await step("a masked otp pin renders six password cells", async () => {
-      assert.equal(await page.locator(`${DOTS} input[type="password"]`).count(), 6, "six masked cells");
-      assert.equal(await page.locator(`${DOTS} ${DOTS_CELL(0)}`).getAttribute("inputmode"), "numeric", "an otp pin is numeric");
       assert.equal(
-        await page.locator(`${DOTS} ${DOTS_CELL(0)}`).getAttribute("autocomplete"),
+        await page.locator(`${DOTS} input[type="password"]`).count(),
+        6,
+        "six masked cells",
+      );
+      assert.equal(
+        await page.locator(`${DOTS} ${DOTS_CELL(0)}`).getAttribute("inputmode"),
+        "numeric",
+        "an otp pin is numeric",
+      );
+      assert.equal(
+        await page.locator(`${DOTS} ${DOTS_CELL(0)}`).getAttribute(
+          "autocomplete",
+        ),
         "one-time-code",
         "and asks the platform for the code",
       );
       await page.locator(`${DOTS} ${DOTS_CELL(0)}`).click();
       await page.keyboard.press("3");
-      assert.equal(await page.locator("#pin-dots-value").textContent(), "3", "and the host readout follows");
+      assert.equal(
+        await page.locator("#pin-dots-value").textContent(),
+        "3",
+        "and the host readout follows",
+      );
     });
   }));

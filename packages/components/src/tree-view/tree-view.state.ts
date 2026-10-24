@@ -117,7 +117,9 @@ export function initial(
     selectionMode: written("selectionMode")
       ? (args.selectionMode === "multiple" ? "multiple" : "single")
       : "single",
-    expandOnClick: written("expandOnClick") ? args.expandOnClick !== false : true,
+    expandOnClick: written("expandOnClick")
+      ? args.expandOnClick !== false
+      : true,
     rename: written("rename") ? args.rename !== false : true,
     loadChildren: args.loadChildren,
   };

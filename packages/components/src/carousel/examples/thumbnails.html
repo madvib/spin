@@ -1,10 +1,28 @@
 <script lang="ts">
-  import { carousel } from "../carousel.presentation.ts";
+import { carousel } from "../carousel.presentation.ts";
 
-  const machine = carousel({items: [{"value":"a","label":"Alpine","content":"Thin air.","image":"https://picsum.photos/seed/50/500/300"},{"value":"b","label":"Bay","content":"Salt, fog.","image":"https://picsum.photos/seed/51/500/300"},{"value":"c","label":"Canyon","content":"Red rock.","image":"https://picsum.photos/seed/52/500/300"}]});
+const machine = carousel({
+  items: [{
+    "value": "a",
+    "label": "Alpine",
+    "content": "Thin air.",
+    "image": "https://picsum.photos/seed/50/500/300",
+  }, {
+    "value": "b",
+    "label": "Bay",
+    "content": "Salt, fog.",
+    "image": "https://picsum.photos/seed/51/500/300",
+  }, {
+    "value": "c",
+    "label": "Canyon",
+    "content": "Red rock.",
+    "image": "https://picsum.photos/seed/52/500/300",
+  }],
+});
 </script>
 
-<div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
+<div
+  class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...machine.getRootProps()}>
   <div
     class={["flex gap-2 py-1 snap-x snap-mandatory snap-proximity flex-col snap-y overflow-x-auto overflow-y-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing": machine.isDragging, "snap-none": machine.isDragging, "scroll-auto": machine.isDragging }]}
@@ -17,9 +35,12 @@
       >
         <div
           class="flex min-h-32 flex-col items-center justify-center overflow-hidden rounded-md border border-solid border-border bg-surface text-center">
-          <img class="h-32 w-full object-cover" loading="lazy" alt="" src={row.image} />
-          <div class="p-4"><div class="text-sm font-medium text-text">{row.label}</div>
-          <div class="text-xs text-muted mt-1">{row.content}</div></div>
+          <img class="h-32 w-full object-cover" loading="lazy" alt=""
+            src={row.image} />
+          <div class="p-4">
+            <div class="text-sm font-medium text-text">{row.label}</div>
+            <div class="text-xs text-text-muted mt-1">{row.content}</div>
+          </div>
         </div>
       </div>
     </template>
@@ -35,25 +56,25 @@
 
   <div class="flex items-center gap-2 mt-4" {...machine.getControlProps()}>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getPrevTriggerProps()}>‹</button>
     <div class="flex flex-1 items-center justify-center gap-1"
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["shrink-0 rounded-md border-2 border-solid border-transparent bg-surface-raised px-2 py-1 text-xs text-muted transition-all hover:border-border", { "border-primary": machine.index === row.index, "text-text": machine.index === row.index, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+          class={["bare shrink-0 border-2 border-transparent px-2 py-1 text-xs text-text-muted transition-all hover:border-border", { "border-primary": machine.index === row.index,  "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}>{row.label}</button>
       </template>
     </div>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "text-primary": machine.isPlaying, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "text-primary": machine.isPlaying, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getAutoplayTriggerProps()}>▶</button>
     <template for={machine.getProgressRows()} as={row} key={row.value}>
-      <span class="text-xs text-muted"
+      <span class="text-xs text-text-muted"
         {...machine.getProgressTextProps()}>{row.value}</span>
     </template>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getNextTriggerProps()}>›</button>
   </div>
 </div>

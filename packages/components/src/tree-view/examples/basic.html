@@ -1,28 +1,45 @@
 <script lang="ts">
-  import { treeView } from "../tree-view.presentation.ts";
+import { treeView } from "../tree-view.presentation.ts";
 
-  const machine = treeView({
-    nodes: '[{"value": "packages", "label": "packages", "children": [{"value": "packages/components", "label": "components", "children": [{"value": "packages/combobox", "label": "combobox"}, {"value": "packages/select", "label": "select"}]}, {"value": "packages/runtime", "label": "runtime"}]}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]',
-    expandedValue: ["packages", "packages/components"],
-  });
+const machine = treeView({
+  nodes:
+    '[{"value": "packages", "label": "packages", "children": [{"value": "packages/components", "label": "components", "children": [{"value": "packages/combobox", "label": "combobox"}, {"value": "packages/select", "label": "select"}]}, {"value": "packages/runtime", "label": "runtime"}]}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]',
+  expandedValue: ["packages", "packages/components"],
+});
 </script>
 <div class="mx-auto w-full max-w-sm" {...machine.getRootProps()}>
-  <span class="mb-4 block text-base font-semibold text-text" {...machine.getLabelProps()}>Project Files</span>
-  <div class="space-y-1 rounded-xl border border-solid border-border bg-surface-raised p-3" {...machine.getTreeProps()}>
+  <span class="mb-4 block text-md font-semibold text-text"
+    {...machine.getLabelProps()}>Project Files</span>
+  <div
+    class="stack-xs rounded-xl border border-solid border-border bg-surface-raised p-3"
+    {...machine.getTreeProps()}>
     <template for={machine.getVisibleRows()} as={row} key={row.node.value}>
       <div class="relative" {...machine.getItemProps(row)}>
-        <span class="pointer-events-none absolute inset-y-0 w-px bg-border" aria-hidden="true" {...machine.getRailProps(row)}></span>
+        <span class="pointer-events-none absolute inset-y-0 w-[1px] bg-border"
+          aria-hidden="true" {...machine.getRailProps(row)}></span>
         <button
-          class={["relative flex min-h-0 items-center gap-2 rounded-lg border-0 border-solid bg-transparent px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-fast ease-standard hover:bg-surface", { "bg-surface-sunken": machine.getItemState(row).selected }]}
+          class={["bare relative flex min-h-0 items-center gap-2 rounded-lg border-0 bg-transparent px-3 py-2 text-left text-sm font-medium transition-colors duration-fast ease-standard hover:bg-surface", { "bg-surface-sunken": machine.getItemState(row).selected }]}
           {...machine.getBranchControlProps(row)}
         >
-          <span class={["size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard", { "inline-flex": machine.isBranch(row), "hidden": !machine.isBranch(row), "rotate-90": machine.getItemState(row).expanded }]} {...machine.getBranchIndicatorProps(row)}>
-            <span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span>
+          <span
+            class={["size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard", { "inline-flex": machine.isBranch(row), "hidden": !machine.isBranch(row), "rotate-90": machine.getItemState(row).expanded }]}
+            {...machine.getBranchIndicatorProps(row)}>
+            <span class="i-lucide-chevron-right text-xs"
+              aria-hidden="true"></span>
           </span>
-          <span show={machine.isBranch(row) && !machine.getItemState(row).expanded} class="i-lucide-folder shrink-0 text-sm text-primary" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
-          <span show={machine.isBranch(row) && machine.getItemState(row).expanded} class="i-lucide-folder-open shrink-0 text-sm text-primary" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
-          <span show={!machine.isBranch(row)} class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true" {...machine.getItemIconProps(row)}></span>
-          <span class="min-w-0 flex-1 truncate" {...machine.getBranchTextProps(row)}>{row.node.label}</span>
+          <span
+            show={machine.isBranch(row) && !machine.getItemState(row).expanded}
+            class="i-lucide-folder shrink-0 text-sm text-primary"
+            aria-hidden="true" {...machine.getItemIconProps(row)}></span>
+          <span
+            show={machine.isBranch(row) && machine.getItemState(row).expanded}
+            class="i-lucide-folder-open shrink-0 text-sm text-primary"
+            aria-hidden="true" {...machine.getItemIconProps(row)}></span>
+          <span show={!machine.isBranch(row)}
+            class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true"
+            {...machine.getItemIconProps(row)}></span>
+          <span class="min-w-0 flex-1 truncate"
+            {...machine.getBranchTextProps(row)}>{row.node.label}</span>
         </button>
       </div>
     </template>

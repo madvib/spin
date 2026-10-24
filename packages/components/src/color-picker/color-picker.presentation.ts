@@ -1,31 +1,31 @@
-import { parseColor, type ColorChannel } from "@zag-js/color-utils";
+import { type ColorChannel, parseColor } from "@zag-js/color-utils";
 import {
+  type ApiOf,
   ariaDisabled,
   ariaHidden,
   ariaLabelledBy,
   ariaOrientation,
   ariaRoleDescription,
+  type ComponentDef,
   dataAttr,
   defineComponent,
   disclosureTrigger,
   isComposing,
   isRecord,
-  sliderThumb,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
+  sliderThumb,
   type SlotScopeFor,
 } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { colorPicker as colorPickerMachine } from "./color-picker.machine.ts";
 import {
-  isOpenPhase,
-  startOpen,
-  valueAsString,
-  type ColorPickerState,
   type ColorFormat,
   type ColorPickerArgs,
   type ColorPickerContext,
+  type ColorPickerState,
+  isOpenPhase,
+  startOpen,
+  valueAsString,
 } from "./color-picker.state.ts";
 import type { ColorPickerEvents } from "./color-picker.events.ts";
 
@@ -81,11 +81,21 @@ export interface ColorPickerFormatChange {
 }
 
 const isColorFormat = (raw: unknown): raw is ColorFormat =>
-  raw === "hex" || raw === "hexa" || raw === "rgb" || raw === "rgba" || raw === "hsl" || raw === "hsla" || raw === "hsb" || raw === "hsba";
+  raw === "hex" || raw === "hexa" || raw === "rgb" || raw === "rgba" ||
+  raw === "hsl" || raw === "hsla" || raw === "hsb" || raw === "hsba";
 
-type ScopeLike = ScopeFor<ColorPickerContext, ColorPickerEvents, ColorPickerState>;
+type ScopeLike = ScopeFor<
+  ColorPickerContext,
+  ColorPickerEvents,
+  ColorPickerState
+>;
 
-type SlotLike<R> = SlotScopeFor<R, ColorPickerContext, ColorPickerEvents, ColorPickerState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  ColorPickerContext,
+  ColorPickerEvents,
+  ColorPickerState
+>;
 
 const openOf = (scope: ScopeLike): boolean =>
   isOpenPhase(scope.state, scope.context.inline);
@@ -98,7 +108,16 @@ const colorOf = (scope: ScopeLike): ReturnType<typeof parseColor> => {
   }
 };
 
-const CHANNELS: readonly string[] = ["hue", "saturation", "brightness", "lightness", "red", "green", "blue", "alpha"];
+const CHANNELS: readonly string[] = [
+  "hue",
+  "saturation",
+  "brightness",
+  "lightness",
+  "red",
+  "green",
+  "blue",
+  "alpha",
+];
 
 const isChannel = (raw: unknown): raw is ColorChannel =>
   typeof raw === "string" && (CHANNELS as readonly string[]).includes(raw);
@@ -137,7 +156,9 @@ const channelOf = (arg: unknown): ChannelSlotProps => {
   const orientation: unknown = isRecord(arg) ? arg["orientation"] : undefined;
   return {
     channel: isChannel(channel) ? channel : "hue",
-    ...(orientation === "vertical" || orientation === "horizontal" ? { orientation } : {}),
+    ...(orientation === "vertical" || orientation === "horizontal"
+      ? { orientation }
+      : {}),
   };
 };
 
@@ -169,8 +190,14 @@ const areaPropsOf = (arg: unknown): AreaSlotProps => {
 /** Percent of a pointer within a measured rect, 0..1 on each axis. The rect
  * comes from the framework measure or the event's own node — defs never
  * query the document. */
-const pointPercent = (rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null, clientX: number, clientY: number): { x: number; y: number } => {
-  if (rect === null || rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
+const pointPercent = (
+  rect: Pick<DOMRect, "left" | "top" | "width" | "height"> | null,
+  clientX: number,
+  clientY: number,
+): { x: number; y: number } => {
+  if (rect === null || rect.width === 0 || rect.height === 0) {
+    return { x: 0, y: 0 };
+  }
   const clamp = (n: number): number => Math.min(1, Math.max(0, n));
   return {
     x: clamp((clientX - rect.left) / rect.width),
@@ -187,7 +214,9 @@ const trackPercent = (
 ): number => {
   if (rect === null) return 0;
   const clamp = (n: number): number => Math.min(1, Math.max(0, n));
-  if (orientation === "vertical") return clamp((clientY - rect.top) / rect.height);
+  if (orientation === "vertical") {
+    return clamp((clientY - rect.top) / rect.height);
+  }
   const raw = clamp((clientX - rect.left) / rect.width);
   return dir === "rtl" ? 1 - raw : raw;
 };
@@ -197,17 +226,27 @@ const arrowStep = (event: KeyboardEvent): number => (event.shiftKey ? 10 : 1);
 
 const onAreaKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented) return;
-  if (scope.context.disabled === true || scope.context.readOnly === true) return;
+  if (scope.context.disabled === true || scope.context.readOnly === true) {
+    return;
+  }
   if (isComposing(event)) return;
   const step = arrowStep(event);
   switch (event.key) {
     case "ArrowLeft":
       event.preventDefault();
-      scope.send({ type: "AREA.ARROW", channel: "x", delta: scope.context.dir === "rtl" ? step : -step });
+      scope.send({
+        type: "AREA.ARROW",
+        channel: "x",
+        delta: scope.context.dir === "rtl" ? step : -step,
+      });
       return;
     case "ArrowRight":
       event.preventDefault();
-      scope.send({ type: "AREA.ARROW", channel: "x", delta: scope.context.dir === "rtl" ? -step : step });
+      scope.send({
+        type: "AREA.ARROW",
+        channel: "x",
+        delta: scope.context.dir === "rtl" ? -step : step,
+      });
       return;
     case "ArrowUp":
       event.preventDefault();
@@ -230,9 +269,15 @@ const onAreaKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   }
 };
 
-const onChannelKeydown = (scope: ScopeLike, event: KeyboardEvent, channel: ColorChannel): void => {
+const onChannelKeydown = (
+  scope: ScopeLike,
+  event: KeyboardEvent,
+  channel: ColorChannel,
+): void => {
   if (event.defaultPrevented) return;
-  if (scope.context.disabled === true || scope.context.readOnly === true) return;
+  if (scope.context.disabled === true || scope.context.readOnly === true) {
+    return;
+  }
   if (isComposing(event)) return;
   const step = arrowStep(event);
   switch (event.key) {
@@ -259,7 +304,10 @@ const onChannelKeydown = (scope: ScopeLike, event: KeyboardEvent, channel: Color
   }
 };
 
-const swatchState = (scope: ScopeLike, slot: SwatchSlotProps): ColorPickerItemState => ({
+const swatchState = (
+  scope: ScopeLike,
+  slot: SwatchSlotProps,
+): ColorPickerItemState => ({
   value: slot.value,
   disabled: scope.context.disabled === true || slot.disabled === true,
   checked: scope.context.value.toLowerCase() === slot.value.toLowerCase(),
@@ -286,7 +334,9 @@ const channelValueOf = (
   // Hue/saturation/brightness are not rgb channels: read them off the area
   // value, the way the machine steps them. Alpha reads natively.
   try {
-    const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+    const area: "hsla" | "hsba" = ctx.format.startsWith("hsl")
+      ? "hsla"
+      : "hsba";
     const source = channel === "alpha" ? color : color.toFormat(area);
     return String(source.getChannelValue(channel));
   } catch {
@@ -296,7 +346,8 @@ const channelValueOf = (
 
 export const def = {
   name: "color-picker",
-  machine: (args: ColorPickerArgs, authored: (name: string) => boolean) => colorPickerMachine(args, authored),
+  machine: (args: ColorPickerArgs, authored: (name: string) => boolean) =>
+    colorPickerMachine(args, authored),
   start: (raw: Record<string, unknown>) => (startOpen(raw) ? "active" : "idle"),
   reconcile: ({ context, parsed, authored, send, state }) => {
     // The panel's visibility is the machine's STATE, not a context field, so
@@ -306,7 +357,9 @@ export const def = {
       const outer = parsed["open"] === true;
       const open = isOpenPhase(state, context.inline);
       if (open !== outer) {
-        send(outer ? { type: "CONTROLLED.OPEN" } : { type: "CONTROLLED.CLOSE" });
+        send(
+          outer ? { type: "CONTROLLED.OPEN" } : { type: "CONTROLLED.CLOSE" },
+        );
         return true;
       }
     }
@@ -348,11 +401,15 @@ export const def = {
           "data-state": open ? "open" : "closed",
           "data-disabled": dataAttr(scope.context.disabled === true),
           onClick: (): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             scope.send({ type: "TRIGGER.CLICK" });
           },
           onBlur: (): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             scope.send({ type: "TRIGGER.BLUR" });
           },
         };
@@ -408,10 +465,14 @@ export const def = {
           // machine still owns the geometry — the percent comes from the
           // area's own measured box.
           "use:drag": {
-            enabled: scope.context.disabled !== true && scope.context.readOnly !== true,
+            enabled: scope.context.disabled !== true &&
+              scope.context.readOnly !== true,
             cancelOnEscape: false,
             onStart: (press: DragPress): void => {
-              if (press.ctrlKey === true || press.metaKey === true || press.altKey === true) return;
+              if (
+                press.ctrlKey === true || press.metaKey === true ||
+                press.altKey === true
+              ) return;
               const at = pointPercent(scope.measure("area"), press.x, press.y);
               scope.send({ type: "AREA.POINTER_DOWN", x: at.x, y: at.y });
             },
@@ -451,7 +512,9 @@ export const def = {
         // The area's channels live in the area format: an rgb color has no
         // saturation channel, so the raw read throws — read off the
         // converted value instead.
-        const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+        const area: "hsla" | "hsba" = ctx.format.startsWith("hsl")
+          ? "hsla"
+          : "hsba";
         let source = color;
         try {
           source = color.toFormat(area);
@@ -504,7 +567,8 @@ export const def = {
             background: color.toString("css"),
           },
           onFocus: (): void => scope.send({ type: "AREA.ACTIVATE" }),
-          onKeydown: (event: KeyboardEvent): void => onAreaKeydown(scope, event),
+          onKeydown: (event: KeyboardEvent): void =>
+            onAreaKeydown(scope, event),
         };
       },
     },
@@ -524,21 +588,45 @@ export const def = {
           // The gesture lives in the runtime; the percent comes from the
           // handle's OWN box, the one the drag action reports.
           "use:drag": {
-            enabled: scope.context.disabled !== true && scope.context.readOnly !== true,
+            enabled: scope.context.disabled !== true &&
+              scope.context.readOnly !== true,
             cancelOnEscape: false,
             onStart: (press: DragPress): void => {
-              if (press.ctrlKey === true || press.metaKey === true || press.altKey === true) return;
+              if (
+                press.ctrlKey === true || press.metaKey === true ||
+                press.altKey === true
+              ) return;
               const rect = press.rect;
               if (rect === null) return;
-              const percent = trackPercent(rect, orientation, press.x, press.y, scope.context.dir);
-              scope.send({ type: "CHANNEL_SLIDER.POINTER_DOWN", channel: slots.channel, percent });
+              const percent = trackPercent(
+                rect,
+                orientation,
+                press.x,
+                press.y,
+                scope.context.dir,
+              );
+              scope.send({
+                type: "CHANNEL_SLIDER.POINTER_DOWN",
+                channel: slots.channel,
+                percent,
+              });
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
               const rect = delta.rect;
               if (rect === null) return;
-              const percent = trackPercent(rect, orientation, delta.x, delta.y, scope.context.dir);
-              scope.send({ type: "CHANNEL_SLIDER.POINTER_MOVE", channel: slots.channel, percent });
+              const percent = trackPercent(
+                rect,
+                orientation,
+                delta.x,
+                delta.y,
+                scope.context.dir,
+              );
+              scope.send({
+                type: "CHANNEL_SLIDER.POINTER_MOVE",
+                channel: slots.channel,
+                percent,
+              });
             },
             onEnd: (): void => {
               if (scope.state !== "dragging") return;
@@ -576,7 +664,9 @@ export const def = {
         const color = colorOf(scope);
         // Hue/saturation/brightness are not rgb channels: read them off the
         // area value, the way the machine steps them. Alpha natively.
-        const area: "hsla" | "hsba" = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+        const area: "hsla" | "hsba" = ctx.format.startsWith("hsl")
+          ? "hsla"
+          : "hsba";
         let source = color;
         try {
           source = slots.channel === "alpha" ? color : color.toFormat(area);
@@ -596,7 +686,9 @@ export const def = {
         } catch {
           // Unparseable: keep what we have.
         }
-        if (orientation === "horizontal" && scope.context.dir === "rtl") offset = 1 - offset;
+        if (orientation === "horizontal" && scope.context.dir === "rtl") {
+          offset = 1 - offset;
+        }
         return {
           id: scope.id("thumb", slots.channel),
           role: "slider",
@@ -621,8 +713,13 @@ export const def = {
             transform: "translate(-50%, -50%)",
             background: color.toString("css"),
           },
-          onFocus: (): void => scope.send({ type: "CHANNEL_SLIDER.ACTIVATE", channel: slots.channel }),
-          onKeydown: (event: KeyboardEvent): void => onChannelKeydown(scope, event, slots.channel),
+          onFocus: (): void =>
+            scope.send({
+              type: "CHANNEL_SLIDER.ACTIVATE",
+              channel: slots.channel,
+            }),
+          onKeydown: (event: KeyboardEvent): void =>
+            onChannelKeydown(scope, event, slots.channel),
         };
       },
     },
@@ -654,22 +751,36 @@ export const def = {
           "data-disabled": dataAttr(scope.context.disabled === true),
           value: current,
           onFocus: (event: FocusEvent): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             scope.send({ type: "CHANNEL_INPUT.FOCUS", channel: slots.channel });
             selectText(event.currentTarget);
           },
           onBlur: (event: FocusEvent): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             const raw = textOf(event.currentTarget);
-            scope.send({ type: "CHANNEL_INPUT.BLUR", channel: slots.channel, value: raw });
+            scope.send({
+              type: "CHANNEL_INPUT.BLUR",
+              channel: slots.channel,
+              value: raw,
+            });
           },
           onKeydown: (event: KeyboardEvent): void => {
             if (event.defaultPrevented || isComposing(event)) return;
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             if (event.key !== "Enter") return;
             const raw = textOf(event.currentTarget);
             event.preventDefault();
-            scope.send({ type: "CHANNEL_INPUT.CHANGE", channel: slots.channel, value: raw });
+            scope.send({
+              type: "CHANNEL_INPUT.CHANGE",
+              channel: slots.channel,
+              value: raw,
+            });
           },
         };
       },
@@ -698,7 +809,9 @@ export const def = {
           "data-disabled": dataAttr(scope.context.disabled === true),
           hidden: supported ? undefined : "",
           onClick: (): void => {
-            if (scope.context.disabled === true || scope.context.readOnly === true) return;
+            if (
+              scope.context.disabled === true || scope.context.readOnly === true
+            ) return;
             scope.send({ type: "EYEDROPPER.CLICK" });
           },
         };
@@ -771,16 +884,27 @@ export const def = {
   },
   commands: {
     setValue: {
-      event: ([value]: [value: string]) => ({ type: "VALUE.SET" as const, value }),
+      event: ([value]: [value: string]) => ({
+        type: "VALUE.SET" as const,
+        value,
+      }),
     },
     setFormat: {
-      event: ([format]: [format: ColorFormat]) => ({ type: "FORMAT.SET" as const, format }),
+      event: ([format]: [format: ColorFormat]) => ({
+        type: "FORMAT.SET" as const,
+        format,
+      }),
     },
-    setOpen: { event: ([open]: [open: boolean]) => ({ type: open ? "OPEN" as const : "CLOSE" as const }) },
+    setOpen: {
+      event: ([open]: [open: boolean]) => ({
+        type: open ? "OPEN" as const : "CLOSE" as const,
+      }),
+    },
   },
   readers: {
     open: {
-      read: (context: ColorPickerContext, state) => isOpenPhase(state, context.inline),
+      read: (context: ColorPickerContext, state) =>
+        isOpenPhase(state, context.inline),
     },
     value: { read: (context) => context.value },
     valueAsString: { read: (context) => valueAsString(context) },
@@ -790,7 +914,11 @@ export const def = {
   },
   methods: {
     getChannelValue: {
-      call: (context: ColorPickerContext, _state, [channel]: [channel: ColorChannel | "hex"]): string => {
+      call: (
+        context: ColorPickerContext,
+        _state,
+        [channel]: [channel: ColorChannel | "hex"],
+      ): string => {
         return channelValueOf(context, isChannel(channel) ? channel : "hex");
       },
     },
@@ -837,7 +965,19 @@ export const def = {
           : null,
     },
   },
-} satisfies ComponentDef<ColorPickerContext, ColorPickerEvents, Record<string, unknown>, ColorPickerArgs, ColorPickerState>;
+} satisfies ComponentDef<
+  ColorPickerContext,
+  ColorPickerEvents,
+  Record<string, unknown>,
+  ColorPickerArgs,
+  ColorPickerState
+>;
 
 export type ColorPickerApi = ApiOf<typeof def>;
-export const colorPicker = defineComponent<ColorPickerContext, ColorPickerEvents, ColorPickerApi, ColorPickerArgs, ColorPickerState>(def);
+export const colorPicker = defineComponent<
+  ColorPickerContext,
+  ColorPickerEvents,
+  ColorPickerApi,
+  ColorPickerArgs,
+  ColorPickerState
+>(def);

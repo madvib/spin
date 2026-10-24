@@ -1,7 +1,7 @@
 # Unit tests
 
-One function, co-located beside it (`<name>.test.ts` next to `<name>.ts`).
-The test imports the function, calls it, asserts the value. Nothing else.
+One function, co-located beside it (`<name>.test.ts` next to `<name>.ts`). The
+test imports the function, calls it, asserts the value. Nothing else.
 
 ## Good: behavior of one function
 
@@ -12,7 +12,11 @@ it("Given a scope with an effect inside / When disposed / Then the effect stops"
   const count = signal(0);
   let seen = 0;
   const owner = scope();
-  owner.run(() => effect(() => { seen = count(); }));
+  owner.run(() =>
+    effect(() => {
+      seen = count();
+    })
+  );
   count.set(1);
   owner.dispose();
   count.set(2);
@@ -87,8 +91,8 @@ it("Given a utility on a claimed element / When checked / Then it is refused", (
 });
 ```
 
-If the unit needs a double of something we own, the design is wrong — inject
-at a real boundary or test the real thing.
+If the unit needs a double of something we own, the design is wrong — inject at
+a real boundary or test the real thing.
 
 ## Bad: the same test, someone else's code
 
@@ -108,7 +112,7 @@ it("Given the p-4 utility / When generated / Then it is the spacing step", async
 
 ## What earns a unit test
 
-Behavior, boundaries, invariants, transitions, precedence, real errors —
-one function at a time. A deterministic, isolated case a plausible bug
-could fail. Table-driven over literals where the law is general (a
-round-trip over a table of token trees, not one pinned string).
+Behavior, boundaries, invariants, transitions, precedence, real errors — one
+function at a time. A deterministic, isolated case a plausible bug could fail.
+Table-driven over literals where the law is general (a round-trip over a table
+of token trees, not one pinned string).

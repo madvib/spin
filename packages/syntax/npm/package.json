@@ -1,6 +1,6 @@
 {
   "name": "@spin/syntax",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The spin markup grammar: parse, scope, and script blocks.",
   "type": "module",
   "license": "MIT",
@@ -13,6 +13,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./props": {
+      "types": "./dist/props.d.ts",
+      "default": "./dist/props.js"
     }
   },
   "files": [

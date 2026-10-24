@@ -1,16 +1,42 @@
 <script lang="ts">
-  import { slider } from "../slider.presentation.ts";
+import { slider } from "../slider.presentation.ts";
 
-  const machine = slider({ value: [50], markers: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] });
+const machine = slider({
+  value: [50],
+  markers: [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100,
+  ],
+});
 </script>
 
 <div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
-  <div class="mb-4 text-sm text-muted" {...machine.getValueTextProps()}>{machine.valueText}</div>
+  <div class="mb-4 text-sm text-text-muted"
+    {...machine.getValueTextProps()}>{machine.valueText}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"
     {...machine.getControlProps()}
   >
-<div
+    <div
       class="relative h-2 w-full overflow-hidden rounded-full bg-surface-sunken"
       {...machine.getTrackProps()}
     >
@@ -19,9 +45,9 @@
         {...machine.getRangeProps()}
       ></div>
     </div>
-<template for={machine.getThumbIndexes()} as={row} key={row}>
+    <template for={machine.getThumbIndexes()} as={row} key={row}>
       <span
-        class={["absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
+        class={["bare absolute top-1/2 -mt-2 -ml-2 h-4 w-4 rounded-full border-2 border-solid border-primary bg-surface", { "ring-2 ring-border-strong": machine.state === "focus" && machine.focusedIndex === row, "scale-110": machine.state === "dragging" && machine.focusedIndex === row, "opacity-50": machine.disabled }]}
         {...machine.getThumbProps(row)}
       ></span>
       <input {...machine.getHiddenInputProps(row)} />
@@ -30,11 +56,15 @@
   <div class="relative mt-2 h-8" {...machine.getMarkerGroupProps()}>
     <template for={machine.getMarkers()} as={row} key={row}>
       <span
-        class="absolute top-0 flex w-0 justify-center pt-4 text-xs text-muted"
+        class="absolute top-0 flex w-0 justify-center pt-4 text-xs text-text-muted"
         {...machine.getMarkerProps(row)}
       >
-        <span class={["absolute left-1/2 top-0 -ml-px h-2 w-px bg-border-strong", { "bg-primary": row < (machine.value[0] ?? 0) }]} aria-hidden="true" show={row % 10 === 0}></span>
-        <span class={["absolute left-1/2 top-0 -ml-px h-1 w-px bg-border-strong", { "bg-primary": row < (machine.value[0] ?? 0) }]} aria-hidden="true" show={row % 10 !== 0}></span>
+        <span
+          class={["absolute left-1/2 top-0 ml-0 h-2 w-[1px] bg-border-strong", { "bg-primary": row < (machine.value[0] ?? 0) }]}
+          aria-hidden="true" show={row % 10 === 0}></span>
+        <span
+          class={["absolute left-1/2 top-0 ml-0 h-1 w-[1px] bg-border-strong", { "bg-primary": row < (machine.value[0] ?? 0) }]}
+          aria-hidden="true" show={row % 10 !== 0}></span>
         <span show={row % 10 === 0}>{row}</span>
       </span>
     </template>

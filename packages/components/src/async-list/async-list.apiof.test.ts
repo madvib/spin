@@ -43,10 +43,20 @@ Deno.test("AsyncListApi promises the component's surface", () => {
   assertEquals(keys.length, 31);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<AsyncListApi["state"], "idle" | "loading" | "sorting"> = true;
-  const sortTyped: AssertExact<AsyncListApi["sort"], (sortDescriptor: SortDescriptor) => void> = true;
-  const getRowsTyped: AssertExact<AsyncListApi["getRows"], () => readonly AsyncListRow[]> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    AsyncListApi["state"],
+    "idle" | "loading" | "sorting"
+  > = true;
+  const sortTyped: AssertExact<
+    AsyncListApi["sort"],
+    (sortDescriptor: SortDescriptor) => void
+  > = true;
+  const getRowsTyped: AssertExact<
+    AsyncListApi["getRows"],
+    () => readonly AsyncListRow[]
+  > = true;
   assertEquals(
     [
       stateTyped,

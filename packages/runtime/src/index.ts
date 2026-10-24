@@ -40,6 +40,7 @@ export {
   snapValueToStep,
 } from "./math/index.ts";
 export {
+  type AnyEvent,
   type ApiOf,
   type CommandDef,
   type ComponentDef,

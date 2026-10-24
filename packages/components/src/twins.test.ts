@@ -76,7 +76,14 @@ function declaredProps(name: string): PropDecl[] {
       if (!decls.has(decl.name)) decls.set(decl.name, decl);
     }
   };
-  const canonical = join(here, "..", "specimens", "src", "routes", `spin-${name}.html`);
+  const canonical = join(
+    here,
+    "..",
+    "specimens",
+    "src",
+    "routes",
+    `spin-${name}.html`,
+  );
   try {
     read(canonical);
   } catch {
@@ -119,30 +126,45 @@ function mount(
 
 /** The components under test, with the bridge each ships. */
 const COMPONENTS: Readonly<Record<string, Bridge>> = {
-  "angle-slider": (await import("./angle-slider/angle-slider.presentation.ts")).angleSlider,
-  "cascade-select": (await import("./cascade-select/cascade.presentation.ts")).cascade,
-  "color-picker": (await import("./color-picker/color-picker.presentation.ts")).colorPicker,
-  "date-input": (await import("./date-input/date-input.presentation.ts")).dateInput,
-  "date-picker": (await import("./date-picker/date-picker.presentation.ts")).datePicker,
+  "angle-slider":
+    (await import("./angle-slider/angle-slider.presentation.ts")).angleSlider,
+  "cascade-select":
+    (await import("./cascade-select/cascade.presentation.ts")).cascade,
+  "color-picker":
+    (await import("./color-picker/color-picker.presentation.ts")).colorPicker,
+  "date-input":
+    (await import("./date-input/date-input.presentation.ts")).dateInput,
+  "date-picker":
+    (await import("./date-picker/date-picker.presentation.ts")).datePicker,
   "editable": (await import("./editable/editable.presentation.ts")).editable,
-  "file-upload": (await import("./file-upload/file-upload.presentation.ts")).fileUpload,
-  "floating-panel": (await import("./floating-panel/floating-panel.presentation.ts")).floatingPanel,
+  "file-upload":
+    (await import("./file-upload/file-upload.presentation.ts")).fileUpload,
+  "floating-panel":
+    (await import("./floating-panel/floating-panel.presentation.ts"))
+      .floatingPanel,
   "listbox": (await import("./listbox/listbox.presentation.ts")).listbox,
   menu: (await import("./menu/menu.presentation.ts")).menu,
-  "navigation-menu": (await import("./navigation-menu/navigation-menu.presentation.ts"))
-    .navigationMenu,
-  "number-input": (await import("./number-input/number-input.presentation.ts")).numberInput,
-  pagination: (await import("./pagination/pagination.presentation.ts")).pagination,
+  "navigation-menu":
+    (await import("./navigation-menu/navigation-menu.presentation.ts"))
+      .navigationMenu,
+  "number-input":
+    (await import("./number-input/number-input.presentation.ts")).numberInput,
+  pagination:
+    (await import("./pagination/pagination.presentation.ts")).pagination,
   "pin-input": (await import("./pin-input/pin-input.presentation.ts")).pinInput,
-  "rating-group": (await import("./rating-group/rating-group.presentation.ts")).ratingGroup,
+  "rating-group":
+    (await import("./rating-group/rating-group.presentation.ts")).ratingGroup,
   select: (await import("./select/select.presentation.ts")).select,
-  "signature-pad": (await import("./signature-pad/signature-pad.presentation.ts")).signaturePad,
+  "signature-pad":
+    (await import("./signature-pad/signature-pad.presentation.ts"))
+      .signaturePad,
   slider: (await import("./slider/slider.presentation.ts")).slider,
   splitter: (await import("./splitter/splitter.presentation.ts")).splitter,
   steps: (await import("./steps/steps.presentation.ts")).steps,
   tabs: (await import("./tabs/tabs.presentation.ts")).tabs,
   "tags-input": (await import("./tags-input/tags.presentation.ts")).tags,
-  "toggle-group": (await import("./toggle-group/toggle-group.presentation.ts")).toggleGroup,
+  "toggle-group":
+    (await import("./toggle-group/toggle-group.presentation.ts")).toggleGroup,
   "tree-view": (await import("./tree-view/tree-view.presentation.ts")).treeView,
 } as unknown as Readonly<Record<string, Bridge>>;
 
@@ -154,16 +176,28 @@ for (const [name, component] of Object.entries(COMPONENTS)) {
     const value = coerceProps([decl], {})[decl.name];
     // An empty default asserts nothing: the declared and the authored
     // bags would both read empty, so the comparison could not fail.
-    if (value === undefined || value === "" || (Array.isArray(value) && value.length === 0)) continue;
+    if (
+      value === undefined || value === "" ||
+      (Array.isArray(value) && value.length === 0)
+    ) continue;
     const twin = twinOf(decl.name);
 
     Deno.test(`${name}: the declared ${decl.name} reaches the machine`, () => {
       const declared = mount(component, { [decl.name]: value }, []);
       const authored = mount(component, { [twin]: value }, [twin]);
       const differing: string[] = [];
-      for (const key of new Set([...Object.keys(declared), ...Object.keys(authored)])) {
+      for (
+        const key of new Set([
+          ...Object.keys(declared),
+          ...Object.keys(authored),
+        ])
+      ) {
         if (JSON.stringify(declared[key]) !== JSON.stringify(authored[key])) {
-          differing.push(`${key}: ${JSON.stringify(declared[key])} != ${JSON.stringify(authored[key])}`);
+          differing.push(
+            `${key}: ${JSON.stringify(declared[key])} != ${
+              JSON.stringify(authored[key])
+            }`,
+          );
         }
       }
       assertEquals(

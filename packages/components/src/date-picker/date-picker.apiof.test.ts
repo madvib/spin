@@ -1,5 +1,8 @@
 import { assertEquals } from "@std/assert";
-import type { DatePickerApi, DatePickerCellView } from "./date-picker.presentation.ts";
+import type {
+  DatePickerApi,
+  DatePickerCellView,
+} from "./date-picker.presentation.ts";
 import type { DatePickerValue } from "./date-picker.state.ts";
 
 Deno.test("DatePickerApi promises the component's surface", () => {
@@ -29,8 +32,12 @@ Deno.test("DatePickerApi promises the component's surface", () => {
     "getCellIndexes",
   ];
   assertEquals(keys.length, 23);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<DatePickerApi["state"], "idle" | "focused" | "open"> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    DatePickerApi["state"],
+    "idle" | "focused" | "open"
+  > = true;
   const setValueTyped: AssertExact<
     DatePickerApi["setValue"],
     (value: readonly DatePickerValue[] | null) => void
@@ -43,7 +50,10 @@ Deno.test("DatePickerApi promises the component's surface", () => {
     DatePickerApi["getCells"],
     () => readonly DatePickerCellView[]
   > = true;
-  const getWeekdayLabelsTyped: AssertExact<DatePickerApi["getWeekdayLabels"], () => readonly string[]> = true;
+  const getWeekdayLabelsTyped: AssertExact<
+    DatePickerApi["getWeekdayLabels"],
+    () => readonly string[]
+  > = true;
   const getValueTextRowsTyped: AssertExact<
     DatePickerApi["getValueTextRows"],
     () => readonly { readonly value: string; readonly text: string }[]

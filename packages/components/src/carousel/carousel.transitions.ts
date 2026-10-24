@@ -10,11 +10,12 @@ import {
   restStatus,
 } from "./carousel.state.ts";
 
-type CarouselAssign<K extends keyof CarouselEvents = keyof CarouselEvents> = AssignFor<
-  CarouselContext,
-  CarouselEvents,
-  K
->;
+type CarouselAssign<K extends keyof CarouselEvents = keyof CarouselEvents> =
+  AssignFor<
+    CarouselContext,
+    CarouselEvents,
+    K
+  >;
 
 const next = (ctx: CarouselContext): Partial<CarouselContext> => ({
   index: ctx.loop
@@ -22,7 +23,8 @@ const next = (ctx: CarouselContext): Partial<CarouselContext> => ({
     : Math.min(ctx.index + 1, lastPageOf(ctx.pageCount)),
 });
 
-export const advance: CarouselAssign<"NEXT" | "AUTOPLAY.TICK"> = (ctx) => next(ctx);
+export const advance: CarouselAssign<"NEXT" | "AUTOPLAY.TICK"> = (ctx) =>
+  next(ctx);
 
 export const previous: CarouselAssign<"PREV"> = (ctx) => ({
   index: ctx.loop
@@ -57,9 +59,13 @@ export const slideView: CarouselAssign<"SLIDE.VIEW"> = (ctx, e) => {
   };
 };
 
-export const dragStart: CarouselAssign<"DRAG.START"> = () => ({ dragStatus: "dragging" });
+export const dragStart: CarouselAssign<"DRAG.START"> = () => ({
+  dragStatus: "dragging",
+});
 
-export const dragEnd: CarouselAssign<"DRAG.END"> = () => ({ dragStatus: "settling" });
+export const dragEnd: CarouselAssign<"DRAG.END"> = () => ({
+  dragStatus: "settling",
+});
 
 export const scrollSettle: CarouselAssign<"SCROLL.SETTLE"> = (ctx, e) => {
   return {

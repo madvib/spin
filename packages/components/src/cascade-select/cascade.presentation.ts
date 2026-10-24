@@ -1,28 +1,28 @@
 import {
+  type ApiOf,
   ariaDisabled,
   ariaHidden,
   ariaLabelledBy,
   ariaOwns,
   coerceJsonArray,
+  type ComponentDef,
   defineComponent,
   disclosureTrigger,
   isRecord,
   listSurface,
   optionRow,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
 import { cascade as cascadeMachine } from "./cascade.machine.ts";
 import {
+  type CascadeArgs,
+  type CascadeContext,
+  type CascadeState,
   parseCollection as parseCollectionState,
   parsePath,
   parsePaths,
   startOpen,
-  type CascadeArgs,
-  type CascadeContext,
-  type CascadeState,
 } from "./cascade.state.ts";
 import type { CascadeEvents } from "./cascade.events.ts";
 
@@ -108,20 +108,22 @@ export interface CascadeScrollDetails {
   readonly depth: number;
 }
 
-export type CascadeFormatValue = (items: readonly (readonly CascadeNode[])[]) => string;
+export type CascadeFormatValue = (
+  items: readonly (readonly CascadeNode[])[],
+) => string;
 
 /** Path segments join with a comma in ids. */
 const SEP = ",";
 
 export const pathKey = (path: readonly string[]): string => path.join(SEP);
 
-
 /** The collection crosses the prop channel as JSON text (the grammar has no
  *  recursive type), so it is parsed and validated here rather than trusted
  *  at every read. */
 export const parseCollection = parseCollectionState;
 
-const isString = (segment: unknown): segment is string => typeof segment === "string";
+const isString = (segment: unknown): segment is string =>
+  typeof segment === "string";
 
 export const nodeAtPath = (
   collection: readonly CascadeNode[],
@@ -175,8 +177,6 @@ const isNode = (value: unknown): value is CascadeNode => {
   return children === undefined || Array.isArray(children);
 };
 
-
-
 /** Derive the visible levels: every node along the highlighted path
  *  contributes its children as the next level. Memoized on the collection
  *  and the highlight key: drilling in and back out restores the same
@@ -216,13 +216,20 @@ const levelsOf = (
         indexPath: [...indexPath, index],
       };
     });
-    levels.push({ depth, path, key: depth === 0 ? "root" : pathKey(path), items });
+    levels.push({
+      depth,
+      path,
+      key: depth === 0 ? "root" : pathKey(path),
+      items,
+    });
     const segment = highlighted[depth];
     if (segment === undefined) break;
     const at = nodes.findIndex((node) => node.value === segment);
     const node = itemAt(nodes, at);
     const children = node?.children;
-    if (node === undefined || children === undefined || children.length === 0) break;
+    if (node === undefined || children === undefined || children.length === 0) {
+      break;
+    }
     indexPath.push(at);
     path = [...path, node.value];
     nodes = children;
@@ -250,8 +257,11 @@ const itemStateOf = (scope: ScopeLike, item: CascadeItem): CascadeItemState => {
   // Zag's `highlighted`: every segment of the item's path matches the
   // highlight's, so an ancestor of the highlighted node is highlighted too
   // — that is what keeps its level open.
-  const highlighted = item.path.every((segment, index) => segment === highlight[index]);
-  const children = nodeAtPath(scope.context.collection, item.path)?.children ?? [];
+  const highlighted = item.path.every((segment, index) =>
+    segment === highlight[index]
+  );
+  const children = nodeAtPath(scope.context.collection, item.path)?.children ??
+    [];
   const childSegment = highlighted ? highlight[item.depth + 1] : undefined;
   const highlightedIndex = childSegment === undefined
     ? undefined
@@ -264,7 +274,9 @@ const itemStateOf = (scope: ScopeLike, item: CascadeItem): CascadeItemState => {
     hasChildren: item.hasChildren,
     depth: item.depth,
     highlightedChild: childSegment,
-    highlightedIndex: highlightedIndex === undefined || highlightedIndex < 0 ? undefined : highlightedIndex,
+    highlightedIndex: highlightedIndex === undefined || highlightedIndex < 0
+      ? undefined
+      : highlightedIndex,
   };
 };
 
@@ -275,7 +287,10 @@ type ItemHandlerSet = {
   readonly onPointerMove: (event: PointerEvent) => void;
   readonly onDoubleClick: () => void;
 };
-const itemHandlersByBridge = new WeakMap<object, WeakMap<CascadeItem, ItemHandlerSet>>();
+const itemHandlersByBridge = new WeakMap<
+  object,
+  WeakMap<CascadeItem, ItemHandlerSet>
+>();
 const itemHandlers = (scope: ScopeLike, item: CascadeItem): ItemHandlerSet => {
   let byItem = itemHandlersByBridge.get(scope.send);
   if (byItem === undefined) {
@@ -287,11 +302,21 @@ const itemHandlers = (scope: ScopeLike, item: CascadeItem): ItemHandlerSet => {
   const made: ItemHandlerSet = {
     onClick: (): void => {
       if (item.disabled || !isInteractive(scope)) return;
-      scope.send({ type: "ITEM_CLICK", value: [...item.path], hasChildren: item.hasChildren });
+      scope.send({
+        type: "ITEM_CLICK",
+        value: [...item.path],
+        hasChildren: item.hasChildren,
+      });
     },
     onPointerMove: (event: PointerEvent): void => {
-      if (!isInteractive(scope) || item.disabled || event.pointerType !== "mouse") return;
-      scope.send({ type: "ITEM_POINTER_ENTER", value: [...item.path], hasChildren: item.hasChildren });
+      if (
+        !isInteractive(scope) || item.disabled || event.pointerType !== "mouse"
+      ) return;
+      scope.send({
+        type: "ITEM_POINTER_ENTER",
+        value: [...item.path],
+        hasChildren: item.hasChildren,
+      });
     },
     // Zag's ITEM.CLICK handler: a double click closes outright.
     onDoubleClick: (): void => {
@@ -319,14 +344,26 @@ const highlightPath = (scope: ScopeLike, path: readonly string[]): void => {
 };
 
 /** The rows of the level holding `path`: its parent's children. */
-const siblingsOf = (scope: ScopeLike, path: readonly string[]): readonly CascadeItem[] => {
-  const level = levelsOf(scope.context.collection, scope.context.highlightedValue)
+const siblingsOf = (
+  scope: ScopeLike,
+  path: readonly string[],
+): readonly CascadeItem[] => {
+  const level = levelsOf(
+    scope.context.collection,
+    scope.context.highlightedValue,
+  )
     .find((candidate) => samePath(candidate.path, path.slice(0, -1)));
   return level === undefined ? [] : level.items;
 };
 
-const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
-  const level = levelsOf(scope.context.collection, scope.context.highlightedValue)
+const rootEdge = (
+  scope: ScopeLike,
+  edge: "first" | "last",
+): CascadeItem | undefined => {
+  const level = levelsOf(
+    scope.context.collection,
+    scope.context.highlightedValue,
+  )
     .find((candidate) => candidate.depth === 0);
   const items = level === undefined ? [] : level.items;
   return edge === "first"
@@ -334,7 +371,10 @@ const rootEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undef
     : [...items].reverse().find((item) => !item.disabled);
 };
 
-const levelEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | undefined => {
+const levelEdge = (
+  scope: ScopeLike,
+  edge: "first" | "last",
+): CascadeItem | undefined => {
   const items = siblingsOf(scope, scope.context.highlightedValue);
   return edge === "first"
     ? items.find((item) => !item.disabled)
@@ -343,7 +383,9 @@ const levelEdge = (scope: ScopeLike, edge: "first" | "last"): CascadeItem | unde
 
 const moveHighlight = (scope: ScopeLike, delta: number): void => {
   const items = siblingsOf(scope, scope.context.highlightedValue);
-  const at = items.findIndex((item) => samePath(item.path, scope.context.highlightedValue));
+  const at = items.findIndex((item) =>
+    samePath(item.path, scope.context.highlightedValue)
+  );
   // Zag's `not(hasHighlightedValue)` branch: an edge is picked regardless of
   // loopFocus, because there is no current row to wrap from.
   if (at === -1) {
@@ -392,18 +434,28 @@ const selectHighlighted = (scope: ScopeLike): void => {
   const item = itemByPath(scope.context.collection, path, path);
   if (item === undefined) return;
   if (!scope.context.allowParentSelection && item.hasChildren) return;
-  scope.send({ type: "ITEM_CLICK", value: [...path], hasChildren: item.hasChildren });
+  scope.send({
+    type: "ITEM_CLICK",
+    value: [...path],
+    hasChildren: item.hasChildren,
+  });
 };
 
-const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-const isExcludedTarget = (scope: ScopeLike, target: EventTarget | null): boolean => {
+const isExcludedTarget = (
+  scope: ScopeLike,
+  target: EventTarget | null,
+): boolean => {
   if (!(target instanceof Element)) return false;
   const host = scope.root();
   if (typeof host.querySelector !== "function") return false;
   for (const part of ["trigger", "clearTrigger"] as const) {
     const node = host.querySelector(`[id="${scope.id(part)}"]`);
-    if (node !== null && node instanceof Element && node.contains(target)) return true;
+    if (node !== null && node instanceof Element && node.contains(target)) {
+      return true;
+    }
   }
   return false;
 };
@@ -440,7 +492,11 @@ const reportOutside = (
   const focusable = focusableTarget(event.target);
   if (kind === "pointer") callHost(scope.context.onPointerDownOutside, event);
   else callHost(scope.context.onFocusOutside, event);
-  callInteract(scope.context.onInteractOutside, { focusable, contextmenu, originalEvent: event });
+  callInteract(scope.context.onInteractOutside, {
+    focusable,
+    contextmenu,
+    originalEvent: event,
+  });
 };
 
 const dismissSelf = (scope: ScopeLike, restoreFocus: boolean): void => {
@@ -455,7 +511,10 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   const back = scope.context.dir === "rtl" ? "ArrowRight" : "ArrowLeft";
   const openWithEdge = (end: "first" | "last"): void => {
     const target = rootEdge(scope, end);
-    scope.send({ type: "TRIGGER_OPEN", highlight: target === undefined ? [] : [...target.path] });
+    scope.send({
+      type: "TRIGGER_OPEN",
+      highlight: target === undefined ? [] : [...target.path],
+    });
   };
   const openPlain = (): void => {
     scope.send({ type: "TRIGGER_OPEN", highlight: [] });
@@ -539,13 +598,18 @@ const onContentFocusOut = (scope: ScopeLike, event: FocusEvent): void => {
 
 /** The readout text: labels along each path, one selection per entry. */
 const textFor = (context: CascadeContext): string => {
-  const chains = context.value.map((path) => itemsAlongPath(context.collection, path));
+  const chains = context.value.map((path) =>
+    itemsAlongPath(context.collection, path)
+  );
   const custom: unknown = context.formatValue;
   if (typeof custom === "function") return formatWith(custom, chains);
   if (context.multiple) {
-    return chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(", ");
+    return chains.map((chain) => chain[chain.length - 1]?.label ?? "").join(
+      ", ",
+    );
   }
-  return chains.map((chain) => chain.map((node) => node.label).join(" / ")).join(", ");
+  return chains.map((chain) => chain.map((node) => node.label).join(" / "))
+    .join(", ");
 };
 
 const valueAsString = (scope: ScopeLike): string => textFor(scope.context);
@@ -557,7 +621,10 @@ type HostFormatFn = (items: readonly (readonly CascadeNode[])[]) => unknown;
 const isFormatFn = (value: unknown): value is HostFormatFn =>
   typeof value === "function";
 
-const formatWith = (custom: unknown, chains: readonly (readonly CascadeNode[])[]): string => {
+const formatWith = (
+  custom: unknown,
+  chains: readonly (readonly CascadeNode[])[],
+): string => {
   if (!isFormatFn(custom)) return "";
   const out: unknown = custom(chains);
   return typeof out === "string" ? out : "";
@@ -575,7 +642,6 @@ const callScroll = (custom: unknown, details: CascadeScrollDetails): void => {
 
 const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
-
 const levelOf = (arg: unknown): CascadeLevel => {
   if (!isRecord(arg)) return { depth: 0, path: [], key: "root", items: [] };
   const items: unknown = arg["items"];
@@ -583,7 +649,10 @@ const levelOf = (arg: unknown): CascadeLevel => {
   const path: unknown = arg["path"];
   return {
     depth: typeof depth === "number" ? depth : 0,
-    path: Array.isArray(path) && path.every((p): p is string => typeof p === "string") ? path : [],
+    path: Array.isArray(path) &&
+        path.every((p): p is string => typeof p === "string")
+      ? path
+      : [],
     key: typeof arg["key"] === "string" ? arg["key"] : "root",
     items: Array.isArray(items) ? items.filter(isCascadeItem) : [],
   };
@@ -608,10 +677,24 @@ const itemOf = (arg: unknown): CascadeItem => {
       hasChildren: arg["hasChildren"] === true,
       depth: typeof depth === "number" ? depth : 0,
       indexInLevel: typeof indexInLevel === "number" ? indexInLevel : 0,
-      indexPath: Array.isArray(indexPath) && indexPath.every((n): n is number => typeof n === "number") ? indexPath : [],
+      indexPath: Array.isArray(indexPath) && indexPath.every((n): n is number =>
+          typeof n === "number"
+        )
+        ? indexPath
+        : [],
     };
   }
-  return { key: "", path: [], value: "", label: "", disabled: false, hasChildren: false, depth: 0, indexInLevel: 0, indexPath: [] };
+  return {
+    key: "",
+    path: [],
+    value: "",
+    label: "",
+    disabled: false,
+    hasChildren: false,
+    depth: 0,
+    indexInLevel: 0,
+    indexPath: [],
+  };
 };
 
 /** Zag's `scrollToIndexFn`: a host that scrolls its own content supplies the
@@ -622,7 +705,9 @@ const scrollParam = (
 ): { readonly activeId: () => string; readonly reveal?: () => void } => {
   const activeId = (): string => {
     const highlighted = scope.context.highlightedValue;
-    return highlighted.length === 0 ? "" : scope.id("item", pathKey(highlighted));
+    return highlighted.length === 0
+      ? ""
+      : scope.id("item", pathKey(highlighted));
   };
   const custom = scope.context.scrollToIndexFn;
   if (typeof custom !== "function") return { activeId };
@@ -646,11 +731,18 @@ const scrollParam = (
 
 export const def = {
   name: "cascade",
-  machine: (args: CascadeArgs, authored: (name: string) => boolean) => cascadeMachine(args, authored),
+  machine: (args: CascadeArgs, authored: (name: string) => boolean) =>
+    cascadeMachine(args, authored),
   settled: ({ event, before, after, focus }: {
     readonly event: { readonly type: string } & Record<string, unknown>;
-    readonly before: { readonly context: CascadeContext; readonly state: CascadeState };
-    readonly after: { readonly context: CascadeContext; readonly state: CascadeState };
+    readonly before: {
+      readonly context: CascadeContext;
+      readonly state: CascadeState;
+    };
+    readonly after: {
+      readonly context: CascadeContext;
+      readonly state: CascadeState;
+    };
     readonly focus: (part: string, slot?: unknown) => void;
   }) => {
     if (after.state === "open" && before.state !== "open") focus("content");
@@ -667,7 +759,9 @@ export const def = {
       const outer = parsed["open"] === true;
       const open = state === "open";
       if (open !== outer) {
-        send(outer ? { type: "CONTROLLED_OPEN" } : { type: "CONTROLLED_CLOSE" });
+        send(
+          outer ? { type: "CONTROLLED_OPEN" } : { type: "CONTROLLED_CLOSE" },
+        );
         return true;
       }
     }
@@ -684,9 +778,20 @@ export const def = {
     }
     // Host callbacks ride the element, not the authored channel: sync them
     // whenever present so reports fire even when the host never declared them.
-    for (const name of ["onFocusOutside", "onInteractOutside", "onPointerDownOutside", "scrollToIndexFn", "formatValue"] as const) {
+    for (
+      const name of [
+        "onFocusOutside",
+        "onInteractOutside",
+        "onPointerDownOutside",
+        "scrollToIndexFn",
+        "formatValue",
+      ] as const
+    ) {
       const next = parsed[name];
-      if (next !== undefined && (context as unknown as Record<string, unknown>)[name] !== next) {
+      if (
+        next !== undefined &&
+        (context as unknown as Record<string, unknown>)[name] !== next
+      ) {
         (context as unknown as Record<string, unknown>)[name] = next;
         moved = true;
       }
@@ -745,7 +850,8 @@ export const def = {
         },
         onFocus: (): void => scope.send({ type: "TRIGGER_FOCUS" }),
         onBlur: (): void => scope.send({ type: "TRIGGER_BLUR" }),
-        onKeydown: (event: KeyboardEvent): void => onTriggerKeydown(scope, event),
+        onKeydown: (event: KeyboardEvent): void =>
+          onTriggerKeydown(scope, event),
         "data-state": scope.state === "open" ? "open" : "closed",
         "data-placement": scope.context.placement,
         "data-placeholder-shown": scope.attr(scope.context.value.length === 0),
@@ -826,15 +932,20 @@ export const def = {
             : scope.id("item", pathKey(highlighted)),
           hidden: scope.state !== "open",
           tabIndex: 0,
-          onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
-          onFocusOut: (event: FocusEvent): void => onContentFocusOut(scope, event),
+          onKeydown: (event: KeyboardEvent): void =>
+            onContentKeydown(scope, event),
+          onFocusOut: (event: FocusEvent): void =>
+            onContentFocusOut(scope, event),
           "use:dismissable": {
             onOutside: (event: PointerEvent): void => {
               // The trigger and the clear button are this component's own
               // gestures: a press on them is a toggle, not a dismissal.
               if (isExcludedTarget(scope, event.target)) return;
               reportOutside(scope, "pointer", event, event.button === 2);
-              dismissSelf(scope, !(focusableTarget(event.target) || event.button === 2));
+              dismissSelf(
+                scope,
+                !(focusableTarget(event.target) || event.button === 2),
+              );
             },
             onEscape: (): void => dismissSelf(scope, true),
           },
@@ -847,8 +958,14 @@ export const def = {
     hiddenInput: {
       id: "hidden-input",
       attrs: (scope: ScopeLike) => ({
-        ...(typeof scope.context.name === "string" && scope.context.name.length > 0 ? { name: scope.context.name } : {}),
-        ...(typeof scope.context.form === "string" && scope.context.form.length > 0 ? { form: scope.context.form } : {}),
+        ...(typeof scope.context.name === "string" &&
+            scope.context.name.length > 0
+          ? { name: scope.context.name }
+          : {}),
+        ...(typeof scope.context.form === "string" &&
+            scope.context.form.length > 0
+          ? { form: scope.context.form }
+          : {}),
         disabled: disabledOf(scope),
         required: scope.context.required,
         readOnly: scope.context.readOnly,
@@ -952,7 +1069,10 @@ export const def = {
       event: (args) => ({ type: args[0] === true ? "OPEN" : "CLOSE" }),
     },
     setHighlightValue: {
-      event: (args) => ({ type: "HIGHLIGHTED_VALUE_SET", value: [...parsePath(args[0])] }),
+      event: (args) => ({
+        type: "HIGHLIGHTED_VALUE_SET",
+        value: [...parsePath(args[0])],
+      }),
     },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE_CLEAR" }) },
     setValue: {
@@ -972,9 +1092,10 @@ export const def = {
       },
     },
     clearValue: {
-      event: (args) => args[0] === undefined
-        ? ({ type: "VALUE_CLEAR" })
-        : ({ type: "ITEM_CLEAR", value: [...parsePath(args[0])] }),
+      event: (args) =>
+        args[0] === undefined
+          ? ({ type: "VALUE_CLEAR" })
+          : ({ type: "ITEM_CLEAR", value: [...parsePath(args[0])] }),
     },
   },
   readers: {
@@ -996,19 +1117,39 @@ export const def = {
   },
   methods: {
     getLevels: {
-      call: (context: CascadeContext, _state, _args, props): readonly CascadeLevel[] =>
+      call: (
+        context: CascadeContext,
+        _state,
+        _args,
+        props,
+      ): readonly CascadeLevel[] =>
         levelsOf(context.collection, context.highlightedValue),
     },
     getItems: {
-      call: (_context: CascadeContext, _state: CascadeState, [level]: [level: CascadeLevel]): readonly CascadeItem[] => levelOf(level).items,
+      call: (
+        _context: CascadeContext,
+        _state: CascadeState,
+        [level]: [level: CascadeLevel],
+      ): readonly CascadeItem[] => levelOf(level).items,
     },
     getItemState: {
-      call: (context: CascadeContext, _state, [item]: [item: CascadeItem]): CascadeItemState => {
+      call: (
+        context: CascadeContext,
+        _state,
+        [item]: [item: CascadeItem],
+      ): CascadeItemState => {
         const highlight = context.highlightedValue;
-        const selected = context.value.some((path) => samePath(path, item.path));
-        const highlighted = item.path.every((segment, index) => segment === highlight[index]);
-        const children = nodeAtPath(context.collection, item.path)?.children ?? [];
-        const childSegment = highlighted ? highlight[item.depth + 1] : undefined;
+        const selected = context.value.some((path) =>
+          samePath(path, item.path)
+        );
+        const highlighted = item.path.every((segment, index) =>
+          segment === highlight[index]
+        );
+        const children = nodeAtPath(context.collection, item.path)?.children ??
+          [];
+        const childSegment = highlighted
+          ? highlight[item.depth + 1]
+          : undefined;
         const highlightedIndex = childSegment === undefined
           ? undefined
           : children.findIndex((child) => child.value === childSegment);
@@ -1020,15 +1161,24 @@ export const def = {
           hasChildren: item.hasChildren,
           depth: item.depth,
           highlightedChild: childSegment,
-          highlightedIndex: highlightedIndex === undefined || highlightedIndex < 0 ? undefined : highlightedIndex,
+          highlightedIndex:
+            highlightedIndex === undefined || highlightedIndex < 0
+              ? undefined
+              : highlightedIndex,
         };
       },
     },
     getValueText: {
-      call: (context: CascadeContext, _state, _args, _props): string => textFor(context),
+      call: (context: CascadeContext, _state, _args, _props): string =>
+        textFor(context),
     },
     getValueTextRows: {
-      call: (context: CascadeContext, _state, _args, _props): readonly { readonly value: string }[] => [{ value: textFor(context) }],
+      call: (
+        context: CascadeContext,
+        _state,
+        _args,
+        _props,
+      ): readonly { readonly value: string }[] => [{ value: textFor(context) }],
     },
   },
   events: {
@@ -1042,9 +1192,17 @@ export const def = {
     },
     "value-change": {
       prop: "onValueChange",
-      watch: (context: CascadeContext) => context.value.map((path) => pathKey(path)),
-      detail: (watched: readonly unknown[], _event, _props, context: CascadeContext) => {
-        const keys = watched.filter((key): key is string => typeof key === "string");
+      watch: (context: CascadeContext) =>
+        context.value.map((path) => pathKey(path)),
+      detail: (
+        watched: readonly unknown[],
+        _event,
+        _props,
+        context: CascadeContext,
+      ) => {
+        const keys = watched.filter((key): key is string =>
+          typeof key === "string"
+        );
         const collection = context.collection;
         return {
           value: keys.map((key) => key.split(SEP)),
@@ -1055,9 +1213,16 @@ export const def = {
     "highlight-change": {
       prop: "onHighlightChange",
       watch: (context: CascadeContext) => [pathKey(context.highlightedValue)],
-      detail: (watched: readonly unknown[], _event, _props, context: CascadeContext) => {
+      detail: (
+        watched: readonly unknown[],
+        _event,
+        _props,
+        context: CascadeContext,
+      ) => {
         const key = watched[0];
-        const path = typeof key === "string" && key.length > 0 ? key.split(SEP) : [];
+        const path = typeof key === "string" && key.length > 0
+          ? key.split(SEP)
+          : [];
         const collection = context.collection;
         return {
           highlightedValue: [...path],
@@ -1066,7 +1231,19 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<CascadeContext, CascadeEvents, Record<string, unknown>, CascadeArgs, CascadeState>;
+} satisfies ComponentDef<
+  CascadeContext,
+  CascadeEvents,
+  Record<string, unknown>,
+  CascadeArgs,
+  CascadeState
+>;
 
 export type CascadeApi = ApiOf<typeof def>;
-export const cascade = defineComponent<CascadeContext, CascadeEvents, CascadeApi, CascadeArgs, CascadeState>(def);
+export const cascade = defineComponent<
+  CascadeContext,
+  CascadeEvents,
+  CascadeApi,
+  CascadeArgs,
+  CascadeState
+>(def);

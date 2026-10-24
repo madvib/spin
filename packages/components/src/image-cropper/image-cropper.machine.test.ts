@@ -16,7 +16,9 @@ import type { CropHandle, CropRect } from "./image-cropper.state.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -65,12 +67,18 @@ const dragPress = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: viewportNode(),
-  rect: viewportNode().getBoundingClientRect(), direction: "ltr",
+  rect: viewportNode().getBoundingClientRect(),
+  direction: "ltr",
 });
 
 /** A move, as the drag action reports it: the absolute point and the delta
  * from the press. */
-const dragMove = (x: number, y: number, fromX: number, fromY: number): DragDelta => ({
+const dragMove = (
+  x: number,
+  y: number,
+  fromX: number,
+  fromY: number,
+): DragDelta => ({
   ...dragPress(x, y),
   dx: x - fromX,
   dy: y - fromY,
@@ -120,20 +128,41 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onCropChange", (change: ImageCropperCropChange) => events.cropChange.push(change));
-  write("onZoomChange", (change: ImageCropperZoomChange) => events.zoomChange.push(change));
-  write("onRotationChange", (change: ImageCropperRotationChange) => events.rotationChange.push(change));
-  write("onFlipChange", (change: ImageCropperFlipChange) => events.flipChange.push(change));
+  write(
+    "onCropChange",
+    (change: ImageCropperCropChange) => events.cropChange.push(change),
+  );
+  write(
+    "onZoomChange",
+    (change: ImageCropperZoomChange) => events.zoomChange.push(change),
+  );
+  write(
+    "onRotationChange",
+    (change: ImageCropperRotationChange) => events.rotationChange.push(change),
+  );
+  write(
+    "onFlipChange",
+    (change: ImageCropperFlipChange) => events.flipChange.push(change),
+  );
   const realDocument = globalThis.document as Document;
   const holder = realDocument.createElement("div");
   holder.id = "image-cropper:photo:viewport";
-  const rect = { left: 0, right: 400, width: 400, top: 0, bottom: 300, height: 300 };
+  const rect = {
+    left: 0,
+    right: 400,
+    width: 400,
+    top: 0,
+    bottom: 300,
+    height: 300,
+  };
   holder.getBoundingClientRect = () => ({ ...rect }) as DOMRect;
   realDocument.body.appendChild(holder);
   const bridge = createImageCropperBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -193,7 +222,9 @@ Deno.test("the selection drags the crop and the handle resizes it", () => {
   assertEquals(h.api.crop.y, 30);
 
   // The selection's gesture drags the crop.
-  const selection = dragParam(h.api.getSelectionProps() as Record<string, unknown>);
+  const selection = dragParam(
+    h.api.getSelectionProps() as Record<string, unknown>,
+  );
   selection.onStart?.(dragPress(50, 50));
   assertEquals(h.api.dragging, true);
   selection.onMove?.(dragMove(70, 60, 50, 50));
@@ -205,7 +236,9 @@ Deno.test("the selection drags the crop and the handle resizes it", () => {
   // The handle's gesture resizes the crop: the handle stops the press, so
   // the selection's gesture never arms behind it — and the moves the
   // resize needs are the handle's own.
-  const handle = dragParam(h.api.getHandleProps({ position: "se" }) as Record<string, unknown>);
+  const handle = dragParam(
+    h.api.getHandleProps({ position: "se" }) as Record<string, unknown>,
+  );
   handle.onStart?.(dragPress(350, 250));
   assertEquals(h.api.dragging, true);
   handle.onMove?.(dragMove(370, 260, 350, 250));

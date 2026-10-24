@@ -64,14 +64,19 @@ export const parseValues = (raw: unknown): string[] | null => {
     })()
     : raw;
   if (!Array.isArray(list)) return null;
-  return list.every((item) => typeof item === "string") ? [...(list as string[])] : null;
+  return list.every((item) => typeof item === "string")
+    ? [...(list as string[])]
+    : null;
 };
 /** A string twin coerces through the scope grammar, so `"[]"` arrives as
  * text: parse it back, and pass arrays through. */
 const coerceStrings = (raw: readonly string[] | string | undefined): string[] =>
   typeof raw === "string" ? parseValues(raw) ?? [] : [...(raw ?? [])];
 
-export function initial(args: ToggleGroupArgs, authored: (name: string) => boolean): ToggleGroupContext {
+export function initial(
+  args: ToggleGroupArgs,
+  authored: (name: string) => boolean,
+): ToggleGroupContext {
   const list: readonly unknown[] = typeof args.items === "string"
     ? parseItems(args.items)
     : (args.items ?? []);
@@ -98,7 +103,9 @@ export function initial(args: ToggleGroupArgs, authored: (name: string) => boole
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
-    value: written("value") ? coerceStrings(args.value) : coerceStrings(args.defaultValue),
+    value: written("value")
+      ? coerceStrings(args.value)
+      : coerceStrings(args.defaultValue),
     items,
     focusedId: null,
     multiple: written("multiple") ? args.multiple === true : false,

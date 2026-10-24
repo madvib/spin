@@ -1,10 +1,33 @@
 <script lang="ts">
-  import { carousel } from "../carousel.presentation.ts";
+import { carousel } from "../carousel.presentation.ts";
 
-  const machine = carousel({items: [{"value":"mtn","label":"Mountain Adventure","content":"Thin air, steep lines.","image":"https://picsum.photos/seed/30/400/250"},{"value":"ocean","label":"Ocean Views","content":"Salt, fog, gulls.","image":"https://picsum.photos/seed/31/400/250"},{"value":"forest","label":"Forest Escape","content":"Tall trees, soft light.","image":"https://picsum.photos/seed/32/400/250"},{"value":"urban","label":"Urban Explorer","content":"Vibrant city culture.","image":"https://picsum.photos/seed/33/400/250"}]});
+const machine = carousel({
+  items: [{
+    "value": "mtn",
+    "label": "Mountain Adventure",
+    "content": "Thin air, steep lines.",
+    "image": "https://picsum.photos/seed/30/400/250",
+  }, {
+    "value": "ocean",
+    "label": "Ocean Views",
+    "content": "Salt, fog, gulls.",
+    "image": "https://picsum.photos/seed/31/400/250",
+  }, {
+    "value": "forest",
+    "label": "Forest Escape",
+    "content": "Tall trees, soft light.",
+    "image": "https://picsum.photos/seed/32/400/250",
+  }, {
+    "value": "urban",
+    "label": "Urban Explorer",
+    "content": "Vibrant city culture.",
+    "image": "https://picsum.photos/seed/33/400/250",
+  }],
+});
 </script>
 
-<div class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
+<div
+  class="relative rounded-lg border border-solid border-border bg-surface-raised p-4"
   {...machine.getRootProps()}>
   <div
     class={["flex gap-2 py-1 snap-x snap-mandatory snap-proximity flex-col snap-y overflow-x-auto overflow-y-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing": machine.isDragging, "snap-none": machine.isDragging, "scroll-auto": machine.isDragging }]}
@@ -17,9 +40,12 @@
       >
         <div
           class="flex min-h-32 flex-col justify-center overflow-hidden rounded-md border border-solid border-border bg-surface">
-          <img class="h-32 w-full object-cover" loading="lazy" alt="" src={row.image} />
-          <div class="p-4"><div class="text-sm font-medium text-text">{row.label}</div>
-          <div class="text-xs text-muted mt-1">{row.content}</div></div>
+          <img class="h-32 w-full object-cover" loading="lazy" alt=""
+            src={row.image} />
+          <div class="p-4">
+            <div class="text-sm font-medium text-text">{row.label}</div>
+            <div class="text-xs text-text-muted mt-1">{row.content}</div>
+          </div>
         </div>
       </div>
     </template>
@@ -35,25 +61,25 @@
 
   <div class="flex items-center gap-2 mt-4" {...machine.getControlProps()}>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getPrevTriggerProps()}>‹</button>
     <div class="flex flex-1 items-center justify-center gap-1"
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["h-2 w-2 rounded-full border border-solid border-border bg-surface transition-all duration-base ease-standard", { "w-4": machine.index === row.index, "bg-primary": machine.index === row.index, "border-transparent": machine.index === row.index, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+          class={["bare h-2 w-2 rounded-full border-border bg-surface transition-all duration-base ease-standard", { "w-4": machine.index === row.index,  "border-transparent": machine.index === row.index, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}></button>
       </template>
     </div>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "text-primary": machine.isPlaying, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "text-primary": machine.isPlaying, "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getAutoplayTriggerProps()}>▶</button>
     <template for={machine.getProgressRows()} as={row} key={row.value}>
-      <span class="text-xs text-muted"
+      <span class="text-xs text-text-muted"
         {...machine.getProgressTextProps()}>{row.value}</span>
     </template>
     <button
-      class={["p-2 rounded-md border border-solid border-border bg-surface-raised text-text text-sm transition duration-fast ease-standard hover:bg-surface", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
+      class={["ghost icon s-sm", { "ring-2": machine.focused, "ring-border-strong": machine.focused }]}
       {...machine.getNextTriggerProps()}>›</button>
   </div>
 </div>

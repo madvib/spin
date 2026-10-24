@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { steps } from "../steps.presentation.ts";
+import { steps } from "../steps.presentation.ts";
 
-  const machine = steps({ count: 3, titles: ["Step One", "Step Two", "Step Three"], step: 1 });
+const machine = steps({
+ count: 3,
+ titles: ["Step One", "Step Two", "Step Three"],
+ step: 1,
+});
 </script>
 
 <include file="./descriptions.html" />

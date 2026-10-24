@@ -5,7 +5,7 @@ import { editable } from "./editable.presentation.ts";
 const createEditableBridge = editable.createBridge;
 import type { EditableEditChange, EditableValueChange } from "./editable.presentation.ts";
 import type { EditableApi } from "./editable.presentation.ts";
-import type { InteractOutsideEvent } from "./actions/interact-outside.action.ts";
+import type { InteractOutsideEvent } from "@spin/runtime/actions";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

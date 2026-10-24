@@ -2,13 +2,16 @@ import type { SelectContext } from "./select.state.ts";
 import type { SelectEvents } from "./select.events.ts";
 import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
 
-type SelectAssign<K extends keyof SelectEvents = keyof SelectEvents> = AssignFor<
-  SelectContext,
-  SelectEvents,
-  K
->;
+type SelectAssign<K extends keyof SelectEvents = keyof SelectEvents> =
+  AssignFor<
+    SelectContext,
+    SelectEvents,
+    K
+  >;
 
-const setHighlighted: SelectAssign<"HIGHLIGHTED_VALUE.SET" | "ITEM.POINTER_MOVE"> = (ctx, event) => {
+const setHighlighted: SelectAssign<
+  "HIGHLIGHTED_VALUE.SET" | "ITEM.POINTER_MOVE"
+> = (ctx, event) => {
   if (event.type === "HIGHLIGHTED_VALUE.SET") {
     return { highlightedValue: event.highlightedValue };
   }
@@ -35,7 +38,9 @@ const selectClicked: SelectAssign<"ITEM.CLICK"> = (ctx, event) => {
   return { value: [event.value] };
 };
 
-const highlightFirstOrSelected = (ctx: SelectContext): Partial<SelectContext> => {
+const highlightFirstOrSelected = (
+  ctx: SelectContext,
+): Partial<SelectContext> => {
   const selected = ctx.value.find((value) => ctx.order.includes(value));
   if (selected !== undefined) return { highlightedValue: selected };
   return { highlightedValue: ctx.order[0] ?? null };
@@ -62,15 +67,15 @@ const restoreFocus: GuardFor<SelectContext, SelectEvents> = (_ctx, event) => {
 };
 
 export {
-  setHighlighted,
   clearHighlighted,
   clearValue,
-  selectClicked,
-  highlightFirstOrSelected,
   highlightFirst,
+  highlightFirstOrSelected,
   highlightLast,
-  single,
   restoreFocus,
+  selectClicked,
+  setHighlighted,
+  single,
 };
 
 export type { SelectAssign };

@@ -44,12 +44,9 @@ import { joinRules } from "./join.ts";
 import { meterRules } from "./meter.ts";
 import { modeRules } from "./mode.ts";
 import { popoverRules } from "./popover.ts";
-import { rangeRules } from "./range.ts";
-import { ratingRules } from "./rating.ts";
 import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
-import { selectRules } from "./select.ts";
 import { skeletonRules } from "./skeleton.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
@@ -573,10 +570,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   icon: () => iconRules(["icon"]),
   meter: () => meterRules(["meter"], { classless: true }),
   mode: () => modeRules(["mode"], { classless: false }),
-  field:
-    () => [fieldBox(), ...selectRules(["field"]), ...textareaRules(["field"])],
-  range: () => rangeRules(["range"], { classless: true }),
-  rating: () => ratingRules(["rating"], { classless: false }),
+  field: () => [fieldBox(), ...textareaRules(["field"])],
   avatar: () => avatarRules(["avatar"], { classless: false }),
   hr: () => hrRules(["hr"], { classless: true }),
   kbd: () => kbdRules(["kbd"], { classless: true }),

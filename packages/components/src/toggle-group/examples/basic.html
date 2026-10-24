@@ -1,7 +1,13 @@
 <script lang="ts">
-  import { toggleGroup } from "../toggle-group.presentation.ts";
+import { toggleGroup } from "../toggle-group.presentation.ts";
 
-  const machine = toggleGroup({ items: [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], defaultValue: ["left"] });
+const machine = toggleGroup({
+  items: [{ "value": "left", "label": "Left" }, {
+    "value": "center",
+    "label": "Center",
+  }, { "value": "right", "label": "Right" }],
+  defaultValue: ["left"],
+});
 </script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
@@ -11,7 +17,7 @@
   >
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        class={["bare px-3 py-1 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>

@@ -59,11 +59,12 @@ export interface ElementNode {
 
 export interface TextNode {
   readonly kind: "text";
-  readonly parts: readonly ({ readonly kind: "static"; readonly value: string } | {
-    readonly kind: "expr";
-    readonly expr: string;
-    readonly span: Span;
-  })[];
+  readonly parts:
+    readonly ({ readonly kind: "static"; readonly value: string } | {
+      readonly kind: "expr";
+      readonly expr: string;
+      readonly span: Span;
+    })[];
   readonly span: Span;
 }
 
@@ -78,7 +79,12 @@ export interface ForNode {
 
 export type Node = ElementNode | TextNode | ForNode;
 
-export type ScopePropType = "bool" | "string" | "string[]" | "int" | "object-array";
+export type ScopePropType =
+  | "bool"
+  | "string"
+  | "string[]"
+  | "int"
+  | "object-array";
 
 export interface ObjectField {
   readonly name: string;

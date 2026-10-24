@@ -1,13 +1,13 @@
 import {
+  type ApiOf,
   ariaHidden,
   ariaLabelledBy,
   ariaOrientation,
+  type ComponentDef,
   defineComponent,
   disclosureTrigger,
   listSurface,
   optionRow,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
@@ -99,7 +99,12 @@ const blocksOf = (entries: readonly MenuEntry[]): readonly MenuBlock[] => {
   let rows: MenuRow[] = [];
   const flush = (): void => {
     if (rows.length > 0) {
-      built.push({ id: `group:${built.length}`, label, rows, separator: false });
+      built.push({
+        id: `group:${built.length}`,
+        label,
+        rows,
+        separator: false,
+      });
       rows = [];
     }
     label = null;
@@ -108,7 +113,9 @@ const blocksOf = (entries: readonly MenuEntry[]): readonly MenuBlock[] => {
     if ("separator" in entry) {
       flush();
       const last = built[built.length - 1];
-      if (last !== undefined) built[built.length - 1] = { ...last, separator: true };
+      if (last !== undefined) {
+        built[built.length - 1] = { ...last, separator: true };
+      }
       continue;
     }
     if ("group" in entry) {
@@ -129,25 +136,41 @@ const blocksOf = (entries: readonly MenuEntry[]): readonly MenuBlock[] => {
   return built;
 };
 
-const rowsOfEntries = (entries: readonly MenuEntry[]): readonly MenuRow[] => rowsOf(entries);
+const rowsOfEntries = (entries: readonly MenuEntry[]): readonly MenuRow[] =>
+  rowsOf(entries);
 
 const enabledValues = (scope: ScopeLike): readonly MenuRow[] =>
   rowsOfEntries(scope.context.entries).filter((row) => !row.disabled);
 
 /** Neighbor with loop wrap (menus always loop, Zag's model). */
-const neighbor = (scope: ScopeLike, value: string, direction: 1 | -1): string | null => {
+const neighbor = (
+  scope: ScopeLike,
+  value: string,
+  direction: 1 | -1,
+): string | null => {
   const order = enabledValues(scope);
   if (order.length === 0) return null;
   const at = order.findIndex((entry) => entry.value === value);
-  if (at < 0) return (direction > 0 ? order[0] : order[order.length - 1])?.value ?? null;
+  if (at < 0) {
+    return (direction > 0 ? order[0] : order[order.length - 1])?.value ?? null;
+  }
   const loop = scope.context.loopFocus;
   const next = at + direction;
-  if (next < 0) return loop ? order[order.length - 1]?.value ?? null : order[at]?.value ?? null;
-  if (next >= order.length) return loop ? order[0]?.value ?? null : order[at]?.value ?? null;
+  if (next < 0) {
+    return loop
+      ? order[order.length - 1]?.value ?? null
+      : order[at]?.value ?? null;
+  }
+  if (next >= order.length) {
+    return loop ? order[0]?.value ?? null : order[at]?.value ?? null;
+  }
   return order[next]?.value ?? null;
 };
 
-const rowByValue = (scope: ScopeLike, value: string | null): MenuRow | undefined =>
+const rowByValue = (
+  scope: ScopeLike,
+  value: string | null,
+): MenuRow | undefined =>
   value === null
     ? undefined
     : rowsOfEntries(scope.context.entries).find((row) => row.value === value);
@@ -184,7 +207,10 @@ type RowHandlerSet = {
   readonly onPointerMove: (event: PointerEvent) => void;
   readonly onClick: (event: MouseEvent) => void;
 };
-const rowHandlersByBridge = new WeakMap<object, WeakMap<MenuRow, RowHandlerSet>>();
+const rowHandlersByBridge = new WeakMap<
+  object,
+  WeakMap<MenuRow, RowHandlerSet>
+>();
 const rowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
   let byRow = rowHandlersByBridge.get(scope.send);
   if (byRow === undefined) {
@@ -213,7 +239,9 @@ const closeSelf = (scope: ScopeLike): void => {
 /** Tell the level above that this one closed, so it clears the context
  * that opened it. A select means the whole chain closes. */
 const reportClose = (scope: ScopeLike, select: boolean): void => {
-  scope.root().dispatchEvent(new CustomEvent("submenuclose", { bubbles: true, detail: { select } }));
+  scope.root().dispatchEvent(
+    new CustomEvent("submenuclose", { bubbles: true, detail: { select } }),
+  );
 };
 
 const typeaheadMatch = (scope: ScopeLike, key: string): void => {
@@ -257,7 +285,11 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
     const intent = ROVING_KEYS[event.key];
     if (intent !== undefined) {
       if (intent.intent === "next" || intent.intent === "prev") {
-        const next = neighbor(scope, current ?? "", intent.intent === "next" ? 1 : -1);
+        const next = neighbor(
+          scope,
+          current ?? "",
+          intent.intent === "next" ? 1 : -1,
+        );
         if (next !== null) {
           event.preventDefault();
           scope.send({ type: "HIGHLIGHT", value: next });
@@ -268,7 +300,9 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
         event.preventDefault();
         const list = enabledValues(scope);
         const row = intent.intent === "first" ? list[0] : list[list.length - 1];
-        if (row !== undefined) scope.send({ type: "HIGHLIGHT", value: row.value });
+        if (row !== undefined) {
+          scope.send({ type: "HIGHLIGHT", value: row.value });
+        }
         return;
       }
     }
@@ -276,7 +310,9 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   switch (event.key) {
     case "ArrowRight": {
       const row = rowByValue(scope, current);
-      if (row !== undefined && row.children.length > 0) openSubmenu(scope, row.value);
+      if (row !== undefined && row.children.length > 0) {
+        openSubmenu(scope, row.value);
+      }
       break;
     }
     case "ArrowLeft": {
@@ -300,8 +336,9 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       break;
     }
     default:
-      if (scope.context.typeahead && isPrintable(event)) typeaheadMatch(scope, event.key);
-      else return;
+      if (scope.context.typeahead && isPrintable(event)) {
+        typeaheadMatch(scope, event.key);
+      } else return;
       break;
   }
   event.preventDefault();
@@ -348,7 +385,8 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
   if (!("detail" in event)) return;
   const detail: unknown = event.detail;
-  const select = typeof detail === "object" && detail !== null && Reflect.get(detail, "select") === true;
+  const select = typeof detail === "object" && detail !== null &&
+    Reflect.get(detail, "select") === true;
   if (select) {
     if (scope.context.closeOnSelect) closeSelf(scope);
     return;
@@ -362,7 +400,8 @@ const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
 
 export const def = {
   name: "menu",
-  machine: (args: MenuArgs, authored: (name: string) => boolean) => menuMachine(args, authored),
+  machine: (args: MenuArgs, authored: (name: string) => boolean) =>
+    menuMachine(args, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "closed";
     return props["defaultOpen"] === true ? "open" : "closed";
@@ -404,7 +443,8 @@ export const def = {
             }
             scope.send({ type: "TRIGGER_CLICK" });
           },
-          onKeydown: (event: KeyboardEvent): void => onTriggerKeydown(scope, event),
+          onKeydown: (event: KeyboardEvent): void =>
+            onTriggerKeydown(scope, event),
         };
       },
     },
@@ -420,7 +460,10 @@ export const def = {
         onContextMenu: (event: MouseEvent): void => {
           if (scope.context.isSubmenu) return;
           event.preventDefault();
-          scope.send({ type: "CONTEXT_MENU", point: { x: event.clientX, y: event.clientY } });
+          scope.send({
+            type: "CONTEXT_MENU",
+            point: { x: event.clientX, y: event.clientY },
+          });
         },
         "use:long-press": {
           delay: 700,
@@ -458,11 +501,15 @@ export const def = {
             labelledBy: { part: "trigger" },
           }),
           "data-state": scope.state === "open" ? "open" : "closed",
-          class: "rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
-          onKeydown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
+          class:
+            "rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
+          onKeydown: (event: KeyboardEvent): void =>
+            onContentKeydown(scope, event),
           onSubmenuclose: (event: Event): void => onSubmenuClose(scope, event),
           "use:dismissable": {
-            excludeId: scope.context.isSubmenu ? undefined : scope.id("trigger"),
+            excludeId: scope.context.isSubmenu
+              ? undefined
+              : scope.id("trigger"),
             excludeParent: scope.context.isSubmenu,
             onOutside: (): void => {
               closeSelf(scope);
@@ -488,7 +535,9 @@ export const def = {
           role: "group",
           ...ariaLabelledBy(
             scope,
-            block.label === null ? undefined : { part: "itemGroupLabel", slot: block.id },
+            block.label === null
+              ? undefined
+              : { part: "itemGroupLabel", slot: block.id },
           ),
         };
       },
@@ -505,7 +554,8 @@ export const def = {
       },
     },
     item: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         const ctx = scope.context;
@@ -535,7 +585,8 @@ export const def = {
           bag["data-state"] = expanded ? "open" : "closed";
           bag["use:hover-intent"] = {
             delay: 200,
-            onOpen: (): void => scope.send({ type: "SUBMENU_OPEN", value: row.value }),
+            onOpen: (): void =>
+              scope.send({ type: "SUBMENU_OPEN", value: row.value }),
             onClose: (): void => scope.send({ type: "SUBMENU_CLOSE" }),
           };
         }
@@ -543,11 +594,13 @@ export const def = {
       },
     },
     itemText: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: () => ({}),
     },
     itemIndicator: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
@@ -557,13 +610,15 @@ export const def = {
       },
     },
     itemShortcut: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => ({
         hidden: scope.slot.shortcut.length === 0,
       }),
     },
     itemSubmenuIndicator: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
@@ -571,7 +626,9 @@ export const def = {
           // Self-state, not a group variant: Uno compiles
           // group-data-[state=open] into a selector lightningcss rejects
           // as a dangling combinator.
-          "data-state": scope.context.openSubmenu === row.value ? "open" : "closed",
+          "data-state": scope.context.openSubmenu === row.value
+            ? "open"
+            : "closed",
           hidden: row.children.length === 0,
         };
       },
@@ -588,16 +645,17 @@ export const def = {
     // `open` reflects the level's state, `items` its subtree.
     // Transport coerces the JSON string; the machine shapes on receipt.
     submenu: {
-      indexes: (context) => blocksOf(context.entries).flatMap((block) => block.rows),
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
           id: scope.id("submenu", row.value),
           open: scope.context.openSubmenu === row.value ? "true" : "false",
-        // The subtree crosses as values: the child instance's transport
-        // coerces what the host writes, so no JSON text crosses here.
-        items: row.children,
-        label: row.label,
+          // The subtree crosses as values: the child instance's transport
+          // coerces what the host writes, so no JSON text crosses here.
+          items: row.children,
+          label: row.label,
         };
       },
     },
@@ -605,18 +663,29 @@ export const def = {
   commands: {
     open: { event: () => ({ type: "OPEN" as const }) },
     close: { event: () => ({ type: "CLOSE" as const }) },
-    setHighlighted: { event: ([value]: [value: string | null]) => ({ type: "HIGHLIGHT" as const, value }) },
+    setHighlighted: {
+      event: ([value]: [value: string | null]) => ({
+        type: "HIGHLIGHT" as const,
+        value,
+      }),
+    },
   },
   readers: {
     isOpen: { read: (_context, state) => state === "open" },
-    highlightedValue: { read: (context: MenuContext) => context.highlightedValue },
+    highlightedValue: {
+      read: (context: MenuContext) => context.highlightedValue,
+    },
   },
   methods: {
     getBlocks: {
       call: (context: MenuContext) => blocksOf(context.entries),
     },
     getRows: {
-      call: (_context: MenuContext, _state, [block]: [block: MenuBlock]): readonly MenuRow[] => {
+      call: (
+        _context: MenuContext,
+        _state,
+        [block]: [block: MenuBlock],
+      ): readonly MenuRow[] => {
         if (!isMenuBlock(block)) return [];
         return block.rows;
       },
@@ -642,7 +711,9 @@ export const def = {
     "highlight-change": {
       prop: "onHighlightChange",
       watch: (context: MenuContext) => [context.highlightedValue],
-      detail: (watched: readonly [string | null]) => ({ highlightedValue: watched[0] }),
+      detail: (watched: readonly [string | null]) => ({
+        highlightedValue: watched[0],
+      }),
     },
   },
   settled: ({ event, focus }) => {
@@ -656,7 +727,19 @@ export const def = {
       focus("content");
     }
   },
-} satisfies ComponentDef<MenuContext, MenuEvents, Record<string, unknown>, MenuArgs, MenuState>;
+} satisfies ComponentDef<
+  MenuContext,
+  MenuEvents,
+  Record<string, unknown>,
+  MenuArgs,
+  MenuState
+>;
 
 export type MenuApi = ApiOf<typeof def>;
-export const menu = defineComponent<MenuContext, MenuEvents, MenuApi, MenuArgs, MenuState>(def);
+export const menu = defineComponent<
+  MenuContext,
+  MenuEvents,
+  MenuApi,
+  MenuArgs,
+  MenuState
+>(def);

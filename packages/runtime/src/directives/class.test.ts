@@ -2,7 +2,10 @@ import { assertEquals } from "@std/assert";
 import { classOf } from "./bind.ts";
 
 Deno.test("a class list's string is the classes", () => {
-  assertEquals(classOf(["mb-4 text-sm", { "text-primary": true }]), "mb-4 text-sm text-primary");
+  assertEquals(
+    classOf(["mb-4 text-sm", { "text-primary": true }]),
+    "mb-4 text-sm text-primary",
+  );
 });
 
 Deno.test("a class object's keys whose value is truthy are in", () => {
@@ -13,7 +16,10 @@ Deno.test("a class object's keys whose value is truthy are in", () => {
 });
 
 Deno.test("a key may name several utilities", () => {
-  assertEquals(classOf({ "ring-2 ring-border-strong": true }), "ring-2 ring-border-strong");
+  assertEquals(
+    classOf({ "ring-2 ring-border-strong": true }),
+    "ring-2 ring-border-strong",
+  );
 });
 
 Deno.test("a class list with nothing truthy is empty", () => {

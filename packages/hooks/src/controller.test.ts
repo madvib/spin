@@ -3,7 +3,9 @@ import { parseHTML } from "@spin/runtime/testing";
 import { provideController, type SpinController } from "@spin/runtime";
 import { spinComponentCtl } from "./controller.ts";
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -46,11 +48,18 @@ Deno.test("spinComponentCtl resolves commands and state once provided", () => {
   const ctl = spinComponentCtl(el);
   let open = false;
   const controller: SpinController = {
-    commands: { show: () => { open = true; } },
+    commands: {
+      show: () => {
+        open = true;
+      },
+    },
     state: { open: () => open },
   };
   provideController(el, () => controller);
-  assertEquals(typeof (ctl.commands as Record<string, unknown>)["show"], "function");
+  assertEquals(
+    typeof (ctl.commands as Record<string, unknown>)["show"],
+    "function",
+  );
   (ctl.commands as { show(): void }).show();
   assertEquals(open, true);
   assertEquals(ctl.state["open"]?.(), true);

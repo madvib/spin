@@ -31,10 +31,25 @@ Deno.test("StepsApi promises the component's surface", () => {
     "getProgressFillProps",
   ];
   assertEquals(keys.length, 25);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<StepsApi["state"], "idle"> = true;
-  const setStepTyped: AssertExact<StepsApi["setStep"], (value: number) => void> = true;
-  const getItemStateTyped: AssertExact<StepsApi["getItemState"], (index: number) => StepsItemState> = true;
-  const getTriggerPropsTyped: AssertExact<StepsApi["getTriggerProps"], (slot: number) => Record<string, unknown>> = true;
-  assertEquals([stateTyped, setStepTyped, getItemStateTyped, getTriggerPropsTyped].every(Boolean), true);
+  const setStepTyped: AssertExact<
+    StepsApi["setStep"],
+    (value: number) => void
+  > = true;
+  const getItemStateTyped: AssertExact<
+    StepsApi["getItemState"],
+    (index: number) => StepsItemState
+  > = true;
+  const getTriggerPropsTyped: AssertExact<
+    StepsApi["getTriggerProps"],
+    (slot: number) => Record<string, unknown>
+  > = true;
+  assertEquals(
+    [stateTyped, setStepTyped, getItemStateTyped, getTriggerPropsTyped].every(
+      Boolean,
+    ),
+    true,
+  );
 });

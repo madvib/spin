@@ -1,7 +1,24 @@
 <script lang="ts">
-  import { carousel } from "../carousel.presentation.ts";
+import { carousel } from "../carousel.presentation.ts";
 
-  const machine = carousel({items: [{"value":"h1","label":"Discover Amazing Places","content":"Explore the world's most beautiful destinations.","image":"https://picsum.photos/seed/70/1200/600"},{"value":"h2","label":"Adventure Awaits","content":"Peaks, trails, and thin air.","image":"https://picsum.photos/seed/71/1200/600"},{"value":"h3","label":"Journey Beyond","content":"Red rock, deep time.","image":"https://picsum.photos/seed/72/1200/600"}]});
+const machine = carousel({
+  items: [{
+    "value": "h1",
+    "label": "Discover Amazing Places",
+    "content": "Explore the world's most beautiful destinations.",
+    "image": "https://picsum.photos/seed/70/1200/600",
+  }, {
+    "value": "h2",
+    "label": "Adventure Awaits",
+    "content": "Peaks, trails, and thin air.",
+    "image": "https://picsum.photos/seed/71/1200/600",
+  }, {
+    "value": "h3",
+    "label": "Journey Beyond",
+    "content": "Red rock, deep time.",
+    "image": "https://picsum.photos/seed/72/1200/600",
+  }],
+});
 </script>
 
 <include file="./autoplay.html" />

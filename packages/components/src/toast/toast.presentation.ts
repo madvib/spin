@@ -23,7 +23,7 @@ import type { ToastEvents } from "./toast.events.ts";
 import type {
   ToastRegionParam,
   ToastTimerParam,
-} from "./actions/toast-actions.ts";
+} from "@spin/runtime/actions";
 
 /**
  * Toast definition: the DOM contract as data. The queue is one context, so

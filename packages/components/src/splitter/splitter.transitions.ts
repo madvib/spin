@@ -11,13 +11,17 @@ import {
 } from "./splitter.state.ts";
 import type { SplitterEvents } from "./splitter.events.ts";
 
-type SplitterAssign<K extends keyof SplitterEvents = keyof SplitterEvents> = AssignFor<
-  SplitterContext,
-  SplitterEvents,
-  K
->;
+type SplitterAssign<K extends keyof SplitterEvents = keyof SplitterEvents> =
+  AssignFor<
+    SplitterContext,
+    SplitterEvents,
+    K
+  >;
 
-export const setFocusedHandle: SplitterAssign<"POINTER_OVER" | "FOCUS"> = (_ctx, event) => ({
+export const setFocusedHandle: SplitterAssign<"POINTER_OVER" | "FOCUS"> = (
+  _ctx,
+  event,
+) => ({
   focusedHandle: event.id,
 });
 
@@ -37,16 +41,27 @@ export const startDrag: SplitterAssign<"POINTER_DOWN"> = (ctx, event) => {
     },
   };
 };
-export const clearFocus = (): Partial<SplitterContext> => ({ focusedHandle: null });
+export const clearFocus = (): Partial<SplitterContext> => ({
+  focusedHandle: null,
+});
 
 export const clearDrag = (): Partial<SplitterContext> => ({ drag: null });
 
 export const setSize: SplitterAssign<"SET_SIZE"> = (ctx, event) => {
   const raw: unknown = (event as { size: unknown }).size;
   const parsed: unknown = typeof raw === "string"
-    ? (() => { try { return JSON.parse(raw) as unknown; } catch { return []; } })()
+    ? (() => {
+      try {
+        return JSON.parse(raw) as unknown;
+      } catch {
+        return [];
+      }
+    })()
     : raw;
-  const written = Array.isArray(parsed) && parsed.every((n): n is number => typeof n === "number" && Number.isFinite(n))
+  const written = Array.isArray(parsed) &&
+      parsed.every((n): n is number =>
+        typeof n === "number" && Number.isFinite(n)
+      )
     ? [...parsed]
     : null;
   if (written === null) return {};
@@ -73,9 +88,19 @@ export const collapsePanel: SplitterAssign<"COLLAPSE_PANEL"> = (ctx, event) => {
   const pivots = pivotOf(ctx.panels, index);
   const last = index === ctx.panels.length - 1;
   const delta = last ? current - collapsedSize : collapsedSize - current;
-  const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
+  const next = resizeByDelta(
+    ctx.panels,
+    delta,
+    ctx.size,
+    pivots,
+    ctx.size,
+    "imperative-api",
+  );
   if (fuzzySizeEqual(ctx.size, next)) return {};
-  return { size: next, beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current } };
+  return {
+    size: next,
+    beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current },
+  };
 };
 
 export const expandPanel: SplitterAssign<"EXPAND_PANEL"> = (ctx, event) => {
@@ -87,11 +112,20 @@ export const expandPanel: SplitterAssign<"EXPAND_PANEL"> = (ctx, event) => {
   if (!fuzzyEqual(current, collapsedSize)) return {};
   const minSize = event.minSize ?? panel.minSize ?? 0;
   const remembered = ctx.beforeCollapse[panel.id];
-  const base = remembered !== undefined && remembered >= minSize ? remembered : minSize;
+  const base = remembered !== undefined && remembered >= minSize
+    ? remembered
+    : minSize;
   const last = index === ctx.panels.length - 1;
   const delta = last ? current - base : base - current;
   const pivots = pivotOf(ctx.panels, index);
-  const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "imperative-api");
+  const next = resizeByDelta(
+    ctx.panels,
+    delta,
+    ctx.size,
+    pivots,
+    ctx.size,
+    "imperative-api",
+  );
   return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
 };
 
@@ -101,7 +135,14 @@ export const resizePanel: SplitterAssign<"RESIZE_PANEL"> = (ctx, event) => {
   const current = ctx.size[index] ?? 0;
   const last = index === ctx.panels.length - 1;
   const delta = last ? current - event.size : event.size - current;
-  const next = resizeByDelta(ctx.panels, delta, ctx.size, pivotOf(ctx.panels, index), ctx.size, "imperative-api");
+  const next = resizeByDelta(
+    ctx.panels,
+    delta,
+    ctx.size,
+    pivotOf(ctx.panels, index),
+    ctx.size,
+    "imperative-api",
+  );
   return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
 };
 
@@ -120,22 +161,36 @@ export const toggleCollapseOnEnter: SplitterAssign<"ENTER"> = (ctx, event) => {
   if (fuzzyEqual(current, collapsedSize)) {
     const minSize = panel.minSize ?? 0;
     const remembered = ctx.beforeCollapse[panel.id];
-    const base = remembered !== undefined && remembered >= minSize ? remembered : minSize;
+    const base = remembered !== undefined && remembered >= minSize
+      ? remembered
+      : minSize;
     const last = index === ctx.panels.length - 1;
     const delta = last ? current - base : base - current;
-    const next = resizeByDelta(ctx.panels, delta, ctx.size, pivots, ctx.size, "keyboard");
+    const next = resizeByDelta(
+      ctx.panels,
+      delta,
+      ctx.size,
+      pivots,
+      ctx.size,
+      "keyboard",
+    );
     return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
   }
   const next = resizeByDelta(
     ctx.panels,
-    (index === ctx.panels.length - 1 ? current - collapsedSize : collapsedSize - current),
+    index === ctx.panels.length - 1
+      ? current - collapsedSize
+      : collapsedSize - current,
     ctx.size,
     pivots,
     ctx.size,
     "keyboard",
   );
   if (fuzzySizeEqual(ctx.size, next)) return {};
-  return { size: next, beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current } };
+  return {
+    size: next,
+    beforeCollapse: { ...ctx.beforeCollapse, [panel.id]: current },
+  };
 };
 
 export const keyboardMove: SplitterAssign<"KEYBOARD_MOVE"> = (ctx, event) => {
@@ -143,13 +198,22 @@ export const keyboardMove: SplitterAssign<"KEYBOARD_MOVE"> = (ctx, event) => {
   const before = ctx.panels.findIndex((panel) => panel.id === beforeId);
   const after = ctx.panels.findIndex((panel) => panel.id === afterId);
   if (before < 0 || after < 0) return {};
-  const next = resizeByDelta(ctx.panels, event.delta, ctx.size, [before, after], ctx.size, "keyboard");
+  const next = resizeByDelta(
+    ctx.panels,
+    event.delta,
+    ctx.size,
+    [before, after],
+    ctx.size,
+    "keyboard",
+  );
   return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
 };
 
 export const pointerMove: SplitterAssign<"POINTER_MOVE"> = (ctx, event) => {
   if (ctx.drag === null) return {};
-  const before = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.beforeId);
+  const before = ctx.panels.findIndex((panel) =>
+    panel.id === ctx.drag?.beforeId
+  );
   const after = ctx.panels.findIndex((panel) => panel.id === ctx.drag?.afterId);
   if (before < 0 || after < 0) return {};
   const delta = event.percent - (ctx.drag?.startPercent ?? 0);
@@ -164,5 +228,7 @@ export const pointerMove: SplitterAssign<"POINTER_MOVE"> = (ctx, event) => {
   return fuzzySizeEqual(ctx.size, next) ? {} : { size: next };
 };
 
-export const isHandleFocused: GuardFor<SplitterContext, SplitterEvents> = (_ctx, event) =>
-  event.type === "POINTER_UP" ? event.handleFocused : false;
+export const isHandleFocused: GuardFor<SplitterContext, SplitterEvents> = (
+  _ctx,
+  event,
+) => event.type === "POINTER_UP" ? event.handleFocused : false;

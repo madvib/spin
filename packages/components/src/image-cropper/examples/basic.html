@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { imageCropper } from "../image-cropper.presentation.ts";
+import { imageCropper } from "../image-cropper.presentation.ts";
 
-  const machine = imageCropper({});
+const machine = imageCropper({});
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <div
@@ -17,13 +17,19 @@
       class="absolute rounded-sm border-2 border-solid border-primary shadow-lg transition-shadow duration-fast ease-decelerate"
       {...machine.getSelectionProps()}
     >
-      <div class="pointer-events-none absolute inset-0" {...machine.getGridProps({ axis: "horizontal" })}>
-        <div class="absolute inset-x-0 top-1/3 border-t border-on-primary"></div>
-        <div class="absolute inset-x-0 top-2/3 border-t border-on-primary"></div>
+      <div class="pointer-events-none absolute inset-0"
+        {...machine.getGridProps({ axis: "horizontal" })}>
+        <div
+          class="absolute inset-x-0 top-1/3 border-t border-on-primary"></div>
+        <div
+          class="absolute inset-x-0 top-2/3 border-t border-on-primary"></div>
       </div>
-      <div class="pointer-events-none absolute inset-0" {...machine.getGridProps({ axis: "vertical" })}>
-        <div class="absolute inset-y-0 left-1/3 border-l border-on-primary"></div>
-        <div class="absolute inset-y-0 left-2/3 border-l border-on-primary"></div>
+      <div class="pointer-events-none absolute inset-0"
+        {...machine.getGridProps({ axis: "vertical" })}>
+        <div
+          class="absolute inset-y-0 left-1/3 border-l border-on-primary"></div>
+        <div
+          class="absolute inset-y-0 left-2/3 border-l border-on-primary"></div>
       </div>
       <template for={machine.handles} as={row} key={row}>
         <div

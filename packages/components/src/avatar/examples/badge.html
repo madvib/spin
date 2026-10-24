@@ -7,14 +7,14 @@
 
 <div class="flex items-center gap-4">
   <div class="relative">
-    <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-muted" {...machine.getRootProps()}>
+    <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
       <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
       <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>JD</span>
     </span>
     <span class="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full border-2 border-solid border-surface bg-semantic-error text-xs font-bold text-on-primary">6</span>
   </div>
   <div class="relative">
-    <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-sunken text-lg font-semibold text-muted" {...machine.getRootProps()}>
+    <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
       <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
       <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>AB</span>
     </span>

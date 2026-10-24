@@ -1,17 +1,24 @@
 import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
 import type { FloatingPanelEvents } from "./floating-panel.events.ts";
-import type { FloatingPanelContext, FloatingPanelSize } from "./floating-panel.state.ts";
+import type {
+  FloatingPanelContext,
+  FloatingPanelSize,
+} from "./floating-panel.state.ts";
 import { clampPosition, sizeOf } from "./floating-panel.state.ts";
 
-type FPAssign<K extends keyof FloatingPanelEvents = keyof FloatingPanelEvents> = AssignFor<
-  FloatingPanelContext,
-  FloatingPanelEvents,
-  K
->;
+type FPAssign<K extends keyof FloatingPanelEvents = keyof FloatingPanelEvents> =
+  AssignFor<
+    FloatingPanelContext,
+    FloatingPanelEvents,
+    K
+  >;
 
 export const clearDragFrom: FPAssign = () => ({ dragFrom: null });
 
-export const clearResizeFrom: FPAssign = () => ({ resizeFrom: null, axis: null });
+export const clearResizeFrom: FPAssign = () => ({
+  resizeFrom: null,
+  axis: null,
+});
 
 export const setSize: FPAssign<"SIZE.SET"> = (_ctx, event) => {
   const size = sizeOf(event.size);
@@ -22,7 +29,11 @@ export const setSize: FPAssign<"SIZE.SET"> = (_ctx, event) => {
 export const minimize: FPAssign<"MINIMIZE"> = (ctx) => {
   if (ctx.stage === "minimized") return {};
   return ctx.stage === "restored"
-    ? { stage: "minimized", restoreSize: { ...ctx.size }, restorePosition: { ...ctx.position } }
+    ? {
+      stage: "minimized",
+      restoreSize: { ...ctx.size },
+      restorePosition: { ...ctx.position },
+    }
     : { stage: "minimized" };
 };
 
@@ -30,7 +41,9 @@ export const maximize: FPAssign<"MAXIMIZE"> = (ctx) => {
   if (ctx.stage === "maximized") return {};
   return {
     restoreSize: ctx.stage === "restored" ? { ...ctx.size } : ctx.restoreSize,
-    restorePosition: ctx.stage === "restored" ? { ...ctx.position } : ctx.restorePosition,
+    restorePosition: ctx.stage === "restored"
+      ? { ...ctx.position }
+      : ctx.restorePosition,
     stage: "maximized",
     size: { w: ctx.boundary.w, h: ctx.boundary.h },
     position: { x: 0, y: 0 },
@@ -78,13 +91,36 @@ export const resizeMove: FPAssign<"RESIZE.MOVE"> = (ctx, event) => {
   const axis = ctx.axis ?? { x: 0, y: 0 };
   const lo = ctx.minSize;
   const hi = ctx.maxSize;
-  const w = Math.min(hi.w, Math.max(lo.w, origin.size.w + (axis.x === 1 ? event.dx : axis.x === -1 ? -event.dx : 0)));
-  const h = Math.min(hi.h, Math.max(lo.h, origin.size.h + (axis.y === 1 ? event.dy : axis.y === -1 ? -event.dy : 0)));
+  const w = Math.min(
+    hi.w,
+    Math.max(
+      lo.w,
+      origin.size.w + (axis.x === 1 ? event.dx : axis.x === -1 ? -event.dx : 0),
+    ),
+  );
+  const h = Math.min(
+    hi.h,
+    Math.max(
+      lo.h,
+      origin.size.h + (axis.y === 1 ? event.dy : axis.y === -1 ? -event.dy : 0),
+    ),
+  );
   const back: {
     position?: { readonly x: number; readonly y: number };
   } = {};
-  if (axis.x === -1) back.position = clampPosition(ctx, origin.position.x - (w - origin.size.w), origin.position.y);
-  if (axis.y === -1) back.position = { x: back.position?.x ?? origin.position.x, y: origin.position.y - (h - origin.size.h) };
+  if (axis.x === -1) {
+    back.position = clampPosition(
+      ctx,
+      origin.position.x - (w - origin.size.w),
+      origin.position.y,
+    );
+  }
+  if (axis.y === -1) {
+    back.position = {
+      x: back.position?.x ?? origin.position.x,
+      y: origin.position.y - (h - origin.size.h),
+    };
+  }
   return { size: { w, h }, ...back };
 };
 
@@ -94,14 +130,22 @@ export const cancelDragToOpen: FPAssign = (ctx) => ({
 
 export const restoreResizeGeometry: FPAssign = (ctx) => {
   if (ctx.resizeFrom === null) return {};
-  return { size: { ...ctx.resizeFrom.size }, position: { ...ctx.resizeFrom.position } };
+  return {
+    size: { ...ctx.resizeFrom.size },
+    position: { ...ctx.resizeFrom.position },
+  };
 };
 
 // guards
-export const closeOnEscape: GuardFor<FloatingPanelContext, FloatingPanelEvents> = (ctx) => ctx.closeOnEscape;
+export const closeOnEscape: GuardFor<
+  FloatingPanelContext,
+  FloatingPanelEvents
+> = (ctx) => ctx.closeOnEscape;
 
-export const canDrag: GuardFor<FloatingPanelContext, FloatingPanelEvents> = (ctx) =>
-  ctx.draggable && ctx.stage !== "maximized" && ctx.stage !== "minimized";
+export const canDrag: GuardFor<FloatingPanelContext, FloatingPanelEvents> = (
+  ctx,
+) => ctx.draggable && ctx.stage !== "maximized" && ctx.stage !== "minimized";
 
-export const canResize: GuardFor<FloatingPanelContext, FloatingPanelEvents> = (ctx) =>
-  ctx.resizable && ctx.stage !== "maximized" && ctx.stage !== "minimized";
+export const canResize: GuardFor<FloatingPanelContext, FloatingPanelEvents> = (
+  ctx,
+) => ctx.resizable && ctx.stage !== "maximized" && ctx.stage !== "minimized";

@@ -159,6 +159,141 @@ function attributeValue(node: GateNode): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+/** A node in a `class={...}` expression, read structurally. */
+interface ExpressionNode {
+  readonly type?: string;
+  readonly value?: unknown;
+  readonly key?: unknown;
+  readonly name?: unknown;
+  readonly expression?: unknown;
+  readonly properties?: readonly unknown[];
+  readonly elements?: readonly unknown[];
+  readonly consequent?: unknown;
+  readonly alternate?: unknown;
+  readonly left?: unknown;
+  readonly right?: unknown;
+  readonly argument?: unknown;
+  readonly quasis?: readonly {
+    readonly value?: { readonly cooked?: unknown };
+  }[];
+  readonly expressions?: readonly unknown[];
+}
+
+/**
+ * The key text of an object property: the class a `{ "cls": cond }` entry
+ * names. Only string literal and identifier keys name classes — a computed
+ * key names whatever the expression turns out to be, so it is skipped.
+ */
+function keyText(key: unknown): string {
+  if (typeof key === "object" && key !== null) {
+    const node = key as ExpressionNode;
+    if (node.type === "Literal" && typeof node.value === "string") {
+      return node.value;
+    }
+    if (node.type === "Identifier" && typeof node.name === "string") {
+      return node.name;
+    }
+  }
+  return "";
+}
+
+/** The cooked text of a template literal's static parts. */
+function expressionTemplateText(node: ExpressionNode): string {
+  return (node.quasis ?? [])
+    .map((quasi) => {
+      const cooked = quasi.value?.cooked;
+      return typeof cooked === "string" ? cooked : "";
+    })
+    .join(" ");
+}
+
+/**
+ * The static class tokens a `class={...}` expression names.
+ *
+ * A dynamic list names its utilities in string literals — the strings, and
+ * the object keys whose conditions guard them. A value position is the only
+ * thing read: the string of a `Literal`, the static parts of a
+ * `TemplateLiteral`, each element of an array, each key of an object, each
+ * branch of a conditional. A computed key, a spread, a call's arguments are
+ * arithmetic, not classes, so they are skipped.
+ */
+function expressionTokens(node: unknown, out: string[]): void {
+  if (typeof node !== "object" || node === null) return;
+  const value = node as ExpressionNode;
+  switch (value.type) {
+    case "Literal": {
+      if (typeof value.value === "string") {
+        for (const cls of classTokens(value.value)) out.push(cls);
+      }
+      return;
+    }
+    case "TemplateLiteral": {
+      for (const cls of classTokens(expressionTemplateText(value))) {
+        out.push(cls);
+      }
+      // A template's expressions are conditions, not classes — but a nested
+      // object or array inside one still names its own keys and strings.
+      for (const expression of value.expressions ?? []) {
+        if (
+          typeof expression === "object" && expression !== null &&
+          ((expression as ExpressionNode).type === "ObjectExpression" ||
+            (expression as ExpressionNode).type === "ArrayExpression")
+        ) {
+          expressionTokens(expression, out);
+        }
+      }
+      return;
+    }
+    case "ArrayExpression": {
+      for (const element of value.elements ?? []) {
+        expressionTokens(element, out);
+      }
+      return;
+    }
+    case "ObjectExpression": {
+      for (const property of value.properties ?? []) {
+        if (typeof property !== "object" || property === null) continue;
+        const prop = property as ExpressionNode;
+        if (prop.type === "SpreadElement") continue;
+        const key = keyText(prop.key);
+        // The KEY names the class; the value is the boolean condition.
+        for (const cls of classTokens(key)) out.push(cls);
+      }
+      return;
+    }
+    case "ConditionalExpression": {
+      expressionTokens(value.consequent, out);
+      expressionTokens(value.alternate, out);
+      return;
+    }
+    case "LogicalExpression": {
+      expressionTokens(value.left, out);
+      expressionTokens(value.right, out);
+      return;
+    }
+    default:
+      return;
+  }
+}
+
+/**
+ * The static class tokens a class attribute names, however it spells them.
+ *
+ * A plain `class="..."` is its own string. A `class={[...]}` array, a
+ * `class={{ ... }}` object, a conditional or a template names its utilities
+ * in the literals it holds — so those are read too.
+ */
+function expressionClasses(node: GateNode): string[] {
+  const direct = attributeValue(node);
+  if (direct !== undefined) return classTokens(direct);
+  const holder = node.value as ExpressionNode | undefined;
+  if (holder === undefined || holder === null) return [];
+  if (holder.type !== "JSXExpressionContainer") return [];
+  const out: string[] = [];
+  expressionTokens(holder.expression, out);
+  return out;
+}
+
 /**
  * The string a literal carries, and where its content starts.
  *
@@ -241,7 +376,7 @@ function positionOf(node: GateNode) {
 /** The classes of an element, as the core reads them. */
 function classFacts(node: GateNode) {
   const literal = literalOf(node);
-  const classes = classTokens(attributeValue(node) ?? "");
+  const classes = expressionClasses(node);
   return {
     tag: tagOf(node),
     classes,
@@ -264,10 +399,12 @@ function classFacts(node: GateNode) {
  *
  * Only `class` and `className` do. Every other attribute — `aria-label`,
  * `fill`, `stroke` — is somebody else's vocabulary, and reading it as a
- * class list would report words that were never classes.
+ * class list would report words that were never classes. An attribute that
+ * names no static class (a computed key, a bare identifier) carries no
+ * list, so it is skipped the same way.
  */
 function carriesClasses(node: GateNode): boolean {
-  return isClassAttribute(node) && attributeValue(node) !== undefined;
+  return isClassAttribute(node) && expressionClasses(node).length > 0;
 }
 
 /**

@@ -62,7 +62,11 @@ type ClassPart =
  * keys of the objects it holds. */
 function listPartsOf(literal: string): ClassPart[] {
   const out: ClassPart[] = [];
-  const body = literal.trim();
+  // A class list is wrapped in `[...]` (and `{...}` for a bare object): the
+  // outer brackets hold the parts rather than being one, so they are
+  // unwrapped before the top-level split — otherwise the depth never
+  // returns to zero and the whole list reads as a single part.
+  const body = literal.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTop(body);
   for (const part of parts) {
     const text = part.trim();
@@ -144,6 +148,8 @@ export function classTokens(ir: ComponentIr): string[] {
 }
 
 /** The class attribute of a node, if it has one. */
-export function classAttrOf(node: Extract<Node, { kind: "element" }>): Attr | undefined {
+export function classAttrOf(
+  node: Extract<Node, { kind: "element" }>,
+): Attr | undefined {
   return node.attrs.find((attr) => attr.name === "class");
 }

@@ -1,5 +1,12 @@
 import { assertEquals } from "@std/assert";
-import { keyed, memo, slotFieldKey, valueKey, type BagMemo, type BagReads } from "./bags.ts";
+import {
+  type BagMemo,
+  type BagReads,
+  keyed,
+  memo,
+  slotFieldKey,
+  valueKey,
+} from "./bags.ts";
 
 Deno.test("Given a bag / When the key holds / Then the same bag comes back", () => {
   const bag = memo();
@@ -45,28 +52,54 @@ Deno.test("Given a build that read fields / When the key is made / Then the read
 });
 
 Deno.test("Given a primitive field / When it changes / Then the key moves", () => {
-  assertEquals(valueKey(1) === valueKey(1), true, "the same number keeps its key");
-  assertEquals(valueKey(1) === valueKey(2), false, "another number moves the key");
-  assertEquals(valueKey("1") === valueKey(1), false, "a number and its text differ");
-  assertEquals(valueKey(true) === valueKey(false), false, "two booleans differ");
+  assertEquals(
+    valueKey(1) === valueKey(1),
+    true,
+    "the same number keeps its key",
+  );
+  assertEquals(
+    valueKey(1) === valueKey(2),
+    false,
+    "another number moves the key",
+  );
+  assertEquals(
+    valueKey("1") === valueKey(1),
+    false,
+    "a number and its text differ",
+  );
+  assertEquals(
+    valueKey(true) === valueKey(false),
+    false,
+    "two booleans differ",
+  );
 });
 
 Deno.test("Given an object field / When the object is replaced / Then the key moves", () => {
   const first = { count: 1 };
   const second = { count: 1 };
-  assertEquals(valueKey(first) === valueKey(first), true, "the same object keeps its key");
-  assertEquals(valueKey(first) === valueKey(second), false, "a replaced object moves the key");
+  assertEquals(
+    valueKey(first) === valueKey(first),
+    true,
+    "the same object keeps its key",
+  );
+  assertEquals(
+    valueKey(first) === valueKey(second),
+    false,
+    "a replaced object moves the key",
+  );
 });
 
 Deno.test("Given a slot / When one field is read / Then the key holds that field's value", () => {
   const slot = { label: "one", depth: 2 };
   assertEquals(
-    slotFieldKey(slot, "label") === slotFieldKey({ label: "one", depth: 9 }, "label"),
+    slotFieldKey(slot, "label") ===
+      slotFieldKey({ label: "one", depth: 9 }, "label"),
     true,
     "another field does not move the key",
   );
   assertEquals(
-    slotFieldKey(slot, "label") === slotFieldKey({ label: "two", depth: 2 }, "label"),
+    slotFieldKey(slot, "label") ===
+      slotFieldKey({ label: "two", depth: 2 }, "label"),
     false,
     "the field's own value moves the key",
   );
@@ -109,6 +142,10 @@ Deno.test("Given an inline slot wrapper / When passed as fresh literals with the
       return { "data-index": "0" };
     },
   );
-  assertEquals(first === second, true, "fresh { index: 0 } literals hit the structural cache");
+  assertEquals(
+    first === second,
+    true,
+    "fresh { index: 0 } literals hit the structural cache",
+  );
   assertEquals(builds, 1, "the bag built once");
 });

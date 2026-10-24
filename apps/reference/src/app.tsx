@@ -18,9 +18,14 @@ import {
 } from "@spin/kit";
 import { MontagePage } from "./montage.tsx";
 import { PRIMITIVES } from "./primitives.ts";
-import { COMPONENT_GROUPS, COMPONENT_ICONS, COMPONENTS, componentRequirement } from "./components.ts";
+import {
+  COMPONENT_GROUPS,
+  COMPONENT_ICONS,
+  componentRequirement,
+  COMPONENTS,
+} from "./components.ts";
 import { MONTAGE_ROUTE } from "./routes.ts";
-import { THEMES, themeDocuments } from "./themes.ts";
+import { themeDocuments, THEMES } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spin/preset";
@@ -199,7 +204,10 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
 const FEATURED: readonly string[] = ["button", "card", "alert"];
 
 function PrimitivePage(props: { id: string; onLoad?: string }) {
-  const fixture = createMemo(() => PRIMITIVES.find((r) => r.id === props.id) ?? COMPONENTS.find((r) => r.id === props.id));
+  const fixture = createMemo(() =>
+    PRIMITIVES.find((r) => r.id === props.id) ??
+      COMPONENTS.find((r) => r.id === props.id)
+  );
   return (
     <Show when={fixture()} fallback={<p>Not found</p>}>
       {(f) => (
@@ -245,7 +253,10 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
 }
 
 /** Every primitive and machine component, by id, for the index rows. */
-const PAGE_BY_ID: Record<string, (typeof PRIMITIVES)[number] | (typeof COMPONENTS)[number]> = Object
+const PAGE_BY_ID: Record<
+  string,
+  (typeof PRIMITIVES)[number] | (typeof COMPONENTS)[number]
+> = Object
   .fromEntries([...PRIMITIVES, ...COMPONENTS].map((p) => [p.id, p]));
 
 /** One specimen on the landing: a component, as a consumer writes it. */
@@ -310,7 +321,9 @@ function IndexRow(props: { id: string }) {
  */
 function LandingPage() {
   const components = createMemo(() =>
-    [...PRIMITIVES, ...COMPONENTS].sort((a, b) => a.title.localeCompare(b.title))
+    [...PRIMITIVES, ...COMPONENTS].sort((a, b) =>
+      a.title.localeCompare(b.title)
+    )
   );
   return (
     <>
@@ -440,7 +453,9 @@ function Rail(props: {
   const montage = () => props.route().startsWith(MONTAGE_ROUTE);
 
   const components = createMemo(() =>
-    [...PRIMITIVES, ...COMPONENTS].filter((page) => page.title.toLowerCase().includes(needle()))
+    [...PRIMITIVES, ...COMPONENTS].filter((page) =>
+      page.title.toLowerCase().includes(needle())
+    )
       .sort((a, b) => a.title.localeCompare(b.title))
   );
 
@@ -449,7 +464,8 @@ function Rail(props: {
   );
 
   const shown = () => utilities() ? sections().length : components().length;
-  const total = () => utilities() ? SECTIONS.length : PRIMITIVES.length + COMPONENTS.length;
+  const total = () =>
+    utilities() ? SECTIONS.length : PRIMITIVES.length + COMPONENTS.length;
 
   const byId = createMemo(
     () => new Map(components().map((page) => [page.id, page])),
@@ -477,29 +493,31 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : [...primitiveCategories.map((cat) => ({
-        label: cat.label,
-        rows: primitiveElements
-          .filter((element) => element.category === cat.id)
-          .map((element) => byId().get(element.name))
-          .filter((page) => page !== undefined)
-          .map((page) => ({
-            id: page.id,
-            title: page.title,
-            icon: ICONS[page.id],
-          })),
-      })),
-      ...COMPONENT_GROUPS.map((group) => ({
-        label: group.label,
-        rows: group.members
-          .map((id) => byId().get(`component-${id}`))
-          .filter((page) => page !== undefined)
-          .map((page) => ({
-            id: page.id,
-            title: page.title,
-            icon: ICONS[page.id],
-          })),
-      }))]
+      : [
+        ...primitiveCategories.map((cat) => ({
+          label: cat.label,
+          rows: primitiveElements
+            .filter((element) => element.category === cat.id)
+            .map((element) => byId().get(element.name))
+            .filter((page) => page !== undefined)
+            .map((page) => ({
+              id: page.id,
+              title: page.title,
+              icon: ICONS[page.id],
+            })),
+        })),
+        ...COMPONENT_GROUPS.map((group) => ({
+          label: group.label,
+          rows: group.members
+            .map((id) => byId().get(`component-${id}`))
+            .filter((page) => page !== undefined)
+            .map((page) => ({
+              id: page.id,
+              title: page.title,
+              icon: ICONS[page.id],
+            })),
+        })),
+      ]
         .filter((group) => group.rows.length > 0)
   );
 

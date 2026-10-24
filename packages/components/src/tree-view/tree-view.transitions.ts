@@ -14,7 +14,10 @@ type TreeGuard<K extends keyof TreeEvents = keyof TreeEvents> = GuardFor<
   K
 >;
 
-export const toggleBranch: TreeAssign<"BRANCH.TOGGLE" | "BRANCH_NODE.CLICK"> = (ctx, e) => {
+export const toggleBranch: TreeAssign<"BRANCH.TOGGLE" | "BRANCH_NODE.CLICK"> = (
+  ctx,
+  e,
+) => {
   const value = "value" in e && typeof e.value === "string" ? e.value : "";
   return {
     expandedValue: ctx.expandedValue.includes(value)
@@ -23,14 +26,18 @@ export const toggleBranch: TreeAssign<"BRANCH.TOGGLE" | "BRANCH_NODE.CLICK"> = (
   };
 };
 
-export const selectNode: TreeAssign<"NODE.SELECT" | "NODE.CLICK" | "BRANCH_NODE.CLICK"> = (ctx, e) => {
+export const selectNode: TreeAssign<
+  "NODE.SELECT" | "NODE.CLICK" | "BRANCH_NODE.CLICK"
+> = (ctx, e) => {
   const value = "value" in e && typeof e.value === "string" ? e.value : "";
   return ctx.selectionMode === "multiple"
     ? { selectedValue: [value] }
     : { selectedValue: [value] };
 };
 
-export const toggleNodeSelection: TreeAssign<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (ctx, e) => {
+export const toggleNodeSelection: TreeAssign<
+  "NODE.CLICK" | "BRANCH_NODE.CLICK"
+> = (ctx, e) => {
   const value = "value" in e && typeof e.value === "string" ? e.value : "";
   return {
     selectedValue: ctx.selectedValue.includes(value)
@@ -39,19 +46,27 @@ export const toggleNodeSelection: TreeAssign<"NODE.CLICK" | "BRANCH_NODE.CLICK">
   };
 };
 
-export const extendSelectionToNode: TreeAssign<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (ctx, e) => {
+export const extendSelectionToNode: TreeAssign<
+  "NODE.CLICK" | "BRANCH_NODE.CLICK"
+> = (ctx, e) => {
   const value = "value" in e && typeof e.value === "string" ? e.value : "";
   if (ctx.selectedValue.includes(value)) return {};
   return { selectedValue: [...ctx.selectedValue, value] };
 };
 
-export const isMultiToggle: TreeGuard<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (ctx, event) => {
+export const isMultiToggle: TreeGuard<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (
+  ctx,
+  event,
+) => {
   return event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
     ? Boolean(event.ctrlKey) && ctx.selectionMode === "multiple"
     : false;
 };
 
-export const isRangeExtend: TreeGuard<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (ctx, event) => {
+export const isRangeExtend: TreeGuard<"NODE.CLICK" | "BRANCH_NODE.CLICK"> = (
+  ctx,
+  event,
+) => {
   return event.type === "NODE.CLICK" || event.type === "BRANCH_NODE.CLICK"
     ? Boolean(event.shiftKey) && ctx.selectionMode === "multiple" &&
       ctx.selectedValue.length > 0
@@ -65,7 +80,9 @@ export const expandedSet: TreeAssign<"EXPANDED.SET"> = (ctx, e) => {
   return sameSet(ctx.expandedValue, next) ? {} : { expandedValue: next };
 };
 
-export const expandedClear: TreeAssign<"EXPANDED.CLEAR"> = () => ({ expandedValue: [] });
+export const expandedClear: TreeAssign<"EXPANDED.CLEAR"> = () => ({
+  expandedValue: [],
+});
 
 export const selectedSet: TreeAssign<"SELECTED.SET"> = (ctx, e) => {
   const raw = e.selectedValue !== undefined ? e.selectedValue : e.value;
@@ -74,7 +91,9 @@ export const selectedSet: TreeAssign<"SELECTED.SET"> = (ctx, e) => {
   return sameSet(ctx.selectedValue, next) ? {} : { selectedValue: next };
 };
 
-export const selectedClear: TreeAssign<"SELECTED.CLEAR"> = () => ({ selectedValue: [] });
+export const selectedClear: TreeAssign<"SELECTED.CLEAR"> = () => ({
+  selectedValue: [],
+});
 
 export const checkedSet: TreeAssign<"CHECKED.SET"> = (_ctx, e) => {
   const raw = e.checkedValue !== undefined ? e.checkedValue : e.value;
@@ -82,7 +101,9 @@ export const checkedSet: TreeAssign<"CHECKED.SET"> = (_ctx, e) => {
   return { checkedValue: keysOf(raw) };
 };
 
-export const checkedClear: TreeAssign<"CHECKED.CLEAR"> = () => ({ checkedValue: [] });
+export const checkedClear: TreeAssign<"CHECKED.CLEAR"> = () => ({
+  checkedValue: [],
+});
 
 export const checkedToggle: TreeAssign<"CHECKED.TOGGLE"> = (ctx, e) => ({
   checkedValue: ctx.checkedValue.includes(e.value)
@@ -160,9 +181,14 @@ export const renameSubmit: TreeAssign<"RENAME.SUBMIT"> = (ctx, e) => {
   const trimmed = e.label.trim();
   return {
     renamingValue: null,
-    ...(trimmed.length > 0 ? { nodes: renameInTree(ctx.nodes, e.value, trimmed) } : {}),
+    ...(trimmed.length > 0
+      ? { nodes: renameInTree(ctx.nodes, e.value, trimmed) }
+      : {}),
   };
 };
 
-export const renameCancel: TreeAssign<"RENAME.CANCEL"> = () => ({ renamingValue: null });
-export const expandOnClickGuard: TreeGuard<"BRANCH_NODE.CLICK"> = (ctx) => ctx.expandOnClick;
+export const renameCancel: TreeAssign<"RENAME.CANCEL"> = () => ({
+  renamingValue: null,
+});
+export const expandOnClickGuard: TreeGuard<"BRANCH_NODE.CLICK"> = (ctx) =>
+  ctx.expandOnClick;

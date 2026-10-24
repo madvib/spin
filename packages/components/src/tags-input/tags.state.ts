@@ -19,7 +19,11 @@ export type TagsLog =
   | { readonly type: "select"; readonly value: string }
   | { readonly type: "clear" };
 
-export type TagsState = "idle" | "focused:input" | "navigating:tag" | "editing:tag";
+export type TagsState =
+  | "idle"
+  | "focused:input"
+  | "navigating:tag"
+  | "editing:tag";
 export interface TagsContext {
   value: string[];
   /** The seed for form reset: the value the host declared. */
@@ -86,13 +90,18 @@ export interface TagsArgs {
  * drops here, once, for every reader. */
 export function stringsOf(raw: unknown): string[] {
   if (Array.isArray(raw)) {
-    const clean = raw.filter((item): item is string => typeof item === "string");
-    return clean.some((item) => item === "[]") && clean.length === 1 ? [] : clean;
+    const clean = raw.filter((item): item is string =>
+      typeof item === "string"
+    );
+    return clean.some((item) => item === "[]") && clean.length === 1
+      ? []
+      : clean;
   }
   if (typeof raw !== "string") return [];
   try {
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+    return Array.isArray(parsed) &&
+        parsed.every((item): item is string => typeof item === "string")
       ? [...parsed]
       : [];
   } catch {
@@ -104,7 +113,9 @@ export function sameTags(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
-export const uniq = (values: readonly string[]): string[] => [...new Set(values)];
+export const uniq = (
+  values: readonly string[],
+): string[] => [...new Set(values)];
 
 export const clampIndex = (index: number, length: number): number | null =>
   index < 0 || index >= length ? null : index;
@@ -113,11 +124,19 @@ const sanitizeDefault: SanitizeValue = (value: string): string => value.trim();
 
 const validateDefault: ValidateTag = (): boolean => true;
 
-export function initial(args: TagsArgs, authored: (name: string) => boolean): TagsContext {
-  const count = (value: unknown): number => typeof value === "number" && Number.isFinite(value) ? value : Infinity;
+export function initial(
+  args: TagsArgs,
+  authored: (name: string) => boolean,
+): TagsContext {
+  const count = (value: unknown): number =>
+    typeof value === "number" && Number.isFinite(value) ? value : Infinity;
   const flag = (value: unknown): boolean => value === true;
-  const text = (value: unknown, fallback: string): string => typeof value === "string" ? value : fallback;
-  const fn = <T>(value: unknown, fallback: T): T => (typeof value === "function" ? value as T : fallback);
+  const text = (value: unknown, fallback: string): string =>
+    typeof value === "string" ? value : fallback;
+  const fn = <T>(
+    value: unknown,
+    fallback: T,
+  ): T => (typeof value === "function" ? value as T : fallback);
   const behavior: unknown = args.blurBehavior;
   const written = (field: string): boolean =>
     authored(field) ||
@@ -147,9 +166,17 @@ export function initial(args: TagsArgs, authored: (name: string) => boolean): Ta
     readOnly: args.readOnly === true,
     invalid: args.invalid === true ? true : undefined,
     required: args.required === true,
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
-    maxLength: typeof args.maxLength === "number" && Number.isFinite(args.maxLength) && args.maxLength > 0 ? Math.trunc(args.maxLength) : null,
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
+    maxLength:
+      typeof args.maxLength === "number" && Number.isFinite(args.maxLength) &&
+        args.maxLength > 0
+        ? Math.trunc(args.maxLength)
+        : null,
     placeholder: typeof args.placeholder === "string" ? args.placeholder : "",
     translations: args.translations,
   } as TagsContext;
@@ -158,10 +185,12 @@ export function initial(args: TagsArgs, authored: (name: string) => boolean): Ta
 /** An exact count rather than a ceiling: a list already past the cap is not
  * "at" it, so the insert still goes through — which is why `api.atMax`
  * reports `>=` while this guard reports equality. */
-export const isAtMax = (ctx: TagsContext): boolean => ctx.value.length === ctx.max;
+export const isAtMax = (ctx: TagsContext): boolean =>
+  ctx.value.length === ctx.max;
 
 /** The INSERT_TAG overflow guard: at the cap the input text survives. */
-export const canAdd = (ctx: TagsContext): boolean => ctx.allowOverflow || !isAtMax(ctx);
+export const canAdd = (ctx: TagsContext): boolean =>
+  ctx.allowOverflow || !isAtMax(ctx);
 
 export const caretAtStart = (event: TagsEvent): boolean => {
   switch (event.type) {
@@ -177,21 +206,35 @@ export const caretAtStart = (event: TagsEvent): boolean => {
 
 /** The selection is announced from a watch on the highlight; here it is
  * written wherever the highlight moves. */
-export const withSelectLog = (ctx: TagsContext, index: number | null): Partial<TagsContext> => {
+export const withSelectLog = (
+  ctx: TagsContext,
+  index: number | null,
+): Partial<TagsContext> => {
   if (index === null || ctx.log === null) return { highlightedIndex: index };
   const value = ctx.value[index];
   if (value === undefined) return { highlightedIndex: index };
-  return { highlightedIndex: index, logPrev: ctx.log, log: { type: "select", value } };
+  return {
+    highlightedIndex: index,
+    logPrev: ctx.log,
+    log: { type: "select", value },
+  };
 };
 
-export const valueAtIndex = (ctx: TagsContext, index: number): string | undefined => ctx.value[index];
+export const valueAtIndex = (
+  ctx: TagsContext,
+  index: number,
+): string | undefined => ctx.value[index];
 
 /** Append the sanitized input text, then clear it. Guarded by `canInsert`
  * at every call site. */
 export const addFromInput = (ctx: TagsContext): Partial<TagsContext> => {
   const inputValue = ctx.sanitizeValue(ctx.inputValue);
-  if (!ctx.validate({ inputValue, value: ctx.value })) return { refusal: "invalidTag" as const };
-  const next = ctx.allowDuplicates ? [...ctx.value, inputValue] : uniq([...ctx.value, inputValue]);
+  if (!ctx.validate({ inputValue, value: ctx.value })) {
+    return { refusal: "invalidTag" as const };
+  }
+  const next = ctx.allowDuplicates
+    ? [...ctx.value, inputValue]
+    : uniq([...ctx.value, inputValue]);
   return {
     value: next,
     inputValue: "",
@@ -199,4 +242,3 @@ export const addFromInput = (ctx: TagsContext): Partial<TagsContext> => {
     logPrev: ctx.log,
   };
 };
-

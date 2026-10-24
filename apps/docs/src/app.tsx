@@ -16,7 +16,12 @@ import type { JSX } from "solid-js";
 import { createMemo, createSignal, For, lazy, Show } from "solid-js";
 import { BrandFavicon, Logo, ModeToggle, theme, ThemePicker } from "@spin/kit";
 import { starterThemes } from "@spin/theme/themes";
-import { COMPONENT_GROUPS, DOCS_GROUPS, TOP_SECTIONS } from "./nav.ts";
+import {
+  COMPONENT_GROUPS,
+  DOCS_GROUPS,
+  MACHINE_GROUPS,
+  TOP_SECTIONS,
+} from "./nav.ts";
 import { SearchDialog } from "./search.tsx";
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
@@ -207,9 +212,10 @@ function DocsRail(): JSX.Element {
  */
 function ComponentsRail(props: { filter: string }): JSX.Element {
   const groups = createMemo(() => {
+    const all = [...COMPONENT_GROUPS, ...MACHINE_GROUPS];
     const query = props.filter.trim().toLowerCase();
-    if (query === "") return COMPONENT_GROUPS;
-    return COMPONENT_GROUPS
+    if (query === "") return all;
+    return all
       .map((group) => ({
         ...group,
         items: group.items.filter((item) =>

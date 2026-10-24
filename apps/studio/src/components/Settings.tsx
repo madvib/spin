@@ -39,10 +39,10 @@ import {
   createResource,
   createSignal,
   For,
-  onCleanup,
   onMount,
 } from "solid-js";
 import type { JSX } from "solid-js";
+import { attachPopover, type PopoverApi } from "@spin/components";
 import {
   activeMode,
   activeModes,
@@ -159,17 +159,19 @@ const TRIGGER =
 /**
  * The panel's own frame.
  *
- * It is out of the flow — absolutely positioned below the affordance — so
+ * It lives in the top layer — the platform floats it over the page, so
  * opening it moves nothing. The bounds keep it honest at either edge: it
  * cannot grow past the width of the window, and it cannot grow taller than
  * the space the bar has below it, so a long list scrolls inside the panel
  * rather than leaving the viewport.
  *
- * It opens DOWNWARD: the bar is along the top of the window, so a panel
- * that opened upward would have nothing to open into.
+ * It opens DOWNWARD below its trigger: the bar is along the top of the
+ * window, so a panel that opened upward would have nothing to open into.
+ * The anchor is the trigger's own name, so each panel pins to its own
+ * affordance.
  */
 const PANEL =
-  "absolute top-full start-0 z-dropdown mt-1 w-max max-w-[80vw] max-h-[60vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg";
+  "w-max max-w-[80vw] max-h-[60vh] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg position-area-bottom-span-right mt-1";
 
 /**
  * Which popover in the bar is open.
@@ -186,13 +188,13 @@ const [openPopover, setOpenPopover] = createSignal<PopoverName | undefined>(
 /**
  * A popover: a small affordance, and the panel that floats over the page.
  *
- * The panel is always in the document and hidden rather than unmounted: a
- * control the reader cannot see is still a control the studio has, and the
- * panel's rows are the studio's own answer to "what could I pick".
- * `hidden` keeps the panel out of the way and out of the tab order.
+ * The panel is a native popover: the browser owns open/closed, the top
+ * layer, light-dismiss, and Escape. The studio owns only what the platform
+ * cannot — which row focus lands on when the keyboard opens it, and where
+ * focus returns when the panel closes under a keyboard reader.
  *
- * The dismissal is the platform's own: a click anywhere else, or Escape,
- * closes it — the two things a reader reaches for when a panel is in the way.
+ * At most one panel is open: two `popover="auto"` panels dismiss each
+ * other, and the toggle events keep the signal honest about which.
  */
 function Popover(props: {
   /** Which popover this is, so two of them do not open at once. */
@@ -218,23 +220,40 @@ function Popover(props: {
   readonly children: (close: () => void) => JSX.Element;
 }) {
   const open = () => openPopover() === props.name;
-  const hide = () => setOpenPopover(undefined);
-  /**
-   * Close, and put the reader back where they were.
-   *
-   * The one control that opened the panel is the one they come back to: a
-   * menu that closes with focus inside a hidden box leaves a keyboard
-   * reader at the top of the document, and the next Tab starts the page
-   * over.
-   */
-  const dismiss = () => {
-    hide();
-    trigger?.focus();
-  };
-  let root: HTMLDivElement | undefined;
+  let host: HTMLDivElement | undefined;
   let trigger: HTMLButtonElement | undefined;
   let panel: HTMLDivElement | undefined;
+  let api: PopoverApi | undefined;
 
+  /** Close, and put the reader back where they were. */
+  const dismiss = () => {
+    api?.hide();
+  };
+
+  onMount(() => {
+    if (host === undefined) return;
+    api = attachPopover(host);
+    // The platform owns the close; the signal follows it. A close that
+    // leaves focus nowhere — Escape, or a choice — puts the reader back
+    // on the trigger. A close from a pointer elsewhere leaves focus where
+    // the pointer put it.
+    host.addEventListener(
+      "open-change",
+      ((event: CustomEvent) => {
+        if (event.detail?.open === true) {
+          setOpenPopover(props.name);
+          return;
+        }
+        setOpenPopover(undefined);
+        const active = document.activeElement;
+        if (
+          active === null || active === document.body || panel?.contains(active)
+        ) {
+          trigger?.focus();
+        }
+      }) as EventListener,
+    );
+  });
   /**
    * The options a reader can move between.
    *
@@ -263,7 +282,7 @@ function Popover(props: {
    * is rather than from the top of a list.
    */
   function show(edge: "first" | "last" | "current"): void {
-    setOpenPopover(props.name);
+    api?.show();
     queueMicrotask(() => {
       const list = items();
       const target = edge === "first"
@@ -274,21 +293,6 @@ function Popover(props: {
       target?.focus();
     });
   }
-
-  const onPointer = (event: MouseEvent) => {
-    if (open() && !root?.contains(event.target as Node)) hide();
-  };
-  const onKey = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && open()) hide();
-  };
-  onMount(() => {
-    document.addEventListener("click", onPointer, true);
-    document.addEventListener("keydown", onKey);
-    onCleanup(() => {
-      document.removeEventListener("click", onPointer, true);
-      document.removeEventListener("keydown", onKey);
-    });
-  });
 
   /** The keyboard contract: open, move, choose, leave. */
   const onTriggerKey = (event: KeyboardEvent) => {
@@ -337,31 +341,35 @@ function Popover(props: {
         move(list.length - 1);
         break;
       case "Escape":
-        event.preventDefault();
-        dismiss();
+        // The platform closes the panel; the toggle handler puts focus
+        // back on the trigger.
         break;
       case "Tab":
         // Leaving the panel closes it; focus is moving somewhere on purpose.
-        hide();
+        api?.hide();
         break;
     }
   };
 
   return (
-    <div class="relative shrink-0" ref={root}>
+    <div class="relative shrink-0" ref={host}>
       <button
         ref={trigger}
         type="button"
         data-testid={props.testid}
-        class={`${TRIGGER} ${props.triggerClass ?? ""}`}
+        class={`${TRIGGER} ${props.triggerClass ?? ""} ${
+          props.name === "theme"
+            ? "anchor-theme-popover"
+            : "anchor-mode-popover"
+        }`}
         // The panel is the studio's own, so the control says what it opens.
         aria-haspopup={props.popup}
         aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
         onClick={() => {
-          if (open()) hide();
-          else setOpenPopover(props.name);
+          if (open()) api?.hide();
+          else show("first");
         }}
         onKeyDown={onTriggerKey}
       >
@@ -369,11 +377,15 @@ function Popover(props: {
       </button>
       <div
         ref={panel}
-        hidden={!open()}
+        popover="auto"
         role={props.popup}
         data-testid={props.panelTestid}
         aria-label={props.label}
-        class={PANEL}
+        class={`${PANEL} ${
+          props.name === "theme"
+            ? "position-anchor-theme-popover"
+            : "position-anchor-mode-popover"
+        }`}
         onKeyDown={onPanelKey}
       >
         {props.children(dismiss)}

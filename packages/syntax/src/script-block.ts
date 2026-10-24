@@ -38,7 +38,8 @@ export interface StrippedScript {
 
 const IMPORT_START = /^import(?:\s|\{|\*)/;
 const TYPE_START = /^(?:export\s+)?(?:type|interface)\b/;
-const MACHINE_CALL_START = /^(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\s*\(/;
+const MACHINE_CALL_START =
+  /^(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*)\s*\(/;
 
 /** Find the matching `)` for the `(` at `openParen`, skipping strings and comments. */
 function matchParen(source: string, openParen: number): number {
@@ -94,8 +95,9 @@ function scanStatementEnd(source: string, start: number): number {
       continue;
     }
     if (c === "{" || c === "(" || c === "[") depth += 1;
-    else if (c === "}" || c === ")" || c === "]") depth = Math.max(0, depth - 1);
-    else if (c === "\n" && depth === 0) {
+    else if (c === "}" || c === ")" || c === "]") {
+      depth = Math.max(0, depth - 1);
+    } else if (c === "\n" && depth === 0) {
       // Multi-line union/intersection types (`| Foo` on the next line) continue.
       const rest = source.slice(i + 1).trimStart();
       if (rest.startsWith("|") || rest.startsWith("&")) {
@@ -120,7 +122,10 @@ export function stripScript(body: string): StrippedScript {
 
   while (pos < len) {
     const lineStart = pos;
-    while (pos < len && (body[pos] === " " || body[pos] === "\t" || body[pos] === "\r")) pos += 1;
+    while (
+      pos < len &&
+      (body[pos] === " " || body[pos] === "\t" || body[pos] === "\r")
+    ) pos += 1;
     if (pos >= len) {
       kept.push(body.slice(lineStart));
       break;
@@ -166,7 +171,11 @@ export function stripScript(body: string): StrippedScript {
         if (tail === "" || tail === ";" || tail.startsWith("//")) {
           kept.push(body.slice(lineStart, lineEnd));
           bindings.push(name);
-          calls.push({ name, factory, args: body.slice(openParen + 1, closeParen).trim() });
+          calls.push({
+            name,
+            factory,
+            args: body.slice(openParen + 1, closeParen).trim(),
+          });
           pos = nl < 0 ? len : nl + 1;
           continue;
         }

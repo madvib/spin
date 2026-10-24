@@ -8,14 +8,19 @@
  */
 export { matchBrace, skipQuoted } from "./braces.ts";
 export {
-  formatExampleHtml,
-  tokenizeHtml,
   type CodeToken,
   type CodeTokenType,
+  formatExampleHtml,
+  tokenizeHtml,
 } from "./display.ts";
 export { expandVariantGroups } from "./expand-groups.ts";
 export { classAttrOf, classTokens, classTokensOf } from "./classes.ts";
-export { extractScript, stripScript, type ScriptCall, type StrippedScript } from "./script-block.ts";
+export {
+  extractScript,
+  type ScriptCall,
+  type StrippedScript,
+  stripScript,
+} from "./script-block.ts";
 export type {
   ActionUse,
   Attr,

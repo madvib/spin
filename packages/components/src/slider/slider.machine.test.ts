@@ -14,7 +14,9 @@ import type {
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -37,12 +39,26 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function trackNode(): Element {
   return {
-    getBoundingClientRect: () => ({ left: 10, right: 410, width: 400, top: 0, bottom: 20, height: 20 }),
+    getBoundingClientRect: () => ({
+      left: 10,
+      right: 410,
+      width: 400,
+      top: 0,
+      bottom: 20,
+      height: 20,
+    }),
   } as unknown as Element;
 }
 
 const thumbBox = (): DOMRect =>
-  ({ left: 100, right: 120, width: 20, top: 0, bottom: 20, height: 20 }) as DOMRect;
+  ({
+    left: 100,
+    right: 120,
+    width: 20,
+    top: 0,
+    bottom: 20,
+    height: 20,
+  }) as DOMRect;
 
 /** The gesture's press: the point, the pointer, and what it landed on. */
 const press = (clientX: number, clientY = 10): DragPress => ({
@@ -55,11 +71,17 @@ const press = (clientX: number, clientY = 10): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: trackNode(),
-  rect: null, direction: "ltr",
+  rect: null,
+  direction: "ltr",
 });
 
 /** The gesture's move: where the pointer is, and the delta from the press. */
-const move = (clientX: number, clientY: number, fromX: number, fromY: number): DragDelta => ({
+const move = (
+  clientX: number,
+  clientY: number,
+  fromX: number,
+  fromY: number,
+): DragDelta => ({
   ...press(clientX, clientY),
   dx: clientX - fromX,
   dy: clientY - fromY,
@@ -128,22 +150,40 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (details: SliderValueChange) => events.valueChange.push(details));
-  write("onValueChangeEnd", (details: SliderValueChangeEnd) => events.valueChangeEnd.push(details));
-  write("onFocusChange", (details: SliderFocusChange) => events.focusChange.push(details));
+  write(
+    "onValueChange",
+    (details: SliderValueChange) => events.valueChange.push(details),
+  );
+  write(
+    "onValueChangeEnd",
+    (details: SliderValueChangeEnd) => events.valueChangeEnd.push(details),
+  );
+  write(
+    "onFocusChange",
+    (details: SliderFocusChange) => events.focusChange.push(details),
+  );
   // The control handler measures against the live track node; linkedom
   // cannot serve getElementById for this tree, so the track rect is pinned
   // here under the id the connect reads.
   const realDocument = globalThis.document as Document;
   const holder = realDocument.createElement("div");
   holder.id = "slider:volume:track";
-  const rect = { left: 10, right: 410, width: 400, top: 0, bottom: 20, height: 20 };
+  const rect = {
+    left: 10,
+    right: 410,
+    width: 400,
+    top: 0,
+    bottom: 20,
+    height: 20,
+  };
   holder.getBoundingClientRect = () => ({ ...rect }) as DOMRect;
   realDocument.body.appendChild(holder);
   const bridge = createSliderBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -200,17 +240,25 @@ Deno.test("the api's state names the machine's mode", () => {
 Deno.test("arrows step the focused thumb and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(thumb(api, 0), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, [1]);
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("End"));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("End"),
+  );
   assertEquals(api.value, [100]);
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("Home"));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("Home"),
+  );
   assertEquals(api.value, [0]);
 });
 
 Deno.test("arrows refuse without focus", () => {
   const { api, events } = mount();
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, [0]);
   assertEquals(events.valueChange.length, 0);
 });
@@ -221,7 +269,9 @@ Deno.test("a disabled slider refuses presses and keys", () => {
   assertEquals(dragParam(control).enabled, false);
   pressHandle(control, press(210));
   assertEquals(api.value, [0]);
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, [0]);
   assertEquals(events.valueChange.length, 0);
 });
@@ -272,6 +322,8 @@ Deno.test("thumb percents feed the geometry channel", () => {
 Deno.test("shift+arrow moves by the parsed large step, not the raw prop", () => {
   const { api } = mount({ defaultValue: [50] });
   handler<() => void>(thumb(api, 0), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(keydown("ArrowRight", true));
+  handler<(e: KeyboardEvent) => void>(thumb(api, 0), "onKeydown")(
+    keydown("ArrowRight", true),
+  );
   assertEquals(api.value, [60], "largeStep defaults to 10x step");
 });

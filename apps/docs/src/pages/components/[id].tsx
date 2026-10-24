@@ -13,7 +13,7 @@ import {
   primitiveContracts,
 } from "@spin/preset";
 import { A, useParams } from "@solidjs/router";
-import { Specimen } from "@spin/kit";
+import { EXAMPLE_ONLOAD, Specimen } from "@spin/kit";
 import { COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
@@ -49,168 +49,171 @@ export default function ComponentPage(): JSX.Element {
   );
   return (
     <Show when={known()} fallback={<NotFound id={params.id} />}>
-      <Show when={machineId() === null} fallback={<MachineDetail name={machineId() ?? ""} />}>
-      <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
-        <Show when={category()}>
-          <p class="overline text-text-muted">{category()}</p>
-        </Show>
-        <h1>{params.id}</h1>
-        <Show when={examples()}>
-          {(ex) => <p class="max-w-screen-md text-text-muted">{ex().note}</p>}
-        </Show>
+      <Show
+        when={machineId() === null}
+        fallback={<MachineDetail name={machineId() ?? ""} />}
+      >
+        <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+          <Show when={category()}>
+            <p class="overline text-text-muted">{category()}</p>
+          </Show>
+          <h1>{params.id}</h1>
+          <Show when={examples()}>
+            {(ex) => <p class="max-w-screen-md text-text-muted">{ex().note}</p>}
+          </Show>
 
-        <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
-              tags
-            </p>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <For each={contract()!.tags}>
-                {(tag) => <Chip>{tag}</Chip>}
-              </For>
-              <Show when={contract()!.tags.length === 0}>
-                <span class="text-sm text-text-muted">
-                  none — a utility family
-                </span>
-              </Show>
+          <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                tags
+              </p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <For each={contract()!.tags}>
+                  {(tag) => <Chip>{tag}</Chip>}
+                </For>
+                <Show when={contract()!.tags.length === 0}>
+                  <span class="text-sm text-text-muted">
+                    none — a utility family
+                  </span>
+                </Show>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                variants
+              </p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <For each={contract()!.variants}>
+                  {(variant) => <Chip>{variant}</Chip>}
+                </For>
+                <Show when={contract()!.variants.length === 0}>
+                  <span class="text-sm text-text-muted">none</span>
+                </Show>
+              </div>
             </div>
           </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
-              variants
-            </p>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <For each={contract()!.variants}>
-                {(variant) => <Chip>{variant}</Chip>}
-              </For>
-              <Show when={contract()!.variants.length === 0}>
-                <span class="text-sm text-text-muted">none</span>
-              </Show>
-            </div>
-          </div>
-        </div>
 
-        <div class="mt-8">
-          <For each={examples()?.rows}>
-            {(row) => (
-              <Specimen
-                name={row.name}
-                html={row.html}
-                onLoad={examples()?.onLoad}
-              />
-            )}
-          </For>
-        </div>
-
-        <Show when={(contract()!.scope?.paints ?? []).length > 0}>
-          <Section title="What it owns">
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="border-b border-border text-left">
-                    <th class="py-2 pr-4">element</th>
-                    <th class="py-2 pr-4 font-mono">where</th>
-                    <th class="py-2 pr-4 font-mono">owns</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={contract()!.scope.paints}>
-                    {(paint) => (
-                      <tr class="border-b border-border">
-                        <td class="font-mono text-xs">
-                          {paint.tag}
-                        </td>
-                        <td class="font-mono text-xs text-text-muted">
-                          {paint.where}
-                        </td>
-                        <td class="font-mono text-xs">
-                          {paint.owns.join(" · ")}
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
-            </div>
-          </Section>
-        </Show>
-
-        <Section title="What it spends">
-          <div class="mt-3 flex flex-wrap gap-2">
-            <For each={contract()!.reads}>
-              {(read) => <Chip>{read}</Chip>}
+          <div class="mt-8">
+            <For each={examples()?.rows}>
+              {(row) => (
+                <Specimen
+                  name={row.name}
+                  html={row.html}
+                  onLoad={examples()?.onLoad}
+                />
+              )}
             </For>
           </div>
-        </Section>
 
-        <Show when={contract()!.component.length > 0}>
-          <Section title="Component tokens — what the theme decides">
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="border-b border-border text-left">
-                    <th class="py-2 pr-4">token</th>
-                    <th class="py-2 pr-4 font-mono">type</th>
-                    <th class="py-2 pr-4 font-mono">
-                      scaffold placeholder
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={contract()!.component}>
-                    {(token) => (
-                      <tr class="border-b border-border">
-                        <td class="font-mono text-xs">
-                          {token.path}
-                        </td>
-                        <td class="font-mono text-xs text-text-muted">
-                          {token.type}
-                        </td>
-                        <td class="font-mono text-xs">
-                          {token.value}
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
+          <Show when={(contract()!.scope?.paints ?? []).length > 0}>
+            <Section title="What it owns">
+              <div class="mt-4 overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b border-border text-left">
+                      <th class="py-2 pr-4">element</th>
+                      <th class="py-2 pr-4 font-mono">where</th>
+                      <th class="py-2 pr-4 font-mono">owns</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={contract()!.scope.paints}>
+                      {(paint) => (
+                        <tr class="border-b border-border">
+                          <td class="font-mono text-xs">
+                            {paint.tag}
+                          </td>
+                          <td class="font-mono text-xs text-text-muted">
+                            {paint.where}
+                          </td>
+                          <td class="font-mono text-xs">
+                            {paint.owns.join(" · ")}
+                          </td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </Show>
+
+          <Section title="What it spends">
+            <div class="mt-3 flex flex-wrap gap-2">
+              <For each={contract()!.reads}>
+                {(read) => <Chip>{read}</Chip>}
+              </For>
             </div>
           </Section>
-        </Show>
 
-        <hr class="mt-16" />
-        <nav
-          class="flex items-center justify-between gap-4 pt-6"
-          aria-label="more components"
-        >
-          <Show
-            when={prev()}
-            fallback={<span />}
-          >
-            {(name) => (
-              <A
-                href={`/components/${name()}`}
-                class="text-text-muted no-underline hover:text-text"
-              >
-                ← {name()}
-              </A>
-            )}
+          <Show when={contract()!.component.length > 0}>
+            <Section title="Component tokens — what the theme decides">
+              <div class="mt-4 overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b border-border text-left">
+                      <th class="py-2 pr-4">token</th>
+                      <th class="py-2 pr-4 font-mono">type</th>
+                      <th class="py-2 pr-4 font-mono">
+                        scaffold placeholder
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={contract()!.component}>
+                      {(token) => (
+                        <tr class="border-b border-border">
+                          <td class="font-mono text-xs">
+                            {token.path}
+                          </td>
+                          <td class="font-mono text-xs text-text-muted">
+                            {token.type}
+                          </td>
+                          <td class="font-mono text-xs">
+                            {token.value}
+                          </td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            </Section>
           </Show>
-          <Show
-            when={next()}
-            fallback={<span />}
+
+          <hr class="mt-16" />
+          <nav
+            class="flex items-center justify-between gap-4 pt-6"
+            aria-label="more components"
           >
-            {(name) => (
-              <A
-                href={`/components/${name()}`}
-                class="text-text-muted no-underline hover:text-text"
-              >
-                {name()} →
-              </A>
-            )}
-          </Show>
-        </nav>
-      </main>
+            <Show
+              when={prev()}
+              fallback={<span />}
+            >
+              {(name) => (
+                <A
+                  href={`/components/${name()}`}
+                  class="text-text-muted no-underline hover:text-text"
+                >
+                  ← {name()}
+                </A>
+              )}
+            </Show>
+            <Show
+              when={next()}
+              fallback={<span />}
+            >
+              {(name) => (
+                <A
+                  href={`/components/${name()}`}
+                  class="text-text-muted no-underline hover:text-text"
+                >
+                  {name()} →
+                </A>
+              )}
+            </Show>
+          </nav>
+        </main>
       </Show>
     </Show>
   );
@@ -246,6 +249,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
             <ExampleRow
               name={row.name}
               html={`<${props.name}-${row.name}></${props.name}-${row.name}>`}
+              onLoad={EXAMPLE_ONLOAD[`${props.name}/${row.name}`]}
             />
           )}
         </For>
@@ -253,7 +257,6 @@ function MachineDetail(props: { name: string }): JSX.Element {
     </main>
   );
 }
-
 
 function NotFound(props: { id: string }): JSX.Element {
   return (

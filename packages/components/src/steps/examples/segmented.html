@@ -1,30 +1,40 @@
 <script lang="ts">
-  import { steps } from "../steps.presentation.ts";
+import { steps } from "../steps.presentation.ts";
 
-  const machine = steps({ count: 4, titles: ["Cart", "Shipping", "Payment", "Review"], step: 1 });
+const machine = steps({
+ count: 4,
+ titles: ["Cart", "Shipping", "Payment", "Review"],
+ step: 1,
+});
 </script>
 
 <div class="w-full" {...machine.getRootProps()}>
-  <div class="mb-3 flex items-center justify-between gap-2">
-    <span class="text-sm font-medium text-text">Checkout</span>
-    <span class="text-xs text-muted">Step {machine.value + 1} of {machine.count}</span>
-  </div>
+ <div class="mb-3 flex items-center justify-between gap-2">
+  <span class="text-sm font-medium text-text">Checkout</span>
+  <span
+   class="text-xs text-text-muted">Step {machine.value + 1} of {machine.count}</span>
+ </div>
 
-  <div class="flex items-center gap-4">
-    <button class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...machine.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
-    <ol class="flex flex-1 items-start gap-1" {...machine.getListProps()}>
-      <template for={machine.getItems()} as={row} key={row}>
-        <li class="relative flex min-w-0 items-center not-last:flex-1" {...machine.getItemProps(row)}>
-        <button
-          class="flex shrink-0 items-center gap-3 rounded-md bg-transparent text-left"
-          {...machine.getTriggerProps(row)}
-        ><span
-            class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-muted", { "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
-            {...machine.getIndicatorProps(row)}
-          ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span></button><span aria-hidden="true" class={["mx-3 h-0.5 flex-1 bg-border", { "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
-      </li>
-      </template>
-    </ol>
-    <button class="rounded-md border border-solid border-border bg-surface-raised p-2 text-text transition-colors hover:bg-surface disabled:opacity-50" {...machine.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
-  </div>
+ <div class="flex items-center gap-4">
+  <button
+   class="secondary icon s-sm p-2 transition-colors hover:bg-surface disabled:opacity-50"
+   {...machine.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
+  <ol class="flex flex-1 items-start gap-1" {...machine.getListProps()}>
+   <template for={machine.getItems()} as={row} key={row}>
+    <li class="relative flex min-w-0 items-center not-last:flex-1"
+     {...machine.getItemProps(row)}>
+    <button
+     class="bare flex shrink-0 items-center gap-3 bg-transparent text-left"
+     {...machine.getTriggerProps(row)}
+    ><span
+      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-text-muted", { "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
+      {...machine.getIndicatorProps(row)}
+     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span></button><span aria-hidden="true" class={["mx-3 h-1 flex-1 bg-border", { "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
+   </li>
+   </template>
+  </ol>
+  <button
+   class="secondary icon s-sm p-2 transition-colors hover:bg-surface disabled:opacity-50"
+   {...machine.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
+ </div>
 </div>

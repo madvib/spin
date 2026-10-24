@@ -253,7 +253,7 @@ Deno.test("a field and a button share one control height", async () => {
   // assembled rather than designed. Both now state the same floor, from the
   // same three theme values.
   const css = await sheetFor("<input><button>Deploy</button>");
-  const field = declarationsFor(css, ":is(input, select, textarea)");
+  const field = declarationsFor(css, ":is(input, textarea)");
   const button = declarationsFor(
     css,
     ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])',
@@ -278,11 +278,11 @@ Deno.test("a single-line field sets its own leading", async () => {
   // A text field's line box is the control's, not the document's: inherited
   // leading made an input taller than every button beside it. A textarea
   // keeps the prose leading, because its lines are prose.
-  const css = await sheetFor("<input><select></select><textarea></textarea>");
+  const css = await sheetFor("<input></input><textarea></textarea>");
   assertEquals(
     declarationsFor(css, CONTROL_FIELDS)["line-height"],
     "1",
-    "input and select set a control line box",
+    "input sets a control line box",
   );
 });
 

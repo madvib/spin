@@ -14,13 +14,28 @@ Deno.test("ToggleGroupApi promises the component's surface", () => {
     "getItemProps",
   ];
   assertEquals(keys.length, 9);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<ToggleGroupApi["state"], "idle" | "focused"> = true;
-  const setValueTyped: AssertExact<ToggleGroupApi["setValue"], (value: readonly string[]) => void> = true;
-  const isPressedTyped: AssertExact<ToggleGroupApi["isPressed"], (value: string) => boolean> = true;
-  const getItemPropsTyped: AssertExact<ToggleGroupApi["getItemProps"], (slot: { value: string; label: string; disabled?: boolean }) => Record<string, unknown>> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<ToggleGroupApi["state"], "idle" | "focused"> =
+    true;
+  const setValueTyped: AssertExact<
+    ToggleGroupApi["setValue"],
+    (value: readonly string[]) => void
+  > = true;
+  const isPressedTyped: AssertExact<
+    ToggleGroupApi["isPressed"],
+    (value: string) => boolean
+  > = true;
+  const getItemPropsTyped: AssertExact<
+    ToggleGroupApi["getItemProps"],
+    (
+      slot: { value: string; label: string; disabled?: boolean },
+    ) => Record<string, unknown>
+  > = true;
   assertEquals(
-    [stateTyped, setValueTyped, isPressedTyped, getItemPropsTyped].every(Boolean),
+    [stateTyped, setValueTyped, isPressedTyped, getItemPropsTyped].every(
+      Boolean,
+    ),
     true,
   );
 });

@@ -1,7 +1,26 @@
-import { ariaDisabled, ariaLabelledBy, dataAttr, defineComponent, isRecord, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaDisabled,
+  ariaLabelledBy,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  isRecord,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import { fileUpload as fileUploadMachine } from "./file-upload.machine.ts";
-import type { FileRecord, FileRejection, FileUploadArgs, FileUploadContext, FileUploadState } from "./file-upload.state.ts";
-import type { FileUploadEvents, FileUploadValueChange } from "./file-upload.events.ts";
+import type {
+  FileRecord,
+  FileRejection,
+  FileUploadArgs,
+  FileUploadContext,
+  FileUploadState,
+} from "./file-upload.state.ts";
+import type {
+  FileUploadEvents,
+  FileUploadValueChange,
+} from "./file-upload.events.ts";
 
 /**
  * File-upload definition: the DOM contract as data. The machine owns the
@@ -33,7 +52,12 @@ export interface FileRow {
 }
 
 type ScopeLike = ScopeFor<FileUploadContext, FileUploadEvents, FileUploadState>;
-type SlotLike<R> = SlotScopeFor<R, FileUploadContext, FileUploadEvents, FileUploadState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  FileUploadContext,
+  FileUploadEvents,
+  FileUploadState
+>;
 
 /** Opening the hidden input is a view reflex, not a machine move — the
  * press that opened it must not be re-read by the input's own click
@@ -57,7 +81,9 @@ const openPicker = (
   request(() => node.click());
 };
 
-const isDirectoryFile = (file: File): file is File & { readonly webkitRelativePath: unknown } =>
+const isDirectoryFile = (
+  file: File,
+): file is File & { readonly webkitRelativePath: unknown } =>
   "webkitRelativePath" in file;
 
 /** A directory pick carries a folder-relative path; flat picks do not. */
@@ -74,7 +100,12 @@ const toRecords = (list: FileList | null): readonly FileRecord[] => {
   for (let at = 0; at < list.length; at++) {
     const file = list[at];
     if (file === undefined) continue;
-    files.push({ name: file.name, size: file.size, type: file.type, path: relativePath(file) });
+    files.push({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      path: relativePath(file),
+    });
   }
   return files;
 };
@@ -82,7 +113,9 @@ const toRecords = (list: FileList | null): readonly FileRecord[] => {
 export const formatBytes = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
-  if (kb < 1024) return `${kb < 10 ? kb.toFixed(1).replace(/\.0$/, "") : Math.round(kb)} KB`;
+  if (kb < 1024) {
+    return `${kb < 10 ? kb.toFixed(1).replace(/\.0$/, "") : Math.round(kb)} KB`;
+  }
   const mb = kb / 1024;
   return `${mb < 10 ? mb.toFixed(1).replace(/\.0$/, "") : Math.round(mb)} MB`;
 };
@@ -91,8 +124,14 @@ type IdFn = (part: string, slot?: unknown) => string;
 
 /** Row delete handlers, cached per bridge: the scope reads live through
  * proxies, so a cached closure never goes stale. */
-const deleteHandlersByBridge = new WeakMap<IdFn, Map<string, { readonly onClick: () => void }>>();
-const deleteHandlerFor = (scope: ScopeLike, row: FileRow): { readonly onClick: () => void } => {
+const deleteHandlersByBridge = new WeakMap<
+  IdFn,
+  Map<string, { readonly onClick: () => void }>
+>();
+const deleteHandlerFor = (
+  scope: ScopeLike,
+  row: FileRow,
+): { readonly onClick: () => void } => {
   let byName = deleteHandlersByBridge.get(scope.id);
   if (byName === undefined) {
     byName = new Map();
@@ -100,14 +139,17 @@ const deleteHandlerFor = (scope: ScopeLike, row: FileRow): { readonly onClick: (
   }
   const hit = byName.get(row.value);
   if (hit !== undefined) return hit;
-  const made = { onClick: (): void => scope.send({ type: "FILE.REMOVE", name: row.value }) };
+  const made = {
+    onClick: (): void => scope.send({ type: "FILE.REMOVE", name: row.value }),
+  };
   byName.set(row.value, made);
   return made;
 };
 
 export const def = {
   name: "file-upload",
-  machine: (props, authored) => fileUploadMachine(props as FileUploadArgs, authored),
+  machine: (props, authored) =>
+    fileUploadMachine(props as FileUploadArgs, authored),
   parts: {
     root: {
       attrs: (scope) => ({
@@ -150,7 +192,10 @@ export const def = {
           onDrop: (event: DragEvent): void => {
             event.preventDefault();
             if (disabled) return;
-            scope.send({ type: "DROP", files: toRecords(event.dataTransfer?.files ?? null) });
+            scope.send({
+              type: "DROP",
+              files: toRecords(event.dataTransfer?.files ?? null),
+            });
           },
         };
       },
@@ -195,7 +240,10 @@ export const def = {
   slots: {
     item: {
       indexes: (context: FileUploadContext) =>
-        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+        context.acceptedFiles.map((entry) => ({
+          value: entry.name,
+          file: entry,
+        })),
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
@@ -207,7 +255,10 @@ export const def = {
     itemName: {
       id: "name",
       indexes: (context: FileUploadContext) =>
-        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+        context.acceptedFiles.map((entry) => ({
+          value: entry.name,
+          file: entry,
+        })),
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
@@ -218,7 +269,10 @@ export const def = {
     itemDeleteTrigger: {
       id: "delete",
       indexes: (context: FileUploadContext) =>
-        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+        context.acceptedFiles.map((entry) => ({
+          value: entry.name,
+          file: entry,
+        })),
       attrs: (scope: SlotLike<FileRow>) => {
         const row = scope.slot;
         return {
@@ -236,7 +290,12 @@ export const def = {
         openPicker(id, root);
       },
     },
-    removeFile: { event: ([name]: [name: string]) => ({ type: "FILE.REMOVE" as const, name }) },
+    removeFile: {
+      event: ([name]: [name: string]) => ({
+        type: "FILE.REMOVE" as const,
+        name,
+      }),
+    },
     clear: { event: () => ({ type: "VALUE.CLEAR" }) },
   },
   readers: {
@@ -249,7 +308,10 @@ export const def = {
   methods: {
     getAcceptedRows: {
       call: (context: FileUploadContext) =>
-        context.acceptedFiles.map((entry) => ({ value: entry.name, file: entry })),
+        context.acceptedFiles.map((entry) => ({
+          value: entry.name,
+          file: entry,
+        })),
     },
     getItemSizeText: {
       call: (_context, _state, [row]: [row: FileRow]): string => {
@@ -257,7 +319,9 @@ export const def = {
         const file: unknown = row["file"];
         if (!isRecord(file)) return formatBytes(0);
         const size: unknown = file["size"];
-        return formatBytes(typeof size === "number" && Number.isFinite(size) ? size : 0);
+        return formatBytes(
+          typeof size === "number" && Number.isFinite(size) ? size : 0,
+        );
       },
     },
     getItemPathText: {
@@ -279,7 +343,8 @@ export const def = {
         const ctx = context;
         return [
           ctx.acceptedFiles.map((file) => file.name).join(","),
-          ctx.rejectedFiles.map((item) => `${item.file.name}:${item.code}`).join(","),
+          ctx.rejectedFiles.map((item) => `${item.file.name}:${item.code}`)
+            .join(","),
         ];
       },
       detail: (_watched, _event, _props, context: FileUploadContext) => ({
@@ -288,7 +353,19 @@ export const def = {
       }),
     },
   },
-} satisfies ComponentDef<FileUploadContext, FileUploadEvents, Record<string, unknown>, FileUploadArgs, FileUploadState>;
+} satisfies ComponentDef<
+  FileUploadContext,
+  FileUploadEvents,
+  Record<string, unknown>,
+  FileUploadArgs,
+  FileUploadState
+>;
 
 export type FileUploadApi = ApiOf<typeof def>;
-export const fileUpload = defineComponent<FileUploadContext, FileUploadEvents, FileUploadApi, FileUploadArgs, FileUploadState>(def);
+export const fileUpload = defineComponent<
+  FileUploadContext,
+  FileUploadEvents,
+  FileUploadApi,
+  FileUploadArgs,
+  FileUploadState
+>(def);

@@ -1,4 +1,4 @@
-import { signal, type ControllerDef } from "@spin/runtime";
+import { type ControllerDef, signal } from "@spin/runtime";
 import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
 
 /**
@@ -47,10 +47,13 @@ function panelOf(el: Element): HTMLElement | null {
 let instanceCounter = 0;
 
 export function attachTooltip(el: Element): TooltipApi {
-  const readOpen = (): boolean => panelOf(el)?.matches(":popover-open") ?? false;
+  const readOpen = (): boolean =>
+    panelOf(el)?.matches(":popover-open") ?? false;
 
   const emit = (open: boolean): void => {
-    el.dispatchEvent(new CustomEvent("open-change", { detail: { open }, bubbles: true }));
+    el.dispatchEvent(
+      new CustomEvent("open-change", { detail: { open }, bubbles: true }),
+    );
   };
 
   // The `toggle` event does not bubble, but a capture listener on the
@@ -72,12 +75,21 @@ export function attachTooltip(el: Element): TooltipApi {
 
   let placement: AnchorPlacement = ((): AnchorPlacement => {
     const raw = el.getAttribute("placement");
-    return raw === "top" || raw === "bottom" || raw === "left" || raw === "right" ? raw : "bottom";
+    return raw === "top" || raw === "bottom" || raw === "left" ||
+        raw === "right"
+      ? raw
+      : "bottom";
   })();
   const instance = el.id !== "" ? el.id : `${"tooltip-"}${++instanceCounter}`;
   const triggerId = `${instance}:trigger`;
   const panelId = `${instance}:panel`;
-  const geometry = signal<AnchorGeometry>({ x: 0, y: 0, w: 0, h: 0, placement: "bottom" });
+  const geometry = signal<AnchorGeometry>({
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+    placement: "bottom",
+  });
   return {
     get open(): boolean {
       return readOpen();

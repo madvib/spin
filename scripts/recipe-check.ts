@@ -42,7 +42,9 @@ const cap = (name: string): string =>
 /** Every callable/readable member an example may touch on the machine. */
 function membersOf(manifest: Manifest): Set<string> {
   const out = new Set<string>([...manifest.readers, ...manifest.methods]);
-  for (const part of [...manifest.parts, ...manifest.slots]) out.add(`get${cap(part)}Props`);
+  for (const part of [...manifest.parts, ...manifest.slots]) {
+    out.add(`get${cap(part)}Props`);
+  }
   for (const slot of manifest.slots) out.add(`get${cap(slot)}Indexes`);
   return out;
 }
@@ -53,11 +55,13 @@ function membersOf(manifest: Manifest): Set<string> {
  * (`as={row}`) carry view data, not machine state, so `row.*` is out of
  * scope; bare identifiers are scope props or row passthrough. */
 function readersOf(path: string, source: string): void {
-  const scope = source.match(/<scope>props=\{([^}]*)\}\s*consume=\{\s*(\w+)\s*\}/);
+  const scope = source.match(
+    /<scope>props=\{([^}]*)\}\s*consume=\{\s*(\w+)\s*\}/,
+  );
   if (scope === null) return;
   const machine = scope[2] ?? "";
   // Controllers and hand-rolled bridges export a sibling `<name>Manifest`.
-  const ns = (components as Record<string, unknown>);
+  const ns = components as Record<string, unknown>;
   const handle = ns[machine] as { readonly manifest?: Manifest } | undefined;
   const sibling = ns[`${machine}Manifest`] as Manifest | undefined;
   const manifest = handle?.manifest ?? sibling;
@@ -67,14 +71,21 @@ function readersOf(path: string, source: string): void {
   }
   const valid = membersOf(manifest);
   const rows = new Set<string>();
-  for (const match of source.matchAll(/as=\{(\w+)\}/g)) rows.add(match[1] ?? "");
+  for (const match of source.matchAll(/as=\{(\w+)\}/g)) {
+    rows.add(match[1] ?? "");
+  }
   // Machine-rooted refs inside expressions only (a class like
   // `avatar.cc` is paint, not a member read): spreads, show, text,
   // for-sources, attribute expressions.
   const expressions: string[] = [];
-  for (const match of source.matchAll(/\{([^{}]*?)\}/g)) expressions.push(match[1] ?? "");
+  for (const match of source.matchAll(/\{([^{}]*?)\}/g)) {
+    expressions.push(match[1] ?? "");
+  }
   const body = expressions.join("\n");
-  const pattern = new RegExp(`(?<![a-zA-Z])${machine}\\.([a-zA-Z][a-zA-Z0-9_]*)`, "g");
+  const pattern = new RegExp(
+    `(?<![a-zA-Z])${machine}\\.([a-zA-Z][a-zA-Z0-9_]*)`,
+    "g",
+  );
   for (const match of body.matchAll(pattern)) {
     const member = match[1] ?? "";
     if (!valid.has(member)) {
@@ -97,13 +108,19 @@ function writtenHooks(dir: string): Set<string> {
     // the facts the component declares
     const facts = /export const facts = \{([\s\S]*?)\n\};/.exec(source);
     if (facts) {
-      for (const match of (facts[1] ?? "").matchAll(/^ {2}(?:"([^"]+)"|([a-zA-Z_$][\w$]*)):/gm)) {
+      for (
+        const match of (facts[1] ?? "").matchAll(
+          /^ {2}(?:"([^"]+)"|([a-zA-Z_$][\w$]*)):/gm,
+        )
+      ) {
         hooks.add(`data-${match[1] ?? match[2] ?? ""}`);
       }
     }
     // the attributes the parts spell, in either form: a bag entry
     // (`"data-x": value`) or an assignment (`attrs["data-x"] = value`)
-    for (const match of source.matchAll(/"(data-[a-z-]+)"\s*[:\]]/g)) hooks.add(match[1] ?? "");
+    for (const match of source.matchAll(/"(data-[a-z-]+)"\s*[:\]]/g)) {
+      hooks.add(match[1] ?? "");
+    }
   }
   return hooks;
 }
@@ -115,7 +132,9 @@ function hooksOf(path: string, source: string): void {
   const dir = path.slice(0, path.indexOf("/examples/"));
   const hooks = writtenHooks(dir);
   if (hooks.size === 0) return;
-  for (const match of source.matchAll(/data-\[([a-z][a-z0-9-]*)(?:=([^\]]*))?\]/g)) {
+  for (
+    const match of source.matchAll(/data-\[([a-z][a-z0-9-]*)(?:=([^\]]*))?\]/g)
+  ) {
     const name = `data-${match[1] ?? ""}`;
     if (!hooks.has(name)) {
       problems.push(`${path}: \`${name}\` — the component never writes it`);
@@ -126,7 +145,11 @@ function hooksOf(path: string, source: string): void {
     // number is not one, and the minifier rejects the whole sheet.
     if (/^['"].*['"]$/.test(value)) continue;
     if (!/^-?[A-Za-z_][\w-]*$/.test(value)) {
-      problems.push(`${path}: \`data-[${match[1]}=${value}]\` — an unquoted attribute value must be an identifier`);
+      problems.push(
+        `${path}: \`data-[${
+          match[1]
+        }=${value}]\` — an unquoted attribute value must be an identifier`,
+      );
     }
   }
 }
@@ -156,7 +179,9 @@ function elementsOf(path: string, source: string): void {
       /^border-(solid|dashed|dotted|double|hidden|none)$/.test(token)
     );
     if (width !== undefined && style === undefined) {
-      problems.push(`${path}: <${tag}> ${width} without a border style paints nothing`);
+      problems.push(
+        `${path}: <${tag}> ${width} without a border style paints nothing`,
+      );
     }
     // A static style on a spread element is stripped on first run. A
     // style carrying a template expression is a reactive binding, not a
@@ -167,17 +192,23 @@ function elementsOf(path: string, source: string): void {
     // routing around the typed boundary.
     const varUse = attrs.match(/var\(--[a-z0-9-]+/)?.[0];
     if (varUse !== undefined && !VAR_GRANDFATHERED.has(path)) {
-      problems.push(`${path}: <${tag}> ${varUse} in authored markup — vars live in defs/actions, not recipes`);
+      problems.push(
+        `${path}: <${tag}> ${varUse} in authored markup — vars live in defs/actions, not recipes`,
+      );
     }
     // The bag owns `type` on spread elements; a static one never fires.
     // Off-spread, the attr only matters inside a form (submit default).
     if (tag === "button") {
       const staticType = attrs.match(/type="([^"]*)"/)?.[1];
       if (hasSpread && staticType !== undefined) {
-        problems.push(`${path}: <button> static type is dead — the bag owns it`);
+        problems.push(
+          `${path}: <button> static type is dead — the bag owns it`,
+        );
       }
       if (!hasSpread && staticType === undefined && formDepth > 0) {
-        problems.push(`${path}: <button> in a form without type= submits by default`);
+        problems.push(
+          `${path}: <button> in a form without type= submits by default`,
+        );
       }
     }
   }
@@ -207,7 +238,10 @@ for await (const entry of walk(ROOT, { exts: [".ts"] })) {
   // The scan is over CODE: a comment that says "never the global
   // document" is not a document access. The block comments are stripped
   // first, then the line comments — a `//` inside a string is neither.
-  const withoutBlocks = source.replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, " "));
+  const withoutBlocks = source.replace(
+    /\/\*[\s\S]*?\*\//g,
+    (block) => block.replace(/[^\n]/g, " "),
+  );
   const lines = withoutBlocks.split("\n").map((line) => {
     const at = line.indexOf("//");
     if (at < 0) return line;
@@ -218,7 +252,9 @@ for await (const entry of walk(ROOT, { exts: [".ts"] })) {
   // channels apparatus
   for (let i = 0; i < lines.length; i++) {
     if (/\bchannels\s*:\s*\{/.test(lines[i]!)) {
-      problems.push(`${entry.path}:${i + 1}: channels apparatus in the bindings`);
+      problems.push(
+        `${entry.path}:${i + 1}: channels apparatus in the bindings`,
+      );
     }
   }
   // JSON.parse

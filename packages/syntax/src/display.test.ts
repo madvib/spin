@@ -19,7 +19,10 @@ Deno.test("a spaced show expression survives formatting whole", () => {
   const shown = formatExampleHtml(
     `<div show={ratingGroup.value - ratingGroup.value % 1 === 4}>x</div>`,
   );
-  assert(shown.includes(`show={ratingGroup.value - ratingGroup.value % 1 === 4}`), shown);
+  assert(
+    shown.includes(`show={ratingGroup.value - ratingGroup.value % 1 === 4}`),
+    shown,
+  );
 });
 
 Deno.test("attribute case survives display", () => {
@@ -36,6 +39,8 @@ Deno.test("an inline expression is code, not prose", () => {
 Deno.test("a bare brace value displays exactly as authored", () => {
   // No quotes added: the viewer formats whitespace, never spelling,
   // so `as={row}` displays `as={row}` and copy stays trivially exact.
-  const shown = formatExampleHtml(`<template for={x.getItems()} as={row} key={row}></template>`);
+  const shown = formatExampleHtml(
+    `<template for={x.getItems()} as={row} key={row}></template>`,
+  );
   assert(shown.includes(`as={row}`), shown);
 });

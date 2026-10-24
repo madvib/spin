@@ -1,29 +1,35 @@
 <script lang="ts">
-  import { numberInput } from "../number-input.presentation.ts";
+import { numberInput } from "../number-input.presentation.ts";
 
-  const machine = numberInput({ defaultValue: "1", step: "1", min: "0" });
+const machine = numberInput({ defaultValue: "1", step: "1", min: "0" });
 </script>
 
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
-    <label class={["text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]} {...machine.getLabelProps()}>Amount</label>
-    <span class="text-xs text-muted tabular-nums transition-colors duration-fast" {...machine.getValueTextProps()}>{machine.value}</span>
+    <label
+      class={["text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+      {...machine.getLabelProps()}>Amount</label>
+    <span
+      class="text-xs text-text-muted tabular-nums transition-colors duration-fast"
+      {...machine.getValueTextProps()}>{machine.value}</span>
   </div>
 
-  <div class={["relative inline-flex h-7 w-full items-center overflow-hidden rounded-md border border-solid border-border text-sm whitespace-nowrap transition-all duration-fast ease-decelerate focus-within:ring-2 focus-within:ring-border-strong", { "opacity-50": machine.disabled }]} {...machine.getControlProps()}>
+  <div
+    class={["relative inline-flex h-7 w-full items-center overflow-hidden rounded-md border border-solid border-border text-sm whitespace-nowrap transition-all duration-fast ease-decelerate focus-within:ring-2 focus-within:ring-border-strong", { "opacity-50": machine.disabled }]}
+    {...machine.getControlProps()}>
     <button
-      class={["flex aspect-square h-full items-center justify-center border-r border-solid border-border bg-surface-raised text-text transition-colors duration-fast ease-decelerate hover:bg-surface active:scale-95", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      class={["secondary icon s-sm", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
       {...machine.getDecrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
     <input
-      class={["h-full w-full grow bg-surface px-3 text-center text-sm tabular-nums text-text transition-shadow duration-fast ease-decelerate border-none outline-none", { "ring-0": machine.focused }]}
+      class={["bare h-full w-full grow text-center tabular-nums", { "ring-0": machine.focused }]}
       {...machine.getInputProps()}
     />
     <button
-      class={["flex aspect-square h-full items-center justify-center border-l border-solid border-border bg-surface-raised text-text transition-colors duration-fast ease-decelerate hover:bg-surface active:scale-95", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      class={["secondary icon s-sm", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
       {...machine.getIncrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
   </div>
 
-  <div class="mt-2 text-xs text-muted">Enter number of items</div>
+  <div class="mt-2 text-xs text-text-muted">Enter number of items</div>
 </div>

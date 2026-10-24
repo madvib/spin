@@ -98,12 +98,13 @@ function ordered(findings: Canonical[]): Canonical[] {
 interface Element {
   tag: string;
   classes: string[];
+  /** Whether the class list is a string literal (fixable) or a template. */
+  literal: boolean;
   line: number;
   column: number;
   /** Where the class list starts in the source. */
   valueStart: number;
 }
-
 /**
  * The elements the fixture declares, read off its text.
  *
@@ -118,22 +119,30 @@ function elementsOf(source: string): Element[] {
   source.split("\n").forEach((line, index) => {
     const start = at;
     at += line.length + 1;
-    const match = /<([a-z][a-z0-9]*)([^<>]*?\s)(class(?:Name)?="([^"]*)")/.exec(
-      line,
-    );
+    const quoted =
+      /<([a-z][a-z0-9]*)([^<>]*?\s)(class(?:Name)?="([^"]*)")/.exec(line);
+    // A template literal names the same classes the adapters read from the
+    // expression — without it the core expects nothing where every front end
+    // reports the unknown class.
+    const template =
+      /<([a-z][a-z0-9]*)([^<>]*?\s)(class(?:Name)?=\{`([^`]*)`\})/.exec(line);
+    const match = quoted ?? template;
     if (match === null) return;
     const attribute = match[3] as string;
     const name = attribute.slice(0, attribute.indexOf("="));
+    const literal = quoted !== null;
     out.push({
       tag: match[1] as string,
       classes: (match[4] as string).split(/\s+/).filter(Boolean),
+      literal,
       line: index + 1,
       // Where the attribute starts, which is where a linter reports it.
       column: (match.index ?? 0) + 1 + (match[1] as string).length +
         (match[2] as string).length,
-      // Where the class list starts: after the name, the `=` and the quote.
+      // Where the class list starts: after the name, the `=` and the quote —
+      // or the `={` and the backtick for a template.
       valueStart: start + (match.index ?? 0) + 1 + (match[1] as string).length +
-        (match[2] as string).length + name.length + 2,
+        (match[2] as string).length + name.length + (literal ? 2 : 3),
     });
   });
   return out;
@@ -307,6 +316,9 @@ function coreEdits(file: string): Edit[] {
  * and whether a space sits against it.
  */
 function tokensOf(element: Element): ClassToken[] {
+  // A template literal carries no literal the fixer can rewrite: the adapters
+  // report the finding without an edit, and so does the core.
+  if (!element.literal) return [];
   const value = element.classes.join(" ");
   const out: ClassToken[] = [];
   let at = 0;

@@ -1,0 +1,17 @@
+<scope>props={ items: { value: string, label: string, disabled: bool, group: string }[] = [], value: string = "" } consume={ listbox }</scope>
+
+<div {...listbox.getContentProps()}>
+  <template for={listbox.getBlocks()} as={block} key={block.id}>
+    <template for={listbox.getRows(block)} as={row} key={row.value}>
+      <div
+        class="flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken hover:text-text aria-selected:bg-surface-sunken aria-selected:text-text data-[highlighted]:bg-surface-sunken data-[highlighted]:text-text"
+        {...listbox.getItemProps(row)}
+      >
+        <span class="truncate"
+          {...listbox.getItemTextProps(row)}>{row.label}</span>
+        <span
+          class="ms-auto truncate text-xs text-text-muted">{row.value}</span>
+      </div>
+    </template>
+  </template>
+</div>

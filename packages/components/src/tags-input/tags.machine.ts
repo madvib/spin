@@ -1,46 +1,62 @@
 /**
  * Tags-input machine: four states, one flat config.
  */
-import { createMachine, type Machine, type MachineSpec } from "@spin/runtime/fsm";
-import type { TagsContext, TagsArgs, TagsLog, TagsState } from "./tags.state.ts";
-import { initial, stringsOf, sameTags, withSelectLog, clampIndex, uniq } from "./tags.state.ts";
+import {
+  createMachine,
+  type Machine,
+  type MachineSpec,
+} from "@spin/runtime/fsm";
+import type {
+  TagsArgs,
+  TagsContext,
+  TagsLog,
+  TagsState,
+} from "./tags.state.ts";
+import {
+  clampIndex,
+  initial,
+  sameTags,
+  stringsOf,
+  uniq,
+  withSelectLog,
+} from "./tags.state.ts";
 import type { TagsEvents } from "./tags.events.ts";
 import {
-  setInputValue,
-  addTagFromPaste,
   addFromInput,
-  deleteTag,
-  deleteHighlighted,
-  clearInputValue,
-  clearHighlight,
-  highlightPrev,
-  highlightLast,
-  highlightAtIndex,
-  beginEdit,
-  finishEdit,
-  clearEditAll,
-  hasHighlighted,
-  canInsert,
-  caretAtStart,
-  insertOnBlur,
-  clearOnBlur,
   addOnPaste,
+  addTagFromPaste,
+  beginEdit,
+  canInsert,
   canLeaveInput,
+  caretAtStart,
   caretNotAtStart,
+  clearEditAll,
+  clearHighlight,
+  clearInputValue,
+  clearOnBlur,
+  deleteHighlighted,
+  deleteTag,
+  finishEdit,
+  hasHighlighted,
+  highlightAtIndex,
+  highlightLast,
+  highlightPrev,
+  insertOnBlur,
+  setInputValue,
 } from "./tags.transitions.ts";
 
 export type {
-  TagsValidateArgs,
   SanitizeValue,
-  ValidateTag,
-  TagsLog,
-  TagsContext,
   TagsArgs,
+  TagsContext,
+  TagsLog,
+  TagsValidateArgs,
+  ValidateTag,
 } from "./tags.state.ts";
 
-export type { TagsEvents, TagsEvent } from "./tags.events.ts";
+export type { TagsEvent, TagsEvents } from "./tags.events.ts";
 
-export { stringsOf, sameTags, initial };
+export { initial, sameTags, stringsOf };
 
 const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
   id: "tags-input",
@@ -82,7 +98,8 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
     ],
     POINTER_DOWN_TAG: {
       target: "navigating:tag",
-      assign: (ctx, e) => withSelectLog(ctx, clampIndex(e.index, ctx.value.length)),
+      assign: (ctx, e) =>
+        withSelectLog(ctx, clampIndex(e.index, ctx.value.length)),
     },
     CLICK_DELETE_TAG: {
       target: "focused:input",
@@ -91,28 +108,52 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
     SET_INPUT_VALUE: { assign: setInputValue },
     SET_VALUE: { assign: (_ctx, e) => ({ value: [...e.value] }) },
     CLEAR_TAG: { assign: deleteTag },
-    SET_VALUE_AT_INDEX: { assign: (ctx, e) => {
-      if (e.value.length === 0) return {};
-      if (e.index < 0 || e.index >= ctx.value.length) return {};
-      const hasDuplicate = ctx.value.some((item, i) => i !== e.index && item === e.value);
-      if (!ctx.allowDuplicates && hasDuplicate) return {};
-      if (ctx.value[e.index] === e.value) return {};
-      const value = [...ctx.value];
-      value[e.index] = e.value;
-      return { value, log: { type: "update", value: e.value }, logPrev: ctx.log };
-    } },
-    CLEAR_VALUE: { assign: [(ctx) => ({
-      value: [],
-      log: { type: "clear" },
-      logPrev: ctx.log,
-    }), clearInputValue] },
-    ADD_TAG: { assign: (ctx, e) => {
-      const raw = e.type === "ADD_TAG" && typeof e.value === "string" ? e.value : ctx.inputValue;
-      const inputValue = ctx.sanitizeValue(raw);
-      if (!ctx.validate({ inputValue, value: ctx.value })) return { refusal: "invalidTag" as const };
-      const next = ctx.allowDuplicates ? [...ctx.value, inputValue] : uniq([...ctx.value, inputValue]);
-      return { value: next, log: { type: "add", value: inputValue }, logPrev: ctx.log };
-    } },
+    SET_VALUE_AT_INDEX: {
+      assign: (ctx, e) => {
+        if (e.value.length === 0) return {};
+        if (e.index < 0 || e.index >= ctx.value.length) return {};
+        const hasDuplicate = ctx.value.some((item, i) =>
+          i !== e.index && item === e.value
+        );
+        if (!ctx.allowDuplicates && hasDuplicate) return {};
+        if (ctx.value[e.index] === e.value) return {};
+        const value = [...ctx.value];
+        value[e.index] = e.value;
+        return {
+          value,
+          log: { type: "update", value: e.value },
+          logPrev: ctx.log,
+        };
+      },
+    },
+    CLEAR_VALUE: {
+      assign: [(ctx) => ({
+        value: [],
+        log: { type: "clear" },
+        logPrev: ctx.log,
+      }), clearInputValue],
+    },
+    ADD_TAG: {
+      assign: (ctx, e) => {
+        const raw = e.type === "ADD_TAG" && typeof e.value === "string"
+          ? e.value
+          : ctx.inputValue;
+        const inputValue = ctx.sanitizeValue(raw);
+        if (!ctx.validate({ inputValue, value: ctx.value })) {
+          return {
+            refusal: "invalidTag" as const,
+          };
+        }
+        const next = ctx.allowDuplicates
+          ? [...ctx.value, inputValue]
+          : uniq([...ctx.value, inputValue]);
+        return {
+          value: next,
+          log: { type: "add", value: inputValue },
+          logPrev: ctx.log,
+        };
+      },
+    },
     EXTERNAL_BLUR: [
       { cond: insertOnBlur, assign: addFromInput },
       { cond: clearOnBlur, assign: clearInputValue },
@@ -123,7 +164,11 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
       on: {
         FOCUS: { target: "focused:input", assign: clearHighlight },
         POINTER_DOWN: [
-          { cond: (ctx) => ctx.highlightedIndex === null, target: "focused:input", assign: clearHighlight },
+          {
+            cond: (ctx) => ctx.highlightedIndex === null,
+            target: "focused:input",
+            assign: clearHighlight,
+          },
         ],
       },
     },
@@ -139,10 +184,18 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
         ENTER: [{ cond: canInsert, assign: addFromInput }],
         DELIMITER_KEY: [{ cond: canInsert, assign: addFromInput }],
         ARROW_LEFT: [
-          { cond: canLeaveInput, target: "navigating:tag", assign: highlightLast },
+          {
+            cond: canLeaveInput,
+            target: "navigating:tag",
+            assign: highlightLast,
+          },
         ],
         BACKSPACE: [
-          { cond: canLeaveInput, target: "navigating:tag", assign: highlightLast },
+          {
+            cond: canLeaveInput,
+            target: "navigating:tag",
+            assign: highlightLast,
+          },
         ],
         DELETE: [
           {
@@ -162,29 +215,55 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
     "navigating:tag": {
       on: {
         ARROW_RIGHT: [
-          { cond: (ctx, event) => ctx.value.length > 0 && caretAtStart(event) && ctx.highlightedIndex !== ctx.value.length - 1, assign: (ctx) => {
-            const at = ctx.highlightedIndex;
-            if (at === null) return {};
-            return withSelectLog(ctx, at + 1 < ctx.value.length ? at + 1 : null);
-          } },
+          {
+            cond: (ctx, event) =>
+              ctx.value.length > 0 && caretAtStart(event) &&
+              ctx.highlightedIndex !== ctx.value.length - 1,
+            assign: (ctx) => {
+              const at = ctx.highlightedIndex;
+              if (at === null) return {};
+              return withSelectLog(
+                ctx,
+                at + 1 < ctx.value.length ? at + 1 : null,
+              );
+            },
+          },
           { target: "focused:input", assign: clearHighlight },
         ],
         ARROW_LEFT: [
-          { cond: caretNotAtStart, target: "focused:input", assign: clearHighlight },
+          {
+            cond: caretNotAtStart,
+            target: "focused:input",
+            assign: clearHighlight,
+          },
           { assign: highlightPrev },
         ],
         BLUR: { target: "idle", assign: clearHighlight },
         ENTER: [
-          { cond: (ctx) => ctx.editable && ctx.highlightedIndex !== null, target: "editing:tag", assign: beginEdit },
+          {
+            cond: (ctx) => ctx.editable && ctx.highlightedIndex !== null,
+            target: "editing:tag",
+            assign: beginEdit,
+          },
         ],
         ARROW_DOWN: { target: "focused:input", assign: clearHighlight },
         ESCAPE: { target: "focused:input", assign: clearHighlight },
-        TYPE: { target: "focused:input", assign: [setInputValue, clearHighlight] },
+        TYPE: {
+          target: "focused:input",
+          assign: [setInputValue, clearHighlight],
+        },
         BACKSPACE: [
-          { cond: caretNotAtStart, target: "focused:input", assign: clearHighlight },
+          {
+            cond: caretNotAtStart,
+            target: "focused:input",
+            assign: clearHighlight,
+          },
           {
             cond: (ctx) => ctx.highlightedIndex === 0,
-            assign: [deleteHighlighted, (ctx) => withSelectLog(ctx, ctx.value.length > 0 ? 0 : null)],
+            assign: [
+              deleteHighlighted,
+              (ctx) => withSelectLog(ctx, ctx.value.length > 0 ? 0 : null),
+            ],
           },
           {
             cond: hasHighlighted,
@@ -193,7 +272,11 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
           { assign: highlightLast },
         ],
         DELETE: [
-          { cond: caretNotAtStart, target: "focused:input", assign: clearHighlight },
+          {
+            cond: caretNotAtStart,
+            target: "focused:input",
+            assign: clearHighlight,
+          },
           {
             target: "focused:input",
             assign: [deleteHighlighted, highlightAtIndex],
@@ -214,13 +297,23 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
     },
     "editing:tag": {
       on: {
-        TAG_INPUT_TYPE: { assign: (_ctx, e) => (e.type === "TAG_INPUT_TYPE" ? { editedValue: e.value } : {}) },
+        TAG_INPUT_TYPE: {
+          assign: (
+            _ctx,
+            e,
+          ) => (e.type === "TAG_INPUT_TYPE" ? { editedValue: e.value } : {}),
+        },
         TAG_INPUT_ESCAPE: {
           target: "navigating:tag",
           assign: [() => ({ editedValue: "" }), finishEdit],
         },
         TAG_INPUT_BLUR: [
-          { cond: (_ctx, event) => event.type === "TAG_INPUT_BLUR" && event.relatedToInput === true, target: "navigating:tag", assign: clearEditAll },
+          {
+            cond: (_ctx, event) =>
+              event.type === "TAG_INPUT_BLUR" && event.relatedToInput === true,
+            target: "navigating:tag",
+            assign: clearEditAll,
+          },
           { target: "idle", assign: clearEditAll },
         ],
         TAG_INPUT_ENTER: [
@@ -235,12 +328,18 @@ const config: MachineSpec<TagsContext, TagsEvents, TagsState> = {
               const index = ctx.editedIndex;
               if (index === null) return {};
               const editedValue = ctx.editedValue;
-              const hasDuplicate = ctx.value.some((item, i) => i !== index && item === editedValue);
+              const hasDuplicate = ctx.value.some((item, i) =>
+                i !== index && item === editedValue
+              );
               if (!ctx.allowDuplicates && hasDuplicate) return {};
               if (ctx.value[index] === editedValue) return {};
               const value = [...ctx.value];
               value[index] = editedValue;
-              return { value, log: { type: "update", value: editedValue }, logPrev: ctx.log };
+              return {
+                value,
+                log: { type: "update", value: editedValue },
+                logPrev: ctx.log,
+              };
             }, finishEdit],
           },
         ],

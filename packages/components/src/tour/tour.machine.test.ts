@@ -7,7 +7,9 @@ import type { TourApi } from "./tour.presentation.ts";
 import { tour as tourMachine } from "./tour.machine.ts";
 import type { TourStepRecord } from "./tour.state.ts";
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -18,7 +20,12 @@ type WriteSignal = { (): unknown; (value: unknown): void };
 
 const STEPS: readonly TourStepRecord[] = [
   { id: "one", target: "#one", title: "First", description: "The first stop." },
-  { id: "two", target: "#two", title: "Second", description: "The second stop." },
+  {
+    id: "two",
+    target: "#two",
+    title: "Second",
+    description: "The second stop.",
+  },
 ];
 
 interface Harness {
@@ -134,12 +141,32 @@ Deno.test("Given a running tour / When skip fires / Then it ends as a skip", () 
 
 Deno.test("Given the bags / When read / Then the overlay hides while inactive", () => {
   const h = harness();
-  assertEquals(h.api.getRootProps()["data-state"], "closed", "the overlay is closed");
-  assertEquals(h.api.getContentProps()["hidden"], true, "and the dialog hidden");
-  assertEquals(h.api.getProgressTextProps()["text"], "0 of 2", "the progress counts from the start");
+  assertEquals(
+    h.api.getRootProps()["data-state"],
+    "closed",
+    "the overlay is closed",
+  );
+  assertEquals(
+    h.api.getContentProps()["hidden"],
+    true,
+    "and the dialog hidden",
+  );
+  assertEquals(
+    h.api.getProgressTextProps()["text"],
+    "0 of 2",
+    "the progress counts from the start",
+  );
   h.api.start();
-  assertEquals(h.api.getContentProps()["hidden"], false, "a running tour shows");
-  assertEquals(h.api.getPrevTriggerProps()["hidden"], true, "the first step hides prev");
+  assertEquals(
+    h.api.getContentProps()["hidden"],
+    false,
+    "a running tour shows",
+  );
+  assertEquals(
+    h.api.getPrevTriggerProps()["hidden"],
+    true,
+    "the first step hides prev",
+  );
   h.dispose();
 });
 
@@ -155,7 +182,13 @@ Deno.test("Given an authored step / When it changes / Then the machine alternate
 Deno.test("Given a resolving step / When the view reports the target's box / Then the machine holds the spotlight", () => {
   const machine = tourMachine({ steps: JSON.stringify(STEPS) }, () => true);
   const resolving = machine.transition(machine.initialState, { type: "START" });
-  const measured = machine.transition(resolving, { type: "SPOTLIGHT.SET", x: 10, y: 20, w: 30, h: 40 });
+  const measured = machine.transition(resolving, {
+    type: "SPOTLIGHT.SET",
+    x: 10,
+    y: 20,
+    w: 30,
+    h: 40,
+  });
   assertEquals(measured.value, "resolving", "the step keeps resolving");
   assertEquals(
     measured.context.spotlight,

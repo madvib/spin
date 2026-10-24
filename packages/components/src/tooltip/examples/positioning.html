@@ -1,20 +1,22 @@
 <scope>props={ label: string = "Hover for bottom placement", placement: string = "bottom" } consume={ tooltip }</scope>
 
-<div class="w-full space-y-6 p-6">
-  <div class="space-y-3">
-    <h3 class="m-0 text-sm font-medium text-text">Select Position</h3>
+<div class="w-full stack-lg p-6">
+  <div class="stack-sm">
+    <h3 class="text-sm font-medium text-text">Select Position</h3>
     <div class="flex flex-wrap gap-2" data-positions>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="top">Top</button>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="bottom">Bottom</button>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="left">Left</button>
-      <button class="rounded-md px-3 py-1.5 text-sm transition-colors" data-placement-choice="right">Right</button>
+      <button class="secondary s-sm" data-placement-choice="top">Top</button>
+      <button class="secondary s-sm" data-placement-choice="bottom">Bottom</button>
+      <button class="secondary s-sm" data-placement-choice="left">Left</button>
+      <button class="secondary s-sm" data-placement-choice="right">Right</button>
     </div>
   </div>
   <div class="flex items-center justify-center py-12">
-    <span {...tooltip.getTriggerProps()} class="cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm text-text transition-colors hover:bg-surface">{label}</span>
+    <span {...tooltip.getTriggerProps()}
+      class="bare cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text transition-colors hover:bg-surface">{label}</span>
 
-    <div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+    <tooltip {...tooltip.getContentProps()}
+  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
       {placement}
-    </div>
+    </tooltip>
   </div>
 </div>

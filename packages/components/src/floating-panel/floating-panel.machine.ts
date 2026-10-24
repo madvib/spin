@@ -1,34 +1,48 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { FloatingPanelArgs, FloatingPanelContext, FloatingPanelState } from "./floating-panel.state.ts";
+import type {
+  FloatingPanelArgs,
+  FloatingPanelContext,
+  FloatingPanelState,
+} from "./floating-panel.state.ts";
 import { initial } from "./floating-panel.state.ts";
 import type { FloatingPanelEvents } from "./floating-panel.events.ts";
 import {
-  clearDragFrom,
-  clearResizeFrom,
-  setSize,
-  minimize,
-  maximize,
-  restore,
-  escapeCancel,
-  dragStart,
-  resizeStart,
-  dragMove,
-  resizeMove,
   cancelDragToOpen,
-  restoreResizeGeometry,
-  closeOnEscape,
   canDrag,
   canResize,
+  clearDragFrom,
+  clearResizeFrom,
+  closeOnEscape,
+  dragMove,
+  dragStart,
+  escapeCancel,
+  maximize,
+  minimize,
+  resizeMove,
+  resizeStart,
+  restore,
+  restoreResizeGeometry,
+  setSize,
 } from "./floating-panel.transitions.ts";
 
-export type { FloatingPanelSize, FloatingPanelStage } from "./floating-panel.state.ts";
-export type { FloatingPanelEvents, FloatingPanelEvent } from "./floating-panel.events.ts";
+export type {
+  FloatingPanelSize,
+  FloatingPanelStage,
+} from "./floating-panel.state.ts";
+export type {
+  FloatingPanelEvent,
+  FloatingPanelEvents,
+} from "./floating-panel.events.ts";
 
 export function floatingPanel(
   args: FloatingPanelArgs = {},
   authored: (name: string) => boolean = () => false,
 ): Machine<FloatingPanelContext, FloatingPanelEvents, FloatingPanelState> {
-  return createMachine<FloatingPanelContext, FloatingPanelEvents, FloatingPanelState>({
+  return createMachine<
+    FloatingPanelContext,
+    FloatingPanelEvents,
+    FloatingPanelState
+  >({
     id: "floating-panel",
     initial: "closed",
     context: initial(args, authored),

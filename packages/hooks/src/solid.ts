@@ -1,5 +1,5 @@
 import { type Accessor } from "solid-js";
-import { spinComponentCtl, type SpinComponentCtl } from "./controller.ts";
+import { type SpinComponentCtl, spinComponentCtl } from "./controller.ts";
 
 export { spinComponentCtl };
 

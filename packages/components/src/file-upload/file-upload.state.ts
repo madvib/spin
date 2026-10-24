@@ -43,13 +43,18 @@ export interface FileUploadArgs {
 export function filesOf(raw: unknown): FileRecord[] {
   const list: readonly unknown[] = Array.isArray(raw)
     ? raw
-    : (typeof raw === "string" && raw.length > 0 ? coerceJsonArray(raw, []) : []);
+    : (typeof raw === "string" && raw.length > 0
+      ? coerceJsonArray(raw, [])
+      : []);
   const files: FileRecord[] = [];
   for (const entry of list) {
     if (!isRecord(entry)) continue;
     const name: unknown = entry["name"];
     const size: unknown = entry["size"];
-    if (typeof name !== "string" || typeof size !== "number" || !Number.isFinite(size)) continue;
+    if (
+      typeof name !== "string" || typeof size !== "number" ||
+      !Number.isFinite(size)
+    ) continue;
     const type: unknown = entry["type"];
     const path: unknown = entry["path"];
     files.push({
@@ -62,7 +67,10 @@ export function filesOf(raw: unknown): FileRecord[] {
   return files;
 }
 
-export function initial(args: FileUploadArgs = {}, authored: (name: string) => boolean): FileUploadContext {
+export function initial(
+  args: FileUploadArgs = {},
+  authored: (name: string) => boolean,
+): FileUploadContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -74,7 +82,9 @@ export function initial(args: FileUploadArgs = {}, authored: (name: string) => b
     rejectedFiles: [],
     multiple: written("multiple") ? args.multiple === true : false,
     directory: written("directory") ? args.directory === true : false,
-    accept: written("accept") && typeof args.accept === "string" ? args.accept : "",
+    accept: written("accept") && typeof args.accept === "string"
+      ? args.accept
+      : "",
     maxFiles: written("maxFiles") ? count(args.maxFiles) : 0,
     maxSize: written("maxSize") ? count(args.maxSize) : 0,
     minSize: written("minSize") ? count(args.minSize) : 0,
@@ -84,11 +94,15 @@ export function initial(args: FileUploadArgs = {}, authored: (name: string) => b
 
 /** The accept list as patterns; an empty list accepts everything. */
 export const patterns = (accept: string): readonly string[] =>
-  accept.split(",").map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+  accept.split(",").map((entry) => entry.trim()).filter((entry) =>
+    entry.length > 0
+  );
 
 /** One accepted pattern against one file: an extension or a MIME family. */
 export function matchesPattern(file: FileRecord, pattern: string): boolean {
-  if (pattern.startsWith(".")) return file.name.toLowerCase().endsWith(pattern.toLowerCase());
+  if (pattern.startsWith(".")) {
+    return file.name.toLowerCase().endsWith(pattern.toLowerCase());
+  }
   const slash = pattern.indexOf("/");
   if (slash === -1) return file.type === pattern;
   const [family, suffix] = [pattern.slice(0, slash), pattern.slice(slash + 1)];
@@ -116,7 +130,9 @@ export function splitFiles(
   const list = patterns(rules.accept);
   let count = alreadyAccepted;
   for (const file of files) {
-    const code = list.length > 0 && !list.some((pattern) => matchesPattern(file, pattern))
+    const code = list.length > 0 && !list.some((pattern) =>
+        matchesPattern(file, pattern)
+      )
       ? "accept"
       : rules.maxSize > 0 && file.size > rules.maxSize
       ? "too-large"

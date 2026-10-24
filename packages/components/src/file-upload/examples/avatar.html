@@ -9,19 +9,19 @@
     class={["flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-surface px-4 py-6 text-center transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface-raised": machine.dragging, "ring-2": machine.focused, "ring-border-strong": machine.focused, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
     {...machine.getDropzoneProps()}
   >
-    <span class="i-lucide-upload text-lg text-muted" aria-hidden="true"></span>
+    <span class="i-lucide-upload text-lg text-text-muted" aria-hidden="true"></span>
     <span class="text-sm text-text" {...machine.getLabelProps()}>Upload avatar</span>
-    <span class="text-xs text-muted">or click to browse</span>
+    <span class="text-xs text-text-muted">or click to browse</span>
   </div>
 
   <input {...machine.getHiddenInputProps()} />
 
   <div class="mt-2 flex flex-col gap-1" {...machine.getItemGroupProps()}>
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
-      <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1.5" {...machine.getItemProps(row)}>
+      <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-2 py-1" {...machine.getItemProps(row)}>
         <span class="min-w-0 flex-1 truncate text-xs text-text" {...machine.getItemNameProps(row)}>{row.value}</span>
-        <span class="shrink-0 text-xs text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
-        <button class="shrink-0 rounded-sm p-0.5 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getItemDeleteTriggerProps(row)}>
+        <span class="shrink-0 text-xs text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <button class="shrink-0 ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
           <span class="i-lucide-x text-xs" aria-hidden="true"></span>
         </button>
       </div>
@@ -29,6 +29,6 @@
   </div>
 
   <div class="mt-1 flex justify-end">
-    <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getClearTriggerProps()}>Clear</button>
+    <button class="ghost s-sm" {...machine.getClearTriggerProps()}>Clear</button>
   </div>
 </div>

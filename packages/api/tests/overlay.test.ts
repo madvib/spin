@@ -71,7 +71,10 @@ describe("the overlay", () => {
 
     const state = await readOverlay();
     assertEquals(state.open, true);
-    const themes = state.themes.default as Record<string, Record<string, string>>;
+    const themes = state.themes.default as Record<
+      string,
+      Record<string, string>
+    >;
     assertEquals(themes.color?.primary, "#b91c1c");
   });
 

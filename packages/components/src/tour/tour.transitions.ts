@@ -35,11 +35,13 @@ export const prevStep: TourAssign<"STEP.PREV"> = (ctx) => ({
 
 export const bail = (ctx: TourContext): Partial<TourContext> => bailStep(ctx);
 
-export const hasSteps: GuardFor<TourContext, TourEvents> = (ctx) => ctx.steps.length > 0;
+export const hasSteps: GuardFor<TourContext, TourEvents> = (ctx) =>
+  ctx.steps.length > 0;
 
 export const validStep: GuardFor<TourContext, TourEvents> = (ctx, event) =>
   event.type === "STEP.SET" && event.step >= 0 && event.step < ctx.steps.length;
 
-export const hasNext: GuardFor<TourContext, TourEvents> = (ctx) => ctx.step + 1 < ctx.steps.length;
+export const hasNext: GuardFor<TourContext, TourEvents> = (ctx) =>
+  ctx.step + 1 < ctx.steps.length;
 
 export const hasPrev: GuardFor<TourContext, TourEvents> = (ctx) => ctx.step > 0;

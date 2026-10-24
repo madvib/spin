@@ -1,26 +1,38 @@
 <scope>props={ name: string = "Sarah Chen", email: string = "sarah.chen@example.com", role: string = "Product Designer", location: string = "San Francisco, CA" } consume={ popover }</scope>
 
-<button {...popover.getTriggerProps()} class="relative inline-flex items-center justify-center rounded-full border border-solid border-border bg-surface-raised p-1 text-text shadow-sm transition-colors hover:bg-surface">
-  <span class="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-on-primary" aria-hidden="true">SC</span>
-  <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-solid border-surface-raised bg-semantic-success" aria-hidden="true"></span>
+<button {...popover.getTriggerProps()}
+  class="relative inline-flex items-center justify-center rounded-full secondary s-sm transition-colors hover:bg-surface">
+  <span
+    class="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-on-primary"
+    aria-hidden="true">SC</span>
+  <span
+    class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-solid border-surface-raised bg-semantic-success"
+    aria-hidden="true"></span>
 </button>
 
-<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised shadow-lg w-full max-w-[18rem]">
+<popover {...popover.getContentProps()}
+  class="w-full max-w-[18rem]">
   <div class="border-b border-solid border-border p-3">
     <div class="flex items-center gap-3">
-      <span class="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-on-primary" aria-hidden="true">SC<span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-solid border-surface-raised bg-semantic-success"></span></span>
+      <span
+        class="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-on-primary"
+        aria-hidden="true">SC<span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-solid border-surface-raised bg-semantic-success"></span></span>
       <div class="min-w-0 flex-1">
-        <h3 class="m-0 text-sm font-medium text-text">{name}</h3>
-        <p class="m-0 text-xs text-muted">{role}</p>
+        <h3 class="text-sm font-medium text-text">{name}</h3>
+        <p class="text-xs text-text-muted">{role}</p>
       </div>
     </div>
   </div>
-  <div class="space-y-2 p-3 text-sm text-muted">
-    <p class="m-0 flex items-center gap-2"><span class="i-lucide-mail text-sm" aria-hidden="true"></span>{email}</p>
-    <p class="m-0 flex items-center gap-2"><span class="i-lucide-map-pin text-sm" aria-hidden="true"></span>{location}</p>
+  <div class="stack-sm p-3 text-sm text-text-muted">
+    <p
+      class="flex items-center gap-2"><span class="i-lucide-mail text-sm" aria-hidden="true"></span>{email}</p>
+    <p
+      class="flex items-center gap-2"><span class="i-lucide-map-pin text-sm" aria-hidden="true"></span>{location}</p>
   </div>
   <div class="flex gap-2 border-t border-solid border-border p-3">
-    <button class="flex-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary">Message</button>
-    <button class="flex-1 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text">View Profile</button>
+    <button
+      class="flex-1 s-sm">Message</button>
+    <button
+      class="flex-1 secondary s-sm">View Profile</button>
   </div>
-</div>
+</popover>

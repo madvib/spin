@@ -82,7 +82,10 @@ export function parseItems(raw: unknown): TabsItem[] {
  * The seed twin (`defaultValue`) is the host's write of the selection —
  * the framework resolved it into the args — so it counts as a write too.
  */
-export function initial(args: TabsArgs = {}, authored: (name: string) => boolean): TabsContext {
+export function initial(
+  args: TabsArgs = {},
+  authored: (name: string) => boolean,
+): TabsContext {
   // A host that wrote `defaultValue` wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) ||

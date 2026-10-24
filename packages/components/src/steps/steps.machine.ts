@@ -24,7 +24,7 @@ export {
   percent,
 } from "./steps.state.ts";
 
-export type { StepsStepChange, StepsInvalid } from "./steps.events.ts";
+export type { StepsInvalid, StepsStepChange } from "./steps.events.ts";
 export type { StepsItemState } from "./steps.state.ts";
 
 export function steps(

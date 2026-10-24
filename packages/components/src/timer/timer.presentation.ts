@@ -1,4 +1,14 @@
-import { ariaHidden, defineComponent, isRecord, liveRegion, machineTick, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaHidden,
+  type ComponentDef,
+  defineComponent,
+  isRecord,
+  liveRegion,
+  machineTick,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import {
   formatTime,
   msToTime,
@@ -66,7 +76,9 @@ const progressOf = (context: TimerContext): number => {
   const target = targetMs ?? 0;
   const range = target - startMs;
   if (range === 0) return 0;
-  const fraction = countdown ? (target - currentMs) / range : (currentMs - startMs) / range;
+  const fraction = countdown
+    ? (target - currentMs) / range
+    : (currentMs - startMs) / range;
   return Math.min(Math.max(fraction, 0), 1);
 };
 
@@ -77,14 +89,18 @@ const epochByRoot = new WeakMap<Element, number>();
 const separatorAfter = (slot: unknown): TimePart => {
   if (!isRecord(slot)) return "seconds";
   const after: unknown = slot["after"];
-  return after === "days" || after === "hours" || after === "minutes" || after === "seconds" || after === "milliseconds" ? after : "seconds";
+  return after === "days" || after === "hours" || after === "minutes" ||
+      after === "seconds" || after === "milliseconds"
+    ? after
+    : "seconds";
 };
 
 const isLast = (slot: unknown): boolean =>
   isRecord(slot) && slot["last"] === true;
 
 const isAction = (value: unknown): value is TimerActionTrigger["action"] =>
-  typeof value === "string" && (VALID_ACTIONS as Record<string, unknown>)[value] === true;
+  typeof value === "string" &&
+  (VALID_ACTIONS as Record<string, unknown>)[value] === true;
 
 /** An action trigger's action: the five valid verbs. Anything else is a
  * host bug, refused loudly — never a silent default. */
@@ -92,7 +108,9 @@ const actionOf = (slot: unknown): TimerActionTrigger["action"] => {
   const action: unknown = isRecord(slot) ? slot["action"] : undefined;
   if (isAction(action)) return action;
   throw new Error(
-    `[timer] Invalid action: ${typeof action === "string" ? action : ""}. Must be one of: ${Object.keys(VALID_ACTIONS).join(", ")}`,
+    `[timer] Invalid action: ${
+      typeof action === "string" ? action : ""
+    }. Must be one of: ${Object.keys(VALID_ACTIONS).join(", ")}`,
   );
 };
 
@@ -102,8 +120,17 @@ const DAY_UNIT: TimerUnit = { type: "days", label: "days", last: false };
 const HOUR_UNIT: TimerUnit = { type: "hours", label: "hrs", last: false };
 const MINUTE_UNIT: TimerUnit = { type: "minutes", label: "min", last: false };
 const SECOND_UNIT: TimerUnit = { type: "seconds", label: "sec", last: true };
-const UNITS_WITH_DAYS: readonly TimerUnit[] = [DAY_UNIT, HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
-const UNITS_WITHOUT_DAYS: readonly TimerUnit[] = [HOUR_UNIT, MINUTE_UNIT, SECOND_UNIT];
+const UNITS_WITH_DAYS: readonly TimerUnit[] = [
+  DAY_UNIT,
+  HOUR_UNIT,
+  MINUTE_UNIT,
+  SECOND_UNIT,
+];
+const UNITS_WITHOUT_DAYS: readonly TimerUnit[] = [
+  HOUR_UNIT,
+  MINUTE_UNIT,
+  SECOND_UNIT,
+];
 
 /** The days row shows when the current time has one, or the run's
  * start/target reaches a day — both fixed for the run, so no mid-run row
@@ -131,7 +158,6 @@ const VALID_ACTIONS: Readonly<Record<string, true>> = {
   reset: true,
   restart: true,
 };
-
 
 export const def = {
   name: "timer",
@@ -247,7 +273,8 @@ export const def = {
       attrs: (scope: SlotLike<TimerSeparator>) => {
         const slot = scope.slot;
         const unit = separatorAfter(slot);
-        const followsHiddenDays = unit === "days" && timeOf(scope.context).days === 0;
+        const followsHiddenDays = unit === "days" &&
+          timeOf(scope.context).days === 0;
         return {
           ...ariaHidden(true),
           "data-after": unit,
@@ -262,7 +289,9 @@ export const def = {
         const action = actionOf(scope.slot);
         if (VALID_ACTIONS[action] !== true) {
           throw new Error(
-            `[timer] Invalid action: ${action}. Must be one of: ${Object.keys(VALID_ACTIONS).join(", ")}`,
+            `[timer] Invalid action: ${action}. Must be one of: ${
+              Object.keys(VALID_ACTIONS).join(", ")
+            }`,
           );
         }
         const running = scope.state === "running";
@@ -290,7 +319,17 @@ export const def = {
           hidden,
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
-            scope.send({ type: action === "start" ? "START" : action === "pause" ? "PAUSE" : action === "resume" ? "RESUME" : action === "reset" ? "RESET" : "RESTART" });
+            scope.send({
+              type: action === "start"
+                ? "START"
+                : action === "pause"
+                ? "PAUSE"
+                : action === "resume"
+                ? "RESUME"
+                : action === "reset"
+                ? "RESET"
+                : "RESTART",
+            });
           },
         };
       },
@@ -333,7 +372,11 @@ export const def = {
       select: (event, _before, after: TimerContext, states) => {
         if (event.type !== "TICK" || states?.was !== "running") return null;
         const time = msToTime(after.currentMs);
-        return { value: after.currentMs, time, formattedTime: formatTime(time) };
+        return {
+          value: after.currentMs,
+          time,
+          formattedTime: formatTime(time),
+        };
       },
     },
     complete: {
@@ -343,12 +386,27 @@ export const def = {
       // Only a completing tick leaves `running` for `idle`; a pause goes to
       // `paused` and a reset does not end the run.
       select: (event, _before, _after, states) => {
-        if (event.type !== "TICK" || states?.was !== "running" || states?.is !== "idle") return null;
+        if (
+          event.type !== "TICK" || states?.was !== "running" ||
+          states?.is !== "idle"
+        ) return null;
         return {};
       },
     },
   },
-} satisfies ComponentDef<TimerContext, TimerEvents, Record<string, unknown>, TimerArgs, TimerState>;
+} satisfies ComponentDef<
+  TimerContext,
+  TimerEvents,
+  Record<string, unknown>,
+  TimerArgs,
+  TimerState
+>;
 
 export type TimerApi = ApiOf<typeof def>;
-export const timer = defineComponent<TimerContext, TimerEvents, TimerApi, TimerArgs, TimerState>(def);
+export const timer = defineComponent<
+  TimerContext,
+  TimerEvents,
+  TimerApi,
+  TimerArgs,
+  TimerState
+>(def);

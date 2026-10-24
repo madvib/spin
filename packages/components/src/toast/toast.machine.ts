@@ -1,30 +1,39 @@
 /** Toast machine: the queue, each toast's lifecycle, and the stacking mode. */
 
-import { createMachine, type Machine, type Transitions } from "@spin/runtime/fsm";
+import {
+  createMachine,
+  type Machine,
+  type Transitions,
+} from "@spin/runtime/fsm";
 import type { ToastArgs, ToastContext, ToastState } from "./toast.state.ts";
 import { initial } from "./toast.state.ts";
 import type { ToastEvents } from "./toast.events.ts";
 import {
   createToast,
-  updateToast,
-  removeToast,
+  dismissAll,
   dismissToast,
-  pauseToasts,
-  resumeToasts,
-  enterPointer,
-  leavePointer,
   enterFocus,
+  enterPointer,
+  heightSet,
   leaveFocus,
+  leavePointer,
+  pauseToasts,
+  removeToast,
+  resumeToasts,
   shouldCollapse,
   toastMounted,
-  heightSet,
-  dismissAll,
   toastPause,
   toastResume,
+  updateToast,
 } from "./toast.transitions.ts";
 
-export type { ToastStatus, ToastEntry, ToastContext, ToastArgs } from "./toast.state.ts";
-export type { ToastEvents, ToastEvent } from "./toast.events.ts";
+export type {
+  ToastArgs,
+  ToastContext,
+  ToastEntry,
+  ToastStatus,
+} from "./toast.state.ts";
+export type { ToastEvent, ToastEvents } from "./toast.events.ts";
 const QUEUE_EVENTS: Transitions<ToastContext, ToastEvents, ToastState> = {
   "TOAST.CREATE": [
     { target: "overlap", cond: shouldCollapse, assign: createToast },
@@ -60,8 +69,16 @@ export function toast(
       "PAGE.IDLE": { assign: [() => ({ pageIdle: true }), pauseToasts] },
       "PAGE.ACTIVE": { assign: [() => ({ pageIdle: false }), resumeToasts] },
       "REGION.BLUR": [
-        { target: "overlap", cond: (ctx) => ctx.overlap && !ctx.pointerWithin, assign: [resumeToasts, leaveFocus] },
-        { target: "stack", cond: (ctx) => !ctx.pointerWithin, assign: [resumeToasts, leaveFocus] },
+        {
+          target: "overlap",
+          cond: (ctx) => ctx.overlap && !ctx.pointerWithin,
+          assign: [resumeToasts, leaveFocus],
+        },
+        {
+          target: "stack",
+          cond: (ctx) => !ctx.pointerWithin,
+          assign: [resumeToasts, leaveFocus],
+        },
         { assign: leaveFocus },
       ],
     },
@@ -82,7 +99,11 @@ export function toast(
         on: {
           ...QUEUE_EVENTS,
           "REGION.POINTER_LEAVE": [
-            { target: "overlap", cond: (ctx) => ctx.overlap, assign: [leavePointer, resumeToasts] },
+            {
+              target: "overlap",
+              cond: (ctx) => ctx.overlap,
+              assign: [leavePointer, resumeToasts],
+            },
             { assign: [leavePointer, resumeToasts] },
           ],
           "REGION.OVERLAP": { target: "overlap" },

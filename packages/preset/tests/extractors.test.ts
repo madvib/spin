@@ -68,5 +68,8 @@ Deno.test("classObjectExtractor leaves a value's string alone", () => {
 
 Deno.test("classObjectExtractor leaves a static class attribute alone", () => {
   const tokens = extractClasses(`<div class="bg-surface p-2"></div>`);
-  assert(!tokens.includes("bg-surface"), "a static class is uno's own business");
+  assert(
+    !tokens.includes("bg-surface"),
+    "a static class is uno's own business",
+  );
 });

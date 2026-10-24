@@ -67,10 +67,13 @@ export function daysInMonth(year: number, month: number): number {
   return isLeapYear(year) ? 29 : 28;
 }
 
-const dayOf = (value: DatePickerValue): number => Date.parse(`${iso(value)}T00:00:00Z`);
+const dayOf = (value: DatePickerValue): number =>
+  Date.parse(`${iso(value)}T00:00:00Z`);
 
 const iso = (value: DatePickerValue): string =>
-  `${`${value.year}`.padStart(4, "0")}-${`${value.month}`.padStart(2, "0")}-${`${value.day}`.padStart(2, "0")}`;
+  `${`${value.year}`.padStart(4, "0")}-${`${value.month}`.padStart(2, "0")}-${
+    `${value.day}`.padStart(2, "0")
+  }`;
 
 export function sortKey(value: DatePickerValue): number {
   const time = dayOf(value);
@@ -82,7 +85,11 @@ export function parseDay(raw: unknown): DatePickerValue | null {
   const time = Date.parse(`${raw}T00:00:00Z`);
   if (Number.isNaN(time)) return null;
   const at = new Date(time);
-  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
+  return {
+    year: at.getUTCFullYear(),
+    month: at.getUTCMonth() + 1,
+    day: at.getUTCDate(),
+  };
 }
 
 export function dayRecord(raw: unknown): DatePickerValue | null {
@@ -133,7 +140,10 @@ export function viewOf(raw: unknown): DatePickerView {
   return raw === "month" || raw === "year" ? raw : "day";
 }
 
-export function initial(args: DatePickerArgs = {}, authored: (name: string) => boolean): DatePickerContext {
+export function initial(
+  args: DatePickerArgs = {},
+  authored: (name: string) => boolean,
+): DatePickerContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -152,20 +162,24 @@ export function initial(args: DatePickerArgs = {}, authored: (name: string) => b
     month: now.getUTCMonth() + 1,
     day: now.getUTCDate(),
   };
-  const focused = (written("focusedValue") ? dayRecord(args.focusedValue) : null) ??
-    parsed[0] ?? today;
-  const startOfWeek = typeof args.startOfWeek === "number" && args.startOfWeek >= 0 && args.startOfWeek <= 6
-    ? Math.trunc(args.startOfWeek)
-    : 0;
+  const focused =
+    (written("focusedValue") ? dayRecord(args.focusedValue) : null) ??
+      parsed[0] ?? today;
+  const startOfWeek =
+    typeof args.startOfWeek === "number" && args.startOfWeek >= 0 &&
+      args.startOfWeek <= 6
+      ? Math.trunc(args.startOfWeek)
+      : 0;
   return {
     value,
     focusedValue: clampDay(focused, min, max),
     hoveredValue: null,
     activeIndex: 0,
     view: written("view") ? viewOf(args.view) : "day",
-    selectionMode: written("selectionMode") && (mode === "multiple" || mode === "range")
-      ? mode
-      : "single",
+    selectionMode:
+      written("selectionMode") && (mode === "multiple" || mode === "range")
+        ? mode
+        : "single",
     numOfMonths: written("numOfMonths") && typeof count === "number" &&
         Number.isFinite(count)
       ? count
@@ -173,17 +187,24 @@ export function initial(args: DatePickerArgs = {}, authored: (name: string) => b
     startValue: value.length > 0 ? value[0] ?? null : null,
     min,
     max,
-    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect !== false : true,
+    closeOnSelect: written("closeOnSelect")
+      ? args.closeOnSelect !== false
+      : true,
     disabled: args.disabled === true,
     readOnly: args.readOnly === true,
     invalid: args.invalid === true,
     startOfWeek,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
-    label: typeof args.label === "string" && args.label.length > 0 ? args.label : "Date",
-    locale: typeof args.locale === "string" && args.locale.length > 0 ? args.locale : "en-US",
-    placeholder: typeof args.placeholder === "string" && args.placeholder.length > 0
-      ? args.placeholder
-      : "Pick a date",
+    label: typeof args.label === "string" && args.label.length > 0
+      ? args.label
+      : "Date",
+    locale: typeof args.locale === "string" && args.locale.length > 0
+      ? args.locale
+      : "en-US",
+    placeholder:
+      typeof args.placeholder === "string" && args.placeholder.length > 0
+        ? args.placeholder
+        : "Pick a date",
     format: typeof args.format === "function"
       ? args.format as (value: DatePickerValue, locale: string) => string
       : undefined,
@@ -198,14 +219,18 @@ export function valueAsAllStrings(value: readonly DatePickerValue[]): string[] {
   return value.map(dayAsString);
 }
 
-export const sameDay = (a: DatePickerValue, b: DatePickerValue): boolean => iso(a) === iso(b);
+export const sameDay = (a: DatePickerValue, b: DatePickerValue): boolean =>
+  iso(a) === iso(b);
 
 export function clampDay(
   value: DatePickerValue,
   min: string | null,
   max: string | null,
 ): DatePickerValue {
-  const day = Math.min(Math.max(value.day, 1), daysInMonth(value.year, value.month));
+  const day = Math.min(
+    Math.max(value.day, 1),
+    daysInMonth(value.year, value.month),
+  );
   let at: DatePickerValue = { ...value, day };
   const time = dayOf(at);
   const floor = boundDay(min);
@@ -223,14 +248,23 @@ function boundDay(bound: string | null): number | null {
 
 function fromDayIndex(time: number): DatePickerValue {
   const at = new Date(time);
-  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
+  return {
+    year: at.getUTCFullYear(),
+    month: at.getUTCMonth() + 1,
+    day: at.getUTCDate(),
+  };
 }
 
-export const inBounds = (value: DatePickerValue, min: string | null, max: string | null): boolean => {
+export const inBounds = (
+  value: DatePickerValue,
+  min: string | null,
+  max: string | null,
+): boolean => {
   const time = dayOf(value);
   const floor = boundDay(min);
   const ceiling = boundDay(max);
-  return (floor === null || time >= floor) && (ceiling === null || time <= ceiling);
+  return (floor === null || time >= floor) &&
+    (ceiling === null || time <= ceiling);
 };
 
 export function normalizeDays(

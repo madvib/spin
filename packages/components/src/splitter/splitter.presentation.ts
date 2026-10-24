@@ -1,13 +1,13 @@
 import {
+  type ApiOf,
   ariaControls,
   ariaOrientation,
+  type ComponentDef,
   defineComponent,
   focuser,
   isComposing,
-  sliderThumb,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
+  sliderThumb,
   type SlotScopeFor,
 } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
@@ -16,14 +16,17 @@ import {
   handleId,
   isInteractive,
   panelCollapsed,
-  validateSizes,
   type SplitterArgs,
   type SplitterContext,
   type SplitterPanel,
   type SplitterState,
+  validateSizes,
 } from "./splitter.state.ts";
 import { splitter as splitterMachine } from "./splitter.machine.ts";
-import type { SplitterEvents, SplitterResizeDetails } from "./splitter.events.ts";
+import type {
+  SplitterEvents,
+  SplitterResizeDetails,
+} from "./splitter.events.ts";
 
 /** Splitter bindings: the DOM contract as data. */
 
@@ -48,11 +51,20 @@ export interface SplitterItem {
 }
 
 type ScopeLike = ScopeFor<SplitterContext, SplitterEvents, SplitterState>;
-type SlotLike<R> = SlotScopeFor<R, SplitterContext, SplitterEvents, SplitterState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  SplitterContext,
+  SplitterEvents,
+  SplitterState
+>;
 
 type ItemSlot =
   | { readonly type: "panel"; readonly id: string }
-  | { readonly type: "handle"; readonly beforeId: string; readonly afterId: string };
+  | {
+    readonly type: "handle";
+    readonly beforeId: string;
+    readonly afterId: string;
+  };
 
 const sameSizes = (a: readonly number[], b: readonly number[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
@@ -88,7 +100,11 @@ const itemsOf = (panels: readonly SplitterPanel[]): readonly SplitterItem[] => {
 
 /** A client point as a group percent, measured off the root node.
  * Returns null when the root is not laid out yet. */
-const groupPercent = (scope: ScopeLike, clientX: number, clientY: number): number | null => {
+const groupPercent = (
+  scope: ScopeLike,
+  clientX: number,
+  clientY: number,
+): number | null => {
   const rect = scope.measure("");
   if (rect === null) return null;
   const horizontal = scope.context.orientation === "horizontal";
@@ -139,7 +155,9 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
     // the drag action below.
     onPointermove: (event: PointerEvent): void => {
       if (scope.state === "idle") {
-        if (event.pointerType !== "touch") scope.send({ type: "POINTER_OVER", id: handle });
+        if (event.pointerType !== "touch") {
+          scope.send({ type: "POINTER_OVER", id: handle });
+        }
         return;
       }
     },
@@ -159,11 +177,20 @@ const handlersFor = (scope: ScopeLike, handle: string): HandleHandlers => {
       if (!isInteractive(ctx)) return;
       if (isComposing(event)) return;
       const rawStep: unknown = scope.context.keyboardResizeBy;
-      const unit = typeof rawStep === "number" && rawStep > 0 ? Math.trunc(rawStep) : 1;
-      const keyed = (type: "ENTER" | "KEYBOARD_MOVE", delta?: number): boolean => {
+      const unit = typeof rawStep === "number" && rawStep > 0
+        ? Math.trunc(rawStep)
+        : 1;
+      const keyed = (
+        type: "ENTER" | "KEYBOARD_MOVE",
+        delta?: number,
+      ): boolean => {
         event.preventDefault();
         if (type === "ENTER") scope.send({ type: "ENTER", id: handle });
-        else scope.send({ type: "KEYBOARD_MOVE", id: handle, delta: delta ?? 0 });
+        else {scope.send({
+            type: "KEYBOARD_MOVE",
+            id: handle,
+            delta: delta ?? 0,
+          });}
         return true;
       };
       const horizontalKeys = ctx.orientation === "horizontal";
@@ -229,7 +256,10 @@ const dragFor = (scope: ScopeLike, handle: string): HandleDrag => {
       if (scope.state !== "dragging") return;
       // The press focused the handle, so the drag ends focused: the
       // keyboard keeps working on the handle the pointer just moved.
-      scope.send({ type: "POINTER_UP", handleFocused: handleFocused(scope, handle) });
+      scope.send({
+        type: "POINTER_UP",
+        handleFocused: handleFocused(scope, handle),
+      });
     },
   };
   byId.set(handle, made);
@@ -260,11 +290,16 @@ const panelBag = (scope: ScopeLike, id: string): Record<string, unknown> => {
   };
 };
 
-const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
+const handleBag = (
+  scope: ScopeLike,
+  beforeId: string,
+  afterId: string,
+): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
   const context = scope.context;
   const focused = context.focusedHandle === handle;
-  const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
+  const dragging = scope.state === "dragging" &&
+    context.drag?.handleId === handle;
   const horizontal = context.orientation === "horizontal";
   return {
     id: scope.id("handle", handle),
@@ -273,18 +308,26 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
     "data-id": handle,
     tabindex: scope.context.disabled === true ? undefined : "0",
     ...sliderThumb({
-      now: String(Math.round(context.size[context.panels.findIndex((p) => p.id === beforeId)] ?? 0)),
+      now: String(
+        Math.round(
+          context.size[context.panels.findIndex((p) => p.id === beforeId)] ?? 0,
+        ),
+      ),
       min: "0",
       max: "100",
     }),
     "data-orientation": context.orientation,
     ...ariaOrientation(
-      scope.context.orientation === "horizontal" || scope.context.orientation === "vertical"
+      scope.context.orientation === "horizontal" ||
+        scope.context.orientation === "vertical"
         ? scope.context.orientation
         : undefined,
     ),
     ...ariaControls(scope, {
-      parts: [{ part: "panel", slot: beforeId }, { part: "panel", slot: afterId }],
+      parts: [{ part: "panel", slot: beforeId }, {
+        part: "panel",
+        slot: afterId,
+      }],
     }),
     "data-focus": scope.attr(focused),
     "data-dragging": scope.attr(dragging),
@@ -312,11 +355,16 @@ const handleBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<
   };
 };
 
-const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Record<string, unknown> => {
+const indicatorBag = (
+  scope: ScopeLike,
+  beforeId: string,
+  afterId: string,
+): Record<string, unknown> => {
   const handle = handleId(beforeId, afterId);
   const context = scope.context;
   const focused = context.focusedHandle === handle;
-  const dragging = scope.state === "dragging" && context.drag?.handleId === handle;
+  const dragging = scope.state === "dragging" &&
+    context.drag?.handleId === handle;
   return {
     "data-type": "handle",
     "data-orientation": context.orientation,
@@ -328,7 +376,8 @@ const indicatorBag = (scope: ScopeLike, beforeId: string, afterId: string): Reco
 /** The component's public state: the names the markup may key on. */
 const def = {
   name: "splitter",
-  machine: (props, authored) => splitterMachine(props as SplitterArgs, authored),
+  machine: (props, authored) =>
+    splitterMachine(props as SplitterArgs, authored),
   // The sizes follow the tree, so the machine never sees a tree it cannot
   // lay out.
   reconcile: ({ context }) => {
@@ -359,7 +408,9 @@ const def = {
       attrs: (scope: ScopeLike) => ({
         style: {
           display: "flex",
-          flexDirection: scope.context.orientation === "horizontal" ? "row" : "column",
+          flexDirection: scope.context.orientation === "horizontal"
+            ? "row"
+            : "column",
           height: "100%",
           width: "100%",
           overflow: "hidden",
@@ -391,14 +442,18 @@ const def = {
       // match the element's own attributes, never ancestors.
       attrs: (scope: SlotLike<{ readonly type: string }>) => {
         const item = scope.slot;
-        if (typeof item !== "object" || item === null || !("type" in item)) return {};
+        if (typeof item !== "object" || item === null || !("type" in item)) {
+          return {};
+        }
         return item.type === "handle" ? { "data-type": "handle" } : {};
       },
     },
     panel: {
       id: "panel",
-      indexes: (context: SplitterContext) => context.panels.map((panel) => ({ id: panel.id })),
-      attrs: (scope: SlotLike<{ readonly id: string }>) => panelBag(scope, scope.slot.id),
+      indexes: (context: SplitterContext) =>
+        context.panels.map((panel) => ({ id: panel.id })),
+      attrs: (scope: SlotLike<{ readonly id: string }>) =>
+        panelBag(scope, scope.slot.id),
     },
     handle: {
       id: "handle",
@@ -409,7 +464,11 @@ const def = {
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => handleBag(scope, scope.slot.beforeId, scope.slot.afterId),
+      attrs: (
+        scope: SlotLike<
+          { readonly beforeId: string; readonly afterId: string }
+        >,
+      ) => handleBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
     handleIndicator: {
       id: "handle-indicator",
@@ -420,26 +479,54 @@ const def = {
           afterId: panels[index + 1]?.id ?? "",
         }));
       },
-      attrs: (scope: SlotLike<{ readonly beforeId: string; readonly afterId: string }>) => indicatorBag(scope, scope.slot.beforeId, scope.slot.afterId),
+      attrs: (
+        scope: SlotLike<
+          { readonly beforeId: string; readonly afterId: string }
+        >,
+      ) => indicatorBag(scope, scope.slot.beforeId, scope.slot.afterId),
     },
   },
   commands: {
-    setSizes: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "SET_SIZE", size: Array.isArray(v) && v.every((x): x is number => typeof x === "number") ? [...v] : [] }; } },
+    setSizes: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return {
+          type: "SET_SIZE",
+          size: Array.isArray(v) &&
+              v.every((x): x is number => typeof x === "number")
+            ? [...v]
+            : [],
+        };
+      },
+    },
     resetSizes: { event: () => ({ type: "RESET_SIZE" }) },
-    collapsePanel: { event: (args: readonly unknown[]) => { const v = args[0]; return { type: "COLLAPSE_PANEL", id: typeof v === "string" ? v : "" }; } },
+    collapsePanel: {
+      event: (args: readonly unknown[]) => {
+        const v = args[0];
+        return { type: "COLLAPSE_PANEL", id: typeof v === "string" ? v : "" };
+      },
+    },
     expandPanel: {
       event: (args: readonly unknown[]) => {
         const v = args[0];
         const id = typeof v === "string" ? v : "";
         const m = args[1];
-        return { type: "EXPAND_PANEL", id, ...(typeof m === "number" ? { minSize: m } : {}) };
+        return {
+          type: "EXPAND_PANEL",
+          id,
+          ...(typeof m === "number" ? { minSize: m } : {}),
+        };
       },
     },
     resizePanel: {
       event: (args: readonly unknown[]) => {
         const id = args[0];
         const size = args[1];
-        return { type: "RESIZE_PANEL", id: typeof id === "string" ? id : "", size: typeof size === "number" ? size : 0 };
+        return {
+          type: "RESIZE_PANEL",
+          id: typeof id === "string" ? id : "",
+          size: typeof size === "number" ? size : 0,
+        };
       },
     },
   },
@@ -449,7 +536,8 @@ const def = {
   },
   methods: {
     getPanelIds: {
-      call: (context: SplitterContext) => context.panels.map((panel) => panel.id),
+      call: (context: SplitterContext) =>
+        context.panels.map((panel) => panel.id),
     },
     getItems: {
       call: (context: SplitterContext) => itemsOf(context.panels),
@@ -482,10 +570,22 @@ const def = {
       },
     },
     getHandleState: {
-      call: (context: SplitterContext, state: string, args: readonly unknown[]) => {
+      call: (
+        context: SplitterContext,
+        state: string,
+        args: readonly unknown[],
+      ) => {
         const slot = args[0];
-        const beforeId = typeof slot === "object" && slot !== null && "beforeId" in slot && typeof slot.beforeId === "string" ? slot.beforeId : "";
-        const afterId = typeof slot === "object" && slot !== null && "afterId" in slot && typeof slot.afterId === "string" ? slot.afterId : "";
+        const beforeId =
+          typeof slot === "object" && slot !== null && "beforeId" in slot &&
+            typeof slot.beforeId === "string"
+            ? slot.beforeId
+            : "";
+        const afterId =
+          typeof slot === "object" && slot !== null && "afterId" in slot &&
+            typeof slot.afterId === "string"
+            ? slot.afterId
+            : "";
         const handle = handleId(beforeId, afterId);
         return {
           focused: context.focusedHandle === handle,
@@ -506,7 +606,10 @@ const def = {
     "resize-end": {
       prop: "onResizeEnd",
       watch: (context: SplitterContext) => [...context.size],
-      detail: (watched: readonly number[]) => { const handleId: string | null = null; return { size: [...watched], handleId }; },
+      detail: (watched: readonly number[]) => {
+        const handleId: string | null = null;
+        return { size: [...watched], handleId };
+      },
       // A commit with no size move still ends the gesture (the watch
       // alone would swallow it); an empty layout is not a resize anyone
       // made.
@@ -521,7 +624,19 @@ const def = {
       },
     },
   },
- } satisfies ComponentDef<SplitterContext, SplitterEvents, Record<string, unknown>, SplitterArgs, SplitterState>;
+} satisfies ComponentDef<
+  SplitterContext,
+  SplitterEvents,
+  Record<string, unknown>,
+  SplitterArgs,
+  SplitterState
+>;
 
 export type SplitterApi = ApiOf<typeof def>;
-export const splitter = defineComponent<SplitterContext, SplitterEvents, SplitterApi, SplitterArgs, SplitterState>(def);
+export const splitter = defineComponent<
+  SplitterContext,
+  SplitterEvents,
+  SplitterApi,
+  SplitterArgs,
+  SplitterState
+>(def);

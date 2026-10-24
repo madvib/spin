@@ -18,7 +18,9 @@ export function focuser(id: IdFn): (part: string, slot?: unknown) => void {
  * element may not be in the document yet). Framework-core owned, so defs and
  * bags read geometry through this instead of touching `document` directly;
  * the node resolves through the same identity path `focuser` uses. */
-export function measurer(id: IdFn): (part: string, slot?: unknown) => DOMRect | null {
+export function measurer(
+  id: IdFn,
+): (part: string, slot?: unknown) => DOMRect | null {
   return (part, slot) => {
     if (typeof document === "undefined") return null;
     const node = document.getElementById(id(part, slot));
@@ -39,6 +41,8 @@ export function ids(name: string, id: string): IdFn {
     // An empty segment is the bare owner id (the root part carries no
     // suffix, so owner-scoped lookups never collide with a part name).
     if (part === "") return root;
-    return slot === undefined || slot === null ? `${root}:${part}` : `${root}:${part}:${String(slot)}`;
+    return slot === undefined || slot === null
+      ? `${root}:${part}`
+      : `${root}:${part}:${String(slot)}`;
   };
 }

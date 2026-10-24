@@ -3,7 +3,11 @@
  */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { FileUploadArgs, FileUploadContext, FileUploadState } from "./file-upload.state.ts";
+import type {
+  FileUploadArgs,
+  FileUploadContext,
+  FileUploadState,
+} from "./file-upload.state.ts";
 import { initial } from "./file-upload.state.ts";
 import type { FileUploadEvents } from "./file-upload.events.ts";
 import {
@@ -14,9 +18,24 @@ import {
   setValue,
 } from "./file-upload.transitions.ts";
 
-export type { FileRecord, FileRejection, FileUploadArgs, FileUploadContext } from "./file-upload.state.ts";
-export type { FileUploadEvents, FileUploadEvent, FileUploadValueChange } from "./file-upload.events.ts";
-export { filesOf, initial, splitFiles, patterns, matchesPattern } from "./file-upload.state.ts";
+export type {
+  FileRecord,
+  FileRejection,
+  FileUploadArgs,
+  FileUploadContext,
+} from "./file-upload.state.ts";
+export type {
+  FileUploadEvent,
+  FileUploadEvents,
+  FileUploadValueChange,
+} from "./file-upload.events.ts";
+export {
+  filesOf,
+  initial,
+  matchesPattern,
+  patterns,
+  splitFiles,
+} from "./file-upload.state.ts";
 
 export function fileUpload(
   args: FileUploadArgs = {},

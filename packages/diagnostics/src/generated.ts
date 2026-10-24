@@ -19,6 +19,7 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { classTokens, expandVariantGroups, parse } from "@spin/syntax";
 import { starterThemes } from "@spin/theme/themes";
 
 /** The directories a scan does not walk into. */
@@ -112,16 +113,48 @@ function classesIn(path: string): string[] {
   } catch {
     return [];
   }
+  // A `.html` component names its classes in expressions (`class={[...]}`),
+  // so read them through the syntax the components are compiled with. The
+  // text walk below only sees static `class="..."`, which is why this goes
+  // first: fall back to it when the file is not a component (a document, a
+  // fragment the parser rejects).
+  if (path.endsWith(".html")) {
+    try {
+      const stripped = text
+        .replace(/<!--[\s\S]*?-->/g, "")
+        .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
+        .replace(/<scope>[\s\S]*?<\/scope>\s*/g, "");
+      return classTokens(parse(stripped));
+    } catch {
+      // Not a component: fall through to the regex scan below.
+    }
+  }
   const out: string[] = [];
   for (const match of text.matchAll(CLASS_ATTRIBUTE)) {
     const quoted = match[1] ?? match[2];
     if (quoted !== undefined) {
-      for (const cls of quoted.split(/\s+/)) {
+      for (const cls of expandVariantGroups(quoted).split(/\s+/)) {
         if (cls.length > 0) out.push(cls);
       }
       continue;
     }
     for (const cls of staticClasses(match[3] ?? "")) out.push(cls);
+  }
+  // A dynamic list (`class={["...", { "cls": cond }]}`) in JSX names its
+  // utilities in string literals the static attribute above never sees. The
+  // build must produce those too, so the literals are passed to the
+  // generator with them.
+  for (
+    const match of text.matchAll(
+      /(?:class|className)\s*=\s*\{\s*\[([\s\S]*?)\]\s*\}/g,
+    )
+  ) {
+    for (const literal of (match[1] ?? "").matchAll(/"([^"]*)"|'([^']*)'/g)) {
+      const value = literal[1] ?? literal[2] ?? "";
+      for (const cls of expandVariantGroups(value).split(/\s+/)) {
+        if (cls.length > 0) out.push(cls);
+      }
+    }
   }
   return out;
 }

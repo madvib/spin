@@ -15,7 +15,9 @@ import { spinClient } from "./client.ts";
 // as custom elements by the element transform as a side effect. The studio
 // mounts `mountHtml` tags in the preview stage, so the definitions must
 // exist in this window.
-import.meta.glob("../../../../packages/components/src/*/examples/*.html", { eager: true });
+import.meta.glob("../../../../packages/components/src/*/examples/*.html", {
+  eager: true,
+});
 
 /** One example row, as the RPC surface carries it. */
 export interface RpcExample {
@@ -80,7 +82,8 @@ export async function listPrimitives(): Promise<readonly RpcComponent[]> {
       variants: [...entry.examples],
       reads: [] as string[],
       examples: {
-        note: "Interactive machine component. Requires the runtime (@spin/runtime).",
+        note:
+          "Interactive machine component. Requires the runtime (@spin/runtime).",
         rows: examples.map((row) => {
           const stem = row.name;
           return {
@@ -100,7 +103,9 @@ export async function copyComponentExample(
   name: string,
   example: string,
 ): Promise<{ file: string | null; error: string | null }> {
-  const bare = name.startsWith("component-") ? name.slice("component-".length) : name;
+  const bare = name.startsWith("component-")
+    ? name.slice("component-".length)
+    : name;
   return (await spinClient()).components.copy({ name: bare, example });
 }
 

@@ -1,26 +1,35 @@
 <scope>props={ label: string = "Settings" } consume={ popover }</scope>
 
-<button {...popover.getTriggerProps()} class="inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface-raised p-2 text-text shadow-sm transition-colors hover:bg-surface">
+<button {...popover.getTriggerProps()}
+  class="inline-flex items-center justify-center ghost icon s-sm transition-colors hover:bg-surface">
   <span class="i-lucide-settings text-sm" aria-hidden="true"></span>
   <span class="sr-only">{label}</span>
 </button>
 
-<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised shadow-lg w-64 max-w-[16rem]">
+<popover {...popover.getContentProps()}
+  class="w-64 max-w-[16rem]">
   <div class="border-b border-solid border-border p-3">
-    <p class="m-0 font-medium text-sm text-text">Settings</p>
+    <p class="font-medium text-sm text-text">Settings</p>
   </div>
-  <div class="space-y-1 p-2">
-    <label class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
-      <span class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-moon text-sm text-muted" aria-hidden="true"></span>Dark Mode</span>
+  <div class="stack-xs p-2">
+    <label
+      class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
+      <span
+        class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-moon text-sm text-text-muted" aria-hidden="true"></span>Dark Mode</span>
       <input type="checkbox" role="switch" data-setting="dark" />
     </label>
-    <label class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
-      <span class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-bell text-sm text-muted" aria-hidden="true"></span>Notifications</span>
-      <input type="checkbox" role="switch" checked data-setting="notifications" />
+    <label
+      class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
+      <span
+        class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-bell text-sm text-text-muted" aria-hidden="true"></span>Notifications</span>
+      <input type="checkbox" role="switch" checked
+        data-setting="notifications" />
     </label>
-    <label class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
-      <span class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-shield text-sm text-muted" aria-hidden="true"></span>Two-Factor Auth</span>
+    <label
+      class="flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-surface">
+      <span
+        class="flex items-center gap-2 text-sm text-text"><span class="i-lucide-shield text-sm text-text-muted" aria-hidden="true"></span>Two-Factor Auth</span>
       <input type="checkbox" role="switch" checked data-setting="twofactor" />
     </label>
   </div>
-</div>
+</popover>

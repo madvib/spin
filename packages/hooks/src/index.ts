@@ -31,7 +31,9 @@ export interface SpinHookOptions<TProps extends object> {
   /** Written as element properties. */
   readonly props?: TProps | undefined;
   /** CustomEvent name -> handler, subscribed for the element's lifetime. */
-  readonly on?: Readonly<Record<string, (event: CustomEvent) => void>> | undefined;
+  readonly on?:
+    | Readonly<Record<string, (event: CustomEvent) => void>>
+    | undefined;
 }
 
 /** Attach-time work shared by every adapter: write props, bind events. */
@@ -43,9 +45,12 @@ export function bindSpinElement<TProps extends object>(
     (el as unknown as Record<string, unknown>)[name] = value;
   }
   const entries = Object.entries(on ?? {});
-  for (const [name, handler] of entries) el.addEventListener(name, handler as EventListener);
+  for (const [name, handler] of entries) {
+    el.addEventListener(name, handler as EventListener);
+  }
   return () => {
-    for (const [name, handler] of entries) el.removeEventListener(name, handler as EventListener);
+    for (const [name, handler] of entries) {
+      el.removeEventListener(name, handler as EventListener);
+    }
   };
 }
-

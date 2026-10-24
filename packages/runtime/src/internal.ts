@@ -12,33 +12,56 @@
  * the root.
  */
 
-export { runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";
+export {
+  type ElementAction,
+  runAction,
+  type SlotLookup,
+} from "./directives/use.ts";
 export { on } from "./directives/use.ts";
 export {
   bindAttr,
   bindChecked,
   bindDynamic,
+  type Binding,
   bindProp,
   bindText,
   bindValue,
-  type Binding,
   type Writable,
 } from "./directives/bind.ts";
-export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
-export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
-export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
+export {
+  bindFor,
+  type BindForOptions,
+  type RenderedItem,
+} from "./directives/for.ts";
+export {
+  bindIf,
+  type BindIfOptions,
+  type BranchRender,
+} from "./directives/if.ts";
+export {
+  type ReactiveText,
+  type Rendered,
+  text,
+  tpl,
+  view,
+} from "./directives/tpl.ts";
 export { parse } from "@spin/syntax";
-export { define, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
+export {
+  type AttributeParser,
+  type BuildContext,
+  define,
+  type ElementSpec,
+} from "./scope/element.ts";
 export {
   batch,
   computed,
   effect,
   own,
+  type OwnerScope,
   scope,
   signal,
   trigger,
   untrack,
-  type OwnerScope,
 } from "./core/signal.ts";
 export { load } from "./directives/load.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";

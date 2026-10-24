@@ -1,7 +1,10 @@
 import type { EventUnion } from "@spin/runtime/fsm";
 
 export interface PinInputEvents {
-  "VALUE.SET": { value: readonly string[]; index?: undefined } | { value: string; index: number };
+  "VALUE.SET": { value: readonly string[]; index?: undefined } | {
+    value: string;
+    index: number;
+  };
   "VALUE.CLEAR": {};
   "INPUT.FOCUS": { index: number };
   "INPUT.BLUR": { index: number };

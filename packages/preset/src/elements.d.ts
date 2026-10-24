@@ -36,8 +36,6 @@ declare global {
     "popover": HTMLElement & SpinElementAttributes;
     "prose": HTMLElement & SpinElementAttributes;
     "radio": HTMLElement & SpinElementAttributes;
-    "range": HTMLElement & SpinElementAttributes;
-    "rating": HTMLElement & SpinElementAttributes;
     "skeleton": HTMLElement & SpinElementAttributes;
     "stat": HTMLElement & SpinElementAttributes;
     "switch": HTMLElement & SpinElementAttributes;
@@ -47,26 +45,24 @@ declare global {
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
-      "alert": HTMLElement & SpinElementAttributes;
-      "avatar": HTMLElement & SpinElementAttributes;
-      "avatar-group": HTMLElement & SpinElementAttributes;
-      "badge": HTMLElement & SpinElementAttributes;
-      "breadcrumbs": HTMLElement & SpinElementAttributes;
-      "card": HTMLElement & SpinElementAttributes;
-      "checkbox": HTMLElement & SpinElementAttributes;
-      "field": HTMLElement & SpinElementAttributes;
-      "group": HTMLElement & SpinElementAttributes;
-      "icon": HTMLElement & SpinElementAttributes;
-      "join": HTMLElement & SpinElementAttributes;
-      "mode": HTMLElement & SpinElementAttributes;
-      "popover": HTMLElement & SpinElementAttributes;
-      "prose": HTMLElement & SpinElementAttributes;
-      "radio": HTMLElement & SpinElementAttributes;
-      "range": HTMLElement & SpinElementAttributes;
-      "rating": HTMLElement & SpinElementAttributes;
-      "skeleton": HTMLElement & SpinElementAttributes;
-      "stat": HTMLElement & SpinElementAttributes;
-      "switch": HTMLElement & SpinElementAttributes;
+    "alert": HTMLElement & SpinElementAttributes;
+    "avatar": HTMLElement & SpinElementAttributes;
+    "avatar-group": HTMLElement & SpinElementAttributes;
+    "badge": HTMLElement & SpinElementAttributes;
+    "breadcrumbs": HTMLElement & SpinElementAttributes;
+    "card": HTMLElement & SpinElementAttributes;
+    "checkbox": HTMLElement & SpinElementAttributes;
+    "field": HTMLElement & SpinElementAttributes;
+    "group": HTMLElement & SpinElementAttributes;
+    "icon": HTMLElement & SpinElementAttributes;
+    "join": HTMLElement & SpinElementAttributes;
+    "mode": HTMLElement & SpinElementAttributes;
+    "popover": HTMLElement & SpinElementAttributes;
+    "prose": HTMLElement & SpinElementAttributes;
+    "radio": HTMLElement & SpinElementAttributes;
+    "skeleton": HTMLElement & SpinElementAttributes;
+    "stat": HTMLElement & SpinElementAttributes;
+    "switch": HTMLElement & SpinElementAttributes;
     }
   }
 }

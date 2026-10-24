@@ -50,9 +50,11 @@ export function bindIf(opts: BindIfOptions): () => void {
     // child, and alien-signals then gates the content's own tick
     // subscriptions on the parent — in-branch text froze while top-level
     // text moved. The branch owns its effects; the test owns the flip.
-    next.run(() => untrack(() => {
-      rendered = branches[v]!();
-    }));
+    next.run(() =>
+      untrack(() => {
+        rendered = branches[v]!();
+      })
+    );
     cleanup = rendered.cleanup;
     nodes = rendered.nodes;
     const host = anchor.parentNode;

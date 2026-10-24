@@ -47,12 +47,15 @@ export type SignaturePadState = "idle" | "drawing";
 
 export function pathsOf(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.every((item): item is string => typeof item === "string") ? [...value] : [];
+    return value.every((item): item is string => typeof item === "string")
+      ? [...value]
+      : [];
   }
   if (typeof value !== "string" || value.length === 0) return [];
   try {
     const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+    return Array.isArray(parsed) &&
+        parsed.every((item): item is string => typeof item === "string")
       ? [...parsed]
       : [];
   } catch {
@@ -61,7 +64,9 @@ export function pathsOf(value: unknown): string[] {
 }
 
 export function tuningOf(value: unknown): Partial<DrawingTuning> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
   const bag: Record<string, unknown> = { ...value };
   const count = (field: unknown): number | null =>
     typeof field === "number" && Number.isFinite(field) ? field : null;
@@ -79,7 +84,10 @@ export function tuningOf(value: unknown): Partial<DrawingTuning> {
   };
 }
 
-export function svgPathFromStroke(points: readonly (readonly number[])[], closed = true): string {
+export function svgPathFromStroke(
+  points: readonly (readonly number[])[],
+  closed = true,
+): string {
   const len = points.length;
   if (len < 4) return "";
   const average = (a: number, b: number): number => (a + b) / 2;
@@ -95,14 +103,22 @@ export function svgPathFromStroke(points: readonly (readonly number[])[], closed
   for (let i = 2, max = len - 1; i < max; i += 1) {
     const a = points[i] ?? [0, 0];
     const b = points[i + 1] ?? [0, 0];
-    result += `${average(a[0] ?? 0, b[0] ?? 0).toFixed(2)},${average(a[1] ?? 0, b[1] ?? 0).toFixed(2)} `;
+    result += `${average(a[0] ?? 0, b[0] ?? 0).toFixed(2)},${
+      average(a[1] ?? 0, b[1] ?? 0).toFixed(2)
+    } `;
   }
   if (closed) result += "Z";
   return result;
 }
 
-export function strokePath(points: readonly SignaturePoint[], tuning: DrawingTuning): string {
-  const outline = (getStroke as unknown as (points: readonly { x: number; y: number; pressure: number }[], options: Record<string, unknown>) => number[][])(
+export function strokePath(
+  points: readonly SignaturePoint[],
+  tuning: DrawingTuning,
+): string {
+  const outline = (getStroke as unknown as (
+    points: readonly { x: number; y: number; pressure: number }[],
+    options: Record<string, unknown>,
+  ) => number[][])(
     points.map((p) => ({ x: p.x, y: p.y, pressure: p.pressure })),
     {
       size: tuning.size,
@@ -125,7 +141,10 @@ export function isEmpty(ctx: SignaturePadContext): boolean {
   return ctx.paths.length === 0;
 }
 
-export function initial(args: SignaturePadArgs, authored: (name: string) => boolean): SignaturePadContext {
+export function initial(
+  args: SignaturePadArgs,
+  authored: (name: string) => boolean,
+): SignaturePadContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

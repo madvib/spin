@@ -16,7 +16,6 @@
 import type { FixtureExample } from "./example.ts";
 
 import { ALERT_EXAMPLES, alertFixtureNote } from "./alert.examples.ts";
-import { AVATAR_EXAMPLES, avatarFixtureNote } from "./avatar.examples.ts";
 import {
   AVATAR_GROUP_EXAMPLES,
   avatarGroupFixtureNote,
@@ -44,8 +43,6 @@ import {
 import {
   fieldFixtureNote,
   INPUT_EXAMPLES,
-  SELECT_EXAMPLES,
-  selectFixtureNote,
   TEXTAREA_EXAMPLES,
   textareaFixtureNote,
 } from "./field.examples.ts";
@@ -58,22 +55,14 @@ import { KBD_EXAMPLES, kbdFixtureNote } from "./kbd.examples.ts";
 import { LABEL_EXAMPLES, labelFixtureNote } from "./label.examples.ts";
 import { METER_EXAMPLES, meterFixtureNote } from "./meter.examples.ts";
 import { MODE_EXAMPLES, modeFixtureNote } from "./mode.examples.ts";
-import {
-  POPOVER_SURFACE_EXAMPLES,
-  popoverFixtureNote,
-  TOOLTIP_EXAMPLES,
-  tooltipFixtureNote,
-} from "./popover.examples.ts";
 import { PROGRESS_EXAMPLES, progressFixtureNote } from "./progress.examples.ts";
+import { RADIO_EXAMPLES, radioFixtureNote } from "./radio.examples.ts";
 import {
   PROSE_DOC_EXAMPLES,
   proseFixtureNote,
   TYPOGRAPHY_EXAMPLES,
   typographyFixtureNote,
 } from "./prose.examples.ts";
-import { RADIO_EXAMPLES, radioFixtureNote } from "./radio.examples.ts";
-import { RANGE_EXAMPLES, rangeFixtureNote } from "./range.examples.ts";
-import { RATING_EXAMPLES, ratingFixtureNote } from "./rating.examples.ts";
 import { SKELETON_EXAMPLES, skeletonFixtureNote } from "./skeleton.examples.ts";
 import { STAT_EXAMPLES, statFixtureNote } from "./stat.examples.ts";
 import { TABLE_EXAMPLES, tableFixtureNote } from "./table.examples.ts";
@@ -106,7 +95,6 @@ export interface ComponentExamples {
  */
 export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
   alert: { id: "alert", note: alertFixtureNote, rows: ALERT_EXAMPLES },
-  avatar: { id: "avatar", note: avatarFixtureNote, rows: AVATAR_EXAMPLES },
   "avatar-group": {
     id: "avatar-group",
     note: avatarGroupFixtureNote,
@@ -154,11 +142,6 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
   label: { id: "label", note: labelFixtureNote, rows: LABEL_EXAMPLES },
   meter: { id: "meter", note: meterFixtureNote, rows: METER_EXAMPLES },
   mode: { id: "mode", note: modeFixtureNote, rows: MODE_EXAMPLES },
-  popover: {
-    id: "popover",
-    note: popoverFixtureNote,
-    rows: POPOVER_SURFACE_EXAMPLES,
-  },
   progress: {
     id: "progress",
     note: progressFixtureNote,
@@ -166,9 +149,6 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
   },
   prose: { id: "prose", note: proseFixtureNote, rows: PROSE_DOC_EXAMPLES },
   radio: { id: "radio", note: radioFixtureNote, rows: RADIO_EXAMPLES },
-  range: { id: "range", note: rangeFixtureNote, rows: RANGE_EXAMPLES },
-  rating: { id: "rating", note: ratingFixtureNote, rows: RATING_EXAMPLES },
-  select: { id: "select", note: selectFixtureNote, rows: SELECT_EXAMPLES },
   skeleton: {
     id: "skeleton",
     note: skeletonFixtureNote,
@@ -186,11 +166,6 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     id: "textarea",
     note: textareaFixtureNote,
     rows: TEXTAREA_EXAMPLES,
-  },
-  tooltip: {
-    id: "tooltip",
-    note: tooltipFixtureNote,
-    rows: TOOLTIP_EXAMPLES,
   },
   typography: {
     id: "typography",

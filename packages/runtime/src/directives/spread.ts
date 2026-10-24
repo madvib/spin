@@ -112,7 +112,8 @@ export function bindSpread(
     const EVENT_ALIASES: Record<string, string> = { doubleclick: "dblclick" };
     for (const [name, value] of Object.entries(props)) {
       if (name.startsWith("on") && typeof value === "function") {
-        const type = EVENT_ALIASES[name.slice(2).toLowerCase()] ?? name.slice(2).toLowerCase();
+        const type = EVENT_ALIASES[name.slice(2).toLowerCase()] ??
+          name.slice(2).toLowerCase();
         const listener = value as EventListener;
         seen.add(type);
         if (attached.get(type) !== listener) {
@@ -131,7 +132,10 @@ export function bindSpread(
       if (name === "style") {
         // The style attribute carries the custom properties the geometry
         // rides; the IDL property takes a string, not a bag.
-        el.setAttribute("style", toStyleString(value as Record<string, unknown>));
+        el.setAttribute(
+          "style",
+          toStyleString(value as Record<string, unknown>),
+        );
       } else if (ASSIGNABLE.has(name) || hasAccessor(el, name)) {
         (el as unknown as Record<string, unknown>)[name] = value;
       } else if (name.startsWith("aria-") && typeof value === "boolean") {
@@ -171,18 +175,19 @@ export function bindSpread(
       // build (a host prop write, a machine move), and a bag that first
       // carries its `use:` key on that later run would attach its action
       // with no active scope — which `own` (inside runAction) refuses.
-      runInElement(el, () =>
-        untrack(() =>
-          runAction(el, action as never, () => {
-            const entry = latest()[name];
-            // A function entry is a live read the machine wants re-evaluated;
-            // anything else is the param itself.
-            return typeof entry === "function" ? entry() : entry;
-          }),
-        ),
+      runInElement(
+        el,
+        () =>
+          untrack(() =>
+            runAction(el, action as never, () => {
+              const entry = latest()[name];
+              // A function entry is a live read the machine wants re-evaluated;
+              // anything else is the param itself.
+              return typeof entry === "function" ? entry() : entry;
+            })
+          ),
       );
     }
   });
   return () => {};
 }
-

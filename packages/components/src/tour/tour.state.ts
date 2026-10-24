@@ -53,7 +53,9 @@ const parseJsonList = (raw: unknown): readonly unknown[] => {
 /** The step collection off any transport: well-shaped entries only. The
  * scope grammar coerces `= []` to `["[]"]`, so JSON text parses too. */
 export function stepsOf(raw: unknown): TourStepRecord[] {
-  const list: readonly unknown[] = Array.isArray(raw) ? raw : parseJsonList(raw);
+  const list: readonly unknown[] = Array.isArray(raw)
+    ? raw
+    : parseJsonList(raw);
   const steps: TourStepRecord[] = [];
   for (const entry of list) {
     if (!isRecord(entry)) continue;
@@ -76,7 +78,16 @@ export function stepsOf(raw: unknown): TourStepRecord[] {
 export function initial(
   args: TourArgs,
   authored: (name: string) => boolean = () => true,
-): Pick<TourContext, "steps" | "step" | "previousStep" | "spotlight" | "disabled" | "spotlightPadding" | "label"> {
+): Pick<
+  TourContext,
+  | "steps"
+  | "step"
+  | "previousStep"
+  | "spotlight"
+  | "disabled"
+  | "spotlightPadding"
+  | "label"
+> {
   const steps = stepsOf(args.steps);
   const step = authored("step") || authored(defaultTwin("step"))
     ? stepOf(args.step, steps.length)
@@ -93,7 +104,13 @@ export function initial(
 }
 
 export function stepOf(raw: unknown, count: number): number {
-  return typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw < count ? raw : -1;
+  return typeof raw === "number" && Number.isInteger(raw) && raw >= 0 &&
+      raw < count
+    ? raw
+    : -1;
 }
 
-export const bailStep = (ctx: TourContext): Partial<TourContext> => ({ previousStep: ctx.step, step: -1 });
+export const bailStep = (ctx: TourContext): Partial<TourContext> => ({
+  previousStep: ctx.step,
+  step: -1,
+});

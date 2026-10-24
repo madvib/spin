@@ -6,7 +6,7 @@
 <div class="relative w-full max-w-[20rem]">
   <label class="mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate" for={machine.getTriggerProps()["id"]}>Date</label>
 
-  <button class={["flex h-7 w-full items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text shadow-sm transition-colors duration-fast ease-decelerate hover:bg-surface-raised", { "ring-2": machine.isOpen, "ring-border-strong": machine.isOpen }]} {...machine.getTriggerProps()}>
+  <button class={["secondary s-sm w-full items-center justify-between gap-2", { "ring-2": machine.isOpen, "ring-border-strong": machine.isOpen }]} {...machine.getTriggerProps()}>
     <span class="flex min-w-0 items-center gap-1">
       <template for={machine.getValueTextRows()} as={row} key={row.value}>
         <span class="truncate">{row.text}</span>
@@ -18,30 +18,30 @@
   <div class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top-left transition duration-fast ease-decelerate", { "pointer-events-none": !machine.isOpen, "invisible": !machine.isOpen, "scale-95": !machine.isOpen, "opacity-0": !machine.isOpen }]} {...machine.getContentProps()}>
     <div class="rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg">
       <div class="mb-2 flex items-center justify-between gap-2">
-        <button class="rounded-sm p-1 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getPrevTriggerProps()}>
+        <button class="ghost icon s-sm" {...machine.getPrevTriggerProps()}>
           <span class="i-lucide-chevron-left text-sm" aria-hidden="true"></span>
         </button>
-        <button class="rounded-sm bg-transparent px-2 py-0.5 text-sm font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface" {...machine.getViewControlProps()}>
+        <button class="ghost s-sm" {...machine.getViewControlProps()}>
           <template for={machine.getViewTextRows()} as={row} key={row.value}>
             <span>{row.text}</span>
           </template>
         </button>
-        <button class="rounded-sm p-1 text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getNextTriggerProps()}>
+        <button class="ghost icon s-sm" {...machine.getNextTriggerProps()}>
           <span class="i-lucide-chevron-right text-sm" aria-hidden="true"></span>
         </button>
       </div>
 
-      <div class="grid grid-cols-7 gap-0.5" {...machine.getGridProps()}>
+      <div class="grid grid-cols-7 gap-1" {...machine.getGridProps()}>
         <template for={machine.getWeekdayLabels()} as={day_}>
-          <span class="text-center text-xs font-medium text-muted">{day_}</span>
+          <span class="text-center text-xs font-medium text-text-muted">{day_}</span>
         </template>
         <template for={machine.getCells()} as={cell} key={cell.key}>
-          <button class={["h-7 rounded-sm bg-transparent text-xs tabular-nums text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-strong", { "bg-primary": cell.selected, "text-on-primary": cell.selected, "pointer-events-none": cell.disabled, "opacity-40": cell.disabled }]} {...machine.getCellProps(cell)}>{machine.getCellProps(cell).text}</button>
+          <button class={["bare h-7 rounded-sm bg-transparent text-xs tabular-nums transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-strong", { "pointer-events-none": cell.disabled, "opacity-40": cell.disabled }]} {...machine.getCellProps(cell)}>{machine.getCellProps(cell).text}</button>
         </template>
       </div>
 
       <div class="mt-2 flex justify-end">
-        <button class="rounded-sm px-2 py-0.5 text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface hover:text-text" {...machine.getClearTriggerProps()}>Clear</button>
+        <button class="ghost s-sm" {...machine.getClearTriggerProps()}>Clear</button>
       </div>
     </div>
   </div>

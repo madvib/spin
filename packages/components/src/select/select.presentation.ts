@@ -1,24 +1,24 @@
 import {
+  type ApiOf,
   ariaFlag,
   ariaHidden,
   ariaInvalid,
   ariaLabelledBy,
   ariaRequired,
+  type ComponentDef,
   defineComponent,
   disclosureTrigger,
   listSurface,
   optionRow,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
 import { dataAttr } from "./select.shared.ts";
 import { select as selectMachine } from "./select.machine.ts";
 import {
-  selectLabel,
   type SelectArgs,
   type SelectContext,
+  selectLabel,
   type SelectRow,
   type SelectState,
 } from "./select.state.ts";
@@ -52,7 +52,6 @@ export interface SelectSelect {
   readonly value: string[];
   readonly itemValue: string;
 }
-
 
 const sameKeys = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((value, index) => value === b[index]);
@@ -116,7 +115,10 @@ type RowHandlerSet = {
   readonly onPointerLeave: () => void;
   readonly onClick: () => void;
 };
-const rowHandlersByBridge = new WeakMap<object, WeakMap<SelectRow, RowHandlerSet>>();
+const rowHandlersByBridge = new WeakMap<
+  object,
+  WeakMap<SelectRow, RowHandlerSet>
+>();
 const rowHandlers = (scope: ScopeLike, row: SelectRow): RowHandlerSet => {
   let byRow = rowHandlersByBridge.get(scope.send);
   if (byRow === undefined) {
@@ -142,7 +144,10 @@ const rowHandlers = (scope: ScopeLike, row: SelectRow): RowHandlerSet => {
   return made;
 };
 
-const itemStateOf = (scope: SlotLike<SelectRow>, row: SelectRow): SelectItemState => ({
+const itemStateOf = (
+  scope: SlotLike<SelectRow>,
+  row: SelectRow,
+): SelectItemState => ({
   selected: scope.context.value.includes(row.value),
   highlighted: scope.context.highlightedValue === row.value,
   disabled: row.disabled === true,
@@ -150,7 +155,9 @@ const itemStateOf = (scope: SlotLike<SelectRow>, row: SelectRow): SelectItemStat
 
 const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (isComposing(event) || event.defaultPrevented) return;
-  if (scope.context.disabled === true || scope.context.readOnly === true) return;
+  if (scope.context.disabled === true || scope.context.readOnly === true) {
+    return;
+  }
   const dir = scope.context.dir;
   const key = resolveKey(event, typeof dir === "string" ? dir : "ltr");
   const open = scope.state === "open";
@@ -196,7 +203,9 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (isComposing(event) || event.defaultPrevented) return;
-  if (scope.context.disabled === true || scope.context.readOnly === true) return;
+  if (scope.context.disabled === true || scope.context.readOnly === true) {
+    return;
+  }
   const dir = scope.context.dir;
   const key = resolveKey(event, typeof dir === "string" ? dir : "ltr");
   switch (key) {
@@ -235,18 +244,29 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 export const def = {
   name: "select",
-  machine: (args: SelectArgs, authored: (name: string) => boolean) => selectMachine(args, authored),
+  machine: (args: SelectArgs, authored: (name: string) => boolean) =>
+    selectMachine(args, authored),
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
   },
-  reconcile: ({ context, parsed, send }: { readonly context: SelectContext; readonly parsed: Record<string, unknown>; readonly send: (event: { type: string } & Record<string, unknown>) => void }) => {
+  reconcile: (
+    { context, parsed, send }: {
+      readonly context: SelectContext;
+      readonly parsed: Record<string, unknown>;
+      readonly send: (
+        event: { type: string } & Record<string, unknown>,
+      ) => void;
+    },
+  ) => {
     const ctx = context;
     const nextItems = rowsOf(parsed);
     const itemsChanged = nextItems.length !== ctx.items.length ||
       nextItems.some((row, index) => {
         const current = ctx.items[index];
-        return current === undefined || current.value !== row.value || current.label !== row.label || (current.disabled ?? false) !== (row.disabled ?? false);
+        return current === undefined || current.value !== row.value ||
+          current.label !== row.label ||
+          (current.disabled ?? false) !== (row.disabled ?? false);
       });
     let moved = itemsChanged;
     if (itemsChanged) {
@@ -321,7 +341,8 @@ export const def = {
           onFocus: (): void => scope.send({ type: "TRIGGER.FOCUS" }),
           onBlur: (): void => scope.send({ type: "TRIGGER.BLUR" }),
           onClick: (): void => scope.send({ type: "TRIGGER.CLICK" }),
-          onKeyDown: (event: KeyboardEvent): void => onTriggerKeydown(scope, event),
+          onKeyDown: (event: KeyboardEvent): void =>
+            onTriggerKeydown(scope, event),
         };
       },
     },
@@ -390,7 +411,8 @@ export const def = {
           hidden: !open,
           tabIndex: 0,
           "data-state": open ? "open" : "closed",
-          onKeyDown: (event: KeyboardEvent): void => onContentKeydown(scope, event),
+          onKeyDown: (event: KeyboardEvent): void =>
+            onContentKeydown(scope, event),
           // The reflexes, as actions: the outside press and Escape
           // dismiss, the highlighted row stays scrolled into view. A press
           // on the trigger is this component's own gesture, so it toggles,
@@ -405,7 +427,8 @@ export const def = {
                 target.closest(`[id="${scope.id("trigger")}"]`) !== null
               ) return;
               const focusable = target instanceof Element &&
-                target.closest("button, [href], input, select, textarea") !== null;
+                target.closest("button, [href], input, select, textarea") !==
+                  null;
               scope.send({
                 type: "LAYER.INTERACT_OUTSIDE",
                 restoreFocus: !(focusable || event.button === 2),
@@ -506,12 +529,31 @@ export const def = {
   },
   commands: {
     syncSelectedItems: { event: () => ({ type: "SELECTED_ITEMS.SYNC" }) },
-    selectValue: { event: ([value]: [value: string]) => ({ type: "ITEM.SELECT" as const, value }) },
-    setValue: { event: ([value]: [value: readonly string[]]) => ({ type: "VALUE.SET" as const, value: [...value] }) },
+    selectValue: {
+      event: ([value]: [value: string]) => ({
+        type: "ITEM.SELECT" as const,
+        value,
+      }),
+    },
+    setValue: {
+      event: ([value]: [value: readonly string[]]) => ({
+        type: "VALUE.SET" as const,
+        value: [...value],
+      }),
+    },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
-    setHighlightValue: { event: ([value]: [value: string | null]) => ({ type: "HIGHLIGHTED_VALUE.SET" as const, highlightedValue: value }) },
+    setHighlightValue: {
+      event: ([value]: [value: string | null]) => ({
+        type: "HIGHLIGHTED_VALUE.SET" as const,
+        highlightedValue: value,
+      }),
+    },
     clearHighlightValue: { event: () => ({ type: "HIGHLIGHTED_VALUE.CLEAR" }) },
-    setOpen: { event: ([open]: [open: boolean]) => ({ type: open ? "OPEN" as const : "CLOSE" as const }) },
+    setOpen: {
+      event: ([open]: [open: boolean]) => ({
+        type: open ? "OPEN" as const : "CLOSE" as const,
+      }),
+    },
     close: { event: () => ({ type: "CLOSE" }) },
     toggle: { event: () => ({ type: "TOGGLE" }) },
     focus: { event: () => ({ type: "TRIGGER.FOCUS" }) },
@@ -544,7 +586,9 @@ export const def = {
   },
   methods: {
     getRows: {
-      call: (context: SelectContext): readonly SelectRow[] => [...context.items],
+      call: (
+        context: SelectContext,
+      ): readonly SelectRow[] => [...context.items],
     },
     getSelectedRows: {
       call: (context): readonly SelectRow[] => {
@@ -554,7 +598,11 @@ export const def = {
       },
     },
     getItemState: {
-      call: (context: SelectContext, _state, [row]: [row: SelectRow]): SelectItemState => {
+      call: (
+        context: SelectContext,
+        _state,
+        [row]: [row: SelectRow],
+      ): SelectItemState => {
         return {
           selected: context.value.includes(row.value),
           highlighted: context.highlightedValue === row.value,
@@ -568,10 +616,13 @@ export const def = {
       prop: "onValueChange",
       watch: (context) => [...context.value],
       detail: (watched: readonly string[], _event, _props, context) => {
-        const rows = context === undefined ? [] : (context as unknown as SelectContext).items;
+        const rows = context === undefined
+          ? []
+          : (context as unknown as SelectContext).items;
         return {
           value: [...watched],
-          items: watched.map((item) => rows.find((row) => row.value === item)).filter((row) => row !== undefined),
+          items: watched.map((item) => rows.find((row) => row.value === item))
+            .filter((row) => row !== undefined),
         };
       },
     },
@@ -580,7 +631,9 @@ export const def = {
       watch: (context) => [context.highlightedValue],
       detail: (watched: readonly [string | null], _event, _props, context) => {
         const highlighted = watched[0];
-        const items = context === undefined ? [] : (context as unknown as SelectContext).items;
+        const items = context === undefined
+          ? []
+          : (context as unknown as SelectContext).items;
         return {
           highlightedValue: highlighted,
           highlightedItem: highlighted === null
@@ -594,18 +647,24 @@ export const def = {
       watch: (_context, state) => [state === "open"],
       detail: (watched: readonly [boolean], event) => ({
         open: watched[0],
-        reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ?? "script",
+        reason: (event !== undefined ? OPEN_REASON[event.type] : undefined) ??
+          "script",
       }),
     },
     select: {
       prop: "onSelect",
       watch: (context) => [...context.value],
-      detail: (watched: readonly string[]) => ({ value: [...watched], itemValue: "" }),
+      detail: (watched: readonly string[]) => ({
+        value: [...watched],
+        itemValue: "",
+      }),
       // The value the pick landed on. A toggle-off reports as much as a
       // pick — the host asked about the move, not the direction — but a
       // guard the machine refused reports nothing.
       select: (event, before: SelectContext, after: SelectContext) => {
-        if (event.type !== "ITEM.SELECT" && event.type !== "ITEM.CLICK") return null;
+        if (event.type !== "ITEM.SELECT" && event.type !== "ITEM.CLICK") {
+          return null;
+        }
         const beforeCtx = before;
         const afterCtx = after;
         let outcome: readonly string[] | null = null;
@@ -621,7 +680,9 @@ export const def = {
             : [itemValue];
         } else {
           const highlighted = beforeCtx.highlightedValue;
-          if (highlighted === null || !beforeCtx.order.includes(highlighted)) return null;
+          if (highlighted === null || !beforeCtx.order.includes(highlighted)) {
+            return null;
+          }
           itemValue = highlighted;
           outcome = beforeCtx.multiple
             ? beforeCtx.value.includes(highlighted)
@@ -634,7 +695,19 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<SelectContext, SelectEvents, Record<string, unknown>, SelectArgs, SelectState>;
+} satisfies ComponentDef<
+  SelectContext,
+  SelectEvents,
+  Record<string, unknown>,
+  SelectArgs,
+  SelectState
+>;
 
 export type SelectApi = ApiOf<typeof def>;
-export const select = defineComponent<SelectContext, SelectEvents, SelectApi, SelectArgs, SelectState>(def);
+export const select = defineComponent<
+  SelectContext,
+  SelectEvents,
+  SelectApi,
+  SelectArgs,
+  SelectState
+>(def);

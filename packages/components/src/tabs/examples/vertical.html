@@ -1,23 +1,41 @@
 <script lang="ts">
-  import { tabs } from "../tabs.presentation.ts";
+import { tabs } from "../tabs.presentation.ts";
 
-  const machine = tabs({ items: [
-    { value: "tab1", label: "Dashboard", content: "Main dashboard with key metrics and insights." },
-    { value: "tab2", label: "Analytics", content: "Track performance with detailed reports." },
-    { value: "tab3", label: "Settings", content: "Configure preferences and account options." },
-  ], defaultValue: "tab1" });
+const machine = tabs({
+ items: [
+  {
+   value: "tab1",
+   label: "Dashboard",
+   content: "Main dashboard with key metrics and insights.",
+  },
+  {
+   value: "tab2",
+   label: "Analytics",
+   content: "Track performance with detailed reports.",
+  },
+  {
+   value: "tab3",
+   label: "Settings",
+   content: "Configure preferences and account options.",
+  },
+ ],
+ defaultValue: "tab1",
+});
 </script>
 
-<div class="mx-auto flex w-full max-w-md items-start gap-4" data-default="tab1" {...machine.getRootProps()}>
-  <div class="flex shrink-0 flex-col gap-1 rounded-lg bg-surface-raised p-1" {...machine.getListProps()}>
-    <template for={machine.items} as={row} key={row.value}>
-      <button
-        class={["rounded-md px-4 py-2 text-sm font-medium text-muted transition-all", { "bg-surface text-text shadow-sm": machine.value === row.value }]}
-        {...machine.getTriggerProps(row)}
-      >{row.label}</button>
-    </template>
-  </div>
+<div class="mx-auto flex w-full max-w-md items-start gap-4" data-default="tab1"
+ {...machine.getRootProps()}>
+ <div class="flex shrink-0 flex-col gap-1 rounded-lg bg-surface-raised p-1"
+  {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
-    <p class="m-0 flex-1 pt-2 text-left text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+   <button
+    class={["bare px-4 py-2 text-sm font-medium text-text-muted transition-all", { "bg-surface": machine.value === row.value }]}
+    {...machine.getTriggerProps(row)}
+   >{row.label}</button>
   </template>
+ </div>
+ <template for={machine.items} as={row} key={row.value}>
+  <p class=" flex-1 pt-2 text-left text-sm text-text-muted"
+   {...machine.getContentProps(row)}>{row.content}</p>
+ </template>
 </div>

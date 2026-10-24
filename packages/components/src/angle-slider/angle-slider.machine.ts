@@ -1,5 +1,9 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { AngleSliderArgs, AngleSliderContext, AngleSliderState } from "./angle-slider.state.ts";
+import type {
+  AngleSliderArgs,
+  AngleSliderContext,
+  AngleSliderState,
+} from "./angle-slider.state.ts";
 import { initial } from "./angle-slider.state.ts";
 import type { AngleSliderEvents } from "./angle-slider.events.ts";
 import {
@@ -18,55 +22,60 @@ export function angleSlider(
   args: AngleSliderArgs = {},
   authored: (name: string) => boolean = () => false,
 ): Machine<AngleSliderContext, AngleSliderEvents, AngleSliderState> {
-  return createMachine<AngleSliderContext, AngleSliderEvents, AngleSliderState>({
-    id: "angle-slider",
-    initial: "idle",
-    context: initial(args, authored),
-    fields: {
-      value: { event: "VALUE.SET" },
-      step: {},
-      largeStep: {},
-      dir: {},
-      disabled: {},
-      readOnly: {},
-      invalid: {},
-      name: {},
-      ariaLabel: {},
-    },
-    on: {
-      "VALUE.SET": { assign: setValue },
-    },
-    states: {
-      idle: {
-        on: {
-          "CONTROL.POINTER_DOWN": {
-            target: "dragging",
-            assign: [setDragOffset, setPointerValue],
+  return createMachine<AngleSliderContext, AngleSliderEvents, AngleSliderState>(
+    {
+      id: "angle-slider",
+      initial: "idle",
+      context: initial(args, authored),
+      fields: {
+        value: { event: "VALUE.SET" },
+        step: {},
+        largeStep: {},
+        dir: {},
+        disabled: {},
+        readOnly: {},
+        invalid: {},
+        name: {},
+        ariaLabel: {},
+      },
+      on: {
+        "VALUE.SET": { assign: setValue },
+      },
+      states: {
+        idle: {
+          on: {
+            "CONTROL.POINTER_DOWN": {
+              target: "dragging",
+              assign: [setDragOffset, setPointerValue],
+            },
+            "THUMB.FOCUS": { target: "focused" },
           },
-          "THUMB.FOCUS": { target: "focused" },
         },
-      },
-      focused: {
-        on: {
-          "CONTROL.POINTER_DOWN": {
-            target: "dragging",
-            assign: [setDragOffset, setPointerValue],
+        focused: {
+          on: {
+            "CONTROL.POINTER_DOWN": {
+              target: "dragging",
+              assign: [setDragOffset, setPointerValue],
+            },
+            "THUMB.ARROW_DEC": { assign: arrowDec },
+            "THUMB.ARROW_INC": { assign: arrowInc },
+            "THUMB.HOME": { assign: () => ({ value: MIN_VALUE }) },
+            "THUMB.END": { assign: () => ({ value: MAX_VALUE }) },
+            "THUMB.BLUR": { target: "idle" },
           },
-          "THUMB.ARROW_DEC": { assign: arrowDec },
-          "THUMB.ARROW_INC": { assign: arrowInc },
-          "THUMB.HOME": { assign: () => ({ value: MIN_VALUE }) },
-          "THUMB.END": { assign: () => ({ value: MAX_VALUE }) },
-          "THUMB.BLUR": { target: "idle" },
         },
-      },
-      dragging: {
-        on: {
-          "DOC.POINTER_UP": { target: "focused", assign: () => ({ dragOffset: null }) },
-          "DOC.POINTER_MOVE": { assign: setPointerValue },
+        dragging: {
+          on: {
+            "DOC.POINTER_UP": {
+              target: "focused",
+              assign: () => ({ dragOffset: null }),
+            },
+            "DOC.POINTER_MOVE": { assign: setPointerValue },
+          },
         },
       },
     },
-  });
+  );
 }
 
 // Re-export helpers for tests/import compatibility

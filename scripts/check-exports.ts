@@ -230,6 +230,10 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
     ...Object.keys(npm.peerDependencies ?? {}),
   ]);
   for (const specifier of imports) {
+    // The package's own subpaths are self-references, not dependencies.
+    if (specifier === npm.name || specifier.startsWith(npm.name + "/")) {
+      continue;
+    }
     const packageName = specifier.startsWith("@")
       ? specifier.split("/").slice(0, 2).join("/")
       : specifier.split("/")[0];

@@ -1,7 +1,13 @@
 <script lang="ts">
-  import { toggleGroup } from "../toggle-group.presentation.ts";
+import { toggleGroup } from "../toggle-group.presentation.ts";
 
-  const machine = toggleGroup({ items: [{"value":"grid","label":"Grid"},{"value":"list","label":"List"},{"value":"calendar","label":"Calendar"}], defaultValue: ["grid"] });
+const machine = toggleGroup({
+  items: [{ "value": "grid", "label": "Grid" }, {
+    "value": "list",
+    "label": "List",
+  }, { "value": "calendar", "label": "Calendar" }],
+  defaultValue: ["grid"],
+});
 </script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
@@ -11,9 +17,9 @@
   >
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "bg-primary": machine.getItemState(row).pressed, "text-on-primary": machine.getItemState(row).pressed, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        class={["bare flex items-center gap-2 px-3 py-1 text-sm font-medium text-muted transition-all hover:bg-surface hover:text-text", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
-      ><span class="text-base" aria-hidden="true"><span show={row.value === "grid"} class="i-lucide-layout-grid"></span><span show={row.value === "list"} class="i-lucide-list"></span><span show={row.value === "calendar"} class="i-lucide-calendar"></span></span>{row.label}</button>
+      ><span class="text-md" aria-hidden="true"><span show={row.value === "grid"} class="i-lucide-layout-grid"></span><span show={row.value === "list"} class="i-lucide-list"></span><span show={row.value === "calendar"} class="i-lucide-calendar"></span></span>{row.label}</button>
     </template>
   </div>
 </div>

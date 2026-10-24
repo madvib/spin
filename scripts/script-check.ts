@@ -15,7 +15,12 @@
  */
 
 import { walk } from "@std/fs/walk";
-import { extractScript, parse, stripScript, type Node } from "../packages/syntax/src/index.ts";
+import {
+  extractScript,
+  type Node,
+  parse,
+  stripScript,
+} from "../packages/syntax/src/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
@@ -43,7 +48,9 @@ function emitTemplateChecks(nodes: readonly Node[], out: string[]): void {
       if (use.param !== undefined) out.push(`void (${use.param});`);
     }
     for (const spread of node.spreads) {
-      out.push(`{ const __bag: Record<string, unknown> = (${spread.expr}); void __bag; }`);
+      out.push(
+        `{ const __bag: Record<string, unknown> = (${spread.expr}); void __bag; }`,
+      );
     }
     emitTemplateChecks(node.children, out);
   }
@@ -53,7 +60,9 @@ async function main(): Promise<void> {
   const modules: string[] = [];
   const failures: string[] = [];
   try {
-    for await (const entry of walk(ROOT + "packages/components/src", { exts: [".html"] })) {
+    for await (
+      const entry of walk(ROOT + "packages/components/src", { exts: [".html"] })
+    ) {
       if (!entry.isFile) continue;
       const source = await Deno.readTextFile(entry.path);
       const body = extractScript(source);
@@ -61,7 +70,9 @@ async function main(): Promise<void> {
       const stripped = stripScript(body);
       if (stripped.stripped.length > 0) {
         failures.push(
-          `${entry.path}: script has stripped statements (effects?):\n    ${stripped.stripped.join("\n    ")}`,
+          `${entry.path}: script has stripped statements (effects?):\n    ${
+            stripped.stripped.join("\n    ")
+          }`,
         );
       }
       const dir = entry.path.split("/").slice(0, -1).join("/");
@@ -70,7 +81,9 @@ async function main(): Promise<void> {
         const m = /<include\s+file="([^"]+)"\s*\/?>/.exec(resolvedSource);
         if (m === null) break;
         const target = m[1]!;
-        const targetPath = target.startsWith("/") ? target.slice(1) : `${dir}/${target}`;
+        const targetPath = target.startsWith("/")
+          ? target.slice(1)
+          : `${dir}/${target}`;
         const normalized = targetPath.split("/").reduce((parts, part) => {
           if (part === "..") return parts.slice(0, -1);
           if (part === ".") return parts;
@@ -111,7 +124,8 @@ async function main(): Promise<void> {
       stderr: "piped",
     });
     const { code, stdout, stderr } = await cmd.output();
-    const out = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
+    const out = new TextDecoder().decode(stdout) +
+      new TextDecoder().decode(stderr);
     for (const f of failures) console.log(`FAIL ${f}`);
     if (code !== 0) {
       // Map tmp paths back to examples.

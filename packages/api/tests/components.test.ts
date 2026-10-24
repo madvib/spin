@@ -40,11 +40,16 @@ describe("daemon components over HTTP", () => {
   });
 
   it("serves a machine's variants with copy-ready markup", async () => {
-    const { examples } = await client.components.examples({ name: "tree-view" });
+    const { examples } = await client.components.examples({
+      name: "tree-view",
+    });
     assertEquals(examples.length, 2);
     const basic = examples.find((v) => v.name === "basic");
     assert(basic !== undefined);
-    assert(basic.html.includes("getBranchControlProps"), "the markup names the element");
+    assert(
+      basic.html.includes("getBranchControlProps"),
+      "the markup names the element",
+    );
   });
 
   it("copies a variant into the project at its known location", async () => {

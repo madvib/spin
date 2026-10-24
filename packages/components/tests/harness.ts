@@ -26,10 +26,9 @@
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { strict as assert } from "node:assert";
-import { chromium, type Browser, type Page } from "npm:playwright-core";
+import { type Browser, chromium, type Page } from "npm:playwright-core";
 
 const ROOT = join(import.meta.dirname as string, "..", "..", "..");
-const SPECIMENS = "packages/components/specimens";
 /** The reference app: the library's EXAMPLES, each its own element. The
  * specimens app is Solid's routes; this is the product's own markup. */
 const REFERENCE = "apps/reference";
@@ -54,7 +53,11 @@ async function buildDemo(app: string): Promise<void> {
     stderr: "piped",
   });
   const { code, stderr } = await cmd.output();
-  assert.equal(code, 0, `vite build failed:\n${new TextDecoder().decode(stderr)}`);
+  assert.equal(
+    code,
+    0,
+    `vite build failed:\n${new TextDecoder().decode(stderr)}`,
+  );
 }
 
 /** Serves the built dist on a fixed port and waits until it answers. */
@@ -86,7 +89,9 @@ async function startServer(
     }
     await delay(100);
   }
-  const errText = new TextDecoder().decode(await new Response(child.stderr).arrayBuffer());
+  const errText = new TextDecoder().decode(
+    await new Response(child.stderr).arrayBuffer(),
+  );
   try {
     child.kill();
   } catch {
@@ -103,8 +108,8 @@ export interface SuiteOptions {
   readonly port: number;
   readonly route: string;
   readonly ready: string;
-  /** The app to build and serve. The default is the specimens app
-   * (Solid's routes); the reference app is the library's EXAMPLES. */
+  /** The app to build and serve. Defaults to the reference app
+   * (the library's EXAMPLES). */
   readonly app?: string;
   /** Ready-selector timeout: the default 5s covers warm serves; the
    * floating panel's half-megabyte bundle on a cold cache has been
@@ -123,28 +128,40 @@ export async function runComponentSuite(
   options: SuiteOptions,
   steps: (ctx: SuiteContext) => Promise<void>,
 ): Promise<void> {
-  const app = options.app ?? SPECIMENS;
+  const app = options.app ?? REFERENCE;
   await step("build", () => buildDemo(app));
-  const server = await step("serve", () => startServer(options.port, options.route, app));
+  const server = await step(
+    "serve",
+    () => startServer(options.port, options.route, app),
+  );
   const pageErrors: string[] = [];
   let browser: Browser | undefined;
 
   try {
-    browser = await step("launch chromium", () =>
-      chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }));
+    browser = await step(
+      "launch chromium",
+      () =>
+        chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
+    );
 
-    const page: Page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const page: Page = await browser.newPage({
+      viewport: { width: 1280, height: 900 },
+    });
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
     await step("load page", async () => {
-      await page.goto(`http://127.0.0.1:${options.port}${options.route}`, { waitUntil: "load" });
-      await page.waitForSelector(options.ready, { state: "attached", timeout: options.timeoutMs ?? 5000 });
+      await page.goto(`http://127.0.0.1:${options.port}${options.route}`, {
+        waitUntil: "load",
+      });
+      await page.waitForSelector(options.ready, {
+        state: "attached",
+        timeout: options.timeoutMs ?? 5000,
+      });
       await page.waitForTimeout(1500);
       await options.settle?.(page);
     });
 
     await steps({ page });
-
 
     assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join("; ")}`);
   } finally {

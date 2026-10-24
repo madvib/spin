@@ -1,16 +1,16 @@
 import {
+  type ApiOf,
   ariaControls,
   ariaCurrent,
   ariaHidden,
   ariaLabelledBy,
   ariaOrientation,
   ariaOwns,
+  type ComponentDef,
   defineComponent,
   optionRow,
-  sliderThumb,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
+  sliderThumb,
   type SlotScopeFor,
 } from "@spin/runtime";
 import {
@@ -33,7 +33,9 @@ type ScopeLike = ScopeFor<StepsContext, StepsEvents, StepsState>;
 type SlotLike<R> = SlotScopeFor<R, StepsContext, StepsEvents, StepsState>;
 
 const parseTitles = (raw: unknown): readonly string[] => {
-  if (Array.isArray(raw)) return raw.filter((item): item is string => typeof item === "string");
+  if (Array.isArray(raw)) {
+    return raw.filter((item): item is string => typeof item === "string");
+  }
   return [];
 };
 
@@ -67,7 +69,9 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       break;
     case "Home":
       event.preventDefault();
-      if (order[0] !== undefined) scope.send({ type: "STEP.SET", value: order[0] });
+      if (order[0] !== undefined) {
+        scope.send({ type: "STEP.SET", value: order[0] });
+      }
       break;
     case "End": {
       event.preventDefault();
@@ -82,7 +86,8 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
 
 export const def = {
   name: "steps",
-  machine: (args: StepsArgs, authored: (name: string) => boolean) => stepsMachine(args, authored),
+  machine: (args: StepsArgs, authored: (name: string) => boolean) =>
+    stepsMachine(args, authored),
   start: "idle",
   parts: {
     root: {
@@ -183,7 +188,8 @@ export const def = {
             if (scope.context.linear === true) return;
             scope.send({ type: "STEP.SET", value: index });
           },
-          onKeydown: (event: KeyboardEvent): void => onTriggerKeydown(scope, event),
+          onKeydown: (event: KeyboardEvent): void =>
+            onTriggerKeydown(scope, event),
         };
       },
     },
@@ -230,7 +236,12 @@ export const def = {
     goToNextStep: { event: () => ({ type: "STEP.NEXT" }) },
     goToPrevStep: { event: () => ({ type: "STEP.PREV" }) },
     resetStep: { event: () => ({ type: "STEP.RESET" }) },
-    setStep: { event: ([value]: [value: number]) => ({ type: "STEP.SET", value: Math.trunc(value) }) },
+    setStep: {
+      event: ([value]: [value: number]) => ({
+        type: "STEP.SET",
+        value: Math.trunc(value),
+      }),
+    },
   },
   readers: {
     value: { read: (context: StepsContext) => context.step },
@@ -272,7 +283,9 @@ export const def = {
       prop: "onStepInvalid",
       watch: (context: StepsContext) => [context.invalidAttempts],
       detail: (_watched, _event, _props, context) => {
-        if (context === undefined) return { step: 0, action: "next", targetStep: 0 };
+        if (context === undefined) {
+          return { step: 0, action: "next", targetStep: 0 };
+        }
         const ctx = context;
         const fallbackAction: "next" | "set" = "next";
         return {
@@ -283,8 +296,20 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<StepsContext, StepsEvents, Record<string, unknown>, StepsArgs, StepsState>;
+} satisfies ComponentDef<
+  StepsContext,
+  StepsEvents,
+  Record<string, unknown>,
+  StepsArgs,
+  StepsState
+>;
 
 export type StepsApi = ApiOf<typeof def>;
 
-export const steps = defineComponent<StepsContext, StepsEvents, StepsApi, StepsArgs, StepsState>(def);
+export const steps = defineComponent<
+  StepsContext,
+  StepsEvents,
+  StepsApi,
+  StepsArgs,
+  StepsState
+>(def);

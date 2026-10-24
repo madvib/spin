@@ -1,6 +1,6 @@
 import { defaultTwin } from "@spin/runtime";
 import type { ToastEvents } from "./toast.events.ts";
-import { type ToastType, type ToastEvent } from "./toast.events.ts";
+import { type ToastEvent, type ToastType } from "./toast.events.ts";
 
 export type ToastStatus = "visible" | "persist" | "dismissing";
 
@@ -76,19 +76,26 @@ const PRIORITIES: Readonly<Record<ToastType, readonly [number, number]>> = {
 export const durationFor = (type: ToastType, authored: number): number =>
   authored > 0 && type !== "loading" ? authored : DURATIONS[type];
 
-export const priorityFor = (type: ToastType, authored: number, hasAction: boolean): number =>
-  authored > 0 ? authored : PRIORITIES[type][hasAction ? 0 : 1];
+export const priorityFor = (
+  type: ToastType,
+  authored: number,
+  hasAction: boolean,
+): number => authored > 0 ? authored : PRIORITIES[type][hasAction ? 0 : 1];
 
 export const forever = (entry: ToastEntry): boolean =>
   entry.type === "loading" || entry.remaining === Infinity;
 
 export const projectedCount = (ctx: ToastContext, e: ToastEvent): number => {
   if (e.type === "TOAST.CREATE") return ctx.toasts.length + 1;
-  if (e.type === "TOAST.REMOVE" || e.type === "TIMER.REMOVED") return ctx.toasts.length - 1;
+  if (e.type === "TOAST.REMOVE" || e.type === "TIMER.REMOVED") {
+    return ctx.toasts.length - 1;
+  }
   return ctx.toasts.length;
 };
 
-export const makeEntry = (e: Extract<ToastEvent, { type: "TOAST.CREATE" }>): ToastEntry => ({
+export const makeEntry = (
+  e: Extract<ToastEvent, { type: "TOAST.CREATE" }>,
+): ToastEntry => ({
   id: e.id,
   title: e.title,
   description: e.description,
@@ -101,7 +108,9 @@ export const makeEntry = (e: Extract<ToastEvent, { type: "TOAST.CREATE" }>): Toa
   mounted: false,
 });
 
-export const promote = (ctx: ToastContext): Pick<ToastContext, "toasts" | "queued"> => {
+export const promote = (
+  ctx: ToastContext,
+): Pick<ToastContext, "toasts" | "queued"> => {
   const toasts = [...ctx.toasts];
   const waiting = [...ctx.queued].sort((a, b) => a.priority - b.priority);
   while (waiting.length > 0 && toasts.length < ctx.max) {
@@ -124,12 +133,17 @@ export const amend = (
 };
 
 export const resumeEntry = (entry: ToastEntry): ToastEntry =>
-  entry.status !== "persist" || forever(entry) ? entry : { ...entry, status: "visible" };
+  entry.status !== "persist" || forever(entry)
+    ? entry
+    : { ...entry, status: "visible" };
 
 const asCountMachine = (raw: unknown, fallback: number): number =>
   typeof raw === "number" && Number.isFinite(raw) ? Math.trunc(raw) : fallback;
 
-export function initial(args: ToastArgs, authored: (name: string) => boolean): ToastContext {
+export function initial(
+  args: ToastArgs,
+  authored: (name: string) => boolean,
+): ToastContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -148,7 +162,9 @@ export function initial(args: ToastArgs, authored: (name: string) => boolean): T
     focusWithin: false,
     pageIdle: false,
     placement: text(args.placement, "bottom"),
-    gap: typeof args.gap === "number" && Number.isFinite(args.gap) ? Math.trunc(args.gap) : 16,
+    gap: typeof args.gap === "number" && Number.isFinite(args.gap)
+      ? Math.trunc(args.gap)
+      : 16,
     offsets: text(args.offsets, "1rem"),
     hotkey: text(args.hotkey, ""),
     label: text(args.label, "Notifications"),
@@ -158,4 +174,4 @@ export function initial(args: ToastArgs, authored: (name: string) => boolean): T
 }
 
 export { asCountMachine };
-export type { ToastType, ToastEvent, ToastEvents };
+export type { ToastEvent, ToastEvents, ToastType };

@@ -1,15 +1,17 @@
 <scope>props={ label: string = "Notifications" } consume={ popover }</scope>
 
-<button {...popover.getTriggerProps()} class="inline-flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">
+<button {...popover.getTriggerProps()}
+  class="inline-flex items-center gap-2 secondary s-sm transition-colors hover:bg-surface">
   <span class="i-lucide-bell text-sm" aria-hidden="true"></span>
   Notifications
 </button>
 
-<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
-  <p class="m-0 text-sm font-medium text-text">Notifications</p>
-  <ul class="m-0 mt-2 space-y-1 text-sm text-muted">
+<popover {...popover.getContentProps()}
+  class="max-w-[20rem]">
+  <p class="text-sm font-medium text-text">Notifications</p>
+  <ul class="mt-2 stack-xs text-sm text-text-muted">
     <li>Maya liked your post</li>
     <li>David started following you</li>
     <li>Lisa invited you to a workspace</li>
   </ul>
-</div>
+</popover>

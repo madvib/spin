@@ -6,7 +6,6 @@ import { parseHTML } from "@spin/runtime/testing";
 import unplugin from "./elements.ts";
 import {
   attrParsers,
-  machineTick,
   bindActionProps,
   bindAttr,
   bindFor,
@@ -16,6 +15,7 @@ import {
   controllerView,
   define,
   effect,
+  machineTick,
   on,
   own,
   projectSlots,
@@ -27,7 +27,13 @@ import {
 
 const { window } = parseHTML("<!doctype html><html><body></body></html>");
 const { document, customElements, HTMLElement, Element, Node } = window;
-Object.assign(globalThis, { document, customElements, HTMLElement, Element, Node });
+Object.assign(globalThis, {
+  document,
+  customElements,
+  HTMLElement,
+  Element,
+  Node,
+});
 
 const plugin = unplugin.raw({}, { framework: "vite", versions: {} }) as {
   transform(code: string, id: string): Promise<{ code: string } | null>;
@@ -60,20 +66,26 @@ const SOURCE = `<scope>props={ items: { label: string }[] = [] }</scope>
 
 /** Compiles `SOURCE` through the plugin and registers it under `tag`. */
 async function compile(tag: string): Promise<string> {
-  const result = await plugin.transform(SOURCE, `/virtual/${tag}.html?spin-element`);
+  const result = await plugin.transform(
+    SOURCE,
+    `/virtual/${tag}.html?spin-element`,
+  );
   const generated = result!.code
     .replace(/^import .*$/gm, "")
     .replace(/^export default .*$/m, "")
     .replace("export function create", "function create");
   const names = Object.keys(RUNTIME);
-  new Function(...names, generated)(...names.map((name) => RUNTIME[name as keyof typeof RUNTIME]));
+  new Function(...names, generated)(
+    ...names.map((name) => RUNTIME[name as keyof typeof RUNTIME]),
+  );
   return tag;
 }
 
 type Item = { label: string };
 type ListElement = HTMLElement & { items?: Item[] };
 
-const rows = (el: HTMLElement) => [...el.querySelectorAll("p")].map((p) => p.textContent);
+const rows = (el: HTMLElement) =>
+  [...el.querySelectorAll("p")].map((p) => p.textContent);
 
 Deno.test("a property written before connection is what the component renders", async () => {
   const tag = await compile("spin-seed-before");

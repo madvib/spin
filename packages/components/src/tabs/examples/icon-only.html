@@ -1,23 +1,37 @@
 <script lang="ts">
-  import { tabs } from "../tabs.presentation.ts";
+import { tabs } from "../tabs.presentation.ts";
 
-  const machine = tabs({ items: [
-    { value: "tab1", label: "Charts", content: "View charts and business metrics." },
-    { value: "tab2", label: "Team", content: "Manage team members and roles." },
-    { value: "tab3", label: "Settings", content: "Configure system preferences." },
-  ], defaultValue: "tab1" });
+const machine = tabs({
+ items: [
+  {
+   value: "tab1",
+   label: "Charts",
+   content: "View charts and business metrics.",
+  },
+  { value: "tab2", label: "Team", content: "Manage team members and roles." },
+  {
+   value: "tab3",
+   label: "Settings",
+   content: "Configure system preferences.",
+  },
+ ],
+ defaultValue: "tab1",
+});
 </script>
 
-<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...machine.getRootProps()}>
-  <div class="mb-4 flex w-fit gap-1 rounded-lg bg-surface-raised p-1" {...machine.getListProps()}>
-    <template for={machine.items} as={row} key={row.value}>
-      <button
-        class={["grid h-10 w-10 place-items-center rounded-md text-muted transition-all", { "bg-surface-raised text-text shadow-sm": machine.value === row.value }]}
-        {...machine.getTriggerProps(row)}
-      ><span class="i-lucide-chart-bar text-sm" aria-hidden="true" show={row.value === "tab1"}></span><span class="i-lucide-users text-sm" aria-hidden="true" show={row.value === "tab2"}></span><span class="i-lucide-settings text-sm" aria-hidden="true" show={row.value === "tab3"}></span><span class="sr-only">{row.label}</span></button>
-    </template>
-  </div>
+<div class="mx-auto flex w-full max-w-md flex-col items-center"
+ data-default="tab1" {...machine.getRootProps()}>
+ <div class="mb-4 flex w-fit gap-1 rounded-lg bg-surface-raised p-1"
+  {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
-    <p class="m-0 text-center text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+   <button
+    class={["bare grid h-10 w-10 place-items-center text-text-muted transition-all"]}
+    {...machine.getTriggerProps(row)}
+   ><span class="i-lucide-chart-bar text-sm" aria-hidden="true" show={row.value === "tab1"}></span><span class="i-lucide-users text-sm" aria-hidden="true" show={row.value === "tab2"}></span><span class="i-lucide-settings text-sm" aria-hidden="true" show={row.value === "tab3"}></span><span class="sr-only">{row.label}</span></button>
   </template>
+ </div>
+ <template for={machine.items} as={row} key={row.value}>
+  <p class=" text-center text-sm text-text-muted"
+   {...machine.getContentProps(row)}>{row.content}</p>
+ </template>
 </div>

@@ -1,7 +1,20 @@
-import { ariaControls, ariaLabelledBy, defineComponent, optionRow, type ApiOf, type ComponentDef, type ScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaControls,
+  ariaLabelledBy,
+  type ComponentDef,
+  defineComponent,
+  optionRow,
+  type ScopeFor,
+} from "@spin/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { tabs as tabsMachine } from "./tabs.machine.ts";
-import type { TabsArgs, TabsContext, TabsItem, TabsState } from "./tabs.state.ts";
+import type {
+  TabsArgs,
+  TabsContext,
+  TabsItem,
+  TabsState,
+} from "./tabs.state.ts";
 import type { TabsEvents } from "./tabs.events.ts";
 
 export type { TabsArgs, TabsState };
@@ -12,13 +25,19 @@ export type { TabsItem };
 const enabledValues = (context: TabsContext): string[] =>
   context.items.map((item) => item.value);
 
-const neighbor = (context: TabsContext, value: string, direction: 1 | -1): string | null => {
+const neighbor = (
+  context: TabsContext,
+  value: string,
+  direction: 1 | -1,
+): string | null => {
   const items = context.items;
   const idx = items.findIndex((item) => item.value === value);
   if (idx === -1) return null;
   const next = idx + direction;
   if (next < 0 || next >= items.length) {
-    return context.loopFocus ? (items[(next + items.length) % items.length]?.value ?? null) : null;
+    return context.loopFocus
+      ? (items[(next + items.length) % items.length]?.value ?? null)
+      : null;
   }
   return items[next]?.value ?? null;
 };
@@ -33,7 +52,11 @@ export const def = {
       attrs: () => ({ role: "tablist" }),
     },
     trigger: {
-      attrs: (scope: ScopeFor<TabsContext, TabsEvents, TabsState> & { readonly slot: TabsItem }) => {
+      attrs: (
+        scope: ScopeFor<TabsContext, TabsEvents, TabsState> & {
+          readonly slot: TabsItem;
+        },
+      ) => {
         const row = scope.slot;
         const isSelected = scope.context.value === row.value;
         return {
@@ -52,14 +75,13 @@ export const def = {
             const intent = ROVING_KEYS[event.key];
             if (intent === undefined) return;
             const order = enabledValues(scope.context);
-            const target =
-              intent.intent === "next"
-                ? neighbor(scope.context, row.value, 1)
-                : intent.intent === "prev"
-                  ? neighbor(scope.context, row.value, -1)
-                  : intent.intent === "first"
-                    ? (order[0] ?? null)
-                    : (order[order.length - 1] ?? null);
+            const target = intent.intent === "next"
+              ? neighbor(scope.context, row.value, 1)
+              : intent.intent === "prev"
+              ? neighbor(scope.context, row.value, -1)
+              : intent.intent === "first"
+              ? (order[0] ?? null)
+              : (order[order.length - 1] ?? null);
             if (target === null) return;
             event.preventDefault();
             scope.send({ type: "TAB.SELECT", value: target });
@@ -68,7 +90,11 @@ export const def = {
       },
     },
     content: {
-      attrs: (scope: ScopeFor<TabsContext, TabsEvents, TabsState> & { readonly slot: TabsItem }) => {
+      attrs: (
+        scope: ScopeFor<TabsContext, TabsEvents, TabsState> & {
+          readonly slot: TabsItem;
+        },
+      ) => {
         const row = scope.slot;
         const isSelected = scope.context.value === row.value;
         return {
@@ -82,7 +108,9 @@ export const def = {
     },
   },
   commands: {
-    select: { event: ([value]: [value: string]) => ({ type: "TAB.SELECT", value }) },
+    select: {
+      event: ([value]: [value: string]) => ({ type: "TAB.SELECT", value }),
+    },
   },
   readers: {
     value: { read: (context: TabsContext) => context.value },
@@ -100,7 +128,19 @@ export const def = {
     const value = event["value"];
     if (typeof value === "string") focus("trigger", value);
   },
-} satisfies ComponentDef<TabsContext, TabsEvents, Record<string, unknown>, TabsArgs, TabsState>;
+} satisfies ComponentDef<
+  TabsContext,
+  TabsEvents,
+  Record<string, unknown>,
+  TabsArgs,
+  TabsState
+>;
 
 export type TabsApi = ApiOf<typeof def>;
-export const tabs = defineComponent<TabsContext, TabsEvents, TabsApi, TabsArgs, TabsState>(def);
+export const tabs = defineComponent<
+  TabsContext,
+  TabsEvents,
+  TabsApi,
+  TabsArgs,
+  TabsState
+>(def);

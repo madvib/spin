@@ -120,6 +120,7 @@ export function factsFor(
   documents: readonly ThemeDocument[],
   generated: ReadonlySet<string> = new Set(),
   shortcuts: ShortcutDeclaration = noShortcuts(),
+  components: readonly string[] = [],
 ): Facts {
   const trees = treesOf(documents);
   if (trees.length === 0) return unreadable();
@@ -183,6 +184,7 @@ export function factsFor(
     tiers,
     paints,
     prefixes,
+    components,
     colors,
     inks,
     values: valuesOf(trees),
@@ -268,6 +270,7 @@ function unreadable(): Facts {
     scopes: [],
     tiers: new Map(),
     paints: new Map(),
+    components: [],
     prefixes: new Set(),
     colors: new Set(),
     inks: new Set(),
@@ -291,10 +294,12 @@ export function projectFacts(
   projectThemes: Record<string, ThemeDocument>,
   generated: ReadonlySet<string> = generatedClasses,
   shortcuts: ShortcutDeclaration = noShortcuts(),
+  components: readonly string[] = [],
 ): Facts {
   return factsFor(
     [...Object.values(starterThemes), ...Object.values(projectThemes)],
     generated,
     shortcuts,
+    components,
   );
 }

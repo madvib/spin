@@ -1,0 +1,794 @@
+/**
+ * Mount glue a static file cannot carry: property functions.
+ *
+ * Keyed by `machine/stem`. The loading example's `loadChildren` is what a
+ * consumer writes in their own code. One map, shared: the reference app and
+ * the docs both read it from here — never copy it into an app.
+ */
+export const EXAMPLE_ONLOAD: Record<string, string> = {
+  "pagination/pagesize": `
+    document.querySelectorAll("pagination-pagesize").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // Delegated: page changes re-render and replace the select node.
+      host.addEventListener("change", (event) => {
+        const select = event.target?.closest("[data-size]");
+        if (select && typeof host.setPageSize === "function") host.setPageSize(Number(select.value));
+      });
+    });
+  `,
+  "tags-input/with-combobox": `
+    document.querySelectorAll("tags-input-with-combobox").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // A combobox pick adds a tag: delegated clicks read the
+      // row's value straight from the DOM, so the tags and combobox
+      // value-change events (same name, same target) never collide.
+      host.addEventListener("click", (event) => {
+        const row = event.target?.closest("[data-scope=combobox][data-part=item]");
+        const value = row?.getAttribute("data-value") ?? row?.textContent?.trim();
+        if (!value || typeof host.addValue !== "function") return;
+        host.addValue(value);
+        // Clear the pick: reset the field and tell the machine, so the
+        // dropdown closes and the next pick starts from all options.
+        // Deferred past the row's own select handling, which sets the
+        // field to the picked label after this bubble handler runs.
+        requestAnimationFrame(() => {
+          // The combobox's own clear trigger resets its field through
+          // the machine; synthetic input events never survive the
+          // controlled binding.
+          const clear = host.querySelector("[data-scope=combobox][data-part=clear-trigger]");
+          if (clear instanceof HTMLElement) clear.click();
+          const input = host.querySelector("[data-scope=combobox][data-part=input]");
+          if (input instanceof HTMLInputElement) input.focus();
+        });
+      });
+    });
+  `,
+  "pagination/jump": `
+    document.querySelectorAll("pagination-jump").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // Delegated on the host: page changes re-render the example and
+      // replace the input node, so a node-bound listener would go stale.
+      const go = () => {
+        const input = host.querySelector("[data-jump] input");
+        const raw = Number(input?.value ?? "1");
+        const total = typeof host.totalPages === "number" ? host.totalPages : 10;
+        const pageNum = Math.max(1, Math.min(total, Math.floor(raw) || 1));
+        if (typeof host.setPage === "function") host.setPage(pageNum);
+      };
+      host.addEventListener("click", (event) => {
+        if (event.target?.closest("[data-go]")) go();
+      });
+      host.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && event.target instanceof HTMLInputElement && event.target.closest("[data-jump]")) go();
+      });
+    });
+  `,
+  "tooltip/positioning": `
+    document.querySelectorAll("tooltip-positioning").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const label = host.querySelector("[data-part=trigger]");
+      const update = (placement) => {
+        if (typeof host.setPlacement === "function") host.setPlacement(placement);
+        host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+          const active = btn.getAttribute("data-placement-choice") === placement;
+          btn.setAttribute("data-active", active ? "true" : "false");
+        });
+        const tip = host.querySelector("[data-part=content]");
+        if (tip) tip.textContent = placement;
+        if (label) label.textContent = "Hover for " + placement + " placement";
+      };
+      host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+        btn.addEventListener("click", () => update(btn.getAttribute("data-placement-choice") ?? "bottom"));
+      });
+      update("bottom");
+    });
+  `,
+  "signature-pad/with-preview": `
+    document.querySelectorAll("signature-pad-with-preview").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const box = host.querySelector("[data-preview]");
+      const frame = host.querySelector("[data-preview-box]");
+      const render = () => {
+        const svg = host.querySelector("svg");
+        if (!svg || !frame || !box) return;
+        const clone = svg.cloneNode(true);
+        clone.setAttribute("class", "h-24 w-full");
+        frame.replaceChildren(clone);
+        box.hidden = false;
+      };
+      host.addEventListener("draw-end", render);
+      host.querySelector("[data-preview-clear]")?.addEventListener("click", () => {
+        if (typeof host.clear === "function") host.clear();
+        if (frame) frame.replaceChildren();
+        if (box) box.hidden = true;
+      });
+    });
+  `,
+  "hover-card/custom-positioning": `
+    document.querySelectorAll("hover-card-custom-positioning").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const label = host.querySelector("[data-part=trigger]");
+      const update = (placement) => {
+        if (typeof host.setPlacement === "function") host.setPlacement(placement);
+        host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+          const active = btn.getAttribute("data-placement-choice") === placement;
+          btn.setAttribute("data-active", active ? "true" : "false");
+        });
+        if (label) label.textContent = "Hover for " + placement + " positioning";
+      };
+      host.querySelectorAll("[data-placement-choice]").forEach((btn) => {
+        btn.addEventListener("click", () => update(btn.getAttribute("data-placement-choice") ?? "bottom"));
+      });
+      update("bottom");
+    });
+  `,
+  "hover-card/controlled": `
+    document.querySelectorAll("hover-card-controlled").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const state = host.querySelector("#hc-state");
+      host.querySelector("#hc-show")?.addEventListener("click", () => {
+        if (typeof host.show === "function") host.show();
+        else host.querySelector("[data-part=trigger]")?.dispatchEvent(new Event("pointerenter", { bubbles: true }));
+        if (state) state.textContent = "Open";
+      });
+      host.querySelector("#hc-hide")?.addEventListener("click", () => {
+        if (typeof host.hide === "function") host.hide();
+        if (state) state.textContent = "Closed";
+      });
+      host.addEventListener("open-change", (event) => {
+        if (state) state.textContent = event.detail?.open === true ? "Open" : "Closed";
+      });
+    });
+  `,
+  "toast/basic": `
+    document.querySelectorAll("toast-basic").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/action": `
+    document.querySelectorAll("toast-action").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/duration": `
+    document.querySelectorAll("toast-duration").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/types": `
+    document.querySelectorAll("toast-types").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topleft": `
+    document.querySelectorAll("toast-topleft").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topcenter": `
+    document.querySelectorAll("toast-topcenter").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/topright": `
+    document.querySelectorAll("toast-topright").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomleft": `
+    document.querySelectorAll("toast-bottomleft").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomcenter": `
+    document.querySelectorAll("toast-bottomcenter").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/bottomright": `
+    document.querySelectorAll("toast-bottomright").forEach((pg) => {
+      const btn = pg.querySelector("[data-fire]");
+      if (btn === null || btn.getAttribute("data-wired") === "true") return;
+      btn.setAttribute("data-wired", "true");
+      btn.addEventListener("click", () => {
+        pg.create({
+          id: "t" + Date.now(),
+          title: btn.getAttribute("data-title") ?? "",
+          description: btn.getAttribute("data-description") ?? "",
+          type: btn.getAttribute("data-type") ?? "info",
+          duration: Number(btn.getAttribute("data-duration") ?? 5000),
+          priority: 0,
+          action: btn.getAttribute("data-action") ?? "",
+        });
+      });
+    });
+  `,
+  "toast/promise": `
+    document.querySelectorAll("toast-promise").forEach((pg) => {
+      const id = "upload";
+      pg.create({ id: id, title: "Uploading file...", description: "Please wait.", type: "loading", duration: 0, priority: 0, action: "" });
+      setTimeout(() => {
+        pg.update(id, { title: "Upload successful!", description: "Your file is live.", type: "success", duration: 5000 });
+      }, 2500);
+    });`,
+  "toast/updatable": `
+    document.querySelectorAll("toast-updatable").forEach((pg) => {
+      const id = "progress";
+      pg.create({ id: id, title: "Uploading...", description: "Starting.", type: "loading", duration: 0, priority: 0, action: "" });
+      let step = 0;
+      const timer = setInterval(() => {
+        step += 1;
+        if (step >= 3) {
+          clearInterval(timer);
+          pg.update(id, { title: "Upload complete!", description: "Done.", type: "success", duration: 5000 });
+        } else {
+          pg.update(id, { description: "Part " + step + " of 3." });
+        }
+      }, 1200);
+    });`,
+  "pagination/dropdown": `
+    document.querySelectorAll("pagination-dropdown").forEach((pg) => {
+      pg.querySelectorAll("[data-size]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pg.setPageSize(Number(btn.getAttribute("data-size")));
+        });
+      });
+    });`,
+  "tour/basic": `
+    document.querySelectorAll("tour-basic").forEach((tour) => {
+      tour.querySelector("[data-start]")?.addEventListener("click", () => {
+        tour.start();
+      });
+    });`,
+  "floating-panel/chat": `
+    document.querySelectorAll("floating-panel-chat").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-chat-input]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const list = root.querySelector("[data-messages]");
+        const input = root.querySelector("[data-chat-input]");
+        const sendBtn = root.querySelector("[data-send]");
+        let n = 0;
+        const bubble = (text, mine) => {
+          const wrap = document.createElement("div");
+          wrap.className = mine ? "justify-self-end" : "";
+          wrap.style.maxWidth = "80%";
+          const inner = document.createElement("div");
+          inner.className = mine
+            ? "rounded-lg rounded-tr-sm bg-info px-3 py-2 text-white"
+            : "rounded-lg rounded-tl-sm bg-surface px-3 py-2 text-text";
+          inner.textContent = text;
+          wrap.appendChild(inner);
+          if (mine) {
+            const row = document.createElement("div");
+            row.className = "justify-self-end";
+            row.style.maxWidth = "80%";
+            row.appendChild(inner);
+            list.appendChild(row);
+          } else {
+            list.appendChild(wrap);
+          }
+          list.scrollTop = list.scrollHeight;
+        };
+        const send = () => {
+          const text = input.value.trim();
+          if (text === "") return;
+          n += 1;
+          bubble(text, true);
+          input.value = "";
+          const replies = [
+            "Got it — let me look into that for you.",
+            "Thanks for the detail! One moment while I check.",
+            "That's on my list. Anything else I can help with?",
+          ];
+          const reply = replies[(n - 1) % replies.length];
+          setTimeout(() => bubble(reply, false), 600);
+        };
+        sendBtn.addEventListener("click", send);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") send();
+        });
+      };
+      wait();
+    });`,
+  "floating-panel/media-player": `
+    document.querySelectorAll("floating-panel-media-player").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-play]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const play = root.querySelector("[data-play]");
+        const icon = play.querySelector("span");
+        const bar = root.querySelector("[data-progress]");
+        const elapsed = root.querySelector("[data-elapsed]");
+        const fav = root.querySelector("[data-fav]");
+        let playing = false;
+        let seconds = 72;
+        let timer = 0;
+        const fmt = (total) => {
+          const mins = Math.floor(total / 60);
+          const secs = total % 60;
+          return mins + ":" + String(secs).padStart(2, "0");
+        };
+        const tick = () => {
+          seconds = Math.min(228, seconds + 1);
+          elapsed.textContent = fmt(seconds);
+          bar.style.width = (seconds / 228) * 100 + "%";
+          if (seconds >= 228) setPlaying(false);
+        };
+        const setPlaying = (next) => {
+          playing = next;
+          icon.className = next
+            ? "i-lucide-pause text-md"
+            : "i-lucide-play text-md";
+          if (next) {
+            timer = setInterval(tick, 1000);
+          } else {
+            clearInterval(timer);
+          }
+        };
+        play.addEventListener("click", () => setPlaying(!playing));
+        let liked = true;
+        fav.addEventListener("click", () => {
+          liked = !liked;
+          fav.style.opacity = liked ? "1" : "0.4";
+        });
+      };
+      wait();
+    });`,
+  "floating-panel/notes": `
+    document.querySelectorAll("floating-panel-notes").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-note]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const notes = [
+          { title: "Meeting Notes", body: "Discussed project timeline and deliverables…", date: "Today" },
+          { title: "Ideas", body: "New feature ideas for the dashboard…", date: "Yesterday" },
+          { title: "Shopping List", body: "Milk, Bread, Eggs, Coffee beans…", date: "2 days ago" },
+        ];
+        let current = 0;
+        const title = root.querySelector("[data-title]");
+        const body = root.querySelector("[data-body]");
+        const edited = root.querySelector("[data-edited]");
+        const previewOf = (index) => {
+          const card = root.querySelector('[data-note="' + index + '"]');
+          if (!card) return;
+          const ps = card.querySelectorAll("p");
+          if (ps[0]) ps[0].textContent = notes[index].title;
+          if (ps[1]) ps[1].textContent = notes[index].body.slice(0, 48) + "…";
+        };
+        const select = (index) => {
+          const note = notes[index];
+          if (!note) return;
+          current = index;
+          title.value = note.title;
+          body.value = note.body;
+          edited.textContent = "Last edited " + note.date;
+          root.querySelectorAll("[data-note]").forEach((btn) => {
+            const active = btn.getAttribute("data-note") === String(index);
+            btn.classList.toggle("bg-surface-raised", active);
+          });
+        };
+        root.querySelectorAll("[data-note]").forEach((btn) => {
+          btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
+        });
+        const commit = () => {
+          const note = notes[current];
+          if (!note) return;
+          note.title = title.value;
+          note.body = body.value;
+          note.date = "Just now";
+          edited.textContent = "Last edited Just now";
+          previewOf(current);
+        };
+        title.addEventListener("input", commit);
+        body.addEventListener("input", commit);
+        const add = root.querySelector("[data-new]");
+        if (add) add.addEventListener("click", () => {
+          const index = notes.length;
+          notes.push({ title: "Untitled Note", body: "", date: "Just now" });
+          const list = root.querySelector("[data-notes]");
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("data-note", String(index));
+          btn.className = "grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
+          const t = document.createElement("p");
+          t.className = "m-0 text-sm font-medium text-text";
+          t.textContent = "Untitled Note";
+          const pv = document.createElement("p");
+          pv.className = "m-0 text-xs text-muted";
+          pv.textContent = "…";
+          const dt = document.createElement("p");
+          dt.className = "m-0 text-xs text-muted";
+          dt.textContent = "Just now";
+          btn.append(t, pv, dt);
+          btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
+          list.appendChild(btn);
+          select(index);
+          title.focus();
+        });
+      };
+      wait();
+    });`,
+  "floating-panel/settings": `
+    document.querySelectorAll("floating-panel-settings").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-toggle]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        root.querySelectorAll("[data-toggle]").forEach((sw) => {
+          sw.addEventListener("change", () => {
+            sw.setAttribute("aria-checked", sw.checked ? "true" : "false");
+          });
+          sw.setAttribute("aria-checked", sw.checked ? "true" : "false");
+        });
+        const clear = root.querySelector("[data-clear]");
+        const freed = root.querySelector("[data-freed]");
+        const storage = root.querySelector("[data-storage]");
+        if (clear) clear.addEventListener("click", () => {
+          if (freed) freed.classList.remove("hidden");
+          if (storage) storage.textContent = "0 MB";
+          clear.setAttribute("disabled", "true");
+        });
+      };
+      wait();
+    });`,
+  "rating-group/product-review": `
+    document.querySelectorAll("rating-group-product-review").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const submit = host.querySelector("#rv-submit");
+      const text = host.querySelector("#rv-text");
+      const note = host.querySelector("#rv-note");
+      submit?.addEventListener("click", () => {
+        const stars = host.querySelector("[data-valuetext], [role=radiogroup]")?.getAttribute("aria-label") ?? "";
+        const words = (text?.value ?? "").trim();
+        if (note) note.textContent = words === "" ? "Write a few words first." : "Thanks — review received.";
+      });
+    });
+  `,
+  "rating-group/movie": `
+    document.querySelectorAll("rating-group-movie").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      const trailer = host.querySelector("#rt-trailer");
+      const list = host.querySelector("#rt-list");
+      const note = host.querySelector("#rt-note");
+      let playing = false;
+      trailer?.addEventListener("click", () => {
+        playing = !playing;
+        if (note) note.textContent = playing ? "Now playing: trailer" : "";
+      });
+      list?.addEventListener("click", () => {
+        if (note) note.textContent = "Added to your list";
+      });
+    });
+  `,
+  "floating-panel/video-call": `
+    document.querySelectorAll("floating-panel-video-call").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-mute]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const swap = (btn, onIcon, offIcon) => {
+          const icon = btn.querySelector("span");
+          const pressed = btn.getAttribute("aria-pressed") === "true";
+          btn.setAttribute("aria-pressed", pressed ? "false" : "true");
+          btn.classList.toggle("bg-semantic-error", !pressed);
+          btn.classList.toggle("text-on-primary", !pressed);
+          btn.classList.toggle("bg-surface-raised", pressed);
+          btn.classList.toggle("text-text", pressed);
+          if (icon) icon.className = "i-lucide-" + (pressed ? onIcon : offIcon) + " text-sm";
+        };
+        const mute = root.querySelector("[data-mute]");
+        const video = root.querySelector("[data-video]");
+        if (mute) mute.addEventListener("click", () => swap(mute, "mic", "mic-off"));
+        if (video) video.addEventListener("click", () => swap(video, "video", "video-off"));
+        const hangup = root.querySelector("[data-hangup]");
+        if (hangup) hangup.addEventListener("click", () => {
+          const close = root.querySelector("[aria-label=Close]");
+          if (close) close.click();
+        });
+        const timer = root.querySelector("[data-timer]");
+        if (timer) {
+          let parts = [0, 12, 34];
+          setInterval(() => {
+            parts[2] += 1;
+            if (parts[2] > 59) { parts[2] = 0; parts[1] += 1; }
+            if (parts[1] > 59) { parts[1] = 0; parts[0] += 1; }
+            const pad = (n) => String(n).padStart(2, "0");
+            timer.textContent = pad(parts[0]) + ":" + pad(parts[1]) + ":" + pad(parts[2]);
+          }, 1000);
+      };
+      wait();
+    });`,
+  "floating-panel/calculator": `
+    document.querySelectorAll("floating-panel-calculator").forEach((host) => {
+      if (host.getAttribute("data-wired") === "true") return;
+      host.setAttribute("data-wired", "true");
+      // The inner content renders on element upgrade, which races this
+      // glue: poll until the display exists, then wire exactly once.
+      let tries = 0;
+      const wait = () => {
+        if (host.querySelector("[data-display]") !== null) {
+          wire(host);
+          return;
+        }
+        if (tries < 120) {
+          tries += 1;
+          requestAnimationFrame(wait);
+        }
+      };
+      const wire = (root) => {
+        const display = root.querySelector("[data-display]");
+        let shown = "0";
+        let previous = null;
+        let operation = null;
+        let waiting = false;
+        const render = () => {
+          display.textContent = shown;
+        };
+        const inputNumber = (num) => {
+          if (waiting) {
+            shown = num;
+            waiting = false;
+          } else {
+            shown = shown === "0" ? num : shown + num;
+          }
+          render();
+        };
+        const calculate = (first, second, op) => {
+          switch (op) {
+            case "+": return first + second;
+            case "−": return first - second;
+            case "×": return first * second;
+            case "÷": return second === 0 ? NaN : first / second;
+            case "=": return second;
+            default: return second;
+          }
+        };
+        const inputOperation = (next) => {
+          const input = parseFloat(shown);
+          if (Number.isNaN(input)) return;
+          if (previous === null) {
+            previous = input;
+          } else if (operation !== null) {
+            const value = calculate(previous, input, operation);
+            shown = Number.isNaN(value) ? "Error" : String(value);
+            previous = value;
+            render();
+          }
+          waiting = true;
+          operation = next;
+        };
+        root.querySelectorAll("[data-key]").forEach((key) => {
+          key.addEventListener("click", () => {
+            const label = key.getAttribute("data-key") ?? "";
+            const act = key.getAttribute("data-act") ?? "";
+            if (act === "clear") {
+              shown = "0";
+              previous = null;
+              operation = null;
+              waiting = false;
+              render();
+            } else if (act === "negate") {
+              shown = shown.startsWith("-") ? shown.slice(1) : "-" + shown;
+              render();
+            } else if (act === "percent") {
+              const value = parseFloat(shown);
+              if (!Number.isNaN(value)) {
+                shown = String(value / 100);
+                render();
+              }
+            } else if (act === "digit") {
+              if (label === "." && shown.includes(".") && !waiting) return;
+              inputNumber(label);
+            } else if (act === "op") {
+              inputOperation(label);
+            } else if (act === "eq") {
+              if (previous !== null && operation !== null) {
+                const value = calculate(previous, parseFloat(shown), operation);
+                shown = Number.isNaN(value) ? "Error" : String(value);
+                previous = null;
+                operation = null;
+                waiting = true;
+                render();
+              }
+            }
+          });
+        });
+      };
+      wait();
+    });`,
+  "tree-view/loading": `
+    document.querySelectorAll("tree-view-loading").forEach((tree) => {
+      const t = tree;
+      t.loadChildren = async (value) => {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (value === "packages") {
+          return [
+            { value: "packages/components", label: "components" },
+            { value: "packages/runtime", label: "runtime" },
+          ];
+        }
+        return [];
+      };
+    });
+  `,
+};

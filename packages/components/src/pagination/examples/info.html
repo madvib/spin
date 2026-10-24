@@ -1,34 +1,41 @@
 <script lang="ts">
-  import { pagination } from "../pagination.presentation.ts";
+import { pagination } from "../pagination.presentation.ts";
 
-  const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1, page: 3 });
+const machine = pagination({
+  count: 100,
+  pageSize: 10,
+  siblingCount: 1,
+  page: 3,
+});
 </script>
 
-<nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto" {...machine.getRootProps()}>
+<nav class="flex w-full flex-nowrap items-center gap-1 overflow-x-auto"
+  {...machine.getRootProps()}>
   <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    class="secondary icon s-sm disabled:opacity-40"
     {...machine.getFirstTriggerProps()}
   ><span aria-hidden="true">«</span></button>
   <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    class="secondary icon s-sm disabled:opacity-40"
     {...machine.getPrevTriggerProps()}
   ><span aria-hidden="true">‹</span></button>
   <template for={machine.getItems()} as={row} key={row.key}>
     <button
-      class={["h-7 min-w-7 rounded-md border border-solid border-border bg-surface-raised px-1.5 text-xs font-medium text-text transition-colors duration-fast ease-decelerate hover:bg-surface", { "border-primary bg-primary text-on-primary": (row.type === "page" && row.value === machine.page), "hidden": row.type !== "page" }]}
+      class={["min-w-7 secondary s-sm transition-colors duration-fast ease-decelerate hover:bg-surface", { "border-primary": (row.type === "page" && row.value === machine.page), "hidden": row.type !== "page" }]}
       {...machine.getItemProps(row)}
     >{row.label}</button><span
-      class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-muted", { "hidden": row.type !== "ellipsis" }]}
+      class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-text-muted", { "hidden": row.type !== "ellipsis" }]}
       {...machine.getEllipsisProps(row)}
     >{row.label}</span>
   </template>
   <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    class="secondary icon s-sm disabled:opacity-40"
     {...machine.getNextTriggerProps()}
   ><span aria-hidden="true">›</span></button>
   <button
-    class="grid h-7 w-7 place-items-center rounded-md border border-solid border-border bg-surface-raised text-xs text-muted transition-colors duration-fast ease-decelerate hover:bg-surface disabled:opacity-40"
+    class="secondary icon s-sm disabled:opacity-40"
     {...machine.getLastTriggerProps()}
   ><span aria-hidden="true">»</span></button>
-  <p class="mt-2 text-xs text-muted">Page {machine.page} of {machine.totalPages}</p>
+  <p
+    class="mt-2 text-xs text-text-muted">Page {machine.page} of {machine.totalPages}</p>
 </nav>

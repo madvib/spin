@@ -22,7 +22,7 @@ const os = implement(primitivesContract);
  * Every component a reader can browse: the ones that ship examples.
  *
  * The manifest is not that set. It also holds `a11y`, a utility family, and
- * `field`, the contract input/select/textarea share — neither is something a
+ * `field`, the contract input/textarea share — neither is something a
  * gallery card can open. And it misses the components whose examples are
  * authored beside rules it does not name at all. The gallery is therefore
  * driven by what has something to show, and the manifest's tags, variants and

@@ -1,25 +1,25 @@
 import {
+  type ApiOf,
   ariaDisabled,
   ariaOrientation,
+  type ComponentDef,
   defineComponent,
   isComposing,
   isInteractive,
-  sliderThumb,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
+  sliderThumb,
   type SlotScopeFor,
 } from "@spin/runtime";
 import type { DragDelta, DragPress } from "@spin/runtime/actions";
 import { slider as sliderMachine } from "./slider.machine.ts";
 import {
   percentOf,
-  thumbRange,
-  valueOfPercent,
   type SliderArgs,
   type SliderContext,
   type SliderState,
   type ThumbCollisionBehavior,
+  thumbRange,
+  valueOfPercent,
 } from "./slider.state.ts";
 import type { SliderEvents } from "./slider.events.ts";
 
@@ -43,7 +43,9 @@ const trackValue = (
   const rect = measure("track");
   if (rect === null) return null;
   if (orientation === "vertical") {
-    const percent = rect.height <= 0 ? 0 : (rect.bottom - clientY) / rect.height;
+    const percent = rect.height <= 0
+      ? 0
+      : (rect.bottom - clientY) / rect.height;
     return valueOfPercent(context, Math.min(1, Math.max(0, percent)));
   }
   const raw = rect.width <= 0 ? 0 : (clientX - rect.left) / rect.width;
@@ -63,12 +65,20 @@ const thumbIndexes = (length: number): readonly number[] => {
   return made;
 };
 
-
 export const def = {
   name: "slider",
   machine: (args: SliderArgs, authored) => sliderMachine(args, authored),
   start: "idle",
-  commitEvents: ["POINTER_UP", "ARROW_INC", "ARROW_DEC", "HOME", "END", "INCREMENT", "DECREMENT", "SET_VALUE"],
+  commitEvents: [
+    "POINTER_UP",
+    "ARROW_INC",
+    "ARROW_DEC",
+    "HOME",
+    "END",
+    "INCREMENT",
+    "DECREMENT",
+    "SET_VALUE",
+  ],
   parts: {
     root: {},
     label: {
@@ -78,7 +88,10 @@ export const def = {
         onClick: (event: MouseEvent) => {
           if (!isInteractive(scope.context)) return;
           event.preventDefault();
-          scope.send({ type: "FOCUS", index: Math.max(0, scope.context.focusedIndex) });
+          scope.send({
+            type: "FOCUS",
+            index: Math.max(0, scope.context.focusedIndex),
+          });
         },
       }),
     },
@@ -94,13 +107,27 @@ export const def = {
           onStart: (press: DragPress): void => {
             const context = scope.context;
             if (press.metaKey || press.ctrlKey || press.altKey) return;
-            const value = trackValue(scope.measure, context.orientation, press.direction, context, press.x, press.y);
+            const value = trackValue(
+              scope.measure,
+              context.orientation,
+              press.direction,
+              context,
+              press.x,
+              press.y,
+            );
             if (value === null) return;
             scope.send({ type: "POINTER_DOWN", pointValue: value });
           },
           onMove: (delta: DragDelta): void => {
             if (scope.state !== "dragging") return;
-            const value = trackValue(scope.measure, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
+            const value = trackValue(
+              scope.measure,
+              scope.context.orientation,
+              delta.direction,
+              scope.context,
+              delta.x,
+              delta.y,
+            );
             if (value === null) return;
             scope.send({ type: "POINTER_MOVE", pointValue: value });
           },
@@ -119,7 +146,9 @@ export const def = {
     range: {
       attrs: (scope: ScopeLike) => {
         const context = scope.context;
-        const percents = context.value.map((value) => percentOf(context, value));
+        const percents = context.value.map((value) =>
+          percentOf(context, value)
+        );
         const origin = context.origin;
         // Single-thumb ranges start at the origin edge, not the thumb: a
         // lone 50% value fills 0-50, not a zero-width band.
@@ -130,7 +159,10 @@ export const def = {
         return {
           style: vertical
             ? { bottom: `${low}%`, height: `calc(${high}% - ${low}%)` }
-            : { insetInlineStart: `${low}%`, width: `calc(${high}% - ${low}%)` },
+            : {
+              insetInlineStart: `${low}%`,
+              width: `calc(${high}% - ${low}%)`,
+            },
         };
       },
     },
@@ -179,7 +211,14 @@ export const def = {
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const value = trackValue(scope.measure, scope.context.orientation, delta.direction, scope.context, delta.x, delta.y);
+              const value = trackValue(
+                scope.measure,
+                scope.context.orientation,
+                delta.direction,
+                scope.context,
+                delta.x,
+                delta.y,
+              );
               if (value === null) return;
               scope.send({ type: "POINTER_MOVE", pointValue: value });
             },
@@ -203,17 +242,26 @@ export const def = {
             // Parsed, not raw: largeStep defaults to 10x step in the
             // channel parse, which raw props never see.
             const large = event.shiftKey ? scope.context.largeStep : undefined;
-            const keyed = (type: "ARROW_INC" | "ARROW_DEC" | "HOME" | "END"): boolean => {
+            const keyed = (
+              type: "ARROW_INC" | "ARROW_DEC" | "HOME" | "END",
+            ): boolean => {
               event.preventDefault();
               event.stopPropagation();
-              scope.send(large !== undefined && (type === "ARROW_INC" || type === "ARROW_DEC") ? { type, step: large } : { type });
+              scope.send(
+                large !== undefined &&
+                  (type === "ARROW_INC" || type === "ARROW_DEC")
+                  ? { type, step: large }
+                  : { type },
+              );
               return true;
             };
             const horizontal = scope.context.orientation === "horizontal";
             // Direction is platform truth, read at event time from the
             // element that received the key — never stored, never a prop.
             const rtl = (event.target instanceof Element) &&
-              event.target.ownerDocument?.defaultView?.getComputedStyle(event.target).direction === "rtl";
+              event.target.ownerDocument?.defaultView?.getComputedStyle(
+                  event.target,
+                ).direction === "rtl";
             switch (event.key) {
               case "ArrowUp":
                 if (!horizontal) keyed("ARROW_INC");
@@ -273,7 +321,9 @@ export const def = {
         const name = typeof arg === "string" ? arg : "";
         return {
           id: scope.id("input", index),
-          name: name.length > 0 ? (context.value.length > 1 ? `${name}[]` : name) : undefined,
+          name: name.length > 0
+            ? (context.value.length > 1 ? `${name}[]` : name)
+            : undefined,
           form: undefined,
           type: "text",
           hidden: true,
@@ -284,7 +334,10 @@ export const def = {
   },
   commands: {
     setValue: {
-      event: ([value]: [value: readonly number[]]) => ({ type: "SET_VALUE", value }),
+      event: ([value]: [value: readonly number[]]) => ({
+        type: "SET_VALUE",
+        value,
+      }),
     },
     setThumbValue: {
       event: ([index, value]: [index: number, value: number], context) => {
@@ -296,11 +349,15 @@ export const def = {
     },
     increment: {
       event: ([index]: [index?: number]) =>
-        index !== undefined ? { type: "INCREMENT", index: Math.trunc(index) } : { type: "INCREMENT" },
+        index !== undefined
+          ? { type: "INCREMENT", index: Math.trunc(index) }
+          : { type: "INCREMENT" },
     },
     decrement: {
       event: ([index]: [index?: number]) =>
-        index !== undefined ? { type: "DECREMENT", index: Math.trunc(index) } : { type: "DECREMENT" },
+        index !== undefined
+          ? { type: "DECREMENT", index: Math.trunc(index) }
+          : { type: "DECREMENT" },
     },
     focus: { event: () => ({ type: "FOCUS", index: 0 }) },
   },
@@ -363,12 +420,25 @@ export const def = {
       event.type !== "END" &&
       event.type !== "INCREMENT" &&
       event.type !== "DECREMENT"
-    )
+    ) {
       return;
+    }
     const idx = after.context.focusedIndex;
     if (idx >= 0) focus("thumb", idx);
   },
-} satisfies ComponentDef<SliderContext, SliderEvents, Record<string, unknown>, SliderArgs, SliderState>;
+} satisfies ComponentDef<
+  SliderContext,
+  SliderEvents,
+  Record<string, unknown>,
+  SliderArgs,
+  SliderState
+>;
 
 export type SliderApi = ApiOf<typeof def>;
-export const slider = defineComponent<SliderContext, SliderEvents, SliderApi, SliderArgs, SliderState>(def);
+export const slider = defineComponent<
+  SliderContext,
+  SliderEvents,
+  SliderApi,
+  SliderArgs,
+  SliderState
+>(def);

@@ -61,7 +61,10 @@ function extent(source: string, from: number): number {
 }
 
 /** The brace-matched block that starts at or after `from`. */
-function blockOf(source: string, from: number): { readonly text: string; readonly end: number } {
+function blockOf(
+  source: string,
+  from: number,
+): { readonly text: string; readonly end: number } {
   const start = source.indexOf("{", from);
   let depth = 0;
   let i = start;
@@ -81,7 +84,10 @@ function blockOf(source: string, from: number): { readonly text: string; readonl
  * The whole arrow function, from its parameter list: the parameters, the
  * return type, and the body.
  */
-function arrowFunction(source: string, from: number): { readonly text: string; readonly end: number } {
+function arrowFunction(
+  source: string,
+  from: number,
+): { readonly text: string; readonly end: number } {
   const open = source.indexOf("(", from);
   if (open < 0) throw new Error("no params");
   let depth = 0;
@@ -111,11 +117,13 @@ function arrowFunction(source: string, from: number): { readonly text: string; r
 }
 
 /** The name of an assign/cond the config refers to, at a reference. */
-function referencedName(source: string, kind: "assign" | "cond"): string | undefined {
+function referencedName(
+  source: string,
+  kind: "assign" | "cond",
+): string | undefined {
   const match = new RegExp(`${kind}:\\s*"(\\w+)"`).exec(source);
   return match?.[1];
 }
-
 
 /**
  * A parameter list, split on its top-level commas: a type like
@@ -139,15 +147,16 @@ function splitParams(list: string): string[] {
   return parts.map((part) => part.trim()).filter((part) => part.length > 0);
 }
 
-
 /** The context type a machine file names. */
 function contextName(source: string): string {
   return /createMachine<(\w+),/.exec(source)?.[1] ?? "object";
 }
 
-
 /** The bracket-matched text that starts at an opening bracket. */
-function bracket(source: string, from: number): { readonly text: string; readonly end: number } | undefined {
+function bracket(
+  source: string,
+  from: number,
+): { readonly text: string; readonly end: number } | undefined {
   const open = source.indexOf("[", from);
   if (open < 0) return undefined;
   let depth = 0;
@@ -230,7 +239,12 @@ function unionMembers(body: string): UnionMember[] {
  */
 function eventMap(
   source: string,
-): { readonly text: string; readonly start: number; readonly end: number; readonly unionName: string } | undefined {
+): {
+  readonly text: string;
+  readonly start: number;
+  readonly end: number;
+  readonly unionName: string;
+} | undefined {
   const head = /\nexport type (\w+)Event =\n/.exec(source);
   if (head === null) return undefined;
   const name = head[1] ?? "";
@@ -284,7 +298,9 @@ function eventMap(
       };
     }
   }
-  if (Deno.args.includes("--verbose")) console.log(`  members: ${members.length}`);
+  if (Deno.args.includes("--verbose")) {
+    console.log(`  members: ${members.length}`);
+  }
   if (members.length === 0) return undefined;
 
   const lines = members.map((member) => {
@@ -293,10 +309,11 @@ function eventMap(
     if (payload.startsWith("{") && payload.includes("} | {")) {
       return `  ${JSON.stringify(member.name)}: ${payload};`;
     }
-    return `  ${JSON.stringify(member.name)}: {${payload.length > 0 ? ` ${payload} ` : ""}};`;
+    return `  ${JSON.stringify(member.name)}: {${
+      payload.length > 0 ? ` ${payload} ` : ""
+    }};`;
   });
-  const text =
-    `\nexport interface ${name}Events {\n${lines.join("\n")}\n}\n` +
+  const text = `\nexport interface ${name}Events {\n${lines.join("\n")}\n}\n` +
     `\nexport type ${name}Event = EventUnion<${name}Events>;\n`;
   return { text, start: head.index, end: end + 1, unionName: `${name}Event` };
 }
@@ -313,12 +330,17 @@ function readBodies(source: string): Bodies {
   const conds = new Map<string, string>();
   // The tables live in two shapes: inside the spec (4 spaces), or in a
   // separate `implementations` object (2 spaces). Both are read.
-  for (const [kind, into] of [["assigns", assigns], ["conds", conds]] as const) {
+  for (
+    const [kind, into] of [["assigns", assigns], ["conds", conds]] as const
+  ) {
     for (const indent of [4, 2]) {
       const head = new RegExp(`\\n {${indent}}${kind}:\\s*\\{`).exec(source);
       if (head === null) continue;
       const table = blockOf(source, head.index + head[0].length - 1);
-      const entry = new RegExp(`\\n {${indent + 2}}(\\w+):\\s*(\\(|async|\\w+\\b)`, "g");
+      const entry = new RegExp(
+        `\\n {${indent + 2}}(\\w+):\\s*(\\(|async|\\w+\\b)`,
+        "g",
+      );
       for (const match of table.text.matchAll(entry)) {
         const name = match[1] ?? "";
         if (name.length === 0) continue;
@@ -329,7 +351,10 @@ function readBodies(source: string): Bodies {
           into.set(name, kind);
           continue;
         }
-        const body = arrowFunction(table.text, match.index + match[0].length - 1);
+        const body = arrowFunction(
+          table.text,
+          match.index + match[0].length - 1,
+        );
         into.set(name, body.text);
       }
       break;
@@ -395,9 +420,11 @@ function planBodies(source: string, bodies: Bodies): Plan {
   for (const [name, body] of bodies.assigns) {
     // A body that CALLS another body stays a named const: the call names
     // the table, and the table goes.
-    const callsAnother = /\b(?:implementations|impl|assignments)\.\w+\.(\w+)\(/.test(body);
-    if (callsAnother || called.has(name) || (uses.get(name) ?? 0) > 1) shared.set(name, body);
-    else inline.set(name, body);
+    const callsAnother = /\b(?:implementations|impl|assignments)\.\w+\.(\w+)\(/
+      .test(body);
+    if (callsAnother || called.has(name) || (uses.get(name) ?? 0) > 1) {
+      shared.set(name, body);
+    } else inline.set(name, body);
   }
   for (const [name, body] of bodies.conds) {
     // A cond may be an ALIAS for another body: `isOutOfRange: outOfRange`.
@@ -408,7 +435,9 @@ function planBodies(source: string, bodies: Bodies): Plan {
     const target = aliasName.length === 0
       ? undefined
       : bodies.conds.get(aliasName) ?? bodies.assigns.get(aliasName) ??
-        (new RegExp(`^(?:export )?const ${aliasName}\\b`, "m").test(source) ? aliasName : undefined);
+        (new RegExp(`^(?:export )?const ${aliasName}\\b`, "m").test(source)
+          ? aliasName
+          : undefined);
     if (target !== undefined) {
       // the transition names the TARGET: an alias is a name, not a body
       aliases.set(name, target);
@@ -421,7 +450,6 @@ function planBodies(source: string, bodies: Bodies): Plan {
   }
   return { shared, inline, uses, aliases };
 }
-
 
 /**
  * A shared body: it answers SEVERAL events, so its event parameter is
@@ -503,7 +531,9 @@ function bareBody(body: string): string {
   const rest = after.slice(arrow + 2).trim();
   // a block body: `{ ... }` — the guard inside goes
   const block = rest.startsWith("{") ? rest : `{ return ${rest}; }`;
-  return `(${names.join(", ")})${head === "" ? "" : ` ${head}`} => ${withoutGuard(block)}`;
+  return `(${names.join(", ")})${head === "" ? "" : ` ${head}`} => ${
+    withoutGuard(block)
+  }`;
 }
 
 /**
@@ -528,7 +558,9 @@ function rewriteTransitions(source: string, plan: Plan): string {
     if (at < 0) break;
     const list = bracket(out, at + "actions: ".length);
     if (list === undefined) break;
-    const names = [...list.text.matchAll(/assign:\s*"(\w+)"/g)].map((m) => m[1] ?? "");
+    const names = [...list.text.matchAll(/assign:\s*"(\w+)"/g)].map((m) =>
+      m[1] ?? ""
+    );
     if (names.length === 0) {
       search = at + 1;
       continue;
@@ -537,7 +569,9 @@ function rewriteTransitions(source: string, plan: Plan): string {
       const body = plan.inline.get(name);
       return body === undefined ? name : bareBody(body);
     });
-    const replacement = bodies.length === 1 ? `assign: ${bodies[0]}` : `assign: [${bodies.join(", ")}]`;
+    const replacement = bodies.length === 1
+      ? `assign: ${bodies[0]}`
+      : `assign: [${bodies.join(", ")}]`;
     out = out.slice(0, at) + replacement + out.slice(list.end);
     search = at + replacement.length;
   }
@@ -545,7 +579,9 @@ function rewriteTransitions(source: string, plan: Plan): string {
   out = out.replace(
     /\b(entry|exit):\s*\[\{[^\]]*\}\]/g,
     (match: string) => {
-      const names = [...match.matchAll(/assign:\s*"(\w+)"/g)].map((m) => m[1] ?? "");
+      const names = [...match.matchAll(/assign:\s*"(\w+)"/g)].map((m) =>
+        m[1] ?? ""
+      );
       if (names.length === 0) return match;
       const bodies = names.map((name) => {
         const body = plan.inline.get(name);
@@ -573,7 +609,6 @@ function rewriteTransitions(source: string, plan: Plan): string {
   return out;
 }
 
-
 /**
  * The map's entries gain the fields a body reads off its event, when the
  * map does not declare them: the steps' validators, which the bridge
@@ -586,7 +621,9 @@ function withExtraFields(mapText: string, bodies: Bodies): string {
       /event\.type\s*===\s*"([^"]+)"/.exec(body)?.[1];
     if (name === undefined) continue;
     const fields = new Set<string>();
-    for (const match of body.matchAll(/event\["(\w+)"\]/g)) fields.add(match[1] ?? "");
+    for (const match of body.matchAll(/event\["(\w+)"\]/g)) {
+      fields.add(match[1] ?? "");
+    }
     if (fields.size === 0) continue;
     const set = extras.get(name) ?? new Set<string>();
     for (const field of fields) set.add(field);
@@ -645,7 +682,10 @@ function convert(source: string): string {
     const mapName = map.unionName.replace(/Event$/, "Events");
     // the `config` const's type: the full spec, unless it has no context
     // of its own (the call site adds it).
-    const configBlock = blockOf(out, out.indexOf("const config = {") + "const config = ".length);
+    const configBlock = blockOf(
+      out,
+      out.indexOf("const config = {") + "const config = ".length,
+    );
     const hasContext = /\n {2}context[:,]/.test(configBlock.text);
     const specType = hasContext
       ? `MachineSpec<${contextName(out)}, ${mapName}>`
@@ -661,12 +701,22 @@ function convert(source: string): string {
     out = out.replace(
       /import \{([^}]*)\} from "@spin\/runtime\/fsm";/,
       (match: string, names: string) => {
-        const list = names.split(",").map((n) => n.trim()).filter((n) => n.length > 0);
-        if (!list.some((n) => n === "type EventUnion")) list.push("type EventUnion");
-        if (out.includes("MachineSpec<") && !list.some((n) => n === "type MachineSpec")) {
+        const list = names.split(",").map((n) => n.trim()).filter((n) =>
+          n.length > 0
+        );
+        if (!list.some((n) => n === "type EventUnion")) {
+          list.push("type EventUnion");
+        }
+        if (
+          out.includes("MachineSpec<") &&
+          !list.some((n) => n === "type MachineSpec")
+        ) {
           list.push("type MachineSpec");
         }
-        if (out.includes("Transitions<") && !list.some((n) => n === "type Transitions")) {
+        if (
+          out.includes("Transitions<") &&
+          !list.some((n) => n === "type Transitions")
+        ) {
           list.push("type Transitions");
         }
         return `import { ${list.join(", ")} } from "@spin/runtime/fsm";`;
@@ -705,7 +755,9 @@ function convert(source: string): string {
     }
   }
   if (Deno.args.includes("--verbose")) {
-    console.log(`  bodies: assigns=${bodies.assigns.size} conds=${bodies.conds.size}`);
+    console.log(
+      `  bodies: assigns=${bodies.assigns.size} conds=${bodies.conds.size}`,
+    );
   }
   const plan = planBodies(out, bodies);
   if (Deno.args.includes("--verbose")) {
@@ -754,7 +806,9 @@ function convert(source: string): string {
   out = out.replace(/\n {4}\.\.\.implementations,/g, "");
 
   // 4. the tables become named consts ABOVE the spec
-  for (const [kind, table] of [["assigns", "assigns"], ["conds", "conds"]] as const) {
+  for (
+    const [kind, table] of [["assigns", "assigns"], ["conds", "conds"]] as const
+  ) {
     for (const indent of [4, 2]) {
       out = out.replace(
         new RegExp(`\\n {${indent}}${table}: \\{`),
@@ -762,7 +816,9 @@ function convert(source: string): string {
       );
     }
   }
-  const union = map === undefined ? "EventObject" : `EventUnion<${map.unionName.replace(/Event$/, "Events")}>`;
+  const union = map === undefined
+    ? "EventObject"
+    : `EventUnion<${map.unionName.replace(/Event$/, "Events")}>`;
   out = hoistTables(out, plan, bodies, union);
   return out;
 }
@@ -775,13 +831,19 @@ function convert(source: string): string {
  * its event-type guard goes: the key narrows the event. A body that
  * answers SEVERAL stays a const, above the spec.
  */
-function hoistTables(source: string, plan: Plan, bodies: Bodies, eventUnion: string): string {
+function hoistTables(
+  source: string,
+  plan: Plan,
+  bodies: Bodies,
+  eventUnion: string,
+): string {
   let out = source;
   const consts: string[] = [];
 
   // the tables go, from the LAST to the first: removing the first would
   // shift the second's position.
-  const markers = [...out.matchAll(/\n {2,4}__(ASSIGNS|CONDS)__: \{/g)].reverse();
+  const markers = [...out.matchAll(/\n {2,4}__(ASSIGNS|CONDS)__: \{/g)]
+    .reverse();
   for (const marker of markers) {
     const kind = marker[1] === "ASSIGNS" ? "assigns" : "conds";
     const tableStart = marker.index + marker[0].length - 1;
@@ -818,7 +880,8 @@ function hoistTables(source: string, plan: Plan, bodies: Bodies, eventUnion: str
       const last = imports[imports.length - 1];
       const importEnd = last === undefined ? 0 : last.index + last[0].length;
       const block = consts.join("\n\n");
-      out = out.slice(0, importEnd) + "\n" + block + "\n\n" + out.slice(importEnd);
+      out = out.slice(0, importEnd) + "\n" + block + "\n\n" +
+        out.slice(importEnd);
     }
   }
   return out;
@@ -826,11 +889,16 @@ function hoistTables(source: string, plan: Plan, bodies: Bodies, eventUnion: str
 
 if (import.meta.main) {
   const check = Deno.args.includes("--check");
-  const only = Deno.args.find((arg) => arg.startsWith("--only="))?.slice("--only=".length);
+  const only = Deno.args.find((arg) => arg.startsWith("--only="))?.slice(
+    "--only=".length,
+  );
   const files: string[] = [];
   for (const dir of Deno.readDirSync(COMPONENTS)) {
     if (!dir.isDirectory) continue;
-    if (only !== undefined && !dir.name.includes(only) && !dir.name.replace(/^spin-/, "").includes(only)) {
+    if (
+      only !== undefined && !dir.name.includes(only) &&
+      !dir.name.replace(/^spin-/, "").includes(only)
+    ) {
       continue;
     }
     // the machine file: the component's own name, which is not always the
@@ -861,15 +929,22 @@ if (import.meta.main) {
       testSource = "";
     }
     if (testSource !== "") {
-      const unionName = /export type (\w+)Event = EventUnion</.exec(out)?.[1] !== undefined
-        ? `${/export type (\w+)Event = EventUnion</.exec(out)?.[1]}Event`
-        : undefined;
+      const unionName =
+        /export type (\w+)Event = EventUnion</.exec(out)?.[1] !== undefined
+          ? `${/export type (\w+)Event = EventUnion</.exec(out)?.[1]}Event`
+          : undefined;
       if (unionName !== undefined) {
         const mapName = unionName.replace(/Event$/, "Events");
         const testOut = testSource
           .replace(new RegExp(`\\btype ${unionName},`, "g"), `type ${mapName},`)
-          .replace(new RegExp(`Service<(\\w+), ${unionName}>`, "g"), `Service<$1, ${mapName}>`)
-          .replace(new RegExp(`Machine<(\\w+), ${unionName}>`, "g"), `Machine<$1, ${mapName}>`);
+          .replace(
+            new RegExp(`Service<(\\w+), ${unionName}>`, "g"),
+            `Service<$1, ${mapName}>`,
+          )
+          .replace(
+            new RegExp(`Machine<(\\w+), ${unionName}>`, "g"),
+            `Machine<$1, ${mapName}>`,
+          );
         if (testOut !== testSource) {
           if (check) console.log(`would rewrite ${test}`);
           else {
@@ -890,11 +965,16 @@ if (import.meta.main) {
     }
     if (legacySource !== "") {
       const legacyStem = /export type (\w+)Event = EventUnion</.exec(out)?.[1];
-      const legacyUnion = legacyStem === undefined ? undefined : `${legacyStem}Event`;
+      const legacyUnion = legacyStem === undefined
+        ? undefined
+        : `${legacyStem}Event`;
       if (legacyUnion !== undefined) {
         const legacyMap = legacyUnion.replace(/Event$/, "Events");
         const legacyOut = legacySource
-          .replace(new RegExp(`\\btype ${legacyUnion},`, "g"), `type ${legacyMap},`)
+          .replace(
+            new RegExp(`\\btype ${legacyUnion},`, "g"),
+            `type ${legacyMap},`,
+          )
           .replace(
             new RegExp(`Service<(\\w+), ${legacyUnion}>`, "g"),
             `Service<$1, ${legacyMap}>`,
@@ -906,8 +986,12 @@ if (import.meta.main) {
           .replace(
             /import \{([^}]*)\} from "@spin\/runtime\/fsm";/,
             (match: string, names: string) => {
-              const list = names.split(",").map((n) => n.trim()).filter((n) => n.length > 0);
-              if (!list.some((n) => n === "type EventUnion")) list.push("type EventUnion");
+              const list = names.split(",").map((n) => n.trim()).filter((n) =>
+                n.length > 0
+              );
+              if (!list.some((n) => n === "type EventUnion")) {
+                list.push("type EventUnion");
+              }
               return `import { ${list.join(", ")} } from "@spin/runtime/fsm";`;
             },
           );
@@ -929,18 +1013,27 @@ if (import.meta.main) {
     } catch {
       continue;
     }
-    const unionName = /export type (\w+)Event = EventUnion</.exec(out)?.[1] !== undefined
-      ? `${/export type (\w+)Event = EventUnion</.exec(out)?.[1]}Event`
-      : /export type (\w+)Event =\n/.exec(source)?.[1];
+    const unionName =
+      /export type (\w+)Event = EventUnion</.exec(out)?.[1] !== undefined
+        ? `${/export type (\w+)Event = EventUnion</.exec(out)?.[1]}Event`
+        : /export type (\w+)Event =\n/.exec(source)?.[1];
     if (unionName === undefined) {
-      if (Deno.args.includes("--verbose")) console.log(`  no union name for ${path}`);
+      if (Deno.args.includes("--verbose")) {
+        console.log(`  no union name for ${path}`);
+      }
       continue;
     }
-    if (Deno.args.includes("--verbose")) console.log(`  union name: ${unionName}`);
+    if (Deno.args.includes("--verbose")) {
+      console.log(`  union name: ${unionName}`);
+    }
     const bindingOut = convertBindings(bindingSource, unionName);
-    if (Deno.args.includes("--verbose")) console.log(`  binding changed: ${bindingOut !== bindingSource}`);
+    if (Deno.args.includes("--verbose")) {
+      console.log(`  binding changed: ${bindingOut !== bindingSource}`);
+    }
     if (bindingOut === bindingSource) {
-      if (Deno.args.includes("--verbose")) console.log(`  bindings unchanged: ${bindings}`);
+      if (Deno.args.includes("--verbose")) {
+        console.log(`  bindings unchanged: ${bindings}`);
+      }
       continue;
     }
     if (check) {

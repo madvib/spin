@@ -1,5 +1,9 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { DatePickerArgs, DatePickerContext, DatePickerState } from "./date-picker.state.ts";
+import type {
+  DatePickerArgs,
+  DatePickerContext,
+  DatePickerState,
+} from "./date-picker.state.ts";
 import { daysOf, initial, normalizeDays } from "./date-picker.state.ts";
 import type { DatePickerEvents } from "./date-picker.events.ts";
 import {
@@ -8,8 +12,8 @@ import {
   drillIntoView,
   hoverRangeDay,
   isAboveDayView,
-  isMultiPicker,
   isDayView,
+  isMultiPicker,
   isRangePicker,
   isSelfClosingSelection,
   resetView,
@@ -22,9 +26,17 @@ import {
   toggleMultiDay,
 } from "./date-picker.transitions.ts";
 
-export type { DatePickerArgs, DatePickerContext, DatePickerState } from "./date-picker.state.ts";
+export type {
+  DatePickerArgs,
+  DatePickerContext,
+  DatePickerState,
+} from "./date-picker.state.ts";
 export type { DatePickerEvents } from "./date-picker.events.ts";
-export { type DatePickerView, type DatePickerSelectionMode, type DatePickerValue } from "./date-picker.state.ts";
+export {
+  type DatePickerSelectionMode,
+  type DatePickerValue,
+  type DatePickerView,
+} from "./date-picker.state.ts";
 
 export function datePicker(
   args: DatePickerArgs = {},
@@ -59,8 +71,14 @@ export function datePicker(
       },
       "VALUE.CLEAR": { assign: clearValue },
       "FOCUS.SET": [
-        { cond: isDayView, assign: (ctx, e) => setFocusDay(ctx, e) as Partial<DatePickerContext> },
-        { assign: (ctx, e) => setFocusAboveDay(ctx, e) as Partial<DatePickerContext> },
+        {
+          cond: isDayView,
+          assign: (ctx, e) => setFocusDay(ctx, e) as Partial<DatePickerContext>,
+        },
+        {
+          assign: (ctx, e) =>
+            setFocusAboveDay(ctx, e) as Partial<DatePickerContext>,
+        },
       ],
       "VIEW.SET": {
         assign: (ctx, e) => setView(ctx, e) as Partial<DatePickerContext>,
@@ -82,30 +100,66 @@ export function datePicker(
           "CLOSE": [{ target: "focused" }],
           "CLOSE.OUTSIDE": [{ target: "idle" }],
           "CELL.CLICK": [
-            { cond: isAboveDayView, assign: (ctx, e) => drillIntoView(ctx, e) as Partial<DatePickerContext> },
-            { cond: isRangePicker, assign: (ctx, e) => selectRangeDay(ctx, e) as Partial<DatePickerContext> },
-            { cond: isMultiPicker, assign: (ctx, e) => toggleMultiDay(ctx, e) as Partial<DatePickerContext> },
+            {
+              cond: isAboveDayView,
+              assign: (ctx, e) =>
+                drillIntoView(ctx, e) as Partial<DatePickerContext>,
+            },
+            {
+              cond: isRangePicker,
+              assign: (ctx, e) =>
+                selectRangeDay(ctx, e) as Partial<DatePickerContext>,
+            },
+            {
+              cond: isMultiPicker,
+              assign: (ctx, e) =>
+                toggleMultiDay(ctx, e) as Partial<DatePickerContext>,
+            },
             {
               cond: isSelfClosingSelection,
               target: "focused",
-              assign: (ctx, e) => selectSingleDay(ctx, e) as Partial<DatePickerContext>,
+              assign: (ctx, e) =>
+                selectSingleDay(ctx, e) as Partial<DatePickerContext>,
             },
-            { assign: (ctx, e) => selectSingleDay(ctx, e) as Partial<DatePickerContext> },
+            {
+              assign: (ctx, e) =>
+                selectSingleDay(ctx, e) as Partial<DatePickerContext>,
+            },
           ],
           "CELL.POINTER_MOVE": [
-            { cond: isRangePicker, assign: (ctx, e) => hoverRangeDay(ctx, e) as Partial<DatePickerContext> },
+            {
+              cond: isRangePicker,
+              assign: (ctx, e) =>
+                hoverRangeDay(ctx, e) as Partial<DatePickerContext>,
+            },
           ],
           "TABLE.POINTER_LEAVE": [{ assign: clearHover }],
           "TABLE.ENTER": [
-            { cond: isAboveDayView, assign: (ctx, e) => drillIntoView(ctx, e) as Partial<DatePickerContext> },
-            { cond: isRangePicker, assign: (ctx, e) => selectRangeDay(ctx, e) as Partial<DatePickerContext> },
-            { cond: isMultiPicker, assign: (ctx, e) => toggleMultiDay(ctx, e) as Partial<DatePickerContext> },
+            {
+              cond: isAboveDayView,
+              assign: (ctx, e) =>
+                drillIntoView(ctx, e) as Partial<DatePickerContext>,
+            },
+            {
+              cond: isRangePicker,
+              assign: (ctx, e) =>
+                selectRangeDay(ctx, e) as Partial<DatePickerContext>,
+            },
+            {
+              cond: isMultiPicker,
+              assign: (ctx, e) =>
+                toggleMultiDay(ctx, e) as Partial<DatePickerContext>,
+            },
             {
               cond: isSelfClosingSelection,
               target: "focused",
-              assign: (ctx, e) => selectSingleDay(ctx, e) as Partial<DatePickerContext>,
+              assign: (ctx, e) =>
+                selectSingleDay(ctx, e) as Partial<DatePickerContext>,
             },
-            { assign: (ctx, e) => selectSingleDay(ctx, e) as Partial<DatePickerContext> },
+            {
+              assign: (ctx, e) =>
+                selectSingleDay(ctx, e) as Partial<DatePickerContext>,
+            },
           ],
           "TABLE.ESCAPE": [{ target: "focused" }],
         },

@@ -13,4 +13,6 @@ export const setValue: TabsAssign<"VALUE.SET"> = (_ctx, event) => ({
 });
 
 export const selectTab: TabsAssign<"TAB.SELECT"> = (ctx, event) =>
-  event.value.length === 0 || event.value === ctx.value ? {} : { value: event.value };
+  event.value.length === 0 || event.value === ctx.value
+    ? {}
+    : { value: event.value };

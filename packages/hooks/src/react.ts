@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import { spinComponentCtl, type SpinComponentCtl } from "./controller.ts";
+import { type SpinComponentCtl, spinComponentCtl } from "./controller.ts";
 
 /**
  * React adapter: `useSpinComponent(el)` is the app controller's instrument.

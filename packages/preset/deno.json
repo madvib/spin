@@ -1,12 +1,10 @@
 {
   "name": "@spin/preset",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": {
     ".": "./src/index.ts",
     "./plugin": "./src/plugin.ts",
-    "./config": "./src/config.ts",
-    "./elements": "./src/elements.d.ts",
-    "./solid": "./src/solid.d.ts"
+    "./config": "./src/config.ts"
   },
   "imports": {
     "@spin/preset": "./src/index.ts",

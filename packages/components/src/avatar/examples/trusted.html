@@ -5,26 +5,26 @@
 </script>
 
 
-<div class="mx-auto flex w-full max-w-xs justify-center">
+<div class="mx-auto flex w-full max-w-[20rem] justify-center">
   <div class="flex items-center gap-2 rounded-full border border-solid border-border bg-surface px-4 py-2">
-    <div class="flex -space-x-2">
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+    <div class="flex avatar-group">
+      <span class="avatar relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-text-muted" {...machine.getRootProps()}>
         <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
         <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>JD</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+      <span class="avatar relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-text-muted" {...machine.getRootProps()}>
         <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
         <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>SM</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+      <span class="avatar relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-text-muted" {...machine.getRootProps()}>
         <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
         <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>AB</span>
       </span>
-      <span class="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-muted" {...machine.getRootProps()}>
+      <span class="avatar relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-xs font-semibold text-text-muted" {...machine.getRootProps()}>
         <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
         <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>KL</span>
       </span>
     </div>
-    <span class="text-sm text-muted font-medium">Trusted by <span class="font-bold text-text">80K+</span> developers.</span>
+    <span class="text-sm text-text-muted font-medium">Trusted by <span class="font-bold text-text">80K+</span> developers.</span>
   </div>
 </div>

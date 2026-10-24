@@ -1,16 +1,29 @@
-import { ariaDisabled, ariaInvalid, ariaLabelledBy, ariaReadOnly, dataAttr, defineComponent, isRecord, sliderThumb, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaDisabled,
+  ariaInvalid,
+  ariaLabelledBy,
+  ariaReadOnly,
+  type ComponentDef,
+  dataAttr,
+  defineComponent,
+  isRecord,
+  type ScopeFor,
+  sliderThumb,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import {
   clampValue,
-  daysInMonth,
-  FIELD_LIMITS,
-  segmentFields,
-  valueAsString,
   type DateGranularity,
   type DateInputArgs,
   type DateInputContext,
   type DateInputField,
   type DateInputState,
   type DateValue,
+  daysInMonth,
+  FIELD_LIMITS,
+  segmentFields,
+  valueAsString,
 } from "./date-input.state.ts";
 import type { DateInputEvents } from "./date-input.events.ts";
 import type { DateInputValueChange } from "./date-input.events.ts";
@@ -45,48 +58,86 @@ const FIELD_LABELS: Readonly<Record<DateInputField, string>> = {
   dayPeriod: "AM/PM",
 };
 
-export const segmentText = (field: DateInputField, value: number | null, hourCycle: 12 | 24): string => {
+export const segmentText = (
+  field: DateInputField,
+  value: number | null,
+  hourCycle: 12 | 24,
+): string => {
   if (value === null) return placeholderFor(field);
   switch (field) {
-    case "year": return `${value}`.padStart(4, "0");
-    case "dayPeriod": return value === 1 ? "PM" : "AM";
-    case "hour": return hourCycle === 12 ? `${value}` : value < 10 ? `0${value}` : `${value}`;
-    default: return value < 10 ? `0${value}` : `${value}`;
+    case "year":
+      return `${value}`.padStart(4, "0");
+    case "dayPeriod":
+      return value === 1 ? "PM" : "AM";
+    case "hour":
+      return hourCycle === 12
+        ? `${value}`
+        : value < 10
+        ? `0${value}`
+        : `${value}`;
+    default:
+      return value < 10 ? `0${value}` : `${value}`;
   }
 };
 
 const placeholderFor = (field: DateInputField): string => {
   switch (field) {
-    case "year": return "yyyy";
-    case "month": return "mm";
-    case "day": return "dd";
-    case "hour": return "hh";
-    case "minute": return "mm";
-    case "second": return "ss";
-    case "dayPeriod": return "AM/PM";
+    case "year":
+      return "yyyy";
+    case "month":
+      return "mm";
+    case "day":
+      return "dd";
+    case "hour":
+      return "hh";
+    case "minute":
+      return "mm";
+    case "second":
+      return "ss";
+    case "dayPeriod":
+      return "AM/PM";
   }
 };
 
 type ScopeLike = ScopeFor<DateInputContext, DateInputEvents, DateInputState>;
-type SlotLike<R> = SlotScopeFor<R, DateInputContext, DateInputEvents, DateInputState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  DateInputContext,
+  DateInputEvents,
+  DateInputState
+>;
 
-const partToField = (type: string, hourCycle: 12 | 24): DateInputField | null => {
+const partToField = (
+  type: string,
+  hourCycle: 12 | 24,
+): DateInputField | null => {
   switch (type) {
-    case "year": return "year";
-    case "month": return "month";
-    case "day": return "day";
-    case "hour": return "hour";
-    case "minute": return "minute";
-    case "second": return "second";
-    case "dayPeriod": return hourCycle === 12 ? "dayPeriod" : null;
-    default: return null;
+    case "year":
+      return "year";
+    case "month":
+      return "month";
+    case "day":
+      return "day";
+    case "hour":
+      return "hour";
+    case "minute":
+      return "minute";
+    case "second":
+      return "second";
+    case "dayPeriod":
+      return hourCycle === 12 ? "dayPeriod" : null;
+    default:
+      return null;
   }
 };
 
 /** The formatter is the locale's segment order: format a known date and
  * read the parts back. January 22 gives every part a distinct shape, so
  * each part maps to exactly one field. */
-const orderFields = (granularity: DateGranularity, hourCycle: 12 | 24): readonly DateInputField[] => {
+const orderFields = (
+  granularity: DateGranularity,
+  hourCycle: 12 | 24,
+): readonly DateInputField[] => {
   const fields = segmentFields(granularity);
   try {
     const probe = new Date(Date.UTC(2024, 0, 22, 13, 44, 55));
@@ -94,7 +145,9 @@ const orderFields = (granularity: DateGranularity, hourCycle: 12 | 24): readonly
       year: "numeric",
       month: "numeric",
       day: "numeric",
-      ...(fields.includes("hour") ? { hour: "numeric", hour12: hourCycle === 12 } : {}),
+      ...(fields.includes("hour")
+        ? { hour: "numeric", hour12: hourCycle === 12 }
+        : {}),
       ...(fields.includes("minute") ? { minute: "2-digit" } : {}),
       ...(fields.includes("second") ? { second: "2-digit" } : {}),
       timeZone: "UTC",
@@ -102,7 +155,9 @@ const orderFields = (granularity: DateGranularity, hourCycle: 12 | 24): readonly
     const seen: DateInputField[] = [];
     for (const part of parts) {
       const field = partToField(part.type, hourCycle);
-      if (field !== null && fields.includes(field) && !seen.includes(field)) seen.push(field);
+      if (field !== null && fields.includes(field) && !seen.includes(field)) {
+        seen.push(field);
+      }
     }
     for (const field of fields) {
       if (!seen.includes(field)) seen.push(field);
@@ -163,11 +218,19 @@ const handlersFor = (scope: ScopeLike, index: number): SegmentHandlers => {
           break;
         case "ArrowLeft":
           event.preventDefault();
-          scope.send({ type: scope.context.dir === "rtl" ? "SEGMENT.ARROW_RIGHT" : "SEGMENT.ARROW_LEFT" });
+          scope.send({
+            type: scope.context.dir === "rtl"
+              ? "SEGMENT.ARROW_RIGHT"
+              : "SEGMENT.ARROW_LEFT",
+          });
           break;
         case "ArrowRight":
           event.preventDefault();
-          scope.send({ type: scope.context.dir === "rtl" ? "SEGMENT.ARROW_LEFT" : "SEGMENT.ARROW_RIGHT" });
+          scope.send({
+            type: scope.context.dir === "rtl"
+              ? "SEGMENT.ARROW_LEFT"
+              : "SEGMENT.ARROW_RIGHT",
+          });
           break;
         case "Backspace":
           event.preventDefault();
@@ -208,9 +271,7 @@ const isDateValue = (raw: unknown): raw is DateValue => {
   });
 };
 
-
-const isIdFn = (id: unknown): id is IdFn =>
-  typeof id === "function";
+const isIdFn = (id: unknown): id is IdFn => typeof id === "function";
 
 const fallbackId: IdFn = () => "";
 
@@ -221,8 +282,13 @@ const segmentIndexOf = (arg: unknown): number =>
  * reads `row.text` off the render-time object, so a fresh object per read
  * would freeze every segment at its first text. Rewritten in place; the
  * array is fresh each read so the `for` still syncs and bumps the rows. */
-const holdersByBridge = new WeakMap<IdFn, Map<number, { text: string; placeholder: boolean }>>();
-const holdersOf = (id: IdFn): Map<number, { text: string; placeholder: boolean }> => {
+const holdersByBridge = new WeakMap<
+  IdFn,
+  Map<number, { text: string; placeholder: boolean }>
+>();
+const holdersOf = (
+  id: IdFn,
+): Map<number, { text: string; placeholder: boolean }> => {
   let holders = holdersByBridge.get(id);
   if (holders === undefined) {
     holders = new Map();
@@ -252,7 +318,9 @@ export const def = {
         if (field === undefined) return {};
         const value = ctx.fields[field];
         const limits = FIELD_LIMITS[field];
-        const maxDay = field === "day" ? daysInMonth(ctx.fields.year, ctx.fields.month) : limits.max;
+        const maxDay = field === "day"
+          ? daysInMonth(ctx.fields.year, ctx.fields.month)
+          : limits.max;
         const editable = !scope.context.disabled && !scope.context.readOnly;
         return {
           id: scope.id("segment", index),
@@ -261,7 +329,9 @@ export const def = {
           "aria-label": FIELD_LABELS[field],
           ...sliderThumb({
             now: value ?? undefined,
-            text: value === null ? placeholderFor(field) : segmentText(field, value, hourCycle),
+            text: value === null
+              ? placeholderFor(field)
+              : segmentText(field, value, hourCycle),
             min: limits.min,
             max: field === "day" ? maxDay : limits.max,
           }),
@@ -271,7 +341,9 @@ export const def = {
           inputMode: field === "dayPeriod" ? undefined : "numeric",
           "data-type": field,
           "data-placeholder-shown": dataAttr(value === null),
-          "data-focus": dataAttr(scope.state === "focused" && ctx.activeSegment === index),
+          "data-focus": dataAttr(
+            scope.state === "focused" && ctx.activeSegment === index,
+          ),
           contentEditable: editable ? "true" : undefined,
           spellcheck: editable ? "false" : undefined,
           ...handlersFor(scope, index),
@@ -319,7 +391,10 @@ export const def = {
       }) => focus("segment", 0),
     },
     setValue: {
-      event: ([value]: [value: DateValue | null], context: DateInputContext) => {
+      event: (
+        [value]: [value: DateValue | null],
+        context: DateInputContext,
+      ) => {
         const shaped = isDateValue(value) ? value : null;
         return {
           type: "VALUE.SET",
@@ -349,7 +424,13 @@ export const def = {
         let fieldIndex = 0;
         for (const field of ordered) {
           if (views.length > 0) {
-            views.push({ index: views.length, fieldIndex: -1, field: null, text: "/", placeholder: true });
+            views.push({
+              index: views.length,
+              fieldIndex: -1,
+              field: null,
+              text: "/",
+              placeholder: true,
+            });
           }
           const value = ctx.fields[field];
           const at = views.length;
@@ -384,7 +465,19 @@ export const def = {
       }),
     },
   },
-} satisfies ComponentDef<DateInputContext, DateInputEvents, Record<string, unknown>, DateInputArgs, DateInputState>;
+} satisfies ComponentDef<
+  DateInputContext,
+  DateInputEvents,
+  Record<string, unknown>,
+  DateInputArgs,
+  DateInputState
+>;
 
 export type DateInputApi = ApiOf<typeof def>;
-export const dateInput = defineComponent<DateInputContext, DateInputEvents, DateInputApi, DateInputArgs, DateInputState>(def);
+export const dateInput = defineComponent<
+  DateInputContext,
+  DateInputEvents,
+  DateInputApi,
+  DateInputArgs,
+  DateInputState
+>(def);

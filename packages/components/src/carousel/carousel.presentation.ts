@@ -1,32 +1,32 @@
 import {
+  type ApiOf,
   ariaControls,
   ariaCurrent,
   ariaHidden,
   ariaPressed,
   ariaRoleDescription,
   authoredProps,
+  type ComponentDef,
   defineComponent,
   isRecord,
   liveRegion,
   machineTick,
   resolveTwins,
-  type ApiOf,
-  type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
 } from "@spin/runtime";
 import { carousel as carouselMachine } from "./carousel.machine.ts";
 import {
-  initial,
-  pageCountFor,
-  slidesOf,
-  slidesPerMoveOf,
-  slidesPerPageOf,
   type CarouselArgs,
   type CarouselContext,
   type CarouselDragStatus,
   type CarouselSlide,
   type CarouselState,
+  initial,
+  pageCountFor,
+  slidesOf,
+  slidesPerMoveOf,
+  slidesPerPageOf,
 } from "./carousel.state.ts";
 import type { CarouselEvents } from "./carousel.events.ts";
 
@@ -103,7 +103,12 @@ const derive = (parsed: Record<string, unknown>): {
 type Ctx = CarouselContext;
 
 type ScopeLike = ScopeFor<CarouselContext, CarouselEvents, CarouselState>;
-type SlotLike<R> = SlotScopeFor<R, CarouselContext, CarouselEvents, CarouselState>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  CarouselContext,
+  CarouselEvents,
+  CarouselState
+>;
 
 const lastPageOf = (ctx: Ctx): number => Math.max(0, ctx.pageCount - 1);
 const movesOf = (ctx: Ctx): number => Math.max(1, Math.trunc(ctx.perMove));
@@ -153,7 +158,9 @@ const MAX_SLIDES_PER_PAGE = 6;
 const snapOf = (arg: unknown): string => {
   if (!isRecord(arg)) return "start";
   const snap: unknown = arg["snapAlign"];
-  return snap === "start" || snap === "end" || snap === "center" ? snap : "start";
+  return snap === "start" || snap === "end" || snap === "center"
+    ? snap
+    : "start";
 };
 
 const isIdFn = (id: unknown): id is (part: string, slot?: number) => string =>
@@ -189,7 +196,13 @@ const slideInView = (scope: ScopeLike, index: number): boolean => {
   const slides = scope.context.slides;
   const start = ctx.index * movesOf(ctx);
   const perPage: unknown = scope.context.slidesPerPage;
-  const perMove = Math.max(1, Math.min(typeof perPage === "number" && perPage > 0 ? perPage : 1, slides.length - start || 1));
+  const perMove = Math.max(
+    1,
+    Math.min(
+      typeof perPage === "number" && perPage > 0 ? perPage : 1,
+      slides.length - start || 1,
+    ),
+  );
   return index >= start && index < start + perMove;
 };
 
@@ -246,7 +259,9 @@ const syncView = (
       fn();
       return 0;
     };
-  request(() => applyScroll(id, root, horizontal, index, perMove, first ? "auto" : "smooth"));
+  request(() =>
+    applyScroll(id, root, horizontal, index, perMove, first ? "auto" : "smooth")
+  );
 };
 
 /**
@@ -273,14 +288,19 @@ const settlePage = (scope: ScopeLike): number => {
     const distance = Math.abs(slide.getBoundingClientRect()[axis] - start);
     if (distance < bestDistance) {
       bestDistance = distance;
-      best = Math.min(Math.max(0, Math.floor(at / movesOf(ctx))), lastPageOf(ctx));
+      best = Math.min(
+        Math.max(0, Math.floor(at / movesOf(ctx))),
+        lastPageOf(ctx),
+      );
     }
   }
   return best;
 };
 
 const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
-  if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (
+    event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey
+  ) return;
   const horizontal = scope.context.orientation !== "vertical";
   const rtl = scope.context.dir === "rtl";
   const forward = horizontal
@@ -292,17 +312,23 @@ const onTrackKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (forward) scope.send({ type: "NEXT" });
   else if (back) scope.send({ type: "PREV" });
   else if (event.key === "Home") scope.send({ type: "GO_TO", index: 0 });
-  else if (event.key === "End") scope.send({ type: "GO_TO", index: lastPageOf(scope.context) });
-  else return;
+  else if (event.key === "End") {
+    scope.send({ type: "GO_TO", index: lastPageOf(scope.context) });
+  } else return;
   event.preventDefault();
 };
 
 /** Indexed rows, memoized on the slides' identity: the slot bag memo
  * keys on the row object, so a fresh copy per read would strand the cache
  * and re-attach every action on every tick. */
-const indexedRowsBySlides = new WeakMap<readonly CarouselSlide[], readonly (CarouselSlide & { readonly index: number })[]>();
+const indexedRowsBySlides = new WeakMap<
+  readonly CarouselSlide[],
+  readonly (CarouselSlide & { readonly index: number })[]
+>();
 
-const indexedRows = (slides: readonly CarouselSlide[]): readonly (CarouselSlide & { readonly index: number })[] => {
+const indexedRows = (
+  slides: readonly CarouselSlide[],
+): readonly (CarouselSlide & { readonly index: number })[] => {
   const hit = indexedRowsBySlides.get(slides);
   if (hit !== undefined) return hit;
   const built = slides.map((slide, index) => ({ ...slide, index }));
@@ -312,8 +338,11 @@ const indexedRows = (slides: readonly CarouselSlide[]): readonly (CarouselSlide 
 
 export const def = {
   name: "carousel",
-  machine: (args: CarouselArgs, authored: (name: string) => boolean) => carouselMachine(args, authored),
-  start: (raw: Record<string, unknown>) => (raw["autoplay"] === true ? "autoplay" : "idle"),
+  machine: (args: CarouselArgs, authored: (name: string) => boolean) =>
+    carouselMachine(args, authored),
+  start: (
+    raw: Record<string, unknown>,
+  ) => (raw["autoplay"] === true ? "autoplay" : "idle"),
   // The first positioning must not glide: mounted positions without motion,
   // and every later page move glides through settled.
   mounted: ({ props, id, root }) => {
@@ -333,7 +362,10 @@ export const def = {
     );
   },
   settled: ({ after, id, root }: {
-    readonly after: { readonly context: CarouselContext; readonly state: CarouselState };
+    readonly after: {
+      readonly context: CarouselContext;
+      readonly state: CarouselState;
+    };
     readonly id: (part: string, slot?: unknown) => string;
     readonly root: () => Element;
   }) => {
@@ -357,11 +389,17 @@ export const def = {
       slideCount: d.slideCount,
     };
     ctx.slides = slidesOf(parsed["items"]);
-    ctx.orientation = parsed["orientation"] === "vertical" ? "vertical" : "horizontal";
+    ctx.orientation = parsed["orientation"] === "vertical"
+      ? "vertical"
+      : "horizontal";
     ctx.allowMouseDrag = parsed["allowMouseDrag"] === true;
-    ctx.autoplayDelay = typeof parsed["autoplayDelay"] === "number" ? parsed["autoplayDelay"] : ctx.autoplayDelay;
+    ctx.autoplayDelay = typeof parsed["autoplayDelay"] === "number"
+      ? parsed["autoplayDelay"]
+      : ctx.autoplayDelay;
     ctx.dir = typeof parsed["dir"] === "string" ? parsed["dir"] : ctx.dir;
-    ctx.inViewThreshold = typeof parsed["inViewThreshold"] === "number" ? parsed["inViewThreshold"] : ctx.inViewThreshold;
+    ctx.inViewThreshold = typeof parsed["inViewThreshold"] === "number"
+      ? parsed["inViewThreshold"]
+      : ctx.inViewThreshold;
     ctx.autoSize = d.autoSize;
     ctx.slidesPerPage = d.slidesPerPage;
     let moved = false;
@@ -381,8 +419,9 @@ export const def = {
     root: {
       attrs: (scope) => ({
         id: scope.id(""),
-                role: "region",
-        ...ariaRoleDescription("carousel"),        "data-state": scope.state === "autoplay" ? "playing" : "idle",
+        role: "region",
+        ...ariaRoleDescription("carousel"),
+        "data-state": scope.state === "autoplay" ? "playing" : "idle",
         onPointerdown: (): void => scope.send({ type: "POINTER.DOWN" }),
         "use:autoplay": {
           interval: scope.context.autoplayDelay,
@@ -394,7 +433,8 @@ export const def = {
     control: {
       attrs: (_scope: ScopeLike) => ({
         role: "group",
-        "aria-label": "Carousel controls",      }),
+        "aria-label": "Carousel controls",
+      }),
     },
     itemGroup: {
       id: "item-group",
@@ -407,7 +447,7 @@ export const def = {
           "data-orientation": scope.context.orientation,
           "data-draggable": scope.attr(scope.context.allowMouseDrag),
           "data-slides": String(scope.context.slidesPerPage),
-        // The one place a state is a utility switch: with snap mandatory
+          // The one place a state is a utility switch: with snap mandatory
           // the platform would fight the pointer, so the drag turns it off
           // and the class turns it back on. Nobody writes a style.
           ...(ctx.dragStatus === "dragging" ? { "data-dragging": "" } : {}),
@@ -415,8 +455,10 @@ export const def = {
           tabindex: hasTabbable(scope) ? -1 : 0,
           onFocusin: (): void => scope.send({ type: "VIEWPORT.FOCUS" }),
           onFocusout: (): void => scope.send({ type: "VIEWPORT.BLUR" }),
-          onKeydown: (event: KeyboardEvent): void => onTrackKeydown(scope, event),
-          onScrollend: (): void => scope.send({ type: "SCROLL.SETTLE", index: settlePage(scope) }),
+          onKeydown: (event: KeyboardEvent): void =>
+            onTrackKeydown(scope, event),
+          onScrollend: (): void =>
+            scope.send({ type: "SCROLL.SETTLE", index: settlePage(scope) }),
           ...(scope.context.allowMouseDrag === true && horizontal
             ? {
               "use:drag-scroll": {
@@ -426,7 +468,10 @@ export const def = {
                 onDragEnd: (velocity: number): void => {
                   scope.send({ type: "DRAG.END" });
                   if (velocity === 0) {
-                    scope.send({ type: "SCROLL.SETTLE", index: settlePage(scope) });
+                    scope.send({
+                      type: "SCROLL.SETTLE",
+                      index: settlePage(scope),
+                    });
                   }
                 },
               },
@@ -457,13 +502,18 @@ export const def = {
         const can = ctx.loop || ctx.index > 0;
         return {
           id: scope.id("prevTrigger"),
-                  type: "button",
+          type: "button",
           "aria-label": "Previous slide",
-          ...ariaControls(scope, { part: "itemGroup" }),          "data-disabled": can ? undefined : "",
-          "data-focus": scope.context.focusedId === scope.id("prevTrigger") ? "" : undefined,
+          ...ariaControls(scope, { part: "itemGroup" }),
+          "data-disabled": can ? undefined : "",
+          "data-focus": scope.context.focusedId === scope.id("prevTrigger")
+            ? ""
+            : undefined,
           disabled: !can,
-          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("prevTrigger") }),
-          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("prevTrigger") }),
+          onFocus: (): void =>
+            scope.send({ type: "PART.FOCUS", id: scope.id("prevTrigger") }),
+          onBlur: (): void =>
+            scope.send({ type: "PART.BLUR", id: scope.id("prevTrigger") }),
           onClick: (): void => scope.send({ type: "PREV" }),
         };
       },
@@ -475,13 +525,18 @@ export const def = {
         const can = ctx.loop || ctx.index < lastPageOf(ctx);
         return {
           id: scope.id("nextTrigger"),
-                  type: "button",
+          type: "button",
           "aria-label": "Next slide",
-          ...ariaControls(scope, { part: "itemGroup" }),          "data-disabled": can ? undefined : "",
-          "data-focus": scope.context.focusedId === scope.id("nextTrigger") ? "" : undefined,
+          ...ariaControls(scope, { part: "itemGroup" }),
+          "data-disabled": can ? undefined : "",
+          "data-focus": scope.context.focusedId === scope.id("nextTrigger")
+            ? ""
+            : undefined,
           disabled: !can,
-          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("nextTrigger") }),
-          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("nextTrigger") }),
+          onFocus: (): void =>
+            scope.send({ type: "PART.FOCUS", id: scope.id("nextTrigger") }),
+          onBlur: (): void =>
+            scope.send({ type: "PART.BLUR", id: scope.id("nextTrigger") }),
           onClick: (): void => scope.send({ type: "NEXT" }),
         };
       },
@@ -492,13 +547,21 @@ export const def = {
         const playing = scope.state === "autoplay";
         return {
           id: scope.id("autoplayTrigger"),
-                  type: "button",
-          "aria-label": playing ? "Stop slide rotation" : "Start slide rotation",
-          ...ariaPressed(playing),          "data-playing": playing ? "" : undefined,
-          "data-focus": scope.context.focusedId === scope.id("autoplayTrigger") ? "" : undefined,
-          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("autoplayTrigger") }),
-          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("autoplayTrigger") }),
-          onClick: (): void => scope.send({ type: playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
+          type: "button",
+          "aria-label": playing
+            ? "Stop slide rotation"
+            : "Start slide rotation",
+          ...ariaPressed(playing),
+          "data-playing": playing ? "" : undefined,
+          "data-focus": scope.context.focusedId === scope.id("autoplayTrigger")
+            ? ""
+            : undefined,
+          onFocus: (): void =>
+            scope.send({ type: "PART.FOCUS", id: scope.id("autoplayTrigger") }),
+          onBlur: (): void =>
+            scope.send({ type: "PART.BLUR", id: scope.id("autoplayTrigger") }),
+          onClick: (): void =>
+            scope.send({ type: playing ? "AUTOPLAY.STOP" : "AUTOPLAY.START" }),
         };
       },
     },
@@ -506,8 +569,9 @@ export const def = {
       id: "indicator-group",
       attrs: (scope) => ({
         id: scope.id("indicatorGroup"),
-                role: "group",
-        "aria-label": "Slides",        onKeydown: (event: KeyboardEvent): void => onTrackKeydown(scope, event),
+        role: "group",
+        "aria-label": "Slides",
+        onKeydown: (event: KeyboardEvent): void => onTrackKeydown(scope, event),
       }),
     },
     progressText: {
@@ -527,7 +591,8 @@ export const def = {
     },
     autoplayProgressFill: {
       id: "autoplay-progress-fill",
-      attrs: (scope) => ({        "data-state": scope.state === "autoplay" ? "playing" : "paused",
+      attrs: (scope) => ({
+        "data-state": scope.state === "autoplay" ? "playing" : "paused",
       }),
     },
   },
@@ -540,7 +605,7 @@ export const def = {
         const inView = slideInView(scope, item.index);
         return {
           id: scope.id("item", item.index),
-                  role: "group",
+          role: "group",
           "data-index": item.index,
           "data-orientation": scope.context.orientation,
           "data-inview": inView ? "" : undefined,
@@ -554,7 +619,11 @@ export const def = {
           "use:intersect": {
             threshold: intersectThreshold(scope.context.inViewThreshold),
             onVisibility: (visible: boolean): void => {
-              scope.send({ type: "SLIDE.VIEW", index: item.index, inView: visible });
+              scope.send({
+                type: "SLIDE.VIEW",
+                index: item.index,
+                inView: visible,
+              });
             },
           },
         };
@@ -562,22 +631,38 @@ export const def = {
     },
     indicator: {
       indexes: (context) => indexedRows(context.slides),
-      attrs: (scope: SlotLike<{ readonly index: number; readonly label: string }>, arg?: unknown) => {
+      attrs: (
+        scope: SlotLike<{ readonly index: number; readonly label: string }>,
+        arg?: unknown,
+      ) => {
         const item = scope.slot;
         const readOnly = isRecord(arg) && arg["readOnly"] === true;
         const current = item.index === scope.context.index;
         return {
           id: scope.id("indicator", item.index),
-                  type: "button",
+          type: "button",
           "data-index": item.index,
           "data-orientation": scope.context.orientation,
           "data-current": current ? "" : undefined,
           ...ariaCurrent(current),
-          "aria-label": `${item.index + 1} of ${scope.context.slides.length} — ${item.label}`,
+          "aria-label": `${
+            item.index + 1
+          } of ${scope.context.slides.length} — ${item.label}`,
           "data-readonly": readOnly ? "" : undefined,
-          "data-focus": scope.context.focusedId === scope.id("indicator", item.index) ? "" : undefined,
-          onFocus: (): void => scope.send({ type: "PART.FOCUS", id: scope.id("indicator", item.index) }),
-          onBlur: (): void => scope.send({ type: "PART.BLUR", id: scope.id("indicator", item.index) }),
+          "data-focus":
+            scope.context.focusedId === scope.id("indicator", item.index)
+              ? ""
+              : undefined,
+          onFocus: (): void =>
+            scope.send({
+              type: "PART.FOCUS",
+              id: scope.id("indicator", item.index),
+            }),
+          onBlur: (): void =>
+            scope.send({
+              type: "PART.BLUR",
+              id: scope.id("indicator", item.index),
+            }),
           onClick: (): void => {
             if (readOnly) return;
             scope.send({ type: "GO_TO", index: item.index });
@@ -589,15 +674,29 @@ export const def = {
   commands: {
     next: { event: () => ({ type: "NEXT" }) },
     prev: { event: () => ({ type: "PREV" }) },
-    goTo: { event: ([index]: [index: number]) => ({ type: "GO_TO" as const, index: Math.trunc(index) }) },
-    setAutoplay: { event: ([on]: [on: boolean]) => ({ type: on ? "AUTOPLAY.START" as const : "AUTOPLAY.STOP" as const }) },
+    goTo: {
+      event: ([index]: [index: number]) => ({
+        type: "GO_TO" as const,
+        index: Math.trunc(index),
+      }),
+    },
+    setAutoplay: {
+      event: ([on]: [on: boolean]) => ({
+        type: on ? "AUTOPLAY.START" as const : "AUTOPLAY.STOP" as const,
+      }),
+    },
     scrollToIndex: {
       event: ([index]: [index: number], context: CarouselContext) => ({
         type: "GO_TO" as const,
         index: Math.floor(Math.trunc(index) / movesOf(context)),
       }),
     },
-    scrollTo: { event: ([page]: [page: number]) => ({ type: "GO_TO" as const, index: Math.trunc(page) }) },
+    scrollTo: {
+      event: ([page]: [page: number]) => ({
+        type: "GO_TO" as const,
+        index: Math.trunc(page),
+      }),
+    },
     scrollNext: { event: () => ({ type: "NEXT" }) },
     scrollPrev: { event: () => ({ type: "PREV" }) },
     play: { event: () => ({ type: "AUTOPLAY.START" }) },
@@ -607,7 +706,12 @@ export const def = {
         const params = context.slideParams;
         return {
           type: "PAGES.SET",
-          count: pageCountFor(params.slideCount, params.perMove, params.slidesPerPage, params.autoSize),
+          count: pageCountFor(
+            params.slideCount,
+            params.perMove,
+            params.slidesPerPage,
+            params.autoSize,
+          ),
         };
       },
     },
@@ -637,10 +741,13 @@ export const def = {
   },
   methods: {
     getProgress: {
-      call: (context: CarouselContext) => (context.pageCount > 0 ? context.index / context.pageCount : 0),
+      call: (
+        context: CarouselContext,
+      ) => (context.pageCount > 0 ? context.index / context.pageCount : 0),
     },
     getProgressText: {
-      call: (context: CarouselContext) => `${context.index + 1} / ${context.pageCount}`,
+      call: (context: CarouselContext) =>
+        `${context.index + 1} / ${context.pageCount}`,
     },
     getProgressRows: {
       call: (context: CarouselContext, _state, _args, _props, id) => {
@@ -654,13 +761,20 @@ export const def = {
       },
     },
     isInView: {
-      call: (context: CarouselContext, _state, [index]: [index: number]): boolean => {
+      call: (
+        context: CarouselContext,
+        _state,
+        [index]: [index: number],
+      ): boolean => {
         const ctx = context;
         if (!Number.isFinite(index)) return false;
         if (ctx.slidesInView.includes(index)) return true;
         const slides = ctx.slides;
         const start = ctx.index * movesOf(ctx);
-        const perMove = Math.max(1, Math.min(countOf(ctx.slidesPerPage) ?? 1, slides.length - start || 1));
+        const perMove = Math.max(
+          1,
+          Math.min(countOf(ctx.slidesPerPage) ?? 1, slides.length - start || 1),
+        );
         return index >= start && index < start + perMove;
       },
     },
@@ -680,7 +794,10 @@ export const def = {
       detail: (watched: readonly unknown[]) => {
         const status = watched[0];
         const index = watched[1];
-        const known: CarouselDragStatus = status === "focus" || status === "dragging" || status === "settling" ? status : "idle";
+        const known: CarouselDragStatus =
+          status === "focus" || status === "dragging" || status === "settling"
+            ? status
+            : "idle";
         return { status: known, index: typeof index === "number" ? index : 0 };
       },
     },
@@ -693,7 +810,19 @@ export const def = {
       }),
     },
   },
-} satisfies ComponentDef<CarouselContext, CarouselEvents, Record<string, unknown>, CarouselArgs, CarouselState>;
+} satisfies ComponentDef<
+  CarouselContext,
+  CarouselEvents,
+  Record<string, unknown>,
+  CarouselArgs,
+  CarouselState
+>;
 
 export type CarouselApi = ApiOf<typeof def>;
-export const carousel = defineComponent<CarouselContext, CarouselEvents, CarouselApi, CarouselArgs, CarouselState>(def);
+export const carousel = defineComponent<
+  CarouselContext,
+  CarouselEvents,
+  CarouselApi,
+  CarouselArgs,
+  CarouselState
+>(def);

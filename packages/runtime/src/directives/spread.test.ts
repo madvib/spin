@@ -117,7 +117,10 @@ Deno.test("aria booleans render as true/false strings, never empty or absent", (
   const el = document.createElement("div");
   document.body.appendChild(el);
 
-  let current: Record<string, unknown> = { "aria-selected": false, hidden: false };
+  let current: Record<string, unknown> = {
+    "aria-selected": false,
+    hidden: false,
+  };
   bindSpread(el, () => current);
   // false on an aria state is explicit, not absent; on a plain boolean it removes.
   assertEquals(el.getAttribute("aria-selected"), "false");

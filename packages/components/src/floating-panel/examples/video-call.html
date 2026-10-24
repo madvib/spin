@@ -5,7 +5,7 @@
 </script>
 
 <div class="grid gap-2">
-  <button class="mb-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm hover:bg-surface" {...machine.getTriggerProps()}>Open panel</button>
+  <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
     <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none": !machine.isOpen, "invisible": !machine.isOpen, "scale-95": !machine.isOpen, "opacity-0": !machine.isOpen, "h-12": machine.stage === "minimized", "overflow-hidden": machine.stage === "minimized", "h-full": machine.stage === "maximized", "w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
 <div class={["flex items-center justify-between gap-2 bg-text p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
@@ -14,33 +14,33 @@
           <span class="truncate text-sm font-medium text-on-primary">Sarah Johnson</span>
           <span data-timer class="shrink-0 font-mono text-xs text-on-primary">00:12:34</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-on-primary hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-on-primary hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-on-primary hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center rounded-md p-0 text-on-primary hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="relative min-h-0 flex-1 overflow-hidden bg-primary">
         <div class="absolute inset-0 flex items-center justify-center">
           <span class="flex h-32 w-32 items-center justify-center rounded-full bg-surface-raised"><span class="flex h-20 w-20 items-center justify-center rounded-full bg-surface"><span class="text-xl font-semibold text-text">SJ</span></span></span>
         </div>
         <span class="absolute right-2 top-2 flex h-12 w-16 items-center justify-center rounded-md bg-text text-xs font-medium text-on-primary">You</span>
-        <span class="absolute left-2 top-2 rounded bg-text px-2 py-0.5 font-mono text-xs text-on-primary">12:41</span>
+        <span class="absolute left-2 top-2 rounded-md bg-text px-2 py-1 font-mono text-xs text-on-primary">12:41</span>
         <div class="absolute inset-x-0 bottom-3 flex justify-center">
           <div class="flex items-center gap-3 rounded-full bg-text px-4 py-2">
-            <button type="button" data-mute aria-pressed="false" class="flex h-10 max-h-10 min-h-0 w-10 items-center justify-center rounded-full bg-surface-raised p-0 text-text"><span class="i-lucide-mic text-sm" aria-hidden="true"></span></button>
-            <button data-video aria-pressed="false" class="flex h-10 max-h-10 min-h-0 w-10 items-center justify-center rounded-full bg-surface-raised p-0 text-text"><span class="i-lucide-video text-sm" aria-hidden="true"></span></button>
-            <button data-hangup class="flex h-10 max-h-10 min-h-0 w-10 items-center justify-center rounded-full bg-semantic-error p-0 text-on-primary"><span class="i-lucide-phone-off text-sm" aria-hidden="true"></span></button>
+            <button type="button" data-mute aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-mic text-sm" aria-hidden="true"></span></button>
+            <button data-video aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-video text-sm" aria-hidden="true"></span></button>
+            <button data-hangup class="danger icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-phone-off text-sm" aria-hidden="true"></span></button>
           </div>
         </div>
       </div>
-            <button class="absolute inset-x-0 top-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button class="absolute inset-x-0 bottom-0 h-1 min-h-0 border-0 border-solid p-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 right-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button class="absolute inset-y-0 left-0 w-1 min-h-0 border-0 border-solid p-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button class="absolute right-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button class="absolute left-0 top-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button class="absolute right-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button class="absolute left-0 bottom-0 h-2 min-h-0 w-2 border-0 border-solid p-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+            <button class="bare absolute inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="bare absolute inset-x-0 bottom-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 right-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="bare absolute inset-y-0 left-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="bare absolute right-0 bottom-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="bare absolute left-0 bottom-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

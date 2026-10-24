@@ -23,10 +23,14 @@ import {
   toggleCollapseOnEnter,
 } from "./splitter.transitions.ts";
 
-export type { SplitterArgs, SplitterContext, SplitterState } from "./splitter.state.ts";
-export type { SplitterEvents, SplitterEvent } from "./splitter.events.ts";
+export type {
+  SplitterArgs,
+  SplitterContext,
+  SplitterState,
+} from "./splitter.state.ts";
+export type { SplitterEvent, SplitterEvents } from "./splitter.events.ts";
 export type { SplitterResizeDetails } from "./splitter.events.ts";
-export type { SplitterPanel, SplitterDragState } from "./splitter.state.ts";
+export type { SplitterDragState, SplitterPanel } from "./splitter.state.ts";
 
 export function splitter(
   args: SplitterArgs = {},

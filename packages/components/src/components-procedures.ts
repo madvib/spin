@@ -31,7 +31,8 @@ interface ExampleRow {
 const readDir = async (dir: URL): Promise<string[]> => {
   try {
     const { readdir } = await import("node:fs/promises");
-    return (await readdir(dir)).filter((entry) => entry.endsWith(".html")).sort();
+    return (await readdir(dir)).filter((entry) => entry.endsWith(".html"))
+      .sort();
   } catch {
     return [];
   }
@@ -51,13 +52,21 @@ const discover = async (): Promise<Map<string, string[]>> => {
     if (dir.includes(".") || dir === "shared") continue;
     const stems = await readDir(new URL(`./${dir}/examples/`, HERE));
     if (stems.length === 0) continue;
-    found.set(machineOf(dir), stems.map((file) => file.slice(0, -".html".length)));
+    found.set(
+      machineOf(dir),
+      stems.map((file) => file.slice(0, -".html".length)),
+    );
   }
   return found;
 };
 
-const readExample = async (machine: string, example: string): Promise<ExampleRow | null> => {
-  if (example.includes("/") || example.includes("\\") || machine.includes("/")) return null;
+const readExample = async (
+  machine: string,
+  example: string,
+): Promise<ExampleRow | null> => {
+  if (
+    example.includes("/") || example.includes("\\") || machine.includes("/")
+  ) return null;
   try {
     const { readFile } = await import("node:fs/promises");
     const html = await readFile(
@@ -95,12 +104,18 @@ const EMPTY_MANIFEST: ComponentManifest = {
 
 const camelOf = (name: string): string =>
   name.split("-").map((word, i) =>
-    i === 0 ? word : word.length === 0 ? word : word[0]?.toUpperCase() + word.slice(1)
+    i === 0
+      ? word
+      : word.length === 0
+      ? word
+      : word[0]?.toUpperCase() + word.slice(1)
   ).join("");
 
 const manifestOf = (name: string): ComponentManifest => {
   const rec = catalog as unknown as Record<string, unknown>;
-  const handle = rec[camelOf(name)] as { readonly manifest?: Partial<ComponentManifest> } | undefined;
+  const handle = rec[camelOf(name)] as {
+    readonly manifest?: Partial<ComponentManifest>;
+  } | undefined;
   if (handle?.manifest !== undefined) {
     const m = handle.manifest;
     return {
@@ -112,7 +127,9 @@ const manifestOf = (name: string): ComponentManifest => {
       events: [...(m.events ?? [])],
     };
   }
-  const sibling = rec[`${camelOf(name)}Manifest`] as Partial<ComponentManifest> | undefined;
+  const sibling = rec[`${camelOf(name)}Manifest`] as
+    | Partial<ComponentManifest>
+    | undefined;
   if (sibling !== undefined) {
     return {
       parts: [...(sibling.parts ?? [])],
@@ -130,7 +147,11 @@ const os = implement(componentsContract);
 
 const list = os.components.list.handler(async () => {
   const found = await discover();
-  return [...found.entries()].map(([name, examples]) => ({ name, examples, manifest: manifestOf(name) }));
+  return [...found.entries()].map(([name, examples]) => ({
+    name,
+    examples,
+    manifest: manifestOf(name),
+  }));
 });
 
 const examples = os.components.examples.handler(async ({ input }) => {
@@ -147,7 +168,10 @@ const examples = os.components.examples.handler(async ({ input }) => {
 const copy = os.components.copy.handler(async ({ input }) => {
   const found = await readExample(input.name, input.example);
   if (found === null) {
-    return { file: null, error: `Unknown example: ${input.name}/${input.example}` };
+    return {
+      file: null,
+      error: `Unknown example: ${input.name}/${input.example}`,
+    };
   }
   try {
     const { mkdir, writeFile } = await import("node:fs/promises");
@@ -157,10 +181,17 @@ const copy = os.components.copy.handler(async ({ input }) => {
     const root = input.root ?? ".";
     const file = join("spin", input.name, `${input.example}.html`);
     await mkdir(join(root, "spin", input.name), { recursive: true });
-    await writeFile(join(root, file), rewriteExampleImports(found.html), "utf8");
+    await writeFile(
+      join(root, file),
+      rewriteExampleImports(found.html),
+      "utf8",
+    );
     return { file, error: null };
   } catch (err) {
-    return { file: null, error: err instanceof Error ? err.message : String(err) };
+    return {
+      file: null,
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
 });
 

@@ -406,7 +406,7 @@ export const def = {
           role: "option",
           dir: scope.context.dir,
           "data-value": state.value,
-          "data-orientation": scope.context.orientation,
+          "data-highlighted": state.highlighted ? "" : undefined,
           ...optionRow({
             selected: state.selected ? "true" : "false",
             disabled: state.disabled ? "true" : undefined,

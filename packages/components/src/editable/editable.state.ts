@@ -49,12 +49,17 @@ export interface EditableArgs {
   onEditChange?: unknown;
 }
 
-export function initial(args: EditableArgs = {}, authored: (name: string) => boolean): EditableContext {
+export function initial(
+  args: EditableArgs = {},
+  authored: (name: string) => boolean,
+): EditableContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
-  const value = written("value") && typeof args.value === "string" ? args.value : "";
+  const value = written("value") && typeof args.value === "string"
+    ? args.value
+    : "";
   const cap = args.maxLength;
   return {
     value,
@@ -69,15 +74,25 @@ export function initial(args: EditableArgs = {}, authored: (name: string) => boo
     readOnly: args.readOnly === true,
     invalid: authored("invalid") ? args.invalid === true : undefined,
     required: args.required === true,
-    placeholder: typeof args.placeholder === "string" || (typeof args.placeholder === "object" && args.placeholder !== null)
-      ? args.placeholder as string | { readonly edit?: string; readonly preview?: string }
+    placeholder: typeof args.placeholder === "string" ||
+        (typeof args.placeholder === "object" && args.placeholder !== null)
+      ? args.placeholder as string | {
+        readonly edit?: string;
+        readonly preview?: string;
+      }
       : "",
     autoResize: args.autoResize === true,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
     submitMode: typeof args.submitMode === "string" ? args.submitMode : "both",
-    activationMode: typeof args.activationMode === "string" ? args.activationMode : "focus",
+    activationMode: typeof args.activationMode === "string"
+      ? args.activationMode
+      : "focus",
     selectOnFocus: args.selectOnFocus !== false,
     onInteractOutside: args.onInteractOutside,
     onPointerDownOutside: args.onPointerDownOutside,

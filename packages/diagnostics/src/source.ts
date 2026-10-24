@@ -26,7 +26,13 @@ import {
   repetitionsOf,
   sheetOrder,
 } from "./corpus.ts";
-import { applyFixes, type Diagnostic, lintTree, parseFile } from "./engine.ts";
+import {
+  applyFixes,
+  type Diagnostic,
+  lintMarkup,
+  lintTree,
+  parseFile,
+} from "./engine.ts";
 import { declaredClassesIn } from "./generated.ts";
 import { forgetFacts, rootOf } from "./provider.ts";
 import { readProjectThemes } from "./project.ts";
@@ -36,8 +42,8 @@ import { warmVocabulary } from "./generated.ts";
 
 /* ------------------------------------------------------------- the sources -- */
 
-/** The files the lint reads. */
-const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs)$/;
+/** The files the lint reads: markup included, for the classes it carries. */
+const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|html?)$/;
 
 /**
  * The directories a walk does not go into.
@@ -350,6 +356,15 @@ export function applyFix(
 
 /** The findings in one file's text. */
 function findingsIn(file: string, code: string): Diagnostic[] {
+  // Markup is walked through the component syntax, not the module parser:
+  // an `.html` file is a fragment the module parser cannot read, so it is
+  // never handed to it.
+  if (file.endsWith(".html") || file.endsWith(".htm")) {
+    return lintMarkup(file, code, {
+      rules: RULE_NAMES,
+      semantic: { strictness: "strict", semanticTags: "native" },
+    });
+  }
   try {
     return lintTree(file, parseFile(code, file), {
       rules: RULE_NAMES,

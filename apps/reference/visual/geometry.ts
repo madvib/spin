@@ -18,7 +18,6 @@ import type { GeometryClaim } from "../../../internal/check/harness.ts";
 const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
   "/themes": ["no-horizontal-overflow"],
   "/components/table": ["striped-rows", "no-horizontal-overflow"],
-  "/components/avatar": ["avatar-square", "no-horizontal-overflow"],
   "/components/avatar-group": [
     "avatar-group-overlap",
     "avatar-square",

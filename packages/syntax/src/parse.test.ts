@@ -39,9 +39,13 @@ Deno.test("parse-entities: entities decode in expr-adjacent static segments", ()
   const ir = parse("a &amp; {x} b &lt; c");
   const node = ir.nodes[0];
   if (!node || node.kind !== "text") throw new Error("expected text node");
-  const statics = node.parts.filter((p) => p.kind === "static").map((p) => (p.kind === "static" ? p.value : ""));
+  const statics = node.parts.filter((p) => p.kind === "static").map((
+    p,
+  ) => (p.kind === "static" ? p.value : ""));
   assertEquals(statics, ["a & ", " b < c"]);
-  const exprs = node.parts.filter((p) => p.kind === "expr").map((p) => (p.kind === "expr" ? p.expr : ""));
+  const exprs = node.parts.filter((p) => p.kind === "expr").map((
+    p,
+  ) => (p.kind === "expr" ? p.expr : ""));
   assertEquals(exprs, ["x"]);
 });
 

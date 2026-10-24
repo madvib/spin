@@ -7,15 +7,17 @@ const createAngleSliderBridge = angleSlider.createBridge;
 import type { AngleSliderValueChangeEnd } from "./angle-slider.presentation.ts";
 import type { AngleSliderApi } from "./angle-slider.presentation.ts";
 import {
+  type AngleSliderValueChange,
   constrainAngle,
   pointAngle,
-  type AngleSliderValueChange,
 } from "./angle-slider.machine.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -39,7 +41,14 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function controlNode(): Element {
   return {
-    getBoundingClientRect: () => ({ left: 10, right: 210, width: 200, top: 10, bottom: 210, height: 200 }),
+    getBoundingClientRect: () => ({
+      left: 10,
+      right: 210,
+      width: 200,
+      top: 10,
+      bottom: 210,
+      height: 200,
+    }),
   } as unknown as Element;
 }
 
@@ -52,11 +61,17 @@ const press = (clientX: number, clientY: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: controlNode(),
-  rect: null, direction: "ltr",
+  rect: null,
+  direction: "ltr",
 });
 
 /** The gesture's move: where the pointer is, and the delta from the press. */
-const move = (clientX: number, clientY: number, fromX: number, fromY: number): DragDelta => ({
+const move = (
+  clientX: number,
+  clientY: number,
+  fromX: number,
+  fromY: number,
+): DragDelta => ({
   ...press(clientX, clientY),
   dx: clientX - fromX,
   dy: clientY - fromY,
@@ -122,21 +137,36 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (details: AngleSliderValueChange) => events.valueChange.push(details));
-  write("onValueChangeEnd", (details: AngleSliderValueChangeEnd) => events.valueChangeEnd.push(details));
+  write(
+    "onValueChange",
+    (details: AngleSliderValueChange) => events.valueChange.push(details),
+  );
+  write(
+    "onValueChangeEnd",
+    (details: AngleSliderValueChangeEnd) => events.valueChangeEnd.push(details),
+  );
   // The control handler measures against the live control node; linkedom
   // cannot serve getElementById for this tree, so the dial rect is pinned
   // here under the id the connect reads.
   const realDocument = globalThis.document as Document;
   const holder = realDocument.createElement("div");
   holder.id = "angle-slider:dial:control";
-  const rect = { left: 10, right: 210, width: 200, top: 10, bottom: 210, height: 200 };
+  const rect = {
+    left: 10,
+    right: 210,
+    width: 200,
+    top: 10,
+    bottom: 210,
+    height: 200,
+  };
   holder.getBoundingClientRect = () => ({ ...rect }) as DOMRect;
   realDocument.body.appendChild(holder);
   const bridge = createAngleSliderBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -172,17 +202,25 @@ Deno.test("a dial press jumps the value and the release commits", () => {
 Deno.test("arrows step the focused thumb and Home/End jump", () => {
   const { api } = mount();
   handler<() => void>(api.getThumbProps(), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, 1);
-  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("End"));
+  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
+    keydown("End"),
+  );
   assertEquals(api.value, 359);
-  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("Home"));
+  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
+    keydown("Home"),
+  );
   assertEquals(api.value, 0);
 });
 
 Deno.test("arrows refuse without focus", () => {
   const { api, events } = mount();
-  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, 0);
   assertEquals(events.valueChange.length, 0);
 });
@@ -192,7 +230,9 @@ Deno.test("a disabled dial refuses presses and keys", () => {
   assertEquals(dragParam(api.getControlProps()).enabled, false);
   pressControl(api.getControlProps(), press(210, 110));
   assertEquals(api.value, 0);
-  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(api.getThumbProps(), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.value, 0);
   assertEquals(events.valueChange.length, 0);
 });

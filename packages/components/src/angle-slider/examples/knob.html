@@ -1,26 +1,33 @@
 <script lang="ts">
-  import { angleSlider } from "../angle-slider.presentation.ts";
+import { angleSlider } from "../angle-slider.presentation.ts";
 
-  const machine = angleSlider({ value: "121" });
+const machine = angleSlider({ value: "121" });
 </script>
 
-<div class="mx-auto flex w-full max-w-xs flex-col items-center gap-4" {...machine.getRootProps()}>
+<div class="mx-auto flex w-full max-w-[20rem] flex-col items-center gap-4"
+  {...machine.getRootProps()}>
   <div
     class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center select-none"
     {...machine.getControlProps()}
   >
-    <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 200 200" aria-hidden="true">
-      <circle cx="100" cy="100" r="80" class="fill-none stroke-surface-sunken" stroke-width="20" />
-      <circle cx="100" cy="100" r="80" class="fill-none stroke-primary" stroke-width="20" stroke-linecap="round"
-        stroke-dasharray={502.65} stroke-dashoffset={502.65 * (1 - machine.value / 360)} />
+    <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 200 200"
+      aria-hidden="true">
+      <circle cx="100" cy="100" r="80" class="fill-none stroke-surface-sunken"
+        stroke-width="20" />
+      <circle cx="100" cy="100" r="80" class="fill-none stroke-primary"
+        stroke-width="20" stroke-linecap="round"
+        stroke-dasharray={502.65}
+        stroke-dashoffset={502.65 * (1 - machine.value / 360)} />
     </svg>
     <span
       class={["absolute h-[1.75rem] w-[1.75rem] -translate-1/2 rounded-full border-2 border-solid border-primary bg-surface", { "opacity-50": machine.disabled }]}
       {...machine.getThumbProps()}
     ></span>
-    <span class="flex flex-col items-center" {...machine.getValueTextProps(machine.valueAsDegree)}>
-      <span class="text-4xl font-bold tabular-nums text-text">{machine.value}°</span>
-      <span class="text-sm font-medium text-muted">degrees</span>
+    <span class="flex flex-col items-center"
+      {...machine.getValueTextProps(machine.valueAsDegree)}>
+      <span
+        class="text-2xl font-bold tabular-nums text-text">{machine.value}°</span>
+      <span class="text-sm font-medium text-text-muted">degrees</span>
     </span>
   </div>
   <input {...machine.getHiddenInputProps()} />

@@ -1,8 +1,11 @@
 <scope>props={ label: string = "Open popover" } consume={ popover }</scope>
 
-<button {...popover.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
+<button {...popover.getTriggerProps()}
+  class="secondary s-sm transition-colors hover:bg-surface">{label}</button>
 
-<div {...popover.getContentProps()} class="rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[18rem]">
-  <p class="m-0 text-sm font-medium text-text">Share this page</p>
-  <p class="m-0 mt-1 text-sm text-muted">Copy the link below to send it to a friend.</p>
-</div>
+<popover {...popover.getContentProps()}
+  class="max-w-[18rem]">
+  <p class="text-sm font-medium text-text">Share this page</p>
+  <p
+    class="mt-1 text-sm text-text-muted">Copy the link below to send it to a friend.</p>
+</popover>

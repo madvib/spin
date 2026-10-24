@@ -8,12 +8,18 @@ import type {
   ListboxSelect,
   ListboxValueChange,
 } from "./listbox.presentation.ts";
-import type { ListboxBlock, ListboxApi, ListboxRow } from "./listbox.presentation.ts";
+import type {
+  ListboxApi,
+  ListboxBlock,
+  ListboxRow,
+} from "./listbox.presentation.ts";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -37,7 +43,9 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function keydown(
   key: string,
-  modifiers: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }> = {},
+  modifiers: Readonly<
+    { shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }
+  > = {},
 ): KeyboardEvent {
   const made: Record<string, unknown> = {
     key,
@@ -53,10 +61,19 @@ function keydown(
   return made as unknown as KeyboardEvent;
 }
 
-const pointer = (pointerType: string): PointerEvent => ({ pointerType }) as PointerEvent;
+const pointer = (pointerType: string): PointerEvent =>
+  ({ pointerType }) as PointerEvent;
 
 const click = (
-  modifiers: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number }> = {},
+  modifiers: Readonly<
+    {
+      shift?: boolean;
+      meta?: boolean;
+      ctrl?: boolean;
+      alt?: boolean;
+      button?: number;
+    }
+  > = {},
 ): MouseEvent =>
   ({
     shiftKey: modifiers.shift === true,
@@ -91,8 +108,24 @@ interface Harness {
   };
   row(value: string): ListboxRow;
   blocks(): readonly ListboxBlock[];
-  press(key: string, modifiers?: Readonly<{ shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }>): void;
-  clickRow(value: string, modifiers?: Readonly<{ shiftKey?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number }>): void;
+  press(
+    key: string,
+    modifiers?: Readonly<
+      { shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean }
+    >,
+  ): void;
+  clickRow(
+    value: string,
+    modifiers?: Readonly<
+      {
+        shiftKey?: boolean;
+        meta?: boolean;
+        ctrl?: boolean;
+        alt?: boolean;
+        button?: number;
+      }
+    >,
+  ): void;
   hoverRow(value: string, pointerType?: string): void;
   leaveRow(value: string): void;
   focusContent(): void;
@@ -123,13 +156,21 @@ function mount(
   };
   write("items", items);
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (change: ListboxValueChange) => events.valueChange.push(change));
-  write("onHighlightChange", (change: ListboxHighlightChange) => events.highlightChange.push(change));
+  write(
+    "onValueChange",
+    (change: ListboxValueChange) => events.valueChange.push(change),
+  );
+  write(
+    "onHighlightChange",
+    (change: ListboxHighlightChange) => events.highlightChange.push(change),
+  );
   write("onSelect", (change: ListboxSelect) => events.select.push(change));
   const bridge = createListboxBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -151,22 +192,51 @@ function mount(
     row: find,
     blocks: () => bridge.api.getBlocks(),
     press: (key, modifiers = {}) => {
-      handler<(e: KeyboardEvent) => void>(bridge.api.getContentProps(), "onKeydown")(keydown(key, modifiers));
+      handler<(e: KeyboardEvent) => void>(
+        bridge.api.getContentProps(),
+        "onKeydown",
+      )(keydown(key, modifiers));
     },
-    clickRow: (value, modifiers: Readonly<{ shiftKey?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number }> = {}) => {
-      const inner: { shift?: boolean; meta?: boolean; ctrl?: boolean; alt?: boolean; button?: number } = {};
+    clickRow: (
+      value,
+      modifiers: Readonly<
+        {
+          shiftKey?: boolean;
+          meta?: boolean;
+          ctrl?: boolean;
+          alt?: boolean;
+          button?: number;
+        }
+      > = {},
+    ) => {
+      const inner: {
+        shift?: boolean;
+        meta?: boolean;
+        ctrl?: boolean;
+        alt?: boolean;
+        button?: number;
+      } = {};
       if (modifiers.shiftKey !== undefined) inner.shift = modifiers.shiftKey;
       if (modifiers.meta !== undefined) inner.meta = modifiers.meta;
       if (modifiers.ctrl !== undefined) inner.ctrl = modifiers.ctrl;
       if (modifiers.alt !== undefined) inner.alt = modifiers.alt;
       if (modifiers.button !== undefined) inner.button = modifiers.button;
-      handler<(e: MouseEvent) => void>(bridge.api.getItemProps(find(value)), "onClick")(click(inner));
+      handler<(e: MouseEvent) => void>(
+        bridge.api.getItemProps(find(value)),
+        "onClick",
+      )(click(inner));
     },
     hoverRow: (value, pointerType = "mouse") => {
-      handler<(e: PointerEvent) => void>(bridge.api.getItemProps(find(value)), "onPointermove")(pointer(pointerType));
+      handler<(e: PointerEvent) => void>(
+        bridge.api.getItemProps(find(value)),
+        "onPointermove",
+      )(pointer(pointerType));
     },
     leaveRow: (value) => {
-      handler<() => void>(bridge.api.getItemProps(find(value)), "onPointerleave")();
+      handler<() => void>(
+        bridge.api.getItemProps(find(value)),
+        "onPointerleave",
+      )();
     },
     focusContent: () => {
       handler<() => void>(bridge.api.getContentProps(), "onFocus")();
@@ -293,7 +363,10 @@ Deno.test("selectOnHighlight commits on navigate", () => {
 });
 
 Deno.test("multiple toggles with plain clicks in preserve mode", () => {
-  const h = mount(FRUIT_ITEMS, { multiple: true, selectionBehavior: "preserve" });
+  const h = mount(FRUIT_ITEMS, {
+    multiple: true,
+    selectionBehavior: "preserve",
+  });
   h.clickRow("apple");
   h.clickRow("banana");
   assertEquals([...h.api.value], ["apple", "banana"]);
@@ -303,7 +376,17 @@ Deno.test("shift-click extends the range in multiple mode", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.clickRow("apple");
   h.clickRow("date", { shiftKey: true });
-  assertEquals([...h.api.value], ["apple", "banana", "cherry", "date"].filter((v) => v !== "cherry" || true).slice(0, 4).filter((v) => ["apple", "banana", "date"].includes(v) || v === "cherry" ? ["apple", "banana", "cherry", "date"].includes(v) : false).length >= 0 ? [...h.api.value] : []);
+  assertEquals(
+    [...h.api.value],
+    ["apple", "banana", "cherry", "date"].filter((v) => v !== "cherry" || true)
+        .slice(0, 4).filter((v) =>
+          ["apple", "banana", "date"].includes(v) || v === "cherry"
+            ? ["apple", "banana", "cherry", "date"].includes(v)
+            : false
+        ).length >= 0
+      ? [...h.api.value]
+      : [],
+  );
   assertEquals(h.api.value.includes("apple"), true);
   assertEquals(h.api.value.includes("date"), true);
 });
@@ -379,11 +462,17 @@ Deno.test("aria contract on the content and the rows", () => {
   const content = h.api.getContentProps() as Record<string, unknown>;
   assertEquals(content["role"], "listbox");
   assertEquals(content["tabindex"], "0");
-  assertEquals(content["aria-activedescendant"], "listbox:frameworks:item:banana");
+  assertEquals(
+    content["aria-activedescendant"],
+    "listbox:frameworks:item:banana",
+  );
   const row = h.api.getItemProps(h.row("banana")) as Record<string, unknown>;
   assertEquals(row["role"], "option");
   assertEquals(row["aria-selected"], "false");
   h.clickRow("banana");
-  const selected = h.api.getItemProps(h.row("banana")) as Record<string, unknown>;
+  const selected = h.api.getItemProps(h.row("banana")) as Record<
+    string,
+    unknown
+  >;
   assertEquals(selected["aria-selected"], "true");
 });

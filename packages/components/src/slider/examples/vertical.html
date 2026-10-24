@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { slider } from "../slider.presentation.ts";
+import { slider } from "../slider.presentation.ts";
 
-  const machine = slider({ value: [50], orientation: "vertical" });
+const machine = slider({ value: [50], orientation: "vertical" });
 </script>
 
-<div class="mx-auto flex w-full max-w-md justify-center" {...machine.getRootProps()}>
+<div class="mx-auto flex w-full max-w-md justify-center"
+  {...machine.getRootProps()}>
   <div
     class="relative flex h-[16rem] w-4 touch-none flex-col items-center select-none"
     {...machine.getControlProps()}

@@ -51,7 +51,9 @@ export interface SelectArgs {
 }
 
 const parseKeys = (raw: unknown): string[] => {
-  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === "string");
+  if (Array.isArray(raw)) {
+    return raw.filter((v): v is string => typeof v === "string");
+  }
   if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
   if (trimmed === "") return [];
@@ -84,7 +86,10 @@ export const rowsOf = (raw: unknown): SelectRow[] => {
   return rows;
 };
 
-export function initial(args: SelectArgs, authored: (name: string) => boolean = () => false): SelectContext {
+export function initial(
+  args: SelectArgs,
+  authored: (name: string) => boolean = () => false,
+): SelectContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -100,7 +105,9 @@ export function initial(args: SelectArgs, authored: (name: string) => boolean = 
     ? nullableProp(args.highlightedValue)
     : null;
   const order = rows.map((row) => row.value);
-  const labels: Record<string, string> = Object.fromEntries(rows.map((row) => [row.value, row.label]));
+  const labels: Record<string, string> = Object.fromEntries(
+    rows.map((row) => [row.value, row.label]),
+  );
   return {
     value,
     highlightedValue,
@@ -116,11 +123,18 @@ export function initial(args: SelectArgs, authored: (name: string) => boolean = 
     invalid: authored("invalid") ? args.invalid === true : undefined,
     dir: typeof args.dir === "string" && args.dir.length > 0 ? args.dir : "ltr",
     placement: args.placement,
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
-    clearTriggerLabel: typeof args.clearTriggerLabel === "string" && args.clearTriggerLabel.length > 0 ? args.clearTriggerLabel : undefined,
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
+    clearTriggerLabel: typeof args.clearTriggerLabel === "string" &&
+        args.clearTriggerLabel.length > 0
+      ? args.clearTriggerLabel
+      : undefined,
   };
-};
+}
 
 export const selectLabel = (ctx: SelectContext): string => {
   if (ctx.value.length === 0) return "";

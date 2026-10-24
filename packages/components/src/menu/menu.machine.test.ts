@@ -4,11 +4,7 @@ import { signal } from "@spin/runtime";
 import { menu } from "./menu.presentation.ts";
 const createMenuBridge = menu.createBridge;
 import type { MenuApi } from "./menu.presentation.ts";
-import type {
-  MenuBlock,
-  MenuEntry,
-  MenuRow,
-} from "./menu.state.ts";
+import type { MenuBlock, MenuEntry, MenuRow } from "./menu.state.ts";
 import type {
   MenuHighlightChange,
   MenuOpenChange,
@@ -18,7 +14,9 @@ import type {
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -36,9 +34,15 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
 }
 
 /** Read a callback out of a bag's `use:name` entry, which is data. */
-function callback<H>(bag: Record<string, unknown>, action: string, name: string): H {
+function callback<H>(
+  bag: Record<string, unknown>,
+  action: string,
+  name: string,
+): H {
   const params: unknown = bag[action];
-  if (typeof params !== "object" || params === null) throw new Error(`no action param at ${action}`);
+  if (typeof params !== "object" || params === null) {
+    throw new Error(`no action param at ${action}`);
+  }
   return handler<H>(params as Record<string, unknown>, name);
 }
 
@@ -47,9 +51,16 @@ function callback<H>(bag: Record<string, unknown>, action: string, name: string)
  * events the handlers need are synthesized here — one place, with the minimal
  * field set each handler reads.
  */
-const keyboard = (key: string): KeyboardEvent => ({ key, defaultPrevented: false, preventDefault: () => {} }) as unknown as KeyboardEvent;
-const pointer = (pointerType: string): PointerEvent => ({ pointerType }) as PointerEvent;
-const mouse = (): MouseEvent => ({ currentTarget: null }) as unknown as MouseEvent;
+const keyboard = (key: string): KeyboardEvent =>
+  ({
+    key,
+    defaultPrevented: false,
+    preventDefault: () => {},
+  }) as unknown as KeyboardEvent;
+const pointer = (pointerType: string): PointerEvent =>
+  ({ pointerType }) as PointerEvent;
+const mouse = (): MouseEvent =>
+  ({ currentTarget: null }) as unknown as MouseEvent;
 
 const FLAT: MenuEntry[] = [
   { value: "new", label: "New file" },
@@ -107,13 +118,21 @@ function mount(
   write("items", entries);
   authoredKeys.delete("items");
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onOpenChange", (change: MenuOpenChange) => events.openChange.push(change));
+  write(
+    "onOpenChange",
+    (change: MenuOpenChange) => events.openChange.push(change),
+  );
   write("onSelect", (change: MenuSelect) => events.select.push(change));
-  write("onHighlightChange", (change: MenuHighlightChange) => events.highlightChange.push(change));
+  write(
+    "onHighlightChange",
+    (change: MenuHighlightChange) => events.highlightChange.push(change),
+  );
   const bridge = createMenuBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -125,7 +144,9 @@ function mount(
     root,
     events,
     row: (value) => {
-      const found = bridge.api.getBlocks().flatMap((block) => bridge.api.getRows(block))
+      const found = bridge.api.getBlocks().flatMap((block) =>
+        bridge.api.getRows(block)
+      )
         .find((row) => row.value === value);
       if (found === undefined) throw new Error(`no row ${value}`);
       return found;
@@ -139,7 +160,11 @@ Deno.test("Given a fresh menu / When nothing is authored / Then closed is the re
   const h = mount(FLAT);
   assertEquals(h.state(), "closed", "closed is the initial state");
   assertEquals(h.api.isOpen, false, "the api reports closed");
-  assertEquals(h.api.getTriggerProps()["aria-expanded"], false, "the trigger reports collapsed");
+  assertEquals(
+    h.api.getTriggerProps()["aria-expanded"],
+    false,
+    "the trigger reports collapsed",
+  );
   h.api.close();
   assertEquals(h.state(), "closed", "a close from closed is a no-op");
 });
@@ -148,14 +173,22 @@ Deno.test("Given defaultOpen true / When the menu mounts / Then the open state i
   const h = mount(FLAT, { defaultOpen: true });
   assertEquals(h.state(), "open", "defaultOpen seeds the open state");
   assertEquals(h.api.isOpen, true, "the api reports open");
-  assertEquals(h.api.getTriggerProps()["aria-expanded"], true, "the trigger reports expanded");
+  assertEquals(
+    h.api.getTriggerProps()["aria-expanded"],
+    true,
+    "the trigger reports expanded",
+  );
 });
 
 Deno.test("Given a closed menu / When the trigger is clicked / Then it opens and reports open-change", () => {
   const h = mount(FLAT);
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   assertEquals(h.state(), "open", "the click opens the menu");
-  assertEquals(h.events.openChange, [{ open: true }], "open-change fires once on the way open");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }],
+    "open-change fires once on the way open",
+  );
 });
 
 Deno.test("Given an open menu / When the trigger is clicked again / Then it closes and reports open-change", () => {
@@ -163,14 +196,22 @@ Deno.test("Given an open menu / When the trigger is clicked again / Then it clos
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   assertEquals(h.state(), "closed", "the toggle closes the menu");
-  assertEquals(h.events.openChange, [{ open: true }, { open: false }], "both directions report");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }, { open: false }],
+    "both directions report",
+  );
 });
 
 Deno.test("Given a closed menu / When the open command runs / Then the machine takes the open state", () => {
   const h = mount(FLAT);
   h.api.open();
   assertEquals(h.state(), "open", "the command moves to open");
-  assertEquals(h.events.openChange, [{ open: true }], "open-change reports the command");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }],
+    "open-change reports the command",
+  );
 });
 
 Deno.test("Given an open menu / When the close command runs / Then the machine returns to closed", () => {
@@ -178,21 +219,37 @@ Deno.test("Given an open menu / When the close command runs / Then the machine r
   h.api.open();
   h.api.close();
   assertEquals(h.state(), "closed", "the command returns to closed");
-  assertEquals(h.events.openChange, [{ open: true }, { open: false }], "open-change reports both moves");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }, { open: false }],
+    "open-change reports both moves",
+  );
 });
 
 Deno.test("Given an open menu / When the dismissable action reports Escape / Then it closes", () => {
   const h = mount(FLAT);
   h.api.open();
-  callback<() => void>(h.api.getContentProps(), "use:dismissable", "onEscape")();
+  callback<() => void>(
+    h.api.getContentProps(),
+    "use:dismissable",
+    "onEscape",
+  )();
   assertEquals(h.state(), "closed", "escape closes the menu");
-  assertEquals(h.events.openChange, [{ open: true }, { open: false }], "the close reports once");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }, { open: false }],
+    "the close reports once",
+  );
 });
 
 Deno.test("Given an open menu / When a press outside is reported / Then it closes", () => {
   const h = mount(FLAT);
   h.api.open();
-  callback<(event: PointerEvent) => void>(h.api.getContentProps(), "use:dismissable", "onOutside")({
+  callback<(event: PointerEvent) => void>(
+    h.api.getContentProps(),
+    "use:dismissable",
+    "onOutside",
+  )({
     target: document.createElement("div"),
   } as unknown as PointerEvent);
   assertEquals(h.state(), "closed", "an outside press closes the menu");
@@ -201,7 +258,9 @@ Deno.test("Given an open menu / When a press outside is reported / Then it close
 Deno.test("Given an open menu / When the trigger id is excluded / Then the content passes it to dismissable", () => {
   const h = mount(FLAT);
   h.api.open();
-  const params = h.api.getContentProps()["use:dismissable"] as { excludeId?: unknown };
+  const params = h.api.getContentProps()["use:dismissable"] as {
+    excludeId?: unknown;
+  };
   assertEquals(
     params.excludeId,
     h.api.getTriggerProps()["id"],
@@ -225,7 +284,10 @@ Deno.test("Given defaultOpen at mount / When the menu starts / Then it opens", (
 Deno.test("Given a closed menu / When the context menu event carries a point / Then it opens at that point", () => {
   const h = mount(FLAT);
   let prevented = false;
-  handler<(event: MouseEvent) => void>(h.api.getContextTriggerProps(), "onContextMenu")({
+  handler<(event: MouseEvent) => void>(
+    h.api.getContextTriggerProps(),
+    "onContextMenu",
+  )({
     clientX: 120,
     clientY: 64,
     preventDefault: () => {
@@ -239,50 +301,105 @@ Deno.test("Given a closed menu / When the context menu event carries a point / T
 Deno.test("Given a closed menu / When the positioner props are read / Then the anchor action carries placement and no vars", () => {
   const h = mount(FLAT);
   const bag = h.api.getPositionerProps() as Record<string, unknown>;
-  assertEquals(bag["style"], undefined, "coordinates are the action's writes, not bag styles");
-  assertEquals(bag["use:anchor"], { placement: "bottom", offset: 8 }, "the bag declares behavior; the action positions");
+  assertEquals(
+    bag["style"],
+    undefined,
+    "coordinates are the action's writes, not bag styles",
+  );
+  assertEquals(
+    bag["use:anchor"],
+    { placement: "bottom", offset: 8 },
+    "the bag declares behavior; the action positions",
+  );
 });
 
 Deno.test("Given a closed menu / When the long-press action fires / Then the context menu opens", () => {
   const h = mount(FLAT);
-  callback<(point: { x: number; y: number }) => void>(h.api.getContextTriggerProps(), "use:long-press", "onPress")({ x: 40, y: 30 });
+  callback<(point: { x: number; y: number }) => void>(
+    h.api.getContextTriggerProps(),
+    "use:long-press",
+    "onPress",
+  )({ x: 40, y: 30 });
   assertEquals(h.state(), "open", "the long press opens the menu");
 });
 
 Deno.test("Given a closed menu / When ArrowDown arrives on the trigger / Then it opens with the first item highlighted", () => {
   const h = mount(FLAT);
-  handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(keyboard("ArrowDown"));
+  handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(
+    keyboard("ArrowDown"),
+  );
   assertEquals(h.state(), "open", "arrow down opens the menu");
-  assertEquals(h.api.highlightedValue, "new", "the first enabled item is highlighted");
+  assertEquals(
+    h.api.highlightedValue,
+    "new",
+    "the first enabled item is highlighted",
+  );
 });
 
 Deno.test("Given a closed menu / When ArrowUp arrives on the trigger / Then it opens with the last item highlighted", () => {
   const h = mount(FLAT);
-  handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(keyboard("ArrowUp"));
+  handler<(event: KeyboardEvent) => void>(h.api.getTriggerProps(), "onKeydown")(
+    keyboard("ArrowUp"),
+  );
   assertEquals(h.state(), "open", "arrow up opens the menu");
-  assertEquals(h.api.highlightedValue, "copy", "the last enabled item is highlighted, the disabled one skipped");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "the last enabled item is highlighted, the disabled one skipped",
+  );
 });
 
 Deno.test("Given an open menu / When the setHighlighted command runs / Then the highlight moves and reports", () => {
   const h = mount(FLAT);
   h.api.open();
   h.api.setHighlighted("copy");
-  assertEquals(h.api.highlightedValue, "copy", "the highlight follows the command");
-  assertEquals(h.events.highlightChange, [{ highlightedValue: "copy" }], "highlight-change reports the move");
-  assertEquals(h.api.getItemProps(h.row("copy"))["data-highlighted"], "", "the row carries data-highlighted");
-  assertEquals(h.api.getItemProps(h.row("new"))["data-highlighted"], undefined, "other rows do not");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "the highlight follows the command",
+  );
+  assertEquals(
+    h.events.highlightChange,
+    [{ highlightedValue: "copy" }],
+    "highlight-change reports the move",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("copy"))["data-highlighted"],
+    "",
+    "the row carries data-highlighted",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("new"))["data-highlighted"],
+    undefined,
+    "other rows do not",
+  );
 });
 
 Deno.test("Given an open menu / When arrows move the highlight / Then navigation walks the enabled rows", () => {
   const h = mount(FLAT);
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.highlightedValue, "new", "the first arrow lands on the first item");
+  assertEquals(
+    h.api.highlightedValue,
+    "new",
+    "the first arrow lands on the first item",
+  );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.highlightedValue, "copy", "the next arrow skips the separator and the disabled item");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "the next arrow skips the separator and the disabled item",
+  );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.highlightedValue, "copy", "without loopFocus the last enabled item is the boundary");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "without loopFocus the last enabled item is the boundary",
+  );
   onKeydown(keyboard("ArrowUp"));
   assertEquals(h.api.highlightedValue, "new", "arrow up walks back");
 });
@@ -290,21 +407,39 @@ Deno.test("Given an open menu / When arrows move the highlight / Then navigation
 Deno.test("Given loopFocus / When the highlight runs past the last item / Then it wraps to the first", () => {
   const h = mount(FLAT, { loopFocus: true });
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("ArrowDown"));
   onKeydown(keyboard("ArrowDown"));
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.highlightedValue, "new", "the wrap returns to the first item");
+  assertEquals(
+    h.api.highlightedValue,
+    "new",
+    "the wrap returns to the first item",
+  );
 });
 
 Deno.test("Given an open menu / When Home and End arrive / Then the highlight jumps to the edges", () => {
   const h = mount(FLAT);
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("End"));
-  assertEquals(h.api.highlightedValue, "copy", "End lands on the last enabled item");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "End lands on the last enabled item",
+  );
   onKeydown(keyboard("Home"));
-  assertEquals(h.api.highlightedValue, "new", "Home lands on the first enabled item");
+  assertEquals(
+    h.api.highlightedValue,
+    "new",
+    "Home lands on the first enabled item",
+  );
 });
 
 const SHARED_PREFIX: MenuEntry[] = [
@@ -316,30 +451,62 @@ const SHARED_PREFIX: MenuEntry[] = [
 Deno.test("Given an open menu / When a printable key arrives / Then typeahead jumps to the matching label", () => {
   const h = mount(SHARED_PREFIX);
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("s"));
-  assertEquals(h.api.highlightedValue, "send", "the first label starting with s wins");
+  assertEquals(
+    h.api.highlightedValue,
+    "send",
+    "the first label starting with s wins",
+  );
   onKeydown(keyboard("e"));
-  assertEquals(h.api.highlightedValue, "send", "the accumulated buffer still matches Send to chat");
+  assertEquals(
+    h.api.highlightedValue,
+    "send",
+    "the accumulated buffer still matches Send to chat",
+  );
   onKeydown(keyboard("t"));
-  assertEquals(h.api.highlightedValue, "settings", "the longer buffer matches Settings");
+  assertEquals(
+    h.api.highlightedValue,
+    "settings",
+    "the longer buffer matches Settings",
+  );
 });
 
 Deno.test("Given an open menu with a highlighted item / When Enter arrives / Then it selects and closes", () => {
   const h = mount(FLAT);
   h.api.open();
   h.api.setHighlighted("copy");
-  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(keyboard("Enter"));
-  assertEquals(h.events.select, [{ value: "copy" }], "select carries the highlighted value");
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("Enter"),
+  );
+  assertEquals(
+    h.events.select,
+    [{ value: "copy" }],
+    "select carries the highlighted value",
+  );
   assertEquals(h.state(), "closed", "closeOnSelect closes the menu");
-  assertEquals(h.events.openChange, [{ open: true }, { open: false }], "the close reports once");
+  assertEquals(
+    h.events.openChange,
+    [{ open: true }, { open: false }],
+    "the close reports once",
+  );
 });
 
 Deno.test("Given an open menu / When an item is clicked / Then it selects, closes, and clears the highlight", () => {
   const h = mount(FLAT);
   h.api.open();
-  handler<(event: MouseEvent) => void>(h.api.getItemProps(h.row("new")), "onClick")(mouse());
-  assertEquals(h.events.select, [{ value: "new" }], "select carries the clicked value");
+  handler<(event: MouseEvent) => void>(
+    h.api.getItemProps(h.row("new")),
+    "onClick",
+  )(mouse());
+  assertEquals(
+    h.events.select,
+    [{ value: "new" }],
+    "select carries the clicked value",
+  );
   assertEquals(h.state(), "closed", "the menu closes after a select");
   assertEquals(h.api.highlightedValue, null, "the highlight clears on close");
 });
@@ -347,7 +514,10 @@ Deno.test("Given an open menu / When an item is clicked / Then it selects, close
 Deno.test("Given closeOnSelect false / When an item is clicked / Then it selects but the menu stays open", () => {
   const h = mount(FLAT, { closeOnSelect: false });
   h.api.open();
-  handler<(event: MouseEvent) => void>(h.api.getItemProps(h.row("copy")), "onClick")(mouse());
+  handler<(event: MouseEvent) => void>(
+    h.api.getItemProps(h.row("copy")),
+    "onClick",
+  )(mouse());
   assertEquals(h.events.select, [{ value: "copy" }], "select still fires");
   assertEquals(h.state(), "open", "the menu stays open");
 });
@@ -355,7 +525,10 @@ Deno.test("Given closeOnSelect false / When an item is clicked / Then it selects
 Deno.test("Given a disabled item / When it is clicked / Then nothing is selected", () => {
   const h = mount(FLAT);
   h.api.open();
-  handler<(event: MouseEvent) => void>(h.api.getItemProps(h.row("cut")), "onClick")(mouse());
+  handler<(event: MouseEvent) => void>(
+    h.api.getItemProps(h.row("cut")),
+    "onClick",
+  )(mouse());
   assertEquals(h.events.select, [], "a disabled item selects nothing");
   assertEquals(h.state(), "open", "the menu stays open");
 });
@@ -363,11 +536,22 @@ Deno.test("Given a disabled item / When it is clicked / Then nothing is selected
 Deno.test("Given an open menu / When a pointer moves over an item / Then the highlight follows", () => {
   const h = mount(FLAT);
   h.api.open();
-  const onPointerMove = handler<(event: PointerEvent) => void>(h.api.getItemProps(h.row("copy")), "onPointerMove");
+  const onPointerMove = handler<(event: PointerEvent) => void>(
+    h.api.getItemProps(h.row("copy")),
+    "onPointerMove",
+  );
   onPointerMove(pointer("mouse"));
-  assertEquals(h.api.highlightedValue, "copy", "the mouse pointer highlights the row");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "the mouse pointer highlights the row",
+  );
   onPointerMove(pointer("touch"));
-  assertEquals(h.api.highlightedValue, "copy", "a non-mouse pointer is ignored");
+  assertEquals(
+    h.api.highlightedValue,
+    "copy",
+    "a non-mouse pointer is ignored",
+  );
 });
 
 Deno.test("Given a submenu row / When it is clicked / Then the submenu opens on the parent context", () => {
@@ -375,10 +559,24 @@ Deno.test("Given a submenu row / When it is clicked / Then the submenu opens on 
   h.api.open();
   const row = h.row("share");
   assertEquals(row.children.length, 2, "the row carries its submenu rows");
-  handler<(event: MouseEvent) => void>(h.api.getItemProps(row), "onClick")(mouse());
-  assertEquals(h.api.getSubmenuProps(row)["open"], "true", "the submenu instance is marked open");
-  assertEquals(h.api.getItemProps(row)["aria-expanded"], true, "the trigger row reports expanded");
-  assertEquals(h.api.getItemProps(row)["aria-haspopup"], "menu", "the trigger row declares a menu popup");
+  handler<(event: MouseEvent) => void>(h.api.getItemProps(row), "onClick")(
+    mouse(),
+  );
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "true",
+    "the submenu instance is marked open",
+  );
+  assertEquals(
+    h.api.getItemProps(row)["aria-expanded"],
+    true,
+    "the trigger row reports expanded",
+  );
+  assertEquals(
+    h.api.getItemProps(row)["aria-haspopup"],
+    "menu",
+    "the trigger row declares a menu popup",
+  );
 });
 
 Deno.test("Given a submenu row / When the hover-intent action opens it / Then the parent context opens it too", () => {
@@ -386,7 +584,11 @@ Deno.test("Given a submenu row / When the hover-intent action opens it / Then th
   h.api.open();
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-  assertEquals(h.api.getSubmenuProps(row)["open"], "true", "the hover dwell opens the submenu");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "true",
+    "the hover dwell opens the submenu",
+  );
 });
 
 Deno.test("Given an open submenu / When the hover-intent action reports a close / Then the submenu closes", () => {
@@ -396,8 +598,16 @@ Deno.test("Given an open submenu / When the hover-intent action reports a close 
   const bag = h.api.getItemProps(row);
   callback<() => void>(bag, "use:hover-intent", "onOpen")();
   callback<() => void>(bag, "use:hover-intent", "onClose")();
-  assertEquals(h.api.getSubmenuProps(row)["open"], "false", "leaving the row closes the submenu");
-  assertEquals(h.api.getItemProps(row)["aria-expanded"], false, "the trigger row reports collapsed");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "false",
+    "leaving the row closes the submenu",
+  );
+  assertEquals(
+    h.api.getItemProps(row)["aria-expanded"],
+    false,
+    "the trigger row reports collapsed",
+  );
 });
 
 Deno.test("Given an open submenu / When another row is highlighted / Then the submenu closes", () => {
@@ -406,15 +616,25 @@ Deno.test("Given an open submenu / When another row is highlighted / Then the su
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
   h.api.setHighlighted("new");
-  assertEquals(h.api.getSubmenuProps(row)["open"], "false", "highlighting another row closes the submenu");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "false",
+    "highlighting another row closes the submenu",
+  );
 });
 
 Deno.test("Given an open menu on a submenu trigger / When ArrowRight arrives / Then the submenu opens", () => {
   const h = mount(NESTED);
   h.api.open();
   h.api.setHighlighted("share");
-  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(keyboard("ArrowRight"));
-  assertEquals(h.api.getSubmenuProps(h.row("share"))["open"], "true", "arrow right enters the submenu");
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("ArrowRight"),
+  );
+  assertEquals(
+    h.api.getSubmenuProps(h.row("share"))["open"],
+    "true",
+    "arrow right enters the submenu",
+  );
 });
 
 Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes and reports the close upward", () => {
@@ -430,7 +650,10 @@ Deno.test("Given a submenu instance / When ArrowLeft arrives / Then it closes an
     "submenu",
   );
   bridge.api.open();
-  handler<(event: KeyboardEvent) => void>(bridge.api.getContentProps(), "onKeydown")(keyboard("ArrowLeft"));
+  handler<(event: KeyboardEvent) => void>(
+    bridge.api.getContentProps(),
+    "onKeydown",
+  )(keyboard("ArrowLeft"));
   assertEquals(seen, ["dismiss"], "a submenu reports its close upward");
   assertEquals(bridge.api.isOpen, false, "the submenu returns to closed");
 });
@@ -440,16 +663,32 @@ Deno.test("Given a submenu that closed itself / When the parent hears the close 
   h.api.open();
   const row = h.row("share");
   callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-  assertEquals(h.api.getSubmenuProps(row)["open"], "true", "the submenu is open");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "true",
+    "the submenu is open",
+  );
 
   const child = document.createElement("div");
   child.id = String(h.api.getSubmenuProps(row)["id"]);
   h.root.appendChild(child);
-  const onSubmenuClose = handler<(event: Event) => void>(h.api.getContentProps(), "onSubmenuclose");
+  const onSubmenuClose = handler<(event: Event) => void>(
+    h.api.getContentProps(),
+    "onSubmenuclose",
+  );
   h.root.addEventListener("submenuclose", onSubmenuClose);
-  child.dispatchEvent(new CustomEvent("submenuclose", { bubbles: true, detail: { select: false } }));
+  child.dispatchEvent(
+    new CustomEvent("submenuclose", {
+      bubbles: true,
+      detail: { select: false },
+    }),
+  );
 
-  assertEquals(h.api.getSubmenuProps(row)["open"], "false", "the dismissal clears the parent's open submenu");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "false",
+    "the dismissal clears the parent's open submenu",
+  );
 });
 
 Deno.test("Given a submenu that is open / When a different instance dismisses / Then the parent keeps it open", () => {
@@ -461,11 +700,23 @@ Deno.test("Given a submenu that is open / When a different instance dismisses / 
   const other = document.createElement("div");
   other.id = "menu:menu:submenu:not-mine";
   h.root.appendChild(other);
-  const onSubmenuClose = handler<(event: Event) => void>(h.api.getContentProps(), "onSubmenuclose");
+  const onSubmenuClose = handler<(event: Event) => void>(
+    h.api.getContentProps(),
+    "onSubmenuclose",
+  );
   h.root.addEventListener("submenuclose", onSubmenuClose);
-  other.dispatchEvent(new CustomEvent("submenuclose", { bubbles: true, detail: { select: false } }));
+  other.dispatchEvent(
+    new CustomEvent("submenuclose", {
+      bubbles: true,
+      detail: { select: false },
+    }),
+  );
 
-  assertEquals(h.api.getSubmenuProps(row)["open"], "true", "another instance's dismissal is not this one's");
+  assertEquals(
+    h.api.getSubmenuProps(row)["open"],
+    "true",
+    "another instance's dismissal is not this one's",
+  );
 });
 
 Deno.test("Given closeOnSelect / When a descendant reports a select / Then this level closes", () => {
@@ -481,11 +732,22 @@ Deno.test("Given closeOnSelect / When a descendant reports a select / Then this 
     () => root,
     "submenu",
   );
-  assertEquals(bridge.api.isOpen, true, "the authored open prop holds this level open");
-  handler<(event: Event) => void>(bridge.api.getContentProps(), "onSubmenuclose")(
+  assertEquals(
+    bridge.api.isOpen,
+    true,
+    "the authored open prop holds this level open",
+  );
+  handler<(event: Event) => void>(
+    bridge.api.getContentProps(),
+    "onSubmenuclose",
+  )(
     new CustomEvent("submenuclose", { detail: { select: true } }),
   );
-  assertEquals(bridge.api.isOpen, false, "a select with closeOnSelect closes this level too");
+  assertEquals(
+    bridge.api.isOpen,
+    false,
+    "a select with closeOnSelect closes this level too",
+  );
 });
 
 Deno.test("Given closeOnSelect false / When a descendant reports a select / Then this level stays open", () => {
@@ -502,7 +764,10 @@ Deno.test("Given closeOnSelect false / When a descendant reports a select / Then
     () => root,
     "submenu",
   );
-  handler<(event: Event) => void>(bridge.api.getContentProps(), "onSubmenuclose")(
+  handler<(event: Event) => void>(
+    bridge.api.getContentProps(),
+    "onSubmenuclose",
+  )(
     new CustomEvent("submenuclose", { detail: { select: true } }),
   );
   assertEquals(bridge.api.isOpen, true, "a select does not close this level");
@@ -515,9 +780,19 @@ Deno.test("Given items with groups and separators / When the blocks are read / T
     { value: "copy", label: "Copy" },
   ]);
   const blocks: readonly MenuBlock[] = h.api.getBlocks();
-  assertEquals(blocks.map((block) => block.label), ["File", null], "a separator splits the list into blocks");
-  assertEquals(blocks.map((block) => block.separator), [true, false], "only the block before a separator knows it");
-  assertEquals(blocks.map((block) => block.rows.map((row) => row.value)), [["new"], ["copy"]], "rows land in their own block");
+  assertEquals(
+    blocks.map((block) => block.label),
+    ["File", null],
+    "a separator splits the list into blocks",
+  );
+  assertEquals(
+    blocks.map((block) => block.separator),
+    [true, false],
+    "only the block before a separator knows it",
+  );
+  assertEquals(blocks.map((block) => block.rows.map((row) => row.value)), [[
+    "new",
+  ], ["copy"]], "rows land in their own block");
   assertEquals(
     blocks.map((block) => h.api.getSeparatorProps(block)["hidden"]),
     [false, true],
@@ -545,22 +820,58 @@ Deno.test("Given a checkable item / When its props are read / Then the checkbox 
     { value: "view", label: "Can view", checked: true },
     { value: "edit", label: "Can edit" },
   ]);
-  assertEquals(h.api.getItemProps(h.row("view"))["role"], "menuitemcheckbox", "a checkable item uses the checkbox role");
-  assertEquals(h.api.getItemProps(h.row("view"))["aria-checked"], true, "the checked state is exposed");
-  assertEquals(h.api.getItemIndicatorProps(h.row("view"))["data-checked"], "", "the indicator reports the check");
-  assertEquals(h.api.getItemProps(h.row("edit"))["role"], "menuitem", "a plain item uses the item role");
+  assertEquals(
+    h.api.getItemProps(h.row("view"))["role"],
+    "menuitemcheckbox",
+    "a checkable item uses the checkbox role",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("view"))["aria-checked"],
+    true,
+    "the checked state is exposed",
+  );
+  assertEquals(
+    h.api.getItemIndicatorProps(h.row("view"))["data-checked"],
+    "",
+    "the indicator reports the check",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("edit"))["role"],
+    "menuitem",
+    "a plain item uses the item role",
+  );
 });
 
 Deno.test("Given an item with a shortcut or children / When its props are read / Then the trailing affordances are exposed", () => {
   const h = mount([
     { value: "new", label: "New file", shortcut: "Ctrl N" },
-    { value: "share", label: "Share", children: [{ value: "mail", label: "Email link" }] },
+    {
+      value: "share",
+      label: "Share",
+      children: [{ value: "mail", label: "Email link" }],
+    },
   ]);
-  assertEquals(h.api.getItemShortcutProps(h.row("new"))["hidden"], false, "a row with a shortcut shows the part");
-  assertEquals(h.api.getItemSubmenuIndicatorProps(h.row("new"))["hidden"], true, "a leaf hides the submenu chevron");
-  assertEquals(h.api.getItemSubmenuIndicatorProps(h.row("share"))["hidden"], false, "a submenu row shows the chevron");
+  assertEquals(
+    h.api.getItemShortcutProps(h.row("new"))["hidden"],
+    false,
+    "a row with a shortcut shows the part",
+  );
+  assertEquals(
+    h.api.getItemSubmenuIndicatorProps(h.row("new"))["hidden"],
+    true,
+    "a leaf hides the submenu chevron",
+  );
+  assertEquals(
+    h.api.getItemSubmenuIndicatorProps(h.row("share"))["hidden"],
+    false,
+    "a submenu row shows the chevron",
+  );
   const props = h.api.getSubmenuProps(h.row("share"));
-  assertEquals(props["label"], "Share", "the child instance is told its row's label");
+  assertEquals(
+    props["label"],
+    "Share",
+    "the child instance is told its row's label",
+  );
   assertEquals(props["open"], "false", "the child instance starts closed");
 });
 
@@ -570,22 +881,38 @@ Deno.test("Given items the transport could not shape / When the rows are read / 
   // Post-mount writes are inert without an event: the seed ran at mount.
   // A non-array can never reach entries through the typed seed path, so
   // the mount-time tree stands.
-  assertEquals(h.api.getBlocks().flatMap((block) => block.rows).map((row) => row.value), ["new", "copy", "cut"], "post-mount writes do not re-seed");
+  assertEquals(
+    h.api.getBlocks().flatMap((block) => block.rows).map((row) => row.value),
+    ["new", "copy", "cut"],
+    "post-mount writes do not re-seed",
+  );
 });
 
 Deno.test("Given composite false / When the content props are read / Then the surface is a dialog", () => {
   const h = mount(FLAT, { composite: false });
-  assertEquals(h.api.getContentProps()["role"], "dialog", "composite false demotes the menu to a dialog");
-  assertEquals(h.api.getTriggerProps()["aria-haspopup"], "dialog", "the trigger declares a dialog popup");
-  assertEquals(h.api.getItemProps(h.row("new"))["role"], "menuitem", "items keep the menu item role");
+  assertEquals(
+    h.api.getContentProps()["role"],
+    "dialog",
+    "composite false demotes the menu to a dialog",
+  );
+  assertEquals(
+    h.api.getTriggerProps()["aria-haspopup"],
+    "dialog",
+    "the trigger declares a dialog popup",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("new"))["role"],
+    "menuitem",
+    "items keep the menu item role",
+  );
 });
-
-
 
 Deno.test("Given typeahead false / When a printable key arrives / Then the highlight does not move", () => {
   const h = mount(FLAT, { typeahead: false });
   h.api.open();
-  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(keyboard("n"));
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("n"),
+  );
   assertEquals(h.api.highlightedValue, null, "typeahead is off");
 });
 
@@ -593,8 +920,16 @@ Deno.test("Given a submenu row / When the child instance is configured / Then it
   const h = mount(NESTED);
   const row = h.row("share");
   const props = h.api.getSubmenuProps(row);
-  assertEquals(props["items"], row.children, "the subtree crosses as values; the child transport coerces");
-  assertEquals(props["id"], "menu:menu:submenu:share", "the child instance takes the row's id");
+  assertEquals(
+    props["items"],
+    row.children,
+    "the subtree crosses as values; the child transport coerces",
+  );
+  assertEquals(
+    props["id"],
+    "menu:menu:submenu:share",
+    "the child instance takes the row's id",
+  );
 });
 
 // ---- bug: submenu part ids were double-prefixed ----------------------------
@@ -611,21 +946,34 @@ Deno.test("Given a nested instance / When it is handed an already-namespaced id 
   const ownerId = "menu:host";
   const nested = createMenuBridge(() => ({ items: FLAT }), () => root, ownerId);
   const contentId = String(nested.api.getContentProps()["id"]);
-  assertEquals(contentId, `${ownerId}:content`, "the nested content part id keeps one namespace");
+  assertEquals(
+    contentId,
+    `${ownerId}:content`,
+    "the nested content part id keeps one namespace",
+  );
   assertEquals(
     String(nested.api.getTriggerProps()["id"]),
     `${ownerId}:trigger`,
     "the nested trigger part id keeps one namespace",
   );
-  const row = nested.api.getBlocks().flatMap((block) => nested.api.getRows(block)).find((r) => r.value === "new");
-  assertEquals(row === undefined ? "" : String(nested.api.getItemProps(row)["id"]), `${ownerId}:item:new`);
+  const row = nested.api.getBlocks().flatMap((block) =>
+    nested.api.getRows(block)
+  ).find((r) => r.value === "new");
+  assertEquals(
+    row === undefined ? "" : String(nested.api.getItemProps(row)["id"]),
+    `${ownerId}:item:new`,
+  );
 });
 
 Deno.test("Given a submenu trigger row / When the child part ids are read / Then aria-controls points at the child's content", () => {
   const h = mount(NESTED, { submenu: true });
   const row = h.row("share");
   const childId = String(h.api.getSubmenuProps(row)["id"]);
-  assertEquals(childId, "menu:menu:submenu:share", "the child element carries the parent's part id");
+  assertEquals(
+    childId,
+    "menu:menu:submenu:share",
+    "the child element carries the parent's part id",
+  );
   assertEquals(
     String(h.api.getItemProps(row)["aria-controls"]),
     `${childId}:content`,
@@ -680,10 +1028,17 @@ Deno.test("Given an open menu / When the highlight moves / Then the rows are the
   const h = mount(FLAT);
   h.api.open();
   const before = h.api.getBlocks();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("ArrowDown"));
   const after = h.api.getBlocks();
-  assertEquals(after, before, "the block list is the same array across a machine move");
+  assertEquals(
+    after,
+    before,
+    "the block list is the same array across a machine move",
+  );
   assertEquals(
     after.flatMap((block) => h.api.getRows(block)),
     before.flatMap((block) => h.api.getRows(block)),
@@ -699,7 +1054,10 @@ Deno.test("Given an open menu / When the highlight moves / Then the rows are the
 Deno.test("Given an open menu / When the highlight moves / Then the row handlers keep their identity", () => {
   const h = mount(FLAT);
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("ArrowDown"));
   const first = h.api.getItemProps(h.row("new"));
   const before = {
@@ -708,19 +1066,42 @@ Deno.test("Given an open menu / When the highlight moves / Then the row handlers
   };
   onKeydown(keyboard("ArrowDown"));
   const second = h.api.getItemProps(h.row("new"));
-  assertEquals(second["onClick"], before.onClick, "the click handler is not rebuilt per move");
-  assertEquals(second["onPointerMove"], before.onPointerMove, "the pointer handler is not rebuilt per move");
+  assertEquals(
+    second["onClick"],
+    before.onClick,
+    "the click handler is not rebuilt per move",
+  );
+  assertEquals(
+    second["onPointerMove"],
+    before.onPointerMove,
+    "the pointer handler is not rebuilt per move",
+  );
 });
 
 Deno.test("Given an open menu / When the highlight moves / Then the item bag is rebuilt with the new fields", () => {
   const h = mount(FLAT);
   h.api.open();
-  const onKeydown = handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown");
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getContentProps(),
+    "onKeydown",
+  );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.getItemProps(h.row("new"))["data-highlighted"], "", "the highlighted row carries the attribute");
+  assertEquals(
+    h.api.getItemProps(h.row("new"))["data-highlighted"],
+    "",
+    "the highlighted row carries the attribute",
+  );
   onKeydown(keyboard("ArrowDown"));
-  assertEquals(h.api.getItemProps(h.row("new"))["data-highlighted"], undefined, "the previous row loses it");
-  assertEquals(h.api.getItemProps(h.row("copy"))["data-highlighted"], "", "the new row carries it");
+  assertEquals(
+    h.api.getItemProps(h.row("new"))["data-highlighted"],
+    undefined,
+    "the previous row loses it",
+  );
+  assertEquals(
+    h.api.getItemProps(h.row("copy"))["data-highlighted"],
+    "",
+    "the new row carries it",
+  );
   assertEquals(
     h.api.getItemProps(h.row("new"))["role"],
     "menuitem",
@@ -731,8 +1112,16 @@ Deno.test("Given an open menu / When the highlight moves / Then the item bag is 
 Deno.test("Given an open menu / When nothing moves / Then re-reading the bags returns the same objects", () => {
   const h = mount(FLAT, { composite: false });
   h.api.open();
-  assertEquals(h.api.getTriggerProps(), h.api.getTriggerProps(), "the trigger bag is cached");
-  assertEquals(h.api.getContentProps(), h.api.getContentProps(), "the content bag is cached");
+  assertEquals(
+    h.api.getTriggerProps(),
+    h.api.getTriggerProps(),
+    "the trigger bag is cached",
+  );
+  assertEquals(
+    h.api.getContentProps(),
+    h.api.getContentProps(),
+    "the content bag is cached",
+  );
   assertEquals(
     h.api.getItemProps(h.row("new")),
     h.api.getItemProps(h.row("new")),
@@ -758,5 +1147,9 @@ Deno.test("Given a menu whose items change post-mount / When the bags are read /
   // A host that needs a new tree sends an event (a hooks-layer job).
   h.write("items", [{ value: "other", label: "Other" }]);
   const rows = h.api.getBlocks().flatMap((block) => h.api.getRows(block));
-  assertEquals(rows.map((row) => row.value), ["new", "copy", "cut"], "post-mount writes do not re-seed");
+  assertEquals(
+    rows.map((row) => row.value),
+    ["new", "copy", "cut"],
+    "post-mount writes do not re-seed",
+  );
 });

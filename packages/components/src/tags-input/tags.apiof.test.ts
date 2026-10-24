@@ -51,10 +51,20 @@ Deno.test("TagsApi promises the component's surface", () => {
   assertEquals(keys.length, 39);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<TagsApi["state"], "idle" | "focused:input" | "navigating:tag" | "editing:tag"> = true;
-  const setValueTyped: AssertExact<TagsApi["setValue"], (value: readonly string[]) => void> = true;
-  const indexOfRowTyped: AssertExact<TagsApi["indexOfRow"], (row: TagsRow) => number> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    TagsApi["state"],
+    "idle" | "focused:input" | "navigating:tag" | "editing:tag"
+  > = true;
+  const setValueTyped: AssertExact<
+    TagsApi["setValue"],
+    (value: readonly string[]) => void
+  > = true;
+  const indexOfRowTyped: AssertExact<
+    TagsApi["indexOfRow"],
+    (row: TagsRow) => number
+  > = true;
   assertEquals(
     [
       stateTyped,

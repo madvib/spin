@@ -48,5 +48,32 @@ export function positionRules(): Rule[] {
       },
       { autocomplete: "z-$zIndex" },
     ],
+    // Anchors: pinning a top-layer panel to its trigger.
+    //
+    // A native popover lives in the top layer, where no ancestor positions
+    // it — `absolute top-full` names the viewport, not the trigger. The
+    // platform's own answer is anchor positioning: the trigger names
+    // itself, and the panel names the trigger and the area it takes beside
+    // it. The names are per-instance (`anchor-theme-popover`); the areas
+    // are the vocabulary, a side with an optional span. The spans are
+    // physical (`span-right` aligns under a left-anchored trigger in LTR),
+    // measured in the browser, not assumed from the grammar.
+    [
+      /^anchor-([\w-]+)$/,
+      ([, name]: string[]) => ({ "anchor-name": `--${name}` }),
+      { autocomplete: "anchor-<name>" },
+    ],
+    [
+      /^position-anchor-([\w-]+)$/,
+      ([, name]: string[]) => ({ "position-anchor": `--${name}` }),
+      { autocomplete: "position-anchor-<name>" },
+    ],
+    [
+      /^position-area-(top|right|bottom|left|center)(-(span-(all|left|right|top|bottom)))?$/,
+      ([, side, , span]: string[]) => ({
+        "position-area": span === undefined ? side : `${side} ${span}`,
+      }),
+      { autocomplete: "position-area-(top|right|bottom|left|center)" },
+    ],
   ];
 }

@@ -18,7 +18,10 @@ export interface FloatingPanelContext {
   dragFrom: { readonly x: number; readonly y: number } | null;
   minSize: FloatingPanelSize;
   maxSize: FloatingPanelSize;
-  resizeFrom: { readonly size: FloatingPanelSize; readonly position: { readonly x: number; readonly y: number } } | null;
+  resizeFrom: {
+    readonly size: FloatingPanelSize;
+    readonly position: { readonly x: number; readonly y: number };
+  } | null;
   axis: { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 } | null;
   draggable: boolean;
   resizable: boolean;
@@ -65,7 +68,10 @@ const DEFAULT_SIZE: FloatingPanelSize = { w: 360, h: 240 };
 const DEFAULT_MIN: FloatingPanelSize = { w: 120, h: 80 };
 const DEFAULT_MAX: FloatingPanelSize = { w: 1024, h: 768 };
 
-export function initial(args: FloatingPanelArgs = {}, authored: (name: string) => boolean): FloatingPanelContext {
+export function initial(
+  args: FloatingPanelArgs = {},
+  authored: (name: string) => boolean,
+): FloatingPanelContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -84,7 +90,9 @@ export function initial(args: FloatingPanelArgs = {}, authored: (name: string) =
     axis: null,
     draggable: written("draggable") ? args.draggable !== false : true,
     resizable: written("resizable") ? args.resizable !== false : true,
-    closeOnEscape: written("closeOnEscape") ? args.closeOnEscape !== false : true,
+    closeOnEscape: written("closeOnEscape")
+      ? args.closeOnEscape !== false
+      : true,
     boundary: { w: 1024, h: 768 },
     label: written("label") ? args.label ?? "" : "",
     disabled: written("disabled") ? args.disabled === true : false,

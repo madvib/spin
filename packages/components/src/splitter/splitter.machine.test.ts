@@ -11,7 +11,9 @@ import type { SplitterResizeDetails } from "./splitter.events.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -36,7 +38,14 @@ const PANELS = '[{"id":"a"},{"id":"b"}]';
  */
 function rootNode(): Element {
   return {
-    getBoundingClientRect: () => ({ left: 10, right: 410, width: 400, top: 0, bottom: 200, height: 200 }),
+    getBoundingClientRect: () => ({
+      left: 10,
+      right: 410,
+      width: 400,
+      top: 0,
+      bottom: 200,
+      height: 200,
+    }),
   } as unknown as Element;
 }
 
@@ -50,7 +59,8 @@ const press = (clientX: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: rootNode(),
-  rect: rootNode().getBoundingClientRect(), direction: "ltr",
+  rect: rootNode().getBoundingClientRect(),
+  direction: "ltr",
 });
 
 /** The move the drag action reports: the point, plus the delta from the
@@ -114,21 +124,36 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     write("panels", PANELS);
     authoredKeys.add("panels");
   }
-  write("onResize", (details: SplitterResizeDetails) => events.resize.push(details));
-  write("onResizeEnd", (details: SplitterResizeDetails) => events.resizeEnd.push(details));
+  write(
+    "onResize",
+    (details: SplitterResizeDetails) => events.resize.push(details),
+  );
+  write(
+    "onResizeEnd",
+    (details: SplitterResizeDetails) => events.resizeEnd.push(details),
+  );
   // The handle measures against the live root node; linkedom cannot serve
   // getElementById for this tree, so the root rect is pinned here under the
   // id the connect reads.
   const realDocument = globalThis.document as Document;
   const holder = realDocument.createElement("div");
   holder.id = "splitter:group";
-  const rect = { left: 10, right: 410, width: 400, top: 0, bottom: 200, height: 200 };
+  const rect = {
+    left: 10,
+    right: 410,
+    width: 400,
+    top: 0,
+    bottom: 200,
+    height: 200,
+  };
   holder.getBoundingClientRect = () => ({ ...rect }) as DOMRect;
   realDocument.body.appendChild(holder);
   const bridge = createSplitterBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -139,7 +164,10 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 function handle(api: SplitterApi): Record<string, unknown> {
-  return api.getHandleProps({ beforeId: "a", afterId: "b" }) as Record<string, unknown>;
+  return api.getHandleProps({ beforeId: "a", afterId: "b" }) as Record<
+    string,
+    unknown
+  >;
 }
 
 Deno.test("panels parse from JSON and split the group evenly", () => {
@@ -170,15 +198,21 @@ Deno.test("a handle drag redistributes the percents", () => {
 Deno.test("arrows resize the focused handle", () => {
   const { api } = mount();
   handler<() => void>(handle(api), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.getSizes(), [51, 49]);
-  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(keydown("ArrowLeft"));
+  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
+    keydown("ArrowLeft"),
+  );
   assertEquals(api.getSizes(), [50, 50]);
 });
 
 Deno.test("arrows refuse without a focused handle", () => {
   const { api, events } = mount();
-  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(api.getSizes(), [50, 50]);
   assertEquals(events.resize.length, 0);
 });
@@ -188,10 +222,14 @@ Deno.test("Enter collapses and re-expands a collapsible panel", () => {
     panels: '[{"id":"a","collapsible":true,"minSize":10},{"id":"b"}]',
   });
   handler<() => void>(handle(api), "onFocus")();
-  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(keydown("Enter"));
+  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
+    keydown("Enter"),
+  );
   assert(api.isPanelCollapsed("a"));
   assertEquals(api.getPanelSize("a"), 0);
-  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(keydown("Enter"));
+  handler<(e: KeyboardEvent) => void>(handle(api), "onKeydown")(
+    keydown("Enter"),
+  );
   assert(!api.isPanelCollapsed("a"));
 });
 

@@ -7,9 +7,9 @@
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
 
-
 /** Part ids are the machine's scheme: `color-picker:<element id>:<part>`. */
-const at = (id: string, part: string): string => `[id="color-picker:${id}:${part}"]`;
+const at = (id: string, part: string): string =>
+  `[id="color-picker:${id}:${part}"]`;
 const TRIGGER = at("brand", "trigger");
 const CONTENT = at("brand", "content");
 const AREA = at("brand", "area");
@@ -18,13 +18,16 @@ const HUE_THUMB = at("brand", "thumb:hue");
 const INLINE_CONTENT = at("inline", "content");
 
 Deno.test("spin-color-picker e2e", () =>
-  runComponentSuite({ port: 5248, route: "/color-picker", ready: TRIGGER,
+  runComponentSuite({
+    port: 5248,
+    route: "/color-picker",
+    ready: TRIGGER,
     settle: async (page) => {
-    assert.equal(
-      await page.locator(TRIGGER).getAttribute("aria-expanded"),
-      "false",
-      "the panel starts closed",
-    );
+      assert.equal(
+        await page.locator(TRIGGER).getAttribute("aria-expanded"),
+        "false",
+        "the panel starts closed",
+      );
     },
   }, async ({ page }) => {
     await step("trigger opens the panel", async () => {
@@ -43,15 +46,21 @@ Deno.test("spin-color-picker e2e", () =>
 
     await step("area arrows move the color", async () => {
       // Red is fully saturated, so the x channel only moves down from here.
-      const before = await page.locator(AREA_THUMB).getAttribute("aria-valuenow");
+      const before = await page.locator(AREA_THUMB).getAttribute(
+        "aria-valuenow",
+      );
       await page.locator(AREA_THUMB).focus();
       await page.keyboard.press("ArrowLeft");
-      const after = await page.locator(AREA_THUMB).getAttribute("aria-valuenow");
+      const after = await page.locator(AREA_THUMB).getAttribute(
+        "aria-valuenow",
+      );
       assert.notEqual(after, before, "the x channel stepped");
     });
 
     await step("hue arrows move the hue", async () => {
-      const before = await page.locator(HUE_THUMB).getAttribute("aria-valuenow");
+      const before = await page.locator(HUE_THUMB).getAttribute(
+        "aria-valuenow",
+      );
       await page.locator(HUE_THUMB).focus();
       await page.keyboard.press("ArrowRight");
       const after = await page.locator(HUE_THUMB).getAttribute("aria-valuenow");
@@ -71,7 +80,9 @@ Deno.test("spin-color-picker e2e", () =>
       const before = await readout.textContent();
       await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
       await page.mouse.down();
-      await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, { steps: 5 });
+      await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, {
+        steps: 5,
+      });
       await page.mouse.up();
       const after = await readout.textContent();
       assert.notEqual(after, before, "the drag moved the value");
@@ -82,8 +93,12 @@ Deno.test("spin-color-picker e2e", () =>
       await page.keyboard.press("Escape");
       const card = page.locator("card").first();
       await card.getByRole("button", { name: 'el.setFormat("rgb")' }).click();
-      const readout = await page.locator("text=/format:/").first().textContent();
-      assert.ok(readout?.includes("rgb"), `format switched to rgb, got: ${readout}`);
+      const readout = await page.locator("text=/format:/").first()
+        .textContent();
+      assert.ok(
+        readout?.includes("rgb"),
+        `format switched to rgb, got: ${readout}`,
+      );
     });
 
     await step("inline is always open", async () => {

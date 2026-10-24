@@ -1,7 +1,14 @@
 <script lang="ts">
-  import { toggleGroup } from "../toggle-group.presentation.ts";
+import { toggleGroup } from "../toggle-group.presentation.ts";
 
-  const machine = toggleGroup({ items: [{"value":"bold","label":"Bold"},{"value":"italic","label":"Italic"},{"value":"underline","label":"Underline"}], multiple: true, defaultValue: ["bold"] });
+const machine = toggleGroup({
+  items: [{ "value": "bold", "label": "Bold" }, {
+    "value": "italic",
+    "label": "Italic",
+  }, { "value": "underline", "label": "Underline" }],
+  multiple: true,
+  defaultValue: ["bold"],
+});
 </script>
 
 <include file="./basic.html" />

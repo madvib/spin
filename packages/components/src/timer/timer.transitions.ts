@@ -18,7 +18,10 @@ export const resetTime: TimerAssign<"RESTART" | "RESET"> = (ctx, event) => {
   return { currentMs: ctx.startMs };
 };
 
-export const restartChanged: GuardFor<TimerContext, TimerEvents, "RESTART"> = (ctx, event) => {
+export const restartChanged: GuardFor<TimerContext, TimerEvents, "RESTART"> = (
+  ctx,
+  event,
+) => {
   if (event.startMs === undefined) return true;
   return (parseMs(event.startMs) ?? 0) !== ctx.startMs;
 };
@@ -39,5 +42,7 @@ export const tick: TimerAssign<"TICK"> = (ctx, event) => {
   const next = ctx.currentMs + (ctx.countdown ? -1 : 1) * deltaMs;
   const target = effectiveTarget(ctx);
   if (target === null) return { currentMs: next };
-  return { currentMs: ctx.countdown ? Math.max(next, target) : Math.min(next, target) };
+  return {
+    currentMs: ctx.countdown ? Math.max(next, target) : Math.min(next, target),
+  };
 };

@@ -47,12 +47,21 @@ Deno.test("getValueRanges windows each value by its neighbors plus the gap", () 
 });
 
 Deno.test("getNextStepValue steps and clamps to neighbors", () => {
-  assertEquals(getNextStepValue(0, { values: [50], min: 0, max: 100, step: 1 }), [51]);
-  assertEquals(getNextStepValue(0, { values: [20, 80], min: 0, max: 100, step: 1 }), [21, 80]);
+  assertEquals(
+    getNextStepValue(0, { values: [50], min: 0, max: 100, step: 1 }),
+    [51],
+  );
+  assertEquals(
+    getNextStepValue(0, { values: [20, 80], min: 0, max: 100, step: 1 }),
+    [21, 80],
+  );
 });
 
 Deno.test("getPreviousStepValue steps down", () => {
-  assertEquals(getPreviousStepValue(0, { values: [50], min: 0, max: 100, step: 1 }), [49]);
+  assertEquals(
+    getPreviousStepValue(0, { values: [50], min: 0, max: 100, step: 1 }),
+    [49],
+  );
 });
 
 Deno.test("closestIndex lets later thumbs win ties", () => {

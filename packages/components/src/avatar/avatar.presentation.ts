@@ -1,15 +1,12 @@
 import {
-  defineComponent,
   type ApiOf,
   type ComponentDef,
+  defineComponent,
   type ScopeFor,
 } from "@spin/runtime";
 import { avatar as avatarMachine } from "./avatar.machine.ts";
 import type { AvatarArgs, AvatarContext, AvatarState } from "./avatar.state.ts";
-import type {
-  AvatarEvents,
-  AvatarStatus,
-} from "./avatar.events.ts";
+import type { AvatarEvents, AvatarStatus } from "./avatar.events.ts";
 
 export type { AvatarArgs, AvatarState };
 
@@ -69,7 +66,10 @@ export const def = {
   },
   readers: {
     loaded: { read: (_context, state) => state === "loaded" },
-    status: { read: (_context, state): AvatarStatus => state === "loaded" || state === "error" ? state : "loading" },
+    status: {
+      read: (_context, state): AvatarStatus =>
+        state === "loaded" || state === "error" ? state : "loading",
+    },
   },
   events: {
     "status-change": {
@@ -77,12 +77,27 @@ export const def = {
       watch: (_context, state) => [state],
       detail: (watched: readonly unknown[]) => {
         const status = watched[0];
-        const known: AvatarStatus = status === "loading" || status === "error" || status === "loaded" ? status : "loading";
+        const known: AvatarStatus =
+          status === "loading" || status === "error" || status === "loaded"
+            ? status
+            : "loading";
         return { status: known };
       },
     },
   },
-} satisfies ComponentDef<AvatarContext, AvatarEvents, Record<string, unknown>, AvatarArgs, AvatarState>;
+} satisfies ComponentDef<
+  AvatarContext,
+  AvatarEvents,
+  Record<string, unknown>,
+  AvatarArgs,
+  AvatarState
+>;
 
 export type AvatarApi = ApiOf<typeof def>;
-export const avatar = defineComponent<AvatarContext, AvatarEvents, AvatarApi, AvatarArgs, AvatarState>(def);
+export const avatar = defineComponent<
+  AvatarContext,
+  AvatarEvents,
+  AvatarApi,
+  AvatarArgs,
+  AvatarState
+>(def);

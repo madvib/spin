@@ -84,7 +84,9 @@ export function parsePaths(raw: unknown): readonly string[][] {
       out.push(entry.split(","));
       continue;
     }
-    if (Array.isArray(entry)) out.push(entry.filter((v): v is string => typeof v === "string"));
+    if (Array.isArray(entry)) {
+      out.push(entry.filter((v): v is string => typeof v === "string"));
+    }
   }
   return out;
 }
@@ -97,7 +99,9 @@ const parseNode = (raw: unknown): CascadeNode | undefined => {
   const disabled = raw["disabled"] === true;
   const childrenRaw = raw["children"];
   const children = Array.isArray(childrenRaw)
-    ? (childrenRaw.map(parseNode).filter((n): n is CascadeNode => n !== undefined))
+    ? (childrenRaw.map(parseNode).filter((n): n is CascadeNode =>
+      n !== undefined
+    ))
     : undefined;
   return { value, label, disabled, children };
 };
@@ -127,17 +131,30 @@ export const parseCollection = (raw: unknown): readonly CascadeNode[] => {
   return shaped;
 };
 
-export function initial(args: CascadeArgs = {}, authored: (name: string) => boolean): CascadeContext {
+export function initial(
+  args: CascadeArgs = {},
+  authored: (name: string) => boolean,
+): CascadeContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
-  const collection = parseCollection((args as Record<string, unknown>)["collection"]);
+  const collection = parseCollection(
+    (args as Record<string, unknown>)["collection"],
+  );
   return {
-    value: written("value") ? parsePaths(args.value).map((path) => [...path]) : [],
-    highlightedValue: written("highlightedValue") ? [...parsePath(args.highlightedValue)] : [],
-    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect !== false : true,
-    allowParentSelection: written("allowParentSelection") ? args.allowParentSelection === true : false,
+    value: written("value")
+      ? parsePaths(args.value).map((path) => [...path])
+      : [],
+    highlightedValue: written("highlightedValue")
+      ? [...parsePath(args.highlightedValue)]
+      : [],
+    closeOnSelect: written("closeOnSelect")
+      ? args.closeOnSelect !== false
+      : true,
+    allowParentSelection: written("allowParentSelection")
+      ? args.allowParentSelection === true
+      : false,
     multiple: written("multiple") ? args.multiple === true : false,
     loopFocus: written("loopFocus") ? args.loopFocus === true : false,
     highlightTrigger: written("highlightTrigger")
@@ -148,15 +165,26 @@ export function initial(args: CascadeArgs = {}, authored: (name: string) => bool
     readOnly: written("readOnly") ? args.readOnly === true : false,
     dir: written("dir") ? (args.dir === "rtl" ? "rtl" : "ltr") : "ltr",
     formatValue: written("formatValue") ? args.formatValue : undefined,
-    placement: written("placement") && typeof args.placement === "string" && args.placement.length > 0 ? args.placement : "bottom-start",
+    placement: written("placement") && typeof args.placement === "string" &&
+        args.placement.length > 0
+      ? args.placement
+      : "bottom-start",
     form: written("form") ? args.form : undefined,
-    name: written("name") ? (typeof args.name === "string" ? args.name : "") : "",
+    name: written("name")
+      ? (typeof args.name === "string" ? args.name : "")
+      : "",
     required: written("required") ? args.required === true : false,
     invalid: written("invalid") ? args.invalid === true : false,
     onFocusOutside: written("onFocusOutside") ? args.onFocusOutside : undefined,
-    onInteractOutside: written("onInteractOutside") ? args.onInteractOutside : undefined,
-    onPointerDownOutside: written("onPointerDownOutside") ? args.onPointerDownOutside : undefined,
-    scrollToIndexFn: written("scrollToIndexFn") ? args.scrollToIndexFn : undefined,
+    onInteractOutside: written("onInteractOutside")
+      ? args.onInteractOutside
+      : undefined,
+    onPointerDownOutside: written("onPointerDownOutside")
+      ? args.onPointerDownOutside
+      : undefined,
+    scrollToIndexFn: written("scrollToIndexFn")
+      ? args.scrollToIndexFn
+      : undefined,
   };
 }
 

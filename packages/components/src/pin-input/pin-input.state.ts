@@ -62,20 +62,22 @@ const parseChars = (raw: unknown): string[] => {
   const parts = Array.isArray(raw)
     ? raw.filter((part): part is string => typeof part === "string")
     : typeof raw === "string"
-      ? raw.split(",").map((part) => part.trim())
-      : [];
+    ? raw.split(",").map((part) => part.trim())
+    : [];
   return parts.filter((part) => part.length === 1);
 };
 
-export function initial(args: PinInputArgs, authored: (name: string) => boolean): PinInputContext {
+export function initial(
+  args: PinInputArgs,
+  authored: (name: string) => boolean,
+): PinInputContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
-  const count =
-    typeof args.count === "number" && Number.isFinite(args.count)
-      ? Math.max(0, Math.trunc(args.count))
-      : DEFAULT_COUNT;
+  const count = typeof args.count === "number" && Number.isFinite(args.count)
+    ? Math.max(0, Math.trunc(args.count))
+    : DEFAULT_COUNT;
   const chars = written("value") ? parseChars(args.value) : [];
   const pinType = args.type;
   return {
@@ -87,12 +89,20 @@ export function initial(args: PinInputArgs, authored: (name: string) => boolean)
     readOnly: args.readOnly === true,
     invalid: authored("invalid") ? args.invalid === true : undefined,
     required: args.required === true,
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
-    type: pinType === "alphabetic" || pinType === "alphanumeric" ? pinType : "numeric",
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
+    type: pinType === "alphabetic" || pinType === "alphanumeric"
+      ? pinType
+      : "numeric",
     mask: args.mask === true,
     otp: args.otp === true,
-    placeholder: typeof args.placeholder === "string" ? args.placeholder : "\u25CB",
+    placeholder: typeof args.placeholder === "string"
+      ? args.placeholder
+      : "\u25CB",
     pattern: typeof args.pattern === "string" ? args.pattern : "",
     translations: args.translations,
     sanitizeValue: args.sanitizeValue,
@@ -108,7 +118,9 @@ export function initial(args: PinInputArgs, authored: (name: string) => boolean)
  */
 export function fill(value: readonly string[], count: number): string[] {
   const length = count || value.length;
-  return Array.from({ length }).fill("").map((_char, index) => value[index] || "");
+  return Array.from({ length }).fill("").map((_char, index) =>
+    value[index] || ""
+  );
 }
 
 export interface PinValueView {

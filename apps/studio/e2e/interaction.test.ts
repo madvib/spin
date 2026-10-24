@@ -580,7 +580,7 @@ test("the theme and mode panels take the keyboard", async () => {
         const panel = document.querySelector('[data-testid="theme-list"]');
         const active = document.activeElement;
         return {
-          open: panel ? !panel.hasAttribute("hidden") : false,
+          open: panel ? panel.matches(":popover-open") : false,
           active: active ? active.getAttribute("data-theme") : null,
           focus: active ? (active.getAttribute("data-testid") ?? active.getAttribute("data-theme") ?? active.tagName) : "",
         };
@@ -607,7 +607,7 @@ test("the theme and mode panels take the keyboard", async () => {
         const panel = document.querySelector('[data-testid="theme-list"]');
         const active = document.activeElement;
         return {
-          open: panel ? !panel.hasAttribute("hidden") : false,
+          open: panel ? panel.matches(":popover-open") : false,
           focus: active ? (active.getAttribute("data-testid") ?? "") : "",
         };
       })()`,
@@ -643,7 +643,7 @@ test("the theme and mode panels take the keyboard", async () => {
         const panel = document.querySelector('[data-testid="mode-menu"]');
         const active = document.activeElement;
         return {
-          open: panel ? !panel.hasAttribute("hidden") : false,
+          open: panel ? panel.matches(":popover-open") : false,
           current: active ? active.getAttribute("aria-current") === "true" : false,
         };
       })()`,
@@ -831,8 +831,8 @@ test("a range readout accepts typed numbers and the element map picks and resets
         const before = (trigger().textContent ?? "").trim();
         trigger().click();
         await wait(300);
-        const panel = document.querySelector('div[role="listbox"][aria-label="font.element.h1.size"]');
-        const option = panel ? [...panel.querySelectorAll('button[role="option"]')].find((o) => (o.querySelector("span")?.textContent ?? "").trim() === "sm") : null;
+        const list = document.querySelector('div[aria-label="font.element.h1.size"] spin-step-list [role="listbox"]');
+        const option = list ? [...list.querySelectorAll('[role="option"]')].find((o) => (o.querySelector("span")?.textContent ?? "").trim() === "sm") : null;
         if (!option) return { error: "no-option" };
         option.click();
         await wait(800);

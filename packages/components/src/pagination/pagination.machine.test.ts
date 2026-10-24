@@ -12,7 +12,9 @@ import type {
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -61,12 +63,20 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
   write("count", 95);
-  write("onPageChange", (details: PaginationPageChange) => events.pageChange.push(details));
-  write("onPageSizeChange", (details: PaginationPageSizeChange) => events.pageSizeChange.push(details));
+  write(
+    "onPageChange",
+    (details: PaginationPageChange) => events.pageChange.push(details),
+  );
+  write(
+    "onPageSizeChange",
+    (details: PaginationPageSizeChange) => events.pageSizeChange.push(details),
+  );
   const bridge = createPaginationBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -80,20 +90,28 @@ Deno.test("next and prev walk within the pages", () => {
   const { api, events } = mount();
   assertEquals(api.page, 1);
   assertEquals(api.totalPages, 10);
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 2);
-  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 1);
   assertEquals(events.pageChange.map((change) => change.page), [2, 1]);
 });
 
 Deno.test("prev refuses page one and next refuses the last page", () => {
   const { api, events } = mount();
-  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getPrevTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 1);
   assertEquals(events.pageChange.length, 0);
   api.setPage(10);
-  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getNextTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 10);
   assertEquals(events.pageChange.length, 1);
 });
@@ -109,9 +127,13 @@ Deno.test("out-of-range pages are refused", () => {
 
 Deno.test("first and last jump the ends", () => {
   const { api } = mount();
-  handler<(e: MouseEvent) => void>(api.getLastTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getLastTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 10);
-  handler<(e: MouseEvent) => void>(api.getFirstTriggerProps(), "onClick")(click());
+  handler<(e: MouseEvent) => void>(api.getFirstTriggerProps(), "onClick")(
+    click(),
+  );
   assertEquals(api.page, 1);
 });
 
@@ -130,7 +152,15 @@ Deno.test("the window shows siblings, boundaries and ellipses", () => {
   const { api } = mount();
   api.setPage(5);
   const kinds = api.getItems().map((item) => item.type);
-  assertEquals(kinds, ["page", "ellipsis", "page", "page", "page", "ellipsis", "page"]);
+  assertEquals(kinds, [
+    "page",
+    "ellipsis",
+    "page",
+    "page",
+    "page",
+    "ellipsis",
+    "page",
+  ]);
   assertEquals(
     api.getItems().filter((item) => item.type === "page").map((item) =>
       item.type === "page" ? item.value : -1
@@ -152,7 +182,12 @@ Deno.test("clicking a page item selects that page and updates pageRange", () => 
   const { api, events } = mount({ count: 95, pageSize: 10 });
   assertEquals(api.pageRange, { start: 0, end: 10 });
 
-  const itemBag = api.getItemProps({ type: "page", value: 10, key: "page-10", label: "10" }) as Record<string, unknown>;
+  const itemBag = api.getItemProps({
+    type: "page",
+    value: 10,
+    key: "page-10",
+    label: "10",
+  }) as Record<string, unknown>;
   handler<(e: MouseEvent) => void>(itemBag, "onClick")(click());
   assertEquals(api.page, 10);
   assertEquals(api.pageRange, { start: 90, end: 95 });

@@ -85,7 +85,9 @@ function parseEntry(raw: unknown): MenuEntry | undefined {
     children?: readonly MenuEntry[];
   } = { value, label };
   if (typeof record["shortcut"] === "string") row.shortcut = record["shortcut"];
-  if (typeof record["disabled"] === "boolean") row.disabled = record["disabled"];
+  if (typeof record["disabled"] === "boolean") {
+    row.disabled = record["disabled"];
+  }
   if (typeof record["checked"] === "boolean") row.checked = record["checked"];
   if (Array.isArray(record["children"])) {
     row.children = record["children"].flatMap((child) => {
@@ -100,8 +102,8 @@ export function entriesOf(raw: unknown): readonly MenuEntry[] {
   const source: readonly unknown[] = Array.isArray(raw)
     ? raw
     : typeof raw === "string"
-      ? coerceJsonArray(raw, [])
-      : [];
+    ? coerceJsonArray(raw, [])
+    : [];
   const entries: MenuEntry[] = [];
   for (const item of source) {
     const entry = parseEntry(item);
@@ -110,7 +112,10 @@ export function entriesOf(raw: unknown): readonly MenuEntry[] {
   return entries;
 }
 
-export function initial(args: MenuArgs = {}, _authored: (name: string) => boolean = () => false): MenuContext {
+export function initial(
+  args: MenuArgs = {},
+  _authored: (name: string) => boolean = () => false,
+): MenuContext {
   void _authored;
   return {
     highlightedValue: null,

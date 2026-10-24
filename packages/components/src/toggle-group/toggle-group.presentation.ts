@@ -1,4 +1,14 @@
-import { ariaPressed, defineComponent, focuser, isComposing, optionRow, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaPressed,
+  type ComponentDef,
+  defineComponent,
+  focuser,
+  isComposing,
+  optionRow,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import { toggleGroup as toggleGroupMachine } from "./toggle-group.machine.ts";
 import {
   isInteractive,
@@ -7,24 +17,46 @@ import {
   type ToggleGroupContext,
   type ToggleGroupItem,
 } from "./toggle-group.state.ts";
-import type { ToggleGroupEvents, ToggleGroupValueChange } from "./toggle-group.events.ts";
+import type {
+  ToggleGroupEvents,
+  ToggleGroupValueChange,
+} from "./toggle-group.events.ts";
 export type { ToggleGroupArgs, ToggleGroupItem, ToggleGroupValueChange };
 
 type Ctx = ToggleGroupContext;
-type ScopeLike = ScopeFor<ToggleGroupContext, ToggleGroupEvents, "idle" | "focused">;
-type SlotLike<R> = SlotScopeFor<R, ToggleGroupContext, ToggleGroupEvents, "idle" | "focused">;
+type ScopeLike = ScopeFor<
+  ToggleGroupContext,
+  ToggleGroupEvents,
+  "idle" | "focused"
+>;
+type SlotLike<R> = SlotScopeFor<
+  R,
+  ToggleGroupContext,
+  ToggleGroupEvents,
+  "idle" | "focused"
+>;
 
 /** The view reflex: a roving move hands DOM focus to the focused item. */
-const focusItem = (scopeId: (part: string, slot?: unknown) => string, value: string): void => {
+const focusItem = (
+  scopeId: (part: string, slot?: unknown) => string,
+  value: string,
+): void => {
   focuser(scopeId)("item", value);
 };
 
-const orderOf = (scope: ScopeLike | SlotLike<ToggleGroupItem>): readonly ToggleGroupItem[] =>
+const orderOf = (
+  scope: ScopeLike | SlotLike<ToggleGroupItem>,
+): readonly ToggleGroupItem[] =>
   scope.context.items.filter(
-    (item: ToggleGroupItem) => !(item.disabled === true || scope.context.disabled),
+    (item: ToggleGroupItem) =>
+      !(item.disabled === true || scope.context.disabled),
   );
 
-const neighbor = (scope: ScopeLike | SlotLike<ToggleGroupItem>, value: string, direction: 1 | -1): string | null => {
+const neighbor = (
+  scope: ScopeLike | SlotLike<ToggleGroupItem>,
+  value: string,
+  direction: 1 | -1,
+): string | null => {
   const enabled = orderOf(scope);
   const at = enabled.findIndex((item) => item.value === value);
   if (at < 0 || enabled.length === 0) return null;
@@ -38,7 +70,8 @@ const neighbor = (scope: ScopeLike | SlotLike<ToggleGroupItem>, value: string, d
 
 export const def = {
   name: "toggle-group",
-  machine: (args: ToggleGroupArgs, authored) => toggleGroupMachine(args, authored),
+  machine: (args: ToggleGroupArgs, authored) =>
+    toggleGroupMachine(args, authored),
   start: "idle",
   parts: {
     root: {
@@ -65,7 +98,9 @@ export const def = {
             if (first !== undefined) focusItem(scope.id, first);
           },
           onBlur: (event: FocusEvent) => {
-            const related = event.relatedTarget instanceof HTMLElement ? event.relatedTarget : null;
+            const related = event.relatedTarget instanceof HTMLElement
+              ? event.relatedTarget
+              : null;
             if (
               related !== null &&
               event.currentTarget instanceof Element &&
@@ -92,7 +127,10 @@ export const def = {
         const horizontal = context.orientation === "horizontal";
         const multiple = context.multiple === true;
         const roving = context.rovingFocus !== false;
-        const step = (direction: 1 | -1, type: "TOGGLE.FOCUS_PREV" | "TOGGLE.FOCUS_NEXT"): void => {
+        const step = (
+          direction: 1 | -1,
+          type: "TOGGLE.FOCUS_PREV" | "TOGGLE.FOCUS_NEXT",
+        ): void => {
           const next = neighbor(scope, row.value, direction);
           if (next === null) return;
           scope.send({ type, id: scope.id("item", next) });
@@ -105,24 +143,34 @@ export const def = {
           disabled: itemDisabled ? true : undefined,
           tabindex: roving ? (focused ? "0" : "-1") : undefined,
           role: multiple ? undefined : "radio",
-          ...optionRow({ checked: multiple ? undefined : pressed ? "true" : "false" }),
+          ...optionRow({
+            checked: multiple ? undefined : pressed ? "true" : "false",
+          }),
           ...ariaPressed(multiple ? (pressed ? "true" : "false") : undefined),
           "data-disabled": scope.attr(itemDisabled),
           "data-state": pressed ? "on" : "off",
           onFocus: () => {
             if (itemDisabled) return;
-            scope.send({ type: "TOGGLE.FOCUS", id: scope.id("item", row.value) });
+            scope.send({
+              type: "TOGGLE.FOCUS",
+              id: scope.id("item", row.value),
+            });
           },
           onClick: (event: MouseEvent) => {
             if (itemDisabled) return;
             if (event.defaultPrevented) return;
-            scope.send({ type: "TOGGLE.CLICK", id: scope.id("item", row.value), value: row.value });
+            scope.send({
+              type: "TOGGLE.CLICK",
+              id: scope.id("item", row.value),
+              value: row.value,
+            });
           },
           onKeydown: (event: KeyboardEvent) => {
             if (event.defaultPrevented) return;
             if (itemDisabled) return;
             if (isComposing(event)) return;
-            const first = (): string => scope.id("item", orderOf(scope)[0]?.value ?? "");
+            const first = (): string =>
+              scope.id("item", orderOf(scope)[0]?.value ?? "");
             switch (event.key) {
               case "Tab":
                 scope.send({
@@ -136,7 +184,10 @@ export const def = {
                   const next = neighbor(scope, row.value, -1);
                   if (next !== null) {
                     event.preventDefault();
-                    scope.send({ type: "TOGGLE.FOCUS_PREV", id: scope.id("item", next) });
+                    scope.send({
+                      type: "TOGGLE.FOCUS_PREV",
+                      id: scope.id("item", next),
+                    });
                     focusItem(scope.id, next);
                   }
                 }
@@ -146,7 +197,10 @@ export const def = {
                   const next = neighbor(scope, row.value, 1);
                   if (next !== null) {
                     event.preventDefault();
-                    scope.send({ type: "TOGGLE.FOCUS_NEXT", id: scope.id("item", next) });
+                    scope.send({
+                      type: "TOGGLE.FOCUS_NEXT",
+                      id: scope.id("item", next),
+                    });
                     focusItem(scope.id, next);
                   }
                 }
@@ -161,7 +215,10 @@ export const def = {
                 const firstValue = orderOf(scope)[0]?.value;
                 if (roving && firstValue !== undefined) {
                   event.preventDefault();
-                  scope.send({ type: "TOGGLE.FOCUS_FIRST", id: scope.id("item", firstValue) });
+                  scope.send({
+                    type: "TOGGLE.FOCUS_FIRST",
+                    id: scope.id("item", firstValue),
+                  });
                   focusItem(scope.id, firstValue);
                 }
                 break;
@@ -171,7 +228,10 @@ export const def = {
                 const last = enabled[enabled.length - 1]?.value;
                 if (roving && last !== undefined) {
                   event.preventDefault();
-                  scope.send({ type: "TOGGLE.FOCUS_LAST", id: scope.id("item", last) });
+                  scope.send({
+                    type: "TOGGLE.FOCUS_LAST",
+                    id: scope.id("item", last),
+                  });
                   focusItem(scope.id, last);
                 }
                 break;
@@ -185,7 +245,12 @@ export const def = {
     },
   },
   commands: {
-    setValue: { event: ([value]: [value: readonly string[]]) => ({ type: "VALUE.SET", value: [...value] }) },
+    setValue: {
+      event: ([value]: [value: readonly string[]]) => ({
+        type: "VALUE.SET",
+        value: [...value],
+      }),
+    },
   },
   readers: {
     value: { read: (context: Ctx) => context.value },
@@ -195,10 +260,17 @@ export const def = {
   },
   methods: {
     isPressed: {
-      call: (context: Ctx, _state, [value]: [value: string]) => isPressed(context, value),
+      call: (context: Ctx, _state, [value]: [value: string]) =>
+        isPressed(context, value),
     },
     getItemState: {
-      call: (context: Ctx, _state, [slot]: [slot: ToggleGroupItem], _props, id) => {
+      call: (
+        context: Ctx,
+        _state,
+        [slot]: [slot: ToggleGroupItem],
+        _props,
+        id,
+      ) => {
         const row = slot ?? { value: "", label: "" };
         const ctx = context;
         return {
@@ -224,7 +296,19 @@ export const def = {
     const value = event["value"];
     if (typeof value === "string") focus("item", value);
   },
-} satisfies ComponentDef<ToggleGroupContext, ToggleGroupEvents, Record<string, unknown>, ToggleGroupArgs, "idle" | "focused">;
+} satisfies ComponentDef<
+  ToggleGroupContext,
+  ToggleGroupEvents,
+  Record<string, unknown>,
+  ToggleGroupArgs,
+  "idle" | "focused"
+>;
 
 export type ToggleGroupApi = ApiOf<typeof def>;
-export const toggleGroup = defineComponent<ToggleGroupContext, ToggleGroupEvents, ToggleGroupApi, ToggleGroupArgs, "idle" | "focused">(def);
+export const toggleGroup = defineComponent<
+  ToggleGroupContext,
+  ToggleGroupEvents,
+  ToggleGroupApi,
+  ToggleGroupArgs,
+  "idle" | "focused"
+>(def);

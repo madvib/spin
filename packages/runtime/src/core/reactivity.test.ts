@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { createMachine, interpret } from "@spin/runtime/fsm";
-import { signal, effect, computed } from "@spin/runtime";
+import { computed, effect, signal } from "@spin/runtime";
 
 Deno.test("a read of a signal inside a computed subscribes to it", () => {
   const s = signal(1);

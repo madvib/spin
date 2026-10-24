@@ -5,13 +5,47 @@ export interface EmitOutput {
   readonly bindings: number;
 }
 
-
 const KEYWORDS = new Set([
-  "true", "false", "null", "undefined", "this", "typeof", "void", "new",
-  "in", "of", "instanceof", "return", "const", "let", "var", "if", "else",
-  "for", "while", "do", "switch", "case", "break", "continue", "function",
-  "arrow", "async", "await", "try", "catch", "finally", "throw", "class",
-  "extends", "super", "import", "export", "default", "delete", "yield",
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "this",
+  "typeof",
+  "void",
+  "new",
+  "in",
+  "of",
+  "instanceof",
+  "return",
+  "const",
+  "let",
+  "var",
+  "if",
+  "else",
+  "for",
+  "while",
+  "do",
+  "switch",
+  "case",
+  "break",
+  "continue",
+  "function",
+  "arrow",
+  "async",
+  "await",
+  "try",
+  "catch",
+  "finally",
+  "throw",
+  "class",
+  "extends",
+  "super",
+  "import",
+  "export",
+  "default",
+  "delete",
+  "yield",
 ]);
 
 function freeNames(expr: string, bound: Set<string>): string[] {
@@ -58,15 +92,27 @@ export function emit(ir: ComponentIr): EmitOutput {
   let bindings = 0;
   let seq = 0;
 
-  const emitNodes = (nodes: readonly Node[], depth: number, host: string, parts = "parts", bound: Set<string> = new Set()): string[] => {
+  const emitNodes = (
+    nodes: readonly Node[],
+    depth: number,
+    host: string,
+    parts = "parts",
+    bound: Set<string> = new Set(),
+  ): string[] => {
     const out: string[] = [];
     for (const node of nodes) {
       if (node.kind === "text") {
         const hasExpr = node.parts.some((part) => part.kind === "expr");
         if (!hasExpr) {
-          const text = node.parts.map((part) => part.kind === "static" ? part.value : "").join("");
+          const text = node.parts.map((part) =>
+            part.kind === "static" ? part.value : ""
+          ).join("");
           if (text.length === 0) continue;
-          out.push(`${pad(depth)}{ const t = document.createTextNode(${JSON.stringify(text)}); ${host}.appendChild(t); }`);
+          out.push(
+            `${pad(depth)}{ const t = document.createTextNode(${
+              JSON.stringify(text)
+            }); ${host}.appendChild(t); }`,
+          );
         } else {
           bindings++;
           const id = `t${seq++}`;
@@ -80,7 +126,9 @@ export function emit(ir: ComponentIr): EmitOutput {
           // no resync caller — without the tick read it renders its seed
           // value and never moves again.
           out.push(
-            `${pad(depth)}{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); machineTick(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
+            `${
+              pad(depth)
+            }{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); machineTick(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
           );
         }
         continue;
@@ -91,11 +139,27 @@ export function emit(ir: ComponentIr): EmitOutput {
         const keyScope = new Set([...bound, node.binding, "item", "i"]);
         const withRow = new Set([...bound, node.binding, "item", "i"]);
         const key = node.key !== undefined
-          ? `(item, i) => (${scopeExpr(node.key, keyScope).replace(new RegExp(`(?<![A-Za-z0-9_$."])${node.binding}(?![A-Za-z0-9_$])`, "g"), "item")})`
+          ? `(item, i) => (${
+            scopeExpr(node.key, keyScope).replace(
+              new RegExp(
+                `(?<![A-Za-z0-9_$."])${node.binding}(?![A-Za-z0-9_$])`,
+                "g",
+              ),
+              "item",
+            )
+          })`
           : `(_item, i) => i`;
-        out.push(`${pad(depth)}{ const ${id} = document.createComment("for"); ${host}.appendChild(${id});`);
+        out.push(
+          `${
+            pad(depth)
+          }{ const ${id} = document.createComment("for"); ${host}.appendChild(${id});`,
+        );
         out.push(`${pad(depth + 1)}const view${id} = bindFor({ anchor: ${id},`);
-        out.push(`${pad(depth + 2)}items: () => ((${scopeExpr(node.source, bound)}) ?? []),`);
+        out.push(
+          `${pad(depth + 2)}items: () => ((${
+            scopeExpr(node.source, bound)
+          }) ?? []),`,
+        );
         out.push(`${pad(depth + 2)}key: ${key},`);
         out.push(`${pad(depth + 2)}render: (item, i) => {`);
         // Rebindable: resync swaps the cell's item on every move, and the
@@ -104,9 +168,23 @@ export function emit(ir: ComponentIr): EmitOutput {
         // field updates (a toast retitle, a step rename) never display.
         out.push(`${pad(depth + 3)}let ${node.binding} = item;`);
         out.push(`${pad(depth + 3)}const rowParts = [];`);
-        out.push(`${pad(depth + 3)}const frag = document.createDocumentFragment();`);
-        for (const line of emitNodes(node.body, depth + 3, "frag", "rowParts", withRow)) out.push(line);
-        out.push(`${pad(depth + 3)}return { nodes: [...frag.childNodes], update(item) { ${node.binding} = item; for (const u of rowParts) u(); } };`);
+        out.push(
+          `${pad(depth + 3)}const frag = document.createDocumentFragment();`,
+        );
+        for (
+          const line of emitNodes(
+            node.body,
+            depth + 3,
+            "frag",
+            "rowParts",
+            withRow,
+          )
+        ) out.push(line);
+        out.push(
+          `${
+            pad(depth + 3)
+          }return { nodes: [...frag.childNodes], update(item) { ${node.binding} = item; for (const u of rowParts) u(); } };`,
+        );
         out.push(`${pad(depth + 2)}}});`);
         out.push(`${pad(depth)}}`);
         continue;
@@ -118,15 +196,39 @@ export function emit(ir: ComponentIr): EmitOutput {
         // moved (never cloned) by placeSlot, which also owns re-placement on
         // update — hence pushed, unlike bindAttr/on.
         const nameAttr = node.attrs.find((a) => a.name === "name");
-        const name = nameAttr !== undefined && nameAttr.value.kind === "static" ? nameAttr.value.value : "";
+        const name = nameAttr !== undefined && nameAttr.value.kind === "static"
+          ? nameAttr.value.value
+          : "";
         const anchor = `s${seq++}`;
         const fragId = `sf${seq++}`;
         const fb = `f${seq++}`;
-        out.push(`${pad(depth)}{ const ${anchor} = document.createComment("slot"); ${host}.appendChild(${anchor});`);
-        out.push(`${pad(depth + 1)}const ${fragId} = document.createDocumentFragment();`);
-        for (const line of emitNodes(node.children, depth + 1, fragId, parts, bound)) out.push(line);
+        out.push(
+          `${
+            pad(depth)
+          }{ const ${anchor} = document.createComment("slot"); ${host}.appendChild(${anchor});`,
+        );
+        out.push(
+          `${
+            pad(depth + 1)
+          }const ${fragId} = document.createDocumentFragment();`,
+        );
+        for (
+          const line of emitNodes(
+            node.children,
+            depth + 1,
+            fragId,
+            parts,
+            bound,
+          )
+        ) out.push(line);
         out.push(`${pad(depth + 1)}const ${fb} = [...${fragId}.childNodes];`);
-        out.push(`${pad(depth + 1)}${parts}.push(() => placeSlot(${host}, ${anchor}, (values["@@slots"] || new Map()).get(${JSON.stringify(name)}), ${fb}));`);
+        out.push(
+          `${
+            pad(depth + 1)
+          }${parts}.push(() => placeSlot(${host}, ${anchor}, (values["@@slots"] || new Map()).get(${
+            JSON.stringify(name)
+          }), ${fb}));`,
+        );
         out.push(`${pad(depth)}}`);
         continue;
       }
@@ -143,9 +245,19 @@ export function emit(ir: ComponentIr): EmitOutput {
       if (showTest !== undefined) {
         bindings++;
         const aid = `a${seq++}`;
-        out.push(`${pad(depth)}{ const ${aid} = document.createComment("show"); ${host}.appendChild(${aid});`);
-        out.push(`${pad(depth + 1)}bindIf({ anchor: ${aid}, test: ${showTest}, branches: [() => {`);
-        out.push(`${pad(depth + 2)}const ${bid}f = document.createDocumentFragment();`);
+        out.push(
+          `${
+            pad(depth)
+          }{ const ${aid} = document.createComment("show"); ${host}.appendChild(${aid});`,
+        );
+        out.push(
+          `${
+            pad(depth + 1)
+          }bindIf({ anchor: ${aid}, test: ${showTest}, branches: [() => {`,
+        );
+        out.push(
+          `${pad(depth + 2)}const ${bid}f = document.createDocumentFragment();`,
+        );
         out.push(`${pad(depth + 2)}const ${bid}p = [];`);
       }
       const iDepth = showTest !== undefined ? depth + 2 : depth;
@@ -157,44 +269,95 @@ export function emit(ir: ComponentIr): EmitOutput {
       if (node.tag === "host") {
         out.push(`${pad(iDepth)}{ const ${el} = _host;`);
       } else if (inSvg) {
-        out.push(`${pad(iDepth)}{ const ${el} = document.createElementNS("http://www.w3.org/2000/svg", ${JSON.stringify(node.tag)});`);
+        out.push(
+          `${
+            pad(iDepth)
+          }{ const ${el} = document.createElementNS("http://www.w3.org/2000/svg", ${
+            JSON.stringify(node.tag)
+          });`,
+        );
       } else {
-        out.push(`${pad(iDepth)}{ const ${el} = document.createElement(${JSON.stringify(node.tag)});`);
+        out.push(
+          `${pad(iDepth)}{ const ${el} = document.createElement(${
+            JSON.stringify(node.tag)
+          });`,
+        );
       }
       for (const attr of node.attrs) {
         if (attr.value.kind === "static") {
-          out.push(`${pad(iDepth + 1)}${el}.setAttribute(${JSON.stringify(attr.name)}, ${JSON.stringify(attr.value.value)});`);
+          out.push(
+            `${pad(iDepth + 1)}${el}.setAttribute(${
+              JSON.stringify(attr.name)
+            }, ${JSON.stringify(attr.value.value)});`,
+          );
         } else {
           bindings++;
           // A class attribute takes a LIST: the classes are the strings,
           // the conditions are the objects' keys. The merge is ours.
-          const merge = attr.name === "class" && /^\s*[\[{]/.test(attr.value.expr)
-            ? "classOf("
-            : "";
+          const merge =
+            attr.name === "class" && /^\s*[\[{]/.test(attr.value.expr)
+              ? "classOf("
+              : "";
           const close = merge === "" ? "" : ")";
-          out.push(`${pad(iDepth + 1)}bindAttr(${el}, ${JSON.stringify(attr.name)}, () => (${merge}${scopeExpr(attr.value.expr, bound)}${close}));`);
+          out.push(
+            `${pad(iDepth + 1)}bindAttr(${el}, ${
+              JSON.stringify(attr.name)
+            }, () => (${merge}${scopeExpr(attr.value.expr, bound)}${close}));`,
+          );
         }
       }
       for (const ev of node.events) {
         bindings++;
-        out.push(`${pad(iDepth + 1)}on(${el}, ${JSON.stringify(ev.event)}, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`);
+        out.push(
+          `${pad(iDepth + 1)}on(${el}, ${
+            JSON.stringify(ev.event)
+          }, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`,
+        );
       }
       for (const use of node.actions) {
         bindings++;
-        const param = use.param !== undefined ? `() => (${scopeExpr(use.param, bound)})` : `undefined`;
-        out.push(`${pad(iDepth + 1)}runAction(${el}, actions[${JSON.stringify(use.name)}], ${param});`);
+        const param = use.param !== undefined
+          ? `() => (${scopeExpr(use.param, bound)})`
+          : `undefined`;
+        out.push(
+          `${pad(iDepth + 1)}runAction(${el}, actions[${
+            JSON.stringify(use.name)
+          }], ${param});`,
+        );
       }
       for (const spread of node.spreads) {
         bindings++;
-        out.push(`${pad(iDepth + 1)}${iParts}.push(bindSpread(${el}, () => (${scopeExpr(spread.expr, bound)})));`);
+        out.push(
+          `${pad(iDepth + 1)}${iParts}.push(bindSpread(${el}, () => (${
+            scopeExpr(spread.expr, bound)
+          })));`,
+        );
       }
       const childBound = inSvg ? new Set([...bound, "@@svg"]) : bound;
-      for (const line of emitNodes(node.children, iDepth + 1, el, iParts, childBound)) out.push(line);
-      if (node.tag !== "host") out.push(`${pad(iDepth + 1)}${bid !== undefined ? `${bid}f` : host}.appendChild(${el});`);
+      for (
+        const line of emitNodes(
+          node.children,
+          iDepth + 1,
+          el,
+          iParts,
+          childBound,
+        )
+      ) out.push(line);
+      if (node.tag !== "host") {
+        out.push(
+          `${pad(iDepth + 1)}${
+            bid !== undefined ? `${bid}f` : host
+          }.appendChild(${el});`,
+        );
+      }
       out.push(`${pad(iDepth)}}`);
       if (showTest !== undefined && bid !== undefined) {
         out.push(`${pad(depth + 2)}for (const u of ${bid}p) u();`);
-        out.push(`${pad(depth + 2)}return { nodes: [...${bid}f.childNodes], update() { for (const u of ${bid}p) u(); } };`);
+        out.push(
+          `${
+            pad(depth + 2)
+          }return { nodes: [...${bid}f.childNodes], update() { for (const u of ${bid}p) u(); } };`,
+        );
         out.push(`${pad(depth + 1)}}, () => ({ nodes: [], update() {} })]});`);
         out.push(`${pad(depth)}}`);
       }

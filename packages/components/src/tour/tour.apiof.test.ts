@@ -32,9 +32,14 @@ Deno.test("TourApi promises the component's surface", () => {
     "getBackdropProps",
   ];
   assertEquals(keys.length, 27);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<TourApi["state"], "inactive" | "resolving" | "scrolling" | "active"> = true;
-  const setStepTyped: AssertExact<TourApi["setStep"], (step: number) => void> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    TourApi["state"],
+    "inactive" | "resolving" | "scrolling" | "active"
+  > = true;
+  const setStepTyped: AssertExact<TourApi["setStep"], (step: number) => void> =
+    true;
   const startTyped: AssertExact<TourApi["start"], () => void> = true;
   assertEquals(
     [stateTyped, setStepTyped, startTyped].every(Boolean),

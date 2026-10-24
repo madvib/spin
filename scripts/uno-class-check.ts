@@ -27,13 +27,14 @@ import { starterThemes } from "../packages/theme/src/themes/index.ts";
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [
   "packages/components/src",
-  "packages/components/specimens/src",
 ];
 
 /** A `class="..."` attribute's value, minus anything dynamic. */
 function classesOf(source: string): string[] {
   const out: string[] = [];
-  for (const match of expandVariantGroups(source).matchAll(/class="([^"]*)"/g)) {
+  for (
+    const match of expandVariantGroups(source).matchAll(/class="([^"]*)"/g)
+  ) {
     for (const token of (match[1] ?? "").split(/\s+/)) {
       // A dynamic value (`class={...}`) is not literal text; the emitter's
       // own output is checked by the build, not here.
@@ -48,13 +49,13 @@ function classesOf(source: string): string[] {
  * class names its utilities in its string literals, and those are
  * utilities the build must have. */
 function classesOfMarkup(source: string): string[] {
-  try {
-    return classTokens(parse(source));
-  } catch {
-    // Not a component (a fragment, a document): the text walk sees what
-    // it can.
-    return classesOf(source);
-  }
+  const stripped = expandVariantGroups(
+    source
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
+      .replace(/<scope>[\s\S]*?<\/scope>\s*/g, ""),
+  );
+  return classTokens(parse(stripped));
 }
 
 const tokens = new Set<string>();
@@ -62,13 +63,20 @@ for (const root of SOURCES) {
   for await (const entry of walk(root, { exts: [".html", ".tsx", ".ts"] })) {
     if (!entry.isFile) continue;
     const source = await Deno.readTextFile(entry.path);
-    const found = entry.path.endsWith(".html") ? classesOfMarkup(source) : classesOf(source);
+    const found = entry.path.endsWith(".html")
+      ? classesOfMarkup(source)
+      : classesOf(source);
     for (const token of found) tokens.add(token);
   }
 }
 
 // The same generator the specimens app builds with: a class the app can
 // compile is a class that passes, and nothing else counts.
+// The `animate-*` utilities are not Uno rules — they ship as plain CSS from
+// `@spin/animation`'s preflight — so they are allowlisted rather than
+// generated: the generator would never match them either way.
+import { animationVariants } from "../packages/animation/src/index.ts";
+const ANIMATED = animationVariants();
 const uno = await createGenerator({
   presets: [
     spinPreset({ themes: starterThemes }),
@@ -77,7 +85,10 @@ const uno = await createGenerator({
 });
 
 const generated = await uno.generate(new Set(tokens), { preflights: false });
-const dead = [...tokens].filter((token) => !generated.matched.has(token)).sort();
+const dead = [...tokens].filter((token) =>
+  !generated.matched.has(token) && !ANIMATED.has(token)
+)
+  .sort();
 
 if (dead.length > 0) {
   console.error(`uno: ${dead.length} class(es) match no rule:`);

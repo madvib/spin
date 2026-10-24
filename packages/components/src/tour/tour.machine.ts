@@ -10,9 +10,9 @@ import { initial } from "./tour.state.ts";
 import type { TourEvents } from "./tour.events.ts";
 import {
   bail,
+  hasNext,
   hasPrev,
   hasSteps,
-  hasNext,
   nextStep,
   prevStep,
   setSpotlight,

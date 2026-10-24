@@ -1,5 +1,9 @@
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { EditableArgs, EditableContext, EditableState } from "./editable.state.ts";
+import type {
+  EditableArgs,
+  EditableContext,
+  EditableState,
+} from "./editable.state.ts";
 import { initial } from "./editable.state.ts";
 import type { EditableEvents } from "./editable.events.ts";
 import {
@@ -41,7 +45,11 @@ export function editable(
       edit: {
         on: {
           "CONTROLLED.PREVIEW": [
-            { cond: controlledPreviewIsSubmit, target: "preview", assign: setPreviousValue },
+            {
+              cond: controlledPreviewIsSubmit,
+              target: "preview",
+              assign: setPreviousValue,
+            },
             { target: "preview", assign: revertValue },
           ],
           CANCEL: [

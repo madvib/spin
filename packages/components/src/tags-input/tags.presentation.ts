@@ -1,4 +1,15 @@
-import { ariaDisabled, ariaInvalid, defineComponent, isRecord, liveRegion, machineTick, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaDisabled,
+  ariaInvalid,
+  type ComponentDef,
+  defineComponent,
+  isRecord,
+  liveRegion,
+  machineTick,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import {
   type TagsArgs,
   type TagsContext,
@@ -94,7 +105,10 @@ const callHostFn = (fn: unknown, event: PointerEvent | FocusEvent): void => {
 /** Whether the caret sits at the start of the entry field: arrows and
  * delete then move between tags instead of text. Falls back to the entry
  * input in the owned root, since a synthetic event carries no target. */
-const caretAtStart = (scope: ScopeLike, target: EventTarget | null): boolean => {
+const caretAtStart = (
+  scope: ScopeLike,
+  target: EventTarget | null,
+): boolean => {
   const at = (node: unknown): boolean => {
     if (!isRecord(node)) return false;
     return node["selectionStart"] === 0 && node["selectionEnd"] === 0;
@@ -112,7 +126,9 @@ const hostProp = (scope: HostScope, name: string): unknown => {
   const root: unknown = scope.root();
   if (!isRecord(root)) return undefined;
   const found: unknown = root[name];
-  return found === undefined ? (scope.context as unknown as Record<string, unknown>)[name] : found;
+  return found === undefined
+    ? (scope.context as unknown as Record<string, unknown>)[name]
+    : found;
 };
 
 interface HostScope {
@@ -124,7 +140,9 @@ const translationsOf = (scope: HostScope): TagsTranslations => {
   const fromRoot: unknown = hostProp(scope, "translations");
   if (fromRoot !== undefined) return parseTranslations(fromRoot);
   const raw: unknown = scope.context.translations;
-  return typeof raw === "function" || isRecord(raw) ? parseTranslations(raw) : defaultTranslations;
+  return typeof raw === "function" || isRecord(raw)
+    ? parseTranslations(raw)
+    : defaultTranslations;
 };
 
 const hostFnOf = (scope: HostScope, name: string): HostFn | undefined => {
@@ -138,7 +156,10 @@ function parseTranslations(raw: unknown): TagsTranslations {
     const value: unknown = raw[name];
     return typeof value === "string" ? value : fallback;
   };
-  const fn1 = (name: string, fallback: (value: string) => string): ((value: string) => string) => {
+  const fn1 = (
+    name: string,
+    fallback: (value: string) => string,
+  ): (value: string) => string => {
     const value: unknown = raw[name];
     if (!isHostFn(value)) return fallback;
     return (arg: string): string => {
@@ -148,8 +169,14 @@ function parseTranslations(raw: unknown): TagsTranslations {
   };
   const pasted: unknown = raw["tagsPasted"];
   return {
-    clearTriggerLabel: text("clearTriggerLabel", defaultTranslations.clearTriggerLabel),
-    deleteTagTriggerLabel: fn1("deleteTagTriggerLabel", defaultTranslations.deleteTagTriggerLabel),
+    clearTriggerLabel: text(
+      "clearTriggerLabel",
+      defaultTranslations.clearTriggerLabel,
+    ),
+    deleteTagTriggerLabel: fn1(
+      "deleteTagTriggerLabel",
+      defaultTranslations.deleteTagTriggerLabel,
+    ),
     tagAdded: fn1("tagAdded", defaultTranslations.tagAdded),
     tagEdited: fn1("tagEdited", defaultTranslations.tagEdited),
     tagUpdated: fn1("tagUpdated", defaultTranslations.tagUpdated),
@@ -158,7 +185,9 @@ function parseTranslations(raw: unknown): TagsTranslations {
     tagsPasted: isHostFn(pasted)
       ? (values: readonly string[]): string => {
         const out: unknown = pasted(values);
-        return typeof out === "string" ? out : defaultTranslations.tagsPasted(values);
+        return typeof out === "string"
+          ? out
+          : defaultTranslations.tagsPasted(values);
       }
       : defaultTranslations.tagsPasted,
     noTagsSelected: text("noTagsSelected", defaultTranslations.noTagsSelected),
@@ -188,8 +217,10 @@ const rowsOf = (value: readonly string[]): readonly TagsRow[] => {
   return built;
 };
 
-const tagIdOf = (id: (part: string, slot?: unknown) => string, row: TagsRow): string =>
-  `${id("tag")}:${row.value}:${row.occurrence}`;
+const tagIdOf = (
+  id: (part: string, slot?: unknown) => string,
+  row: TagsRow,
+): string => `${id("tag")}:${row.value}:${row.occurrence}`;
 
 const rowOf = (arg: unknown): TagsRow => {
   if (!isRecord(arg)) return { value: "", occurrence: 0 };
@@ -230,7 +261,13 @@ const itemStateOf = (
   };
 };
 const stateOf = (scope: ScopeLike, row: TagsRow): TagsItemState =>
-  itemStateOf(scope.context, scope.state, scope.context.disabled, scope.id, row);
+  itemStateOf(
+    scope.context,
+    scope.state,
+    scope.context.disabled,
+    scope.id,
+    row,
+  );
 
 /** Whether a node belongs to a tag part, so a press on a tag is not read
  * as a press outside the input. */
@@ -262,7 +299,10 @@ type TagHandlerSet = {
   readonly onDeleteClick: (event: MouseEvent) => void;
   readonly onDeletePointerDown: (event: PointerEvent) => void;
 };
-const tagHandlersByBridge = new WeakMap<object, WeakMap<TagsRow, TagHandlerSet>>();
+const tagHandlersByBridge = new WeakMap<
+  object,
+  WeakMap<TagsRow, TagHandlerSet>
+>();
 const tagHandlers = (scope: ScopeLike, row: TagsRow): TagHandlerSet => {
   let byRow = tagHandlersByBridge.get(scope.send);
   if (byRow === undefined) {
@@ -309,7 +349,11 @@ const tagHandlers = (scope: ScopeLike, row: TagsRow): TagHandlerSet => {
   return made;
 };
 
-const message = (log: TagsLog, prev: TagsLog | null, t: TagsTranslations): string => {
+const message = (
+  log: TagsLog,
+  prev: TagsLog | null,
+  t: TagsTranslations,
+): string => {
   switch (log.type) {
     case "add":
       return t.tagAdded(log.value);
@@ -349,11 +393,17 @@ const rememberRoot = (id: IdFn, root: Element): void => {
  * behavior on the very send that needs it. Bag sends sync in settled
  * instead (post-send, silent) — one send behind, which beats never. The
  * check is against the raw fn: a wrapper is fresh per sync. */
-const syncHostFns = (context: TagsContext, id: (part: string, slot?: unknown) => string): void => {
+const syncHostFns = (
+  context: TagsContext,
+  id: (part: string, slot?: unknown) => string,
+): void => {
   const root = rootByBridge.get(id);
   if (root === undefined) return;
   const seen = seenOf(id);
-  const scope: HostScope = { context: context as unknown as TagsContext, root: () => root };
+  const scope: HostScope = {
+    context: context as unknown as TagsContext,
+    root: () => root,
+  };
   const sanitize = hostFnOf(scope, "sanitizeValue");
   if (sanitize !== undefined && seen.sanitize !== sanitize) {
     seen.sanitize = sanitize;
@@ -374,7 +424,10 @@ const syncHostFns = (context: TagsContext, id: (part: string, slot?: unknown) =>
   }
 };
 
-const seenByBridge = new WeakMap<IdFn, { sanitize?: HostFn; validate?: HostFn }>();
+const seenByBridge = new WeakMap<
+  IdFn,
+  { sanitize?: HostFn; validate?: HostFn }
+>();
 const seenOf = (id: IdFn): { sanitize?: HostFn; validate?: HostFn } => {
   let seen = seenByBridge.get(id);
   if (seen === undefined) {
@@ -411,8 +464,11 @@ const blurBehaviorOf = (
 /** The component's public state: the names the markup may key on. */
 export const def = {
   name: "tags-input",
-  machine: (args: TagsArgs, authored: (name: string) => boolean) => tagsMachine(args, authored),
-  start: (raw: Record<string, unknown>) => (raw["autoFocus"] === true ? "focused:input" : "idle"),
+  machine: (args: TagsArgs, authored: (name: string) => boolean) =>
+    tagsMachine(args, authored),
+  start: (
+    raw: Record<string, unknown>,
+  ) => (raw["autoFocus"] === true ? "focused:input" : "idle"),
   reconcile: ({ context, parsed, authored }) => {
     let moved = false;
     // The authored `invalid` wins outright: a host write lands even when
@@ -429,12 +485,21 @@ export const def = {
         moved = true;
       }
     }
-    const behavior = blurBehaviorOf(parsed["blurBehavior"], authored("blurBehavior"));
-    if (behavior.addOnBlur !== undefined && behavior.addOnBlur !== context.addOnBlur) {
+    const behavior = blurBehaviorOf(
+      parsed["blurBehavior"],
+      authored("blurBehavior"),
+    );
+    if (
+      behavior.addOnBlur !== undefined &&
+      behavior.addOnBlur !== context.addOnBlur
+    ) {
       context.addOnBlur = behavior.addOnBlur;
       moved = true;
     }
-    if (behavior.clearOnBlur !== undefined && behavior.clearOnBlur !== context.clearOnBlur) {
+    if (
+      behavior.clearOnBlur !== undefined &&
+      behavior.clearOnBlur !== context.clearOnBlur
+    ) {
       context.clearOnBlur = behavior.clearOnBlur;
       moved = true;
     }
@@ -452,16 +517,30 @@ export const def = {
 
   settled: ({ event, before, after, root, id, focus }: {
     readonly event: { readonly type: string } & Record<string, unknown>;
-    readonly before: { readonly context: TagsContext; readonly state: TagsState };
-    readonly after: { readonly context: TagsContext; readonly state: TagsState };
+    readonly before: {
+      readonly context: TagsContext;
+      readonly state: TagsState;
+    };
+    readonly after: {
+      readonly context: TagsContext;
+      readonly state: TagsState;
+    };
     readonly root: () => Element;
     readonly id: (part: string, slot?: unknown) => string;
     readonly focus: (part: string, slot?: unknown) => void;
   }) => {
     rememberRoot(id, root());
     syncHostFns(after.context, id);
-    if (before.context.log !== after.context.log && after.context.log !== null) {
-      announce(root(), id("liveRegion"), translationsOf({ context: after.context, root }), after.context.log, after.context.logPrev);
+    if (
+      before.context.log !== after.context.log && after.context.log !== null
+    ) {
+      announce(
+        root(),
+        id("liveRegion"),
+        translationsOf({ context: after.context, root }),
+        after.context.log,
+        after.context.logPrev,
+      );
     }
     // A rename opening takes the edit input: its id appends `:input` to its
     // tag id, which the slot path expresses as one more segment.
@@ -471,7 +550,9 @@ export const def = {
       after.context.editedIndex !== null
     ) {
       const row = rowsOf(after.context.value)[after.context.editedIndex];
-      if (row !== undefined) focus("tag", `${row.value}:${row.occurrence}:input`);
+      if (row !== undefined) {
+        focus("tag", `${row.value}:${row.occurrence}:input`);
+      }
       return;
     }
     if (
@@ -568,10 +649,21 @@ export const def = {
             // A null target is a label-click blur when the window holds focus,
             // and a window blur when it does not — the platform owns that
             // distinction, read here, once.
-            if ((related === null || related === undefined) && !windowFocused()) return;
-            if (related !== null && related !== undefined && !(related instanceof Node)) return;
-            const node: Node | null = related === null || related === undefined ? null : related;
-            if (input !== null && node !== null && (related === input || (input instanceof Node && input.contains(node)))) return;
+            if (
+              (related === null || related === undefined) && !windowFocused()
+            ) return;
+            if (
+              related !== null && related !== undefined &&
+              !(related instanceof Node)
+            ) return;
+            const node: Node | null = related === null || related === undefined
+              ? null
+              : related;
+            if (
+              input !== null && node !== null &&
+              (related === input ||
+                (input instanceof Node && input.contains(node)))
+            ) return;
             if (node !== null) {
               if (withinTag(scope, node)) return;
               if (host.contains(node)) return;
@@ -644,7 +736,10 @@ export const def = {
           // consumer here — the api's `disabled` is the prop.
           "use:form-control": {
             onFormReset: () => {
-              scope.send({ type: "SET_VALUE", value: [...scope.context.initialValue] });
+              scope.send({
+                type: "SET_VALUE",
+                value: [...scope.context.initialValue],
+              });
             },
           },
         };
@@ -758,7 +853,8 @@ export const def = {
             const host = scope.root();
             const input = host.querySelector(`[id="${scope.id("input")}"]`);
             const related: unknown = event.relatedTarget;
-            const relatedToInput = related !== null && input !== null && related === input;
+            const relatedToInput = related !== null && input !== null &&
+              related === input;
             queueMicrotask(() => {
               scope.send({ type: "TAG_INPUT_BLUR", relatedToInput });
               if (!relatedToInput) scope.send({ type: "EXTERNAL_BLUR" });
@@ -792,7 +888,10 @@ export const def = {
   },
   commands: {
     setValue: {
-      event: ([value]: [value: readonly string[]]) => ({ type: "SET_VALUE" as const, value: [...value] }),
+      event: ([value]: [value: readonly string[]]) => ({
+        type: "SET_VALUE" as const,
+        value: [...value],
+      }),
     },
     addValue: {
       event: ([value]: [value: string], context: TagsContext, id) => {
@@ -815,7 +914,9 @@ export const def = {
         const ctx = context;
         for (const row of rowsOf(ctx.value)) {
           const tag = tagIdOf(id, row);
-          if (tag === at || `${tag}:delete-btn` === at || `${tag}:input` === at) {
+          if (
+            tag === at || `${tag}:delete-btn` === at || `${tag}:input` === at
+          ) {
             return { type: "CLEAR_TAG", index: indexOfRow(ctx, row) };
           }
         }
@@ -827,7 +928,10 @@ export const def = {
     setInputValue: {
       event: (args) => {
         const value = args[0];
-        return { type: "SET_INPUT_VALUE", value: typeof value === "string" ? value : "" };
+        return {
+          type: "SET_INPUT_VALUE",
+          value: typeof value === "string" ? value : "",
+        };
       },
     },
     clearInputValue: { event: () => ({ type: "SET_INPUT_VALUE", value: "" }) },
@@ -839,7 +943,9 @@ export const def = {
     valueAsString: { read: (context) => context.value.join(", ") },
     count: { read: (context) => context.value.length },
     empty: { read: (context) => context.value.length === 0 },
-    atMax: { read: (context: TagsContext) => context.value.length >= context.max },
+    atMax: {
+      read: (context: TagsContext) => context.value.length >= context.max,
+    },
     highlightedIndex: { read: (context) => context.highlightedIndex },
     editing: { read: (_context, state) => state === "editing:tag" },
     editedIndex: { read: (context) => context.editedIndex },
@@ -861,14 +967,24 @@ export const def = {
         ),
     },
     indexOfRow: {
-      call: (context: TagsContext, _state, [row]: [row: TagsRow]): number => indexOfRow(context, rowOf(row)),
+      call: (context: TagsContext, _state, [row]: [row: TagsRow]): number =>
+        indexOfRow(context, rowOf(row)),
     },
     indexOfId: {
-      call: (context: TagsContext, _state, [target]: [target: string], _props, id) => {
+      call: (
+        context: TagsContext,
+        _state,
+        [target]: [target: string],
+        _props,
+        id,
+      ) => {
         if (typeof target !== "string") return -1;
         for (const row of rowsOf(context.value)) {
           const tag = tagIdOf(id, row);
-          if (tag === target || `${tag}:delete-btn` === target || `${tag}:input` === target) {
+          if (
+            tag === target || `${tag}:delete-btn` === target ||
+            `${tag}:input` === target
+          ) {
             return indexOfRow(context, row);
           }
         }
@@ -876,12 +992,24 @@ export const def = {
       },
     },
     announceLog: {
-      call: (context: TagsContext, _state: TagsState, _args: readonly unknown[], _props: Record<string, unknown>, id: (part: string, slot?: unknown) => string) => {
+      call: (
+        context: TagsContext,
+        _state: TagsState,
+        _args: readonly unknown[],
+        _props: Record<string, unknown>,
+        id: (part: string, slot?: unknown) => string,
+      ) => {
         const ctx = context;
         if (ctx.log === null) return;
         const root = rootByBridge.get(id);
         if (root === undefined) return;
-        announce(root, id("liveRegion"), translationsOf({ context: ctx, root: () => root }), ctx.log, ctx.logPrev);
+        announce(
+          root,
+          id("liveRegion"),
+          translationsOf({ context: ctx, root: () => root }),
+          ctx.log,
+          ctx.logPrev,
+        );
       },
     },
   },
@@ -889,7 +1017,9 @@ export const def = {
     "value-change": {
       prop: "onValueChange",
       watch: (context) => [...context.value],
-      detail: (watched: readonly unknown[]) => ({ value: watched.filter((v): v is string => typeof v === "string") }),
+      detail: (watched: readonly unknown[]) => ({
+        value: watched.filter((v): v is string => typeof v === "string"),
+      }),
     },
     "input-value-change": {
       prop: "onInputValueChange",
@@ -930,7 +1060,19 @@ export const def = {
       },
     },
   },
-} satisfies ComponentDef<TagsContext, TagsEvents, Record<string, unknown>, TagsArgs, TagsState>;
+} satisfies ComponentDef<
+  TagsContext,
+  TagsEvents,
+  Record<string, unknown>,
+  TagsArgs,
+  TagsState
+>;
 
 export type TagsApi = ApiOf<typeof def>;
-export const tags = defineComponent<TagsContext, TagsEvents, TagsApi, TagsArgs, TagsState>(def);
+export const tags = defineComponent<
+  TagsContext,
+  TagsEvents,
+  TagsApi,
+  TagsArgs,
+  TagsState
+>(def);

@@ -41,7 +41,10 @@ export function itemsOf(raw: unknown): readonly unknown[] {
   return [...raw];
 }
 
-export function initial(args: AsyncListArgs = {}, authored: (name: string) => boolean = () => false): AsyncListContext {
+export function initial(
+  args: AsyncListArgs = {},
+  authored: (name: string) => boolean = () => false,
+): AsyncListContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

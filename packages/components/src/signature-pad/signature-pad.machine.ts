@@ -1,7 +1,11 @@
 /** Signature-pad machine: idle/drawing over two states. */
 
 import { createMachine, type Machine } from "@spin/runtime/fsm";
-import type { SignaturePadArgs, SignaturePadContext, SignaturePadState } from "./signature-pad.state.ts";
+import type {
+  SignaturePadArgs,
+  SignaturePadContext,
+  SignaturePadState,
+} from "./signature-pad.state.ts";
 import { initial } from "./signature-pad.state.ts";
 import type { SignaturePadEvents } from "./signature-pad.events.ts";
 import { isInteractive } from "./signature-pad.state.ts";
@@ -18,7 +22,11 @@ export function signaturePad(
   args: SignaturePadArgs = {},
   authored: (name: string) => boolean = () => false,
 ): Machine<SignaturePadContext, SignaturePadEvents, SignaturePadState> {
-  return createMachine<SignaturePadContext, SignaturePadEvents, SignaturePadState>({
+  return createMachine<
+    SignaturePadContext,
+    SignaturePadEvents,
+    SignaturePadState
+  >({
     id: "signature-pad",
     initial: "idle",
     context: initial(args, authored),
@@ -57,5 +65,8 @@ export function signaturePad(
 
 // Re-export helpers for tests/import compatibility
 export * from "./signature-pad.state.ts";
-export type { SignaturePadEvents, SignaturePadDrawDetails } from "./signature-pad.events.ts";
+export type {
+  SignaturePadDrawDetails,
+  SignaturePadEvents,
+} from "./signature-pad.events.ts";
 export { defaultTwin } from "@spin/runtime";

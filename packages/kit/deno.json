@@ -1,6 +1,6 @@
 {
   "name": "@spin/kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": "./src/index.ts",
   "imports": {
     "@spin/theme/themes": "../theme/src/themes/index.ts",

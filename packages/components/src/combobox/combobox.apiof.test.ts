@@ -1,5 +1,8 @@
 import { assertEquals } from "@std/assert";
-import type { ComboboxApi, ComboboxItemState } from "./combobox.presentation.ts";
+import type {
+  ComboboxApi,
+  ComboboxItemState,
+} from "./combobox.presentation.ts";
 import type { ComboboxRow } from "./combobox.state.ts";
 
 // The derived api's public surface, pinned: removing a reader, method,
@@ -57,10 +60,20 @@ Deno.test("ComboboxApi promises the component's surface", () => {
   assertEquals(keys.length, 45);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<ComboboxApi["state"], "idle" | "focused" | "interacting" | "suggesting"> = true;
-  const setOpenTyped: AssertExact<ComboboxApi["setOpen"], (open: boolean) => void> = true;
-  const getItemStateTyped: AssertExact<ComboboxApi["getItemState"], (row: ComboboxRow) => ComboboxItemState> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    ComboboxApi["state"],
+    "idle" | "focused" | "interacting" | "suggesting"
+  > = true;
+  const setOpenTyped: AssertExact<
+    ComboboxApi["setOpen"],
+    (open: boolean) => void
+  > = true;
+  const getItemStateTyped: AssertExact<
+    ComboboxApi["getItemState"],
+    (row: ComboboxRow) => ComboboxItemState
+  > = true;
   assertEquals(
     [
       stateTyped,

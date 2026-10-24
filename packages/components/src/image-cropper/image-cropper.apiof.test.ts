@@ -37,10 +37,20 @@ Deno.test("ImageCropperApi promises the component's surface", () => {
   assertEquals(keys.length, 25);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<ImageCropperApi["state"], "idle" | "dragging" | "panning"> = true;
-  const setZoomTyped: AssertExact<ImageCropperApi["setZoom"], (zoom: number) => void> = true;
-  const getCropDataTyped: AssertExact<ImageCropperApi["getCropData"], () => CropRect> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    ImageCropperApi["state"],
+    "idle" | "dragging" | "panning"
+  > = true;
+  const setZoomTyped: AssertExact<
+    ImageCropperApi["setZoom"],
+    (zoom: number) => void
+  > = true;
+  const getCropDataTyped: AssertExact<
+    ImageCropperApi["getCropData"],
+    () => CropRect
+  > = true;
   assertEquals(
     [
       stateTyped,

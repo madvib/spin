@@ -8,10 +8,11 @@ import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
 import { type Page } from "npm:playwright-core";
 
-
 /** Part ids are the recipe's scheme: `async-list:<element id>:<part>`. */
 const at = (id: string, part?: string): string =>
-  part === undefined ? `[id="async-list:${id}"]` : `[id="async-list:${id}:${part}"]`;
+  part === undefined
+    ? `[id="async-list:${id}"]`
+    : `[id="async-list:${id}:${part}"]`;
 const CREW_LIST = at("crew", "list");
 const CREW_ITEM = (value: string): string => at("crew", `item:${value}`);
 
@@ -20,10 +21,15 @@ const readout = async (page: Page, id: string): Promise<string> =>
 
 /** The first row's text in the crew list. */
 const firstRow = async (page: Page): Promise<string> =>
-  (await page.locator(`${CREW_LIST} [role="listitem"]`).first().textContent()) ?? "";
+  (await page.locator(`${CREW_LIST} [role="listitem"]`).first()
+    .textContent()) ?? "";
 
 /** Waits until a numeric readout grows past a floor, handing back the new count. */
-async function waitGrowth(page: Page, id: string, floor: number): Promise<number> {
+async function waitGrowth(
+  page: Page,
+  id: string,
+  floor: number,
+): Promise<number> {
   for (let i = 0; i < 50; i += 1) {
     const now = Number(await readout(page, id));
     if (now > floor) return now;
@@ -33,10 +39,17 @@ async function waitGrowth(page: Page, id: string, floor: number): Promise<number
 }
 
 Deno.test("spin-async-list e2e", () =>
-  runComponentSuite({ port: 5229, route: "/async-list", ready: CREW_LIST,
+  runComponentSuite({
+    port: 5229,
+    route: "/async-list",
+    ready: CREW_LIST,
     settle: async (page) => {
-    await waitGrowth(page, "async-list-loads", 0);
-    assert.equal(await readout(page, "async-list-failures"), "0", "no load fails");
+      await waitGrowth(page, "async-list-loads", 0);
+      assert.equal(
+        await readout(page, "async-list-failures"),
+        "0",
+        "no load fails",
+      );
     },
   }, async ({ page }) => {
     let pagedLoads = 0;
@@ -68,18 +81,27 @@ Deno.test("spin-async-list e2e", () =>
       // The sentinel drains on its own clock: only sort a settled list, or
       // the click lands mid-load and the machine rightly ignores it.
       for (let i = 0; i < 100; i += 1) {
-        if ((await page.locator(at("crew")).getAttribute("data-state")) === "idle") break;
+        if (
+          (await page.locator(at("crew")).getAttribute("data-state")) === "idle"
+        ) break;
         await delay(100);
       }
-      const labels = await page.locator(`${CREW_LIST} [role="listitem"]`).allTextContents();
+      const labels = await page.locator(`${CREW_LIST} [role="listitem"]`)
+        .allTextContents();
       assert.ok(labels.length > 0, "rows are loaded before sorting");
-      const [leader] = [...labels].sort((left, right) => right.localeCompare(left));
+      const [leader] = [...labels].sort((left, right) =>
+        right.localeCompare(left)
+      );
       await page.getByRole("button", { name: "el.sort(desc)" }).click();
       for (let i = 0; i < 50; i += 1) {
         if ((await firstRow(page)) === leader) break;
         await delay(100);
       }
-      assert.equal(await firstRow(page), leader, "the sort winner leads descending");
+      assert.equal(
+        await firstRow(page),
+        leader,
+        "the sort winner leads descending",
+      );
     });
 
     await step("filter text narrows the list", async () => {

@@ -45,6 +45,7 @@
     "valibot": "1"
   },
   "peerDependencies": {
+    "@spin/components": "^0.1.0",
     "@spin/diagnostics": "^0.1.0",
     "@spin/preset": "^0.1.0",
     "@spin/project": "^0.1.0",

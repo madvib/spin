@@ -17,18 +17,31 @@
  * - The fork's send is synchronous: notify cursors advance only after
  *   the callbacks fire. */
 
-import { batch, computed, effect, machineTick, scope, signal, untrack, type Signal } from "@spin/runtime";
+import {
+  batch,
+  computed,
+  effect,
+  machineTick,
+  scope,
+  type Signal,
+  signal,
+  untrack,
+} from "@spin/runtime";
 import { resolveTwins } from "../props.ts";
 import {
-  interpret,
   type EventMap,
   type EventName,
   type EventUnion,
-  type Service,
+  interpret,
   type Machine,
+  type Service,
 } from "@spin/runtime/fsm";
 
-export interface BridgeService<C, E extends EventMap, S extends string = string> {
+export interface BridgeService<
+  C,
+  E extends EventMap,
+  S extends string = string,
+> {
   readonly context: C;
   readonly state: S;
   send(event: EventUnion<E>): void;
@@ -145,7 +158,11 @@ export interface BridgeHooks<
   ): boolean;
   readCallbacks(props: () => Record<string, unknown>): Callbacks;
   readConnectProps(props: () => Record<string, unknown>): ConnectProps;
-  connect(service: BridgeService<C, E, S>, readProps: () => ConnectProps, id: string): Api;
+  connect(
+    service: BridgeService<C, E, S>,
+    readProps: () => ConnectProps,
+    id: string,
+  ): Api;
 }
 
 export interface BridgeSpec<
@@ -167,10 +184,14 @@ export interface BridgeSpec<
   ): BridgeHooks<C, E, Api, ConnectProps, Callbacks, S>;
 }
 
-export function authoredProps(props: () => Record<string, unknown>): (name: string) => boolean {
+export function authoredProps(
+  props: () => Record<string, unknown>,
+): (name: string) => boolean {
   return (name) => {
     const predicate = props()["@@authored"];
-    return typeof predicate === "function" ? (predicate as (n: string) => boolean)(name) : false;
+    return typeof predicate === "function"
+      ? (predicate as (n: string) => boolean)(name)
+      : false;
   };
 }
 
@@ -180,7 +201,15 @@ export function authoredProps(props: () => Record<string, unknown>): (name: stri
  */
 function applyContract<C extends object, E extends EventMap>(
   svc: Service<C, E>,
-  fields: Readonly<Record<string, { readonly event?: EventUnion<E>["type"]; readonly parse?: (raw: unknown) => unknown }>>,
+  fields: Readonly<
+    Record<
+      string,
+      {
+        readonly event?: EventUnion<E>["type"];
+        readonly parse?: (raw: unknown) => unknown;
+      }
+    >
+  >,
   props: () => Record<string, unknown>,
   authored: (name: string) => boolean,
   cursor: Map<string, unknown>,
@@ -275,7 +304,10 @@ export function defineBridge<
     field: (name: string): unknown => {
       const existing = contextSignals.get(name);
       if (existing !== undefined) return existing();
-      const value = (ensureService().state.context as unknown as Record<string, unknown>)[name];
+      const value =
+        (ensureService().state.context as unknown as Record<string, unknown>)[
+          name
+        ];
       contextSignals.set(name, signal<unknown>(value));
       return value;
     },
@@ -322,7 +354,8 @@ export function defineBridge<
     const resolved = resolveTwins(props(), authored);
     // Absent the map the props ARE the arguments: the old shape. The cast
     // lives at the transport boundary, not in any component.
-    const args = (spec.args === undefined ? resolved : spec.args(resolved)) as A;
+    const args =
+      (spec.args === undefined ? resolved : spec.args(resolved)) as A;
     machine = spec.machine(args, authored);
     return machine;
   };
@@ -388,7 +421,10 @@ export function defineBridge<
     hooks.refresh?.(svc, props, authored);
     // Shallow: assigns replace fields rather than mutating them, so the
     // pre-send values survive the transition (the tags log diff relies on it).
-    const before = { context: { ...svc.state.context }, state: svc.state.value };
+    const before = {
+      context: { ...svc.state.context },
+      state: svc.state.value,
+    };
     svc.send(event);
     hooks.settled?.({
       event,
@@ -446,86 +482,97 @@ export function defineBridge<
       // the authored prop over the machine's own transition.
       props();
       untrack(() => {
-      const svc = ensureService();
-      // The cursors stay on the pre-write values while the events send.
-      // The cursors stay on the pre-write values while the events send.
-      // Same trust point as synthesize's ctxOf: the core is untyped,
-      // the def declared C. The snapshot is a past C.
-      const beforeContext = {
-        context: { ...(svc.state.context as unknown as C) },
-        state: svc.state.value,
-      };
-      const readParsed = (): Record<string, unknown> =>
-        hooks.readConnectProps(props) as Record<string, unknown>;
-      const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
-      // The machine's contract decides what a host write means: a field
-      // with an event is REPORTED (the host's write is an event, the
-      // machine decides), a field without one is SILENT (the write lands
-      // in the field and nothing reports).
-      const syncResult = applyContract(
-        svc,
-        machineOf().fields,
-        props,
-        authored,
-        lastContract,
-        (event) => transmit(event),
-      );
-      // A silent field lands in the context without a move, so the
-      // mirror writes it: the mirror is the single writer, and every
-      // reader sees the machine's value.
-      mirror(svc.state.context, svc.state.value);
-      const parsed = readParsed();
-      const reconciled: EventUnion<E>[] = [];
-      const derivedMoved = hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {
-        reconciled.push(event);
-        transmit(event);
-      }) ?? false;
-      // The reconcile may WRITE the context in place (a derived field it
-      // owns), so the mirror writes it again: the mirror is the single
-      // writer, and every reader sees the machine's value.
-      mirror(svc.state.context, svc.state.value);
-      const moved = scalarMoved || syncResult.moved || derivedMoved;
-      if (moved) tick(tick() + 1);
-      // A silent merge (the refresh path) changes the context WITHOUT
-      // sending, so nothing bumped the machine tick — the invalidation
-      // bus every binding watches. The bags kept showing the old value.
-      if (scalarMoved) machineTick(machineTick() + 1);
-      // Each send reports with its own kind and event; a moved-but
-      // eventless effect (reconcile assigns) reports once as a commit.
-      // Reconcile sends carry their source: a host-driven queue edit is
-      // not a gesture, and the report tells them apart.
-      for (const event of syncResult.events) {
-        hooks.notify(
+        const svc = ensureService();
+        // The cursors stay on the pre-write values while the events send.
+        // The cursors stay on the pre-write values while the events send.
+        // Same trust point as synthesize's ctxOf: the core is untyped,
+        // the def declared C. The snapshot is a past C.
+        const beforeContext = {
+          context: { ...(svc.state.context as unknown as C) },
+          state: svc.state.value,
+        };
+        const readParsed = (): Record<string, unknown> =>
+          hooks.readConnectProps(props) as Record<string, unknown>;
+        const scalarMoved = hooks.refresh?.(svc, props, authored) ?? false;
+        // The machine's contract decides what a host write means: a field
+        // with an event is REPORTED (the host's write is an event, the
+        // machine decides), a field without one is SILENT (the write lands
+        // in the field and nothing reports).
+        const syncResult = applyContract(
           svc,
-          hooks.readCallbacks(props),
-          hooks.kind?.(event) ?? "move",
-          event,
-          beforeContext,
-          readParsed(),
+          machineOf().fields,
+          props,
+          authored,
+          lastContract,
+          (event) => transmit(event),
         );
-      }
-      // One report for the whole host edit, diffed against the effect's
-      // start: per-send reports would each diff the same `before` and
-      // repeat the queue. The last event rides along for the src read.
-      if (reconciled.length > 0) {
-        const last = reconciled[reconciled.length - 1];
-        if (last !== undefined) {
+        // A silent field lands in the context without a move, so the
+        // mirror writes it: the mirror is the single writer, and every
+        // reader sees the machine's value.
+        mirror(svc.state.context, svc.state.value);
+        const parsed = readParsed();
+        const reconciled: EventUnion<E>[] = [];
+        const derivedMoved =
+          hooks.reconcile?.(svc, svc.state.value, parsed, authored, (event) => {
+            reconciled.push(event);
+            transmit(event);
+          }) ?? false;
+        // The reconcile may WRITE the context in place (a derived field it
+        // owns), so the mirror writes it again: the mirror is the single
+        // writer, and every reader sees the machine's value.
+        mirror(svc.state.context, svc.state.value);
+        const moved = scalarMoved || syncResult.moved || derivedMoved;
+        if (moved) tick(tick() + 1);
+        // A silent merge (the refresh path) changes the context WITHOUT
+        // sending, so nothing bumped the machine tick — the invalidation
+        // bus every binding watches. The bags kept showing the old value.
+        if (scalarMoved) machineTick(machineTick() + 1);
+        // Each send reports with its own kind and event; a moved-but
+        // eventless effect (reconcile assigns) reports once as a commit.
+        // Reconcile sends carry their source: a host-driven queue edit is
+        // not a gesture, and the report tells them apart.
+        for (const event of syncResult.events) {
           hooks.notify(
             svc,
             hooks.readCallbacks(props),
-            hooks.kind?.(last) ?? "move",
-            last,
+            hooks.kind?.(event) ?? "move",
+            event,
             beforeContext,
             readParsed(),
-            "reconcile",
           );
         }
-      }
-      if (syncResult.events.length === 0 && reconciled.length === 0 && derivedMoved) {
-        hooks.notify(svc, hooks.readCallbacks(props), "commit", undefined, beforeContext, readParsed());
-      }
+        // One report for the whole host edit, diffed against the effect's
+        // start: per-send reports would each diff the same `before` and
+        // repeat the queue. The last event rides along for the src read.
+        if (reconciled.length > 0) {
+          const last = reconciled[reconciled.length - 1];
+          if (last !== undefined) {
+            hooks.notify(
+              svc,
+              hooks.readCallbacks(props),
+              hooks.kind?.(last) ?? "move",
+              last,
+              beforeContext,
+              readParsed(),
+              "reconcile",
+            );
+          }
+        }
+        if (
+          syncResult.events.length === 0 && reconciled.length === 0 &&
+          derivedMoved
+        ) {
+          hooks.notify(
+            svc,
+            hooks.readCallbacks(props),
+            "commit",
+            undefined,
+            beforeContext,
+            readParsed(),
+          );
+        }
       });
-    }),
+    })
   );
 
   /** The api is read on every machine move, so this depends on the tick and
@@ -540,7 +587,10 @@ export function defineBridge<
     has: (_target, key) => Reflect.has(connected(), key as string),
     ownKeys: () => Reflect.ownKeys(connected()),
     getOwnPropertyDescriptor: (_target, key) => {
-      const descriptor = Reflect.getOwnPropertyDescriptor(connected(), key as string);
+      const descriptor = Reflect.getOwnPropertyDescriptor(
+        connected(),
+        key as string,
+      );
       return descriptor && { ...descriptor, configurable: true };
     },
   });

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { menu } from "../menu.presentation.ts";
+import { menu } from "../menu.presentation.ts";
 
-  const machine = menu({
-    items: '[{"value":"new","label":"New File"},{"value":"open","label":"Open"},{"value":"preferences","label":"Preferences","children":[{"value":"account","label":"Account"},{"value":"notifications","label":"Notifications"},{"value":"privacy","label":"Privacy"}]}]',
-  });
+const machine = menu({
+  items:
+    '[{"value":"new","label":"New File"},{"value":"open","label":"Open"},{"value":"preferences","label":"Preferences","children":[{"value":"account","label":"Account"},{"value":"notifications","label":"Notifications"},{"value":"privacy","label":"Privacy"}]}]',
+});
 </script>
 <include file="./basic.html" />

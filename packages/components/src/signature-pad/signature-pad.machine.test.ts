@@ -10,7 +10,9 @@ import type { SignaturePadDrawDetails } from "./signature-pad.machine.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -35,7 +37,12 @@ function handler<H>(bag: Record<string, unknown>, key: string): H {
  */
 function controlNode(): Element {
   return {
-    getBoundingClientRect: () => ({ left: 10, top: 20, width: 400, height: 200 }),
+    getBoundingClientRect: () => ({
+      left: 10,
+      top: 20,
+      width: 400,
+      height: 200,
+    }),
   } as unknown as Element;
 }
 
@@ -54,11 +61,17 @@ const press = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: controlNode(),
-  rect: controlBox(), direction: "ltr",
+  rect: controlBox(),
+  direction: "ltr",
 });
 
 /** The gesture's move: where the pointer is, and the delta from the press. */
-const move = (x: number, y: number, fromX: number, fromY: number): DragDelta => ({
+const move = (
+  x: number,
+  y: number,
+  fromX: number,
+  fromY: number,
+): DragDelta => ({
   ...press(x, y),
   dx: x - fromX,
   dy: y - fromY,
@@ -110,13 +123,21 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onDraw", (details: SignaturePadDrawDetails) => events.draw.push(details));
-  write("onDrawEnd", (details: SignaturePadDrawDetails) => events.drawEnd.push(details));
+  write(
+    "onDraw",
+    (details: SignaturePadDrawDetails) => events.draw.push(details),
+  );
+  write(
+    "onDrawEnd",
+    (details: SignaturePadDrawDetails) => events.drawEnd.push(details),
+  );
   const realDocument = globalThis.document as Document;
   const bridge = createSignaturePadBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -223,7 +244,8 @@ Deno.test("a press on the clear trigger never starts a stroke", () => {
   // A trigger press bubbles to the control: simulate the guard by pressing
   // from a node nested in the trigger.
   const trigger = {
-    closest: (selector: string): unknown => selector === "[data-part=clear-trigger]" ? {} : null,
+    closest: (selector: string): unknown =>
+      selector === "[data-part=clear-trigger]" ? {} : null,
   };
   const nested = {
     ...press(390, 12),

@@ -1,24 +1,29 @@
 <script lang="ts">
-  import { timer } from "../timer.presentation.ts";
+import { timer } from "../timer.presentation.ts";
 
-  const machine = timer({
-    targetMs: "900000",
-  });
+const machine = timer({
+ targetMs: "900000",
+});
 </script>
-<div class="mx-auto w-full max-w-xs" {...machine.getRootProps()}>
-  <div class="flex items-center gap-3" {...machine.getAreaProps()}>
-    <div class="flex items-center gap-1 text-sm tabular-nums text-text">
-      <template for={machine.getUnits()} as={unit} key={unit.type}>
-        <div class="flex items-center gap-1" show={unit.type === "minutes" || unit.type === "seconds"}>
-          <div class="flex flex-col items-center" {...machine.getItemProps({ type: unit.type })}>
-            <span class="min-w-[2ch] text-center" {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-          </div><span aria-hidden="true" class="text-muted" {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
-        </div>
-      </template>
+<div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
+ <div class="flex items-center gap-3" {...machine.getAreaProps()}>
+  <div class="flex items-center gap-1 text-sm tabular-nums text-text">
+   <template for={machine.getUnits()} as={unit} key={unit.type}>
+    <div class="flex items-center gap-1"
+     show={unit.type === "minutes" || unit.type === "seconds"}>
+     <div class="flex flex-col items-center" {...machine.getItemProps({ type: unit.type })}>
+      <span class="min-w-[2ch] text-center" {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
+     </div><span aria-hidden="true" class="text-text-muted" {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
     </div>
-    <div class="flex items-center gap-1" {...machine.getControlProps()}>
-    <button aria-label="Start" class="grid h-7 w-7 place-items-center rounded-md bg-semantic-success text-on-primary" {...machine.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play text-xs"></span></button>
-    <button aria-label="Pause" class="grid h-7 w-7 place-items-center rounded-md bg-surface-raised text-text" {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
+   </template>
   </div>
+  <div class="flex items-center gap-1" {...machine.getControlProps()}>
+   <button aria-label="Start"
+    class="ghost icon s-sm grid h-7 w-7 place-items-center"
+    {...machine.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play text-xs"></span></button>
+   <button aria-label="Pause"
+    class="ghost icon s-sm grid h-7 w-7 place-items-center"
+    {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
   </div>
+ </div>
 </div>

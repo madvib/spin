@@ -51,10 +51,16 @@ Deno.test("CarouselApi promises the component's surface", () => {
   assertEquals(keys.length, 40);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<CarouselApi["state"], "idle" | "autoplay"> = true;
-  const goToTyped: AssertExact<CarouselApi["goTo"], (index: number) => void> = true;
-  const isInViewTyped: AssertExact<CarouselApi["isInView"], (index: number) => boolean> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<CarouselApi["state"], "idle" | "autoplay"> =
+    true;
+  const goToTyped: AssertExact<CarouselApi["goTo"], (index: number) => void> =
+    true;
+  const isInViewTyped: AssertExact<
+    CarouselApi["isInView"],
+    (index: number) => boolean
+  > = true;
   assertEquals(
     [
       stateTyped,

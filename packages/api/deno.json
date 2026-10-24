@@ -12,6 +12,8 @@
     "@spin/api/client": "./src/client.ts",
     "@spin/project": "../project/src/index.ts",
     "@spin/diagnostics": "../diagnostics/src/index.ts",
+    "@spin/components": "../components/src/index.ts",
+    "@spin/components/procedures": "../components/src/components-procedures.ts",
     "@spin/theme": "../theme/src/index.ts",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "hono": "npm:hono@^4.13.13",

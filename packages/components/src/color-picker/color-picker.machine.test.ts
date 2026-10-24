@@ -15,7 +15,9 @@ import type { ColorFormat } from "./color-picker.state.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -68,7 +70,8 @@ const pressAt = (x: number, y: number): DragPress => ({
   pointerId: 1,
   pressure: 0.5,
   target: handleNode,
-  rect: handleRect, direction: "ltr",
+  rect: handleRect,
+  direction: "ltr",
 });
 
 /** The move the drag action reports: the point, plus the delta. */
@@ -117,14 +120,28 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onValueChange", (change: ColorPickerValueChange) => events.valueChange.push(change));
-  write("onValueChangeEnd", (change: ColorPickerValueChange) => events.valueChangeEnd.push(change));
-  write("onOpenChange", (change: ColorPickerOpenChange) => events.openChange.push(change));
-  write("onFormatChange", (change: ColorPickerFormatChange) => events.formatChange.push(change));
+  write(
+    "onValueChange",
+    (change: ColorPickerValueChange) => events.valueChange.push(change),
+  );
+  write(
+    "onValueChangeEnd",
+    (change: ColorPickerValueChange) => events.valueChangeEnd.push(change),
+  );
+  write(
+    "onOpenChange",
+    (change: ColorPickerOpenChange) => events.openChange.push(change),
+  );
+  write(
+    "onFormatChange",
+    (change: ColorPickerFormatChange) => events.formatChange.push(change),
+  );
   const bridge = createColorPickerBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -165,7 +182,10 @@ Deno.test("inline is always open", () => {
 Deno.test("swatch commits the color", () => {
   const h = mount();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  handler<() => void>(h.api.getSwatchTriggerProps({ value: "#00ff00" }), "onClick")();
+  handler<() => void>(
+    h.api.getSwatchTriggerProps({ value: "#00ff00" }),
+    "onClick",
+  )();
   assertEquals(h.api.value.toLowerCase(), "#00ff00");
   assertEquals(h.events.valueChange.length, 1);
   assertEquals(h.events.valueChangeEnd.length, 1);
@@ -175,7 +195,10 @@ Deno.test("swatch closes when closeOnSelect", () => {
   const h = mount({ closeOnSelect: true });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   assertEquals(h.api.open, true);
-  handler<() => void>(h.api.getSwatchTriggerProps({ value: "#00ff00" }), "onClick")();
+  handler<() => void>(
+    h.api.getSwatchTriggerProps({ value: "#00ff00" }),
+    "onClick",
+  )();
   assertEquals(h.api.open, false);
 });
 
@@ -195,7 +218,9 @@ Deno.test("area drag moves the color and ends", () => {
 Deno.test("channel slider drag moves the channel and ends", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  const drag = dragParam(h.api.getChannelSliderProps({ channel: "red" }) as Record<string, unknown>);
+  const drag = dragParam(
+    h.api.getChannelSliderProps({ channel: "red" }) as Record<string, unknown>,
+  );
   // The handle's own box carries the percent: half way along a 200 wide box.
   drag.onStart?.(pressAt(100, 100));
   assertEquals(h.api.value, "#800000");
@@ -219,7 +244,9 @@ Deno.test("channel arrows step hue", () => {
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
   const thumb = h.api.getChannelSliderThumbProps({ channel: "hue" });
   const before = h.api.value;
-  handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(keydown("ArrowRight"));
+  handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(
+    keydown("ArrowRight"),
+  );
   assertEquals(h.api.value === before, false);
 });
 
@@ -234,9 +261,18 @@ Deno.test("channel home jumps to the range floor", () => {
 Deno.test("hex input commits on blur", () => {
   const h = mount();
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<string, unknown>;
-  handler<(e: FocusEvent) => void>(input, "onFocus")({ currentTarget: { value: "", select: (): void => {} } } as unknown as FocusEvent);
-  handler<(e: FocusEvent) => void>(input, "onBlur")({ currentTarget: { value: "#0000ff" } } as unknown as FocusEvent);
+  const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<
+    string,
+    unknown
+  >;
+  handler<(e: FocusEvent) => void>(input, "onFocus")(
+    {
+      currentTarget: { value: "", select: (): void => {} },
+    } as unknown as FocusEvent,
+  );
+  handler<(e: FocusEvent) => void>(input, "onBlur")(
+    { currentTarget: { value: "#0000ff" } } as unknown as FocusEvent,
+  );
   assertEquals(h.api.value.toLowerCase(), "#0000ff");
   assertEquals(h.events.valueChangeEnd.length, 1);
 });
@@ -244,9 +280,17 @@ Deno.test("hex input commits on blur", () => {
 Deno.test("garbage input keeps the color", () => {
   const h = mount({ defaultValue: "#ff0000" });
   handler<() => void>(h.api.getTriggerProps(), "onClick")();
-  const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<string, unknown>;
-  handler<(e: FocusEvent) => void>(input, "onBlur")({ currentTarget: { value: "not-a-color" } } as unknown as FocusEvent);
-  assertEquals(h.api.value, "rgb(255, 0, 0)".length > 0 ? h.api.value : "#ff0000");
+  const input = h.api.getChannelInputProps({ channel: "hex" }) as Record<
+    string,
+    unknown
+  >;
+  handler<(e: FocusEvent) => void>(input, "onBlur")(
+    { currentTarget: { value: "not-a-color" } } as unknown as FocusEvent,
+  );
+  assertEquals(
+    h.api.value,
+    "rgb(255, 0, 0)".length > 0 ? h.api.value : "#ff0000",
+  );
 });
 
 Deno.test("format select reserializes", () => {
@@ -285,7 +329,10 @@ Deno.test("aria contract on trigger and area", () => {
   const thumb = h.api.getAreaThumbProps() as Record<string, unknown>;
   assertEquals(thumb["role"], "slider");
   assertEquals(thumb["aria-roledescription"], "2d slider");
-  const hue = h.api.getChannelSliderThumbProps({ channel: "hue" }) as Record<string, unknown>;
+  const hue = h.api.getChannelSliderThumbProps({ channel: "hue" }) as Record<
+    string,
+    unknown
+  >;
   assertEquals(hue["role"], "slider");
   assertEquals(hue["aria-label"], "hue");
 });

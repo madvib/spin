@@ -9,7 +9,9 @@ import type { AvatarStatusChange } from "./avatar.events.ts";
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -52,11 +54,16 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
     else source(value);
   };
   for (const [name, value] of Object.entries(overrides)) write(name, value);
-  write("onStatusChange", (details: AvatarStatusChange) => events.statusChange.push(details));
+  write(
+    "onStatusChange",
+    (details: AvatarStatusChange) => events.statusChange.push(details),
+  );
   const bridge = createAvatarBridge(
     () => {
       const record: Record<string, unknown> = {};
-      for (const [name, source] of Object.entries(values)) record[name] = source();
+      for (const [name, source] of Object.entries(values)) {
+        record[name] = source();
+      }
       record["@@authored"] = (name: string): boolean => authoredKeys.has(name);
       return record;
     },
@@ -75,7 +82,10 @@ Deno.test("a load resolves to loaded and an error to error", () => {
   handler<() => void>(api.getImageProps(), "onError")();
   assert(!api.loaded);
   assertEquals(api.status, "error");
-  assertEquals(events.statusChange.map((change) => change.status), ["loaded", "error"]);
+  assertEquals(events.statusChange.map((change) => change.status), [
+    "loaded",
+    "error",
+  ]);
 });
 
 Deno.test("an error recovers on load", () => {
@@ -92,7 +102,10 @@ Deno.test("a src change returns to loading", () => {
   assertEquals(api.status, "loaded");
   api.setSrc("b.png");
   assertEquals(api.status, "loading");
-  assertEquals(events.statusChange.map((change) => change.status), ["loaded", "loading"]);
+  assertEquals(events.statusChange.map((change) => change.status), [
+    "loaded",
+    "loading",
+  ]);
 });
 
 Deno.test("the imperative reports drive the states", () => {

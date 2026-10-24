@@ -61,7 +61,10 @@ export interface SliderArgs {
  * The seed twin (`defaultValue`) is the host's write of the value — the
  * framework resolved it into the args — so it counts as a write too.
  */
-export function initial(args: SliderArgs = {}, authored: (name: string) => boolean): SliderContext {
+export function initial(
+  args: SliderArgs = {},
+  authored: (name: string) => boolean,
+): SliderContext {
   // Presence is the evidence: the map drops absent fields, so a field
   // present in the args was provided — by the host directly, or resolved
   // from its twin upstream. The machine's own default owns absence.
@@ -70,8 +73,10 @@ export function initial(args: SliderArgs = {}, authored: (name: string) => boole
   const min = args.min ?? 0;
   const max = args.max ?? 100;
   const step = args.step ?? 1;
-  const valueOf = (raw: readonly number[] | undefined, fallback: number[]): number[] =>
-    raw === undefined ? fallback : [...raw];
+  const valueOf = (
+    raw: readonly number[] | undefined,
+    fallback: number[],
+  ): number[] => raw === undefined ? fallback : [...raw];
   return {
     min,
     max,
@@ -107,7 +112,8 @@ function rangeAt(
     ctx.max,
     ctx.step * ctx.minStepsBetweenThumbs,
   );
-  return ranges[index] ?? { min: ctx.min, max: ctx.max, value: ctx.value[index] ?? ctx.min };
+  return ranges[index] ??
+    { min: ctx.min, max: ctx.max, value: ctx.value[index] ?? ctx.min };
 }
 
 function constrain(ctx: SliderContext, value: number, index: number): number {
@@ -117,7 +123,9 @@ function constrain(ctx: SliderContext, value: number, index: number): number {
 }
 
 function normalizeAll(ctx: SliderContext, next: readonly number[]): number[] {
-  return next.map((value, index) => constrain({ ...ctx, value: [...ctx.value] }, value, index));
+  return next.map((value, index) =>
+    constrain({ ...ctx, value: [...ctx.value] }, value, index)
+  );
 }
 
 function resolveNone(
@@ -157,7 +165,11 @@ function handlePush(
 }
 
 /** Stacked thumbs at max move the first one. */
-export function movableIndex(values: readonly number[], index: number, max: number): number {
+export function movableIndex(
+  values: readonly number[],
+  index: number,
+  max: number,
+): number {
   if ((values[index] ?? 0) !== max) return index;
   let movable = index;
   while (movable > 0 && values[movable - 1] === max) movable -= 1;

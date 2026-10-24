@@ -1,11 +1,24 @@
-import { ariaControls, ariaHidden, defineComponent, disclosureTrigger, isRecord, optionRow, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  ariaControls,
+  ariaHidden,
+  type ComponentDef,
+  defineComponent,
+  disclosureTrigger,
+  isRecord,
+  optionRow,
+  type ScopeFor,
+  type SlotScopeFor,
+} from "@spin/runtime";
 import type { TreeState } from "./tree-view.state.ts";
 import { treeView as treeViewMachine } from "./tree-view.machine.ts";
-import type { TreeArgs, TreeContext, TreeNodeShape } from "./tree-view.state.ts";
+import type {
+  TreeArgs,
+  TreeContext,
+  TreeNodeShape,
+} from "./tree-view.state.ts";
 import type { TreeEvents } from "./tree-view.events.ts";
 import { nodesOf } from "./tree-view.state.ts";
-
-
 
 /**
  * Tree-view definition: the DOM contract as data. This file maps props to
@@ -79,7 +92,9 @@ const flatten = (
       const path = [...indexPath, i];
       rows.push({ node, depth, indexPath: path });
       const kids = node.children;
-      if (kids !== undefined && kids.length > 0 && expanded.includes(node.value)) {
+      if (
+        kids !== undefined && kids.length > 0 && expanded.includes(node.value)
+      ) {
         walk(kids, depth + 1, path);
       }
     }
@@ -90,7 +105,10 @@ const flatten = (
 
 /** Visible rows memoized on the nodes' identity and the expansion: fresh
  * rows per move would re-stamp every node and orphan gestures in flight. */
-const rowsCache = new WeakMap<readonly TreeNode[], Map<string, readonly VisibleRow[]>>();
+const rowsCache = new WeakMap<
+  readonly TreeNode[],
+  Map<string, readonly VisibleRow[]>
+>();
 const rowsOf = (
   nodes: readonly TreeNode[],
   expanded: readonly string[],
@@ -135,7 +153,10 @@ const itemStateOf = (
   };
 };
 
-const iconKind = (scope: ScopeLike, row: VisibleRow): "branch-open" | "branch-closed" | "leaf" => {
+const iconKind = (
+  scope: ScopeLike,
+  row: VisibleRow,
+): "branch-open" | "branch-closed" | "leaf" => {
   const state = itemStateOf(scope, row);
   if (!state.branch) return "leaf";
   return state.expanded ? "branch-open" : "branch-closed";
@@ -162,8 +183,13 @@ const stateAttrs = (state: TreeItemState): Record<string, unknown> => {
 const ensureChildren = (scope: ScopeLike, value: string): void => {
   const ctx = scope.context;
   const nodes = scope.context.nodes;
-  const node = rowsOf(nodes, ctx.expandedValue).find((row) => row.node.value === value)?.node;
-  if (node === undefined || (node.children !== undefined && node.children.length > 0)) return;
+  const node = rowsOf(nodes, ctx.expandedValue).find((row) =>
+    row.node.value === value
+  )?.node;
+  if (
+    node === undefined ||
+    (node.children !== undefined && node.children.length > 0)
+  ) return;
   const load: unknown = scope.context.loadChildren;
   if (!isLoadChildren(load)) return;
   scope.send({ type: "NODE.LOAD_START", value });
@@ -210,7 +236,11 @@ const typeaheadOf = (scope: ScopeLike): { keys: string; at: number } => {
   return buffer;
 };
 
-const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): void => {
+const rowKeydown = (
+  scope: ScopeLike,
+  row: VisibleRow,
+  event: KeyboardEvent,
+): void => {
   if (event.defaultPrevented) return;
   const ctx = scope.context;
   const nodes = scope.context.nodes;
@@ -251,7 +281,9 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
       if (branch && expanded) {
         scope.send({ type: "BRANCH.TOGGLE", value: row.node.value });
       } else if (row.depth > 0) {
-        const parent = [...rows.slice(0, at)].reverse().find((r) => r.depth === row.depth - 1);
+        const parent = [...rows.slice(0, at)].reverse().find((r) =>
+          r.depth === row.depth - 1
+        );
         const parentValue = parent !== undefined ? parent.node.value : null;
         if (parentValue !== null) {
           scope.send({ type: "NODE.FOCUS", value: parentValue });
@@ -278,7 +310,9 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
     case "*":
       scope.send({
         type: "EXPANDED.SET",
-        value: rows.filter((r) => isBranchRow(r, loadable)).map((r) => r.node.value),
+        value: rows.filter((r) => isBranchRow(r, loadable)).map((r) =>
+          r.node.value
+        ),
       });
       break;
     case "F2":
@@ -288,19 +322,22 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
       break;
     default:
       if (
-        scope.context.typeaheadEnabled && event.key.length === 1 && !event.ctrlKey &&
+        scope.context.typeaheadEnabled && event.key.length === 1 &&
+        !event.ctrlKey &&
         !event.metaKey
       ) {
         const buffer = typeaheadOf(scope);
         const now = Date.now();
-        buffer.keys = now - buffer.at < 500 ? buffer.keys + event.key : event.key;
+        buffer.keys = now - buffer.at < 500
+          ? buffer.keys + event.key
+          : event.key;
         buffer.at = now;
         const match = rows.find((r) =>
           r.node.label.toLowerCase().startsWith(buffer.keys.toLowerCase())
         );
         if (match !== undefined) {
           scope.send({ type: "NODE.FOCUS", value: match.node.value });
-            }
+        }
         return;
       }
       return;
@@ -308,7 +345,11 @@ const rowKeydown = (scope: ScopeLike, row: VisibleRow, event: KeyboardEvent): vo
   event.preventDefault();
 };
 
-const rowClick = (scope: ScopeLike, row: VisibleRow, event: MouseEvent): void => {
+const rowClick = (
+  scope: ScopeLike,
+  row: VisibleRow,
+  event: MouseEvent,
+): void => {
   const ctx = scope.context;
   // Capture BEFORE the send: the send is synchronous, so a post-send check
   // would already see the click's expandedValue and a lazy branch would
@@ -340,12 +381,18 @@ export const def = {
   // Focus follows the machine: every focus move lands the DOM focus on
   // the newly focused row's control.
   settled: ({ before, after, focus }) => {
-    if (after.context.focusedValue !== before.context.focusedValue && after.context.focusedValue !== null) {
+    if (
+      after.context.focusedValue !== before.context.focusedValue &&
+      after.context.focusedValue !== null
+    ) {
       focus("item", after.context.focusedValue);
     }
     // The rename input takes focus when it appears; without this the
     // first keystrokes go to the row and Escape cannot cancel.
-    if (after.context.renamingValue !== before.context.renamingValue && after.context.renamingValue !== null) {
+    if (
+      after.context.renamingValue !== before.context.renamingValue &&
+      after.context.renamingValue !== null
+    ) {
       focus("rename", after.context.renamingValue);
     }
   },
@@ -364,7 +411,8 @@ export const def = {
   },
   slots: {
     item: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -380,14 +428,17 @@ export const def = {
           }),
           "data-path": row.indexPath.join("-"),
           // The row carries the mode; the utility on the span selects on it.
-          "data-checkable": state.checked || ctx.selectionMode === "multiple" ? "" : undefined,
+          "data-checkable": state.checked || ctx.selectionMode === "multiple"
+            ? ""
+            : undefined,
           ...stateAttrs(state),
         };
       },
     },
     branchControl: {
       id: "item",
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -396,7 +447,9 @@ export const def = {
           tabindex: state.focused ? 0 : -1,
           ...ariaControls(
             scope,
-            state.branch ? { part: "content", slot: row.node.value } : undefined,
+            state.branch
+              ? { part: "content", slot: row.node.value }
+              : undefined,
           ),
           // The control's own box: the row's indent, and the width that
           // goes with it (0.875rem == 14px). The recipe names no var —
@@ -408,15 +461,20 @@ export const def = {
           ...stateAttrs(state),
           onClick: (event: MouseEvent): void => rowClick(scope, row, event),
           onDblclick: (): void => {
-            if (scope.context.rename) scope.send({ type: "NODE.RENAME", value: row.node.value });
+            if (scope.context.rename) {
+              scope.send({ type: "NODE.RENAME", value: row.node.value });
+            }
           },
-          onKeydown: (event: KeyboardEvent): void => rowKeydown(scope, row, event),
-          onFocus: (): void => scope.send({ type: "NODE.FOCUS", value: row.node.value }),
+          onKeydown: (event: KeyboardEvent): void =>
+            rowKeydown(scope, row, event),
+          onFocus: (): void =>
+            scope.send({ type: "NODE.FOCUS", value: row.node.value }),
         };
       },
     },
     branchIndicator: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -430,7 +488,8 @@ export const def = {
       },
     },
     itemIcon: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       // One icon bag per kind, not one for the whole tree.
       attrs: (scope: SlotLike<VisibleRow>) => ({
         ...ariaHidden(true),
@@ -438,7 +497,8 @@ export const def = {
       }),
     },
     rail: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -455,12 +515,14 @@ export const def = {
       },
     },
     branchText: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: () => ({}),
     },
     branchContent: {
       id: "content",
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -470,7 +532,8 @@ export const def = {
       },
     },
     checkbox: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -488,12 +551,13 @@ export const def = {
           onClick: (event: MouseEvent): void => {
             if (event.defaultPrevented) return;
             scope.send({ type: "CHECKED.TOGGLE", value: row.node.value });
-                },
+          },
         };
       },
     },
     loading: {
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         return {
@@ -504,7 +568,8 @@ export const def = {
     },
     renameInput: {
       id: "rename",
-      indexes: (context: TreeContext) => rowsOf(context.nodes, context.expandedValue),
+      indexes: (context: TreeContext) =>
+        rowsOf(context.nodes, context.expandedValue),
       attrs: (scope: SlotLike<VisibleRow>) => {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
@@ -580,12 +645,20 @@ export const def = {
     "expanded-change": {
       prop: "onExpandedChange",
       watch: (context) => [...context.expandedValue],
-      detail: (watched: readonly unknown[]) => ({ expandedValue: watched.filter((v): v is string => typeof v === "string") }),
+      detail: (watched: readonly unknown[]) => ({
+        expandedValue: watched.filter((v): v is string =>
+          typeof v === "string"
+        ),
+      }),
     },
     "selection-change": {
       prop: "onSelectionChange",
       watch: (context) => [...context.selectedValue],
-      detail: (watched: readonly unknown[]) => ({ selectedValue: watched.filter((v): v is string => typeof v === "string") }),
+      detail: (watched: readonly unknown[]) => ({
+        selectedValue: watched.filter((v): v is string =>
+          typeof v === "string"
+        ),
+      }),
     },
     "focus-change": {
       prop: "onFocusChange",
@@ -598,7 +671,9 @@ export const def = {
     "checked-change": {
       prop: "onCheckedChange",
       watch: (context) => [...context.checkedValue],
-      detail: (watched: readonly unknown[]) => ({ checkedValue: watched.filter((v): v is string => typeof v === "string") }),
+      detail: (watched: readonly unknown[]) => ({
+        checkedValue: watched.filter((v): v is string => typeof v === "string"),
+      }),
     },
     "load-complete": {
       prop: "onLoadComplete",
@@ -610,7 +685,19 @@ export const def = {
           : null,
     },
   },
-} satisfies ComponentDef<TreeContext, TreeEvents, Record<string, unknown>, TreeArgs, TreeState>;
+} satisfies ComponentDef<
+  TreeContext,
+  TreeEvents,
+  Record<string, unknown>,
+  TreeArgs,
+  TreeState
+>;
 
 export type TreeApi = ApiOf<typeof def>;
-export const treeView = defineComponent<TreeContext, TreeEvents, TreeApi, TreeArgs, TreeState>(def);
+export const treeView = defineComponent<
+  TreeContext,
+  TreeEvents,
+  TreeApi,
+  TreeArgs,
+  TreeState
+>(def);

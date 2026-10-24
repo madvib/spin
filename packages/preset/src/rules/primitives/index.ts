@@ -20,13 +20,9 @@ import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { meterRules } from "./meter.ts";
 import { modeRules } from "./mode.ts";
-import { popoverRules } from "./popover.ts";
-import { rangeRules } from "./range.ts";
-import { ratingRules } from "./rating.ts";
 import { progressRules } from "./progress.ts";
 import { radioRules } from "./radio.ts";
 import { proseRules } from "./prose.ts";
-import { selectRules } from "./select.ts";
 import { skeletonRules } from "./skeleton.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
@@ -54,8 +50,8 @@ export function primitiveRules(
   mode: Mode,
 ): Rule[] {
   return [
-    // The shared box is one component: `field` covers input, select and
-    // textarea, because they are one box with three contents.
+    // The shared box is one component: `field` covers input and textarea,
+    // because they are one box with two contents.
     ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
     ...avatarGroupRules(roots, mode),
@@ -78,10 +74,6 @@ export function primitiveRules(
     ...labelRules(roots, mode),
     ...modeRules(roots, mode),
     ...meterRules(roots, mode),
-    ...popoverRules(roots, mode),
-    ...rangeRules(roots, mode),
-    ...ratingRules(roots, mode),
-    ...selectRules(roots),
     ...skeletonRules(roots, mode),
     ...statRules(roots, mode),
     ...tableRules(roots, mode),

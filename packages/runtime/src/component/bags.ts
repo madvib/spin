@@ -127,7 +127,13 @@ function createRecorder(): Recorder {
   };
 }
 
-const NO_READS: BagReads = { context: [], props: [], state: false, root: false, slot: [] };
+const NO_READS: BagReads = {
+  context: [],
+  props: [],
+  state: false,
+  root: false,
+  slot: [],
+};
 /** A bag cached until the signature of the fields it reads moves. One memo
  * holds the single bag of one part (there is one root, one image, one
  * fallback per element), so a single slot is the whole cache.
@@ -158,7 +164,10 @@ export function memo(): {
   };
 }
 
-const structuralStores = new WeakMap<WeakMap<object, BagMemo>, Map<string, BagMemo>>();
+const structuralStores = new WeakMap<
+  WeakMap<object, BagMemo>,
+  Map<string, BagMemo>
+>();
 
 function structuralKey(owner: unknown): string | undefined {
   if (typeof owner !== "object" || owner === null) return valueKey(owner);
@@ -201,7 +210,9 @@ export function keyed(
     byValue.set(sKey, { key: keyOf(reads), bag, reads });
     return bag;
   }
-  const objOwner: object | null = typeof owner === "object" && owner !== null ? owner : null;
+  const objOwner: object | null = typeof owner === "object" && owner !== null
+    ? owner
+    : null;
   const hit = objOwner !== null ? store.get(objOwner) : undefined;
   const next = keyOf(hit?.reads ?? NO_READS);
   if (hit !== undefined && hit.key === next) return hit.bag;

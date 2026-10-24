@@ -6,7 +6,6 @@ import { strict as assert } from "node:assert";
 import { delay, runComponentSuite, step } from "./harness.ts";
 import { type Page } from "npm:playwright-core";
 
-
 /** The specimen's readout of the machine's index. */
 const indexOf = async (page: Page): Promise<string> =>
   (await page.locator("#carousel-index").textContent()) ?? "";
@@ -34,7 +33,11 @@ const watchIndex = (page: Page): Promise<string> =>
       observer.disconnect();
       resolve(now);
     });
-    observer.observe(el, { childList: true, characterData: true, subtree: true });
+    observer.observe(el, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
     window.setTimeout(() => {
       observer.disconnect();
       resolve("");
@@ -43,12 +46,24 @@ const watchIndex = (page: Page): Promise<string> =>
   });
 
 Deno.test("spin-carousel e2e", () =>
-  runComponentSuite({ port: 5204, route: "/carousel", ready: 'spin-carousel [aria-roledescription="carousel"]' }, async ({ page }) => {
-    const region = page.locator('spin-carousel [aria-roledescription="carousel"]');
+  runComponentSuite({
+    port: 5204,
+    route: "/carousel",
+    ready: 'spin-carousel [aria-roledescription="carousel"]',
+  }, async ({ page }) => {
+    const region = page.locator(
+      'spin-carousel [aria-roledescription="carousel"]',
+    );
     const track = page.locator('spin-carousel [id$=":item-group"]');
-    const items = page.locator('spin-carousel [id$=":item-group"] > [data-index]');
-    const indicators = page.locator('spin-carousel [aria-label="Slides"] > button');
-    const prev = page.locator('spin-carousel button[aria-label="Previous slide"]');
+    const items = page.locator(
+      'spin-carousel [id$=":item-group"] > [data-index]',
+    );
+    const indicators = page.locator(
+      'spin-carousel [aria-label="Slides"] > button',
+    );
+    const prev = page.locator(
+      'spin-carousel button[aria-label="Previous slide"]',
+    );
     const next = page.locator('spin-carousel button[aria-label="Next slide"]');
 
     await step("renders the carousel contract", async () => {
@@ -61,7 +76,8 @@ Deno.test("spin-carousel e2e", () =>
         "the track is the keyboard surface",
       );
       assert.equal(
-        await page.locator('spin-carousel [id$=":progress-text"]').textContent(),
+        await page.locator('spin-carousel [id$=":progress-text"]')
+          .textContent(),
         "1 / 5",
         "progress text reads page one of five",
       );
@@ -84,7 +100,11 @@ Deno.test("spin-carousel e2e", () =>
         "",
         "the first indicator is current",
       );
-      assert.equal(await prev.isDisabled(), true, "prev holds on the first page");
+      assert.equal(
+        await prev.isDisabled(),
+        true,
+        "prev holds on the first page",
+      );
       assert.equal(await next.isDisabled(), false, "next is live");
     });
 
@@ -93,7 +113,8 @@ Deno.test("spin-carousel e2e", () =>
       assert.equal(await indexOf(page), "1");
       assert.equal(await indicators.nth(1).getAttribute("data-current"), "");
       assert.equal(
-        await page.locator('spin-carousel [id$=":progress-text"]').textContent(),
+        await page.locator('spin-carousel [id$=":progress-text"]')
+          .textContent(),
         "2 / 5",
       );
     });
@@ -101,7 +122,11 @@ Deno.test("spin-carousel e2e", () =>
     await step("clicking prev pages back", async () => {
       await prev.click();
       assert.equal(await indexOf(page), "0");
-      assert.equal(await prev.isDisabled(), true, "prev holds again on the first page");
+      assert.equal(
+        await prev.isDisabled(),
+        true,
+        "prev holds again on the first page",
+      );
     });
 
     await step("clicking an indicator jumps to its page", async () => {
@@ -114,7 +139,11 @@ Deno.test("spin-carousel e2e", () =>
     await step("the el.goTo command jumps to the last page", async () => {
       await page.click("#carousel-goto");
       assert.equal(await indexOf(page), "4");
-      assert.equal(await next.isDisabled(), true, "next holds on the last page");
+      assert.equal(
+        await next.isDisabled(),
+        true,
+        "next holds on the last page",
+      );
     });
 
     await step("the el.next command wraps when loop is on", async () => {
@@ -162,8 +191,16 @@ Deno.test("spin-carousel e2e", () =>
         "the rotation reports playing",
       );
       const after = await advanced;
-      assert.notEqual(after, "", `the rotation advanced the index (it held at ${before})`);
-      assert.notEqual(after, before, "the rotation moved the carousel off its page");
+      assert.notEqual(
+        after,
+        "",
+        `the rotation advanced the index (it held at ${before})`,
+      );
+      assert.notEqual(
+        after,
+        before,
+        "the rotation moved the carousel off its page",
+      );
       await track.click();
       assert.equal(
         await page.locator("#carousel-rotation").textContent(),

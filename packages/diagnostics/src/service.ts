@@ -17,6 +17,7 @@ import { join, resolve } from "node:path";
 import { DEFAULT_SEMANTIC_OPTIONS, type SemanticOptions } from "./core.ts";
 import {
   type Diagnostic,
+  lintMarkup,
   lintTree,
   parseFile,
   type RuleRun,
@@ -90,8 +91,8 @@ export interface CheckReport {
 
 /* ------------------------------------------------------------ the lint -- */
 
-/** The files the CLI reads: the JavaScript and the TypeScript ones. */
-const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs)$/;
+/** The files the CLI reads: the sources, and the markup beside them. */
+const SOURCE = /\.(?:tsx?|jsx?|mjs|cjs|html?)$/;
 
 /** The directories a scan does not walk into. */
 const SKIPPED = new Set([
@@ -217,6 +218,13 @@ export async function lintFiles(
     const code = stagedText(view, file) ?? await readText(file);
     if (code === undefined) {
       unreadable.push(file);
+      continue;
+    }
+    // Markup is walked through the component syntax, not the module parser:
+    // an `.html` file is a fragment the module parser cannot read, so it is
+    // never handed to it.
+    if (file.endsWith(".html") || file.endsWith(".htm")) {
+      findings.push(...lintMarkup(file, code, run));
       continue;
     }
     let ast;

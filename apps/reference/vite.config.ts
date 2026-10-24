@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
+import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 

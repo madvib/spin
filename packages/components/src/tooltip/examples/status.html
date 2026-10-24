@@ -1,15 +1,29 @@
 <scope>props={ label: string = "System Status", tip: string = "Operational" } consume={ tooltip }</scope>
 
-<button {...tooltip.getTriggerProps()} class="inline-flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">
+<button {...tooltip.getTriggerProps()}
+  class="secondary s-sm inline-flex items-center gap-2">
   <span class="i-lucide-activity text-sm" aria-hidden="true"></span>
   {label}
 </button>
 
-<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-  <div class="space-y-1">
-    <div><div class="text-xs text-muted">Status</div><div class="text-xs font-semibold">Operational</div></div>
-    <div><div class="text-xs text-muted">Uptime</div><div class="text-xs font-semibold">99.9%</div></div>
-    <div><div class="text-xs text-muted">Deploy</div><div class="text-xs font-semibold">2h ago</div></div>
-    <div><div class="text-xs text-muted">Response</div><div class="text-xs font-semibold">145ms</div></div>
+<tooltip {...tooltip.getContentProps()}
+  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div class="stack-xs">
+    <div>
+      <div class="text-xs text-muted">Status</div>
+      <div class="text-xs font-semibold">Operational</div>
+    </div>
+    <div>
+      <div class="text-xs text-muted">Uptime</div>
+      <div class="text-xs font-semibold">99.9%</div>
+    </div>
+    <div>
+      <div class="text-xs text-muted">Deploy</div>
+      <div class="text-xs font-semibold">2h ago</div>
+    </div>
+    <div>
+      <div class="text-xs text-muted">Response</div>
+      <div class="text-xs font-semibold">145ms</div>
+    </div>
   </div>
-</div>
+</tooltip>

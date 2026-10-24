@@ -29,7 +29,10 @@ export interface AvatarArgs {
  * The seed twin (`defaultSrc`) is the host's write of the src — the
  * framework resolved it into the args — so it counts as a write too.
  */
-export function initial(args: AvatarArgs = {}, authored: (name: string) => boolean): AvatarContext {
+export function initial(
+  args: AvatarArgs = {},
+  authored: (name: string) => boolean,
+): AvatarContext {
   // A host that wrote `defaultSrc` wrote the src channel too.
   const written = (field: string): boolean =>
     authored(field) ||

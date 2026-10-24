@@ -11,23 +11,28 @@
  */
 
 import {
+  type BagMemo,
+  type BagReads,
   dataAttr,
   keyed,
   memo,
+  type ReadKind,
+  type ReadRecorder,
   slotFieldKey,
   valueKey,
   WHOLE,
-  type BagMemo,
-  type BagReads,
-  type ReadKind,
-  type ReadRecorder,
 } from "./bags.ts";
 import { focuser, ids, measurer } from "./ids.ts";
-import { authoredProps, defineBridge, pickCallback, type BridgeHooks, type BridgeLive } from "./bridge.ts";
+import {
+  authoredProps,
+  type BridgeHooks,
+  type BridgeLive,
+  defineBridge,
+  pickCallback,
+} from "./bridge.ts";
 import type { ComponentDef, SlotScope } from "./define.ts";
 import type { EventMap, EventUnion } from "@spin/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
-
 
 export function defineComponent<
   C extends object,
@@ -35,7 +40,9 @@ export function defineComponent<
   Api extends object = Record<string, unknown>,
   A = unknown,
   S extends string = string,
->(def: ComponentDef<C, E, Record<string, unknown>, A, S>): ((args?: A) => Api) & Omit<MachineDef, "createBridge"> & {
+>(
+  def: ComponentDef<C, E, Record<string, unknown>, A, S>,
+): ((args?: A) => Api) & Omit<MachineDef, "createBridge"> & {
   readonly createBridge: (
     props: () => Record<string, unknown>,
     root: () => Element,
@@ -55,7 +62,14 @@ export function defineComponent<
     id: string,
     root: () => Element,
     machineLive: BridgeLive<S>,
-  ): BridgeHooks<C, E, Api, Record<string, unknown>, Record<string, unknown>, S> => {
+  ): BridgeHooks<
+    C,
+    E,
+    Api,
+    Record<string, unknown>,
+    Record<string, unknown>,
+    S
+  > => {
     const noteSent = (_type: string): void => {};
     const names = ids(def.name, id);
     const segments = new Map<string, string>();
@@ -85,7 +99,10 @@ export function defineComponent<
       // `state` is the state NAME, a string. Testing "state" in svc
       // picked the wrong branch and every reader got an undefined
       // context. The shape of `state` decides, not its presence.
-      const rec = svc as { readonly state?: unknown; readonly context?: unknown };
+      const rec = svc as {
+        readonly state?: unknown;
+        readonly context?: unknown;
+      };
       const context = typeof rec.state === "object" && rec.state !== null
         ? (rec.state as { readonly context: unknown }).context
         : rec.context;
@@ -132,9 +149,15 @@ export function defineComponent<
         if (def.establish === undefined) return [];
         return def.establish(props(), authored) as readonly EventUnion<E>[];
       },
-      kind: (event) => (def.commitEvents?.includes(event.type) === true ? "commit" : "move"),
+      kind: (
+        event,
+      ) => (def.commitEvents?.includes(event.type) === true
+        ? "commit"
+        : "move"),
       refresh: (svc, props, authored) => {
-        if (def.scalars === undefined && def.scalarsOf === undefined) return false;
+        if (def.scalars === undefined && def.scalarsOf === undefined) {
+          return false;
+        }
         const parsed = props();
         const context = ctxOf(svc);
         if (def.scalarsOf !== undefined) {
@@ -171,7 +194,10 @@ export function defineComponent<
       notify: (svc, callbacks, kind, event, beforeSnapshot, parsed, source) => {
         const context = ctxOf(svc);
         const state = svc.state.value;
-        const fns = callbacks as Record<string, (...args: readonly unknown[]) => void>;
+        const fns = callbacks as Record<
+          string,
+          (...args: readonly unknown[]) => void
+        >;
         for (const [name, defEvent] of Object.entries(def.events)) {
           // Commit gestures fire `on: "commit"` events every time (a
           // keyboard commit at a bound still ends the gesture); moves fire
@@ -183,9 +209,12 @@ export function defineComponent<
           if (defEvent.select !== undefined) {
             // Event-gated reports (invokeOnSelect): the send's outcome
             // against the pre-send context; a refused guard reports nothing.
-            const before = (beforeSnapshot as { readonly context?: C } | undefined)?.context;
+            const before =
+              (beforeSnapshot as { readonly context?: C } | undefined)?.context;
             if (event === undefined || before === undefined) continue;
-            const beforeState = (beforeSnapshot as { readonly state?: string } | undefined)?.state ?? state;
+            const beforeState =
+              (beforeSnapshot as { readonly state?: string } | undefined)
+                ?.state ?? state;
             const payload = defEvent.select(
               event as { readonly type: string } & Record<string, unknown>,
               before,
@@ -201,15 +230,23 @@ export function defineComponent<
             }
             continue;
           }
-          if (defEvent.on !== "commit" && last !== undefined && sameWatch(last, watched)) continue;
-          fns[defEvent.prop]?.(defEvent.detail(watched, event, parsed, context));
+          if (
+            defEvent.on !== "commit" && last !== undefined &&
+            sameWatch(last, watched)
+          ) continue;
+          fns[defEvent.prop]?.(
+            defEvent.detail(watched, event, parsed, context),
+          );
         }
       },
       readCallbacks: (props) => {
         const raw = props();
         const out: Record<string, (...args: readonly unknown[]) => void> = {};
         for (const event of Object.values(def.events)) {
-          const found = pickCallback<(...args: readonly unknown[]) => void>(raw, event.prop);
+          const found = pickCallback<(...args: readonly unknown[]) => void>(
+            raw,
+            event.prop,
+          );
           if (found !== undefined) out[event.prop] = found;
         }
         return out;
@@ -222,12 +259,20 @@ export function defineComponent<
           state,
           parsed,
           authored,
-          send: send as (event: { type: string } & Record<string, unknown>) => void,
+          send: send as (
+            event: { type: string } & Record<string, unknown>,
+          ) => void,
         });
       },
       mounted: ({ props: readRaw }) => {
         if (def.mounted === undefined) return;
-        def.mounted({ props: readRaw(), root, id: resolveId, focus: focusPart, measure: measurePart });
+        def.mounted({
+          props: readRaw(),
+          root,
+          id: resolveId,
+          focus: focusPart,
+          measure: measurePart,
+        });
       },
       settled: ({ event, before, after, props: readRaw, send }) => {
         if (def.settled === undefined) return;
@@ -240,7 +285,9 @@ export function defineComponent<
           id: resolveId,
           focus: focusPart,
           measure: measurePart,
-          send: (report: { readonly type: string } & Record<string, unknown>): void => {
+          send: (
+            report: { readonly type: string } & Record<string, unknown>,
+          ): void => {
             send(report as EventUnion<E>);
           },
         });
@@ -248,9 +295,13 @@ export function defineComponent<
       connect: (service, readProps, id) => {
         const focusHere = focuser(ids(def.name, id));
         const measureHere = measurer(ids(def.name, id));
-        const dispatch = (event: { type: string } & Record<string, unknown>): void => {
+        const dispatch = (
+          event: { type: string } & Record<string, unknown>,
+        ): void => {
           service.send(
-            (def.dispatch !== undefined ? def.dispatch(event, readProps()) : event) as EventUnion<E>,
+            (def.dispatch !== undefined
+              ? def.dispatch(event, readProps())
+              : event) as EventUnion<E>,
           );
         };
         const api: Record<string, unknown> = {};
@@ -258,13 +309,22 @@ export function defineComponent<
           if (command.view !== undefined) {
             const view = command.view;
             api[name] = (...args: readonly unknown[]) =>
-              view({ args, id: resolveId, focus: focusHere, measure: measureHere, root });
+              view({
+                args,
+                id: resolveId,
+                focus: focusHere,
+                measure: measureHere,
+                root,
+              });
             continue;
           }
           const send = command.event;
-          api[name] = (...args: readonly unknown[]) => dispatch(
-            send(args, ctxOf(service), resolveId) as unknown as { type: string } & Record<string, unknown>,
-          );
+          api[name] = (...args: readonly unknown[]) =>
+            dispatch(
+              send(args, ctxOf(service), resolveId) as unknown as {
+                type: string;
+              } & Record<string, unknown>,
+            );
         }
         // The api's readers read the SIGNALS, like the scope's context
         // does: a read in the markup's expression (a bound class, say)
@@ -276,12 +336,13 @@ export function defineComponent<
         });
         for (const [name, reader] of Object.entries(def.readers ?? {})) {
           Object.defineProperty(api, name, {
-            get: () => reader.read(
-              liveContext,
-              machineLive.state(),
-              readProps(),
-              root,
-            ),
+            get: () =>
+              reader.read(
+                liveContext,
+                machineLive.state(),
+                readProps(),
+                root,
+              ),
             enumerable: true,
           });
         }
@@ -295,13 +356,14 @@ export function defineComponent<
           });
         }
         for (const [name, method] of Object.entries(def.methods ?? {})) {
-          api[name] = (...args: readonly unknown[]) => method.call(
-            ctxOf(service),
-            service.state,
-            args,
-            readProps(),
-            resolveId,
-          );
+          api[name] = (...args: readonly unknown[]) =>
+            method.call(
+              ctxOf(service),
+              service.state,
+              args,
+              readProps(),
+              resolveId,
+            );
         }
         /** The slot, as the scope hands it over: a recording proxy, so a
          * field read inside the build is a dependency the key can see.
@@ -320,7 +382,10 @@ export function defineComponent<
             get: (target, key) => {
               record(
                 "slot",
-                typeof key === "symbol" || key === "toString" || key === "valueOf" ? WHOLE : key,
+                typeof key === "symbol" || key === "toString" ||
+                  key === "valueOf"
+                  ? WHOLE
+                  : key,
               );
               return Reflect.get(target, key);
             },
@@ -354,8 +419,12 @@ export function defineComponent<
           const ctx = ctxOf(service) as unknown as Record<string, unknown>;
           const props = readProps();
           const parts: string[] = [];
-          for (const field of reads.context) parts.push(`c:${field}=${valueKey(ctx[field])}`);
-          for (const prop of reads.props) parts.push(`p:${prop}=${valueKey(props[prop])}`);
+          for (const field of reads.context) {
+            parts.push(`c:${field}=${valueKey(ctx[field])}`);
+          }
+          for (const prop of reads.props) {
+            parts.push(`p:${prop}=${valueKey(props[prop])}`);
+          }
           if (reads.state) parts.push(`s=${valueKey(service.state)}`);
           if (reads.root) parts.push(`r=${slotFieldKey(root(), WHOLE)}`);
           for (const field of reads.slot) {
@@ -363,7 +432,9 @@ export function defineComponent<
           }
           return parts.join("\u0000");
         };
-        function liveScope(extra?: { readonly slot: unknown }): SlotScope<never, C, Record<string, unknown>, EventUnion<E>, S> {
+        function liveScope(
+          extra?: { readonly slot: unknown },
+        ): SlotScope<never, C, Record<string, unknown>, EventUnion<E>, S> {
           // Live views, not snapshots: a closure cached by row (or by part)
           // keeps reading through these, so it never goes stale — while the
           // bag memo still bounds rebuilds by signature. Proxies cost a
@@ -404,7 +475,9 @@ export function defineComponent<
             measure: measurePart,
             send: dispatch,
             attr: dataAttr,
-            slot: typeof raw === "object" && raw !== null ? slotProxy(raw) : raw,
+            slot: typeof raw === "object" && raw !== null
+              ? slotProxy(raw)
+              : raw,
           };
           Object.defineProperty(scope, "state", {
             get: () => {
@@ -413,10 +486,18 @@ export function defineComponent<
             },
             enumerable: true,
           });
-          return scope as unknown as SlotScope<never, C, Record<string, unknown>, EventUnion<E>, S>;
+          return scope as unknown as SlotScope<
+            never,
+            C,
+            Record<string, unknown>,
+            EventUnion<E>,
+            S
+          >;
         }
         for (const [part, partDef] of Object.entries(def.parts)) {
-          const method = `get${part[0]?.toUpperCase() ?? ""}${part.slice(1)}Props`;
+          const method = `get${part[0]?.toUpperCase() ?? ""}${
+            part.slice(1)
+          }Props`;
           const segment = partDef.id ?? part;
           api[method] = (...callArgs: readonly unknown[]) => {
             const raw = callArgs[0];
@@ -432,9 +513,10 @@ export function defineComponent<
                     "data-scope": def.name,
                     "data-part": segment,
                   };
-                  return partDef.attrs === undefined
-                    ? stamped
-                    : { ...stamped, ...partDef.attrs(scope, argument(rec, raw)) };
+                  return partDef.attrs === undefined ? stamped : {
+                    ...stamped,
+                    ...partDef.attrs(scope, argument(rec, raw)),
+                  };
                 } finally {
                   recorders.pop();
                 }
@@ -446,7 +528,10 @@ export function defineComponent<
           const cap = `${slotName[0]?.toUpperCase() ?? ""}${slotName.slice(1)}`;
           const segment = slotDef.id ?? slotName;
           const slotMemos = new WeakMap<object, BagMemo>();
-          api[`get${cap}Props`] = (slot: unknown, ...callArgs: readonly unknown[]) => {
+          api[`get${cap}Props`] = (
+            slot: unknown,
+            ...callArgs: readonly unknown[]
+          ) => {
             const scope = liveScope({ slot });
             return keyed(
               slotMemos,
@@ -455,7 +540,10 @@ export function defineComponent<
               (rec) => {
                 recorders.push(rec);
                 try {
-                  const built = slotDef.attrs(scope, argument(rec, callArgs[0]));
+                  const built = slotDef.attrs(
+                    scope,
+                    argument(rec, callArgs[0]),
+                  );
                   if (slotDef.stamp === false) return built;
                   return {
                     "data-scope": def.name,
@@ -499,7 +587,15 @@ export function defineComponent<
     const startState = typeof def.start === "function"
       ? def.start(props(), authoredProps(props))
       : def.start;
-    const bridged = defineBridge<C, E, Api, Record<string, unknown>, Record<string, unknown>, A, S>(
+    const bridged = defineBridge<
+      C,
+      E,
+      Api,
+      Record<string, unknown>,
+      Record<string, unknown>,
+      A,
+      S
+    >(
       {
         machine: def.machine,
         ...(def.args === undefined ? {} : { args: def.args }),
@@ -517,7 +613,8 @@ export function defineComponent<
   // built (notify maps watch -> payload). The element calls this contract
   // mapper with that payload to build the CustomEvent detail, so it passes
   // through what notify reported.
-  const events: Record<string, MachineEventContract<Record<string, unknown>>> = {};
+  const events: Record<string, MachineEventContract<Record<string, unknown>>> =
+    {};
   for (const [name, event] of Object.entries(def.events)) {
     // deno-lint-ignore no-explicit-any
     events[name] = { on: event.prop, detail: (change: any) => change };
@@ -536,7 +633,9 @@ export function defineComponent<
   };
   const component = (args?: A): Api => {
     void args;
-    throw new Error(`[spin] ${def.name}() is a <script> binding compiled by spin-elements; use ${def.name}.createBridge() for imperative bridges`);
+    throw new Error(
+      `[spin] ${def.name}() is a <script> binding compiled by spin-elements; use ${def.name}.createBridge() for imperative bridges`,
+    );
   };
   return Object.assign(component, {
     createBridge,

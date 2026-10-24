@@ -1,5 +1,8 @@
 import type { EventUnion } from "@spin/runtime/fsm";
-import type { FloatingPanelSize, FloatingPanelStage } from "./floating-panel.state.ts";
+import type {
+  FloatingPanelSize,
+  FloatingPanelStage,
+} from "./floating-panel.state.ts";
 
 export interface FloatingPanelEvents {
   "OPEN": {};
@@ -34,4 +37,3 @@ export interface FloatingPanelPositionChange {
 export interface FloatingPanelStageChange {
   readonly stage: FloatingPanelStage;
 }
-

@@ -43,10 +43,17 @@ Deno.test("MenuApi promises the component's surface", () => {
   assertEquals(keys.length, 31);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const stateTyped: AssertExact<MenuApi["state"], "closed" | "open"> = true;
-  const setHighlightedTyped: AssertExact<MenuApi["setHighlighted"], (value: string | null) => void> = true;
-  const getRowsTyped: AssertExact<MenuApi["getRows"], (block: MenuBlock) => readonly MenuRow[]> = true;
+  const setHighlightedTyped: AssertExact<
+    MenuApi["setHighlighted"],
+    (value: string | null) => void
+  > = true;
+  const getRowsTyped: AssertExact<
+    MenuApi["getRows"],
+    (block: MenuBlock) => readonly MenuRow[]
+  > = true;
   assertEquals(
     [
       stateTyped,

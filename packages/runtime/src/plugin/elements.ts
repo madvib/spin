@@ -1,5 +1,11 @@
 import { createUnplugin } from "unplugin";
-import { expandVariantGroups, extractScript, parse, parseScope, stripScript } from "@spin/runtime";
+import {
+  expandVariantGroups,
+  extractScript,
+  parse,
+  parseScope,
+  stripScript,
+} from "@spin/runtime";
 import { emit } from "./emit.ts";
 
 export interface SpinElementsOptions {
@@ -26,7 +32,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // `?raw` / `?url` imports want the file, not the element: the
       // reference app reads example sources as text through globs.
       if (id.includes("?raw") || id.includes("?url")) return undefined;
-      if (id.endsWith(".html") && importer && !importer.includes("node_modules")) {
+      if (
+        id.endsWith(".html") && importer && !importer.includes("node_modules")
+      ) {
         const path = await import("node:path");
         const real = path.resolve(path.dirname(importer.split("?")[0]!), id);
         return `${real}?spin-element`;
@@ -50,17 +58,22 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // The includes are resolved BEFORE the parse: the parser never
       // sees them, and the included file's body is inlined.
       const code = expandVariantGroups(
-        (await resolveIncludes(source.replace(/<!--[\s\S]*?-->/g, ""), id)).code,
+        (await resolveIncludes(source.replace(/<!--[\s\S]*?-->/g, ""), id))
+          .code,
       );
       // A script block is the component's own TypeScript: extract it before
       // the parse, so the markup parser never sees it.
       const scriptSource = extractScript(code);
-      const script = scriptSource === undefined ? undefined : stripScript(scriptSource);
+      const script = scriptSource === undefined
+        ? undefined
+        : stripScript(scriptSource);
       const markup = scriptSource === undefined
         ? code
         : code.replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "");
       if (/<!doctype|<style[\s>]/i.test(markup)) {
-        throw new Error(`spin-elements: ${id} looks like a document, not a component`);
+        throw new Error(
+          `spin-elements: ${id} looks like a document, not a component`,
+        );
       }
       const file = id.split("?")[0]!;
       const stem = file.split("/").pop()!.replace(/\.html$/, "");
@@ -73,7 +86,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       const parentDir = file.split("/").slice(-2, -1)[0] ?? "";
       const grandparent = file.split("/").slice(-3, -2)[0] ?? "";
       const machine = parentDir === "examples"
-        ? (grandparent.startsWith("spin-") ? grandparent.slice("spin-".length) : grandparent)
+        ? (grandparent.startsWith("spin-")
+          ? grandparent.slice("spin-".length)
+          : grandparent)
         : "";
       // Examples always qualify (`basic` → `tree-view-basic`): the mount
       // tag derives the same way, so the two can never disagree the way a
@@ -91,14 +106,21 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // the checker guarantees the args.
       const scriptBindings = script?.calls ?? [];
       if (script !== undefined && scopeDecls.props.length > 0) {
-        throw new Error(`spin-elements: ${id} has both <script> and <scope> props — the script replaces the scope`);
+        throw new Error(
+          `spin-elements: ${id} has both <script> and <scope> props — the script replaces the scope`,
+        );
       }
       const body = js
-        .replace(/^export function create\(ctx, actions\) \{/, "export function create(actions, values) {")
+        .replace(
+          /^export function create\(ctx, actions\) \{/,
+          "export function create(actions, values) {",
+        )
         .replace(/void ctx;\n/, "");
       const fs = await import("node:fs/promises");
       const path = await import("node:path");
-      const findActions = async (start: string): Promise<string | undefined> => {
+      const findActions = async (
+        start: string,
+      ): Promise<string | undefined> => {
         let current = start;
         for (let depth = 0; depth < 4; depth++) {
           try {
@@ -125,10 +147,14 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           if (!f.endsWith(".action.ts")) continue;
           const mod = `./${path.relative(dir, actionsPath)}/${f}`;
           const src = await fs.readFile(path.join(actionsPath, f), "utf8");
-          const names = [...src.matchAll(/export const (\w+)/g)].map((m) => m[1]!);
+          const names = [...src.matchAll(/export const (\w+)/g)].map((m) =>
+            m[1]!
+          );
           for (const name of names) {
             const alias = `${name}_${actionNames.length}`;
-            actionImports += `import { ${name} as ${alias} } from ${JSON.stringify(mod)};\n`;
+            actionImports += `import { ${name} as ${alias} } from ${
+              JSON.stringify(mod)
+            };\n`;
             actionNames.push(`${JSON.stringify(name)}: ${alias}`);
           }
         }
@@ -181,7 +207,10 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           for (const stem of stems) {
             try {
               await fs.access(path.join(walk, stem));
-              defMod = `./${path.relative(dir, walk)}/${stem}`.replace("././", "./");
+              defMod = `./${path.relative(dir, walk)}/${stem}`.replace(
+                "././",
+                "./",
+              );
               hit = true;
               break;
             } catch {
@@ -201,7 +230,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const path = await import("node:path");
           let dirs: string[] = [];
           try {
-            dirs = (await fs.readdir(machinesRoot)).filter((n) => !n.includes(".") && n !== "shared");
+            dirs = (await fs.readdir(machinesRoot)).filter((n) =>
+              !n.includes(".") && n !== "shared"
+            );
           } catch {
             // No machines root: the consume name is inert.
           }
@@ -225,7 +256,8 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           // Climb up and scan sibling component directories before giving up.
           try {
             const isCandidateDir = (n: string): boolean =>
-              !n.includes(".") && n !== "examples" && n !== "actions" && n !== "shared";
+              !n.includes(".") && n !== "examples" && n !== "actions" &&
+              n !== "shared";
             let root = dir;
             outer: for (let depth = 0; depth < 6; depth++) {
               const names = await fs.readdir(root);
@@ -234,7 +266,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
                 for (const stem of stems) {
                   try {
                     await fs.access(path.join(root, name, stem));
-                    defMod = `./${path.relative(dir, path.join(root, name))}/${stem}`.replace("././", "./");
+                    defMod = `./${
+                      path.relative(dir, path.join(root, name))
+                    }/${stem}`.replace("././", "./");
                     break outer;
                   } catch {
                     // Next stem.
@@ -255,20 +289,24 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         }
         {
           const found = defMod;
-          consumeImports.push(`import { ${name} } from ${JSON.stringify(found)};`);
+          consumeImports.push(
+            `import { ${name} } from ${JSON.stringify(found)};`,
+          );
           const bridge = `${name}Bridge`;
           consumeCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${name}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
-            `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
-            `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)}))\n` +
-            `    : { api: ${name}.attach(el), dispose() {} });\n` +
-            `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
-            // The controller surface for app controllers: the api's reads as
-            // reactive state, the declared commands as calls.
-            `  provideController(el, () => controllerView(${bridge}.api, ${name}.commands));\n` +
-            `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
-            `  own(() => ${bridge}.dispose());`
+              `  const ${bridge}Props = () => { const p = { ...values, ...${bridge}Events }; ${consumeDeletes} delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = (name) => typeof authored === "function" && authored(name); return p; };\n` +
+              `  const ${bridge} = watch(${name}, () => "createBridge" in ${name}\n` +
+              `    ? ${name}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${
+                JSON.stringify(tag)
+              }))\n` +
+              `    : { api: ${name}.attach(el), dispose() {} });\n` +
+              `  values[${JSON.stringify(name)}] = ${bridge}.api;\n` +
+              // The controller surface for app controllers: the api's reads as
+              // reactive state, the declared commands as calls.
+              `  provideController(el, () => controllerView(${bridge}.api, ${name}.commands));\n` +
+              `  for (const command of ${name}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
+              `  own(() => ${bridge}.dispose());`,
           );
         }
       }
@@ -280,7 +318,11 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
       // `.events`, and `.manifest`.
       const scriptImports: string[] = [];
       if (script !== undefined) {
-        for (const m of script.module.matchAll(/^\s*import(?:\s|\{|\*)[\s\S]*?from\s*["'][^"']+["']\s*;?/gm)) {
+        for (
+          const m of script.module.matchAll(
+            /^\s*import(?:\s|\{|\*)[\s\S]*?from\s*["'][^"']+["']\s*;?/gm,
+          )
+        ) {
           scriptImports.push(m[0].trim());
         }
       }
@@ -295,19 +337,26 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           const component = `${binding.factory}`;
           scriptCalls.push(
             `  const ${bridge}Events = Object.fromEntries(Object.entries(${component}.events ?? {}).map(([eventName, contract]) => [contract.on, (details) => { el.dispatchEvent(new CustomEvent(eventName, { detail: contract.detail(details), bubbles: true })); }]));\n` +
-            `  const ${bridge}Props = () => { const p = { ...(${binding.args || "{}"}), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
-            `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${JSON.stringify(tag)})));\n` +
-            `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
-            `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
-            `  for (const command of ${component}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
-            `  own(() => ${bridge}.dispose());`
+              `  const ${bridge}Props = () => { const p = { ...(${
+                binding.args || "{}"
+              }), ...${bridge}Events }; delete p["@@resolve"]; delete p["@@slots"]; p["@@authored"] = () => false; return p; };\n` +
+              `  const ${bridge} = watch(${component}, () => ${component}.createBridge(${bridge}Props, () => el, el.id || uniqueId(${
+                JSON.stringify(tag)
+              })));\n` +
+              `  values[${JSON.stringify(binding.name)}] = ${bridge}.api;\n` +
+              `  provideController(el, () => controllerView(${bridge}.api, ${component}.commands));\n` +
+              `  for (const command of ${component}.commands ?? []) el[command] = (...args) => ${bridge}.api[command](...args);\n` +
+              `  own(() => ${bridge}.dispose());`,
           );
         }
       }
       const hasConsume = consumeCalls.length > 0 || scriptCalls.length > 0;
       const propNames = scopeDecls.props.map((p) => p.name);
       const hasProps = propNames.length > 0;
-      const buildParams = [hasConsume ? "el, watch, authored" : "el", hasProps ? "props" : ""]
+      const buildParams = [
+        hasConsume ? "el, watch, authored" : "el",
+        hasProps ? "props" : "",
+      ]
         .filter((p) => p.length > 0)
         .join(", ");
       // Declared props are ALSO observed attributes: a framework's string
@@ -330,10 +379,17 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         // Both spellings: author HTML is dashed, but a framework that writes
         // attributes verbatim (Solid's custom-element handling) writes the
         // camelCase name, and an unobserved spelling is a silent no-op.
-        const dashed = decl.name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+        const dashed = decl.name.replace(
+          /[A-Z]/g,
+          (c) => `-${c.toLowerCase()}`,
+        );
         const entry = `${JSON.stringify(dashed)}: P[${JSON.stringify(parser)}]`;
         attributeEntries.push(entry);
-        if (dashed !== decl.name) attributeEntries.push(`${JSON.stringify(decl.name)}: P[${JSON.stringify(parser)}]`);
+        if (dashed !== decl.name) {
+          attributeEntries.push(
+            `${JSON.stringify(decl.name)}: P[${JSON.stringify(parser)}]`,
+          );
+        }
       }
       const attributeDecl = attributeEntries.length > 0
         ? ` attributes: { ${attributeEntries.join(", ")} },`
@@ -344,8 +400,12 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
         ? `import { attrParsers as P, define, coerceProps, own, uniqueId, projectSlots, controllerView, provideController } from "@spin/runtime";`
         : `import { define, coerceProps, projectSlots } from "@spin/runtime";`;
       const defineHead = hasProps
-        ? `define(${JSON.stringify(tag)}, { props: ${JSON.stringify(propNames)},${attributeDecl} build({ ${buildParams} }) {`
-        : `define(${JSON.stringify(tag)}, {${attributeDecl} build({ ${buildParams} }) {`;
+        ? `define(${JSON.stringify(tag)}, { props: ${
+          JSON.stringify(propNames)
+        },${attributeDecl} build({ ${buildParams} }) {`
+        : `define(${
+          JSON.stringify(tag)
+        }, {${attributeDecl} build({ ${buildParams} }) {`;
       // A declared prop is a live read of the element's prop store; the
       // attribute/coerced value is the initial path, so a property write —
       // before or after connection — wins over the attribute.
@@ -376,7 +436,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           `    attrs[name] = el.getAttribute(name);`,
           `    attrs[camel] = el.getAttribute(name);`,
           `  }`,
-          `  const initial = coerceProps(${JSON.stringify(scopeDecls.props)}, attrs);`,
+          `  const initial = coerceProps(${
+            JSON.stringify(scopeDecls.props)
+          }, attrs);`,
           `  const values = { ...initial };`,
           ...seedProps,
           ...scriptCalls,
@@ -391,7 +453,9 @@ const unplugin = createUnplugin<SpinElementsOptions | undefined>((raw) => {
           // Example modules cannot hot-swap: the tag is already defined and
           // the define guard keeps the first registration, so an edit would
           // serve stale markup forever. Invalidate (full reload) instead.
-          ...(file.includes("/examples/") ? [`if (import.meta.hot) import.meta.hot.invalidate();`] : []),
+          ...(file.includes("/examples/")
+            ? [`if (import.meta.hot) import.meta.hot.invalidate();`]
+            : []),
           `export default ${JSON.stringify(tag)};`,
         ].join("\n"),
         map: null,
@@ -422,9 +486,7 @@ async function resolveIncludes(
     const m = /<include\s+file="([^"]+)"\s*\/?>/.exec(code);
     if (m === null) break;
     const target = m[1]!;
-    const path = target.startsWith("/")
-      ? target.slice(1)
-      : `${dir}/${target}`;
+    const path = target.startsWith("/") ? target.slice(1) : `${dir}/${target}`;
     const resolved = path.split("/").reduce((parts, part) => {
       if (part === "..") return parts.slice(0, -1);
       if (part === ".") return parts;
@@ -437,7 +499,9 @@ async function resolveIncludes(
       const fs = await import("node:fs/promises");
       included = await fs.readFile(resolved, "utf8");
     } catch {
-      throw new Error(`spin-elements: ${id} includes ${target}, which is not there`);
+      throw new Error(
+        `spin-elements: ${id} includes ${target}, which is not there`,
+      );
     }
     // The included file's scope or script decl is the family's; the
     // example's stands. Only the BODY is shared.

@@ -1,7 +1,15 @@
 import { defaultTwin } from "@spin/runtime";
-import { parseColor, type ColorChannel } from "@zag-js/color-utils";
+import { type ColorChannel, parseColor } from "@zag-js/color-utils";
 
-export type ColorFormat = "hex" | "hexa" | "rgb" | "rgba" | "hsl" | "hsla" | "hsb" | "hsba";
+export type ColorFormat =
+  | "hex"
+  | "hexa"
+  | "rgb"
+  | "rgba"
+  | "hsl"
+  | "hsla"
+  | "hsb"
+  | "hsba";
 
 export interface ColorPickerContext {
   value: string;
@@ -19,7 +27,6 @@ export interface ColorPickerContext {
 
 export type ColorPickerState = "idle" | "focused" | "active" | "dragging";
 
-
 /** The color-picker's arguments: the values the host may set. */
 export interface ColorPickerArgs {
   value?: string;
@@ -33,7 +40,10 @@ export interface ColorPickerArgs {
   name?: string;
 }
 
-export const parse = (value: string, fallback: string): { color: ReturnType<typeof parseColor>; raw: string } => {
+export const parse = (
+  value: string,
+  fallback: string,
+): { color: ReturnType<typeof parseColor>; raw: string } => {
   try {
     return { color: parseColor(value), raw: value };
   } catch {
@@ -41,7 +51,10 @@ export const parse = (value: string, fallback: string): { color: ReturnType<type
   }
 };
 
-export const serialize = (color: ReturnType<typeof parseColor>, format: ColorFormat): string => {
+export const serialize = (
+  color: ReturnType<typeof parseColor>,
+  format: ColorFormat,
+): string => {
   try {
     return color.toString(format);
   } catch {
@@ -51,7 +64,16 @@ export const serialize = (color: ReturnType<typeof parseColor>, format: ColorFor
 
 export type AreaFormat = "hsla" | "hsba";
 
-const FORMATS: readonly string[] = ["hex", "hexa", "rgb", "rgba", "hsl", "hsla", "hsb", "hsba"];
+const FORMATS: readonly string[] = [
+  "hex",
+  "hexa",
+  "rgb",
+  "rgba",
+  "hsl",
+  "hsla",
+  "hsb",
+  "hsba",
+];
 
 export const isFormat = (raw: unknown): raw is ColorFormat =>
   typeof raw === "string" && (FORMATS as readonly string[]).includes(raw);
@@ -69,7 +91,10 @@ const valueOf = (raw: unknown, format: ColorFormat): string => {
   return serialize(parse(hex, "#000000").color, format);
 };
 
-export function initial(args: ColorPickerArgs, authored: (name: string) => boolean): ColorPickerContext {
+export function initial(
+  args: ColorPickerArgs,
+  authored: (name: string) => boolean,
+): ColorPickerContext {
   // A host that wrote the twin (`defaultValue`) wrote the channel too.
   const written = (field: string): boolean =>
     authored(field) ||
@@ -88,10 +113,14 @@ export function initial(args: ColorPickerArgs, authored: (name: string) => boole
     areaY: "brightness",
     disabled: written("disabled") ? args.disabled === true : false,
     readOnly: written("readOnly") ? args.readOnly === true : false,
-    closeOnSelect: written("closeOnSelect") ? args.closeOnSelect === true : false,
+    closeOnSelect: written("closeOnSelect")
+      ? args.closeOnSelect === true
+      : false,
     inline: written("inline") ? args.inline === true : false,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
   };
 }
 

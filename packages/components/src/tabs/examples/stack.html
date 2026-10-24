@@ -1,23 +1,28 @@
 <script lang="ts">
-  import { tabs } from "../tabs.presentation.ts";
+import { tabs } from "../tabs.presentation.ts";
 
-  const machine = tabs({ items: [
-    { value: "tab1", label: "Profile", content: "Content for Profile." },
-    { value: "tab2", label: "Billing", content: "Content for Billing." },
-    { value: "tab3", label: "Privacy", content: "Content for Privacy." },
-  ], defaultValue: "tab1" });
+const machine = tabs({
+ items: [
+  { value: "tab1", label: "Profile", content: "Content for Profile." },
+  { value: "tab2", label: "Billing", content: "Content for Billing." },
+  { value: "tab3", label: "Privacy", content: "Content for Privacy." },
+ ],
+ defaultValue: "tab1",
+});
 </script>
 
-<div class="mx-auto flex w-full max-w-md flex-col items-center" data-default="tab1" {...machine.getRootProps()}>
-  <div class="mb-0 flex w-full justify-center" {...machine.getListProps()}>
-    <template for={machine.items} as={row} key={row.value}>
-      <button
-        class={["rounded-ss-md rounded-se-md border border-solid border-border border-b-0 bg-surface-raised px-6 py-2 text-sm font-medium text-muted transition-colors", { "bg-surface text-text": machine.value === row.value }]}
-        {...machine.getTriggerProps(row)}
-      >{row.label}</button>
-    </template>
-  </div>
+<div class="mx-auto flex w-full max-w-md flex-col items-center"
+ data-default="tab1" {...machine.getRootProps()}>
+ <div class="mb-0 flex w-full justify-center" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
-    <p class="m-0 text-center text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
+   <button
+    class={["bare rounded-ss-md rounded-se-md border-border border-b-0 px-6 py-2 text-sm font-medium text-text-muted transition-colors", { "bg-surface": machine.value === row.value }]}
+    {...machine.getTriggerProps(row)}
+   >{row.label}</button>
   </template>
+ </div>
+ <template for={machine.items} as={row} key={row.value}>
+  <p class=" text-center text-sm text-text-muted"
+   {...machine.getContentProps(row)}>{row.content}</p>
+ </template>
 </div>

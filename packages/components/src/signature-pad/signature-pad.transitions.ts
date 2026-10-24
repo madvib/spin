@@ -3,7 +3,9 @@ import type { SignaturePadEvents } from "./signature-pad.events.ts";
 import type { SignaturePadContext } from "./signature-pad.state.ts";
 import { pathsOf, strokePath } from "./signature-pad.state.ts";
 
-type SignaturePadAssign<K extends keyof SignaturePadEvents = keyof SignaturePadEvents> = AssignFor<
+type SignaturePadAssign<
+  K extends keyof SignaturePadEvents = keyof SignaturePadEvents,
+> = AssignFor<
   SignaturePadContext,
   SignaturePadEvents,
   K

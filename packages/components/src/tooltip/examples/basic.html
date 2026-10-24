@@ -1,7 +1,9 @@
 <scope>props={ label: string = "Hover me", tip: string = "A plain hint on a short clock." } consume={ tooltip }</scope>
 
-<button {...tooltip.getTriggerProps()} class="rounded-md border border-solid border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface">{label}</button>
+<button {...tooltip.getTriggerProps()}
+  class="secondary s-sm">{label}</button>
 
-<div {...tooltip.getContentProps()} class="fixed m-0 rounded-md border border-solid border-border bg-surface-raised px-2 py-1 text-xs text-text shadow-md max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+<tooltip {...tooltip.getContentProps()}
+  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
   {tip}
-</div>
+</tooltip>

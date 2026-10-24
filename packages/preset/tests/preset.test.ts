@@ -650,6 +650,42 @@ Deno.test("left-1/2 resolves to half offset", async () => {
   assertSets(await cssFor("left-1/2"), "left-1/2", "left", "50%");
 });
 
+Deno.test("anchor-theme-popover names the trigger for its panel", async () => {
+  assertSets(
+    await cssFor("anchor-theme-popover"),
+    "anchor-theme-popover",
+    "anchor-name",
+    "--theme-popover",
+  );
+});
+
+Deno.test("position-anchor-theme-popover pins the panel to its trigger", async () => {
+  assertSets(
+    await cssFor("position-anchor-theme-popover"),
+    "position-anchor-theme-popover",
+    "position-anchor",
+    "--theme-popover",
+  );
+});
+
+Deno.test("position-area-bottom-span-right opens the panel below its trigger", async () => {
+  assertSets(
+    await cssFor("position-area-bottom-span-right"),
+    "position-area-bottom-span-right",
+    "position-area",
+    "bottom span-right",
+  );
+});
+
+Deno.test("position-area-top centers the panel above its trigger", async () => {
+  assertSets(
+    await cssFor("position-area-top"),
+    "position-area-top",
+    "position-area",
+    "top",
+  );
+});
+
 Deno.test("z-dropdown resolves to the z-index token variable", async () => {
   assertTokenDriven(await cssFor("z-dropdown"), "z-dropdown", "z-index");
 });

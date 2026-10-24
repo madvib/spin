@@ -28,7 +28,10 @@ export interface ScopeTable {
 }
 
 /** Maps each owner scope to its instances map. */
-const allInstances = new WeakMap<OwnerScope, Map<Handle, { value: unknown; dispose?: () => void }>>();
+const allInstances = new WeakMap<
+  OwnerScope,
+  Map<Handle, { value: unknown; dispose?: () => void }>
+>();
 
 /**
  * Creates a scope table for the given owner scope.
@@ -78,14 +81,14 @@ export function createScopeTable(owner: OwnerScope): ScopeTable {
     instances.clear();
   }
 
-/** Narrow unknown to a dispose function using type guards. */
-function getDispose(value: unknown): (() => void) | undefined {
-  if (typeof value !== "object" || value === null) return undefined;
-  if (!("dispose" in value)) return undefined;
-  const dispose = value.dispose;
-  if (typeof dispose !== "function") return undefined;
-  return () => dispose();
-}
+  /** Narrow unknown to a dispose function using type guards. */
+  function getDispose(value: unknown): (() => void) | undefined {
+    if (typeof value !== "object" || value === null) return undefined;
+    if (!("dispose" in value)) return undefined;
+    const dispose = value.dispose;
+    if (typeof dispose !== "function") return undefined;
+    return () => dispose();
+  }
 
   const table: ScopeTable = { resolve, watch, dispose };
   allInstances.set(owner, instances);

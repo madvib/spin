@@ -3,8 +3,24 @@ import type { EventUnion } from "@spin/runtime/fsm";
 export type ToastType = "info" | "success" | "warning" | "error" | "loading";
 
 export interface ToastEvents {
-  "TOAST.CREATE": { id: string; title: string; description: string; toastType: ToastType; duration: number; priority: number; action: string };
-  "TOAST.UPDATE": { id: string; title: string; description: string; toastType: ToastType; duration: number; priority: number; action: string };
+  "TOAST.CREATE": {
+    id: string;
+    title: string;
+    description: string;
+    toastType: ToastType;
+    duration: number;
+    priority: number;
+    action: string;
+  };
+  "TOAST.UPDATE": {
+    id: string;
+    title: string;
+    description: string;
+    toastType: ToastType;
+    duration: number;
+    priority: number;
+    action: string;
+  };
   "TOAST.REMOVE": { id: string };
   "TOAST.DISMISS": { id: string; src: string };
   "DISMISS.ALL": {};

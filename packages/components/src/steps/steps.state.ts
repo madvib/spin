@@ -6,7 +6,9 @@ export interface StepsContext {
   step: number;
   count: number;
   invalidAttempts: number;
-  lastInvalid: { readonly action: "next" | "set"; readonly targetStep: number } | null;
+  lastInvalid:
+    | { readonly action: "next" | "set"; readonly targetStep: number }
+    | null;
   titles: unknown;
   orientation: string | undefined;
   linear: boolean | undefined;
@@ -26,7 +28,11 @@ export interface StepsArgs {
 }
 
 const asCount = (raw: unknown, fallback: number): number => {
-  const n = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw.trim()) : NaN;
+  const n = typeof raw === "number"
+    ? raw
+    : typeof raw === "string" && raw.trim() !== ""
+    ? Number(raw.trim())
+    : NaN;
   return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback;
 };
 
@@ -64,7 +70,10 @@ export function itemState(ctx: StepsContext, index: number): StepsItemState {
   };
 }
 
-export function initial(args: StepsArgs = {}, authored: (name: string) => boolean): StepsContext {
+export function initial(
+  args: StepsArgs = {},
+  authored: (name: string) => boolean,
+): StepsContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||

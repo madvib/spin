@@ -68,12 +68,17 @@ export const clampIndex = (index: number, pageCount: number): number => {
 };
 
 const asInt = (value: unknown, fallback: number): number =>
-  typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
+  typeof value === "number" && Number.isFinite(value)
+    ? Math.trunc(value)
+    : fallback;
 
-export const slidesPerPageOf = (raw: unknown): number => Math.max(1, asInt(raw, 1));
+export const slidesPerPageOf = (raw: unknown): number =>
+  Math.max(1, asInt(raw, 1));
 
 export const slidesPerMoveOf = (raw: unknown, perPage: number): number => {
-  const parsed = typeof raw === "string" ? Number.parseInt(raw, 10) : Number.NaN;
+  const parsed = typeof raw === "string"
+    ? Number.parseInt(raw, 10)
+    : Number.NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : perPage;
 };
 
@@ -92,7 +97,10 @@ export interface CarouselArgs {
   inViewThreshold?: number;
 }
 
-export function initial(args: CarouselArgs, authored: (name: string) => boolean): CarouselContext {
+export function initial(
+  args: CarouselArgs,
+  authored: (name: string) => boolean,
+): CarouselContext {
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
@@ -117,9 +125,13 @@ export function initial(args: CarouselArgs, authored: (name: string) => boolean)
     slides: slidesOf(args.items),
     orientation: args.orientation === "vertical" ? "vertical" : "horizontal",
     allowMouseDrag: args.allowMouseDrag === true,
-    autoplayDelay: typeof args.autoplayDelay === "number" ? args.autoplayDelay : 4000,
+    autoplayDelay: typeof args.autoplayDelay === "number"
+      ? args.autoplayDelay
+      : 4000,
     dir: typeof args.dir === "string" ? args.dir : "ltr",
-    inViewThreshold: typeof args.inViewThreshold === "number" ? args.inViewThreshold : 60,
+    inViewThreshold: typeof args.inViewThreshold === "number"
+      ? args.inViewThreshold
+      : 60,
     autoSize,
     slidesPerPage,
   };
@@ -147,7 +159,8 @@ export function cycleCount(pageCount: number): number {
   return Math.max(1, pageCount);
 }
 
-export const lastPageOf = (pageCount: number): number => Math.max(0, pageCount - 1);
+export const lastPageOf = (pageCount: number): number =>
+  Math.max(0, pageCount - 1);
 
 export const movesPer = (ctx: CarouselContext): number =>
   Math.max(1, Math.trunc(ctx.perMove));

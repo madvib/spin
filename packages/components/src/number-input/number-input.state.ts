@@ -1,5 +1,8 @@
 import { defaultTwin } from "@spin/runtime";
-import type { NumberInputHint, NumberInputPoint } from "./number-input.events.ts";
+import type {
+  NumberInputHint,
+  NumberInputPoint,
+} from "./number-input.events.ts";
 
 export type NumberInputState = "idle" | "focused" | "scrubbing";
 
@@ -103,7 +106,9 @@ export function numberInputScalars(
     allowOverflow,
     // A coerced default is not a write: an unauthored clamp falls back to
     // the opposite of overflow, the way the legacy bridge seeded it.
-    clampValueOnBlur: authored("clampValueOnBlur") ? args.clampValueOnBlur === true : !allowOverflow,
+    clampValueOnBlur: authored("clampValueOnBlur")
+      ? args.clampValueOnBlur === true
+      : !allowOverflow,
     spinOnPress: args.spinOnPress !== false,
   };
 }
@@ -127,28 +132,48 @@ export function initial(
     invalid: authored("invalid") ? args.invalid === true : undefined,
     ...numberInputScalars(args, authored),
     allowMouseWheel: args.allowMouseWheel === true,
-    focusInputOnChange: authored("focusInputOnChange") ? args.focusInputOnChange === true : true,
+    focusInputOnChange: authored("focusInputOnChange")
+      ? args.focusInputOnChange === true
+      : true,
     dir: args.dir === "rtl" ? "rtl" : "ltr",
-    inputMode: typeof args.inputMode === "string" && args.inputMode.length > 0 ? args.inputMode : "decimal",
-    pattern: typeof args.pattern === "string" && args.pattern.length > 0 ? args.pattern : "-?[0-9]*(.[0-9]+)?",
-    name: typeof args.name === "string" && args.name.length > 0 ? args.name : undefined,
-    form: typeof args.form === "string" && args.form.length > 0 ? args.form : undefined,
-    incrementLabel: typeof args.incrementLabel === "string" && args.incrementLabel.length > 0
-      ? args.incrementLabel
-      : "increment value",
-    decrementLabel: typeof args.decrementLabel === "string" && args.decrementLabel.length > 0
-      ? args.decrementLabel
-      : "decrease value",
-    initialValue: written("value") ? valueOf(args.value) ?? "" : valueOf(args.defaultValue) ?? "",
+    inputMode: typeof args.inputMode === "string" && args.inputMode.length > 0
+      ? args.inputMode
+      : "decimal",
+    pattern: typeof args.pattern === "string" && args.pattern.length > 0
+      ? args.pattern
+      : "-?[0-9]*(.[0-9]+)?",
+    name: typeof args.name === "string" && args.name.length > 0
+      ? args.name
+      : undefined,
+    form: typeof args.form === "string" && args.form.length > 0
+      ? args.form
+      : undefined,
+    incrementLabel:
+      typeof args.incrementLabel === "string" && args.incrementLabel.length > 0
+        ? args.incrementLabel
+        : "increment value",
+    decrementLabel:
+      typeof args.decrementLabel === "string" && args.decrementLabel.length > 0
+        ? args.decrementLabel
+        : "decrease value",
+    initialValue: written("value")
+      ? valueOf(args.value) ?? ""
+      : valueOf(args.defaultValue) ?? "",
     spin: null,
   };
 }
 
 export const parseValue = (raw: string): number => Number.parseFloat(raw);
 
-export const formatValue = (value: number): string => (Number.isNaN(value) ? "" : value.toString());
+export const formatValue = (
+  value: number,
+): string => (Number.isNaN(value) ? "" : value.toString());
 
-export const isValueWithinRange = (value: number, min: number, max: number): boolean => {
+export const isValueWithinRange = (
+  value: number,
+  min: number,
+  max: number,
+): boolean => {
   const at = Number.isNaN(value) ? 0 : value;
   return at >= min && at <= max;
 };

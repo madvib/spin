@@ -1,6 +1,15 @@
-import { defineComponent, type ApiOf, type ComponentDef, type ScopeFor } from "@spin/runtime";
+import {
+  type ApiOf,
+  type ComponentDef,
+  defineComponent,
+  type ScopeFor,
+} from "@spin/runtime";
 import { numberInput as numberInputMachine } from "./number-input.machine.ts";
-import type { NumberInputArgs, NumberInputContext, NumberInputState } from "./number-input.state.ts";
+import type {
+  NumberInputArgs,
+  NumberInputContext,
+  NumberInputState,
+} from "./number-input.state.ts";
 import { isValueWithinRange, parseValue } from "./number-input.state.ts";
 import type { NumberInputEvents } from "./number-input.events.ts";
 import type {
@@ -20,7 +29,11 @@ export type {
   NumberInputValueInvalid,
 };
 
-type ScopeLike = ScopeFor<NumberInputContext, NumberInputEvents, NumberInputState>;
+type ScopeLike = ScopeFor<
+  NumberInputContext,
+  NumberInputEvents,
+  NumberInputState
+>;
 
 type Ctx = NumberInputContext;
 
@@ -39,18 +52,23 @@ const focusInput = (scope: ScopeLike): void => {
   if (typeof (node as HTMLElement).focus !== "function") return;
   (node as HTMLElement).focus({ preventScroll: true });
   const text = node as HTMLInputElement;
-  if (typeof text.setSelectionRange === "function" && typeof text.value === "string") {
+  if (
+    typeof text.setSelectionRange === "function" &&
+    typeof text.value === "string"
+  ) {
     const end = text.value.length;
     text.setSelectionRange(end, end);
   }
 };
 
-const disabledOf = (context: Ctx): boolean => context.disabled || context.fieldsetDisabled;
+const disabledOf = (context: Ctx): boolean =>
+  context.disabled || context.fieldsetDisabled;
 
 const invalidOf = (context: Ctx): boolean => {
   if (context.invalid !== undefined) return context.invalid;
   const at = valueAsNumber(context);
-  return (Number.isNaN(at) ? 0 : at) < context.min || (Number.isNaN(at) ? 0 : at) > context.max;
+  return (Number.isNaN(at) ? 0 : at) < context.min ||
+    (Number.isNaN(at) ? 0 : at) > context.max;
 };
 
 const canIncrement = (context: Ctx): boolean => {
@@ -65,7 +83,8 @@ const canDecrement = (context: Ctx): boolean => {
   return (Number.isNaN(at) ? 0 : at) > context.min;
 };
 
-const roundToDpr = (value: number, dpr: number): number => Math.floor(value * dpr + 0.5) / dpr;
+const roundToDpr = (value: number, dpr: number): number =>
+  Math.floor(value * dpr + 0.5) / dpr;
 
 const wrapPoint = (x: number, width: number): number =>
   width > 0 ? ((x % width) + width) % width : x;
@@ -79,7 +98,9 @@ let lastScrubX: number | null = null;
 type HandlerTable = {
   readonly onInputFocus: () => void;
   readonly onInputBlur: () => void;
-  readonly onInput: (event: { readonly currentTarget: { readonly value: string } }) => void;
+  readonly onInput: (
+    event: { readonly currentTarget: { readonly value: string } },
+  ) => void;
   readonly onBeforeInput: (event: {
     readonly currentTarget: {
       readonly selectionStart: number | null;
@@ -112,7 +133,9 @@ const handlersOf = (scope: ScopeLike): HandlerTable => {
     onInputBlur: (): void => {
       scope.send({ type: "INPUT.BLUR" });
     },
-    onInput: (event: { readonly currentTarget: { readonly value: string } }): void => {
+    onInput: (
+      event: { readonly currentTarget: { readonly value: string } },
+    ): void => {
       scope.send({ type: "INPUT.CHANGE", value: event.currentTarget.value });
     },
     onBeforeInput: (event: {
@@ -127,7 +150,8 @@ const handlersOf = (scope: ScopeLike): HandlerTable => {
       const current = event.currentTarget;
       const start = current.selectionStart ?? 0;
       const end = current.selectionEnd ?? 0;
-      const next = current.value.slice(0, start) + (event.data ?? "") + current.value.slice(end);
+      const next = current.value.slice(0, start) + (event.data ?? "") +
+        current.value.slice(end);
       if (!PARTIAL_NUMBER.test(next)) event.preventDefault();
     },
     onInputKeydown: (event: KeyboardEvent): void => {
@@ -141,7 +165,8 @@ const handlersOf = (scope: ScopeLike): HandlerTable => {
         : event.shiftKey && isArrow
         ? context.largeStep
         : context.step;
-      const naked = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+      const naked = !event.ctrlKey && !event.metaKey && !event.altKey &&
+        !event.shiftKey;
       switch (event.key) {
         case "ArrowUp":
           scope.send({ type: "INPUT.ARROW_UP", step });
@@ -237,7 +262,8 @@ const handlersOf = (scope: ScopeLike): HandlerTable => {
 
 export const def = {
   name: "number-input",
-  machine: (args: NumberInputArgs, authored: (name: string) => boolean) => numberInputMachine(args, authored),
+  machine: (args: NumberInputArgs, authored: (name: string) => boolean) =>
+    numberInputMachine(args, authored),
   start: "idle",
   parts: {
     root: {
@@ -252,7 +278,10 @@ export const def = {
             scope.send({ type: "FIELDSET.DISABLED", value });
           },
           onFormReset: (): void => {
-            scope.send({ type: "VALUE.SET", value: scope.context.initialValue });
+            scope.send({
+              type: "VALUE.SET",
+              value: scope.context.initialValue,
+            });
           },
         },
       }),
@@ -284,7 +313,11 @@ export const def = {
             interval: context.spin === "repeat" ? SPIN_REPEAT : SPIN_DWELL,
             enabled: spinning,
             onTick: (): void => {
-              scope.send(context.spin === "repeat" ? { type: "SPIN" } : { type: "CHANGE_DELAY" });
+              scope.send(
+                context.spin === "repeat"
+                  ? { type: "SPIN" }
+                  : { type: "CHANGE_DELAY" },
+              );
             },
           },
         };
@@ -334,7 +367,8 @@ export const def = {
     decrementTrigger: {
       id: "decrement",
       attrs: (scope: ScopeLike) => {
-        const off = disabledOf(scope.context) || !canDecrement(scope.context) || scope.context.readOnly;
+        const off = disabledOf(scope.context) || !canDecrement(scope.context) ||
+          scope.context.readOnly;
         return {
           dir: scope.context.dir,
           type: "button",
@@ -351,7 +385,8 @@ export const def = {
     incrementTrigger: {
       id: "increment",
       attrs: (scope: ScopeLike) => {
-        const off = disabledOf(scope.context) || !canIncrement(scope.context) || scope.context.readOnly;
+        const off = disabledOf(scope.context) || !canIncrement(scope.context) ||
+          scope.context.readOnly;
         return {
           dir: scope.context.dir,
           type: "button",
@@ -392,34 +427,67 @@ export const def = {
   readers: {
     value: { read: (ctx: NumberInputContext) => ctx.value },
     valueAsNumber: { read: (ctx: NumberInputContext) => parseValue(ctx.value) },
-    focused: { read: (_ctx: NumberInputContext, state: NumberInputState) => state === "focused" },
-    scrubbing: { read: (_ctx: NumberInputContext, state: NumberInputState) => state === "scrubbing" },
-    invalid: { read: (ctx: NumberInputContext) => {
-      if (ctx.invalid !== undefined) return ctx.invalid;
-      const at = Number.isNaN(Number.parseFloat(ctx.value)) ? 0 : Number.parseFloat(ctx.value);
-      return at < ctx.min || at > ctx.max;
-    } },
-    disabled: { read: (ctx: NumberInputContext) => ctx.disabled || ctx.fieldsetDisabled },
+    focused: {
+      read: (_ctx: NumberInputContext, state: NumberInputState) =>
+        state === "focused",
+    },
+    scrubbing: {
+      read: (_ctx: NumberInputContext, state: NumberInputState) =>
+        state === "scrubbing",
+    },
+    invalid: {
+      read: (ctx: NumberInputContext) => {
+        if (ctx.invalid !== undefined) return ctx.invalid;
+        const at = Number.isNaN(Number.parseFloat(ctx.value))
+          ? 0
+          : Number.parseFloat(ctx.value);
+        return at < ctx.min || at > ctx.max;
+      },
+    },
+    disabled: {
+      read: (ctx: NumberInputContext) => ctx.disabled || ctx.fieldsetDisabled,
+    },
     empty: { read: (ctx: NumberInputContext) => ctx.value === "" },
-    canIncrement: { read: (ctx: NumberInputContext) => {
-      if (ctx.allowOverflow) return true;
-      const at = Number.isNaN(Number.parseFloat(ctx.value)) ? 0 : Number.parseFloat(ctx.value);
-      return at < ctx.max;
-    } },
-    canDecrement: { read: (ctx: NumberInputContext) => {
-      if (ctx.allowOverflow) return true;
-      const at = parseValue(ctx.value);
-      return (Number.isNaN(at) ? 0 : at) > ctx.min;
-    } },
+    canIncrement: {
+      read: (ctx: NumberInputContext) => {
+        if (ctx.allowOverflow) return true;
+        const at = Number.isNaN(Number.parseFloat(ctx.value))
+          ? 0
+          : Number.parseFloat(ctx.value);
+        return at < ctx.max;
+      },
+    },
+    canDecrement: {
+      read: (ctx: NumberInputContext) => {
+        if (ctx.allowOverflow) return true;
+        const at = parseValue(ctx.value);
+        return (Number.isNaN(at) ? 0 : at) > ctx.min;
+      },
+    },
     required: { read: (ctx: NumberInputContext) => ctx.required },
   },
   commands: {
-    setValue: { event: ([value]: [value: number | string]) => ({ type: "VALUE.SET", value }) },
+    setValue: {
+      event: ([value]: [value: number | string]) => ({
+        type: "VALUE.SET",
+        value,
+      }),
+    },
     clearValue: { event: () => ({ type: "VALUE.CLEAR" }) },
     increment: { event: () => ({ type: "VALUE.INCREMENT" }) },
     decrement: { event: () => ({ type: "VALUE.DECREMENT" }) },
-    setToMax: { event: (_args: readonly unknown[], ctx) => ({ type: "VALUE.SET", value: ctx.max }) },
-    setToMin: { event: (_args: readonly unknown[], ctx) => ({ type: "VALUE.SET", value: ctx.min }) },
+    setToMax: {
+      event: (_args: readonly unknown[], ctx) => ({
+        type: "VALUE.SET",
+        value: ctx.max,
+      }),
+    },
+    setToMin: {
+      event: (_args: readonly unknown[], ctx) => ({
+        type: "VALUE.SET",
+        value: ctx.min,
+      }),
+    },
     focus: {
       view: ({ focus }: {
         readonly args: readonly unknown[];
@@ -453,36 +521,60 @@ export const def = {
         valueAsNumber: parseValue(String(watched[0] ?? "")),
       }),
       select: (event, _before: NumberInputContext, after: NumberInputContext) =>
-        event.type === "INPUT.BLUR" || event.type === "INPUT.ENTER" ? {
-          value: after.value,
-          valueAsNumber: parseValue(after.value),
-        } : null,
+        event.type === "INPUT.BLUR" || event.type === "INPUT.ENTER"
+          ? {
+            value: after.value,
+            valueAsNumber: parseValue(after.value),
+          }
+          : null,
     },
     "value-invalid": {
       prop: "onValueInvalid",
       watch: (ctx: NumberInputContext) => [ctx.value],
-      detail: (watched: readonly unknown[], _event, _props, ctx: NumberInputContext) => {
+      detail: (
+        watched: readonly unknown[],
+        _event,
+        _props,
+        ctx: NumberInputContext,
+      ) => {
         const v = parseValue(String(watched[0] ?? ""));
         const reason = v > ctx.max ? "rangeOverflow" : "rangeUnderflow";
         return { reason, value: watched[0], valueAsNumber: v };
       },
-      select: (event, _before: NumberInputContext, after: NumberInputContext) => {
-        const out = !isValueWithinRange(parseValue(after.value), after.min, after.max);
+      select: (
+        event,
+        _before: NumberInputContext,
+        after: NumberInputContext,
+      ) => {
+        const out = !isValueWithinRange(
+          parseValue(after.value),
+          after.min,
+          after.max,
+        );
         if (!out) return null;
         // Only the blur branch that leaves an out-of-range value standing
         // reports: a range flip caused by typing waits for the commit.
         if (event.type === "INPUT.BLUR") {
           return {
-            reason: (parseValue(after.value) > after.max ? "rangeOverflow" : "rangeUnderflow") as NumberInputInvalidReason,
+            reason: (parseValue(after.value) > after.max
+              ? "rangeOverflow"
+              : "rangeUnderflow") as NumberInputInvalidReason,
             value: after.value,
             valueAsNumber: parseValue(after.value),
           };
         }
         if (event.type === "INPUT.CHANGE") return null;
-        const wasOut = !isValueWithinRange(parseValue(_before.value), _before.min, _before.max);
+        const wasOut = !isValueWithinRange(
+          parseValue(_before.value),
+          _before.min,
+          _before.max,
+        );
         if (out === wasOut) return null;
         return {
-          reason: (parseValue(after.value) > after.max ? "rangeOverflow" : "rangeUnderflow") as NumberInputInvalidReason,
+          reason:
+            (parseValue(after.value) > after.max
+              ? "rangeOverflow"
+              : "rangeUnderflow") as NumberInputInvalidReason,
           value: after.value,
           valueAsNumber: parseValue(after.value),
         };
@@ -490,7 +582,10 @@ export const def = {
     },
     "focus-change": {
       prop: "onFocusChange",
-      watch: (ctx: NumberInputContext, state: NumberInputState) => [state === "focused", ctx.value],
+      watch: (
+        ctx: NumberInputContext,
+        state: NumberInputState,
+      ) => [state === "focused", ctx.value],
       detail: (watched: readonly unknown[]) => ({
         focused: watched[0],
         value: watched[1],
@@ -505,16 +600,40 @@ export const def = {
         const was = states?.was ?? "idle";
         const is = states?.is ?? "idle";
         if (was === "idle" && is !== "idle") {
-          return { focused: true, value: after.value, valueAsNumber: parseValue(after.value) };
+          return {
+            focused: true,
+            value: after.value,
+            valueAsNumber: parseValue(after.value),
+          };
         }
-        if (was !== "idle" && (is === "idle" || event.type === "INPUT.BLUR" || event.type === "INPUT.ENTER")) {
-          return { focused: false, value: after.value, valueAsNumber: parseValue(after.value) };
+        if (
+          was !== "idle" &&
+          (is === "idle" || event.type === "INPUT.BLUR" ||
+            event.type === "INPUT.ENTER")
+        ) {
+          return {
+            focused: false,
+            value: after.value,
+            valueAsNumber: parseValue(after.value),
+          };
         }
         return null;
       },
     },
   },
-} satisfies ComponentDef<NumberInputContext, NumberInputEvents, Record<string, unknown>, NumberInputArgs, NumberInputState>;
+} satisfies ComponentDef<
+  NumberInputContext,
+  NumberInputEvents,
+  Record<string, unknown>,
+  NumberInputArgs,
+  NumberInputState
+>;
 
 export type NumberInputApi = ApiOf<typeof def>;
-export const numberInput = defineComponent<NumberInputContext, NumberInputEvents, NumberInputApi, NumberInputArgs, NumberInputState>(def);
+export const numberInput = defineComponent<
+  NumberInputContext,
+  NumberInputEvents,
+  NumberInputApi,
+  NumberInputArgs,
+  NumberInputState
+>(def);

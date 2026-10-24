@@ -47,11 +47,24 @@ Deno.test("ColorPickerApi promises the component's surface", () => {
   assertEquals(keys.length, 35);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-  const stateTyped: AssertExact<ColorPickerApi["state"], "idle" | "focused" | "active" | "dragging"> = true;
-  const setValueTyped: AssertExact<ColorPickerApi["setValue"], (value: string) => void> = true;
-  const setOpenTyped: AssertExact<ColorPickerApi["setOpen"], (open: boolean) => void> = true;
-  const getChannelValueTyped: AssertExact<ColorPickerApi["getChannelValue"], (channel: ColorChannel | "hex") => string> = true;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
+  const stateTyped: AssertExact<
+    ColorPickerApi["state"],
+    "idle" | "focused" | "active" | "dragging"
+  > = true;
+  const setValueTyped: AssertExact<
+    ColorPickerApi["setValue"],
+    (value: string) => void
+  > = true;
+  const setOpenTyped: AssertExact<
+    ColorPickerApi["setOpen"],
+    (open: boolean) => void
+  > = true;
+  const getChannelValueTyped: AssertExact<
+    ColorPickerApi["getChannelValue"],
+    (channel: ColorChannel | "hex") => string
+  > = true;
   assertEquals(
     [
       stateTyped,

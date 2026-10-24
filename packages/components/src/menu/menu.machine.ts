@@ -1,4 +1,9 @@
-import { createMachine, type Machine, type Service, type MachineSpec } from "@spin/runtime/fsm";
+import {
+  createMachine,
+  type Machine,
+  type MachineSpec,
+  type Service,
+} from "@spin/runtime/fsm";
 import type {
   MenuArgs,
   MenuBlock,
@@ -9,11 +14,13 @@ import type {
 } from "./menu.state.ts";
 import { entriesOf, initial } from "./menu.state.ts";
 import type { MenuEvent, MenuEvents } from "./menu.events.ts";
-const clearAnchor = () : Partial<MenuContext> => { return ({ anchorPoint: null }); };
+const clearAnchor = (): Partial<MenuContext> => {
+  return ({ anchorPoint: null });
+};
 
-const clearAll = () : Partial<MenuContext> => { return ({ highlightedValue: null, openSubmenu: null, anchorPoint: null }); };
-
-
+const clearAll = (): Partial<MenuContext> => {
+  return ({ highlightedValue: null, openSubmenu: null, anchorPoint: null });
+};
 
 /**
  * Menu machine: open/closed, plus where the highlight sits.
@@ -57,33 +64,66 @@ const config: MachineSpec<MenuContext, MenuEvents, MenuState> = {
         OPEN: { target: "open", assign: clearAnchor },
         CONTROLLED_OPEN: { target: "open", assign: clearAnchor },
         TRIGGER_CLICK: { target: "open", assign: clearAnchor },
-        CONTEXT_MENU: { target: "open", assign: (_ctx, e) => { return e.type === "CONTEXT_MENU" ? { anchorPoint: e.point, highlightedValue: null } : {}; } },
+        CONTEXT_MENU: {
+          target: "open",
+          assign: (_ctx, e) => {
+            return e.type === "CONTEXT_MENU"
+              ? { anchorPoint: e.point, highlightedValue: null }
+              : {};
+          },
+        },
       },
     },
     open: {
       on: {
         CLOSE: { target: "closed", assign: clearAll },
         CONTROLLED_CLOSE: { target: "closed", assign: clearAll },
-        HIGHLIGHT: { assign: (ctx, e) => { return e.type === "HIGHLIGHT" && e.value !== ctx.highlightedValue
-        ? { highlightedValue: e.value, openSubmenu: null }
-        : {}; } },
-        "ENTRIES.SET": { assign: (ctx, event) => {
-      return sameEntries(ctx.entries, event.entries) ? {} : { entries: event.entries };
-    } },
-        SUBMENU_OPEN: { assign: (ctx, e) => { return e.type === "SUBMENU_OPEN" ? { openSubmenu: e.value, highlightedValue: e.value } : { openSubmenu: ctx.openSubmenu }; } },
-        SUBMENU_CLOSE: { assign: () => { return ({ openSubmenu: null }); } },
-        ITEM_CLICK: { assign: [() => { return ({}); }, clearAll] },
+        HIGHLIGHT: {
+          assign: (ctx, e) => {
+            return e.type === "HIGHLIGHT" && e.value !== ctx.highlightedValue
+              ? { highlightedValue: e.value, openSubmenu: null }
+              : {};
+          },
+        },
+        "ENTRIES.SET": {
+          assign: (ctx, event) => {
+            return sameEntries(ctx.entries, event.entries)
+              ? {}
+              : { entries: event.entries };
+          },
+        },
+        SUBMENU_OPEN: {
+          assign: (ctx, e) => {
+            return e.type === "SUBMENU_OPEN"
+              ? { openSubmenu: e.value, highlightedValue: e.value }
+              : { openSubmenu: ctx.openSubmenu };
+          },
+        },
+        SUBMENU_CLOSE: {
+          assign: () => {
+            return ({ openSubmenu: null });
+          },
+        },
+        ITEM_CLICK: {
+          assign: [() => {
+            return ({});
+          }, clearAll],
+        },
       },
     },
   },
 };
 
-function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean {
+function sameEntries(
+  a: readonly MenuEntry[],
+  b: readonly MenuEntry[],
+): boolean {
   if (a.length !== b.length) return false;
   return a.every((entry, index) => {
     const other = b[index];
     if (other === undefined) return false;
-    const sep = (candidate: MenuEntry): boolean => "separator" in candidate && candidate.separator === true;
+    const sep = (candidate: MenuEntry): boolean =>
+      "separator" in candidate && candidate.separator === true;
     if (sep(entry) || sep(other)) return sep(entry) === sep(other);
     if ("group" in entry || "group" in other) {
       if (!("group" in entry) || !("group" in other)) return false;
@@ -91,7 +131,9 @@ function sameEntries(a: readonly MenuEntry[], b: readonly MenuEntry[]): boolean 
       return sameEntries(entry.items, other.items);
     }
     if (!("value" in entry) || !("value" in other)) return false;
-    if (entry.value !== other.value || entry.label !== other.label) return false;
+    if (entry.value !== other.value || entry.label !== other.label) {
+      return false;
+    }
     if (entry.shortcut !== other.shortcut) return false;
     if (entry.disabled !== other.disabled) return false;
     if (entry.checked !== other.checked) return false;

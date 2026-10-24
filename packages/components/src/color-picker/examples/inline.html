@@ -1,33 +1,57 @@
 <script lang="ts">
-  import { colorPicker } from "../color-picker.presentation.ts";
+import { colorPicker } from "../color-picker.presentation.ts";
 
-  const machine = colorPicker({
-    value: "#10b981",
-  });
+const machine = colorPicker({
+  value: "#10b981",
+});
 </script>
-<div class="mx-auto w-full max-w-[16rem] rounded-xl border border-solid border-border bg-surface-raised p-4 shadow-sm" {...machine.getRootProps()}>
+<div
+  class="mx-auto w-full max-w-[16rem] rounded-xl border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
-    <label class="text-sm font-medium text-text" {...machine.getLabelProps()}>Inline Picker</label>
-    <span class="rounded-md border border-solid border-border bg-surface px-2 py-0.5 font-mono text-xs text-text" {...machine.getValueTextProps()}>{machine.valueAsString}</span>
+    <label class="text-sm font-medium text-text"
+      {...machine.getLabelProps()}>Inline Picker</label>
+    <span
+      class="rounded-md border border-solid border-border bg-surface px-2 py-1 font-mono text-xs text-text"
+      {...machine.getValueTextProps()}>{machine.valueAsString}</span>
   </div>
   <div class="flex flex-col gap-3" {...machine.getContentProps()}>
-    <div class="relative h-40 w-full rounded-md border border-solid border-border" {...machine.getAreaProps()}>
-      <div class="absolute inset-0 rounded-md" {...machine.getAreaBackgroundProps()}>
-        <div class="absolute inset-0 rounded-md" style="background-image: linear-gradient(to right, #fff, rgba(255, 255, 255, 0))"></div>
-        <div class="absolute inset-0 rounded-md" style="background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0))"></div>
+    <div
+      class="relative h-40 w-full rounded-md border border-solid border-border"
+      {...machine.getAreaProps()}>
+      <div class="absolute inset-0 rounded-md"
+        {...machine.getAreaBackgroundProps()}>
+        <div class="absolute inset-0 rounded-md"
+          style="background-image: linear-gradient(to right, #fff, rgba(255, 255, 255, 0))"></div>
+        <div class="absolute inset-0 rounded-md"
+          style="background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0))"></div>
       </div>
-      <div class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg" {...machine.getAreaThumbProps()}></div>
+      <div
+        class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
+        {...machine.getAreaThumbProps()}></div>
     </div>
-    <div class="flex items-center gap-2" {...machine.getChannelSliderProps({ channel: "hue" })}>
-      <span class="w-12 text-xs text-muted" {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
-      <div class="relative h-3 flex-1 rounded-full border border-solid border-border" {...machine.getChannelSliderTrackProps({ channel: "hue" })}>
-        <div class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg" {...machine.getChannelSliderThumbProps({ channel: "hue" })}></div>
+    <div class="flex items-center gap-2"
+      {...machine.getChannelSliderProps({ channel: "hue" })}>
+      <span class="w-12 text-xs text-text-muted"
+        {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
+      <div
+        class="relative h-3 flex-1 rounded-full border border-solid border-border"
+        {...machine.getChannelSliderTrackProps({ channel: "hue" })}>
+        <div
+          class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
+          {...machine.getChannelSliderThumbProps({ channel: "hue" })}></div>
       </div>
     </div>
-    <div class="flex items-center gap-2" {...machine.getChannelSliderProps({ channel: "alpha" })}>
-      <span class="w-12 text-xs text-muted" {...machine.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
-      <div class="relative h-3 flex-1 rounded-full border border-solid border-border" {...machine.getChannelSliderTrackProps({ channel: "alpha" })}>
-        <div class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg" {...machine.getChannelSliderThumbProps({ channel: "alpha" })}></div>
+    <div class="flex items-center gap-2"
+      {...machine.getChannelSliderProps({ channel: "alpha" })}>
+      <span class="w-12 text-xs text-text-muted"
+        {...machine.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
+      <div
+        class="relative h-3 flex-1 rounded-full border border-solid border-border"
+        {...machine.getChannelSliderTrackProps({ channel: "alpha" })}>
+        <div
+          class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
+          {...machine.getChannelSliderThumbProps({ channel: "alpha" })}></div>
       </div>
     </div>
     <input type="hidden" {...machine.getHiddenInputProps()} />

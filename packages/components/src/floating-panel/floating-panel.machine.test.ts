@@ -6,7 +6,9 @@ const createFloatingPanelBridge = floatingPanel.createBridge;
 import type { FloatingPanelApi } from "./floating-panel.presentation.ts";
 import type { FloatingPanelSize } from "./floating-panel.machine.ts";
 
-const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;
+const win = parseHTML(
+  "<!doctype html><html><body></body></html>",
+) as unknown as Record<string, unknown>;
 declare const globalThis: Record<string, unknown>;
 globalThis.document = win.document;
 globalThis.CustomEvent = win.CustomEvent;
@@ -64,29 +66,41 @@ function harness(initial: Record<string, unknown> = {}): Harness {
 /** The drag param a handle's bag carries, with its three handlers. */
 const dragParam = (bag: Record<string, unknown>): Record<string, unknown> => {
   const param: unknown = bag["use:drag"];
-  if (typeof param !== "object" || param === null) throw new Error("no drag param");
+  if (typeof param !== "object" || param === null) {
+    throw new Error("no drag param");
+  }
   return param as Record<string, unknown>;
 };
 
 const move = (bag: Record<string, unknown>, dx: number, dy: number): void => {
-  handler<(d: { dx: number; dy: number }) => void>(dragParam(bag), "onMove")({ dx, dy });
+  handler<(d: { dx: number; dy: number }) => void>(dragParam(bag), "onMove")({
+    dx,
+    dy,
+  });
 };
 
 const press = (bag: Record<string, unknown>): void => {
-  handler<(p: { altKey: boolean; shiftKey: boolean }) => void>(dragParam(bag), "onStart")({
+  handler<(p: { altKey: boolean; shiftKey: boolean }) => void>(
+    dragParam(bag),
+    "onStart",
+  )({
     altKey: false,
     shiftKey: false,
   });
 };
 
 const release = (bag: Record<string, unknown>): void => {
-  handler<(end: { cancelled: boolean }) => void>(dragParam(bag), "onEnd")({ cancelled: false });
+  handler<(end: { cancelled: boolean }) => void>(dragParam(bag), "onEnd")({
+    cancelled: false,
+  });
 };
 
 /** A dismissable bag's escape hatch, read the same way. */
 const escape = (bag: Record<string, unknown>): void => {
   const param: unknown = bag["use:dismissable"];
-  if (typeof param !== "object" || param === null) throw new Error("no dismissable param");
+  if (typeof param !== "object" || param === null) {
+    throw new Error("no dismissable param");
+  }
   handler<() => void>(param as Record<string, unknown>, "onEscape")();
 };
 
@@ -107,10 +121,18 @@ Deno.test("Given an open panel / When the header drags / Then position moves and
   press(drag);
   assertEquals(h.api.state, "dragging", "the press enters the gesture");
   move(drag, 40, 12);
-  assertEquals(h.api.position, { x: 40, y: 12 }, "the delta moves the position");
+  assertEquals(
+    h.api.position,
+    { x: 40, y: 12 },
+    "the delta moves the position",
+  );
   // Cumulative from the press: a smaller second delta is not an increment.
   move(drag, 10, 4);
-  assertEquals(h.api.position, { x: 10, y: 4 }, "the delta is from the press point, not the last move");
+  assertEquals(
+    h.api.position,
+    { x: 10, y: 4 },
+    "the delta is from the press point, not the last move",
+  );
   release(drag);
   assertEquals(h.api.state, "open", "the release returns to open");
   h.dispose();
@@ -123,7 +145,11 @@ Deno.test("Given a drag / When Escape arrives / Then position returns to the pre
   move(drag, 80, 0);
   assertEquals(h.api.position.x, 80, "the drag moved");
   escape(h.api.getPositionerProps());
-  assertEquals(h.api.position, { x: 0, y: 0 }, "escape cancels back to the press point");
+  assertEquals(
+    h.api.position,
+    { x: 0, y: 0 },
+    "escape cancels back to the press point",
+  );
   assertEquals(h.api.state, "open", "and the panel stays open");
   h.dispose();
 });
@@ -145,7 +171,11 @@ Deno.test("Given a west resize / When the pointer moves / Then width shrinks and
   const west = h.api.getResizeTriggerProps("w");
   press(west);
   move(west, 40, 0);
-  assertEquals(h.api.size.w, 320, "the west edge grows the width the other way");
+  assertEquals(
+    h.api.size.w,
+    320,
+    "the west edge grows the width the other way",
+  );
   assertEquals(h.api.position.x, 40, "the left edge moves with the pointer");
   h.dispose();
 });
@@ -156,7 +186,11 @@ Deno.test("Given a west resize / When the pointer moves twice / Then only the or
   press(west);
   move(west, 10, 0);
   move(west, 40, 0);
-  assertEquals(h.api.size.w, 320, "the width follows the cumulative delta once");
+  assertEquals(
+    h.api.size.w,
+    320,
+    "the width follows the cumulative delta once",
+  );
   assertEquals(h.api.position.x, 40, "the left edge moved once");
   h.dispose();
 });
@@ -166,7 +200,11 @@ Deno.test("Given a maximized panel / When a drag starts / Then the gesture is re
   h.api.maximize();
   assertEquals(h.api.stage, "maximized");
   const drag = h.api.getDragTriggerProps();
-  assertEquals(drag["tabIndex"], undefined, "the handle drops out of the tab order");
+  assertEquals(
+    drag["tabIndex"],
+    undefined,
+    "the handle drops out of the tab order",
+  );
   press(drag);
   assertEquals(h.api.state, "open", "a maximized panel never drags");
   h.api.restore();
@@ -196,18 +234,30 @@ Deno.test("Given an authored stage / When it changes / Then the machine alternat
   const cell = h.props["stage"];
   if (cell === undefined) throw new Error("no stage cell");
   cell("maximized");
-  assertEquals(h.api.stage, "maximized", "the host's write alternates the stage");
-  assertEquals(h.api.size.w, 1024, "a maximized panel fills the boundary width");
+  assertEquals(
+    h.api.stage,
+    "maximized",
+    "the host's write alternates the stage",
+  );
+  assertEquals(
+    h.api.size.w,
+    1024,
+    "a maximized panel fills the boundary width",
+  );
   h.dispose();
 });
 
 Deno.test("Given an authored size / When it changes / Then the machine alternates", () => {
-  const h = harness({ defaultOpen: true, size: "{\"w\":400,\"h\":300}" });
+  const h = harness({ defaultOpen: true, size: '{"w":400,"h":300}' });
   assertEquals(h.api.size, { w: 400, h: 300 }, "the authored size lands");
   const cell = h.props["size"];
   if (cell === undefined) throw new Error("no size cell");
-  cell("{\"w\":500,\"h\":200}");
-  assertEquals(h.api.size, { w: 500, h: 200 }, "the host's write alternates the size");
+  cell('{"w":500,"h":200}');
+  assertEquals(
+    h.api.size,
+    { w: 500, h: 200 },
+    "the host's write alternates the size",
+  );
   h.dispose();
 });
 
@@ -244,16 +294,26 @@ Deno.test("Given the stage triggers / When called / Then each sends its own even
 
 Deno.test("Given staged-to-staged moves / When restoring / Then the original geometry returns", () => {
   const h = harness({ defaultOpen: true });
-  (h.api.getStageTriggerProps({ stage: "minimized" })["onClick"] as () => void)();
-  (h.api.getStageTriggerProps({ stage: "maximized" })["onClick"] as () => void)();
+  (h.api.getStageTriggerProps({ stage: "minimized" })["onClick"] as () =>
+    void)();
+  (h.api.getStageTriggerProps({ stage: "maximized" })["onClick"] as () =>
+    void)();
   (h.api.getStageTriggerProps({ stage: "default" })["onClick"] as () => void)();
-  assertEquals(h.api.size, { w: 360, h: 240 }, "minimize then maximize then restore keeps 360x240");
+  assertEquals(
+    h.api.size,
+    { w: 360, h: 240 },
+    "minimize then maximize then restore keeps 360x240",
+  );
   assertEquals(h.api.position, { x: 0, y: 0 }, "and the position");
   h.dispose();
 });
 
 Deno.test("Given min and max sizes / When resizing past them / Then the size clamps", () => {
-  const h = harness({ defaultOpen: true, defaultMinSize: '{"w":280,"h":180}', defaultMaxSize: '{"w":500,"h":400}' });
+  const h = harness({
+    defaultOpen: true,
+    defaultMinSize: '{"w":280,"h":180}',
+    defaultMaxSize: '{"w":500,"h":400}',
+  });
   const se = h.api.getResizeTriggerProps("se");
   press(se);
   move(se, 500, 500);

@@ -1,21 +1,28 @@
 <script lang="ts">
-  import { navigationMenu } from "../navigation-menu.presentation.ts";
+import { navigationMenu } from "../navigation-menu.presentation.ts";
 
-  const machine = navigationMenu({ items: [
+const machine = navigationMenu({
+  items: [
     { value: "docs", label: "Docs" },
     { value: "components", label: "Components" },
     { value: "blog", label: "Blog" },
-  ] });
+  ],
+});
 </script>
 
 <nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="m-0 flex list-none items-center gap-1 p-0" {...machine.getListProps()}>
+  <ul class="m-0 flex list-none items-center gap-1 p-0"
+    {...machine.getListProps()}>
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
-        <a class={["flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]} {...machine.getLinkProps(row)}>{row.label}</a>
+        <a
+          class={["flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]}
+          {...machine.getLinkProps(row)}>{row.label}</a>
 
-        <div class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate" {...machine.getItemContentProps(row)}>
-          <p class="m-0 text-xs text-muted">{row.label} panel</p>
+        <div
+          class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate"
+          {...machine.getItemContentProps(row)}>
+          <p class="text-xs text-text-muted">{row.label} panel</p>
         </div>
       </li>
     </template>

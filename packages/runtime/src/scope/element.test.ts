@@ -31,7 +31,13 @@ const { window } = parseHTML("<!doctype html><html><body></body></html>");
 // different DOM and says so; the runtime is written against the subset both
 // agree on.
 const { document, customElements, HTMLElement, Element, Node } = window;
-Object.assign(globalThis, { document, customElements, HTMLElement, Element, Node });
+Object.assign(globalThis, {
+  document,
+  customElements,
+  HTMLElement,
+  Element,
+  Node,
+});
 
 Deno.test("a property set before connection is the value the component reads", () => {
   define("spin-before", {
@@ -43,7 +49,9 @@ Deno.test("a property set before connection is the value the component reads", (
     },
   });
 
-  const el = document.createElement("spin-before") as HTMLElement & { label?: string };
+  const el = document.createElement("spin-before") as HTMLElement & {
+    label?: string;
+  };
   el.label = "set-early";
   document.body.appendChild(el);
 
@@ -60,7 +68,9 @@ Deno.test("a property set after connection updates what the component renders", 
     },
   });
 
-  const el = document.createElement("spin-after") as HTMLElement & { label?: string };
+  const el = document.createElement("spin-after") as HTMLElement & {
+    label?: string;
+  };
   el.label = "first";
   document.body.appendChild(el);
   assertEquals(el.textContent, "first");
@@ -82,7 +92,9 @@ Deno.test("a prop read inside an effect re-runs when the property changes", () =
     },
   });
 
-  const el = document.createElement("spin-effect") as HTMLElement & { count?: number };
+  const el = document.createElement("spin-effect") as HTMLElement & {
+    count?: number;
+  };
   el.count = 0;
   document.body.appendChild(el);
   assertEquals(runs, 1);
@@ -197,7 +209,10 @@ Deno.test("a malformed JSON array attribute lands as empty rather than throwing"
     },
     build({ el, props }) {
       effect(() => {
-        el.setAttribute("seen", `${JSON.stringify(props.tags)}|${JSON.stringify(props.items)}`);
+        el.setAttribute(
+          "seen",
+          `${JSON.stringify(props.tags)}|${JSON.stringify(props.items)}`,
+        );
       });
     },
   });
@@ -223,7 +238,9 @@ Deno.test("a host-written object/array arrives coerced, not raw, at the channel"
     },
   });
 
-  const el = document.createElement("spin-host-array") as HTMLElement & { items?: unknown };
+  const el = document.createElement("spin-host-array") as HTMLElement & {
+    items?: unknown;
+  };
   el.items = [{ value: "a" }, null, "junk", ["nested"]];
   document.body.appendChild(el);
 
@@ -247,7 +264,9 @@ Deno.test("a host-written JSON string property arrives parsed at the channel", (
     },
   });
 
-  const el = document.createElement("spin-host-string") as HTMLElement & { items?: unknown };
+  const el = document.createElement("spin-host-string") as HTMLElement & {
+    items?: unknown;
+  };
   el.items = JSON.stringify([{ value: "a" }]);
   document.body.appendChild(el);
 

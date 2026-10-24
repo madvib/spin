@@ -152,6 +152,15 @@ export interface Facts {
    * with the stylesheet the theme ships.
    */
   readonly surfaces: Surfaces;
+  /**
+   * The project's own component tags: the custom elements the runtime
+   * serves beyond the primitives' claimed scopes.
+   *
+   * A tag here is a tag the `spin` dial treats as semantic — the project
+   * knows what its own components render, so the rules may reason about
+   * them. Empty by default: nothing claimed, nothing treated.
+   */
+  readonly components: readonly string[];
 }
 
 /**
@@ -260,9 +269,9 @@ export function coreName(
  *
  * Spin's own elements are the tags the primitives claim that HTML does not
  * define: the theme states something about those, and the rules may speak
- * about what it stated. A component is not one of them — the theme says
- * nothing about what a component renders — so a project that reads its own
- * components leaves them alone.
+ * about what it stated. A component is one of them only when the project
+ * claims it in `facts.components` — the theme says nothing about what an
+ * unclaimed component renders, so the rules leave those alone.
  */
 function isSemanticTag(
   facts: Facts,
@@ -273,8 +282,11 @@ function isSemanticTag(
   if (setting === "all") return true;
   const native = isNativeElement(tag);
   if (setting === "native") return native;
-  return !native &&
-    facts.scopes.some((scope) => scope.tag === tag || scope.self === tag);
+  if (native) return false;
+  return facts.scopes.some((scope) =>
+    scope.tag === tag || scope.self === tag
+  ) ||
+    facts.components.includes(tag);
 }
 
 /** Whether a tier is reported under the strictness dial. */
@@ -455,10 +467,27 @@ export function checkNoRedundantClass(
 ): Finding[] {
   const tag = node.tag;
   if (tag === undefined) return [];
+  // A decision the element's own variant has claimed is the VARIANT's answer,
+  // not the scope's — with one exception: when the class says EXACTLY what
+  // the variant says, it is still dead weight. `secondary` wears the page's
+  // ink, so `text-text` on a secondary button changes nothing and can go.
+  // But a class that sets a DIFFERENT value than the worn variant's is the
+  // variant's own answer or a deliberate override — `text-on-semantic-warning`
+  // on a bare warning key IS the ink — and dropping it would change the
+  // element. Only that second case stands down.
+  const claimed = claimedBy(facts, node);
   const out: Finding[] = [];
   for (const reading of readings(facts, node, options)) {
     if (!isReported(reading.tier, options.strictness)) continue;
     if (!reading.dead) continue;
+    if (reading.decision !== undefined && claimed.has(reading.decision)) {
+      const variantValue = variantDecisionValue(facts, node, reading.decision);
+      const classValue = reading.declarations.get(reading.shared[0] as string);
+      if (
+        variantValue === undefined || classValue === undefined ||
+        !sameValue(variantValue, classValue, facts.values)
+      ) continue;
+    }
     const index = node.classes.indexOf(reading.cls);
     out.push({
       messageId: "redundant",
@@ -572,6 +601,37 @@ function claimedBy(facts: Facts, node: ClassFacts): ReadonlySet<Decision> {
   }
   if (out.has("background")) out.add("ink");
   return out;
+}
+
+/**
+ * The value the element's worn variants set for a decision.
+ *
+ * Read off the variants alone — not the full class list — so the answer is
+ * what the variant says, not what the class under test re-states. `undefined`
+ * when no worn variant speaks about the decision.
+ */
+function variantDecisionValue(
+  facts: Facts,
+  node: ClassFacts,
+  decision: Decision,
+): string | undefined {
+  const tag = node.tag;
+  if (tag === undefined) return undefined;
+  const worn = facts.surfaces.variants(tag, node.classes);
+  if (worn.length === 0) return undefined;
+  const declarations = facts.surfaces.worn(tag, node.ancestors ?? [], worn);
+  for (const [property, value] of declarations) {
+    if (paintKeyOf(property) === decision) return value;
+  }
+  // The ink follows the fill: a variant that clears the fill leaves the ink
+  // to the author, so a variant with a fill value but no ink value still
+  // claims the ink — with the fill's value standing in for it.
+  if (decision === "ink") {
+    for (const [property, value] of declarations) {
+      if (paintKeyOf(property) === "background") return value;
+    }
+  }
+  return undefined;
 }
 
 /** The empty set of decisions, for an element that claims nothing. */

@@ -60,10 +60,13 @@ export function spinComponentCtl<TCommands extends object = object>(
       props: TProps,
       on?: Readonly<Record<string, (event: CustomEvent) => void>>,
     ): () => void {
-      return bindSpinElement(el, {
-        props,
-        on,
-      } satisfies SpinHookOptions<TProps>);
+      return bindSpinElement(
+        el,
+        {
+          props,
+          on,
+        } satisfies SpinHookOptions<TProps>,
+      );
     },
   };
 }

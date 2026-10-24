@@ -1,33 +1,52 @@
 <script lang="ts">
-  import { tabs } from "../tabs.presentation.ts";
+import { tabs } from "../tabs.presentation.ts";
 
-  const machine = tabs({
-    items: [
-      { value: "overview", label: "Overview", content: "Dashboard with key metrics and insights." },
-      { value: "projects", label: "Projects", content: "Manage active development projects." },
-      { value: "packages", label: "Packages", content: "View and organize package dependencies." },
-    ],
-    defaultValue: "overview",
-  });
+const machine = tabs({
+ items: [
+  {
+   value: "overview",
+   label: "Overview",
+   content: "Dashboard with key metrics and insights.",
+  },
+  {
+   value: "projects",
+   label: "Projects",
+   content: "Manage active development projects.",
+  },
+  {
+   value: "packages",
+   label: "Packages",
+   content: "View and organize package dependencies.",
+  },
+ ],
+ defaultValue: "overview",
+});
 </script>
 
-<div class="mx-auto flex w-full max-w-md items-start gap-4" {...machine.getRootProps()}>
-  <div class="flex shrink-0 flex-col gap-1 rounded-lg bg-surface-raised p-1" {...machine.getListProps()}>
-    <template for={machine.items} as={row} key={row.value}>
-      <button
-        class={["flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium text-muted transition-all", { "bg-surface text-text shadow-sm": machine.value === row.value }]}
-        {...machine.getTriggerProps(row)}
-      >
-        <span class="i-lucide-home text-sm" aria-hidden="true" show={row.value === "overview"}></span>
-        <span class="i-lucide-folder-open text-sm" aria-hidden="true" show={row.value === "projects"}></span>
-        <span class="i-lucide-package text-sm" aria-hidden="true" show={row.value === "packages"}></span>
-        <span>{row.label}</span>
-      </button>
-    </template>
-  </div>
-  <div class="flex-1 rounded-lg border border-solid border-border bg-surface p-4">
-    <template for={machine.items} as={row} key={row.value}>
-      <p class="m-0 text-sm text-muted" {...machine.getContentProps(row)}>{row.content}</p>
-    </template>
-  </div>
+<div class="mx-auto flex w-full max-w-md items-start gap-4"
+ {...machine.getRootProps()}>
+ <div class="flex shrink-0 flex-col gap-1 rounded-lg bg-surface-raised p-1"
+  {...machine.getListProps()}>
+  <template for={machine.items} as={row} key={row.value}>
+   <button
+    class={["bare flex items-center gap-2 px-3 py-2 text-left text-sm font-medium text-text-muted transition-all", { "bg-surface": machine.value === row.value }]}
+    {...machine.getTriggerProps(row)}
+   >
+    <span class="i-lucide-home text-sm" aria-hidden="true"
+     show={row.value === "overview"}></span>
+    <span class="i-lucide-folder-open text-sm" aria-hidden="true"
+     show={row.value === "projects"}></span>
+    <span class="i-lucide-package text-sm" aria-hidden="true"
+     show={row.value === "packages"}></span>
+    <span>{row.label}</span>
+   </button>
+  </template>
+ </div>
+ <div
+  class="flex-1 rounded-lg border border-solid border-border bg-surface p-4">
+  <template for={machine.items} as={row} key={row.value}>
+   <p class=" text-sm text-text-muted"
+    {...machine.getContentProps(row)}>{row.content}</p>
+  </template>
+ </div>
 </div>

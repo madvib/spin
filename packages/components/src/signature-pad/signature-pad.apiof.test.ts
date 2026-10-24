@@ -19,7 +19,8 @@ Deno.test("SignaturePadApi promises the component's surface", () => {
     "getHiddenInputProps",
   ];
   assertEquals(keys.length, 14);
-  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
+    : false;
   const clearTyped: AssertExact<SignaturePadApi["clear"], () => void> = true;
   const drawingTyped: AssertExact<SignaturePadApi["drawing"], boolean> = true;
   assertEquals([clearTyped, drawingTyped].every(Boolean), true);
