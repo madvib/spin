@@ -10,14 +10,7 @@
  */
 
 import { spinClient } from "./client.ts";
-
-// Compiled example elements (`slider-basic`, `tabs-basic`, ...), registered
-// as custom elements by the element transform as a side effect. The studio
-// mounts `mountHtml` tags in the preview stage, so the definitions must
-// exist in this window.
-import.meta.glob("../../../../packages/components/src/*/examples/*.html", {
-  eager: true,
-});
+import { EXAMPLE_ONLOAD } from "@spinjs/kit";
 
 /** One example row, as the RPC surface carries it. */
 export interface RpcExample {
@@ -68,29 +61,34 @@ export async function listPrimitives(): Promise<readonly RpcComponent[]> {
   }[];
   const machineRows = await Promise.all(
     rows.map(async (entry) => {
-      const ex = await client.components.examples({ name: entry.name });
-      return { entry, examples: ex.examples };
+      const [ex, rd] = await Promise.all([
+        client.components.examples({ name: entry.name }),
+        client.components.reads({ name: entry.name }),
+      ]);
+      return { entry, examples: ex.examples, reads: rd.reads };
     }),
   );
   return [
     ...(primitives as readonly RpcComponent[]),
-    ...machineRows.map(({ entry, examples }) => ({
+    ...machineRows.map(({ entry, examples, reads }) => ({
       name: `component-${entry.name}`,
       kind: "machine" as const,
       manifest: entry.manifest,
       tags: [`spin-${entry.name}`],
       variants: [...entry.examples],
-      reads: [] as string[],
+      reads: [...reads],
       examples: {
         note:
           "Interactive machine component. Requires the runtime (@spinjs/runtime).",
         rows: examples.map((row) => {
           const stem = row.name;
+          const onLoad = EXAMPLE_ONLOAD[`${entry.name}/${stem}`];
           return {
             name: `${entry.name} — ${row.title}`,
             html: row.html,
             mountHtml: `<${entry.name}-${stem}></${entry.name}-${stem}>`,
             stem,
+            ...(onLoad !== undefined ? { onLoad } : {}),
           };
         }),
       },

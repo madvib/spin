@@ -77,4 +77,19 @@ describe("daemon components over HTTP", () => {
     deepStrictEqual(copied.file, null);
     assert(copied.error !== null);
   });
+
+  it("reports the CSS variables a machine's examples spend", async () => {
+    const { reads } = await client.components.reads({ name: "tree-view" });
+    assert(reads.length > 0, "tree-view spends variables");
+    assert(
+      reads.every((name) => name.startsWith("--")),
+      "every read is a custom property",
+    );
+    deepStrictEqual([...reads].sort(), reads, "reads arrive sorted");
+  });
+
+  it("reports no reads for a machine that ships no examples", async () => {
+    const { reads } = await client.components.reads({ name: "nope" });
+    deepStrictEqual(reads, []);
+  });
 });

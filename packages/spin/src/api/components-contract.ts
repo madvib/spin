@@ -84,10 +84,21 @@ export const copy = oc
     summary: "Copy an example into the project",
   });
 
+/** The CSS variables a machine's examples spend, sorted and deduplicated. */
+export const reads = oc
+  .input(v.object({ name: ComponentName }))
+  .output(v.object({ reads: v.array(v.string()) }))
+  .route({
+    method: "POST",
+    path: "/components/reads",
+    summary: "Get a machine's CSS variable reads",
+  });
+
 export const componentsContract = {
   components: {
     list,
     examples,
     copy,
+    reads,
   },
 };

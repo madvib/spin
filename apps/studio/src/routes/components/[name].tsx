@@ -32,7 +32,6 @@ import {
   createSignal,
   For,
   onCleanup,
-  onMount,
   Show,
 } from "solid-js";
 import { A, useParams } from "@solidjs/router";
@@ -56,86 +55,9 @@ import {
   tokenRowAt,
 } from "../../lib/tokens.ts";
 import { measure } from "../../lib/scale.ts";
-import {
-  type CodeKind,
-  formatExampleHtml,
-  tokenizeHtml,
-} from "../../lib/code.ts";
+import { Specimen } from "@spinjs/kit";
 import TokenRow from "../../components/demos/TokenRow.tsx";
 import { Badge, Marker, TokenChip } from "../../components/Concern.tsx";
-
-/** Where a run of characters sits, and the ink that says so. */
-const INK: Record<CodeKind, string> = {
-  tag: "text-accent",
-  attr: "text-secondary",
-  value: "text-text-muted",
-  text: "text-text",
-};
-
-/**
- * How a section shows its example: the element as it renders, or the markup
- * that produced it.
- */
-type View = "component" | "code";
-
-/**
- * The switch's two buttons.
- *
- * Quiet by default and legible when the pointer or the keyboard arrives: the
- * pair is chrome the studio owns, and chrome that shouts — a bordered bar, a
- * floating toolbar — competes with the specimen it sits above. `aria-pressed`
- * says which one is showing, so the eye and the screen reader read the same
- * fact. `min-h-0` drops the height floor the button primitive puts under
- * every control, because a switch is a way of looking, not a call to action.
- *
- * The button that IS showing wears the acting colour, because "this is what
- * you are looking at" is the one thing a switch has to say, and a raised
- * surface on a raised page says it too quietly to be read at a glance.
- */
-const SWITCH =
-  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 font-regular normal-case tracking-normal text-xs text-text-muted not-italic shadow-none hover:bg-surface-raised hover:text-text focus:bg-surface-raised focus:text-text aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary";
-
-/**
- * The copy control.
- *
- * It belongs to the block it copies, so it is not on the page until the
- * pointer or the keyboard reaches that block: `opacity-0` until the block is
- * hovered, and `pointer-events-none` so an invisible control cannot be hit by
- * accident. It appears in the code view only — the component view shows no
- * markup, so there is nothing there to copy.
- *
- * It sits in the block's bottom corner, where a snippet's last line is
- * shortest, and it sits OUTSIDE the scroller — so it stays put while a long
- * block scrolls inside its own box.
- */
-const COPY_CONTROL =
-  "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-border-strong hover:text-text";
-
-/**
- * The code block. It WRAPS: the primitive layer pins `overflow-x` on a bare
- * `<pre>`, and a scroller only contains what it is GIVEN — a 4KB data URI as
- * one unbreakable token would widen the page rather than scroll in its own
- * box. So `whitespace-pre-wrap` on the block and `break-all` on the tokens,
- * and the scrollbar stays as the floor for the one line that cannot break.
- *
- * The height is bounded: a long block scrolls inside its own box rather than
- * pushing the page down. `max-h-80` was a number in no token and generated no
- * CSS at all, so the bound is the one the rule allows a page to state for
- * itself — a measure in rem.
- */
-const CODE_PRE =
-  "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-text shadow-sm";
-
-/**
- * The panel every specimen sits in: one box, one surface, room to stand.
- *
- * The fill is the RAISED surface, not the page's own: a panel painted in the
- * page's colour is a hole with a dashed edge around it, and the specimen in
- * it looks like it is floating in nothing. A card says "this is a thing on
- * a surface", which is what the specimen is.
- */
-const SPECIMEN_PANEL =
-  "min-h-[2rem] flex items-center justify-center rounded-md border border-dashed border-border bg-surface-raised p-4 shadow-sm";
 
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
@@ -154,9 +76,10 @@ function ExampleSection(props: {
   readonly onLoad?: string;
   readonly componentName?: string;
 }) {
-  // The section's own view. Two sections can show different things at once,
-  // because each one answers to its own switch and to nothing else.
-  const [view, setView] = createSignal<View>("component");
+  // The section's own view switch lives in the kit specimen: one row, one
+  // switch, shared with the reference and docs pages. What stays here is
+  // the studio's own: copying the example into the project, which is daemon
+  // knowledge the kit must never carry.
   const [copiedFile, setCopiedFile] = createSignal<string | null>(null);
   // The panel decides the room the specimen gets, and the markup says which
   // room it is: a page header is a page-width thing, and the md measure —
@@ -165,9 +88,6 @@ function ExampleSection(props: {
   const measure = props.row.html.trimStart().startsWith("<header")
     ? ""
     : SPECIMEN_MEASURE;
-  const markup = createMemo(() => formatExampleHtml(props.row.html));
-  const tokens = createMemo(() => tokenizeHtml(markup()));
-  const code = () => view() === "code";
   const copyExample = async (): Promise<void> => {
     if (props.componentName === undefined || props.row.stem === undefined) {
       return;
@@ -187,7 +107,6 @@ function ExampleSection(props: {
           <Marker />
           {props.row.name}
         </h3>
-        <ViewSwitch view={view()} onChange={setView} />
         <Show when={props.row.stem !== undefined}>
           <button
             type="button"
@@ -198,138 +117,14 @@ function ExampleSection(props: {
           </button>
         </Show>
       </div>
-      <Show when={!code()}>
-        <div
-          class={`${SPECIMEN_PANEL} mx-auto ${
-            measure ? SPECIMEN_MEASURE : "max-w-full"
-          }`}
-        >
-          <Specimen
-            html={props.row.mountHtml ?? props.row.html}
-            onLoad={props.onLoad}
-            measure={measure}
-          />
-        </div>
-      </Show>
-      <Show when={code()}>
-        <div
-          class={`group relative mx-auto ${
-            measure ? SPECIMEN_MEASURE : "max-w-full"
-          }`}
-        >
-          <pre class={CODE_PRE}>
-            <span class="text-lg break-all">
-              <For each={tokens()}>
-                {(token) => <span class={INK[token.kind]}>{token.text}</span>}
-              </For>
-            </span>
-          </pre>
-          <CopyControl markup={markup()} />
-        </div>
-      </Show>
-    </section>
-  );
-}
-
-/**
- * The section's switch: two small buttons, one per view, each saying whether
- * it is the one showing.
- *
- * Two buttons and `aria-pressed`, rather than an element that claims to be a
- * tab strip: the switch is chrome this page owns, and chrome that reads as
- * borrowed furniture is louder than the specimen it sits above.
- */
-function ViewSwitch(props: {
-  readonly view: View;
-  readonly onChange: (view: View) => void;
-}) {
-  return (
-    <div class="flex items-center gap-1">
-      <button
-        type="button"
-        class={SWITCH}
-        aria-pressed={props.view === "component"}
-        onClick={() => props.onChange("component")}
-      >
-        component
-      </button>
-      <button
-        type="button"
-        class={SWITCH}
-        aria-pressed={props.view === "code"}
-        onClick={() => props.onChange("code")}
-      >
-        code
-      </button>
-    </div>
-  );
-}
-
-/**
- * The copy control for one code block.
- *
- * What it puts on the clipboard is the block's own markup, formatted the way
- * the block shows it — what is SHOWN is what is copied. It says so when it
- * has done it, and then goes quiet, so the next block copied does not leave
- * a stale claim behind.
- */
-function CopyControl(props: { readonly markup: string }) {
-  const [copied, setCopied] = createSignal(false);
-  let copiedFor: ReturnType<typeof setTimeout> | undefined;
-  onCleanup(() => clearTimeout(copiedFor));
-
-  async function copy(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(props.markup);
-    } catch {
-      // A clipboard the page cannot reach is a permission, not a failure to
-      // report: nothing was copied, so nothing is claimed.
-      return;
-    }
-    setCopied(true);
-    clearTimeout(copiedFor);
-    // Whatever lib claims the timer — DOM's number, the peer's Timeout —
-    // the handle and the clear agree on it.
-    copiedFor = setTimeout(() => setCopied(false), 1200);
-  }
-
-  return (
-    <button type="button" class={COPY_CONTROL} onClick={copy}>
-      <i
-        class={copied() ? "i-lucide-check icon-md" : "i-lucide-copy icon-md"}
-        aria-hidden="true"
+      <Specimen
+        name={props.row.name}
+        html={props.row.mountHtml ?? props.row.html}
+        source={props.row.html}
+        onLoad={props.onLoad ?? props.row.onLoad}
+        stage={`spin-preview ${measure}`}
       />
-      {copied() ? "copied" : "copy"}
-    </button>
-  );
-}
-
-/**
- * A fixture's markup, under the class the preview stylesheet scopes to.
- *
- * The daemon generates a rule per primitive and per utility in the markup it
- * is given, and scopes the class rules so a preview's styling cannot reach
- * the tool around it — so a specimen that omits the class gets the element
- * rules and none of the utility ones.
- */
-function Specimen(props: {
-  readonly html: string;
-  readonly onLoad?: string;
-  readonly measure: string;
-}) {
-  let host!: HTMLDivElement;
-  onMount(() => {
-    const script = props.onLoad;
-    // `document` is shadowed, not reached: a fixture's wiring addresses its
-    // own specimen, so `[data-open]` cannot find a control in the chrome.
-    if (script !== undefined) new Function("document", script)(host);
-  });
-  return (
-    <div
-      ref={host}
-      class={`spin-preview ${props.measure}`}
-      innerHTML={props.html}
-    />
+    </section>
   );
 }
 

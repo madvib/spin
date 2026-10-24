@@ -195,10 +195,43 @@ const copy = os.components.copy.handler(async ({ input }) => {
   }
 });
 
+const reads = os.components.reads.handler(async ({ input }) => {
+  const found = await discover();
+  const stems = found.get(input.name) ?? [];
+  const classes = new Set<string>();
+  const { classTokens, parse } = await import("@spinjs/runtime");
+  for (const stem of stems) {
+    const row = await readExample(input.name, stem);
+    if (row === null) continue;
+    // The script and scope blocks are machine wiring, not markup: the
+    // classes the component spends are the markup's. Same strip the
+    // class check uses, so the two agree on what an example spends.
+    const stripped = row.html
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
+      .replace(/<scope>[\s\S]*?<\/scope>\s*/g, "");
+    for (const token of classTokens(parse(stripped))) classes.add(token);
+  }
+  if (classes.size === 0) return { reads: [] };
+  const { createGenerator } = await import("@unocss/core");
+  const { spinPreset } = await import("../preset/index.ts");
+  const { starterThemes } = await import("../theme/themes/index.ts");
+  const generator = await createGenerator({
+    presets: [spinPreset({ themes: starterThemes })],
+  });
+  const { css } = await generator.generate(classes, { preflights: false });
+  const vars = new Set<string>();
+  for (const match of css.matchAll(/var\(\s*(--[^,)]+)/g)) {
+    vars.add(match[1]!);
+  }
+  return { reads: [...vars].sort() };
+});
+
 export const componentsRouter = os.router({
   components: {
     list,
     examples,
     copy,
+    reads,
   },
 });
