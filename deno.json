@@ -30,7 +30,7 @@
     "@spin/diagnostics": "./packages/diagnostics/src/index.ts",
     "@spin/api": "./packages/api/src/index.ts",
     "@spin/api/client": "./packages/api/src/client.ts",
-    "@unocss/core": "npm:@unocss/core@^66.10.5",
+    "@unocss/core": "npm:@unocss/core@66.10.5",
     "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.10.5",
     "@orpc/contract": "npm:@orpc/contract@^1.0.0",
     "@orpc/server": "npm:@orpc/server@^1.0.0",
@@ -57,7 +57,7 @@
     "@spin/syntax": "./packages/syntax/src/index.ts",
     "@std/fs/walk": "jsr:@std/fs@^1.0.0/walk",
     "@typescript-eslint/parser": "npm:@typescript-eslint/parser@8.71.0",
-    "typescript": "npm:typescript@6.0.3",
+    "typescript": "npm:typescript@5.9.2",
     "@unocss/vite": "npm:@unocss/vite@66.10.5",
     "vite": "npm:vite@8",
     "vite-plugin-solid": "npm:vite-plugin-solid@^2.11.14"
@@ -113,6 +113,6 @@
     ]
   },
   "overrides": {
-    "npm:typescript": "npm:typescript@6.0.3"
+    "npm:typescript": "npm:typescript@5.9.2"
   }
 }

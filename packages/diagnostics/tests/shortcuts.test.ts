@@ -73,14 +73,14 @@ Deno.test("a class the project does not declare is still reported", () => {
 });
 
 Deno.test("a shortcut that spends a class the theme cannot make is reported", () => {
-  // `gap-40` is a step no theme carries: the shortcut would style nothing,
+  // `gap-72` is a step no theme carries: the shortcut would style nothing,
   // and that is worth saying where the shortcut is used.
   const facts = factsFor(
     Object.values(starterThemes),
     new Set(),
-    shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-40" } })`),
+    shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-72" } })`),
   );
-  assertEquals(reported(facts, "stack"), ["gap-40"]);
+  assertEquals(reported(facts, "stack"), ["gap-72"]);
 });
 
 Deno.test("a project that declares shortcuts the lint cannot read says nothing", () => {

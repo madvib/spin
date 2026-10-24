@@ -12,7 +12,7 @@ import { factsFor, projectFacts } from "../src/facts.ts";
  * The vocabulary is the project's own theme, catalogued.
  *
  * The classes these tests use are the ones the themes declare: `text-xs` is
- * a scale step the starters carry, `p-40` is a step only a project that
+ * a scale step the starters carry, `p-72` is a step only a project that
  * declares it can produce. A test here that had to spell its own utility
  * table would prove the table, not the rule.
  */
@@ -40,7 +40,7 @@ function projectTheme(): ThemeDocument {
     ...silk,
     spacing: {
       ...(silk["spacing"] as Record<string, unknown>),
-      "40": { $value: "10rem" },
+      "72": { $value: "18rem" },
     },
   };
 }
@@ -49,14 +49,14 @@ Deno.test("a class the project's theme produces is not reported", () => {
   // The step exists only in this project's theme, so only this project's
   // vocabulary can know it. The starters alone would call it unknown.
   const facts = factsFor([projectTheme()]);
-  assertEquals(reported(facts, "p-40"), []);
+  assertEquals(reported(facts, "p-72"), []);
 });
 
 Deno.test("a class no theme produces is reported", () => {
   // The same class, against a vocabulary whose themes do not declare the
   // step: nothing generates it, so the rule has to say so.
   const facts = factsFor(Object.values(starterThemes));
-  assertEquals(reported(facts, "p-40"), ["p-40"]);
+  assertEquals(reported(facts, "p-72"), ["p-72"]);
 });
 
 Deno.test("a class nothing produces carries the edit that drops it", () => {
@@ -65,9 +65,9 @@ Deno.test("a class nothing produces carries the edit that drops it", () => {
   const facts = factsFor(Object.values(starterThemes));
   const node: ClassFacts = {
     tag: "div",
-    classes: ["p-40"],
+    classes: ["p-72"],
     tokens: [{
-      name: "p-40",
+      name: "p-72",
       range: [0, 4],
       spaceBefore: false,
       spaceAfter: false,
@@ -122,7 +122,7 @@ Deno.test("when nothing can be read, the rule abstains", () => {
   // nobody could read, and the rule says nothing rather than flag every
   // class in the file.
   const facts = factsFor([]);
-  assertEquals(reported(facts, "bg-primary p-40 stack-sm"), []);
+  assertEquals(reported(facts, "bg-primary p-72 stack-sm"), []);
 });
 
 Deno.test("a class the project declares is known beside the starters", () => {
@@ -132,6 +132,6 @@ Deno.test("a class the project declares is known beside the starters", () => {
     { acme: projectTheme() },
     new Set(),
   );
-  assertEquals(reported(facts, "p-40 text-xs"), []);
+  assertEquals(reported(facts, "p-72 text-xs"), []);
   assertEquals(reported(facts, "my-stack"), ["my-stack"]);
 });
