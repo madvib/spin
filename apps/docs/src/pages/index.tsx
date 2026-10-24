@@ -305,9 +305,18 @@ export default function Home(): JSX.Element {
 
         <div class="relative flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
-            <Markdown text={overviewMd} />
+            <h1>
+              Spin your own web.
+            </h1>
+            <p class="text-md text-text-muted">
+              Spin is a design system and portable UI framework. Built on
+              familiar concepts like design tokens, utility classes, and web
+              components, Spin can be adopted incrementally and works with any
+              rendering framework. Agents are first class authors and are given
+              tooling to create consistent and beautiful interfaces, fast.
+            </p>
             <div class="mt-8 flex flex-wrap items-center gap-3">
-              <A href="/guide/install" role="button" class={CTA}>get started</A>
+              <A href="/guide" role="button" class={CTA}>get started</A>
               <A href="/components" role="button" class={GHOST}>
                 browse elements
               </A>

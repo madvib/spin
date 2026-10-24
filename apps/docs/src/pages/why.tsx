@@ -29,6 +29,58 @@ const MARKUP =
   <p class="text-primary">Ethiopia Guji</p>
 </article>`;
 
+/** The four layers, in the order they stack. */
+const LAYERS: readonly {
+  readonly name: string;
+  readonly body: JSX.Element;
+}[] = [
+  {
+    name: "The utilities spend the theme",
+    body: (
+      <>
+        <code>bg-primary</code> is your primary. <code>p-4</code>{" "}
+        is a step on your spacing scale. A class the theme does not name
+        produces no CSS at all, so the vocabulary is not a suggestion.
+      </>
+    ),
+  },
+  {
+    name: "The elements are finished",
+    body: (
+      <>
+        <code>&lt;button&gt;</code> is a button, <code>&lt;dialog&gt;</code>
+        {" "}
+        is a dialog, a switch is a checkbox wearing{" "}
+        <code>role="switch"</code>. They are styled HTML, so the behaviour a
+        control needs is the browser's: the focus trap, Escape, the backdrop.
+        Nothing to import, nothing to hydrate.
+      </>
+    ),
+  },
+  {
+    name: "The lints read the source",
+    body: (
+      <>
+        A class the theme cannot produce. A class that overrides a decision the
+        theme made. An ink the palette does not pair with the fill. A custom
+        property written by hand. The rules ship as an oxlint plugin, an ESLint
+        plugin and a CLI, and all three read the same facts.
+      </>
+    ),
+  },
+  {
+    name: "The rendered checks read the page",
+    body: (
+      <>
+        A real browser, your app, and the measurements a person would make: the
+        contrast of a label against the surface actually painted behind it, in
+        every state, the geometry the theme named, the console, the network. The
+        harness that drives them is internal to this repository today.
+      </>
+    ),
+  },
+];
+
 export default function Why(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-md px-4 py-10 md:py-16">

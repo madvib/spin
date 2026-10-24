@@ -16,6 +16,7 @@ import { A, useParams } from "@solidjs/router";
 import { Specimen } from "@spin/kit";
 import { COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
+import { ExampleRow } from "../../example-row.tsx";
 
 /** The component ids in rail order, for the prev/next footer. */
 const RAIL_ORDER: readonly string[] = COMPONENT_GROUPS.flatMap((group) =>

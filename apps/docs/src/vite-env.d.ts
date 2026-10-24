@@ -6,12 +6,20 @@
 interface ImportMeta {
   glob<T = unknown>(
     pattern: string,
-    options?: {
-      eager?: boolean;
+    options: {
+      eager: true;
       query?: string;
       import?: string;
     },
   ): Record<string, T>;
+  glob<T = unknown>(
+    pattern: string,
+    options?: {
+      eager?: false;
+      query?: string;
+      import?: string;
+    },
+  ): Record<string, () => Promise<T>>;
 }
 
 declare module "uno.css";

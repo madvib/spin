@@ -13,6 +13,41 @@ import { starterThemes } from "@spin/theme/themes";
 import { mode, starterList, theme } from "@spin/kit";
 import { Chip, Probe, Section, starterDoc } from "../bits.tsx";
 
+type Cell = Record<string, unknown>;
+const leaf = (root: unknown, path: string): unknown => {
+  let cur: unknown = root;
+  for (const part of path.split(".")) {
+    if (cur === null || typeof cur !== "object") return undefined;
+    cur = (cur as Cell)[part];
+  }
+  return cur;
+};
+/** The value the document states for a token path, or "—". */
+const stated = (doc: unknown, path: string): string => {
+  const v = leaf(doc, `${path}.$value`);
+  return v === undefined || v === null ? "—" : String(v);
+};
+
+/**
+ * The colour roles the document declares, read from the colour group.
+ *
+ * A group holds the ramps (`neutral`, `semantic`); a token is a role — a
+ * surface, an ink, a fill. The list is the theme's own, so a role a theme
+ * declares shows up here without this page knowing its name.
+ */
+function colorRoles(doc: unknown): string[] {
+  const color = leaf(doc, "color") as Cell | undefined;
+  if (color === undefined) return [];
+  const out: string[] = [];
+  for (const [name, value] of Object.entries(color)) {
+    if (name.startsWith("$")) continue;
+    if (value === null || typeof value !== "object") continue;
+    // A role states a value; a ramp holds more roles.
+    if ("$value" in (value as Cell)) out.push(name);
+  }
+  return out;
+}
+
 /** The other mode of the active theme, if it has one. */
 const otherMode = () => (mode() === "dark" ? "light" : "dark");
 
