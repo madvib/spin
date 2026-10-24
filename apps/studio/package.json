@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@solidjs/meta": "^0.28.0",
+    "@solidjs/router": "^1.0.0",
+    "@spinjs/spin": "workspace:*",
     "playwright-core": "^1.63.0",
-    "@spinjs/spin": "workspace:*"
+    "solid-js": "^1.9.3"
   },
   "scripts": {
     "dev": "vite dev",

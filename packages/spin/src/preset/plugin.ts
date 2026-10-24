@@ -247,6 +247,26 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       targets: [source.apiIndex],
     },
     {
+      find: "@spinjs/components/controller",
+      replacement: pkg("../../../components/src/controller.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spinjs/components/solid",
+      replacement: pkg("../../../components/src/solid/solid.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spinjs/components/react",
+      replacement: pkg("../../../components/src/react/react.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spinjs/components/spin-element",
+      replacement: pkg("../../../components/src/spin-element.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
       find: /^@spinjs\/components\/(.+)$/,
       replacement: `${pkg("../../../components/src/")}$1`,
       targets: [source.componentsIndex],
@@ -303,26 +323,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     },
     {
       find: "@spinjs/hooks",
-      replacement: pkg("../../../components/src/spin-element.ts"),
-      targets: [source.componentsIndex],
-    },
-    {
-      find: "@spinjs/components/controller",
-      replacement: pkg("../../../components/src/controller.ts"),
-      targets: [source.componentsIndex],
-    },
-    {
-      find: "@spinjs/components/solid",
-      replacement: pkg("../../../components/src/solid/solid.ts"),
-      targets: [source.componentsIndex],
-    },
-    {
-      find: "@spinjs/components/react",
-      replacement: pkg("../../../components/src/react/react.ts"),
-      targets: [source.componentsIndex],
-    },
-    {
-      find: "@spinjs/components/spin-element",
       replacement: pkg("../../../components/src/spin-element.ts"),
       targets: [source.componentsIndex],
     },

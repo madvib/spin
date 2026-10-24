@@ -52,8 +52,11 @@
       "name": "@spinjs/studio",
       "version": "0.1.0",
       "dependencies": {
+        "@solidjs/meta": "^0.28.0",
+        "@solidjs/router": "^1.0.0",
         "@spinjs/spin": "workspace:*",
         "playwright-core": "^1.63.0",
+        "solid-js": "^1.9.3",
       },
     },
     "internal/check": {
@@ -286,6 +289,8 @@
     "@rolldown/binding-win32-x64-msvc": ["@rolldown/binding-win32-x64-msvc@1.2.15", "", { "os": "win32", "cpu": "x64" }, "sha512-HFZd2QNQYn1JbIi+Hpd7H+r/lkWxcfIu28nirZ6eCn2LafuvmExMlb/P96Sfx5tf7pPArw39IdhmCF8vmV+NhQ=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.1", "", {}, "sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw=="],
+
+    "@solidjs/meta": ["@solidjs/meta@0.28.7", "", { "peerDependencies": { "solid-js": ">=1.4.0" } }, "sha512-4desKFvITOV9sc0KE47NxDhMikAVZTU9i5WH4wNvmN6ta50+KKDUr2pPBCvvxSuH+Z4x8TmN+iYW81I3ZTyXGw=="],
 
     "@solidjs/router": ["@solidjs/router@1.0.0", "", { "peerDependencies": { "solid-js": "^1.8.6" } }, "sha512-cCSk1hvgCowiMa9bzzYWHiLu1U4E22+DfJe6/rOwAyECKrxc3jrd5QnoW3sDDJtW+e077cz/M67bPl3DqOBw1Q=="],
 

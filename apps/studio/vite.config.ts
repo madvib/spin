@@ -4,13 +4,7 @@ import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
 import { spin } from "../../packages/spin/src/preset/plugin.ts";
-import carbon from "@iconify-json/carbon/icons.json" with { type: "json" };
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
-import materialSymbols from "@iconify-json/material-symbols/icons.json" with {
-  type: "json",
-};
-import ph from "@iconify-json/ph/icons.json" with { type: "json" };
-import tabler from "@iconify-json/tabler/icons.json" with { type: "json" };
 import studioTheme from "./theme.json" with { type: "json" };
 
 /**
@@ -104,19 +98,16 @@ export default defineConfig(({ command }) => ({
       // The studio mounts its own API for dev, and must not then inject a
       // launcher into itself: that is a FAB opening the studio over the studio.
       launcher: false,
-      // The five collections the icons page reads and the chrome spends from:
-      // the same catalogues the API serves, so a utility the page copies
-      // resolves against what the studio actually ships. A rule per glyph is
-      // generated only for a name somebody wrote down — the page renders
-      // inline SVG and safelists none of the 44k.
+      // The lucide collection the chrome spends glyphs from: `i-lucide-*`
+      // is the only icon utility the scanned chrome uses. The other four
+      // collections the daemon serves reach the icons page over RPC as
+      // glyph bodies, not as CSS — no rule is safelisted for the 44k, and
+      // the page renders the returned markup as inline SVG. A rule per
+      // glyph is generated only for a name somebody wrote down.
       presets: [
         presetIcons({
           collections: {
             lucide,
-            "material-symbols": materialSymbols,
-            tabler,
-            carbon,
-            ph,
           } as never,
         }),
       ],
