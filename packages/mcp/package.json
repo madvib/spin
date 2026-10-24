@@ -3,8 +3,8 @@
  "version": "0.1.0",
  "type": "module",
  "exports": {
-  ".": "../../../packages/mcp/src/index.ts"
+  ".": "./src/index.ts"
  },
- "main": "../../../packages/mcp/src/index.ts",
- "module": "../../../packages/mcp/src/index.ts"
+ "main": "./src/index.ts",
+ "module": "./src/index.ts"
 }

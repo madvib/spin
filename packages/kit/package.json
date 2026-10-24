@@ -3,8 +3,8 @@
  "version": "0.1.0",
  "type": "module",
  "exports": {
-  ".": "../../../packages/kit/src/index.ts"
+  ".": "./src/index.ts"
  },
- "main": "../../../packages/kit/src/index.ts",
- "module": "../../../packages/kit/src/index.ts"
+ "main": "./src/index.ts",
+ "module": "./src/index.ts"
 }
