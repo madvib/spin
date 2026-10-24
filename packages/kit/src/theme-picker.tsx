@@ -222,7 +222,7 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
           }}
           role="dialog"
           aria-label="theme and appearance"
-          class="absolute end-0 bottom-full z-dropdown mb-2 w-32 max-w-[calc(100vw-2rem)] border border-border bg-surface rounded-md shadow-lg p-2"
+          class="absolute end-0 top-full z-dropdown mt-2 w-max min-w-32 max-w-[calc(100vw-2rem)] border border-border bg-surface rounded-md shadow-lg p-2"
         >
           <span class="block px-2 py-1 text-xs font-semibold text-text-muted">
             theme

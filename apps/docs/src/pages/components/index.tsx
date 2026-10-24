@@ -132,7 +132,7 @@ function GroupNav(): JSX.Element {
 
 export default function ComponentsIndex(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-xl px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Components</h1>
       <p class="text-text-muted max-w-screen-md">
         Every element spin paints — live, in the theme the rail has set. Open

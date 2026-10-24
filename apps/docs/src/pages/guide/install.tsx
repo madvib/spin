@@ -18,15 +18,60 @@ const SOURCE_FIRST = `{
 
 export default function Install(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <Markdown text={installMd} />
+    <>
+      <Section id="install" title="Install">
+        <p>
+          v0.1 is source-first: the npm distributions are built, not yet
+          published, so today you take the packages from their source — exactly
+          as this site does. Add them to <code>deno.json</code> /
+          <code>package.json</code> and map the subpaths you'll import.
+        </p>
+        <Code code={ADD} lang="json" />
+        <p>
+          It replaces your Uno plugin and turns your theme documents into the
+          stylesheet.
+        </p>
+        <Code code={WIRE} lang="ts" />
+        <p>
+          Import the sheet in your entry, and the utilities resolve against your
+          theme.
+        </p>
+        <Code code={IMPORT_CSS} lang="ts" />
+        <p>
+          Under TypeScript, declare the module — it is virtual, so there is no
+          file to resolve.
+        </p>
+        <Code code={DECLARE_CSS} lang="ts" />
+        <p>
+          Omit the options and the app serves the shipped starters, forked by
+          {" "}
+          <code>spin/*.json</code>{" "}
+          off your root — the files the studio edits. Pass a map when the
+          documents come from somewhere else:
+        </p>
+        <Code code={WIRE_THEMES} lang="ts" />
+        <p>
+          The studio rides the same dev server, mounted beside the API on one
+          origin: a FAB in the corner of every page opens it, and the editing
+          loop runs against your live app.
+        </p>
+        <Code code={WIRE_STUDIO} lang="ts" />
+      </Section>
 
       <Section id="source" title="While v0.1 is source-first">
         <p>
           Published tarballs do not exist yet. Map the package to its source in
           the meantime — exactly as this site does:
         </p>
-        <Code code={SOURCE_FIRST} lang="json" />
+        <For each={BUNDLERS}>
+          {(bundler) => (
+            <div class="mt-4">
+              <h3 class="text-text">{bundler.name}</h3>
+              <Code code={bundler.code} lang="ts" />
+              <p class="text-sm">{bundler.note}</p>
+            </div>
+          )}
+        </For>
       </Section>
     </main>
   );

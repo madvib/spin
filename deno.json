@@ -38,7 +38,6 @@
     "@orpc/client": "npm:@orpc/client@^1.0.0",
     "@spin/theme/base": "./packages/theme/src/base/index.ts",
     "@spin/animation": "./packages/animation/src/index.ts",
-    "@sinclair/typebox": "npm:@sinclair/typebox@^0.34.0",
     "@unocss/preset-tagify": "npm:@unocss/preset-tagify@66.10.5",
     "@unocss/preset-icons": "npm:@unocss/preset-icons@^66.10.5",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.0",

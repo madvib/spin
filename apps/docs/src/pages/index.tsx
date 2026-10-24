@@ -12,8 +12,7 @@ import { A } from "@solidjs/router";
 import { setTheme, starterList, theme } from "@spin/kit";
 import { Logo, Mark } from "@spin/kit";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
-import { Markdown } from "../markdown.tsx";
-import overviewMd from "../content/overview.md?raw";
+
 const PAGES = [
   {
     href: "/guide/install",
@@ -78,8 +77,9 @@ const CARD_CODE =
   </div>
 </article>`;
 
-const UTILITIES_CODE = `<button type="button" class="s-sm">Add to box</button>
-<badge variant="primary">Ethiopia Guji</badge>`;
+const DIALOG_CODE = `<button type="button">Add to box</button>
+<button type="button" class="secondary">Cancel</button>
+<button type="button" class="danger">Roll back</button>`;
 /** The card in the utilities panel keeps a real count: the button is a JS
  * action, which is what `type="button"` is for. */
 const [inBox, setInBox] = createSignal(0);
@@ -177,7 +177,7 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             backdrop come from the browser. No example opens one here: a modal
             on a marketing page is a page that interrupts its reader.
           </p>
-          <Code class="mt-4 text-xs" code={UTILITIES_CODE} lang="html" />
+          <Code class="mt-4 text-xs" code={DIALOG_CODE} lang="html" />
         </div>
         <div class="flex flex-col justify-center gap-5">
           <label>
@@ -188,6 +188,11 @@ const layers = (): readonly { label: string; panel: JSX.Element }[] => [
             <badge variant="success">in stock</badge>
             <badge variant="accent">roaster's pick</badge>
             <badge variant="neutral">decaf</badge>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button">Add to box</button>
+            <button type="button" class="secondary">Cancel</button>
+            <button type="button" class="danger">Roll back</button>
           </div>
         </div>
       </div>
@@ -262,21 +267,10 @@ export default function Home(): JSX.Element {
   };
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
-      {
-        /* The first screen: mark, pitch, switch. The mark layer sits above the
-      header background so the spider never slides under it. */
-      }
-      <section class="relative grid min-h-dvh md:grid-cols-2">
-        <div
-          class="pointer-events-none absolute inset-0 z-modal"
-          aria-hidden="true"
-        >
-          <div class="absolute inset-y-0 right-0 flex w-1/2 items-center justify-center overflow-hidden">
-            <Mark class="w-full max-w-screen-md text-text" />
-          </div>
-        </div>
-        <header class="absolute inset-x-0 top-0 z-base flex items-center justify-between gap-4 px-6 py-5 md:px-12">
-          <Logo size="lg" class="text-primary" />
+      {/* The first screen: mark, pitch, switch. */}
+      <section class="relative grid min-h-dvh overflow-hidden md:grid-cols-2">
+        <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-6 py-5 md:px-12">
+          <Logo size="lg" class="text-text" />
           <div class="flex items-center gap-3">
             <span class="hidden text-xs font-semibold text-text-muted sm:block">
               theme
@@ -309,7 +303,7 @@ export default function Home(): JSX.Element {
           </div>
         </header>
 
-        <div class="relative z-base flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
+        <div class="relative flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
           <div class="max-w-screen-md py-12">
             <Markdown text={overviewMd} />
             <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -320,7 +314,19 @@ export default function Home(): JSX.Element {
             </div>
           </div>
         </div>
-        <div aria-hidden="true" />
+
+        {
+          /* The rule between the pitch and the mark: the theme's own element
+          * for a rule, and the vertical edge is the cell's own on a wide
+          * screen, where the columns sit side by side. */
+        }
+        <hr class="md:hidden" />
+        <div
+          class="pointer-events-none absolute inset-0 overflow-hidden"
+          aria-hidden="true"
+        >
+          <Mark class="h-full w-full text-text opacity-20" />
+        </div>
       </section>
 
       {/* Below the fold: the layers, the studio, the tooling, then where to go. */}

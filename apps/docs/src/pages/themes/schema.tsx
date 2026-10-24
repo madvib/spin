@@ -128,7 +128,7 @@ export default function Schema(): JSX.Element {
   const groups = starterGroups();
   const elements = elementGroups();
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Theme schema</h1>
       <p class="max-w-screen-md text-text-muted">
         A theme is a JSON object of groups. The groups the starters declare are

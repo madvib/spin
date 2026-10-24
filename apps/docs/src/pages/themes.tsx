@@ -58,8 +58,14 @@ const TASTE: readonly (readonly [string, string])[] = [
 
 export default function Themes(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <Markdown text={contractMd} />
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+      <h1>Themes</h1>
+      <p class="max-w-screen-md text-text-muted">
+        A theme is one document. The build reads it and turns it into CSS custom
+        properties, and every utility and every element in the library resolves
+        against those properties. Replacing the document replaces the product's
+        look without touching a line of markup.
+      </p>
 
       <Section id="probe" title="Both modes, one markup">
         <p>
@@ -67,57 +73,7 @@ export default function Themes(): JSX.Element {
           markup, the other rendering. Flip the mode in the rail and the two
           columns swap.
         </p>
-        <div class="mt-4 border border-border rounded-md bg-surface-raised p-4">
-          <Probe>
-            <div class="flex flex-wrap items-center gap-2">
-              <badge variant="primary">primary</badge>
-              <badge variant="accent">accent</badge>
-              <span class="bg-surface text-text rounded-sm px-3 py-2 text-sm border border-border">
-                surface
-              </span>
-              <a href="/themes" class="px-3 py-2 text-sm">link</a>
-              <span class="font-heading text-lg">Aa</span>
-              <span class="text-xs text-text-muted">
-                this block renders as {mode() === "dark" ? "light" : "dark"}
-                {" "}
-                — same CSS, other mode
-              </span>
-            </div>
-          </Probe>
-        </div>
-      </Section>
 
-      <Section id="contents" title="The contract, in full">
-        <p>
-          Everything below is read from the contract, not written out — the page
-          and the package cannot disagree. The authoring, schema, starter, and
-          style pages go deeper from here:
-        </p>
-        <div class="mt-4 flex flex-wrap gap-2">
-          <A href="/themes/authoring" class="text-link hover:underline">
-            authoring & gates
-          </A>
-          <A href="/themes/schema" class="text-link hover:underline">
-            token schema
-          </A>
-          <A href="/themes/starters" class="text-link hover:underline">
-            starters
-          </A>
-          <A href="/themes/styles" class="text-link hover:underline">
-            style references
-          </A>
-          <A href="/themes/studio" class="text-link hover:underline">
-            using the studio
-          </A>
-        </div>
-      </Section>
-
-      <Section id="pipeline" title="From document to custom properties">
-        <p>
-          A theme lives on disk as a JSON document in the DTCG shape, and it
-          goes through four stages — parse, resolve, validate, generate — each
-          of which can be entered on its own:
-        </p>
         <Code code={DOCUMENT} lang="json" />
         <p>
           The document goes through {PIPELINE.length}{" "}
@@ -206,6 +162,7 @@ export default function Themes(): JSX.Element {
         </p>
         <Code
           class="mt-2"
+          lang="json"
           code={`"primary": {
   "$value": "#c8102e",
   "$modes": { "dark": "#ff5a63" }

@@ -22,6 +22,7 @@ import { fontsRouter } from "./fonts-procedures.ts";
 import { iconsRouter } from "./icons-procedures.ts";
 import { findingsRouter } from "./findings-procedures.ts";
 import { componentsRouter } from "@spin/components/procedures";
+import { componentsContract } from "@spin/components/procedures";
 
 export { themeRouter } from "@spin/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
@@ -29,17 +30,20 @@ export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
 export { projectContract } from "./project-contract.ts";
 export { themeContract } from "@spin/theme";
-export { primitivesRouter } from "../../preset/src/primitives-procedures.ts";
-export { primitivesContract } from "@spin/preset";
-export { presetRouter } from "@spin/preset";
+
 export {
   overlayContract,
   overlayRouter,
   presetContract,
+  presetRouter,
+  primitivesContract,
+  primitivesRouter,
 } from "@spin/preset";
 export { componentsRouter } from "@spin/components/procedures";
 export { componentsContract } from "@spin/components/procedures";
 export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
+export { iconsContract, iconsRouter } from "./icons-procedures.ts";
+export { findingsContract, findingsRouter } from "./findings-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 
 /** The daemon's router: every module's procedures, mounted by name. */

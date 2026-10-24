@@ -10,7 +10,6 @@ export interface PrimitiveExample {
 export interface PrimitivePage {
   readonly id: string;
   readonly title: string;
-  readonly kind: string;
   readonly note: string;
   readonly examples: readonly PrimitiveExample[];
   readonly onLoad?: string;
