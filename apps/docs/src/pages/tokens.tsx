@@ -1,14 +1,17 @@
 /**
- * `/tokens` moved to `/utilities`: the token probe now lives alongside the
- * catalog it resolves against. This file is a redirect so existing links
- * keep working.
+ * The token system, shown live.
+ *
+ * Every swatch chip is a theme utility (`bg-surface`, `bg-primary`, …) —
+ * the same class the product spends, resolved by the sheet for the theme
+ * the page renders with. The right column sits in a probe subtree that
+ * re-declares `data-theme` and `data-mode`, so both renderings of a token
+ * hang side by side, resolved by the CSS, not by JS.
  */
-import { Navigate } from "@solidjs/router";
+import { createMemo, For } from "solid-js";
 import type { JSX } from "solid-js";
-
-export default function TokensRedirect(): JSX.Element {
-  return <Navigate href="/utilities" />;
-}
+import { starterThemes } from "@spin/theme/themes";
+import { mode, starterList, theme } from "@spin/kit";
+import { Chip, Probe, Section, starterDoc } from "../bits.tsx";
 
 /** The other mode of the active theme, if it has one. */
 const otherMode = () => (mode() === "dark" ? "light" : "dark");

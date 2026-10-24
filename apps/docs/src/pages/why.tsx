@@ -6,6 +6,7 @@
  * the live THEME + MARKUP specimen and the route links into the manual.
  */
 import { A } from "@solidjs/router";
+import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { Code, Section } from "../bits.tsx";
 import { Markdown } from "../markdown.tsx";
