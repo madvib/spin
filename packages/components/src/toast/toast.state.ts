@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spin/runtime";
+import { defaultTwin } from "@spinjs/runtime";
 import type { ToastEvents } from "./toast.events.ts";
 import { type ToastEvent, type ToastType } from "./toast.events.ts";
 

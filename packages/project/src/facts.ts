@@ -7,8 +7,8 @@
  * are asks this package; it does not keep its own copy of the answer.
  */
 
-import { scaffoldTheme, treeToJson } from "@spin/theme";
-import { configScaffoldText } from "@spin/preset/config";
+import { scaffoldTheme, treeToJson } from "@spinjs/theme";
+import { configScaffoldText } from "@spinjs/preset/config";
 
 /**
  * The directory a project's themes live in, relative to its root.
@@ -65,13 +65,13 @@ export const CONFIG_FILES: readonly string[] = [
  * Whether a text is an uno config that applies spin.
  *
  * Two entry points wire spin, and both count: the encapsulated form
- * (`@spin/config`, `spin()`) that `spin init` writes, and the raw form
- * (`@spin/preset`, `spinPreset()`) that the escape hatch uses. A detector
+ * (`@spinjs/config`, `spin()`) that `spin init` writes, and the raw form
+ * (`@spinjs/preset`, `spinPreset()`) that the escape hatch uses. A detector
  * that knew only one would report a correctly wired project as unwired —
  * which is how this bug shipped, caught by the init test.
  */
 export function isWired(text: string): boolean {
-  return /@spin\/config|spin\s*\(|@spin\/preset|spinPreset/.test(text);
+  return /@spinjs\/config|spin\s*\(|@spinjs\/preset|spinPreset/.test(text);
 }
 
 /**

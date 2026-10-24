@@ -6,7 +6,7 @@ import {
   defineComponent,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import {
   nextPage as nextPageFn,
   pageItems,

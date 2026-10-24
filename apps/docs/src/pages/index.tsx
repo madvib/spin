@@ -9,8 +9,8 @@
 import { createSignal, For, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { setTheme, starterList, theme } from "@spin/kit";
-import { Logo, Mark } from "@spin/kit";
+import { setTheme, starterList, theme } from "@spinjs/kit";
+import { Logo, Mark } from "@spinjs/kit";
 import { Chip, Code, Reveal, Section } from "../bits.tsx";
 
 const PAGES = [
@@ -440,7 +440,7 @@ export default function Home(): JSX.Element {
                     Lint errors name the fix.
                   </p>
                   <p class="text-sm">
-                    <code>@spin/diagnostics</code> runs in oxlint: a hardcoded
+                    <code>@spinjs/diagnostics</code> runs in oxlint: a hardcoded
                     {" "}
                     <code>#c8102e</code>{" "}
                     fails with the token to use instead; a class the preset will

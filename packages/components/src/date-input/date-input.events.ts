@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 import type { DateValue } from "./date-input.state.ts";
 
 export interface DateInputEvents {

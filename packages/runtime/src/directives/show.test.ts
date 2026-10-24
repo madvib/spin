@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parse } from "@spin/syntax";
-import { emit } from "../plugin/emit.ts";
+import { parse } from "../syntax/index.ts";
+import { emit } from "@spinjs/preset/compile";
 
 /**
  * `show={expr}` is structural: it never reaches the DOM, and the element

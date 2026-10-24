@@ -1,5 +1,5 @@
 {
-  "name": "@spin/kit",
+  "name": "@spinjs/kit",
   "version": "0.1.1",
   "description": "Shared Solid pieces: the theme state and the theme picker.",
   "type": "module",
@@ -20,19 +20,15 @@
     "README.md"
   ],
   "dependencies": {
-    "@spin/theme": "workspace:*",
     "solid-js": "^1.9.3"
   },
   "peerDependencies": {
-    "@spin/theme": "workspace:*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "@spinjs/theme": "workspace:*"
   },
   "scripts": {
     "test": "bun test tests/",
     "lint": "oxlint",
     "fmt": "biome format --write ."
-  }
+  },
+  "private": true
 }

@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { generateCss, parseDocument } from "@spin/theme";
+import { generateCss, parseDocument } from "@spinjs/theme";
 import {
   requiredRolesFor,
   scaffoldDocument,

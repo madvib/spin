@@ -11,9 +11,9 @@ import {
   examplesFor,
   type PrimitiveContract,
   primitiveContracts,
-} from "@spin/preset";
+} from "@spinjs/preset";
 import { A, useParams } from "@solidjs/router";
-import { EXAMPLE_ONLOAD, Specimen } from "@spin/kit";
+import { EXAMPLE_ONLOAD, Specimen } from "@spinjs/kit";
 import { COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
@@ -240,7 +240,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
       </p>
       <h1>{props.name}</h1>
       <p class="text-text-muted max-w-screen-md">
-        Interactive machine component. Requires the runtime (@spin/runtime):
+        Interactive machine component. Requires the runtime (@spinjs/runtime):
         markup drives a statechart.
       </p>
       <div class="mt-8">

@@ -4,8 +4,8 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startDaemon } from "@spin/api/daemon";
-import { createSpinClient, type SpinClient } from "@spin/api";
+import { startDaemon } from "@spinjs/api/daemon";
+import { createSpinClient, type SpinClient } from "@spinjs/api";
 
 /**
  * The mini-shadcn path, end to end: list machines, read one's variants,
@@ -63,8 +63,8 @@ describe("daemon components over HTTP", () => {
     const written = join(dir, "spin", "tree-view", "basic.html");
     assert(existsSync(written), "the file lands in the project");
     assert(
-      readFileSync(written, "utf8").includes('from "@spin/components"'),
-      "with the variant's markup rewritten to @spin/components",
+      readFileSync(written, "utf8").includes('from "@spinjs/components"'),
+      "with the variant's markup rewritten to @spinjs/components",
     );
   });
 

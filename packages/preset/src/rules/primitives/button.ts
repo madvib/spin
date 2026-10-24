@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import type { ThemeTokenPath } from "@spinjs/theme/theme-types";
 import {
   ALIVE,
   disabledPosture,

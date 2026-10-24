@@ -11,7 +11,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { ratingGroup as ratingGroupMachine } from "./rating-group.machine.ts";
 import type {
   RatingGroupArgs,

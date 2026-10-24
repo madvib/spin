@@ -31,7 +31,7 @@ import {
   pickCallback,
 } from "./bridge.ts";
 import type { ComponentDef, SlotScope } from "./define.ts";
-import type { EventMap, EventUnion } from "@spin/runtime/fsm";
+import type { EventMap, EventUnion } from "@spinjs/runtime/fsm";
 import type { MachineDef, MachineEventContract } from "../index.ts";
 
 export function defineComponent<

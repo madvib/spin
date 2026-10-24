@@ -11,9 +11,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startDaemon } from "@spin/api/daemon";
-import { parseTokens, themeModes, validateTokens } from "@spin/theme";
-import { createSpinClient, type SpinClient } from "@spin/api";
+import { startDaemon } from "@spinjs/api/daemon";
+import { parseTokens, themeModes, validateTokens } from "@spinjs/theme";
+import { createSpinClient, type SpinClient } from "@spinjs/api";
 
 /**
  * The production path for theme add/remove/rename, end to end: a real daemon
@@ -171,7 +171,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(noPlugin.wired, false, "an uno config without the preset");
     writeFileSync(
       join(bare, "uno.config.ts"),
-      'import { spinPreset } from "@spin/preset";',
+      'import { spinPreset } from "@spinjs/preset";',
     );
     const wired = await client.project.detect({ root: bare });
     deepStrictEqual(wired.wired, true, "an uno config naming the preset");
@@ -241,7 +241,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(detect.wired, true, "and that config wires the preset");
     const config = readFileSync(join(fresh, "uno.config.ts"), "utf8");
     deepStrictEqual(
-      config.includes('"@spin/config"'),
+      config.includes('"@spinjs/config"'),
       true,
       "it applies the encapsulated form",
     );

@@ -1,4 +1,4 @@
-// Leaf import, not "@spin/runtime": the actions table imports this module,
+// Leaf import, not "@spinjs/runtime": the actions table imports this module,
 // so the package root would cycle back through the table.
 import { createAction } from "./action.ts";
 import type { ElementAction } from "./action.ts";

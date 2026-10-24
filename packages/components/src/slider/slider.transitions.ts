@@ -3,8 +3,8 @@ import {
   closestIndex,
   getNextStepValue,
   getPreviousStepValue,
-} from "@spin/runtime";
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+} from "@spinjs/runtime";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { SliderEvents } from "./slider.events.ts";
 import type { SliderContext } from "./slider.state.ts";
 import {

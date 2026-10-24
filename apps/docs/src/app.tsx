@@ -14,8 +14,8 @@ import { A, Navigate, Router, useLocation, useNavigate } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { createMemo, createSignal, For, lazy, Show } from "solid-js";
-import { BrandFavicon, Logo, ModeToggle, theme, ThemePicker } from "@spin/kit";
-import { starterThemes } from "@spin/theme/themes";
+import { BrandFavicon, Logo, ModeToggle, theme, ThemePicker } from "@spinjs/kit";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   COMPONENT_GROUPS,
   DOCS_GROUPS,

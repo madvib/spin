@@ -1,5 +1,5 @@
-import { COMPONENT_GROUPS, COMPONENT_ICONS, CONTROLLERS } from "@spin/components";
-import { EXAMPLE_ONLOAD } from "@spin/kit";
+import { COMPONENT_GROUPS, COMPONENT_ICONS, CONTROLLERS } from "@spinjs/components";
+import { EXAMPLE_ONLOAD } from "@spinjs/kit";
 
 import type { PrimitivePage } from "./primitives.ts";
 
@@ -68,9 +68,9 @@ export const componentRequirement = (id: string): string => {
     ? id.slice("component-".length)
     : id;
   if ((CONTROLLERS as readonly string[]).includes(machine)) {
-    return "Needs the controller glue (@spin/runtime, no statechart).";
+    return "Needs the controller glue (@spinjs/runtime, no statechart).";
   }
-  return "Requires the runtime (@spin/runtime): markup drives a statechart.";
+  return "Requires the runtime (@spinjs/runtime): markup drives a statechart.";
 };
 
 // A machine the groups and the icons both miss is a machine the rail

@@ -15,7 +15,7 @@
  * property — and only then are they equal or not.
  */
 
-import type { PaintKey } from "@spin/preset";
+import type { PaintKey } from "@spinjs/preset";
 
 /**
  * The decisions an element's look is made of.

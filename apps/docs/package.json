@@ -1,12 +1,12 @@
 {
-  "name": "@spin/docs",
+  "name": "@spinjs/docs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "dependencies": {
     "@solidjs/router": "^1.0.0",
-    "@spin/preset": "workspace:*",
-    "@spin/theme": "workspace:*",
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/theme": "workspace:*",
     "solid-js": "^1.9.3"
   },
   "scripts": {

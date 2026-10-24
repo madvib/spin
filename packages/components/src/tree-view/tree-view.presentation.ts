@@ -9,7 +9,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import type { TreeState } from "./tree-view.state.ts";
 import { treeView as treeViewMachine } from "./tree-view.machine.ts";
 import type {

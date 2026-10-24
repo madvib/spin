@@ -24,6 +24,9 @@ product's look without touching its markup.
 | `@spin/api`         | The daemon: the procedures, over RPC, that the tools share.                 |
 | `@spin/mcp`         | The MCP server over those procedures, for agents.                           |
 | `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                  |
+| `@spin/runtime`     | The component runtime: signals, bridges, syntax, and directives.            |
+| `@spin/components`  | The machine components: headless statecharts with typed bridges.            |
+| `@spin/hooks`       | Framework bindings for spin components: Solid and React.                    |
 
 ### Apps
 
@@ -47,31 +50,28 @@ it is published.
 ## Commands
 
 ```
-deno task dev     # the studio's dev server, alongside the API daemon
-deno task test    # the packages' suites
+bun run dev      # the studio's dev server, alongside the API daemon
+bun test         # the packages' suites (bun:test)
 ```
 
-`deno task dev` starts the studio and the daemon it talks to. The studio is the
+`bun run dev` starts the studio and the daemon it talks to. The studio is the
 editor: it reads a project's theme, repaints the app beside it as you type, and
 writes the document back to disk when you save.
 
 ## The npm packages
 
-Every package that ships has an npm manifest, and the manifest says what the
-package's `deno.json` says: the same subpaths, the same version, the same files.
-The build writes the distribution — compiled JavaScript and declarations, one
-directory per package — and the check compares it against the source package:
+Every package that ships carries a single `packages/<name>/package.json`. Its
+top-level `exports` points at `./src/...` so workspace development (`bun test`,
+`tsc`, Vite) resolves TypeScript source directly; its `publishConfig.exports`
+points at `./dist/...` so packing and publishing swap in the built files. The
+build writes the distribution — compiled JavaScript and declarations, one
+`packages/<name>/dist/` per package — and the check compares it against the
+source manifest:
 
 ```
-deno task build:dist   # the dist for every publishable package
-deno task check:dist   # the export maps agree, every subpath resolves
+bun run build:dist   # the dist for every publishable package
+bun run check:dist   # the export maps agree, every subpath resolves
 ```
-
-Each package's npm manifest lives in `packages/<name>/npm`, beside the `dist/`
-it names — so `npm publish packages/<name>/npm` packs the build and nothing
-else. It is not at the package's root on purpose: a `package.json` there would
-make Deno resolve every bare `@spin/…` import in this workspace through it, and
-the apps here are written against the source.
 
 The manifests are not published yet; publishing is a decision, not a default.
 
@@ -81,7 +81,7 @@ The manifests are not published yet; publishing is a decision, not a default.
   contract.
 - [`packages/preset/README.md`](packages/preset/README.md) — the utilities, the
   element library, and the plugin's options.
-- [`apps/docs`](apps/docs) — the documentation site; `deno task dev:docs` runs
+- [`apps/docs`](apps/docs) — the documentation site; `bun run dev:docs` runs
   it, and its install page carries the per-bundler recipes.
 
 ## Status

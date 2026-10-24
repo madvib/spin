@@ -5,7 +5,6 @@ import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
-import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import { renderSkill } from "../../packages/theme/src/skill/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
@@ -81,7 +80,7 @@ function houseSkill(): Plugin {
 /**
  * The docs eat the product's own food.
  *
- * Themes come from `@spin/theme/themes` — the shipped registry, not copies
+ * Themes come from `@spinjs/theme/themes` — the shipped registry, not copies
  * on disk. A starter fixed in the package re-themes this site on the next
  * build, and the site demos the brand posture honestly: `spin`, dark or
  * paper, chosen from the header switcher. No `resolve` block: the plugin
@@ -89,9 +88,9 @@ function houseSkill(): Plugin {
  */
 export default defineConfig({
   plugins: [
-    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
     spin.vite({
+      elements: { machines: resolve(here, "../../packages/components/src") },
       // No `themes` option: the app serves the shipped starters, forked by
       // `spin/*.json` off this root — the files the studio edits when a
       // theme is saved. This site defines no themes of its own.

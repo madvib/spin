@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseTokens, setToken, treeToJson } from "@spin/theme";
-import { scaffold } from "@spin/preset";
+import { parseTokens, setToken, treeToJson } from "@spinjs/theme";
+import { scaffold } from "@spinjs/preset";
 import {
   createSpinClient,
   findingsContract,
@@ -19,7 +19,7 @@ import {
   router,
   themeContract,
   themeRouter,
-} from "@spin/api";
+} from "@spinjs/api";
 import { RPCHandler } from "@orpc/server/fetch";
 
 /** Serve the composed daemon router on an ephemeral port. */

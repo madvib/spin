@@ -1,19 +1,19 @@
 /**
- * The project procedures: the transport over `@spin/project`.
+ * The project procedures: the transport over `@spinjs/project`.
  *
  * Every handler here resolves a root per call — its own, or the one the call
  * names — because a single process should serve many projects without shared
  * state to stomp on. The fallback root is set once, by the host that starts
  * the daemon, and a client that names another root gets that root instead.
  *
- * The LOGIC lives in `@spin/project`. The project owns where its files are,
+ * The LOGIC lives in `@spinjs/project`. The project owns where its files are,
  * what a theme document is, and what a configuration declares; the daemon
  * owns the wire. A handler names the root, asks the service, and answers —
  * there is no filesystem here, and no rule about what a project is.
  */
 
 import { implement } from "@orpc/server";
-import { projectService } from "@spin/project";
+import { projectService } from "@spinjs/project";
 import { projectContract } from "./project-contract.ts";
 
 let projectRoot: string | undefined;
@@ -83,7 +83,7 @@ export const projectRouter = os.router({
           // the dirty comparison — and the badge reading it — clears. The
           // overlay is the daemon's own session, so the note is the
           // daemon's to make.
-          const { noteDiskDocument } = await import("@spin/preset");
+          const { noteDiskDocument } = await import("@spinjs/preset");
           noteDiskDocument(input.name, input.text);
         }
         return written;

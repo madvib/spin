@@ -20,7 +20,7 @@ import {
   type Node,
   parse,
   stripScript,
-} from "../packages/syntax/src/index.ts";
+} from "../packages/runtime/src/syntax/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 async function* walkFiles(root: string, exts: string[]): AsyncGenerator<{ path: string; isFile: boolean }> {

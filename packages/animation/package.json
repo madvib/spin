@@ -1,7 +1,7 @@
 {
-  "name": "@spin/animation",
+  "name": "@spinjs/animation",
   "version": "0.1.0",
-  "description": "Keyframes, and the animate-* utilities that name them \u2014 the one global CSS namespace.",
+  "description": "Keyframes, and the animate-* utilities that name them — the one global CSS namespace.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -19,16 +19,18 @@
     "dist",
     "README.md"
   ],
-  "dependencies": {
-    "@spin/animation": "workspace:*",
-    "@spin/theme": "workspace:*"
-  },
   "peerDependencies": {
-    "@spin/theme": "workspace:*"
+    "@spinjs/theme": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/",

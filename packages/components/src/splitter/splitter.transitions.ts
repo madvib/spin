@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { SplitterContext } from "./splitter.state.ts";
 import {
   defaultSizes,

@@ -1,5 +1,5 @@
 /**
- * A stand-in for `@spin/diagnostics`, for the browser bundle only.
+ * A stand-in for `@spinjs/diagnostics`, for the browser bundle only.
  *
  * TEMPORARY: the diagnostics package reads the project's files, and the
  * browser cannot. This file exists so the studio's dev server can serve

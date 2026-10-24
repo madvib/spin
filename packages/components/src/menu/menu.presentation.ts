@@ -10,7 +10,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { menu as menuMachine } from "./menu.machine.ts";
 import {

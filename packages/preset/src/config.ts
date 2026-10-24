@@ -7,7 +7,7 @@
  * the daemon composes the two.
  *
  * The generated file is the ENCAPSULATED form: it imports one thing from
- * `@spin/config` and applies it. The raw form — `presetIcons()` plus
+ * `@spinjs/config` and applies it. The raw form — `presetIcons()` plus
  * `spinPreset()` written out by hand — remains available and fully
  * supported, because an escape hatch we do not have to document is worth
  * more than a wrapper that hides one. This file just picks the boring
@@ -15,9 +15,9 @@
  */
 
 /**
- * The `@spin/config` module's shape, which the generated file imports.
+ * The `@spinjs/config` module's shape, which the generated file imports.
  *
- * Kept in sync with what `@spin/preset` will export from that entry; when the
+ * Kept in sync with what `@spinjs/preset` will export from that entry; when the
  * framework's bundler preset lands, this becomes the seam — the generated
  * file stops changing and the package behind it does.
  */
@@ -34,7 +34,7 @@ export function spinConfig(options: SpinConfigOptions = {}) {
 /** The text of an `uno.config.ts` for a fresh spin project. */
 export function configScaffoldText(): string {
   return `import { defineConfig } from "unocss";
-import { spin } from "@spin/config";
+import { spin } from "@spinjs/config";
 
 export default defineConfig({
   presets: [spin()],

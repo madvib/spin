@@ -8,7 +8,7 @@
  * should have to change.
  */
 
-import { CSS_WIDE_COLORS } from "@spin/theme";
+import { CSS_WIDE_COLORS } from "@spinjs/theme";
 
 /**
  * Colour vocabulary that is a value rather than a token. Resolved by

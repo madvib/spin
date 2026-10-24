@@ -15,19 +15,19 @@ import {
   scaffoldTheme,
   themeGates,
   validateTokens,
-} from "@spin/theme";
+} from "@spinjs/theme";
 import type {
   ParseResult,
   ThemeDocument,
   TokenLeaf,
   TokenNode,
   TokenTree,
-} from "@spin/theme";
+} from "@spinjs/theme";
 import {
   type StarterThemeName,
   starterThemes,
   themeModes,
-} from "@spin/theme/themes";
+} from "@spinjs/theme/themes";
 
 /**
  * The battery, run over the themes this package ships — and over a theme a

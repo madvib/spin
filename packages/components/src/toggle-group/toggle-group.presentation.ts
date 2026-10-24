@@ -8,7 +8,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { toggleGroup as toggleGroupMachine } from "./toggle-group.machine.ts";
 import {
   isInteractive,

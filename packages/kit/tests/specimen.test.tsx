@@ -42,7 +42,7 @@ test("the tokenizer preserves every character of the markup", () => {
 
 test("the code tokenizer preserves every character of TS and JSON", () => {
   const ts =
-    `import { spin } from "@spin/preset/plugin";\n// wire it\nspin.vite({ themes: {} });`;
+    `import { spin } from "@spinjs/preset/plugin";\n// wire it\nspin.vite({ themes: {} });`;
   deepStrictEqual(
     tokenizeCode(ts, "ts").map((token) => token.value).join(""),
     ts,

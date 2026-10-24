@@ -25,7 +25,7 @@ export default function Starters(): JSX.Element {
       <h1>Starters</h1>
       <p class="max-w-screen-md text-text-muted">
         The themes the package ships. Each one is a document in{" "}
-        <code>@spin/theme/themes</code>, and this page is a rendering of those
+        <code>@spinjs/theme/themes</code>, and this page is a rendering of those
         documents, so it cannot drift from them. A project forks one by writing
         a file of the same name into its own <code>spin/</code>{" "}
         directory. Fork yours in{" "}

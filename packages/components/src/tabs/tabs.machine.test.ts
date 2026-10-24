@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
-import { signal } from "@spin/runtime";
-import { interpret, type Service } from "@spin/runtime/fsm";
+import { parseHTML } from "@spinjs/runtime/testing";
+import { signal } from "@spinjs/runtime";
+import { interpret, type Service } from "@spinjs/runtime/fsm";
 import { tabs as tabsMachine } from "./tabs.machine.ts";
 import { tabs as tabsComponent, type TabsApi } from "./tabs.presentation.ts";
 import type { TabsArgs, TabsContext } from "./tabs.state.ts";

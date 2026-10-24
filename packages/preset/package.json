@@ -1,5 +1,5 @@
 {
-  "name": "@spin/preset",
+  "name": "@spinjs/preset",
   "version": "0.1.1",
   "description": "The UnoCSS preset over @spin/theme: the utilities, the element library, the plugin.",
   "type": "module",
@@ -21,6 +21,14 @@
     "./config": {
       "types": "./src/config.ts",
       "default": "./src/config.ts"
+    },
+    "./elements": {
+      "types": "./src/elements.ts",
+      "default": "./src/elements.ts"
+    },
+    "./compile": {
+      "types": "./src/compile.ts",
+      "default": "./src/compile.ts"
     }
   },
   "files": [
@@ -28,30 +36,52 @@
     "README.md"
   ],
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.0",
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
-    "@spin/animation": "workspace:*",
-    "@spin/preset": "workspace:*",
-    "@spin/theme": "workspace:*",
     "@unocss/core": "66.10.5",
-    "@unocss/preset-attributify": "^66.10.5",
-    "@unocss/preset-icons": "^66.10.5",
-    "@unocss/preset-tagify": "66.10.5",
     "@unocss/preset-wind4": "66.10.5",
     "@unocss/transformer-directives": "66.10.5",
     "@unocss/transformer-variant-group": "66.10.5",
-    "magic-string": "^1.4.1",
     "unplugin": "^3.4.0",
-    "valibot": "^1.0.0"
+    "valibot": "^1.0.0",
+    "@spinjs/runtime": "workspace:*"
   },
   "peerDependencies": {
-    "@spin/animation": "workspace:*",
-    "@spin/theme": "workspace:*"
+    "@spinjs/animation": "workspace:*",
+    "@spinjs/theme": "workspace:*"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@unocss/preset-attributify": "66.10.5",
+    "@unocss/preset-icons": "66.10.5",
+    "@unocss/preset-tagify": "66.10.5",
+    "magic-string": "^1.4.1"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./plugin": {
+        "types": "./dist/plugin.d.ts",
+        "default": "./dist/plugin.js"
+      },
+      "./config": {
+        "types": "./dist/config.d.ts",
+        "default": "./dist/config.js"
+      },
+      "./elements": {
+        "types": "./dist/elements.d.ts",
+        "default": "./dist/elements.js"
+      },
+      "./compile": {
+        "types": "./dist/compile.d.ts",
+        "default": "./dist/compile.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/ tests/",

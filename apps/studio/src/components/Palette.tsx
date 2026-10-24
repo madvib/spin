@@ -40,7 +40,7 @@
  */
 
 import { createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { toHex } from "@spin/theme";
+import { toHex } from "@spinjs/theme";
 import type { Chip } from "../lib/overview.ts";
 
 export default function Palette(props: {

@@ -41,8 +41,8 @@ import {
   FACE_CHAINS,
   resolveAliases,
   treeInMode,
-} from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
+} from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import { analyzeTheme } from "../lib/theme.ts";
 import { activeMode, themeText } from "../lib/store.ts";
 import { groupTokens, type TokenRow, toPx } from "../lib/tokens.ts";

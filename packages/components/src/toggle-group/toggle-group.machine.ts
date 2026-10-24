@@ -1,6 +1,6 @@
 /** Toggle-group machine: idle/focused over two states. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   ToggleGroupArgs,
   ToggleGroupContext,

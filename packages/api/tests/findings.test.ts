@@ -13,9 +13,9 @@ import { test } from "bun:test";
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { createSpinClient, setProjectRoot } from "@spin/api";
+import { createSpinClient, setProjectRoot } from "@spinjs/api";
 import { RPCHandler } from "@orpc/server/fetch";
-import { router } from "@spin/api";
+import { router } from "@spinjs/api";
 
 /** The daemon, served on an ephemeral port, over a project. */
 function serve(root: string) {
@@ -51,7 +51,7 @@ async function project(): Promise<string> {
   );
   await writeFile(
     `${root}/vite.config.ts`,
-    `import { spin } from "@spin/preset";
+    `import { spin } from "@spinjs/preset";
 
 export default {
   plugins: [

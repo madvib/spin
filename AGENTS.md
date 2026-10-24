@@ -19,9 +19,9 @@ to build from, and oracles that mechanically verify the result.
 
 ## Conventions
 
-- **Deno workspace.** Library packages stay zero-install (URL imports or the
+- **Bun workspace.** Library packages stay zero-install (URL imports or the
   `@spin/*` workspace names; `npm:` specifiers where an npm dep is needed). Apps
-  run under Deno too and may use `node_modules` via Deno's npm support.
+  run under Bun too and may use `node_modules` via Bun's npm support.
 - **TypeScript only.** Strict mode, built-in types, no ambient declaration
   files.
 - **Tests first (TDD).** Write the failing test, then the implementation. A
@@ -86,6 +86,9 @@ where history lives.
 | `@spin/preset`      | UnoCSS preset: the utility vocabulary a theme spends, and the element library as rules.                |
 | `@spin/project`     | The project: where it is, what it holds, and the operations over its files.                            |
 | `@spin/diagnostics` | The diagnostics: the lints, the rendered checks, and the service over them.                            |
+| `@spin/runtime`     | The component runtime: signals, bridges, the syntax the components compile from, and the directives.   |
+| `@spin/components`  | The machine components: headless statecharts with typed bridges, examples, and RPC procedures.          |
+| `@spin/hooks`       | Framework bindings for spin components: Solid and React.                                               |
 | `@spin/api`         | The daemon: the procedures, over RPC, that the studio and the MCP server share.                        |
 | `@spin/mcp`         | The MCP server over those procedures, for agents.                                                      |
 | `@spin/kit`         | Shared Solid pieces: the theme state and the theme picker.                                             |
@@ -99,7 +102,7 @@ being matched.
 
 What the old `.css` + manifest package did is still here, in the shape the rules
 can carry it: each element's contract with the theme is written down in
-`packages/preset/src/rules/primitives/manifest.ts`, and `deno task codegen` in
+`packages/preset/src/rules/primitives/manifest.ts`, and `bun run codegen` in
 the preset derives that manifest by probing the rules themselves, so the
 manifest cannot disagree with the code that produces it. The lint plugin and the
 docs site read that manifest; nothing maintains a second list.

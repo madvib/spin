@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   type AncestorFacts,
   checkNoRedundantClass,

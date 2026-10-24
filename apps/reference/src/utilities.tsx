@@ -10,11 +10,11 @@ import {
   type Section,
   SECTIONS,
   utilitiesFor,
-} from "@spin/preset";
-import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
-import { inkTokens, LOOP_STEP } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+} from "@spinjs/preset";
+import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { inkTokens, LOOP_STEP } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.

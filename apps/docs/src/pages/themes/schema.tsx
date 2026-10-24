@@ -9,7 +9,7 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { starterGroups } from "@spin/theme/themes";
+import { starterGroups } from "@spinjs/theme/themes";
 import { Chip, Code, Section } from "../../bits.tsx";
 import {
   elementGroups,

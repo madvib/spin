@@ -2,7 +2,6 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import { spin } from "../../packages/preset/src/plugin.ts";
 import carbon from "@iconify-json/carbon/icons.json" with { type: "json" };
@@ -82,17 +81,17 @@ export default defineConfig(({ command }) => ({
     // The alias is the studio's own, not the preset's: a consumer of the
     // preset must never be handed this file.
     alias: {
-      "@spin/diagnostics": resolve(
+      "@spinjs/diagnostics": resolve(
         import.meta.dirname,
         "src/lib/diagnostics-stub.ts",
       ),
     },
   },
   plugins: [
-    spinElements({
-      machines: resolve(import.meta.dirname, "../../packages/components/src"),
-    }),
     spin.vite({
+      elements: {
+        machines: resolve(import.meta.dirname, "../../packages/components/src"),
+      },
       // The chrome is themed by the studio's own static theme. Project
       // themes are injected at runtime by the preview surface, so editing one
       // cannot restyle the tool doing the editing.

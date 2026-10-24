@@ -17,7 +17,7 @@ import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { walk } from "@std/fs/walk";
 import { spinPreset } from "../src/index.ts";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 const SOURCES = ["../../apps/studio/src", "../../apps/reference/src"];
 
 /** Class names the studio's injected stylesheet defines — read, not listed. */

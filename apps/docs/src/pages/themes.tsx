@@ -9,7 +9,7 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { mode } from "@spin/kit";
+import { mode } from "@spinjs/kit";
 import { Chip, Code, Probe, Section } from "../bits.tsx";
 import { Markdown } from "../markdown.tsx";
 import { ROLES, TYPES } from "../theme-docs.ts";

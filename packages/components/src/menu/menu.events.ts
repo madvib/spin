@@ -1,5 +1,5 @@
 import type { MenuEntry } from "./menu.state.ts";
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 
 export interface MenuEvents {
   "OPEN": {};

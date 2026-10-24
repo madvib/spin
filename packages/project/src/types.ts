@@ -36,7 +36,7 @@ export interface ProjectTheme {
    * Path within the project, shown so the author knows what they edit.
    *
    * `null` for a shipped starter the project has not forked: the theme comes
-   * from `@spin/theme`, and a save writes `spin/<name>.json` to fork it.
+   * from `@spinjs/theme`, and a save writes `spin/<name>.json` to fork it.
    */
   readonly file: string | null;
 }

@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spin/runtime/fsm";
+import type { AssignFor } from "@spinjs/runtime/fsm";
 import type { SignaturePadEvents } from "./signature-pad.events.ts";
 import type { SignaturePadContext } from "./signature-pad.state.ts";
 import { pathsOf, strokePath } from "./signature-pad.state.ts";

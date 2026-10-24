@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { ImageCropperContext } from "./image-cropper.state.ts";
 import type { ImageCropperEvents } from "./image-cropper.events.ts";
 // re-export types for convenience

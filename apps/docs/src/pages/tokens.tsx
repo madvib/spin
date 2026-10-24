@@ -9,8 +9,8 @@
  */
 import { createMemo, For } from "solid-js";
 import type { JSX } from "solid-js";
-import { starterThemes } from "@spin/theme/themes";
-import { mode, starterList, theme } from "@spin/kit";
+import { starterThemes } from "@spinjs/theme/themes";
+import { mode, starterList, theme } from "@spinjs/kit";
 import { Chip, Probe, Section, starterDoc } from "../bits.tsx";
 
 type Cell = Record<string, unknown>;

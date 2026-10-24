@@ -152,7 +152,7 @@ test("a theme created from the studio lands on disk, in the registry, and seated
       );
       const starter = await cardText(page, "silk");
       assert(
-        starter.includes("@spin/theme"),
+        starter.includes("@spinjs/theme"),
         `the card does not name the starter's home: ${starter}`,
       );
     } finally {

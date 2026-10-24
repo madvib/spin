@@ -12,8 +12,8 @@ import {
   type ScopeFor,
   sliderThumb,
   type SlotScopeFor,
-} from "@spin/runtime";
-import type { DragDelta, DragPress } from "@spin/runtime/actions";
+} from "@spinjs/runtime";
+import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { imageCropper as imageCropperMachine } from "./image-cropper.machine.ts";
 import {
   type CropHandle,

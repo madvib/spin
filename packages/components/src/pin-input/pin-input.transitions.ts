@@ -1,7 +1,7 @@
 import type { PinInputContext } from "./pin-input.state.ts";
 import { pinView } from "./pin-input.state.ts";
 import type { PinInputEvents } from "./pin-input.events.ts";
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 
 type PinInputEvent = EventUnion<PinInputEvents>;
 

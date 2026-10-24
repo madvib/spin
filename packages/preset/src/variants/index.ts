@@ -43,11 +43,11 @@ export function variantPrefixes(): string[] {
  * the first document states the edges the whole sheet uses.
  */
 export function breakpointEdges(
-  trees: readonly import("@spin/theme").TokenTree[],
+  trees: readonly import("@spinjs/theme").TokenTree[],
 ): Record<string, string> {
   const out: Record<string, string> = {};
   for (const tree of trees) {
-    const walk = (node: import("@spin/theme").TokenNode): void => {
+    const walk = (node: import("@spinjs/theme").TokenNode): void => {
       if (node.kind === "group") {
         for (const child of node.children) walk(child);
         return;

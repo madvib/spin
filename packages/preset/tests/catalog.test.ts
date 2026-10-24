@@ -3,7 +3,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../src/index.ts";
-import { parseTokens } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
 import { claims } from "../src/utils/claimed.ts";
 
 /**

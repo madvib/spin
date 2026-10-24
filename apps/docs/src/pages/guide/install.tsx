@@ -7,18 +7,18 @@ import { Code, Section } from "../../bits.tsx";
 
 const ADD = `{
   // deno.json / package.json — the packages
-  "@spin/theme":    "npm:@spin/theme",
-  "@spin/preset":   "npm:@spin/preset"
+  "@spinjs/theme":    "npm:@spinjs/theme",
+  "@spinjs/preset":   "npm:@spinjs/preset"
 }`;
 
-const WIRE = `import { spin } from "@spin/preset/plugin";
+const WIRE = `import { spin } from "@spinjs/preset/plugin";
 
 export default {
   plugins: [spin.vite()],
 }`;
 
-const WIRE_THEMES = `import { spin } from "@spin/preset/plugin";
-import { starterThemes } from "@spin/theme/themes";
+const WIRE_THEMES = `import { spin } from "@spinjs/preset/plugin";
+import { starterThemes } from "@spinjs/theme/themes";
 import myTheme from "./theme.json" with { type: "json" };
 
 export default {
@@ -31,8 +31,8 @@ export default {
 };`;
 
 const WIRE_STUDIO = `import { resolve } from "node:path";
-import { spin } from "@spin/preset/plugin";
-import { mountSpinApp } from "@spin/api";
+import { spin } from "@spinjs/preset/plugin";
+import { mountSpinApp } from "@spinjs/api";
 
 export default {
   plugins: [spin.vite({
@@ -54,33 +54,33 @@ import "uno.css";`;
 const DECLARE_CSS = `// uno.d.ts — for TypeScript, the virtual module's shape.
 declare module "uno.css";`;
 
-const ROLLUP = `import { spin } from "@spin/preset/plugin";
+const ROLLUP = `import { spin } from "@spinjs/preset/plugin";
 
 export default {
   plugins: [spin.rollup()],
 };`;
 
-const RSPACK = `import { spin } from "@spin/preset/plugin";
+const RSPACK = `import { spin } from "@spinjs/preset/plugin";
 
 export default {
   plugins: [spin.rspack()],
 };`;
 
-const WEBPACK = `const { spin } = require("@spin/preset/plugin");
+const WEBPACK = `const { spin } = require("@spinjs/preset/plugin");
 
 module.exports = {
   plugins: [spin.webpack()],
 };`;
 
 const GET = [
-  ["@spin/preset", "the Uno preset — theme utilities + primitive classes"],
+  ["@spinjs/preset", "the Uno preset — theme utilities + primitive classes"],
   [
-    "@spin/theme/themes",
+    "@spinjs/theme/themes",
     "the starter themes — imports that carry validated documents",
   ],
-  ["@spin/api", "mountSpinApp() — the theme studio, served in dev"],
+  ["@spinjs/api", "mountSpinApp() — the theme studio, served in dev"],
   [
-    "@spin/diagnostics",
+    "@spinjs/diagnostics",
     "the oxlint plugin — authored markup checked, in CI",
   ],
 ];

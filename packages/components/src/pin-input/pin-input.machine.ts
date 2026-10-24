@@ -1,6 +1,6 @@
 /** Pin-input machine: chart only. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   PinInputArgs,
   PinInputContext,

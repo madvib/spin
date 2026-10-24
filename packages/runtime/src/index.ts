@@ -161,26 +161,7 @@ export {
 export { bindFor, type BindForOptions, type RenderedItem } from "./directives/for.ts";
 export { bindIf, type BindIfOptions, type BranchRender } from "./directives/if.ts";
 export { text, tpl, view, type ReactiveText, type Rendered } from "./directives/tpl.ts";
-export { coerceProps, extractScript, parse, parseScope, stripScript } from "@spin/syntax";
-export { formatExampleHtml, tokenizeHtml, type CodeToken, type CodeTokenType } from "@spin/syntax";
-export { expandVariantGroups } from "@spin/syntax";
-export type {
-  ActionUse,
-  Attr,
-  AttrValue,
-  ComponentIr,
-  Diagnostic,
-  ElementNode,
-  EventBinding,
-  ForNode,
-  Node,
-  PropDecl,
-  ScopeBlock,
-  ScopePropType,
-  SpreadUse,
-  TextNode,
-} from "@spin/syntax";
-export { ParseError } from "@spin/syntax";
+export * from "./syntax/index.ts";
 
 /**
  * The ARIA vocabulary: the attribute sets a part states.

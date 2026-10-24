@@ -14,7 +14,7 @@ import {
   resolveTwins,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { carousel as carouselMachine } from "./carousel.machine.ts";
 import {
   type CarouselArgs,

@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
+import { parseHTML } from "@spinjs/runtime/testing";
 import { drag, type DragDelta, type DragPress } from "./drag.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<string, unknown>;

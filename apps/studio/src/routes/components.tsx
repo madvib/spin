@@ -1,8 +1,8 @@
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spin/components";
-import { primitiveCategories, primitiveElements } from "@spin/preset";
+import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
+import { primitiveCategories, primitiveElements } from "@spinjs/preset";
 import { library } from "../lib/store.ts";
 import { inDrawer } from "../lib/host.ts";
 

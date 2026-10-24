@@ -1,6 +1,6 @@
 /** Navigation-menu machine: the closed and open modes. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import {
   initial,
   type NavigationMenuArgs,

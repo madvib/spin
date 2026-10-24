@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
-import { parseTokens, treeToJson } from "@spin/theme";
+import { parseTokens, treeToJson } from "@spinjs/theme";
 import { scaffold, spinPreset } from "../src/index.ts";
 import { GRID_DECLS, STATIC_DECLS } from "../src/utils/declarations.ts";
 import { wind4Layers } from "../src/wind4.ts";

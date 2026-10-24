@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { primitiveComponents } from "@spin/preset";
+import { primitiveComponents } from "@spinjs/preset";
 import { componentExamples } from "../src/rules/primitives/examples-index.ts";
 import { listedComponents } from "../src/primitives-procedures.ts";
 

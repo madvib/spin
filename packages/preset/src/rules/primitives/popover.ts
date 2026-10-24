@@ -23,10 +23,10 @@ import { claim, type Mode } from "./shared.ts";
  *   pinned to its trigger uses CSS anchor positioning, which is a placement
  *   decision and not this component's.
  *
- *   The entrance. `dialog-in` and `backdrop-in` from `@spin/animation` are
+ *   The entrance. `dialog-in` and `backdrop-in` from `@spinjs/animation` are
  *   exactly a panel arriving and a scrim fading — no new keyframes are
  *   declared here, because keyframes are the one global namespace in CSS and
- *   `@spin/animation` is its single owner.
+ *   `@spinjs/animation` is its single owner.
  *
  *   The exit. A popover leaving the top layer skips a transition unless the
  *   discrete `display`/`overlay` properties are allowed to transition, so

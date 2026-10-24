@@ -9,17 +9,17 @@
  */
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { parseTokens } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { parseTokens } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   describeCatalog,
   SECTIONS,
   spinShortcuts,
   utilitiesFor,
-} from "@spin/preset";
-import { animationContract } from "@spin/animation";
-import { mode, starterList, theme } from "@spin/kit";
+} from "@spinjs/preset";
+import { animationContract } from "@spinjs/animation";
+import { mode, starterList, theme } from "@spinjs/kit";
 import { Chip, Probe, Section, starterDoc } from "../bits.tsx";
 
 type Cell = Record<string, unknown>;
@@ -229,7 +229,7 @@ export default function Utilities(): JSX.Element {
         <p>
           The shipped shortcuts compose utilities under one name; the{" "}
           <code>animate-*</code> utilities come from{" "}
-          <code>@spin/animation</code> and spend the theme's motion tokens.
+          <code>@spinjs/animation</code> and spend the theme's motion tokens.
         </p>
         <div class="mt-3 flex flex-wrap gap-1">
           <For

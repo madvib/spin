@@ -11,7 +11,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { datePicker as datePickerMachine } from "./date-picker.machine.ts";
 import {
   type DatePickerArgs,

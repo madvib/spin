@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { DateInputEvents } from "./date-input.events.ts";
 import type { DateInputContext, DateInputField } from "./date-input.state.ts";
 import { clampField } from "./date-input.state.ts";

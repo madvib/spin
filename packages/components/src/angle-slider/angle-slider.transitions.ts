@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spin/runtime/fsm";
+import type { AssignFor } from "@spinjs/runtime/fsm";
 import type { AngleSliderEvents } from "./angle-slider.events.ts";
 import type { AngleSliderContext } from "./angle-slider.state.ts";
 import {

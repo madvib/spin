@@ -4,7 +4,7 @@ import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
 import { CONTROL_FIELDS } from "../src/rules/primitives/field.ts";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /**
  * The layout contract: a row that fits, a cell that does not break, a table

@@ -14,7 +14,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { rpcHandler } from "../src/index.ts";
 import { setProjectRoot } from "../src/project-procedures.ts";
-import { clearOverlay } from "@spin/preset";
+import { clearOverlay } from "@spinjs/preset";
 
 function clientFor<T>(procedure: string, input?: unknown): Promise<T> {
   return rpcHandler.handle(

@@ -10,10 +10,11 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Daemon, startDaemon } from "@spin/api/daemon";
-import { createSpinClient, type SpinClient } from "@spin/api";
-import { scaffoldTheme, setToken, treeToJson } from "@spin/theme";
-import { Client, InMemoryTransport } from "../src/sdk.ts";
+import { type Daemon, startDaemon } from "@spinjs/api/daemon";
+import { createSpinClient, type SpinClient } from "@spinjs/api";
+import { scaffoldTheme, setToken, treeToJson } from "@spinjs/theme";
+import { Client } from "@modelcontextprotocol/client";
+import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { buildSpinMcpServer } from "../src/server.ts";
 
 /**
@@ -491,6 +492,28 @@ describe("the spin MCP server", () => {
     assert(
       css.includes("--color-primary"),
       `the sheet carries the theme's variables: ${css.slice(0, 200)}`,
+    );
+  });
+
+  it("lists lint findings over the project's source", async () => {
+    mkdirSync(join(dir, "src"), { recursive: true });
+    writeFileSync(
+      join(dir, "src", "App.tsx"),
+      `<div class="not-a-spin-class">Hi</div>\n`,
+    );
+    const result = await mcp.callTool({
+      name: "findings",
+      arguments: { action: "list" },
+    });
+    deepStrictEqual(result.isError, undefined);
+    const report = jsonOf(result) as {
+      files: number;
+      groups: Array<{ ruleId: string; findings: Array<{ path: string }> }>;
+    };
+    assert(report.files >= 1, `a source file was scanned: ${textOf(result)}`);
+    assert(
+      report.groups.some((group) => group.ruleId === "spin/closed-vocabulary"),
+      `closed-vocabulary reported: ${textOf(result)}`,
     );
   });
 

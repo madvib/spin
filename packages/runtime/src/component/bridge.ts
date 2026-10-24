@@ -26,7 +26,7 @@ import {
   type Signal,
   signal,
   untrack,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { resolveTwins } from "../props.ts";
 import {
   type EventMap,
@@ -35,7 +35,7 @@ import {
   interpret,
   type Machine,
   type Service,
-} from "@spin/runtime/fsm";
+} from "@spinjs/runtime/fsm";
 
 export interface BridgeService<
   C,

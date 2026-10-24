@@ -1,4 +1,4 @@
-import { defaultTwin, isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spinjs/runtime";
 
 export type TourState = "inactive" | "resolving" | "scrolling" | "active";
 

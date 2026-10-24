@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 import type { DrawingTuning, SignaturePoint } from "./signature-pad.state.ts";
 
 export interface SignaturePadEvents {

@@ -1,5 +1,5 @@
 /**
- * @spin/api — the studio's own surface: the stylesheet it previews with.
+ * @spinjs/api — the studio's own surface: the stylesheet it previews with.
  *
  * The preview needs TWO things no single contract provides: a theme's
  * variables, and the utility declarations the demos in the preview actually
@@ -16,14 +16,14 @@
 import { oc } from "@orpc/contract";
 import { implement } from "@orpc/server";
 import * as v from "valibot";
-import { parseTokens } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
 import {
   claimedElements,
   describeCatalog,
   primitiveVariants,
   spinPreset,
-} from "@spin/preset";
-import type { ThemeDocument } from "@spin/theme";
+} from "@spinjs/preset";
+import type { ThemeDocument } from "@spinjs/theme";
 import { createGenerator } from "@unocss/core";
 
 const PreviewInput = v.object({

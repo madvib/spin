@@ -2,7 +2,7 @@
  * File-upload machine: the dropzone's modes and the accept/reject split.
  */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   FileUploadArgs,
   FileUploadContext,

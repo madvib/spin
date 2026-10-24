@@ -6,8 +6,8 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { cssVarName, ELEMENT_ROLES } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { cssVarName, ELEMENT_ROLES } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { spinPreset } from "../src/index.ts";
 import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
 
@@ -16,7 +16,7 @@ import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
  * primitive SPENDS the group's tokens, and a theme that omits one gets the
  * shared scale's answer rather than the platform's.
  *
- * The composition lives here rather than in `@spin/theme`, which cannot see
+ * The composition lives here rather than in `@spinjs/theme`, which cannot see
  * the primitives at all: a group is spent by a rule, and the rule is here.
  */
 

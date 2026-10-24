@@ -27,7 +27,7 @@ async function withConfig(name: string, text: string): Promise<string> {
 }
 
 const CONFIG = `import { defineConfig } from "unocss";
-import { spin } from "@spin/config";
+import { spin } from "@spinjs/config";
 
 export default defineConfig({
   presets: [spin()],

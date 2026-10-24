@@ -5,7 +5,7 @@ import {
   getValueRanges,
   round10,
   snapValueToStep,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 
 export type SliderState = "idle" | "focus" | "dragging";
 export type ThumbCollisionBehavior = "none" | "push" | "swap";

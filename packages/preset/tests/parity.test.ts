@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { spin } from "../src/plugin.ts";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 

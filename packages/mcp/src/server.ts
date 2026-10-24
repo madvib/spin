@@ -10,7 +10,7 @@
  * MCP's framing.
  *
  * The surface is one tool per noun an agent acts on, with `action` naming the
- * verb where a noun has more than one — eight tools rather than a tool per
+ * verb where a noun has more than one — nine tools rather than a tool per
  * procedure. The read-only documents are resources as well
  * (`spin://project`, `spin://themes/{name}`), so a client that renders
  * resources can look without calling a tool.
@@ -20,9 +20,9 @@
  */
 
 import { z } from "zod";
-import type { SpinClient } from "@spin/api";
-import { MODES, TOKEN_TYPES } from "@spin/theme";
-import { McpServer, ResourceTemplate } from "./sdk.ts";
+import type { SpinClient } from "@spinjs/api";
+import { MODES, TOKEN_TYPES } from "@spinjs/theme";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 
 /** What every tool answers with: text content, and whether it failed. */
 interface ToolResult {
@@ -614,7 +614,96 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     },
   );
 
-  // Read-only documents, for clients that render resources.
+  // Diagnostics and corpus findings: what the lints say about the project's source.
+
+  server.registerTool(
+    "findings",
+    {
+      title: "Findings",
+      description:
+        "Run the project's lints and corpus analysis over its source files: list all lint findings grouped by rule, apply one finding's quick-fix edit to disk, inspect repeated class compositions and class-order drift across the corpus, rewrite a file's class lists in canonical order, or declare a reusable shortcut in the project's config.",
+      inputSchema: {
+        action: z
+          .enum(["list", "fix", "corpus", "order", "shortcut"])
+          .describe("What to do."),
+        file: z
+          .string()
+          .optional()
+          .describe("fix and order: project-relative file path."),
+        ruleId: z
+          .string()
+          .optional()
+          .describe("fix: rule identifier, e.g. 'spin/no-redundant-class'."),
+        line: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("fix: 1-based line number of the finding."),
+        column: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("fix: 1-based column number of the finding."),
+        name: z
+          .string()
+          .optional()
+          .describe("shortcut: class name to declare, e.g. 'stack'."),
+        classes: z
+          .string()
+          .optional()
+          .describe("shortcut: class list the shortcut expands to."),
+      },
+    },
+    async ({ action, file, ruleId, line, column, name, classes }) => {
+      switch (action) {
+        case "list":
+          return json(await client.findings.list({}));
+        case "corpus":
+          return json(await client.findings.corpus({}));
+        case "fix": {
+          if (
+            file === undefined ||
+            ruleId === undefined ||
+            line === undefined ||
+            column === undefined
+          ) {
+            return failed(
+              "fix requires file, ruleId, line, and column",
+            );
+          }
+          const res = await client.findings.fix({
+            file,
+            ruleId,
+            line,
+            column,
+          });
+          if (res.error !== null) return failed(res.error);
+          return json(res);
+        }
+        case "order": {
+          if (file === undefined) {
+            return failed("order requires a file path");
+          }
+          const res = await client.findings.order({ file });
+          if (res.error !== null) return failed(res.error);
+          return json(res);
+        }
+        case "shortcut": {
+          if (name === undefined || classes === undefined) {
+            return failed("shortcut requires name and classes");
+          }
+          const res = await client.findings.shortcut({
+            name,
+            classes: classes.split(/\s+/).filter((c) => c.length > 0),
+          });
+          if (res.error !== null) return failed(res.error);
+          return json(res);
+        }
+      }
+    },
+  );
 
   server.registerResource(
     "project",

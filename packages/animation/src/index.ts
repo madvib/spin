@@ -1,5 +1,5 @@
 /**
- * @spin/animation — keyframes and the utilities that name them.
+ * @spinjs/animation — keyframes and the utilities that name them.
  *
  * A separate concern from primitives because motion is the one global
  * namespace in CSS. `@keyframes` cannot be scoped or tree-shaken, so every
@@ -13,7 +13,7 @@
  * component that references a keyframe must never be shipped without it.
  */
 
-import type { PreflightProvider } from "@spin/theme/base";
+import type { PreflightProvider } from "@spinjs/theme/base";
 import { type AnimationContract, animationContract } from "./manifest.ts";
 import { animationCss } from "./styles.ts";
 

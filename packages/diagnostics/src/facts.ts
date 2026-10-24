@@ -20,16 +20,16 @@ import {
   indexTree,
   parseTokens,
   resolveAliases,
-} from "@spin/theme";
-import type { ThemeDocument, TokenTree } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+} from "@spinjs/theme";
+import type { ThemeDocument, TokenTree } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   describeCatalog,
   primitiveContracts,
   primitiveVariants,
   spinShortcuts,
-} from "@spin/preset";
-import { animationVariants } from "@spin/animation";
+} from "@spinjs/preset";
+import { animationVariants } from "@spinjs/animation";
 import type { Facts, ScopeFact } from "./core.ts";
 import { generatedClasses } from "./generated.ts";
 import { paintKeyFor, type Tier, TIER_BY_GROUP } from "./tiers.ts";

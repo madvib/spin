@@ -10,7 +10,7 @@
  * preview CSS, and validation all stay on the server side of this file.
  */
 
-import { createSpinClient, type SpinClient } from "@spin/api/client";
+import { createSpinClient, type SpinClient } from "@spinjs/api/client";
 
 /**
  * The host app the studio was pointed at, read once.

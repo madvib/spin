@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spin/runtime/fsm";
+import type { AssignFor } from "@spinjs/runtime/fsm";
 import { parseValues } from "./toggle-group.state.ts";
 import type { ToggleGroupEvents } from "./toggle-group.events.ts";
 import type { ToggleGroupContext } from "./toggle-group.state.ts";

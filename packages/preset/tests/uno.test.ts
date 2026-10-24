@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseTokens } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
-import { toUnoTheme } from "@spin/preset";
+import { parseTokens } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { toUnoTheme } from "@spinjs/preset";
 
 function treeOf(doc: unknown): TokenTree {
   const parsed = parseTokens(doc);

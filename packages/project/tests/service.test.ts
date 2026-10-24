@@ -43,7 +43,7 @@ test("a root with themes and a wired config is a spin project", async () => {
   await writeFile(join(dir, "spin", "acme.json"), "{}", "utf8");
   await writeFile(
     join(dir, "uno.config.ts"),
-    'import { spin } from "@spin/config";',
+    'import { spin } from "@spinjs/config";',
     "utf8",
   );
 

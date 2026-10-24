@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { CascadeEvents } from "./cascade.events.ts";
 import type { CascadeContext } from "./cascade.state.ts";
 import { parsePath, parsePaths } from "./cascade.state.ts";

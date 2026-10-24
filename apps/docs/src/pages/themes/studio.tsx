@@ -11,8 +11,8 @@ import { Markdown } from "../../markdown.tsx";
 import studioMd from "../../content/studio.md?raw";
 
 const WIRE_STUDIO = `import { resolve } from "node:path";
-import { spin } from "@spin/preset/plugin";
-import { mountSpinApp } from "@spin/api";
+import { spin } from "@spinjs/preset/plugin";
+import { mountSpinApp } from "@spinjs/api";
 
 export default {
   plugins: [spin.vite({

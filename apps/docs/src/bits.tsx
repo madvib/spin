@@ -10,9 +10,9 @@
  */
 import type { JSX } from "solid-js";
 import { createSignal, onCleanup, onMount } from "solid-js";
-import { starterThemes } from "@spin/theme/themes";
-import { mode, theme } from "@spin/kit";
-import { CodeBlock, Section as SharedSection } from "@spin/kit";
+import { starterThemes } from "@spinjs/theme/themes";
+import { mode, theme } from "@spinjs/kit";
+import { CodeBlock, Section as SharedSection } from "@spinjs/kit";
 
 /**
  * Scroll-in for the blocks below the fold: a plain opacity fade, skipped

@@ -13,7 +13,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { cascade as cascadeMachine } from "./cascade.machine.ts";
 import {
   type CascadeArgs,

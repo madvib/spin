@@ -3,7 +3,7 @@ import {
   type Machine,
   type MachineSpec,
   type Service,
-} from "@spin/runtime/fsm";
+} from "@spinjs/runtime/fsm";
 import type {
   MenuArgs,
   MenuBlock,

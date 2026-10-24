@@ -1,5 +1,5 @@
 {
-  "name": "@spin/project",
+  "name": "@spinjs/project",
   "version": "0.1.0",
   "description": "The project: where it is, what it holds, what it declares.",
   "type": "module",
@@ -23,18 +23,23 @@
     "dist",
     "README.md"
   ],
-  "dependencies": {
-    "@spin/preset": "workspace:*",
-    "@spin/project": "workspace:*",
-    "@spin/theme": "workspace:*"
-  },
   "peerDependencies": {
-    "@spin/preset": "workspace:*",
-    "@spin/theme": "workspace:*"
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/theme": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./sync": {
+        "types": "./dist/sync.d.ts",
+        "default": "./dist/sync.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/ tests/",

@@ -4,7 +4,7 @@
  * into view, then shows its spotlight.
  */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type { TourArgs, TourContext, TourState } from "./tour.state.ts";
 import { initial } from "./tour.state.ts";
 import type { TourEvents } from "./tour.events.ts";

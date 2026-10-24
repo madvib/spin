@@ -8,7 +8,7 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import { formatHex, indexTree, parseColor } from "@spin/theme";
+import { formatHex, indexTree, parseColor } from "@spinjs/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
 import {

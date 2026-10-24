@@ -1,4 +1,4 @@
-import { coerceJsonArray, defaultTwin, isRecord } from "@spin/runtime";
+import { coerceJsonArray, defaultTwin, isRecord } from "@spinjs/runtime";
 
 export type FileUploadState = "idle" | "focused" | "dragging";
 

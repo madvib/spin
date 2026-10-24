@@ -43,7 +43,7 @@ const UNO_CONFIGS: readonly string[] = [
  * from here and a read falls back to it.
  */
 async function shippedThemes(): Promise<Record<string, unknown>> {
-  const { starterThemes } = await import("@spin/theme/themes");
+  const { starterThemes } = await import("@spinjs/theme/themes");
   return starterThemes as Record<string, unknown>;
 }
 

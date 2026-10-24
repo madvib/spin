@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spin/runtime";
+import { defaultTwin } from "@spinjs/runtime";
 
 export interface ToggleGroupItem {
   readonly value: string;

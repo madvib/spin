@@ -11,7 +11,7 @@
  * The framework synthesizes the bridge and the connect from this; no
  * hand-written `getXProps()` exists for any component. */
 
-import type { EventMap, EventUnion, Machine } from "@spin/runtime/fsm";
+import type { EventMap, EventUnion, Machine } from "@spinjs/runtime/fsm";
 
 export interface ParseHost {
   /** The element root: behavioral host props (sanitize, validate,

@@ -8,8 +8,8 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { spinShortcuts } from "@spin/preset";
-import { animationContract } from "@spin/animation";
+import { spinShortcuts } from "@spinjs/preset";
+import { animationContract } from "@spinjs/animation";
 import { Chip, Code, Section } from "../../bits.tsx";
 import { Markdown } from "../../markdown.tsx";
 import cssMd from "../../content/css-edges.md?raw";
@@ -64,7 +64,7 @@ export default function Css(): JSX.Element {
       <Section id="animation" title="Global animation utilities, live">
         <p>
           Every <code>animate-*</code> utility from{" "}
-          <code>@spin/animation</code>, and the motion tokens each one spends.
+          <code>@spinjs/animation</code>, and the motion tokens each one spends.
           Add a keyframe anywhere else and it silently wins over — or loses to —
           this file's, which is why the namespace has one home.
         </p>

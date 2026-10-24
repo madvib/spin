@@ -9,8 +9,8 @@ import {
   resolveAliases,
   validateLegibility,
   validateTokens,
-} from "@spin/theme";
-import type { TokenLeaf, TokenNode, TokenTree } from "@spin/theme";
+} from "@spinjs/theme";
+import type { TokenLeaf, TokenNode, TokenTree } from "@spinjs/theme";
 
 /**
  * The spin theme, held to its own brief.

@@ -56,9 +56,9 @@ import type {
   VariantObject,
 } from "@unocss/core";
 import { symbols, toArray } from "@unocss/core";
-import { parseTokens, themeKey } from "@spin/theme";
-import type { ThemeRef } from "@spin/theme";
-import { silkTheme } from "@spin/theme/themes";
+import { parseTokens, themeKey } from "@spinjs/theme";
+import type { ThemeRef } from "@spinjs/theme";
+import { silkTheme } from "@spinjs/theme/themes";
 import {
   rules as wind4Rules,
   variants as wind4Variants,

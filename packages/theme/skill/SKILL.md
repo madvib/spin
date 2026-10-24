@@ -429,6 +429,10 @@ a sticker on it.
 **Lazy.** The browser's default underline, which is thicker than the theme's
 rules and in a colour the theme never chose.
 
+### gradient
+
+**For.** The contract knows this group; nothing here says what it is for yet.
+
 ## Filling the document
 
 The shape of a token:
@@ -567,15 +571,13 @@ What the battery adds to the two gates above:
 Run it against the document you just wrote — a project theme, not a starter:
 
 ```sh
-deno eval --ext=ts "
+bun -e "
+import { readFile } from 'node:fs/promises';
 import { themeGates } from '@spin/theme';
-const text = await Deno.readTextFile('spin/<name>.json');
+const text = await readFile('spin/<name>.json', 'utf8');
 const report = themeGates(text);
-for (const gate of report.gates) {
-  for (const issue of gate.issues) {
-    console.log(gate.gate + ': ' + issue.path + ' — ' + issue.message);
-  }
-}
+console.log(JSON.stringify(report, null, 2));
+if (!report.ok) process.exit(1);
 "
 ```
 
@@ -587,8 +589,8 @@ app to be running, and it runs the app's own configuration — in this repositor
 the reference app's:
 
 ```sh
-deno task serve                                 # the reference app, on http://localhost:5173
-deno task visual -- --url http://localhost:5173 # the check harness, over every route
+bun run serve                                # the reference app, on http://localhost:5173
+bun run visual --url http://localhost:5173   # the check harness, over every route
 ```
 
 The `--url` is the app under test, and it is worth naming: the harness measures

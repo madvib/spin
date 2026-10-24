@@ -1,13 +1,13 @@
 /**
- * @spin/api — the project contract: the wire shape of a project's facts.
+ * @spinjs/api — the project contract: the wire shape of a project's facts.
  *
  * The contract is the transport's business, and it stays here: it says what
  * a call looks like over the wire, and nothing else. The OPERATIONS over a
- * project live in `@spin/project` — the module that owns where a project's
+ * project live in `@spinjs/project` — the module that owns where a project's
  * files are, what a theme document is, and what a configuration declares.
  *
  * The two are separated because they answer different questions. This file
- * says what a caller may ask; `@spin/project` says what the answer is. The
+ * says what a caller may ask; `@spinjs/project` says what the answer is. The
  * daemon mounts the one on the other and adds the transport.
  */
 
@@ -30,7 +30,7 @@ const ProjectTheme = v.object({
    * Path within the project, shown so the author knows what they edit.
    *
    * `null` for a shipped starter the project has not forked: the theme comes
-   * from `@spin/theme`, and a save writes `spin/<name>.json` to fork it.
+   * from `@spinjs/theme`, and a save writes `spin/<name>.json` to fork it.
    */
   file: v.nullable(v.string()),
 });

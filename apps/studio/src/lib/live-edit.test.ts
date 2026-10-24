@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { scaffoldTheme, treeToJson } from "@spin/theme";
+import { scaffoldTheme, treeToJson } from "@spinjs/theme";
 import { measure, quantize, sliderRange } from "./scale.ts";
 import {
   declaredValue,

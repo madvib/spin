@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { starterThemes } from "@spin/theme/themes";
-import type { ThemeDocument } from "@spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
+import type { ThemeDocument } from "@spinjs/theme";
 import { projectThemes } from "./plugin.ts";
 
 /** A file a project wrote. The merge does not read it; it only has to win. */

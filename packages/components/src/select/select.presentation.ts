@@ -12,7 +12,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { dataAttr } from "./select.shared.ts";
 import { select as selectMachine } from "./select.machine.ts";
 import {

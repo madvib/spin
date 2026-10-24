@@ -14,7 +14,7 @@ import {
   optionRow,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import {
   combobox as comboboxMachine,
   isOpenPhase,

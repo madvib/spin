@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
-import type { ThemeRef } from "@spin/theme";
+import type { ThemeRef } from "@spinjs/theme";
 import { named, namesIn, type ThemeContext } from "./lookup.ts";
 import { carriesRawColor } from "./color.ts";
 

@@ -9,7 +9,7 @@ import {
   type ComponentDef,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { toast as toastMachine } from "./toast.machine.ts";
 import type {
   ToastArgs,
@@ -23,7 +23,7 @@ import type { ToastEvents } from "./toast.events.ts";
 import type {
   ToastRegionParam,
   ToastTimerParam,
-} from "@spin/runtime/actions";
+} from "@spinjs/runtime/actions";
 
 /**
  * Toast definition: the DOM contract as data. The queue is one context, so

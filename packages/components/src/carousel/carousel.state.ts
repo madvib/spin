@@ -1,4 +1,4 @@
-import { defaultTwin, isRecord } from "@spin/runtime";
+import { defaultTwin, isRecord } from "@spinjs/runtime";
 import type { CarouselEvents } from "./carousel.events.ts";
 
 export interface CarouselSlide {

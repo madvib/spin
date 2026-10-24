@@ -4,8 +4,8 @@ import { on } from "./use.ts";
 import { scope as makeScope } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
 import { type ElementAction, runAction as act } from "./use.ts";
-import { parse } from "@spin/syntax";
-import type { ComponentIr, Node } from "@spin/syntax";
+import { parse } from "../syntax/index.ts";
+import type { ComponentIr, Node } from "../syntax/index.ts";
 import type { Handle } from "../scope/table.ts";
 
 export interface LoaderActions {

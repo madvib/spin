@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { PaginationEvents } from "./pagination.events.ts";
 import type { PaginationContext } from "./pagination.state.ts";
 import { asCount, clampPage, totalPages } from "./pagination.state.ts";

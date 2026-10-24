@@ -1,5 +1,5 @@
-import type { TokenTree } from "@spin/theme";
-import { themeRef } from "@spin/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { themeRef } from "@spinjs/theme";
 import { namesIn } from "./utils/lookup.ts";
 import { BORDER_NAMES } from "./rules/border.ts";
 import { DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";

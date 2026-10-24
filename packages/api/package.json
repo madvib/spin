@@ -1,5 +1,5 @@
 {
-  "name": "@spin/api",
+  "name": "@spinjs/api",
   "version": "0.1.0",
   "description": "The daemon: the procedures, over RPC, that spin's tools share.",
   "type": "module",
@@ -32,34 +32,46 @@
     "README.md"
   ],
   "dependencies": {
-    "@iconify-json/carbon": "*",
-    "@iconify-json/lucide": "*",
-    "@iconify-json/material-symbols": "*",
-    "@iconify-json/ph": "*",
-    "@iconify-json/tabler": "*",
+    "@iconify-json/carbon": "^1.2.28",
+    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/material-symbols": "^1.2.95",
+    "@iconify-json/ph": "^1.2.2",
+    "@iconify-json/tabler": "^1.2.42",
     "@orpc/client": "^1.0.0",
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
-    "@spin/api": "workspace:*",
-    "@spin/components": "workspace:*",
-    "@spin/diagnostics": "workspace:*",
-    "@spin/preset": "workspace:*",
-    "@spin/project": "workspace:*",
-    "@spin/theme": "workspace:*",
-    "@unocss/core": "^66.10.5",
+    "@unocss/core": "66.10.5",
     "hono": "^4.13.13",
     "valibot": "^1.0.0"
   },
   "peerDependencies": {
-    "@spin/components": "workspace:*",
-    "@spin/diagnostics": "workspace:*",
-    "@spin/preset": "workspace:*",
-    "@spin/project": "workspace:*",
-    "@spin/theme": "workspace:*"
+    "@spinjs/components": "workspace:*",
+    "@spinjs/diagnostics": "workspace:*",
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/project": "workspace:*",
+    "@spinjs/theme": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./daemon": {
+        "types": "./dist/daemon.d.ts",
+        "default": "./dist/daemon.js"
+      },
+      "./serve": {
+        "types": "./dist/serve.d.ts",
+        "default": "./dist/serve.js"
+      },
+      "./client": {
+        "types": "./dist/client.d.ts",
+        "default": "./dist/client.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/ tests/",

@@ -6,7 +6,7 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { parseTokens } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
 import { spinPreset } from "../src/index.ts";
 import { splitTopLevel } from "../src/rules/primitives/derive.ts";
 import { primitiveContracts } from "../src/rules/primitives/manifest.ts";

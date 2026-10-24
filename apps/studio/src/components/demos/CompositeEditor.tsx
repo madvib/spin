@@ -53,7 +53,7 @@ import TypographyEditor from "./TypographyEditor.tsx";
 import BorderEditor from "./BorderEditor.tsx";
 import TransitionEditor from "./TransitionEditor.tsx";
 import GradientEditor from "./GradientEditor.tsx";
-import { createSpinComponent } from "@spin/hooks/solid";
+import { createSpinComponent } from "@spinjs/components/solid";
 import "./spin-step-list.html";
 
 /**

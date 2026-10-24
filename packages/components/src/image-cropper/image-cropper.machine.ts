@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   CropHandle,
   ImageCropperArgs,
@@ -9,7 +9,7 @@ import { initial } from "./image-cropper.state.ts";
 import { limitsOf, ratioOf } from "./image-cropper.state.ts";
 import { defaultCropPatch } from "./image-cropper.state.ts";
 import type { ImageCropperEvents } from "./image-cropper.events.ts";
-import { isRecord } from "@spin/runtime";
+import { isRecord } from "@spinjs/runtime";
 import { flipOf, rotationOf, zoomOf } from "./image-cropper.state.ts";
 import {
   clearOffsetStart,

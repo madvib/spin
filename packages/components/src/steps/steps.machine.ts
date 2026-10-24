@@ -1,6 +1,6 @@
 /** Steps machine: one idle state with guarded transitions. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type { StepsArgs, StepsContext, StepsState } from "./steps.state.ts";
 import { initial } from "./steps.state.ts";
 import type { StepsEvents } from "./steps.events.ts";

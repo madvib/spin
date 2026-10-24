@@ -7,8 +7,8 @@ import {
   isRecord,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
-import type { DragDelta } from "@spin/runtime/actions";
+} from "@spinjs/runtime";
+import type { DragDelta } from "@spinjs/runtime/actions";
 import { floatingPanel as floatingPanelMachine } from "./floating-panel.machine.ts";
 import {
   type FloatingPanelArgs,

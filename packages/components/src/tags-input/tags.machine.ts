@@ -5,7 +5,7 @@ import {
   createMachine,
   type Machine,
   type MachineSpec,
-} from "@spin/runtime/fsm";
+} from "@spinjs/runtime/fsm";
 import type {
   TagsArgs,
   TagsContext,

@@ -1,17 +1,17 @@
 import { readFileSync } from "node:fs";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseTokens, validateTokens } from "@spin/theme";
+import { parseTokens, validateTokens } from "@spinjs/theme";
 import { requiredRolesFor } from "../src/index.ts";
-import { starterThemes } from "@spin/theme/themes";
-import type { TokenLeaf, TokenNode } from "@spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
+import type { TokenLeaf, TokenNode } from "@spinjs/theme";
 
 /**
  * The shipped example themes are the reference implementations of "a theme
  * that satisfies the whole surface". Completeness is a composition claim — it
  * needs the base roles plus every enabled primitive's component tokens — so it
  * is asserted here, where that composition lives, rather than in
- * `@spin/theme`, which cannot see the primitives at all.
+ * `@spinjs/theme`, which cannot see the primitives at all.
  */
 function example(name: string): unknown {
   return JSON.parse(

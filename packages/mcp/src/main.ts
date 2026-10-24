@@ -8,8 +8,8 @@
  *   bun run src/main.ts --daemon http://127.0.0.1:7463/rpc
  */
 
-import { createSpinClient } from "@spin/api";
-import { StdioServerTransport } from "./sdk.ts";
+import { createSpinClient } from "@spinjs/api";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { buildSpinMcpServer } from "./server.ts";
 
 const flag = process.argv.indexOf("--daemon");

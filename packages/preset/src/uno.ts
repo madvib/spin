@@ -7,8 +7,8 @@
  * re-declares existing tokens for another mode rather than adding new ones.
  */
 
-import { LOOP_STEP, resolveAliases } from "@spin/theme";
-import type { TokenLeaf, TokenNode, TokenTree } from "@spin/theme";
+import { LOOP_STEP, resolveAliases } from "@spinjs/theme";
+import type { TokenLeaf, TokenNode, TokenTree } from "@spinjs/theme";
 
 export interface UnoTheme {
   colors: Record<string, unknown>;

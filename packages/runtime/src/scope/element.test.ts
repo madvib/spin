@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
+import { parseHTML } from "@spinjs/runtime/testing";
 
 // The shim installs its own globals. Declaring them here, rather than in the
 // package, is what keeps linkedom's `Window` out of the shared program.

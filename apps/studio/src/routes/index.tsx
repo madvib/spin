@@ -31,7 +31,7 @@ import {
 } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { scaffoldTheme, treeToJson } from "@spin/theme";
+import { scaffoldTheme, treeToJson } from "@spinjs/theme";
 import { refetchProjectThemes } from "../components/Settings.tsx";
 import { inDrawer } from "../lib/host.ts";
 import {
@@ -597,7 +597,7 @@ export default function OverviewPage() {
                     </div>
                   </Show>
                   <p class="truncate text-xs text-text-muted">
-                    {summary.tokens} tokens · {summary.file ?? "@spin/theme"}
+                    {summary.tokens} tokens · {summary.file ?? "@spinjs/theme"}
                   </p>
                 </article>
               )}
@@ -649,7 +649,7 @@ export default function OverviewPage() {
         <hr class="w-full" />
         <footer class="stack-sm text-xs text-text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
-            <span>{active()?.file ?? "@spin/theme"}</span>
+            <span>{active()?.file ?? "@spinjs/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
             <span>Modes: {activeModes().join(", ")}</span>
             <span>

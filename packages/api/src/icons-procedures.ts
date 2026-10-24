@@ -25,7 +25,7 @@
  * catalogue: a catalogue is what everybody may draw, and a library is what
  * this project chose to keep. The saved icons live in the project, so their
  * procedures resolve a root the way the project procedures do, and the
- * logic over them is the project's own (`@spin/project`).
+ * logic over them is the project's own (`@spinjs/project`).
  *
  * A name that is not in a collection draws `null` rather than throwing: one
  * missing glyph is a state the studio can name, and an exception out of a
@@ -49,7 +49,7 @@ import phInfo from "@iconify-json/ph/info.json" with { type: "json" };
 import phSet from "@iconify-json/ph/icons.json" with { type: "json" };
 import tablerInfo from "@iconify-json/tabler/info.json" with { type: "json" };
 import tablerSet from "@iconify-json/tabler/icons.json" with { type: "json" };
-import { projectService } from "@spin/project";
+import { projectService } from "@spinjs/project";
 import { rootFor } from "./project-procedures.ts";
 
 /** One glyph: the markup, and the box the markup was drawn in. */

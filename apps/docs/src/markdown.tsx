@@ -2,14 +2,14 @@
  * Markdown renderer for documentation copy modules and style references.
  *
  * Supports headings with deterministic anchor slugs, paragraphs, ordered and
- * unordered lists, fenced code blocks (via `@spin/kit` `CodeBlock`), GFM
+ * unordered lists, fenced code blocks (via `@spinjs/kit` `CodeBlock`), GFM
  * tables, callout blockquotes (`<alert>`), and HTML comment slots
  * (`<!-- USER COPY SLOT: ... -->`) that are stripped before rendering.
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { CodeBlock } from "@spin/kit";
+import { CodeBlock } from "@spinjs/kit";
 
 /** One block of a markdown document. */
 type Block =

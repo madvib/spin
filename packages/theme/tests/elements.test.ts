@@ -9,9 +9,9 @@ import {
   scaffoldTheme,
   treeToJson,
   validateTokens,
-} from "@spin/theme";
-import type { TokenNode } from "@spin/theme";
-import { starterThemes, themeModes } from "@spin/theme/themes";
+} from "@spinjs/theme";
+import type { TokenNode } from "@spinjs/theme";
+import { starterThemes, themeModes } from "@spinjs/theme/themes";
 
 /**
  * The per-element contract, held to the same gates as the base one.

@@ -10,7 +10,7 @@ import {
   machineTick,
   type ScopeFor,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { asyncList as asyncListMachine } from "./async-list.machine.ts";
 import type {
   AsyncListArgs,

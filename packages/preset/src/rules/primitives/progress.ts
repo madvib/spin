@@ -34,7 +34,7 @@ import { claim, type Mode } from "./shared.ts";
  *
  * **Indeterminate moves, because it does not know.** A static bar with no fill
  * is a bar that failed to load. The absence of a value is information, and
- * motion is how it is expressed. The keyframes belong to `@spin/animation`,
+ * motion is how it is expressed. The keyframes belong to `@spinjs/animation`,
  * which owns every one in the system — a keyframe defined in a shakeable
  * component file is one that can ship without its definition.
  */

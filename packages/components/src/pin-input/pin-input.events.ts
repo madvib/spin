@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 
 export interface PinInputEvents {
   "VALUE.SET": { value: readonly string[]; index?: undefined } | {

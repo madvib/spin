@@ -6,7 +6,7 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { cssVarName } from "@spin/theme";
+import { cssVarName } from "@spinjs/theme";
 import { spinPreset } from "../src/index.ts";
 
 /**

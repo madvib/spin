@@ -11,7 +11,7 @@ import {
   type ScopeFor,
   sliderThumb,
   type SlotScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import {
   clampValue,
   type DateGranularity,

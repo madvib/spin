@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spin/runtime/fsm";
+import type { AssignFor } from "@spinjs/runtime/fsm";
 import type { TabsEvents } from "./tabs.events.ts";
 import type { TabsContext } from "./tabs.state.ts";
 

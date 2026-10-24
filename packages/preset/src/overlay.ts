@@ -18,7 +18,7 @@ import {
   overlayThemes,
   setOverlay,
 } from "./session.ts";
-import type { ThemeDocument } from "@spin/theme";
+import type { ThemeDocument } from "@spinjs/theme";
 
 const ThemeDocuments = v.record(v.string(), v.unknown());
 

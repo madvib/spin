@@ -1,7 +1,7 @@
 {
-  "name": "@spin/runtime",
+  "name": "@spinjs/runtime",
   "version": "0.1.1",
-  "description": "The component runtime: signals, bridges, elements plugin, and directives.",
+  "description": "The component runtime: signals, bridges, elements, and directives.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -26,14 +26,6 @@
       "types": "./src/directives/load.ts",
       "default": "./src/directives/load.ts"
     },
-    "./plugin": {
-      "types": "./src/plugin/index.ts",
-      "default": "./src/plugin/index.ts"
-    },
-    "./plugin/elements": {
-      "types": "./src/plugin/elements.ts",
-      "default": "./src/plugin/elements.ts"
-    },
     "./props": {
       "types": "./src/props.ts",
       "default": "./src/props.ts"
@@ -48,15 +40,38 @@
     "README.md"
   ],
   "dependencies": {
-    "@spin/runtime": "workspace:*",
-    "@spin/syntax": "workspace:*",
     "alien-signals": "^3.2.1",
-    "linkedom": "^0.18.0",
-    "unplugin": "^3.4.0"
+    "linkedom": "^0.18.0"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "./fsm": {
+        "types": "./dist/machine/fsm/machine.d.ts",
+        "default": "./dist/machine/fsm/machine.js"
+      },
+      "./load": {
+        "types": "./dist/directives/load.d.ts",
+        "default": "./dist/directives/load.js"
+      },
+      "./props": {
+        "types": "./dist/props.d.ts",
+        "default": "./dist/props.js"
+      },
+      "./actions": {
+        "types": "./dist/actions/index.d.ts",
+        "default": "./dist/actions/index.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/",

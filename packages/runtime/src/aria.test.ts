@@ -11,7 +11,7 @@ import { test } from "bun:test";
  */
 
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
+import { parseHTML } from "@spinjs/runtime/testing";
 import type { PartScope } from "./component/define.ts";
 import { bindSpread } from "./directives/spread.ts";
 import {

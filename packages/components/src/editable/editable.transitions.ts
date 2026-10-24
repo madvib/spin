@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { EditableContext } from "./editable.state.ts";
 import type { EditableEvents } from "./editable.events.ts";
 

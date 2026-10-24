@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 import type { NavValue } from "./navigation-menu.state.ts";
 
 export interface NavigationMenuEvents {

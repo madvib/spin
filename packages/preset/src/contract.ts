@@ -1,5 +1,5 @@
 /**
- * @spin/preset procedures — the read-model for the utility layer.
+ * @spinjs/preset procedures — the read-model for the utility layer.
  *
  * Catalog description is pure and derivable from a theme, which is exactly
  * what a procedure is for: text in, JSON out, no build context. Every caller
@@ -16,8 +16,8 @@ import * as v from "valibot";
 import { implement } from "@orpc/server";
 import { describeCatalog } from "./catalog.ts";
 import { SAMPLES, SECTIONS, utilitiesFor } from "./organization.ts";
-import { parseTokens } from "@spin/theme";
-import type { ParseResult, TokenTree } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
+import type { ParseResult, TokenTree } from "@spinjs/theme";
 
 const ThemeText = v.pipe(
   v.string(),

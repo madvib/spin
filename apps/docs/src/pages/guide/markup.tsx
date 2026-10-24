@@ -5,7 +5,7 @@
  * live specimens — the rows' code tabs carry the markup.
  */
 import type { JSX } from "solid-js";
-import { componentExamples } from "@spin/preset";
+import { componentExamples } from "@spinjs/preset";
 import { Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
 import { Markdown } from "../../markdown.tsx";

@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spin/runtime";
+import { defaultTwin } from "@spinjs/runtime";
 
 export interface ListboxArgsItem {
   readonly value: string;

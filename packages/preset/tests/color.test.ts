@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator, escapeRegExp, toEscapedSelector } from "@unocss/core";
-import { parseTokens, treeToJson } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
+import { parseTokens, treeToJson } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import { scaffold, spinPreset } from "../src/index.ts";
 import type { ThemeDocument } from "../src/index.ts";
 import { carriesRawColor, hasRawColor } from "../src/utils/color.ts";

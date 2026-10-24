@@ -13,7 +13,7 @@
  * and the first group added to the contract would leave the site describing a
  * method that no longer exists.
  */
-import { renderSkill } from "@spin/theme/skill";
+import { renderSkill } from "@spinjs/theme/skill";
 import template from "../../../packages/theme/skill/SKILL.md?raw";
 import darkTech from "../../../packages/theme/skill/dark-tech-cinematic.md?raw";
 import editorial from "../../../packages/theme/skill/editorial-minimalism.md?raw";

@@ -3,20 +3,16 @@
  *
  * The packages ship TypeScript today. This turns each publishable package
  * into the shape npm wants: a `dist/` that mirrors the source tree, an export
- * map that says the same thing the `deno.json` says, and nothing else.
+ * map that says the same thing the `package.json` says, and nothing else.
  *
- * Two compilers, each for what it is good at:
- *
- * - `deno bundle` writes the JavaScript. One entry per source module, with
- *   every import left external, so the built package is the source package
- *   with the types stripped — one file per module, imports as written — and
- *   not a bundle of it.
- * - `tsc --emitDeclarationOnly` writes the declarations. TypeScript infers
- *   them without widening, which matters here: the contracts are built from
- *   `oc(...)` and the inferred types are the API.
- *
- * Both read the same rewritten copy of the sources, and the rewrite is the
- * npm shape of the workspace:
+ * One compiler: `tsdown` writes the JavaScript and the declarations in a
+ * single pass (`dts: true`, isolated declarations — the class of emit the
+ * old `tsc --emitDeclarationOnly` pass OOMed on). Entries are the export
+ * map's source files, keyed so the dist mirrors the source tree; bare
+ * specifiers stay external (dependencies, named by the manifest), and
+ * tsdown's chunking is pinned to flat `[name].js` so no hashed helper
+ * escapes the reachability check. The copy/rewrite around it is the npm
+ * shape of the workspace, unchanged:
  *
  * - A relative specifier that leaves the package becomes the sibling
  *   package's own subpath. A specifier with no npm subpath is a build
@@ -30,31 +26,20 @@
  * declarations are written against its dependencies' declarations — the same
  * order a consumer installs them in.
  *
- * Usage: `deno task build:dist [package]`
+ * Usage: `bun run build:dist [package]`
  */
 
 import { dirname, join, relative, resolve } from "node:path";
-import { mkdir, rm, copyFile, chmod, stat, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, rm, copyFile, chmod, stat, symlink, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { renderSkill } from "../packages/theme/src/skill/index.ts";
 import { reachableFiles } from "./dist-graph.ts";
+import { build } from "tsdown";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES_DIR = join(REPO, "packages");
 /** Where the rewritten copy of a package's sources lives while it compiles. */
 const COPY_PREFIX = ".dist-";
-/**
- * The npm package root, inside the package directory.
- *
- * The manifest cannot sit at the package's root: a `package.json` there
- * makes Deno treat the member as an npm package, link it into
- * `node_modules` under its name, and resolve every bare `@spin/…` import
- * through it — which would point the workspace's own apps at the built
- * dist instead of the source they are written against. The npm package is
- * therefore its own directory: `npm publish packages/<name>/npm`.
- */
-const NPM_DIR = "npm";
-
 /**
  * The packages whose skill's checklist is emitted from the contract.
  *
@@ -63,7 +48,7 @@ const NPM_DIR = "npm";
  * can follow.
  */
 const SKILL_RENDERERS: Record<string, (template: string) => string> = {
-  "@spin/theme": (template) => renderSkill(template),
+  "@spinjs/theme": (template) => renderSkill(template),
 };
 
 /** A package's `package.json`, as far as the build cares. */
@@ -72,27 +57,13 @@ interface Manifest {
   readonly version: string;
   /** Subpath → source file, both relative to the package directory. */
   readonly exports: Record<string, string>;
+  /** Subpath → dist file, from `publishConfig.exports`. */
+  readonly publishExports: Record<string, { types?: string; default?: string }>;
   /** Workspace dependencies, by package name. */
   readonly workspaceDeps: readonly string[];
+  /** Declared bare dependencies (npm names a dist import may name). */
+  readonly bareDeps: readonly string[];
 }
-
-/** One module of the graph, as `deno info` reports it. */
-interface GraphModule {
-  readonly local?: string;
-  readonly specifier: string;
-  readonly mediaType?: string;
-  readonly dependencies?: readonly {
-    readonly specifier: string;
-    readonly code?: { readonly specifier: string };
-    readonly type?: { readonly specifier: string };
-  }[];
-}
-
-/** The shape `deno info --json` prints. */
-interface Graph {
-  readonly modules: readonly GraphModule[];
-}
-
 async function readJson(path: string): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(path, "utf8"));
 }
@@ -110,8 +81,8 @@ async function exists(path: string): Promise<boolean> {
 async function loadManifest(dir: string): Promise<Manifest> {
   const raw = await readJson(join(dir, "package.json"));
   // Workspace manifests point at `src` for development; the `default`
-  // condition is the module, `types` the declarations. Publish manifests
-  // under `npm/` point at `dist` instead — never read here.
+  // condition is the module, `types` the declarations. `publishConfig.exports`
+  // points at `dist` instead — read alongside, never in place of.
   const exports = (raw["exports"] ?? {}) as Record<
     string,
     string | { default?: string; types?: string }
@@ -125,6 +96,8 @@ async function loadManifest(dir: string): Promise<Manifest> {
     else if (target.default !== undefined) subpaths[subpath] = target.default;
     else if (target.types !== undefined) subpaths[subpath] = target.types;
   }
+  const publishExports =
+    ((raw["publishConfig"] as { exports?: Record<string, { types?: string; default?: string }> } | undefined)?.exports ?? {});
   const allDeps = {
     ...((raw["dependencies"] ?? {}) as Record<string, string>),
     ...((raw["peerDependencies"] ?? {}) as Record<string, string>),
@@ -133,17 +106,19 @@ async function loadManifest(dir: string): Promise<Manifest> {
     name: raw["name"] as string,
     version: raw["version"] as string,
     exports: subpaths,
+    publishExports,
     workspaceDeps: Object.entries(allDeps)
       .filter(([, range]) => range === "workspace:*")
       .map(([name]) => name),
+    bareDeps: Object.keys(allDeps).filter((name) => allDeps[name] !== "workspace:*"),
   };
 }
 
 /**
  * The packages that ship.
  *
- * A package ships when it has an npm `package.json` beside its `deno.json`.
- * The manifest is the declaration of intent; the build follows it.
+ * A package ships when its `package.json` carries a non-empty
+ * `publishConfig.exports`: the declaration of intent the build follows.
  */
 async function publishablePackages(): Promise<string[]> {
   const found: string[] = [];
@@ -151,25 +126,13 @@ async function publishablePackages(): Promise<string[]> {
     if (!entry.isDirectory()) continue;
     if (entry.name.startsWith(COPY_PREFIX)) continue;
     const dir = join(PACKAGES_DIR, entry.name);
-    if (await exists(join(dir, NPM_DIR, "package.json"))) {
+    if (!await exists(join(dir, "package.json"))) continue;
+    const manifest = await loadManifest(dir);
+    if (Object.keys(manifest.publishExports).length > 0) {
       found.push(entry.name);
     }
   }
   return found.sort();
-}
-
-async function run(
-  cmd: string,
-  args: string[],
-  cwd: string,
-): Promise<{ code: number; out: string; err: string }> {
-  const { spawnSync } = await import("node:child_process");
-  const r = spawnSync(cmd, args, { cwd, encoding: "utf8" });
-  return {
-    code: r.status ?? 1,
-    out: r.stdout ?? "",
-    err: r.stderr ?? "",
-  };
 }
 
 /** Every file under a directory, relative to it. */
@@ -200,49 +163,6 @@ async function emptyDirs(dir: string): Promise<string[]> {
   return found;
 }
 
-/**
- * The Deno globals the sources use.
- *
- * `tsc` compiles against the runtime it is told about, and this repository
- * runs on Deno: the globals are part of the surface the packages are written
- * against, and the compiler has to know them. The build writes this beside
- * the copy it compiles — it is a build input, not a file the repository
- * ships, and it names only what the sources actually use.
- */
-const DENO_GLOBALS = `declare namespace Deno {
-  interface NetAddr {
-    hostname: string;
-    port: number;
-    transport: string;
-  }
-  interface ServeOptions {
-    hostname?: string;
-    port?: number;
-    signal?: AbortSignal;
-  }
-  interface HttpServer {
-    readonly addr: NetAddr;
-    readonly finished: Promise<void>;
-    shutdown(): void;
-  }
-  const args: string[];
-  function cwd(): string;
-  function serve(
-    options: ServeOptions,
-    handler: (request: Request) => Response | Promise<Response>,
-  ): HttpServer;
-  namespace env {
-    function get(key: string): string | undefined;
-  }
-  function readTextFile(path: string | URL): Promise<string>;
-  function readTextFileSync(path: string | URL): string;
-  function writeTextFile(
-    path: string | URL,
-    data: string | Uint8Array,
-  ): Promise<void>;
-}
-`;
-
 /** The import specifiers of a file, with the text around them. */
 const SPECIFIER = /\b(?:from|import)\s*\(?\s*(["'])([^"']+)\1/g;
 
@@ -259,6 +179,16 @@ function commentRanges(text: string): Array<readonly [number, number]> {
   let string: string | null = null;
   while (i < text.length) {
     const char = text[i] as string;
+    // A `/** */` doc block is documentation in full: fenced examples name
+    // imports the file never resolves, and backtick-quoting inside the
+    // block must not flip the scanner into string mode.
+    if (string === null && char === "/" && text[i + 1] === "*" && text[i + 2] === "*") {
+      const end = text.indexOf("*/", i + 3);
+      const stop = end === -1 ? text.length : end + 2;
+      out.push([i, stop]);
+      i = stop;
+      continue;
+    }
     if (string !== null) {
       if (char === "\\") {
         i += 2;
@@ -420,66 +350,47 @@ function rewriteFile(
 
 
 /**
- * The import map the graph reads.
+ * The tsdown entries for a package, keyed so the dist mirrors the source tree.
  *
- * The copy's cross-package imports are bare `@spin/*` specifiers, and the
- * graph needs them pointed at files: the sibling subpaths. The copy sits
- * beside the package it came from, so the relative targets resolve to the
- * same files the source package resolves.
+ * One entry per source module, keyed by its path under `src` without the
+ * extension (`menu/menu.presentation.ts` → `menu/menu.presentation`): the
+ * key is the dist path, and tsdown writes `<key>.js` + `<key>.d.ts`
+ * under it. Every module is an entry — not just the exported surface — so
+ * a types-only shared module (no runtime of its own) still gets its
+ * declaration emitted where the entries' declarations import it from. The
+ * prune after the emit removes whatever the export map does not reach.
+ * The copy the entries point at is already rewritten to the npm shape, so
+ * bare specifiers name sibling subpaths and dependencies tsdown leaves
+ * external. Test files and declaration sources never reach the entries.
  */
-function buildImportMap(
-  siblings: Map<string, Manifest>,
-): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const [name, sibling] of siblings) {
-    for (const [subpath, file] of Object.entries(sibling.exports)) {
-      const key = subpath === "."
-        ? sibling.name
-        : `${sibling.name}/${subpath.replace(/^\.\//, "")}`;
-      map[key] = new URL(
-        `file://${resolve(join(PACKAGES_DIR, name), file)}`,
-      ).href;
-    }
+async function entryMap(
+  copySrc: string,
+): Promise<Record<string, string>> {
+  const entries: Record<string, string> = {};
+  for (const file of await walk(copySrc)) {
+    if (!/\.tsx?$/.test(file)) continue;
+    if (/\.test\.tsx?$/.test(file)) continue;
+    if (/\.d\.tsx?$/.test(file)) continue;
+    const key = file.replace(/\.tsx?$/, "");
+    entries[key] = join(copySrc, file);
   }
-  return map;
+  return entries;
 }
 
 /**
- * The module graph of a package's exported surface.
+ * The bare specifiers a package's manifest declares, as matchers.
  *
- * `deno info` prints the raw specifier of every import — the text the source
- * wrote, not the file it resolved to. That text is what the bundle has to
- * leave alone, and what the rewrite pass reads.
- *
- * `deno info` takes one file, so the graph is read through a synthetic entry
- * that names every exported file.
+ * tsdown leaves sibling subpaths and dependencies external instead of
+ * bundling them: the `node_modules` link under the copy resolves them, and
+ * without this they (and their transitive files) land in the dist. Each
+ * name matches itself and its subpaths (`linkedom`, `linkedom/esm/...`).
  */
-async function moduleGraph(
-  configPath: string,
-  entries: string[],
-): Promise<Graph> {
-  const synthetic = join(dirname(configPath), "entries.ts");
-  await writeFile(
-    synthetic,
-    entries.map((entry) => `import ${JSON.stringify(entry)};`).join("\n") +
-      "\n",
-  );
-  const result = await run(
-    "deno",
-    [
-      "info",
-      "--json",
-      "--config",
-      configPath,
-      "--node-modules-dir=manual",
-      synthetic,
-    ],
-    REPO,
-  );
-  if (result.code !== 0) {
-    throw new Error(`deno info failed:\n${result.err}`);
+function bareExternals(manifest: Manifest): RegExp[] {
+  const out = [new RegExp("^node:"), new RegExp("^@spinjs/")];
+  for (const name of manifest.bareDeps) {
+    out.push(new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=/|$)`));
   }
-  return JSON.parse(result.out) as Graph;
+  return out;
 }
 
 /** A package ready to be compiled. */
@@ -534,27 +445,25 @@ async function prepare(
       continue;
     }
     const text = await readFile(from, "utf8");
-    await writeFile(
-      to,
-      rewriteFile(text, from, dir, manifests, false),
-    );
+    // Test files are never compiled or shipped — entries and targets
+    // exclude them — so they copy verbatim: their fixtures name imports
+    // (machine paths, example markup) the rewrite must not resolve.
+    const rewritten = /\.test\.tsx?$/.test(file)
+      ? text
+      : rewriteFile(text, from, dir, manifests, false);
+    await writeFile(to, rewritten);
   }
 
-  // The config the graph reads. The copy's cross-package imports are bare
-  // `@spin/*` specifiers, resolved through the workspace the same way the
-  // source package resolves them — so the map is the sibling subpaths.
-  const siblings = new Map<string, Manifest>();
-  for (const [other, otherManifest] of manifests) {
-    if (other === name) continue;
-    siblings.set(other, otherManifest);
+  // The package's own `node_modules`: the bare specifiers the sources write
+  // (`hono`, `@iconify-json/*`) resolve through the workspace member, not
+  // the root. The copy sits beside the package, not inside it, so the link
+  // puts the same resolution under the copy for `tsc` and `bun build`.
+  await rm(join(copyDir, "node_modules"), { recursive: true }).catch(() => {});
+  try {
+    await symlink(join(dir, "node_modules"), join(copyDir, "node_modules"));
+  } catch {
+    // A package with no installed dependencies needs no link.
   }
-  await writeFile(
-    join(copyDir, "deno.json"),
-    JSON.stringify({ imports: buildImportMap(siblings) }),
-  );
-
-  // The globals the sources are written against.
-  await writeFile(join(copyDir, "deno-globals.d.ts"), DENO_GLOBALS);
 
   return { dir, copyDir, copySrc, manifest, entryFiles, declarationExports };
 }
@@ -579,8 +488,6 @@ interface Built {
 }
 
 /** Compile one package's dist. */
-/** The media types that are code: they compile, and they do not ship as they are. */
-const CODE = new Set(["TypeScript", "TSX", "JavaScript", "JSX", "MTS", "MJS"]);
 
 async function buildPackage(
   name: string,
@@ -588,155 +495,52 @@ async function buildPackage(
 ): Promise<Built> {
   const prepared = await prepare(name, manifests);
   const { dir, copyDir, copySrc, manifest } = prepared;
-  const dist = join(dir, NPM_DIR, "dist");
-  const configPath = join(copyDir, "deno.json");
+  const dist = join(dir, "dist");
 
   try {
-    const graph = await moduleGraph(
-      configPath,
-      prepared.entryFiles.map((file) =>
-        new URL(
-          `file://${resolve(copySrc, file.replace(/^\.\/src\//, ""))}`,
-        ).href
-      ),
-    );
-    console.error(`  ${name}: graph read`);
+    // One compiler: tsdown writes the JavaScript and the declarations in a
+    // single pass. Entries are keyed so the dist mirrors the source tree;
+    // bare specifiers stay external (sibling subpaths and dependencies, as
+    // the copy rewrote them). `preserveModules` keeps one file per module —
+    // a shared helper lands beside its entries instead of under a hash, so
+    // every import the dist names resolves to a file the dist ships.
+    const outDir = join(copyDir, "out");
+    await mkdir(outDir, { recursive: true });
+    await build({
+      entry: await entryMap(copySrc),
+      outDir,
+      cwd: copyDir,
+      dts: true,
+      format: ["esm"],
+      sourcemap: true,
+      outExtensions: () => ({ js: ".js", dts: ".d.ts" }),
+      outputOptions: { preserveModules: true, preserveModulesRoot: "src" },
+      deps: { neverBundle: bareExternals(manifest) },
+    });
+    console.error(`  ${name}: tsdown written`);
 
-    // The package's own modules: everything the exported surface reaches.
-    const own = graph.modules.filter((module) =>
-      module.local !== undefined &&
-      module.local.startsWith(copySrc + "/") &&
-      !module.local.endsWith(".test.ts") &&
-      !module.local.endsWith(".test.tsx")
-    );
-    const modules = own.filter((module) => CODE.has(module.mediaType ?? ""));
-    const assets = own.filter((module) => !CODE.has(module.mediaType ?? ""));
-
-    // The JSX runtime the repo maps for Solid — a shim for the runtime the
-    // package is written against, not a module of the package. It is in the
-    // graph because the compiler reaches for the runtime, and it ships to
-    // nobody: a consumer's framework provides its own.
-    const tsconfig = JSON.parse(
-      await readFile(join(REPO, "tsconfig.json"), "utf8"),
-    ) as {
-      compilerOptions?: { paths?: Record<string, string[]> };
-    };
-    const runtime =
-      tsconfig.compilerOptions?.paths?.["solid-js/jsx-runtime"]?.[0];
-    const shim = runtime !== undefined ? resolve(REPO, runtime) : null;
-    const shipped = modules.filter((module) => module.local !== shim);
-
-    // The imports the source writes, as the source writes them.
-    const externals = new Set<string>();
-    for (const module of own) {
-      for (const dependency of module.dependencies ?? []) {
-        externals.add(dependency.specifier);
-      }
-    }
-
-    // The JavaScript. One entry per module, every import left external, so
-    // the dist is the source tree with the types stripped. It is assembled
-    // beside the copy and moved into place at the end: a build that fails
-    // leaves no half-written dist behind.
-    const jsDir = join(copyDir, "js");
-    const args = [
-      "build",
-      ...shipped.map((module) => module.local!),
-      "--outdir",
-      jsDir,
-      "--root",
-      copySrc,
-      "--target",
-      "node",
-      "--format",
-      "esm",
-    ];
-    // Every import the source writes stays external: the dist is the source
-    // tree with the types stripped, not a bundle.
-    for (const external of externals) args.push("--external", external);
-    const bundled = await run("bun", args, REPO);
-    if (bundled.code !== 0) {
-      throw new Error(`bun build failed for ${name}:\n${bundled.err}`);
-    }
-    console.error(`  ${name}: javascript written`);
-
-    // The declarations. TypeScript infers them without widening, which is
-    // what the contracts need.
-    const types = await emitDeclarations(prepared, manifests);
-    if (types.code !== 0) {
-      throw new Error(
-        `tsc failed for ${name}:\n${types.out}${types.err}`,
-      );
-    }
-    console.error(`  ${name}: declarations written`);
-
-    // The dist is the JavaScript, with the declarations laid over it.
+    // The dist is what tsdown wrote. It is assembled beside the copy and
+    // moved into place at the end: a build that fails leaves no half-written
+    // dist behind.
     await rm(dist, { recursive: true }).catch(() => {});
     await mkdir(dist, { recursive: true });
-    for (const file of await walk(join(copyDir, "types"))) {
+    for (const file of await walk(outDir)) {
       const target = join(dist, file);
       await mkdir(dirname(target), { recursive: true });
-      await copyFile(join(copyDir, "types", file), target);
-    }
-    for (const file of await walk(jsDir)) {
-      const target = join(dist, file);
-      await mkdir(dirname(target), { recursive: true });
-      await copyFile(join(jsDir, file), target);
-    }
-
-    // A module the code only imports for its types has no runtime to write,
-    // so the bundler writes no file for it — but the declarations beside it
-    // name it, and a name that points at nothing is a broken type. The
-    // module ships as the empty module it is.
-    for (const module of shipped) {
-      const name = relative(copySrc, module.local!)
-        .replace(/\.tsx?$/, ".js");
-      const target = join(dist, name);
-      if (await exists(target)) continue;
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, "export {};\n");
-    }
-
-    // The assets the source imports: a theme document, a stylesheet.
-    for (const asset of assets) {
-      const target = join(dist, relative(copySrc, asset.local!));
-      await mkdir(dirname(target), { recursive: true });
-      await copyFile(asset.local!, target);
-    }
-
-    // The README the npm package carries: npm includes it, and a package
-    // without one is a package nobody can read.
-    const readme = join(dir, "README.md");
-    if (await exists(readme)) {
-      await writeFile(
-        join(dir, NPM_DIR, "README.md"),
-        await readFile(readme, "utf8"),
-      );
+      await copyFile(join(outDir, file), target);
     }
 
     // The house skill, when the package has one: it is a product agents
-    // install, so it ships with the package. The manual's checklist is
-    // emitted from the contract, so the copy that ships is the rendered
-    // one, not the template it was written in.
-    const skill = join(dir, "skill");
-    if (await exists(skill)) {
-      const target = join(dir, NPM_DIR, "skill");
-      await rm(target, { recursive: true }).catch(() => {});
-      const renderer = SKILL_RENDERERS[manifest.name];
-      for (const file of await walk(skill)) {
-        const from = join(skill, file);
-        const to = join(target, file);
-        await mkdir(dirname(to), { recursive: true });
-        if (file === "SKILL.md" && renderer) {
-          await writeFile(
-            to,
-            renderer(await readFile(from, "utf8")),
-          );
-        } else {
-          await copyFile(from, to);
-        }
-      }
+    // install, so it ships in place. The manual's checklist is emitted from
+    // the contract, so the copy that ships is the rendered one, not the
+    // template it was written in.
+    const skillFile = join(dir, "skill", "SKILL.md");
+    const renderer = SKILL_RENDERERS[manifest.name];
+    if (renderer && (await exists(skillFile))) {
+      await writeFile(skillFile, renderer(await readFile(skillFile, "utf8")));
     }
+
+
 
     // The declarations that are exports in their own right: a `.d.ts` source
     // is copied, not compiled.
@@ -752,21 +556,21 @@ async function buildPackage(
       );
     }
 
-    // The rewrite: every emitted file, specifiers read against its source.
-    const emitted = await walk(dist);
-    for (const file of emitted) {
+    // The paths the bundle records name the copy, which is a build step:
+    // point them at the source the published file came from. No specifier
+    // scan here — tsdown already emitted final specifiers (bare stays
+    // external, relative stays same-package with `.js`), and scanning
+    // emitted code with the source-oriented tracker misreads constructs
+    // the emitter produces (regex literals carrying quotes, doc comments
+    // carried into chunks). The copy the compiler read was already
+    // rewritten to the npm shape in `prepare`.
+    for (const file of await walk(dist)) {
       if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
       const path = join(dist, file);
-      const source = join(
-        copySrc,
-        file.replace(/\.d\.ts$/, ".ts").replace(/\.js$/, ".ts"),
-      );
       const text = await readFile(path, "utf8");
       await writeFile(
         path,
-        // The bundle records where a module came from; the copy is a build
-        // step, and the published file should name the source it came from.
-        rewriteFile(text, source, copySrc, manifests, true).replaceAll(
+        text.replaceAll(
           relative(REPO, copySrc),
           relative(REPO, join(dir, "src")),
         ),
@@ -807,13 +611,13 @@ async function buildPackage(
  * links into `node_modules/.bin` and nobody can start.
  */
 async function markBins(dir: string): Promise<void> {
-  const manifest = await readJson(join(dir, NPM_DIR, "package.json"));
+  const manifest = await readJson(join(dir, "package.json"));
   const bins = manifest["bin"];
   const targets = typeof bins === "string"
     ? [bins]
     : Object.values((bins ?? {}) as Record<string, string>);
   for (const target of targets) {
-    const path = join(dir, NPM_DIR, target);
+    const path = join(dir, target);
     if (!await exists(path)) continue;
     const text = await readFile(path, "utf8");
     if (!text.startsWith("#!")) {
@@ -822,95 +626,6 @@ async function markBins(dir: string): Promise<void> {
     await chmod(path, 0o755);
   }
 }
-
-/**
- * Write a package's declarations.
- *
- * The declarations are written against the dependencies' declarations — the
- * built packages — so a consumer's compiler reads the same files the build
- * read.
- */
-async function emitDeclarations(
-  prepared: Prepared,
-  manifests: Map<string, Manifest>,
-): Promise<{ code: number; out: string; err: string }> {
-  const { copyDir, copySrc, manifest } = prepared;
-  const paths: Record<string, string[]> = {};
-  for (const [name, sibling] of manifests) {
-    if (name === manifest.name) continue;
-    const npm = await readJson(
-      join(PACKAGES_DIR, name, NPM_DIR, "package.json"),
-    );
-    const exports = npm["exports"] as Record<string, unknown>;
-    for (const [subpath, target] of Object.entries(exports)) {
-      const types = (target as { types?: string }).types;
-      if (!types) continue;
-      const key = subpath === "."
-        ? sibling.name
-        : `${sibling.name}/${subpath.replace(/^\.\//, "")}`;
-      paths[key] = [join(PACKAGES_DIR, name, NPM_DIR, types)];
-    }
-  }
-  // The package's own subpaths resolve to the copy under compile: the dist
-  // they name does not exist until this emit finishes, and the copy's files
-  // are the same program the declarations describe. The export paths are
-  // package-relative, so they join at the copy's root, not its `src`.
-  for (const [subpath, file] of Object.entries(manifest.exports)) {
-    const key = subpath === "."
-      ? manifest.name
-      : `${manifest.name}/${subpath.replace(/^\.\//, "")}`;
-    paths[key] = [join(copyDir, file as string)];
-  }
-
-  const outDir = join(copyDir, "types");
-  const shimPath = join(copySrc, "solid-server.d.ts");
-  const shimFiles = (await exists(shimPath)) ? [shimPath] : [];
-  const tsconfig = {
-    compilerOptions: {
-      target: "es2022",
-      module: "esnext",
-      moduleResolution: "bundler",
-      lib: ["es2023", "dom", "dom.iterable"],
-      // Solid JSX for .tsx: the automatic runtime with solid-js as source.
-      jsx: "react-jsx",
-      jsxImportSource: "solid-js",
-      strict: true,
-      declaration: true,
-      emitDeclarationOnly: true,
-      allowImportingTsExtensions: true,
-      resolveJsonModule: true,
-      skipLibCheck: true,
-      outDir,
-      rootDir: copySrc,
-      types: ["node", "bun-types"],
-      paths,
-    },
-    files: [join(copyDir, "deno-globals.d.ts"), ...shimFiles],
-    include: [join(copySrc, "**/*.ts"), join(copySrc, "**/*.tsx")],
-    exclude: [
-      join(copySrc, "**/*.test.ts"),
-      join(copySrc, "**/*.test.tsx"),
-      join(copySrc, "**/*.d.ts"),
-    ],
-  };
-  const tsconfigPath = join(copyDir, "tsconfig.json");
-  await writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-  const result = await run(
-    join(REPO, "node_modules", "typescript", "bin", "tsc"),
-    ["--project", tsconfigPath],
-    REPO,
-  );
-  if (result.code === 0) {
-    // The declarations land beside the JavaScript.
-    for (const file of await walk(outDir)) {
-      const target = join(prepared.dir, NPM_DIR, "dist", file);
-      await mkdir(dirname(target), { recursive: true });
-      await copyFile(join(outDir, file), target);
-    }
-  }
-  return result;
-}
-
 /**
  * The order the packages compile in.
  *
@@ -921,15 +636,24 @@ function dependencyOrder(
   names: readonly string[],
   manifests: Map<string, Manifest>,
 ): string[] {
+  // Workspace deps are package names (`@spinjs/preset`); the build walks
+  // directory names (`preset`). The index bridges the two — without it the
+  // filter below matches nothing and the "order" is alphabetical, so a
+  // package compiles against siblings whose dists do not exist yet.
+  const dirOf = new Map(
+    [...manifests].map(([dir, manifest]) => [manifest.name, dir] as const),
+  );
   const deps = new Map<string, Set<string>>();
   for (const name of names) {
     const manifest = manifests.get(name)!;
     deps.set(
       name,
       new Set(
-        manifest.workspaceDeps.filter((dep) =>
-          names.includes(dep) && dep !== name
-        ),
+        manifest.workspaceDeps
+          .map((dep) => dirOf.get(dep))
+          .filter((dep): dep is string =>
+            dep !== undefined && dep !== name && names.includes(dep)
+          ),
       ),
     );
   }
@@ -972,7 +696,7 @@ async function main(): Promise<void> {
     const built = await buildPackage(name, manifests);
     console.log(
       `built ${built.name} — ${built.files} files in ` +
-        relative(REPO, join(PACKAGES_DIR, name, NPM_DIR, "dist")),
+        relative(REPO, join(PACKAGES_DIR, name, "dist")),
     );
   }
 }

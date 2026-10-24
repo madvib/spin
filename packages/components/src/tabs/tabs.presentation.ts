@@ -6,7 +6,7 @@ import {
   defineComponent,
   optionRow,
   type ScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { tabs as tabsMachine } from "./tabs.machine.ts";
 import type {

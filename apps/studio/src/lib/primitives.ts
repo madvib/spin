@@ -1,7 +1,7 @@
 /**
  * The components over RPC — never by importing the preset.
  *
- * The studio used to import `@spin/preset/rules/primitives/manifest.ts`
+ * The studio used to import `@spinjs/preset/rules/primitives/manifest.ts`
  * directly, which shipped the whole domain into the browser bundle and meant
  * the studio's component pages described the library rather than read it:
  * four pages of hand-written markup, none of it the ledger. Every consumer
@@ -83,7 +83,7 @@ export async function listPrimitives(): Promise<readonly RpcComponent[]> {
       reads: [] as string[],
       examples: {
         note:
-          "Interactive machine component. Requires the runtime (@spin/runtime).",
+          "Interactive machine component. Requires the runtime (@spinjs/runtime).",
         rows: examples.map((row) => {
           const stem = row.name;
           return {

@@ -19,8 +19,8 @@
  * is still worth enforcing.
  */
 
-import { findConfigRoot, readShortcuts } from "@spin/project/sync";
-import type { ShortcutDeclaration } from "@spin/project";
+import { findConfigRoot, readShortcuts } from "@spinjs/project/sync";
+import type { ShortcutDeclaration } from "@spinjs/project";
 
 export type { ShortcutDeclaration };
 export { findConfigRoot };

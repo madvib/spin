@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "../src/index.ts";
 import { readFile } from "node:fs/promises";
-import { starterThemes } from "@spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /**
  * What a variant utility has to do.

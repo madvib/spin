@@ -1,5 +1,5 @@
-import { defaultTwin } from "@spin/runtime";
-import { coerceJsonArray, isRecord } from "@spin/runtime";
+import { defaultTwin } from "@spinjs/runtime";
+import { coerceJsonArray, isRecord } from "@spinjs/runtime";
 import type { CascadeNode } from "./cascade.presentation.ts";
 
 // Re-export types that live in presentation for convenience.

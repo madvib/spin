@@ -19,8 +19,8 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { classTokens, expandVariantGroups, parse } from "@spin/syntax";
-import { starterThemes } from "@spin/theme/themes";
+import { classTokens, expandVariantGroups, parse } from "@spinjs/runtime";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /** The directories a scan does not walk into. */
 const SKIPPED = new Set([
@@ -189,7 +189,7 @@ async function resolve(
   try {
     if (candidates.size === 0) return new Set<string>();
     const { createGenerator } = await import("@unocss/core");
-    const { spinPreset } = await import("@spin/preset");
+    const { spinPreset } = await import("@spinjs/preset");
     const generator = await createGenerator({
       presets: [
         spinPreset({ themes: { ...starterThemes } }),

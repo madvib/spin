@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { parseTokens } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
 import { describeCatalog } from "../../index.ts";
 import { primitiveVariants } from "./manifest.ts";
 import { TABLE_EXAMPLES } from "./table.examples.ts";

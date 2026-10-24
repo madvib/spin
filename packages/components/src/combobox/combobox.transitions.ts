@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import { isCustomValue, stringifyValues } from "./combobox.state.ts";
 import type { ComboboxContext } from "./combobox.state.ts";
 import type { ComboboxEvents } from "./combobox.events.ts";

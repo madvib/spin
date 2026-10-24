@@ -132,7 +132,7 @@ Exit codes:
  */
 export function parseArgs(argv: readonly string[]): Command {
   // A `--` is the end of the options: everything after it is the command,
-  // whatever it is called. `deno task lint:cli -- lint src/` is one way to
+  // whatever it is called. `bun run lint:cli -- lint src/` is one way to
   // say it.
   const [command, ...rest] = argv[0] === "--" ? argv.slice(1) : argv;
   if (command === undefined) {

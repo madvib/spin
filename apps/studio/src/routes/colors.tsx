@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { generateScale } from "@spin/theme";
+import { generateScale } from "@spinjs/theme";
 import { inDrawer } from "../lib/host.ts";
 import { analyzeTheme } from "../lib/theme.ts";
 import {

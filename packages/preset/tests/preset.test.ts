@@ -4,11 +4,11 @@ import { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import type { UnocssPluginContext } from "@unocss/core";
 import MagicString from "magic-string";
-import { parseTokens } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import { scaffold, scaffoldDocument, spinPreset } from "../src/index.ts";
 import type { ThemeDocument } from "../src/index.ts";
-import { treeToJson } from "@spin/theme";
+import { treeToJson } from "@spinjs/theme";
 import { wind4Layers } from "../src/wind4.ts";
 
 /**

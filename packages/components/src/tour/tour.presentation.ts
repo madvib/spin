@@ -4,7 +4,7 @@ import {
   type ComponentDef,
   defineComponent,
   type ScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { tour as tourMachine } from "./tour.machine.ts";
 import type { TourArgs, TourContext, TourState } from "./tour.state.ts";
 import type { TourEvents } from "./tour.events.ts";

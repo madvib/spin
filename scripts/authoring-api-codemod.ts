@@ -720,7 +720,7 @@ function convert(source: string): string {
         ) {
           list.push("type Transitions");
         }
-        return `import { ${list.join(", ")} } from "@spin/runtime/fsm";`;
+        return `import { ${list.join(", ")} } from "@spinjs/runtime/fsm";`;
       },
     );
   }
@@ -993,7 +993,7 @@ if (import.meta.main) {
               if (!list.some((n) => n === "type EventUnion")) {
                 list.push("type EventUnion");
               }
-              return `import { ${list.join(", ")} } from "@spin/runtime/fsm";`;
+              return `import { ${list.join(", ")} } from "@spinjs/runtime/fsm";`;
             },
           );
         if (legacyOut !== legacySource) {

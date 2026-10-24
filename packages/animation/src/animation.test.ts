@@ -112,6 +112,6 @@ test("the shipped stylesheet is the source of truth, not a stale copy", () => {
   deepStrictEqual(
     animationCss,
     stylesheet,
-    "the generated module is stale: run `deno task codegen`",
+    "the generated module is stale: run `bun run codegen`",
   );
 });

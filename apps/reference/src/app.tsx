@@ -5,9 +5,9 @@ import {
   primitiveElements,
   SECTIONS,
   utilitiesFor,
-} from "@spin/preset";
-import { parseTokens } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+} from "@spinjs/preset";
+import { parseTokens } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   createThemeState,
   Logo,
@@ -15,7 +15,7 @@ import {
   ThemePicker,
   type ThemeState,
   Web,
-} from "@spin/kit";
+} from "@spinjs/kit";
 import { MontagePage } from "./montage.tsx";
 import { PRIMITIVES } from "./primitives.ts";
 import {
@@ -28,9 +28,9 @@ import { MONTAGE_ROUTE } from "./routes.ts";
 import { themeDocuments, THEMES } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
-import type { CatalogSection } from "@spin/preset";
+import type { CatalogSection } from "@spinjs/preset";
 import type { Accessor } from "solid-js";
-import type { TokenTree } from "@spin/theme";
+import type { TokenTree } from "@spinjs/theme";
 
 /**
  * The glyph each element wears, keyed by the element's name.

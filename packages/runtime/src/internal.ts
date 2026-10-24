@@ -45,7 +45,7 @@ export {
   tpl,
   view,
 } from "./directives/tpl.ts";
-export { parse } from "@spin/syntax";
+export { parse } from "./syntax/index.ts";
 export {
   type AttributeParser,
   type BuildContext,

@@ -42,7 +42,7 @@ import {
   onMount,
 } from "solid-js";
 import type { JSX } from "solid-js";
-import { attachPopover, type PopoverApi } from "@spin/components";
+import { attachPopover, type PopoverApi } from "@spinjs/components";
 import {
   activeMode,
   activeModes,

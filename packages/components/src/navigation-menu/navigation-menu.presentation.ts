@@ -5,7 +5,7 @@ import {
   disclosureTrigger,
   resolveTwins,
   type ScopeFor,
-} from "@spin/runtime";
+} from "@spinjs/runtime";
 import { navigationMenu as navigationMenuMachine } from "./navigation-menu.machine.ts";
 import { startState } from "./navigation-menu.state.ts";
 import type {

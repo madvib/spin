@@ -19,8 +19,8 @@ import {
   resolveMode,
 } from "./theme.ts";
 import type { FileState } from "./theme.ts";
-import { indexTree } from "@spin/theme";
-import type { Mode } from "@spin/theme";
+import { indexTree } from "@spinjs/theme";
+import type { Mode } from "@spinjs/theme";
 import { documentFailure, editRefusal } from "./live-edit.ts";
 import { keepFocus } from "./keep-focus.ts";
 import {

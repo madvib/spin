@@ -20,7 +20,7 @@ import {
   expandVariantGroups,
   type Node as SyntaxNode,
   parse,
-} from "@spin/syntax";
+} from "@spinjs/runtime";
 import {
   type AncestorFacts,
   checkClosedVocabulary,

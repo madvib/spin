@@ -26,7 +26,7 @@
  * could only ever agree with it by luck.
  */
 
-import type { ThemeDocument } from "@spin/theme";
+import type { ThemeDocument } from "@spinjs/theme";
 import { parseFile } from "./engine.ts";
 import { classListOf } from "./rules.ts";
 import { walk } from "./walk.ts";
@@ -266,7 +266,7 @@ export async function sheetOrder(
   if (classes.length === 0) return out;
   try {
     const { createGenerator } = await import("@unocss/core");
-    const { spinPreset } = await import("@spin/preset");
+    const { spinPreset } = await import("@spinjs/preset");
     const generator = await createGenerator({
       presets: [spinPreset({ themes })],
     });

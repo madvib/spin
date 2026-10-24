@@ -52,10 +52,10 @@ test("prefix entries own subpaths and return the matcher's tail", async () => {
   )!;
   assert(themePrefix, "at least one prefix entry exists");
   assert(
-    (themePrefix.find as RegExp).test("@spin/theme/themes"),
+    (themePrefix.find as RegExp).test("@spinjs/theme/themes"),
     "the theme prefix matches subpaths",
   );
-  // The replacement carries the capture through: `@spin/theme/a/b` is
+  // The replacement carries the capture through: `@spinjs/theme/a/b` is
   // rewritable, its tail reaching the package source.
   assert(
     themePrefix.replacement.includes("$1"),
@@ -68,13 +68,13 @@ test("longest match rides first: base, then prefix, then exact", async () => {
   const indexOf = (
     predicate: (value: typeof entries[number]) => boolean,
   ): number => entries.findIndex(predicate);
-  const base = indexOf((entry) => entry.find === "@spin/theme/base");
+  const base = indexOf((entry) => entry.find === "@spinjs/theme/base");
   const prefix = indexOf(
     (entry) =>
       entry.find instanceof RegExp ||
       typeof entry.find === "string" && entry.find.includes("$1"),
   );
-  const exact = indexOf((entry) => entry.find === "@spin/theme");
+  const exact = indexOf((entry) => entry.find === "@spinjs/theme");
   assert(base > -1);
   assert(prefix > -1);
   assert(exact > -1);

@@ -2,17 +2,18 @@ import { createGenerator, type Preset, type UserShortcuts } from "@unocss/core";
 import { createUnplugin } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
-import { parseTokens, type ThemeDocument } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { parseTokens, type ThemeDocument } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   noteDiskDocuments,
   onOverlayChange,
   resolveThemes,
 } from "./session.ts";
+import { spinElementsPlugin, type SpinElementsOptions } from "./elements.ts";
 
 /**
  * The slice of a dev server the overlay lifecycle touches. Structural, so
- * `@spin/preset` keeps no bundler dependency and the hook stays portable
+ * `@spinjs/preset` keeps no bundler dependency and the hook stays portable
  * across unplugin's targets.
  */
 export interface DevServer {
@@ -47,16 +48,17 @@ interface Specifier {
 }
 
 async function spinWorkspaceRoot(): Promise<string> {
-  // Walk up until a real workspace manifest is found: a deno.json with a
-  // `workspace` member, or a package.json with `workspaces`. Every package
-  // in the repo has its own deno.json, so "first manifest wins" would stop
-  // at the preset itself — and the specifier this walk exists for (the uno
-  // pin) lives in the hoisted root, not the member dir.
+  // Walk up until a real workspace manifest is found: a package.json with a
+  // non-empty `workspaces` array. Every package in the repo has its own
+  // package.json, so "first manifest wins" would stop at the preset itself —
+  // and the specifier this walk exists for (the uno pin) lives in the hoisted
+  // root, not the member dir.
   const { dirname, join } = await import("node:path");
   const { readFile, readdir } = await import("node:fs/promises");
   const { fileURLToPath } = await import("node:url");
   let dir = dirname(dirname(fileURLToPath(import.meta.url))); // this file's package dir
-  let fallback = dir;
+  const fallback = dir;
+  let projectFallback: string | undefined;
   for (;;) {
     let names: string[];
     try {
@@ -64,41 +66,26 @@ async function spinWorkspaceRoot(): Promise<string> {
     } catch {
       names = [];
     }
-    let isWorkspace = false;
-    let isProject = false;
-    if (names.includes("deno.json")) {
-      try {
-        const manifest = JSON.parse(
-          await readFile(join(dir, "deno.json"), "utf8"),
-        ) as { workspace?: unknown };
-        if (Array.isArray(manifest["workspace"])) {
-          isWorkspace = manifest["workspace"].length > 0;
-        } else {
-          // A manifest without the member list is one of the packages: the
-          // nearest one is the fallback when the walk dries up.
-          fallback = dir;
-        }
-      } catch {
-        // Unreadable manifest: keep walking.
-      }
-    } else if (names.includes("package.json")) {
+    if (names.includes("package.json")) {
       try {
         const manifest = JSON.parse(
           await readFile(join(dir, "package.json"), "utf8"),
         ) as { workspaces?: unknown };
-        // A package.json without workspaces is a single npm project: its
-        // root is where its node_modules lives, which is what the uno pin
-        // and the dev-server's file reads need.
-        isProject = manifest["workspaces"] === undefined;
-        isWorkspace = manifest["workspaces"] !== undefined;
+        if (
+          Array.isArray(manifest["workspaces"]) &&
+          manifest["workspaces"].length > 0
+        ) {
+          return dir;
+        }
+        if (projectFallback === undefined && !dir.includes("node_modules")) {
+          projectFallback = dir;
+        }
       } catch {
         // Unreadable manifest: keep walking.
       }
     }
-    if (isWorkspace) return dir;
-    if (isProject) return dir;
     const parent = dirname(dir);
-    if (parent === dir) return fallback;
+    if (parent === dir) return projectFallback ?? fallback;
     dir = parent;
   }
 }
@@ -134,8 +121,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     projectIndex: pkg("../../project/src/index.ts"),
     runtimeIndex: pkg("../../runtime/src/index.ts"),
     componentsIndex: pkg("../../components/src/index.ts"),
-    syntaxIndex: pkg("../../syntax/src/index.ts"),
-    hooksIndex: pkg("../../hooks/src/index.ts"),
     diagnosticsIndex: pkg("../../diagnostics/src/index.ts"),
   };
   const unoCore = join(
@@ -144,47 +129,47 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
   );
   const table: readonly Specifier[] = [
     {
-      find: "@spin/api/client",
+      find: "@spinjs/api/client",
       replacement: pkg("../../api/src/client.ts"),
       targets: [pkg("../../api/src/client.ts")],
     },
     {
-      find: "@spin/project/sync",
+      find: "@spinjs/project/sync",
       replacement: pkg("../../project/src/sync.ts"),
       targets: [pkg("../../project/src/sync.ts")],
     },
     {
-      find: "@spin/theme/base",
+      find: "@spinjs/theme/base",
       replacement: pkg("../../theme/src/base/index.ts"),
       targets: [source.themeIndex],
     },
     {
-      find: /^@spin\/theme\/(.+)$/,
+      find: /^@spinjs\/theme\/(.+)$/,
       replacement: `${source.themeSrc}$1`,
       targets: [source.themeIndex],
     },
     {
-      find: "@spin/theme",
+      find: "@spinjs/theme",
       replacement: source.themeIndex,
       targets: [source.themeIndex],
     },
     {
-      find: "@spin/animation",
+      find: "@spinjs/animation",
       replacement: source.animationIndex,
       targets: [source.animationIndex],
     },
     {
-      find: /^@spin\/preset\/(.+)$/,
+      find: /^@spinjs\/preset\/(.+)$/,
       replacement: `${source.presetSrc}$1`,
       targets: [source.presetIndex],
     },
     {
-      find: "@spin/preset",
+      find: "@spinjs/preset",
       replacement: source.presetIndex,
       targets: [source.presetIndex],
     },
     {
-      find: "@spin/api",
+      find: "@spinjs/api",
       replacement: source.apiIndex,
       targets: [source.apiIndex],
     },
@@ -192,92 +177,102 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       // The project: where a project's files are. The daemon's procedures
       // read them, and a client that wants to know what a project holds
       // asks the package that owns them.
-      find: "@spin/project",
+      find: "@spinjs/project",
       replacement: source.projectIndex,
       targets: [source.projectIndex],
     },
     {
-      find: "@spin/kit",
+      find: "@spinjs/kit",
       replacement: pkg("../../kit/src/index.ts"),
       targets: [pkg("../../kit/src/index.ts")],
     },
     {
-      find: "@spin/components/procedures",
-      replacement: pkg("../../components/src/components-procedures.ts"),
-      targets: [source.componentsIndex],
+      find: "@spinjs/components/procedures",
+      replacement: pkg("../../api/src/components-procedures.ts"),
+      targets: [source.apiIndex],
     },
     {
-      find: /^@spin\/components\/(.+)$/,
+      find: /^@spinjs\/components\/(.+)$/,
       replacement: `${pkg("../../components/src/")}$1`,
       targets: [source.componentsIndex],
     },
     {
-      find: "@spin/components",
+      find: "@spinjs/components",
       replacement: source.componentsIndex,
       targets: [source.componentsIndex],
     },
     {
-      find: "@spin/runtime/plugin/elements",
-      replacement: pkg("../../runtime/src/plugin/elements.ts"),
-      targets: [source.runtimeIndex],
+      find: "@spinjs/runtime/plugin/elements",
+      replacement: pkg("./elements.ts"),
+      targets: [source.presetIndex],
     },
     {
-      find: "@spin/runtime/props",
+      find: "@spinjs/runtime/props",
       replacement: pkg("../../runtime/src/props.ts"),
       targets: [source.runtimeIndex],
     },
     {
-      find: "@spin/runtime/fsm",
+      find: "@spinjs/runtime/fsm",
       replacement: pkg("../../runtime/src/machine/fsm/machine.ts"),
       targets: [source.runtimeIndex],
     },
     {
-      find: "@spin/runtime/load",
+      find: "@spinjs/runtime/load",
       replacement: pkg("../../runtime/src/directives/load.ts"),
       targets: [source.runtimeIndex],
     },
     {
-      find: "@spin/runtime/actions",
+      find: "@spinjs/runtime/actions",
       replacement: pkg("../../runtime/src/actions/index.ts"),
       targets: [source.runtimeIndex],
     },
     {
-      find: /^@spin\/runtime\/(.+)$/,
+      find: /^@spinjs\/runtime\/(.+)$/,
       replacement: `${pkg("../../runtime/src/")}$1`,
       targets: [source.runtimeIndex],
     },
     {
-      find: "@spin/runtime",
+      find: "@spinjs/runtime",
       replacement: source.runtimeIndex,
       targets: [source.runtimeIndex],
     },
     {
-      find: "@spin/syntax/props",
-      replacement: pkg("../../syntax/src/props.ts"),
-      targets: [source.syntaxIndex],
+      find: "@spinjs/hooks/solid",
+      replacement: pkg("../../components/src/solid/solid.ts"),
+      targets: [source.componentsIndex],
     },
     {
-      find: "@spin/syntax",
-      replacement: source.syntaxIndex,
-      targets: [source.syntaxIndex],
+      find: "@spinjs/hooks/react",
+      replacement: pkg("../../components/src/react/react.ts"),
+      targets: [source.componentsIndex],
     },
     {
-      find: "@spin/hooks/solid",
-      replacement: pkg("../../hooks/src/solid.ts"),
-      targets: [source.hooksIndex],
+      find: "@spinjs/hooks",
+      replacement: pkg("../../components/src/spin-element.ts"),
+      targets: [source.componentsIndex],
     },
     {
-      find: "@spin/hooks/react",
-      replacement: pkg("../../hooks/src/react.ts"),
-      targets: [source.hooksIndex],
+      find: "@spinjs/components/controller",
+      replacement: pkg("../../components/src/controller.ts"),
+      targets: [source.componentsIndex],
     },
     {
-      find: "@spin/hooks",
-      replacement: source.hooksIndex,
-      targets: [source.hooksIndex],
+      find: "@spinjs/components/solid",
+      replacement: pkg("../../components/src/solid/solid.ts"),
+      targets: [source.componentsIndex],
     },
     {
-      find: "@spin/diagnostics",
+      find: "@spinjs/components/react",
+      replacement: pkg("../../components/src/react/react.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spinjs/components/spin-element",
+      replacement: pkg("../../components/src/spin-element.ts"),
+      targets: [source.componentsIndex],
+    },
+    {
+      find: "@spinjs/diagnostics",
       replacement: source.diagnosticsIndex,
       targets: [source.diagnosticsIndex],
     },
@@ -354,7 +349,7 @@ export interface SpinPluginOptions {
   readonly safelist?: boolean;
   /**
    * Install middleware on the dev server — the API, the studio bundle, and
-   * later the completion endpoint. The plugin cannot import `@spin/api`
+   * later the completion endpoint. The plugin cannot import `@spinjs/api`
    * (dependencies point the other way), so the app that runs both passes
    * this in. Receives the server and the project root the plugin resolved,
    * so the mount can point filesystem procedures at the project.
@@ -387,6 +382,8 @@ export interface SpinPluginOptions {
    * the studio over the studio. The studio is the tool, not its own target.
    */
   readonly launcher?: boolean;
+  /** `.html → define()` compilation. Off unless `elements` is set. */
+  readonly elements?: SpinElementsOptions | false;
 }
 
 /**
@@ -467,7 +464,7 @@ export function projectThemes(
   return { ...starterThemes, ...overrides };
 }
 
-export const spin = createUnplugin<SpinPluginOptions>((options) => {
+const spinMain = createUnplugin<SpinPluginOptions>((options) => {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts.
   let root = process.cwd();
@@ -510,6 +507,13 @@ export const spin = createUnplugin<SpinPluginOptions>((options) => {
   return {
     name: "spin",
     enforce: "post",
+    resolveId(id: string) {
+      return id === "uno.css" ? VIRTUAL_ID : null;
+    },
+    load(id: string) {
+      if (id !== VIRTUAL_ID && id.split("?")[0] !== VIRTUAL_ID) return null;
+      return generate();
+    },
     vite: {
       // The toolchain carries its own specifier table: the app graph is
       // bundled by rolldown, which does not read the Deno import maps the
@@ -595,12 +599,37 @@ spinOverlay("${studioBase}/rpc"${
       server.httpServer?.once("close", stop);
       options.mount?.({ server, root });
     },
-    resolveId(id) {
-      return id === "uno.css" ? VIRTUAL_ID : null;
-    },
-    load(id) {
-      if (id !== VIRTUAL_ID && id.split("?")[0] !== VIRTUAL_ID) return null;
-      return generate();
-    },
   };
 });
+
+/**
+ * The single plugin a spin app wires: `spin.vite()`.
+ *
+ * One call, two stages: the `.html → define()` elements transform runs
+ * `pre` (it must claim `.html` before the bundler parses it as a document),
+ * and the stylesheet + dev chrome runs `post`. A single plugin object
+ * cannot carry two `enforce` phases, so the two unplugin definitions compose
+ * here — the app still names one plugin, and the phases stay where each
+ * stage needs them.
+ */
+export const spin = {
+  vite(options?: SpinPluginOptions) {
+    const stages: unknown[] = [spinMain.vite(options)];
+    if (options?.elements !== undefined && options.elements !== false) {
+      stages.unshift(spinElementsPlugin.vite(options.elements));
+    }
+    return stages;
+  },
+  rollup(options?: SpinPluginOptions) {
+    return spinMain.rollup(options);
+  },
+  rspack(options?: SpinPluginOptions) {
+    return spinMain.rspack(options);
+  },
+  webpack(options?: SpinPluginOptions) {
+    return spinMain.webpack(options);
+  },
+  esbuild(options?: SpinPluginOptions) {
+    return spinMain.esbuild(options);
+  },
+};

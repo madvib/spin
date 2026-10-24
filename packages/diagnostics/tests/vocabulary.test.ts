@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import type { ThemeDocument } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import type { ThemeDocument } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   checkClosedVocabulary,
   type ClassFacts,

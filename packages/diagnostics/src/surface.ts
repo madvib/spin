@@ -19,14 +19,14 @@
  * here reaches into the generator that would normally run them.
  */
 
-import { spinPreset } from "@spin/preset";
+import { spinPreset } from "@spinjs/preset";
 import {
   parseTokens,
   requiredPaths,
   validateLegibility,
   validateTokens,
-} from "@spin/theme";
-import type { ThemeDocument } from "@spin/theme";
+} from "@spinjs/theme";
+import type { ThemeDocument } from "@spinjs/theme";
 import { canonicalMap } from "./properties.ts";
 
 /**

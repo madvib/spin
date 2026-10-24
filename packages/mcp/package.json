@@ -1,5 +1,5 @@
 {
-  "name": "@spin/mcp",
+  "name": "@spinjs/mcp",
   "version": "0.1.0",
   "description": "The MCP server over spin's procedures, for agents.",
   "type": "module",
@@ -14,10 +14,6 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./server": {
-      "types": "./src/server.ts",
-      "default": "./src/server.ts"
-    },
     "./main": {
       "types": "./src/main.ts",
       "default": "./src/main.ts"
@@ -28,18 +24,29 @@
     "README.md"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.1",
-    "@spin/api": "workspace:*",
-    "@spin/theme": "workspace:*",
-    "zod": "^3.25.0"
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.4.0"
   },
   "peerDependencies": {
-    "@spin/api": "workspace:*",
-    "@spin/theme": "workspace:*"
+    "@spinjs/api": "workspace:*",
+    "@spinjs/theme": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./main": {
+        "types": "./dist/main.d.ts",
+        "default": "./dist/main.js"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/ tests/",

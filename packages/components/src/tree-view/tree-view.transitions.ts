@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { TreeEvents } from "./tree-view.events.ts";
 import type { TreeContext, TreeNodeShape } from "./tree-view.state.ts";
 import { keysOf, nodesOf, sameSet } from "./tree-view.state.ts";

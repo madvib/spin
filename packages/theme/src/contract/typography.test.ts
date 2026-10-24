@@ -12,8 +12,8 @@ import {
   requiredPaths,
   themeSchema,
   validateTokens,
-} from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+} from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /**
  * The per-element typography, as a contract.

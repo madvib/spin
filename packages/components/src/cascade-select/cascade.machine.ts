@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import {
   type CascadeArgs,
   type CascadeContext,
@@ -9,7 +9,7 @@ import {
   parsePaths,
   startOpen,
 } from "./cascade.state.ts";
-import type { EventUnion } from "@spin/runtime/fsm";
+import type { EventUnion } from "@spinjs/runtime/fsm";
 import type { CascadeEvents } from "./cascade.events.ts";
 import {
   clearHighlightedValue,

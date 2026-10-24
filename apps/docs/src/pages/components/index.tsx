@@ -14,14 +14,14 @@
  */
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spin/components";
+import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
 import {
   examplesFor,
   primitiveCategories,
   type PrimitiveContract,
   primitiveContracts,
   primitiveElements,
-} from "@spin/preset";
+} from "@spinjs/preset";
 import { A } from "@solidjs/router";
 
 const MACHINE_SOURCES = import.meta.glob(

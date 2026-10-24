@@ -1,10 +1,10 @@
 /**
- * @spin/api — transport for module-owned procedures.
+ * @spinjs/api — transport for module-owned procedures.
  *
  * Each module owns its contract and its handler (`themeContract` /
- * `themeRouter` live in `@spin/theme` because the theme implements them;
+ * `themeRouter` live in `@spinjs/theme` because the theme implements them;
  * `projectContract` lives here because the wire shape of a project is the
- * daemon's, while the operations over one live in `@spin/project`).
+ * daemon's, while the operations over one live in `@spinjs/project`).
  * This package owns nothing procedural: it mounts routers on handlers,
  * builds the typed client the studio and CLI use, and names the daemon's
  * single router. Transport, not definition.
@@ -14,22 +14,22 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
-import { themeRouter } from "@spin/theme";
-import { overlayRouter, presetRouter, primitivesRouter } from "@spin/preset";
+import { themeRouter } from "@spinjs/theme";
+import { overlayRouter, presetRouter, primitivesRouter } from "@spinjs/preset";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
 import { iconsRouter } from "./icons-procedures.ts";
 import { findingsRouter } from "./findings-procedures.ts";
-import { componentsRouter } from "@spin/components/procedures";
-import { componentsContract } from "@spin/components/procedures";
+import { componentsRouter } from "./components-procedures.ts";
+import { componentsContract } from "./components-contract.ts";
 
-export { themeRouter } from "@spin/theme";
+export { themeRouter } from "@spinjs/theme";
 export { projectRouter, setProjectRoot } from "./project-procedures.ts";
 export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
 export { projectContract } from "./project-contract.ts";
-export { themeContract } from "@spin/theme";
+export { themeContract } from "@spinjs/theme";
 
 export {
   overlayContract,
@@ -38,9 +38,9 @@ export {
   presetRouter,
   primitivesContract,
   primitivesRouter,
-} from "@spin/preset";
-export { componentsRouter } from "@spin/components/procedures";
-export { componentsContract } from "@spin/components/procedures";
+} from "@spinjs/preset";
+export { componentsRouter } from "./components-procedures.ts";
+export { componentsContract } from "./components-contract.ts";
 export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
 export { iconsContract, iconsRouter } from "./icons-procedures.ts";
 export { findingsContract, findingsRouter } from "./findings-procedures.ts";

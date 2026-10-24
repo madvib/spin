@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { describeCatalog } from "@spin/preset";
-import { parseTokens } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { describeCatalog } from "@spinjs/preset";
+import { parseTokens } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { TIER_BY_GROUP, tierInPlace } from "../src/tiers.ts";
 
 /**

@@ -1,5 +1,5 @@
 /**
- * @spin/preset — the closed UnoCSS vocabulary over `@spin/theme`.
+ * @spinjs/preset — the closed UnoCSS vocabulary over `@spinjs/theme`.
  *
  * Allowlist by construction: only utilities defined here exist. Anything else
  * generates no CSS. Token-driven rules resolve their names against the token
@@ -35,11 +35,11 @@ import { definePreset } from "@unocss/core";
 import type { Preset, UserShortcuts } from "@unocss/core";
 import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
-import { parseTokens, validateLegibility, validateTokens } from "@spin/theme";
+import { parseTokens, validateLegibility, validateTokens } from "@spinjs/theme";
 import { primitiveContracts } from "./rules/primitives/manifest.ts";
 import { requiredRolesFor, scaffoldDocument } from "./roles.ts";
 import { resolveThemes } from "./session.ts";
-import type { ThemeDocument, TokenTree } from "@spin/theme";
+import type { ThemeDocument, TokenTree } from "@spinjs/theme";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { transitionDurations } from "./rules/transitions.ts";
@@ -50,8 +50,8 @@ import {
   typeExtractor,
   variantExtractor,
 } from "./extractors.ts";
-import { themeRef } from "@spin/theme";
-import type { ThemeRef } from "@spin/theme";
+import { themeRef } from "@spinjs/theme";
+import type { ThemeRef } from "@spinjs/theme";
 import { wind4Layers, type Wind4Options, wind4Theme } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
@@ -113,7 +113,7 @@ export {
   type Wind4Options,
 } from "./wind4.ts";
 
-export type { ThemeDocument } from "@spin/theme";
+export type { ThemeDocument } from "@spinjs/theme";
 
 // The component contract and the views over it. They live beside the rules,
 // because a description of a rule belongs next to the rule — and the manifest

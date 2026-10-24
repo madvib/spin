@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import type { ThemeTokenPath } from "@spin/theme/theme-types";
+import type { ThemeTokenPath } from "@spinjs/theme/theme-types";
 import { withFallback } from "./shared.ts";
 
 /**

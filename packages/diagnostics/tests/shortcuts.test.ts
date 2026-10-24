@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { shortcutsIn } from "@spin/project";
-import { starterThemes } from "@spin/theme/themes";
+import { shortcutsIn } from "@spinjs/project";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   checkClosedVocabulary,
   type ClassFacts,
@@ -44,7 +44,7 @@ function reported(facts: Facts, classes: string): string[] {
 }
 
 const CONFIG = `
-import { spin } from "@spin/preset";
+import { spin } from "@spinjs/preset";
 
 export default {
   plugins: [

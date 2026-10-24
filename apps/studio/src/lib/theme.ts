@@ -1,5 +1,5 @@
-import { validateTheme } from "@spin/theme";
-import type { Mode, ThemeReport } from "@spin/theme";
+import { validateTheme } from "@spinjs/theme";
+import type { Mode, ThemeReport } from "@spinjs/theme";
 
 /**
  * What the studio knows about a theme's document.

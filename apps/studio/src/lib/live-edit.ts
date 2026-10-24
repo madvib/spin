@@ -29,8 +29,8 @@ import {
   validateTheme,
   validateTokens,
   valuesInMode,
-} from "@spin/theme";
-import type { ValidationIssue } from "@spin/theme";
+} from "@spinjs/theme";
+import type { ValidationIssue } from "@spinjs/theme";
 import { isCompositeType, parseComposite } from "./tokens.ts";
 import type { Composite } from "./tokens.ts";
 

@@ -1,14 +1,14 @@
 /**
  * Primitives manifest — each component's contract with the theme: `tags`,
  * `variants` and `reads` are derived from its rules by probing rule execution
- * (`deno task codegen`), `scope` is the claim the rules are held to plus what
+ * (`bun run codegen`), `scope` is the claim the rules are held to plus what
  * each painted element owns, `category` and `icon` are derived from the
  * authored taxonomy, `component` is authored, and `tests/manifest.test.ts`
  * fails when the checked-in file goes stale.
  */
 
-import type { ThemeCssVar } from "@spin/theme/theme-types";
-import type { TokenType } from "@spin/theme";
+import type { ThemeCssVar } from "@spinjs/theme/theme-types";
+import type { TokenType } from "@spinjs/theme";
 import type { PrimitiveCategory, PrimitiveElement } from "./categories.ts";
 import type { PrimitiveScope } from "./scope.ts";
 
@@ -1167,6 +1167,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     ],
   },
 };
+
+
 
 
 /* --------------------------------------------------------------- readers --

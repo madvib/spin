@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type { SelectArgs, SelectContext, SelectState } from "./select.state.ts";
 import { initial, rowsOf } from "./select.state.ts";
 import type { SelectEvents } from "./select.events.ts";

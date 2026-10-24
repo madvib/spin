@@ -245,7 +245,7 @@ test("a shortcut is declared in the project's own configuration", async () => {
   const root = await project(
     `export const App = () => <span className="flex flex-col gap-4" />;
 `,
-    `import { spin } from "@spin/preset";
+    `import { spin } from "@spinjs/preset";
 
 export default {
   plugins: [

@@ -1,7 +1,7 @@
 {
-  "name": "@spin/theme",
+  "name": "@spinjs/theme",
   "version": "0.1.0",
-  "description": "DTCG JSON in, token trees out \u2014 the theme pipeline behind spin.",
+  "description": "DTCG JSON in, token trees out — the theme pipeline behind spin.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -38,19 +38,39 @@
   "dependencies": {
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
-    "@spin/theme": "workspace:*",
     "valibot": "^1.0.0"
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./base": {
+        "types": "./dist/base/index.d.ts",
+        "default": "./dist/base/index.js"
+      },
+      "./themes": {
+        "types": "./dist/themes/index.d.ts",
+        "default": "./dist/themes/index.js"
+      },
+      "./skill": {
+        "types": "./dist/skill/index.d.ts",
+        "default": "./dist/skill/index.js"
+      },
+      "./theme-types": {
+        "types": "./dist/theme-types.d.ts"
+      }
+    }
   },
   "scripts": {
     "test": "bun test src/ tests/",
     "lint": "oxlint",
     "fmt": "biome format --write .",
-    "schema": "bun eval \"const { spinThemeJsonSchema } = await import('./src/contract/schema.ts');await Deno.writeTextFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n');console.log('wrote schema.json');\"",
-    "types": "bun eval \"const { parseTokens, generateTypes } = await import('./src/index.ts');const { silkTheme } = await import('./src/themes/index.ts');const parsed = parseTokens(silkTheme);if (!parsed.ok) throw new Error(parsed.error);await Deno.writeTextFile('src/theme-types.d.ts', generateTypes(parsed.tree));console.log('wrote src/theme-types.d.ts');\"",
-    "skill": "bun eval \"const { renderSkill } = await import('./src/skill/index.ts');const template = await Deno.readTextFile('./skill/SKILL.md');console.log(renderSkill(template));\""
+    "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n'); console.log('wrote schema.json');\"",
+    "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes } from './src/index.ts'; import { spinTheme } from './src/themes/index.ts'; const parsed = parseTokens(spinTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme-types.d.ts');\"",
+    "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/skill/index.ts'; const rendered = renderSkill(await readFile('./skill/SKILL.md', 'utf8')); await writeFile('./skill/SKILL.md', rendered); console.log('wrote skill/SKILL.md');\""
   }
 }

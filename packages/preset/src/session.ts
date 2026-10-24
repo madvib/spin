@@ -1,11 +1,11 @@
-import type { ThemeDocument } from "@spin/theme";
+import type { ThemeDocument } from "@spinjs/theme";
 
 /**
  * The overlay: theme names to the documents the studio is editing.
  *
  * A process-global cell, because the plugin and the preset are the same
  * process but not the same module graph. Vite bundles `vite.config.ts`
- * and inlines its own copy of this module, while `@spin/api` resolves a
+ * and inlines its own copy of this module, while `@spinjs/api` resolves a
  * second copy through the import map; a module-scope `let` would give each
  * copy its own overlay, and an RPC write would never reach the generator.
  * State lives on `globalThis` so every copy shares one cell.

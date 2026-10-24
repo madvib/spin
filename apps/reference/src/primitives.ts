@@ -1,4 +1,4 @@
-import { componentExamples } from "@spin/preset";
+import { componentExamples } from "@spinjs/preset";
 
 export interface PrimitiveExample {
   readonly name: string;
@@ -47,7 +47,7 @@ const TITLES: Readonly<Record<string, string>> = {
 };
 
 /**
- * Every primitive page, sourced from `@spin/preset`'s `componentExamples`.
+ * Every primitive page, sourced from `@spinjs/preset`'s `componentExamples`.
  */
 export const PRIMITIVES: readonly PrimitivePage[] = Object.values(
   componentExamples,

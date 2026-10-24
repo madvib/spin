@@ -28,7 +28,7 @@
 
 import { MetaProvider, Title } from "@solidjs/meta";
 import { A, Route, Router } from "@solidjs/router";
-import { Web } from "@spin/kit";
+import { Web } from "@spinjs/kit";
 import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
 import IconsPage from "./routes/icons.tsx";

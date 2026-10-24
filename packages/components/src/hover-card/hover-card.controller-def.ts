@@ -1,5 +1,5 @@
-import { type ControllerDef, signal } from "@spin/runtime";
-import type { AnchorGeometry, AnchorPlacement } from "@spin/runtime/actions";
+import { type ControllerDef, signal } from "@spinjs/runtime";
+import type { AnchorGeometry, AnchorPlacement } from "@spinjs/runtime/actions";
 
 /**
  * Hover-card on the platform: the browser owns open/closed, the top layer,

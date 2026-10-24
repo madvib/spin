@@ -3,13 +3,13 @@ import { join } from "node:path";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, resolveAliases } from "@spin/theme";
+import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
 import {
   primitiveComponents,
   primitiveContracts,
   primitiveVariants,
-} from "@spin/preset";
-import { starterThemes } from "@spin/theme/themes";
+} from "@spinjs/preset";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   deriveRuleContract,
   deriveScope,

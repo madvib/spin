@@ -23,8 +23,8 @@ import {
   indexTree,
   toHex,
   valuesInMode,
-} from "@spin/theme";
-import type { TokenLeaf, TokenTree } from "@spin/theme";
+} from "@spinjs/theme";
+import type { TokenLeaf, TokenTree } from "@spinjs/theme";
 import { tokenValue } from "./overview.ts";
 
 /** The three families a theme's colours fall into. */

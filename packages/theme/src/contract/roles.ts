@@ -417,7 +417,7 @@ function leafSchema(doc: string): JsonSchema {
  * The theme document schema.
  *
  * Built directly as JSON Schema 2020-12 from the role declarations, so
- * `deno task schema` writes `schema.json` straight from the builder with no
+ * `bun run schema` writes `schema.json` straight from the builder with no
  * external schema library. Declared roles land in `required` automatically;
  * everything else a theme may add is permitted by `additionalProperties`.
  */

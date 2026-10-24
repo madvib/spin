@@ -38,7 +38,7 @@ import {
   declareShortcut,
   type FindingsReport,
   lintSource,
-} from "@spin/diagnostics";
+} from "@spinjs/diagnostics";
 import { rootFor } from "./project-procedures.ts";
 
 /**

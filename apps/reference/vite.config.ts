@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "../../packages/preset/src/plugin.ts";
-import { spinElements } from "../../packages/runtime/src/plugin/elements.ts";
 import { mountSpinApp } from "../../packages/api/src/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
@@ -18,9 +17,9 @@ const here = import.meta.dirname!;
 
 export default defineConfig({
   plugins: [
-    spinElements({ machines: resolve(here, "../../packages/components/src") }),
     solid(),
     spin.vite({
+      elements: { machines: resolve(here, "../../packages/components/src") },
       // No `themes`: the app serves the shipped starters, forked by
       // `spin/*.json` at this root — the same files the studio edits — so a
       // theme change in the studio re-themes this app and nothing has to be

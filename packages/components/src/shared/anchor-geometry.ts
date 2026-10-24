@@ -1,5 +1,5 @@
-import { type Signal, signal } from "@spin/runtime";
-import type { AnchorGeometry } from "@spin/runtime/actions";
+import { type Signal, signal } from "@spinjs/runtime";
+import type { AnchorGeometry } from "@spinjs/runtime/actions";
 
 /**
  * The measured position of an anchored panel.

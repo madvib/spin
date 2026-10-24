@@ -200,8 +200,8 @@ done`;
         <Code
           class="mt-3"
           lang="ts"
-          code={`import { spin } from "@spin/preset/plugin";
-import { mountSpinApp } from "@spin/api";
+          code={`import { spin } from "@spinjs/preset/plugin";
+import { mountSpinApp } from "@spinjs/api";
 
 export default {
   plugins: [
@@ -393,7 +393,7 @@ deno task visual -- --state-contrast-strict`}
           lang="bash"
 code={`deno eval --ext=ts "
 import { readFile } from 'node:fs/promises';
-import { themeGates } from '@spin/theme';
+import { themeGates } from '@spinjs/theme';
 const text = await readFile('spin/<name>.json', 'utf8');
 const report = themeGates(text);
 for (const gate of report.gates) {

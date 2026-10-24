@@ -11,12 +11,12 @@ import {
 } from "../lib/store.ts";
 
 /**
- * The section furniture is the product's, not the studio's: `@spin/kit`
+ * The section furniture is the product's, not the studio's: `@spinjs/kit`
  * exports the marked heading, the note and the fact on the right, and the
  * docs and the reference app read the same component. The pages here import
  * them from this module so a concern page reads as one vocabulary.
  */
-export { Marker, Section } from "@spin/kit";
+export { Marker, Section } from "@spinjs/kit";
 
 /**
  * The furniture every concern page is built from.

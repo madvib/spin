@@ -1,4 +1,4 @@
-import { coerceJsonArray, isRecord } from "@spin/runtime";
+import { coerceJsonArray, isRecord } from "@spinjs/runtime";
 
 export interface MenuItemData {
   readonly value: string;

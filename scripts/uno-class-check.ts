@@ -18,9 +18,7 @@ import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { readdir, readFile } from "node:fs/promises";
-import { classTokens } from "../packages/syntax/src/classes.ts";
-import { expandVariantGroups } from "../packages/syntax/src/expand-groups.ts";
-import { parse } from "../packages/syntax/src/parse.ts";
+import { classTokens, expandVariantGroups, parse } from "../packages/runtime/src/syntax/index.ts";
 import { spinPreset } from "../packages/preset/src/index.ts";
 import { starterThemes } from "../packages/theme/src/themes/index.ts";
 
@@ -80,7 +78,7 @@ for (const root of SOURCES) {
 // The same generator the specimens app builds with: a class the app can
 // compile is a class that passes, and nothing else counts.
 // The `animate-*` utilities are not Uno rules — they ship as plain CSS from
-// `@spin/animation`'s preflight — so they are allowlisted rather than
+// `@spinjs/animation`'s preflight — so they are allowlisted rather than
 // generated: the generator would never match them either way.
 import { animationVariants } from "../packages/animation/src/index.ts";
 const ANIMATED = animationVariants();

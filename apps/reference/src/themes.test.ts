@@ -12,7 +12,7 @@ import { test } from "bun:test";
  * only, so this file runs with `deno test apps/reference/src/themes.test.ts`
  * until the suite is told to look here.
  */
-import { starterThemes, themeModes } from "@spin/theme/themes";
+import { starterThemes, themeModes } from "@spinjs/theme/themes";
 import { renderingsFor } from "./themes.ts";
 
 /** Equal, or the test says what was different. */

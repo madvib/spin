@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, themeKey, themeRef } from "@spin/theme";
-import { starterThemes } from "@spin/theme/themes";
+import { indexTree, parseTokens, themeKey, themeRef } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /**
  * The projection's contract: total, and named by the property itself.

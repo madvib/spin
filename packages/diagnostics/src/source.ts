@@ -15,8 +15,8 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
-import { starterThemes } from "@spin/theme/themes";
-import type { ThemeDocument } from "@spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
+import type { ThemeDocument } from "@spinjs/theme";
 import {
   type ClassAttribute,
   classAttributesOf,
@@ -626,7 +626,7 @@ export async function declareShortcut(
  * project's own.
  */
 async function configFile(root: string): Promise<string | undefined> {
-  const { CONFIG_FILES } = await import("@spin/project");
+  const { CONFIG_FILES } = await import("@spinjs/project");
   let directory = resolve(root);
   for (;;) {
     for (const name of CONFIG_FILES) {

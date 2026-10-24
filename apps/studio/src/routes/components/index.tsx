@@ -22,8 +22,8 @@
 
 import { createMemo, For, Match, Switch } from "solid-js";
 import { A } from "@solidjs/router";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spin/components";
-import { primitiveCategories, primitiveElements } from "@spin/preset";
+import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
+import { primitiveCategories, primitiveElements } from "@spinjs/preset";
 import { library } from "../../lib/store.ts";
 import { inDrawer } from "../../lib/host.ts";
 import { Marker } from "../../components/Concern.tsx";

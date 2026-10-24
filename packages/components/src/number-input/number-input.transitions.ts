@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spin/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
 import type { NumberInputContext } from "./number-input.state.ts";
 import type { NumberInputEvent } from "./number-input.events.ts";
 import type {

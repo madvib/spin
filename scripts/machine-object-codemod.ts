@@ -215,14 +215,14 @@ for (const entry of readdirSync(COMPONENTS, { withFileTypes: true })) {
             list.push("type MachineObject");
             return `import { ${
               sorted(list).join(", ")
-            } } from "@spin/runtime";`;
+            } } from "@spinjs/runtime";`;
           },
         );
       } else {
         const at = /^\*\/\n/m.exec(source)?.index ?? 0;
         const at2 = at > 0 ? at + 3 : 0;
         source = source.slice(0, at2) +
-          '\nimport type { MachineObject } from "@spin/runtime";\n' +
+          '\nimport type { MachineObject } from "@spinjs/runtime";\n' +
           source.slice(at2);
       }
     }

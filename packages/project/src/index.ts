@@ -1,5 +1,5 @@
 /**
- * @spin/project — the project: where it is, what it holds, what it declares.
+ * @spinjs/project — the project: where it is, what it holds, what it declares.
  *
  * A project is a directory with a claim on it: a `spin/` directory of theme
  * documents, and a build configuration that says how the app is put

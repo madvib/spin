@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spin/runtime";
+import { defaultTwin } from "@spinjs/runtime";
 import type { DateInputEvent } from "./date-input.events.ts";
 
 export type DateInputField =

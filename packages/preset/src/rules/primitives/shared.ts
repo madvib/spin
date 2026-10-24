@@ -4,13 +4,13 @@ import {
   themeOf,
   token,
 } from "../../utils/lookup.ts";
-import { themeKey } from "@spin/theme";
+import { themeKey } from "@spinjs/theme";
 import {
   elementTypeFields,
   FACE_CHAINS,
   type GlobalTypePath,
-} from "@spin/theme";
-import type { ThemeTokenPath } from "@spin/theme/theme-types";
+} from "@spinjs/theme";
+import type { ThemeTokenPath } from "@spinjs/theme/theme-types";
 
 /**
  * How a primitive claims its element.

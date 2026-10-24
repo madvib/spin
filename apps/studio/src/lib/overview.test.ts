@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseTokens } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
+import { parseTokens } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import {
   durationUtility,
   elementSamples,

@@ -22,46 +22,46 @@
       "~/*": [
         "./src/*"
       ],
-      "@spin/theme": [
+      "@spinjs/theme": [
         "../../packages/theme/src/index.ts"
       ],
-      "@spin/theme/themes": [
+      "@spinjs/theme/themes": [
         "../../packages/theme/src/themes/index.ts"
       ],
-      "@spin/theme/theme-types": [
+      "@spinjs/theme/theme-types": [
         "../../packages/theme/src/theme-types.d.ts"
       ],
-      "@spin/kit": [
+      "@spinjs/kit": [
         "../../packages/kit/src/index.ts"
       ],
-      "@spin/api/client": [
+      "@spinjs/api/client": [
         "../../packages/api/src/client.ts"
       ],
-      "@spin/api": [
+      "@spinjs/api": [
         "../../packages/api/src/index.ts"
       ],
-      "@spin/project": [
+      "@spinjs/project": [
         "../../packages/project/src/index.ts"
       ],
-      "@spin/project/sync": [
+      "@spinjs/project/sync": [
         "../../packages/project/src/sync.ts"
       ],
-      "@spin/diagnostics": [
+      "@spinjs/diagnostics": [
         "../../packages/diagnostics/src/index.ts"
       ],
-      "@spin/preset": [
+      "@spinjs/preset": [
         "../../packages/preset/src/index.ts"
       ],
-      "@spin/preset/config": [
+      "@spinjs/preset/config": [
         "../../packages/preset/src/config.ts"
       ],
       "@unocss/core": [
         "./node_modules/@unocss/core/dist/index.d.mts"
       ],
-      "@spin/theme/base": [
+      "@spinjs/theme/base": [
         "../../packages/theme/src/base/index.ts"
       ],
-      "@spin/animation": [
+      "@spinjs/animation": [
         "../../packages/animation/src/index.ts"
       ]
     }

@@ -1,7 +1,7 @@
-import type { ThemeRef } from "@spin/theme";
-import { themeKey } from "@spin/theme";
-import type { ThemeTokenPath } from "@spin/theme/theme-types";
-import type { ElementTypePath } from "@spin/theme";
+import type { ThemeRef } from "@spinjs/theme";
+import { themeKey } from "@spinjs/theme";
+import type { ThemeTokenPath } from "@spinjs/theme/theme-types";
+import type { ElementTypePath } from "@spinjs/theme";
 
 export interface ThemeContext {
   theme?: unknown;

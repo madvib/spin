@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { createMachine, interpret } from "@spin/runtime/fsm";
-import { computed, effect, signal } from "@spin/runtime";
+import { createMachine, interpret } from "@spinjs/runtime/fsm";
+import { computed, effect, signal } from "@spinjs/runtime";
 
 test("a read of a signal inside a computed subscribes to it", () => {
   const s = signal(1);

@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
-import { signal } from "@spin/runtime";
+import { parseHTML } from "@spinjs/runtime/testing";
+import { signal } from "@spinjs/runtime";
 import { ratingGroup } from "./rating-group.presentation.ts";
 const createRatingGroupBridge = ratingGroup.createBridge;
 import type { RatingGroupHoverChange } from "./rating-group.presentation.ts";

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { LOOP_STEP } from "@spin/theme";
-import type { ThemeRef } from "@spin/theme";
+import { LOOP_STEP } from "@spinjs/theme";
+import type { ThemeRef } from "@spinjs/theme";
 import { TRANSITION_PROPERTY } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { staticRules } from "../utils/factories.ts";

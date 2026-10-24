@@ -22,8 +22,8 @@ import {
   primitiveContracts,
   SECTIONS,
   spinShortcuts,
-} from "@spin/preset";
-import { BASE_ROLES } from "@spin/theme";
+} from "@spinjs/preset";
+import { BASE_ROLES } from "@spinjs/theme";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
 
 export interface SearchEntry {

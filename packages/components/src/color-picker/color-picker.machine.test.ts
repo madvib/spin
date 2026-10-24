@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
-import { signal } from "@spin/runtime";
-import type { DragDelta, DragPress } from "@spin/runtime/actions";
+import { parseHTML } from "@spinjs/runtime/testing";
+import { signal } from "@spinjs/runtime";
+import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { colorPicker } from "./color-picker.presentation.ts";
 const createColorPickerBridge = colorPicker.createBridge;
 import type {

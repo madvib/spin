@@ -9,7 +9,7 @@ import {
   resolveThemes,
   setOverlay,
 } from "../src/session.ts";
-import type { ThemeDocument } from "@spin/theme";
+import type { ThemeDocument } from "@spinjs/theme";
 
 // Bun runs test files in one process, so module state leaks across files:
 // an overlay left set here merges into every preset generation after it

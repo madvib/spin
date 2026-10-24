@@ -16,8 +16,8 @@ import {
   findProjectRoot,
   findProjectRootIn,
   themeTextsIn,
-} from "@spin/project/sync";
-import type { ThemeDocument } from "@spin/theme";
+} from "@spinjs/project/sync";
+import type { ThemeDocument } from "@spinjs/theme";
 
 export { findProjectRoot, findProjectRootIn };
 

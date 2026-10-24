@@ -1,6 +1,6 @@
 /** Signature-pad machine: idle/drawing over two states. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   SignaturePadArgs,
   SignaturePadContext,
@@ -69,4 +69,4 @@ export type {
   SignaturePadDrawDetails,
   SignaturePadEvents,
 } from "./signature-pad.events.ts";
-export { defaultTwin } from "@spin/runtime";
+export { defaultTwin } from "@spinjs/runtime";

@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spin/runtime/fsm";
+import type { AssignFor } from "@spinjs/runtime/fsm";
 import type { NavigationMenuEvents } from "./navigation-menu.events.ts";
 import type { NavigationMenuContext } from "./navigation-menu.state.ts";
 import { asText } from "./navigation-menu.state.ts";

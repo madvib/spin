@@ -19,9 +19,8 @@ import { test } from "bun:test";
  */
 
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spin/runtime/testing";
-import { coerceProps, parseScope } from "@spin/runtime";
-import type { PropDecl } from "@spin/syntax";
+import { parseHTML } from "@spinjs/runtime/testing";
+import { coerceProps, parseScope, type PropDecl } from "@spinjs/runtime";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

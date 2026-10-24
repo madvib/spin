@@ -9,17 +9,17 @@
  * eventually override it.
  *
  * Reset and the reduced-motion clamp live here rather than in
- * `@spin/theme/base` because neither spends a token: no theme can change
+ * `@spinjs/theme/base` because neither spends a token: no theme can change
  * them, so a theme module carrying them would claim a decision it does not get
  * to make. They are the stage every document needs before anything else means
  * anything.
  */
 
-import { generateThemeCss } from "@spin/theme";
-import type { TokenTree } from "@spin/theme";
-import { documentDefaults, fontFaces, readFonts } from "@spin/theme/base";
-import type { FontResult, PreflightProvider } from "@spin/theme/base";
-import { animationPreflights } from "@spin/animation";
+import { generateThemeCss } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { documentDefaults, fontFaces, readFonts } from "@spinjs/theme/base";
+import type { FontResult, PreflightProvider } from "@spinjs/theme/base";
+import { animationPreflights } from "@spinjs/animation";
 import type { ThemeDocument } from "./index.ts";
 
 /**

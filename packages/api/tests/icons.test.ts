@@ -12,7 +12,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RPCHandler } from "@orpc/server/fetch";
-import { createSpinClient, router } from "@spin/api";
+import { createSpinClient, router } from "@spinjs/api";
 
 /** Serve the composed daemon router on an ephemeral port. */
 function serve() {

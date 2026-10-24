@@ -12,7 +12,7 @@
  */
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { themeModes } from "@spin/theme/themes";
+import { themeModes } from "@spinjs/theme/themes";
 import type { ThemeState } from "./theme-state.ts";
 import { defaultThemeState } from "./theme-state.ts";
 

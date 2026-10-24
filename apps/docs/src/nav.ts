@@ -6,12 +6,12 @@
  * from the preset's own taxonomy, so a primitive added to the rules appears
  * in the rail on the next build with no list to maintain.
  */
-import { COMPONENT_ICONS } from "@spin/components";
+import { COMPONENT_ICONS } from "@spinjs/components";
 import {
   primitiveCategories,
   primitiveContracts,
   primitiveElements,
-} from "@spin/preset";
+} from "@spinjs/preset";
 
 export interface NavLink {
   readonly title: string;

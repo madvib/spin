@@ -1,6 +1,6 @@
 /** Date-input machine: the field values, the focused segment, and the keys typed into it. */
 
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type { DateInputArgs, DateInputContext } from "./date-input.state.ts";
 import { clearEnteredKeys, initial } from "./date-input.state.ts";
 import type { DateInputEvents } from "./date-input.events.ts";

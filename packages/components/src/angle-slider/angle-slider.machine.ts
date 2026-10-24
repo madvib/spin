@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spin/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/runtime/fsm";
 import type {
   AngleSliderArgs,
   AngleSliderContext,
@@ -81,4 +81,4 @@ export function angleSlider(
 // Re-export helpers for tests/import compatibility
 export * from "./angle-slider.state.ts";
 export type { AngleSliderValueChange } from "./angle-slider.events.ts";
-export { defaultTwin } from "@spin/runtime";
+export { defaultTwin } from "@spinjs/runtime";
