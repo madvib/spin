@@ -1,10 +1,14 @@
-<scope>props={ label: string = "Hover me", tip: string = "A hint with a pointing arrow." } consume={ tooltip }</scope>
+<script lang="ts">
+import { tooltip } from "../tooltip.controller-def.ts";
 
-<button {...tooltip.getTriggerProps()}
-  class="secondary s-sm">{label}</button>
+const ctl = tooltip();
+</script>
 
-<tooltip {...tooltip.getContentProps()}
-  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
-  <span aria-hidden="true" class="absolute -top-1 left-1/2 h-2 w-2 rotate-45 border-l border-t border-solid border-border bg-surface-raised"></span>
-  {tip}
+<button {...ctl.getTriggerProps()}
+  class="secondary s-sm">Hover me</button>
+
+<tooltip {...ctl.getContentProps()}
+  class="fixed m-0 max-w-[16rem]">
+  <span aria-hidden="true" class="absolute -top-1 left-1/2 h-2 w-2 rotate-45 border-b-0 border-r-0 border-l border-t border-solid border-border bg-surface-raised"></span>
+  A hint with a pointing arrow.
 </tooltip>

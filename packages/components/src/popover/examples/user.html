@@ -1,7 +1,12 @@
-<scope>props={ name: string = "Sarah Chen", email: string = "sarah.chen@example.com", role: string = "Product Designer", location: string = "San Francisco, CA" } consume={ popover }</scope>
+<script lang="ts">
+import { popover } from "../popover.controller-def.ts";
 
-<button {...popover.getTriggerProps()}
-  class="relative inline-flex items-center justify-center rounded-full secondary s-sm transition-colors hover:bg-surface">
+const ctl = popover();
+</script>
+
+<button {...ctl.getTriggerProps()}
+  aria-label="Sarah Chen's profile"
+  class="bare relative inline-flex items-center justify-center rounded-full transition-colors hover:bg-surface">
   <span
     class="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-on-primary"
     aria-hidden="true">SC</span>
@@ -10,24 +15,24 @@
     aria-hidden="true"></span>
 </button>
 
-<popover {...popover.getContentProps()}
-  class="w-full max-w-[18rem]">
+<popover {...ctl.getContentProps()}
+  class="m-0 rounded-lg border border-solid border-border bg-surface-raised shadow-lg position-area-bottom-span-right w-full max-w-[18rem]">
   <div class="border-b border-solid border-border p-3">
     <div class="flex items-center gap-3">
       <span
         class="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-on-primary"
         aria-hidden="true">SC<span class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-solid border-surface-raised bg-semantic-success"></span></span>
       <div class="min-w-0 flex-1">
-        <h3 class="text-sm font-medium text-text">{name}</h3>
-        <p class="text-xs text-text-muted">{role}</p>
+        <strong class="text-sm text-text">Sarah Chen</strong>
+        <p class="text-xs text-text-muted">Product Designer</p>
       </div>
     </div>
   </div>
   <div class="stack-sm p-3 text-sm text-text-muted">
     <p
-      class="flex items-center gap-2"><span class="i-lucide-mail text-sm" aria-hidden="true"></span>{email}</p>
+      class="flex items-center gap-2"><span class="i-lucide-mail text-sm" aria-hidden="true"></span>sarah.chen@example.com</p>
     <p
-      class="flex items-center gap-2"><span class="i-lucide-map-pin text-sm" aria-hidden="true"></span>{location}</p>
+      class="flex items-center gap-2"><span class="i-lucide-map-pin text-sm" aria-hidden="true"></span>San Francisco, CA</p>
   </div>
   <div class="flex gap-2 border-t border-solid border-border p-3">
     <button

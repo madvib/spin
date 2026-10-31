@@ -1,31 +1,35 @@
-<scope>props={ name: string = "John Doe", handle: string = "@johndoe", bio: string = "Frontend developer passionate about creating beautiful and accessible user interfaces.", followers: string = "2.1k" } consume={ hoverCard }</scope>
+<script lang="ts">
+import { hoverCard } from "../hover-card.controller-def.ts";
 
-<div {...hoverCard.getRootProps()} class="inline-block">
-  <span {...hoverCard.getTriggerProps()}
+const ctl = hoverCard();
+</script>
+
+<div {...ctl.getRootProps()} class="inline-block">
+  <span {...ctl.getTriggerProps()}
     class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 text-sm text-text transition-colors hover:bg-surface">
     <span
       class="grid h-6 w-6 place-items-center rounded-full bg-primary text-xs font-semibold text-on-primary"
       aria-hidden="true">JD</span>
-    <span class="text-sm font-medium">{handle}</span>
+    <span class="text-sm font-medium">@johndoe</span>
   </span>
 
-  <div {...hoverCard.getContentProps()}
-    class="fixed m-0 max-w-[20rem] w-full rounded-lg border border-solid border-border bg-surface-raised p-6 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+  <div {...ctl.getContentProps()}
+    class="fixed m-0 max-w-[20rem] w-full rounded-lg border border-solid border-border bg-surface-raised p-6 shadow-lg max-w-[20rem]">
     <div class="stack">
       <div class="flex items-start gap-3">
         <span
           class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-lg font-semibold text-on-primary"
           aria-hidden="true">JD</span>
         <div class="min-w-0 flex-1">
-          <h3 class="text-lg text-text">{name}</h3>
-          <p class="text-sm text-text-muted">{handle}</p>
+          <h3>John Doe</h3>
+          <p class="text-sm text-text-muted">@johndoe</p>
         </div>
         <button class="s-sm">Follow</button>
       </div>
-      <p class="text-sm text-text-muted">{bio}</p>
+      <p class="text-sm text-text-muted">Frontend developer passionate about creating beautiful and accessible user interfaces.</p>
       <div class="flex items-center gap-4 text-sm">
         <p
-          class="text-text-muted"><span class="font-medium text-text">{followers}</span> followers</p>
+          class="text-text-muted"><span class="font-medium text-text">2.1k</span> followers</p>
         <p
           class="text-text-muted"><span class="font-medium text-text">180</span> following</p>
       </div>

@@ -9,7 +9,7 @@ const machine = steps({
 </script>
 
 <div class="w-full" {...machine.getRootProps()}>
- <ol class="flex items-start gap-4" {...machine.getListProps()}>
+ <ol class="row-list items-start gap-4" {...machine.getListProps()}>
   <template for={machine.getItems()} as={row} key={row}>
    <li class="relative flex min-w-0 items-center not-last:flex-1"
     {...machine.getItemProps(row)}>
@@ -17,9 +17,9 @@ const machine = steps({
      class="bare flex shrink-0 items-center gap-3 bg-transparent text-left"
      {...machine.getTriggerProps(row)}
     ><span
-      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid border-border bg-surface-raised text-sm font-semibold text-text-muted", { "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
+      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid text-sm font-semibold", { "border-border bg-surface-raised text-text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
       {...machine.getIndicatorProps(row)}
-     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span></button><span aria-hidden="true" class={["mx-3 h-1 flex-1 bg-border", { "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
+     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 h-1 flex-1", { "bg-border": machine.getItemState(row).completed === false, "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
    </li>
   </template>
  </ol>

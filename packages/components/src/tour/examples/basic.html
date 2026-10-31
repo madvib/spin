@@ -15,29 +15,31 @@ const machine = tour({
     class="secondary s-sm">Confirm button</button>
   <button
     class="s-sm"
-    onClick={machine.start}>Start tour</button>
+    {...machine.getStartTriggerProps()}>Start tour</button>
 </div>
 <div class="contents" {...machine.getRootProps()}>
   <div
-    class={["pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate", { "opacity-0": !machine.active }]}
+    show={machine.active}
+    class="pointer-events-none fixed inset-0 z-modal bg-surface-sunken opacity-70 transition-opacity duration-fast ease-decelerate"
     {...machine.getBackdropProps()}></div>
 
   <div
-    class={["pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate", { "opacity-0": !machine.active }]}
+    show={machine.active}
+    class="pointer-events-none fixed z-modal rounded-lg ring-2 ring-primary transition-all duration-fast ease-decelerate"
     {...machine.getSpotlightProps()}></div>
 
   <div
-    class={["fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate", { "pointer-events-none": !machine.active, "invisible": !machine.active, "opacity-0": !machine.active }]}
+    class={["fixed z-modal w-[min(20rem,90vw)] rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition-opacity duration-fast ease-decelerate", { "pointer-events-none invisible opacity-0": !machine.active }]}
     {...machine.getPositionerProps()}>
     <div class="flex flex-col gap-2" {...machine.getContentProps()}>
       <template for={machine.getTextRows()} as={row} key={row.key}>
         <div class="flex items-center justify-between gap-2">
           <span class="text-sm font-medium text-text"
             {...machine.getTitleProps()}>{row.title}</span>
-          <span class="text-xs text-muted tabular-nums"
+          <span class="text-xs text-text-muted tabular-nums"
             {...machine.getProgressTextProps()}>{row.progress}</span>
         </div>
-        <p class="text-xs text-muted"
+        <p class="text-xs text-text-muted"
           {...machine.getDescriptionProps()}>{row.description}</p>
       </template>
       <div class="flex items-center justify-between gap-2">

@@ -6,19 +6,19 @@ const machine = tabs({
   {
    value: "tasks",
    label: "Tasks",
-   content: "Manage your daily tasks and assignments.",
+   content: "Eight open, two blocking Deploy #4821.",
    badge: "8",
   },
   {
    value: "messages",
    label: "Messages",
-   content: "View conversations and notifications.",
+   content: "Tomas asked about the canary graph.",
    badge: "5",
   },
   {
    value: "alerts",
    label: "Alerts",
-   content: "Monitor system alerts and updates.",
+   content: "Two firing, both on checkout-api.",
    badge: "2",
   },
  ],
@@ -27,13 +27,13 @@ const machine = tabs({
 </script>
 
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
- data-default="tab1" {...machine.getRootProps()}>
+ {...machine.getRootProps()}>
  <div class="mb-4 flex gap-2" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare flex flex-col items-center gap-1 px-4 py-3 text-sm font-medium text-text-muted transition-all", { "bg-surface": machine.value === row.value }]}
+    class="bare flex flex-col items-center gap-1 rounded-md px-4 py-3 text-sm font-medium transition-all aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
-   ><span class={["bare grid h-6 w-6 place-items-center rounded-full bg-surface-sunken text-xs font-semibold text-text-muted", { "bg-primary text-on-primary": machine.value === row.value }]} aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
+   ><span class="bare grid h-6 w-6 place-items-center rounded-full text-xs font-semibold aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:bg-surface-sunken aria-[selected=false]:text-text-muted" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>

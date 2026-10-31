@@ -1,13 +1,13 @@
 <script lang="ts">
 import { angleSlider } from "../angle-slider.presentation.ts";
 
-const machine = angleSlider({ value: "121" });
+const machine = angleSlider({ value: "121", ariaLabel: "Angle" });
 </script>
 
 <div class="mx-auto flex w-full max-w-[20rem] flex-col items-center gap-4"
   {...machine.getRootProps()}>
   <div
-    class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center select-none"
+    class="relative flex h-[15rem] w-[15rem] items-center justify-center"
     {...machine.getControlProps()}
   >
     <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 200 200"
@@ -24,9 +24,9 @@ const machine = angleSlider({ value: "121" });
       {...machine.getThumbProps()}
     ></span>
     <span class="flex flex-col items-center"
-      {...machine.getValueTextProps(machine.valueAsDegree)}>
+      {...machine.getValueTextProps()}>
       <span
-        class="text-2xl font-bold tabular-nums text-text">{machine.value}°</span>
+        class="stat-value tabular-nums">{machine.value}°</span>
       <span class="text-sm font-medium text-text-muted">degrees</span>
     </span>
   </div>

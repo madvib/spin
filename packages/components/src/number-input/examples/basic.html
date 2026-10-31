@@ -9,7 +9,7 @@ const machine = numberInput({
 });
 </script>
 
-<div class="w-full" {...machine.getRootProps()}>
+<div class="w-64 max-w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
       class={["text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
@@ -21,28 +21,28 @@ const machine = numberInput({
 
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <button
-      class={["secondary icon s-sm", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getDecrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
     <input
-      class={["w-[5rem] tabular-nums", { "ring-2": machine.focused, "ring-border-strong": machine.focused, "border-border-strong": machine.invalid, "text-primary": machine.invalid, "opacity-50": machine.disabled }]}
+      class={["w-[5rem] tabular-nums", { "ring-2 ring-border-strong": machine.focused, "border-border-strong text-primary": machine.invalid, "opacity-50": machine.disabled }]}
       {...machine.getInputProps()}
     />
     <button
-      class={["secondary icon s-sm", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+      class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getIncrementTriggerProps()}
     ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
   </div>
 
   <div
-    class={["relative mt-2 h-[1.25rem] select-none touch-none rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "border-border-strong": machine.scrubbing, "bg-surface": machine.scrubbing, "opacity-50": machine.disabled }]}
+    class={["relative mt-2 h-[1.25rem] select-none touch-none rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "border-border-strong bg-surface": machine.scrubbing, "opacity-50": machine.disabled }]}
     {...machine.getScrubberProps()}
   >
     <span
       class="pointer-events-none absolute inset-0 flex items-center justify-center gap-1 text-xs text-text-muted transition-opacity duration-fast ease-decelerate"
       aria-hidden="true"><span class="i-lucide-chevron-left text-xs" aria-hidden="true"></span><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
     <span
-      class="pointer-events-none fixed z-50 size-5 rounded-md border border-solid border-border bg-surface-raised text-center text-xs text-text shadow-lg transition-opacity duration-fast ease-decelerate"
+      class="pointer-events-none fixed z-50 h-5 w-5 rounded-md border border-solid border-border bg-surface-raised text-center text-xs text-text shadow-lg transition-opacity duration-fast ease-decelerate"
       {...machine.getCursorProps()}
     ><span aria-hidden="true"><span class="i-lucide-move-horizontal text-xs" aria-hidden="true"></span></span></span>
   </div>

@@ -1,0 +1,49 @@
+<script lang="ts">
+import { navigationMenu } from "../navigation-menu.presentation.ts";
+
+const machine = navigationMenu({
+  items: [
+    {
+      value: "overview",
+      label: "Overview",
+      href: "#overview",
+      summary: "Deploy #4821 running, 12 instances healthy, p99 at 180ms.",
+    },
+    {
+      value: "activity",
+      label: "Activity",
+      href: "#activity",
+      summary: "Tomas shipped v4.12.0. Priya widened traffic to 10%.",
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      href: "#settings",
+      summary: "Regions, deploy permissions, and Roll back policy.",
+    },
+  ],
+});
+</script>
+
+<nav class="relative inline-flex" {...machine.getRootProps()}>
+  <ul class="row-list gap-1 rounded-full border border-solid border-border bg-surface p-1" {...machine.getListProps()}>
+    <template for={machine.items} as={row} key={row.value}>
+      <li class="relative" {...machine.getItemProps(row)}>
+        <a
+          class={["bare inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-text-muted no-underline transition-colors duration-fast ease-decelerate hover:text-text", { "bg-surface-raised text-text shadow-sm": machine.value === row.value }]}
+          {...machine.getLinkProps(row)}
+        >
+          <span>{row.label}</span>
+        </a>
+
+        <div
+          class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-md transition duration-fast ease-decelerate"
+          {...machine.getItemContentProps(row)}
+        >
+          <p class="text-xs font-semibold text-text">{row.label}</p>
+          <p class="mt-1 text-xs text-text-muted">{row.summary}</p>
+        </div>
+      </li>
+    </template>
+  </ul>
+</nav>

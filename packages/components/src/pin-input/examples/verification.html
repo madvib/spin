@@ -18,7 +18,7 @@ const machine = pinInput({
     {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-7 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        class={["w-10 p-0 text-center text-lg tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
     </template>
@@ -27,6 +27,6 @@ const machine = pinInput({
   <div class="stack-sm">
     <div class="text-sm text-text-muted">Didn't receive the code?</div>
     <button type="button"
-      class="text-sm font-medium text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>
+      class="bare text-sm font-medium text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>
   </div>
 </div>

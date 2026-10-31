@@ -1,43 +1,46 @@
 <script lang="ts">
   import { avatar } from "../avatar.presentation.ts";
 
-  const machine = avatar({ src: "https://i.pravatar.cc/304", label: "Avatar", fallback: "U1" });
+  const face1 = avatar({ label: "User One", fallback: "U1", src: "https://i.pravatar.cc/80?img=1" });
+  const face2 = avatar({ label: "User Two", fallback: "U2", src: "https://i.pravatar.cc/80?img=2" });
+  const face3 = avatar({ label: "User Three", fallback: "U3", src: "https://i.pravatar.cc/80?img=3" });
+  const face4 = avatar({ label: "User Four", fallback: "U4", src: "https://i.pravatar.cc/80?img=4" });
 </script>
 
 
 <div class="flex items-center gap-4">
   <div class="flex flex-col items-center gap-2">
     <div class="relative">
-      <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>U1</span>
+      <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...face1.getRootProps()}>
+        <img show={face1.src !== "" && face1.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face1.getImageProps()} />
+        <span show={!face1.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face1.getFallbackProps()}>U1</span>
       </span>
       <span class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-2 border-solid border-surface bg-semantic-success"></span>
     </div>
   </div>
   <div class="flex flex-col items-center gap-2">
     <div class="relative">
-      <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>U2</span>
+      <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...face2.getRootProps()}>
+        <img show={face2.src !== "" && face2.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face2.getImageProps()} />
+        <span show={!face2.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face2.getFallbackProps()}>U2</span>
       </span>
       <span class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-2 border-solid border-surface bg-semantic-warning"></span>
     </div>
   </div>
   <div class="flex flex-col items-center gap-2">
     <div class="relative">
-      <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>U3</span>
+      <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...face3.getRootProps()}>
+        <img show={face3.src !== "" && face3.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face3.getImageProps()} />
+        <span show={!face3.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face3.getFallbackProps()}>U3</span>
       </span>
       <span class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-2 border-solid border-surface bg-semantic-error"></span>
     </div>
   </div>
   <div class="flex flex-col items-center gap-2">
     <div class="relative">
-      <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-        <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-        <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>U4</span>
+      <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...face4.getRootProps()}>
+        <img show={face4.src !== "" && face4.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face4.getImageProps()} />
+        <span show={!face4.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face4.getFallbackProps()}>U4</span>
       </span>
       <span class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-2 border-solid border-surface bg-surface-sunken"></span>
     </div>

@@ -5,18 +5,18 @@ const machine = tabs({
  items: [
   {
    value: "tab1",
-   label: "Dashboard",
-   content: "Main dashboard with key metrics and insights.",
+   label: "Overview",
+   content: "Fleet health at a glance.",
   },
   {
    value: "tab2",
-   label: "Analytics",
-   content: "Track performance with detailed reports.",
+   label: "Deployments",
+   content: "Deploy #4821 is live on checkout-api.",
   },
   {
    value: "tab3",
    label: "Settings",
-   content: "Configure preferences and account options.",
+   content: "Workspace preferences and API tokens.",
   },
  ],
  defaultValue: "tab1",
@@ -24,12 +24,12 @@ const machine = tabs({
 </script>
 
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
- data-default="tab1" {...machine.getRootProps()}>
+ {...machine.getRootProps()}>
  <div class="mb-4 flex gap-4 border-b border-solid border-border"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare relative -mb-0 border-b-2 border-transparent px-2 py-2 text-sm font-medium text-text-muted transition-colors", { "border-primary": machine.value === row.value }]}
+    class="bare relative -mb-0 border-b-2 border-solid px-2 py-2 text-sm font-medium transition-colors aria-[selected=true]:border-primary aria-[selected=true]:text-text aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>

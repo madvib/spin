@@ -9,13 +9,13 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
   <div class="flex items-center gap-2 text-sm text-text-muted">
     <label for="pg-size">Rows per page</label>
     <div class="flex items-center gap-1">
-      <button class="bare secondary s-sm" data-size={10}>10</button>
-      <button class="bare secondary s-sm" data-size={20}>20</button>
-      <button class="bare secondary s-sm" data-size={50}>50</button>
+      <button class={["s-sm", { "secondary": machine.pageSize !== 10 }]} on:click={() => machine.setPageSize(10)}>10</button>
+      <button class={["s-sm", { "secondary": machine.pageSize !== 20 }]} on:click={() => machine.setPageSize(20)}>20</button>
+      <button class={["s-sm", { "secondary": machine.pageSize !== 50 }]} on:click={() => machine.setPageSize(50)}>50</button>
     </div>
   </div>
   <div class="text-sm text-text-muted"
-    data-range="">{machine.pageRange.start}-{machine.pageRange.end} of {machine.count}</div>
+    data-range="">{machine.pageRange.start + 1}-{machine.pageRange.end} of {machine.count}</div>
   <div class="flex items-center gap-1">
     <button
       class="secondary icon s-sm disabled:opacity-40"
@@ -27,7 +27,7 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
     ><span aria-hidden="true">‹</span></button>
     <template for={machine.getItems()} as={row} key={row.key}>
       <button
-        class={["min-w-7 secondary s-sm transition-colors duration-fast ease-decelerate hover:bg-surface", { "border-primary": (row.type === "page" && row.value === machine.page), "hidden": row.type !== "page" }]}
+        class={["min-w-7 s-sm transition-colors duration-fast ease-decelerate", { "secondary hover:bg-surface": row.value !== machine.page, "hidden": row.type !== "page" }]}
         {...machine.getItemProps(row)}
       >{row.label}</button><span
         class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-text-muted", { "hidden": row.type !== "ellipsis" }]}

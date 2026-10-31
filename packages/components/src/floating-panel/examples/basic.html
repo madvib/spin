@@ -4,10 +4,10 @@
   const machine = floatingPanel({size: "{\"w\":320,\"h\":240}", minSize: "{\"w\":280,\"h\":180}", maxSize: "{\"w\":500,\"h\":400}"});
 </script>
 
-<div class="grid gap-2">
+<div class="grid w-full gap-2">
   <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
-    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none": !machine.isOpen, "invisible": !machine.isOpen, "scale-95": !machine.isOpen, "opacity-0": !machine.isOpen, "h-12": machine.stage === "minimized", "overflow-hidden": machine.stage === "minimized", "h-full": machine.stage === "maximized", "w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
+    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
@@ -28,14 +28,14 @@
         </ul>
       </div>
       
-      <button class="bare absolute inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
-      <button class="bare absolute inset-x-0 bottom-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
-      <button class="bare absolute inset-y-0 right-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
-      <button class="bare absolute inset-y-0 left-0 w-1 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
-      <button class="bare absolute right-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
-      <button class="bare absolute left-0 top-0 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
-      <button class="bare absolute right-0 bottom-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
-      <button class="bare absolute left-0 bottom-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 inset-x-0 bottom-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("s")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 inset-y-0 right-0 w-1 z-10 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("e")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 inset-y-0 left-0 w-1 z-10 min-h-0 border-0 cursor-ew-resize" {...machine.getResizeTriggerProps("w")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 right-0 top-0 z-10 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("ne")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 left-0 top-0 z-10 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("nw")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 right-0 bottom-0 z-10 h-2 min-h-0 w-2 border-0 cursor-nwse-resize" {...machine.getResizeTriggerProps("se")} aria-hidden="true"></button>
+      <button class="bare absolute p-0 left-0 bottom-0 z-10 h-2 min-h-0 w-2 border-0 cursor-nesw-resize" {...machine.getResizeTriggerProps("sw")} aria-hidden="true"></button>
     </div>
   </div>
 </div>

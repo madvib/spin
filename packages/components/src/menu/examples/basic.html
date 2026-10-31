@@ -2,11 +2,11 @@
 import { menu } from "../menu.presentation.ts";
 
 const machine = menu({
-  items: [{ "value": "new", "label": "New file", "shortcut": "Ctrl+N" }, {
+  items: [{ "value": "new", "label": "New release", "shortcut": "Ctrl+N" }, {
     "value": "open",
     "label": "Open…",
     "shortcut": "Ctrl+O",
-  }, { "value": "save", "label": "Save", "shortcut": "Ctrl+S" }],
+  }, { "value": "promote", "label": "Promote to production", "shortcut": "Ctrl+S" }],
 });
 </script>
 <div class="relative inline-block">
@@ -14,40 +14,62 @@ const machine = menu({
     <button
       class="secondary s-sm inline-flex items-center gap-2"
       {...machine.getTriggerProps()}>
-      <span class="truncate">File</span>
+      <span class="truncate">Release</span>
       <span aria-hidden="true"
         class={["text-xs text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.isOpen }]}
-        {...machine.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
+        {...machine.getTriggerIndicatorProps()}><span class="inline-block i-lucide-chevron-down text-xs" aria-hidden="true"></span></span>
     </button>
   </div>
   <div {...machine.getPositionerProps()}>
-    <div {...machine.getContentProps()}>
+    <panel {...machine.getContentProps()}>
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span class="block px-2 pb-1 text-xs font-medium text-text-muted"
+          <span show={block.label !== null} class="block px-2 pb-1 text-xs font-medium text-text-muted"
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class={["bare group relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "bg-surface": machine.highlightedValue === row.value, "opacity-50": row.disabled }]}
+              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": row.disabled }]}
               {...machine.getItemProps(row)}>
               <span class="min-w-0 flex-1 truncate"
                 {...machine.getItemTextProps(row)}>{row.label}</span>
               <span class="shrink-0 text-xs text-text-muted"
                 {...machine.getItemShortcutProps(row)}>{row.shortcut}</span>
               <span aria-hidden="true"
-                class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100": row.checked, "opacity-100": row.checked }]}
-                {...machine.getItemIndicatorProps(row)}><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+                class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100 opacity-100": row.checked }]}
+                {...machine.getItemIndicatorProps(row)}><span class="inline-block i-lucide-check text-xs" aria-hidden="true"></span></span>
               <span aria-hidden="true"
-                class={["shrink-0 text-xs text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.isOpen }]}
-                {...machine.getItemSubmenuIndicatorProps(row)}><span class="i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
-              <spin-menu class="absolute left-full top-0"
-                {...machine.getSubmenuProps(row)} submenu />
+                class={["shrink-0 text-xs text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.openSubmenu === row.value }]}
+                {...machine.getItemSubmenuIndicatorProps(row)}><span class="inline-block i-lucide-chevron-right text-xs" aria-hidden="true"></span></span>
+              <panel show={machine.openSubmenu === row.value}
+                {...machine.getSubmenuContentProps(row)}>
+                <template for={machine.getSubmenuBlocks(row)} as={sub} key={sub.id}>
+                  <div class="py-1" {...machine.getItemGroupProps(sub)}>
+                    <span show={sub.label !== null} class="block px-2 pb-1 text-xs font-medium text-text-muted"
+                      {...machine.getItemGroupLabelProps(sub)}>{sub.label}</span>
+                    <template for={machine.getRows(sub)} as={child} key={child.value}>
+                      <div
+                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
+                        {...machine.getSubmenuItemProps(child)}>
+                        <span class="min-w-0 flex-1 truncate"
+                          {...machine.getItemTextProps(child)}>{child.label}</span>
+                        <span class="shrink-0 text-xs text-text-muted"
+                          {...machine.getItemShortcutProps(child)}>{child.shortcut}</span>
+                        <span aria-hidden="true"
+                          class={["shrink-0 text-primary transition-transform duration-fast ease-decelerate scale-50 opacity-0", { "scale-100 opacity-100": child.checked }]}
+                          {...machine.getItemIndicatorProps(child)}><span class="inline-block i-lucide-check text-xs" aria-hidden="true"></span></span>
+                      </div>
+                    </template>
+                  </div>
+                  <hr show={sub.separator}
+                    {...machine.getSeparatorProps(sub)} />
+                </template>
+              </panel>
             </div>
           </template>
         </div>
-        <div class="my-1 border-t border-border"
-          {...machine.getSeparatorProps(block)}></div>
+        <hr show={block.separator}
+          {...machine.getSeparatorProps(block)} />
       </template>
-    </div>
+    </panel>
   </div>
 </div>

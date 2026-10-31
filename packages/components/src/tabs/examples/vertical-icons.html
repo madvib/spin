@@ -6,32 +6,33 @@ const machine = tabs({
   {
    value: "overview",
    label: "Overview",
-   content: "Dashboard with key metrics and insights.",
+   content: "Fleet health at a glance.",
   },
   {
    value: "projects",
    label: "Projects",
-   content: "Manage active development projects.",
+   content: "checkout-api and its preview deploys.",
   },
   {
    value: "packages",
    label: "Packages",
-   content: "View and organize package dependencies.",
+   content: "Canary channel and pinned versions.",
   },
  ],
  defaultValue: "overview",
+ orientation: "vertical",
 });
 </script>
 
-<div class="mx-auto flex w-full max-w-md items-start gap-4" data-default="tab1"
+<div class="mx-auto flex w-full max-w-md items-start gap-4"
  {...machine.getRootProps()}>
  <div class="flex shrink-0 flex-col border-l border-solid border-border"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare flex items-center gap-3 border-l-2 border-transparent px-3 py-2 text-left text-sm font-medium text-text-muted transition-colors", { "border-primary": machine.value === row.value }]}
+    class="bare flex items-center gap-3 border-l-2 border-solid px-3 py-2 text-left text-sm font-medium transition-colors aria-[selected=true]:border-primary aria-[selected=true]:text-text aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
-   ><span class="i-lucide-home text-sm" aria-hidden="true" show={row.value === "overview"}></span><span class="i-lucide-folder-open text-sm" aria-hidden="true" show={row.value === "projects"}></span><span class="i-lucide-package text-sm" aria-hidden="true" show={row.value === "packages"}></span><span>{row.label}</span></button>
+   ><span class="i-lucide-house text-sm" aria-hidden="true" show={row.value === "overview"}></span><span class="i-lucide-folder-open text-sm" aria-hidden="true" show={row.value === "projects"}></span><span class="i-lucide-package text-sm" aria-hidden="true" show={row.value === "packages"}></span><span>{row.label}</span></button>
   </template>
  </div>
  <div class="flex-1 rounded-lg border border-solid border-border p-4">

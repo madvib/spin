@@ -5,14 +5,14 @@ const machine = ratingGroup({ value: "4", count: 5 });
 </script>
 
 <div
-  class="mx-auto w-full max-w-sm rounded-xl border border-solid border-border bg-surface-raised p-4 text-text shadow-sm"
+  class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-4 text-text shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
     <div>
-      <h3 class="text-sm"
-        {...machine.getLabelProps()}>Support Quality</h3>
+      <strong class="text-sm text-text"
+        {...machine.getLabelProps()}>Support Quality</strong>
       <p
-        class="mt-1 text-xs text-text-muted">How was your recent support interaction?</p>
+        class="text-xs text-text-muted">How was your recent support interaction?</p>
     </div>
     <span
       class="rounded-full bg-surface px-3 py-1 font-mono text-xs font-medium text-text">{machine.value} / {machine.count}</span>
@@ -20,7 +20,7 @@ const machine = ratingGroup({ value: "4", count: 5 });
   <div class="inline-flex gap-1" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={row} key={row}>
       <span
-        class={["grid h-8 w-8 cursor-pointer place-items-center rounded-md text-xl text-border-strong transition-all", { "scale-110": machine.getItemState(row).highlighted, "text-semantic-info": machine.getItemState(row).highlighted, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        class={["bare grid h-8 w-8 cursor-pointer place-items-center rounded-md text-xl text-border-strong transition-all", { "scale-110 text-semantic-info": machine.getItemState(row).highlighted, "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
       >
         <span class="relative" aria-hidden="true">★︎</span>

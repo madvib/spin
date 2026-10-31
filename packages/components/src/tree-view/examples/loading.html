@@ -19,18 +19,18 @@ const machine = treeView({
   <span class="mb-4 block text-md font-semibold text-text"
     {...machine.getLabelProps()}>Project Files</span>
   <div
-    class="stack-xs rounded-xl border border-solid border-border bg-surface-raised p-3"
+    class="stack-xs rounded-lg border border-solid border-border bg-surface-raised p-3"
     {...machine.getTreeProps()}>
     <template for={machine.getVisibleRows()} as={row} key={row.node.value}>
       <div class="relative" {...machine.getItemProps(row)}>
         <span class="pointer-events-none absolute inset-y-0 w-[1px] bg-border"
           aria-hidden="true" {...machine.getRailProps(row)}></span>
         <button
-          class={["bare relative flex min-h-0 items-center gap-2 rounded-lg border-0 bg-transparent px-3 py-2 text-left text-sm font-medium transition-colors duration-fast ease-standard hover:bg-surface", { "bg-surface-sunken": machine.getItemState(row).selected }]}
+          class={["bare relative flex min-h-0 items-center gap-2 rounded-lg border-0 px-3 py-2 text-left text-sm font-medium transition-colors duration-fast ease-standard hover:bg-surface", { "bg-surface-sunken": machine.getItemState(row).selected, "bg-transparent": !machine.getItemState(row).selected }]}
           {...machine.getBranchControlProps(row)}
         >
           <span
-            class={["size-4 shrink-0 items-center justify-center text-muted transition-transform duration-fast ease-standard", { "inline-flex": machine.isBranch(row), "hidden": !machine.isBranch(row), "rotate-90": machine.getItemState(row).expanded }]}
+            class={["h-4 w-4 shrink-0 items-center justify-center text-text-muted transition-transform duration-fast ease-standard", { "inline-flex": machine.isBranch(row), "hidden": !machine.isBranch(row), "rotate-90": machine.getItemState(row).expanded }]}
             {...machine.getBranchIndicatorProps(row)}>
             <span class="i-lucide-chevron-right text-xs"
               aria-hidden="true"></span>
@@ -44,11 +44,11 @@ const machine = treeView({
             class="i-lucide-folder-open shrink-0 text-sm text-primary"
             aria-hidden="true" {...machine.getItemIconProps(row)}></span>
           <span show={!machine.isBranch(row)}
-            class="i-lucide-file shrink-0 text-sm text-muted" aria-hidden="true"
+            class="i-lucide-file shrink-0 text-sm text-text-muted" aria-hidden="true"
             {...machine.getItemIconProps(row)}></span>
           <span class="min-w-0 flex-1 truncate"
             {...machine.getBranchTextProps(row)}>{row.node.label}</span>
-          <span class="ms-auto shrink-0 text-muted"
+          <span class="ms-auto shrink-0 text-text-muted"
             {...machine.getLoadingProps(row)}><span class="i-lucide-loader-circle animate-spin text-sm" aria-hidden="true"></span></span>
         </button>
       </div>

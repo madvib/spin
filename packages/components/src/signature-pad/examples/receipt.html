@@ -4,7 +4,7 @@ import { signaturePad } from "../signature-pad.presentation.ts";
 const machine = signaturePad({});
 </script>
 <div
-  class="mx-auto w-full max-w-sm rounded-xl border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div
     class="mb-3 flex items-center justify-between border-b border-solid border-border pb-3">
@@ -25,11 +25,13 @@ const machine = signaturePad({});
       <template for={machine.paths} as={row} key={row}>
         <path {...machine.getSegmentPathProps({ path: row })}></path>
       </template>
+      <path show={machine.drawing}
+        {...machine.getSegmentPathProps({ path: machine.currentPath })}></path>
     </svg>
-    <span
+    <span show={machine.empty && !machine.drawing}
       class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-text-muted"
       {...machine.getGuideProps()}>Sign to authorize payment</span>
-    <button
+    <button show={!machine.empty && !machine.drawing}
       class="absolute right-2 top-2 ghost icon s-sm transition-colors duration-fast ease-decelerate"
       {...machine.getClearTriggerProps("Clear signature")}
     >Clear</button>

@@ -11,16 +11,35 @@ const machine = timer({
   <span
    class="mb-2 text-sm font-medium text-semantic-error">Flash Sale Ends In</span>
   <div
-   class="flex items-start gap-2 text-3xl font-bold tabular-nums text-semantic-error">
+   class="flex items-start gap-2 stat-value tabular-nums">
    <template for={machine.getUnits()} as={unit} key={unit.type}>
-    <div class="flex flex-col items-center"
-     {...machine.getItemProps({ type: unit.type })}>
-     <span class="min-w-[2ch] text-center"
-      {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-     <span class="text-xs font-regular text-text-muted"
-      {...machine.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
+    <div class="flex items-start gap-2">
+     <div class="flex flex-col items-center"
+      {...machine.getItemProps({ type: unit.type })}>
+      <span class="min-w-[2ch] text-center"
+       {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
+      <span class="text-xs font-regular text-text-muted"
+       {...machine.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
+     </div>
+     <span aria-hidden="true" class="text-text-muted"
+      {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
     </div>
    </template>
+  </div>
+  <div class="mt-3 flex items-center justify-center gap-2"
+   {...machine.getControlProps()}>
+   <button
+    class="secondary s-sm"
+    {...machine.getActionTriggerProps({ action: "start" })}>Start</button>
+   <button
+    class="secondary s-sm"
+    {...machine.getActionTriggerProps({ action: "pause" })}>Pause</button>
+   <button
+    class="secondary s-sm"
+    {...machine.getActionTriggerProps({ action: "resume" })}>Resume</button>
+   <button
+    class="secondary s-sm"
+    {...machine.getActionTriggerProps({ action: "reset" })}>Reset</button>
   </div>
  </div>
 </div>

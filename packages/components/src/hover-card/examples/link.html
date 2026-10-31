@@ -1,6 +1,10 @@
-<scope>props={ article: string = "building modern web applications", title: string = "Building Modern Web Applications with React and TypeScript", summary: string = "Learn how to create scalable and maintainable web applications using the latest tools and best practices.", date: string = "Dec 15, 2023", views: string = "12.4k views" } consume={ hoverCard }</scope>
+<script lang="ts">
+import { hoverCard } from "../hover-card.controller-def.ts";
+
+const ctl = hoverCard();
+</script>
 
 <div class="mx-auto max-w-md stack p-6">
   <p
-    class="text-sm text-text-muted">Check out this amazing article about <span {...hoverCard.getRootProps()} class="inline"><span {...hoverCard.getTriggerProps()} class="cursor-pointer text-primary underline">{article}</span><span {...hoverCard.getContentProps()} class="fixed m-0 max-w-[24rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[24rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left"><span class="block h-32 w-full bg-surface-sunken" aria-hidden="true"></span><span class="block stack-sm p-4"><span class="block stack-sm"><span class="block text-lg font-semibold text-text">{title}</span><span class="block text-sm text-text-muted">{summary}</span></span><span class="flex items-center justify-between text-xs text-text-muted"><span>{date}</span><span>{views}</span></span></span></span></span>.</p>
+    class="text-sm text-text-muted">Check out this amazing article about <span {...ctl.getRootProps()} class="inline"><span {...ctl.getTriggerProps()} class="cursor-pointer text-primary underline">building modern web applications</span><span {...ctl.getContentProps()} class="fixed m-0 max-w-[24rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[24rem]"><span class="block h-[8rem] w-full bg-surface-sunken" aria-hidden="true"></span><span class="block stack-sm p-4"><span class="block stack-sm"><span class="block text-lg font-semibold text-text">Building Modern Web Applications with React and TypeScript</span><span class="block text-sm text-text-muted">Learn how to create scalable and maintainable web applications using the latest tools and best practices.</span></span><span class="flex items-center justify-between text-xs text-text-muted"><span>Dec 15, 2023</span><span>12.4k views</span></span></span></span></span>.</p>
 </div>

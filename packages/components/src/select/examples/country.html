@@ -14,14 +14,14 @@ const machine = select({
   ],
 });
 </script>
-<div class="relative w-full" {...machine.getRootProps()}>
+<div class="relative w-64 max-w-full" {...machine.getRootProps()}>
   <label
-    class={["mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getLabelProps()}>Country</label>
 
   <div class="flex items-center gap-1" {...machine.getControlProps()}>
     <button
-      class={["flex h-7 min-w-0 flex-1 items-center gap-2 secondary s-sm transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.open, "ring-2": machine.focused, "ring-border-strong": machine.focused, "opacity-50": machine.disabled, "cursor-not-allowed": machine.disabled }]}
+      class={["flex h-7 min-w-0 flex-1 items-center gap-2 secondary s-sm transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.open, "ring-2 ring-border-strong": machine.focused, "opacity-50 cursor-not-allowed": machine.disabled }]}
       {...machine.getTriggerProps()}>
       <span class="min-w-0 flex-1 truncate text-left"
         {...machine.getValueTextProps()}>
@@ -39,7 +39,7 @@ const machine = select({
   </div>
 
   <div
-    class={["absolute z-dropdown left-0 top-full mt-1 origin-top-left transition duration-fast ease-decelerate min-w-[12rem]", { "pointer-events-none": !machine.open, "invisible": !machine.open, "scale-95": !machine.open, "opacity-0": !machine.open }]}
+    class={["absolute z-dropdown left-0 top-full mt-1 w-full origin-top-left transition duration-fast ease-decelerate min-w-[12rem]", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
     {...machine.getPositionerProps()}>
     <div
       class="max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
@@ -47,7 +47,7 @@ const machine = select({
       <div role="group" class="flex flex-col p-1" {...machine.getListProps()}>
         <template for={machine.getRows()} as={row} key={row.value}>
           <div
-            class={["flex cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate", { "bg-surface": machine.getItemState(row).highlighted, "font-medium": machine.getItemState(row).selected, "opacity-50": machine.getItemState(row).disabled, "pointer-events-none": machine.getItemState(row).disabled }]}
+            class={["flex cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate", { "bg-surface": machine.getItemState(row).highlighted, "font-medium": machine.getItemState(row).selected, "opacity-50 pointer-events-none": machine.getItemState(row).disabled }]}
             {...machine.getItemProps(row)}>
             <span class="min-w-0 flex-1 truncate"
               {...machine.getItemTextProps(row)}>{row.label}</span>

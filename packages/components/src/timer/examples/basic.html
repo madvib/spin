@@ -11,7 +11,7 @@ const machine = timer({
   <template for={machine.getUnits()} as={unit} key={unit.type}>
    <div class="flex flex-col items-center"
     {...machine.getItemProps({ type: unit.type })}>
-    <span class="text-2xl font-semibold tabular-nums text-text"
+    <span class="stat-value tabular-nums"
      {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
    </div>
    <span aria-hidden="true" class="text-lg text-text-muted"
@@ -26,6 +26,9 @@ const machine = timer({
   <button
    class="secondary s-sm"
    {...machine.getActionTriggerProps({ action: "pause" })}>Pause</button>
+  <button
+   class="secondary s-sm"
+   {...machine.getActionTriggerProps({ action: "resume" })}>Resume</button>
   <button
    class="secondary s-sm"
    {...machine.getActionTriggerProps({ action: "reset" })}>Reset</button>

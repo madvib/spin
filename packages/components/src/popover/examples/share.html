@@ -1,14 +1,18 @@
-<scope>props={ label: string = "Share" } consume={ popover }</scope>
+<script lang="ts">
+import { popover } from "../popover.controller-def.ts";
 
-<button {...popover.getTriggerProps()}
+const ctl = popover();
+</script>
+
+<button {...ctl.getTriggerProps()}
   class="inline-flex items-center gap-2 secondary s-sm transition-colors hover:bg-surface">
   <span class="i-lucide-share text-sm" aria-hidden="true"></span>
   Share
 </button>
 
-<popover {...popover.getContentProps()}
-  class="max-w-[20rem]">
+<popover {...ctl.getContentProps()}
+  class="m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg position-area-bottom-span-right max-w-[20rem]">
   <p class="text-sm font-medium text-text">Share this page</p>
   <p
-    class="mt-1 text-sm text-text-muted">Copy the link below to send it to a friend.</p>
+    class="text-sm text-text-muted">Copy the link below to send it to a friend.</p>
 </popover>

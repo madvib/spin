@@ -6,10 +6,10 @@
 
 <div class="w-full" {...machine.getRootProps()}>
   <div
-    class={["flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-surface-raised px-6 py-8 text-center transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface": machine.dragging, "ring-2": machine.focused, "ring-border-strong": machine.focused, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+    class={["flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface-raised px-6 py-8 text-center transition-colors duration-fast ease-decelerate", { "border-primary bg-surface": machine.dragging, "ring-2 ring-border-strong": machine.focused, "cursor-not-allowed opacity-50": machine.disabled }]}
     {...machine.getDropzoneProps()}
   >
-    <span class="i-lucide-folder-up text-2xl text-primary" aria-hidden="true"></span>
+    <span class="i-lucide-folder-up icon-lg text-primary" aria-hidden="true"></span>
     <span class="text-sm font-semibold text-text" {...machine.getLabelProps()}>Drag and drop project archives</span>
     <span class="text-xs text-text-muted">ZIP, TAR, or source bundles up to 10 files</span>
   </div>

@@ -1,15 +1,19 @@
-<scope>props={ label: string = "Analytics", tip: string = "Today's metrics" } consume={ tooltip }</scope>
+<script lang="ts">
+import { tooltip } from "../tooltip.controller-def.ts";
 
-<button {...tooltip.getTriggerProps()}
+const ctl = tooltip();
+</script>
+
+<button {...ctl.getTriggerProps()}
   class="secondary s-sm inline-flex items-center gap-2">
   <span class="i-lucide-bar-chart-3 text-sm" aria-hidden="true"></span>
-  {label}
+  Analytics
 </button>
 
-<tooltip {...tooltip.getContentProps()}
-  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+<tooltip {...ctl.getContentProps()}
+  class="fixed m-0 max-w-[16rem]">
   <div class="stack-xs">
-    <div class="text-xs font-medium text-muted">Today</div>
+    <div class="text-xs font-medium text-text-muted">Today</div>
     <div class="flex items-center justify-between gap-4">
       <span class="text-xs">Sales</span>
       <span class="text-xs font-semibold">$2.8k</span>

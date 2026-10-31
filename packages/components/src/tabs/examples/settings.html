@@ -1,0 +1,100 @@
+<script lang="ts">
+import { tabs } from "../tabs.presentation.ts";
+
+const machine = tabs({
+ items: [
+  { value: "account", label: "Account", content: "Profile, email, and handle." },
+  { value: "notifications", label: "Notifications", content: "Email and push preferences." },
+  { value: "security", label: "Security", content: "Password and two-factor." },
+  { value: "billing", label: "Billing", content: "Plan and payment method." },
+ ],
+ defaultValue: "account",
+});
+</script>
+
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6" {...machine.getRootProps()}>
+ <div class="flex gap-1 border-b border-solid border-border" {...machine.getListProps()}>
+  <template for={machine.items} as={row} key={row.value}>
+   <button
+    class="bare px-4 py-3 text-md font-medium transition-colors aria-[selected=true]:border-b-2 aria-[selected=true]:border-primary aria-[selected=true]:text-text aria-[selected=false]:text-text-muted"
+    {...machine.getTriggerProps(row)}
+   >{row.label}</button>
+  </template>
+ </div>
+ <template for={machine.items} as={row} key={row.value}>
+  <div class="grid gap-6" {...machine.getContentProps(row)}>
+   <div class="grid gap-4" show={row.value === "account"}>
+    <div class="grid gap-2">
+     <label class="text-sm font-medium text-text">Display name</label>
+     <input class="rounded-md border border-solid border-border bg-surface px-3 py-2 text-md text-text" type="text" value="Ada Lovelace" />
+    </div>
+    <div class="grid gap-2">
+     <label class="text-sm font-medium text-text">Email</label>
+     <input class="rounded-md border border-solid border-border bg-surface px-3 py-2 text-md text-text" type="email" value="ada@spinjs.dev" />
+    </div>
+    <div class="flex items-center justify-between rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Public profile</span>
+      <span class="text-sm text-text-muted">Show your profile to everyone.</span>
+     </div>
+     <input type="checkbox" checked />
+    </div>
+    <button class="w-fit rounded-md bg-primary px-4 py-2 text-md font-medium text-on-primary">Save changes</button>
+   </div>
+   <div class="grid gap-4" show={row.value === "notifications"}>
+    <div class="flex items-center justify-between rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Email digest</span>
+      <span class="text-sm text-text-muted">Weekly summary of activity.</span>
+     </div>
+     <input type="checkbox" checked />
+    </div>
+    <div class="flex items-center justify-between rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Push notifications</span>
+      <span class="text-sm text-text-muted">Real-time alerts on your devices.</span>
+     </div>
+     <input type="checkbox" />
+    </div>
+    <div class="flex items-center justify-between rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Mention alerts</span>
+      <span class="text-sm text-text-muted">When someone mentions you.</span>
+     </div>
+     <input type="checkbox" checked />
+    </div>
+   </div>
+   <div class="grid gap-4" show={row.value === "security"}>
+    <div class="grid gap-2">
+     <label class="text-sm font-medium text-text">Current password</label>
+     <input class="rounded-md border border-solid border-border bg-surface px-3 py-2 text-md text-text" type="password" />
+    </div>
+    <div class="grid gap-2">
+     <label class="text-sm font-medium text-text">New password</label>
+     <input class="rounded-md border border-solid border-border bg-surface px-3 py-2 text-md text-text" type="password" />
+    </div>
+    <button class="w-fit rounded-md bg-primary px-4 py-2 text-md font-medium text-on-primary">Update password</button>
+    <div class="rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Two-factor authentication</span>
+      <span class="text-sm text-text-muted">Add an authenticator app.</span>
+     </div>
+     <button class="mt-3 w-fit rounded-md border border-solid border-border px-3 py-1 text-sm font-medium text-text">Enable</button>
+    </div>
+   </div>
+   <div class="grid gap-4" show={row.value === "billing"}>
+    <div class="flex items-center justify-between rounded-md border border-solid border-border bg-surface-raised p-4">
+     <div class="grid gap-1">
+      <span class="text-md font-medium text-text">Current plan</span>
+      <span class="text-sm text-text-muted">Pro — $24 / month</span>
+     </div>
+     <button class="rounded-md border border-solid border-border px-3 py-1 text-sm font-medium text-text">Change plan</button>
+    </div>
+    <div class="rounded-md border border-solid border-border bg-surface-raised p-4">
+     <span class="text-md font-medium text-text">Payment method</span>
+     <p class="mt-1 text-sm text-text-muted">Visa ending 4242, expires 08/27.</p>
+    </div>
+   </div>
+  </div>
+ </template>
+</div>

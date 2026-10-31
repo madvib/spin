@@ -6,17 +6,17 @@ const machine = tabs({
   {
    value: "profile",
    label: "Profile",
-   content: "Update your personal details and avatar.",
+   content: "Priya Raman, on-call this week.",
   },
   {
    value: "billing",
    label: "Billing",
-   content: "Manage payment methods and invoices.",
+   content: "Seats, usage, and invoices.",
   },
   {
    value: "notifications",
    label: "Notifications",
-   content: "Configure email and push alert rules.",
+   content: "Deploy #4821 pages Tomas first.",
   },
  ],
  defaultValue: "profile",
@@ -28,7 +28,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare relative flex items-center gap-2 border-b-0 border-transparent px-4 py-2 text-sm font-medium text-text-muted transition-colors", { "border-border bg-surface": machine.value === row.value }]}
+    class="bare relative flex items-center gap-2 rounded-ss-md rounded-se-md border border-b-0 border-solid px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:border-border aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
     <span class="i-lucide-user text-sm" aria-hidden="true"

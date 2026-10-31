@@ -1,6 +1,6 @@
 <script lang="ts">
   import { datePicker } from "../date-picker.presentation.ts";
 
-  const machine = datePicker({});
+  const machine = datePicker({ selectionMode: "range", value: ["2026-05-10", "2026-05-16"] });
 </script>
 <include file="./appointment.html" />

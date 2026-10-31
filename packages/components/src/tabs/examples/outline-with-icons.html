@@ -6,17 +6,17 @@ const machine = tabs({
   {
    value: "inbox",
    label: "Inbox",
-   content: "Unread messages and incoming threads.",
+   content: "Deploy notifications and mentions.",
   },
   {
    value: "drafts",
    label: "Drafts",
-   content: "Saved drafts awaiting completion.",
+   content: "Unfinished incident notes.",
   },
   {
    value: "sent",
    label: "Sent",
-   content: "Delivered messages and activity log.",
+   content: "Shipped changelogs and receipts.",
   },
  ],
  defaultValue: "inbox",
@@ -30,7 +30,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare flex items-center gap-2 px-4 py-1 text-sm font-medium text-text-muted transition-colors", { "bg-surface": machine.value === row.value }]}
+    class="bare flex items-center gap-2 rounded-md px-4 py-1 text-sm font-medium transition-colors aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
     <span class="i-lucide-inbox text-sm" aria-hidden="true"

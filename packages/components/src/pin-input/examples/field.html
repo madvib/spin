@@ -8,18 +8,18 @@ const machine = pinInput({
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
-    class={["mb-1 block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getLabelProps()}>Enter PIN</label>
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-7 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+        class={["w-10 p-0 text-center text-lg tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
-  <p class="mt-3 text-xs text-text-muted">Enter a 4-digit PIN (don't use 1234)</p>
-  <p class="mt-2 text-xs text-semantic-error"
+  <p class="text-xs text-text-muted">Enter a 4-digit PIN (don't use 1234)</p>
+  <p class="text-xs text-semantic-error"
     show={machine.valueAsString === "1234"}>This PIN is too common. Please choose a different one.</p>
 </div>

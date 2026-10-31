@@ -5,4 +5,20 @@
 </script>
 
 
-<include file="./basic.html" />
+<div class="mx-auto flex w-full max-w-[20rem] justify-center">
+<span
+  class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted"
+  {...machine.getRootProps()}
+>
+  <img show={machine.src !== "" && machine.status !== "error"}
+    class="h-full w-full object-cover"
+    draggable="false"
+    {...machine.getImageProps()}
+  />
+  <span show={!machine.loaded}
+    aria-hidden="true"
+    class="grid h-full w-full place-items-center"
+    {...machine.getFallbackProps()}
+  >QR</span>
+</span>
+</div>

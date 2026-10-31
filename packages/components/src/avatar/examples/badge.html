@@ -1,23 +1,24 @@
 <script lang="ts">
   import { avatar } from "../avatar.presentation.ts";
 
-  const machine = avatar({ src: "https://i.pravatar.cc/300", label: "Avatar", fallback: "JD" });
+  const face1 = avatar({ label: "Jordan Doe", fallback: "JD", src: "https://i.pravatar.cc/80?img=1" });
+  const face2 = avatar({ label: "Alex Blair", fallback: "AB", src: "https://i.pravatar.cc/80?img=2" });
 </script>
 
 
 <div class="flex items-center gap-4">
   <div class="relative">
-    <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-      <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-      <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>JD</span>
+    <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted" {...face1.getRootProps()}>
+      <img show={face1.src !== "" && face1.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face1.getImageProps()} />
+      <span show={!face1.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face1.getFallbackProps()}>JD</span>
     </span>
-    <span class="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full border-2 border-solid border-surface bg-semantic-error text-xs font-bold text-on-primary">6</span>
+    <badge class="absolute -top-1 -right-1 grid h-6 w-6 place-items-center" variant="danger">6</badge>
   </div>
   <div class="relative">
-    <span class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-sunken text-lg font-semibold text-text-muted" {...machine.getRootProps()}>
-      <img class={["h-full w-full object-cover", { "hidden": !machine.loaded }]} draggable="false" {...machine.getImageProps()} />
-      <span aria-hidden="true" class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]} {...machine.getFallbackProps()}>AB</span>
+    <span class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-surface-sunken text-lg font-semibold text-text-muted" {...face2.getRootProps()}>
+      <img show={face2.src !== "" && face2.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face2.getImageProps()} />
+      <span show={!face2.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face2.getFallbackProps()}>AB</span>
     </span>
-    <span class="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full border-2 border-solid border-surface bg-text text-xs font-bold text-surface">6</span>
+    <badge class="absolute -top-1 -right-1 grid h-6 w-6 place-items-center" variant="danger">6</badge>
   </div>
 </div>

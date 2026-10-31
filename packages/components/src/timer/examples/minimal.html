@@ -7,7 +7,7 @@ const machine = timer({
 </script>
 <div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
  <div class="text-center" {...machine.getAreaProps()}>
-  <div class="inline-flex items-center text-xl tabular-nums text-text">
+  <div class="inline-flex items-center stat-value tabular-nums">
    <template for={machine.getUnits()} as={unit} key={unit.type}>
     <div class="flex items-center"
      show={unit.type === "minutes" || unit.type === "seconds"}>

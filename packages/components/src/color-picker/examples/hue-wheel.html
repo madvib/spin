@@ -3,10 +3,11 @@ import { colorPicker } from "../color-picker.presentation.ts";
 
 const machine = colorPicker({
   value: "#8b5cf6",
+  inline: true,
 });
 </script>
 <div
-  class="mx-auto w-full max-w-[16rem] rounded-xl border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-[16rem] rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
     <label class="text-sm font-semibold text-text"
@@ -46,7 +47,7 @@ const machine = colorPicker({
     <div class="flex items-center gap-2">
       <span aria-hidden="true"
         class="h-7 w-7 shrink-0 rounded-md border border-solid border-border"
-        style="background: {machine.valueAsString}"></span>
+        {...machine.getSwatchProps({ value: machine.valueAsString })}></span>
       <input
         class="w-full font-mono text-xs"
         {...machine.getChannelInputProps({ channel: "hex" })} />

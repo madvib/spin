@@ -1,11 +1,15 @@
-<scope>props={ label: string = "Open popover" } consume={ popover }</scope>
+<script lang="ts">
+import { popover } from "../popover.controller-def.ts";
 
-<button {...popover.getTriggerProps()}
-  class="secondary s-sm transition-colors hover:bg-surface">{label}</button>
+const ctl = popover();
+</script>
 
-<popover {...popover.getContentProps()}
-  class="max-w-[18rem]">
+<button {...ctl.getTriggerProps()}
+  class="secondary s-sm transition-colors hover:bg-surface">Open popover</button>
+
+<popover {...ctl.getContentProps()}
+  class="m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg position-area-bottom-span-right">
   <p class="text-sm font-medium text-text">Share this page</p>
   <p
-    class="mt-1 text-sm text-text-muted">Copy the link below to send it to a friend.</p>
+    class="text-sm text-text-muted">Copy the link below to send it to a friend.</p>
 </popover>

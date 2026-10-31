@@ -2,6 +2,7 @@
 import { carousel } from "../carousel.presentation.ts";
 
 const machine = carousel({
+  allowMouseDrag: true,
   items: [{ "value": "one", "label": "One", "content": "First." }, {
     "value": "two",
     "label": "Two",
@@ -10,4 +11,37 @@ const machine = carousel({
 });
 </script>
 
-<include file="./infinite.html" />
+<div
+  class="relative mx-auto w-full max-w-[32rem] rounded-lg border border-solid border-border bg-surface-raised p-4"
+  {...machine.getRootProps()}>
+  <div
+    class={["flex gap-2 py-1 snap-x snap-mandatory overflow-x-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing snap-none scroll-auto": machine.isDragging }]}
+    {...machine.getItemGroupProps()}
+  >
+    <template for={machine.getItemIndexes()} as={row} key={row.value}>
+      <div
+        class={["w-full shrink-0 min-w-0 snap-start transition-opacity duration-base ease-standard opacity-50", { "opacity-100": machine.isInView(row.index) }]}
+        {...machine.getItemProps(row)}
+      >
+        <div
+          class="flex min-h-[6rem] flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-4 text-center">
+          <div class="text-sm font-medium text-text">{row.label}</div>
+          <div class="text-xs text-text-muted mt-1">{row.content}</div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <div class="flex items-center justify-between gap-2 pt-3" {...machine.getControlProps()}>
+    <button
+      class={["ghost icon s-sm", { "ring-2 ring-border-strong": machine.focused }]}
+      {...machine.getPrevTriggerProps()}>‹</button>
+    <template for={machine.getProgressRows()} as={row} key={row.value}>
+      <span class="text-xs text-text-muted"
+        {...machine.getProgressTextProps()}>{row.value}</span>
+    </template>
+    <button
+      class={["ghost icon s-sm", { "ring-2 ring-border-strong": machine.focused }]}
+      {...machine.getNextTriggerProps()}>›</button>
+  </div>
+</div>

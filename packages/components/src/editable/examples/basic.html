@@ -16,12 +16,12 @@
     class="relative rounded-md border border-solid border-border bg-surface-raised transition-shadow duration-fast ease-decelerate"
     {...machine.getAreaProps()}
   >
-    <span
-      class="col-start-1 row-start-1 block min-w-0 cursor-text px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate hover:text-primary"
+    <span show={!machine.editing}
+      class="block min-w-0 cursor-text px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate hover:text-primary"
       {...machine.getPreviewProps()}
     >{machine.valueText}</span>
-    <input
-      class="bare col-start-1 row-start-1 min-w-0 bg-transparent py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-text-muted"
+    <input show={machine.editing}
+      class="w-full bg-transparent px-2 py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-text-muted"
       {...machine.getInputProps()}
     />
   </div>

@@ -1,13 +1,17 @@
-<scope>props={ label: string = "Settings" } consume={ popover }</scope>
+<script lang="ts">
+import { popover } from "../popover.controller-def.ts";
 
-<button {...popover.getTriggerProps()}
+const ctl = popover();
+</script>
+
+<button {...ctl.getTriggerProps()}
   class="inline-flex items-center justify-center ghost icon s-sm transition-colors hover:bg-surface">
   <span class="i-lucide-settings text-sm" aria-hidden="true"></span>
-  <span class="sr-only">{label}</span>
+  <span class="sr-only">Settings</span>
 </button>
 
-<popover {...popover.getContentProps()}
-  class="w-64 max-w-[16rem]">
+<popover {...ctl.getContentProps()}
+  class="m-0 rounded-lg border border-solid border-border bg-surface-raised shadow-lg position-area-bottom-span-right w-64 max-w-[16rem]">
   <div class="border-b border-solid border-border p-3">
     <p class="font-medium text-sm text-text">Settings</p>
   </div>

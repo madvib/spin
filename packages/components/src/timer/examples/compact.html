@@ -24,6 +24,9 @@ const machine = timer({
    <button aria-label="Pause"
     class="ghost icon s-sm grid h-7 w-7 place-items-center"
     {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
+   <button aria-label="Resume"
+    class="ghost icon s-sm grid h-7 w-7 place-items-center"
+    {...machine.getActionTriggerProps({ action: "resume" })}><span class="i-lucide-play text-xs"></span></button>
   </div>
  </div>
 </div>

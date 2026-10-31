@@ -5,13 +5,15 @@ const machine = toast({
  placement: "bottom",
 });
 </script>
-<div
- class="pointer-events-none fixed z-toast flex w-full max-w-sm flex-col px-4"
- {...machine.getGroupProps()}
->
+<div class="mx-auto flex w-full max-w-[20rem] flex-col items-center gap-3">
+ <button data-fire="" class="secondary s-sm">Run toast</button>
+ <div
+  class="pointer-events-none fixed z-toast flex w-full flex-col"
+  {...machine.getGroupProps()}
+ >
  <template for={machine.getToasts()} as={row} key={row.id}>
   <div
-   class="pointer-events-auto absolute inset-x-0 origin-bottom transition-all duration-fast ease-decelerate"
+   class="pointer-events-auto absolute bottom-0 inset-x-4 mx-auto max-w-[38rem] transition-all duration-fast ease-decelerate"
    {...machine.getToastProps(row)}
   >
    <div
@@ -24,7 +26,7 @@ const machine = toast({
     <div class="min-w-0 flex-1">
      <div class="text-sm font-medium text-text"
       {...machine.getTitleProps(row)}>{row.title}</div>
-     <div class="mt-1 text-sm text-text-muted"
+     <div class="text-sm text-text-muted"
       {...machine.getDescriptionProps(row)}>{row.description}</div>
      <button
       class="secondary s-sm mt-2"
@@ -38,4 +40,5 @@ const machine = toast({
    </div>
   </div>
  </template>
+ </div>
 </div>

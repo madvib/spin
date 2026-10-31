@@ -3,20 +3,20 @@ import { tabs } from "../tabs.presentation.ts";
 
 const machine = tabs({
  items: [
-  { value: "tab1", label: "Files", content: "Content for Files." },
-  { value: "tab2", label: "History", content: "Content for History." },
-  { value: "tab3", label: "Security", content: "Content for Security." },
+  { value: "tab1", label: "Files", content: "The checkout-api release bundle." },
+  { value: "tab2", label: "History", content: "Every deploy, rollback, and flag flip." },
+  { value: "tab3", label: "Security", content: "API tokens, members, and audit log." },
  ],
  defaultValue: "tab1",
 });
 </script>
 
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
- data-default="tab1" {...machine.getRootProps()}>
+ {...machine.getRootProps()}>
  <div class="mb-4 flex gap-1" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface", { "bg-surface": machine.value === row.value }]}
+    class="bare rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-surface hover:text-text aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>

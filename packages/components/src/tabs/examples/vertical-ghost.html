@@ -6,20 +6,21 @@ const machine = tabs({
   {
    value: "general",
    label: "General",
-   content: "Workspace name, region, and default visibility.",
+   content: "Workspace name, region, and plan.",
   },
   {
    value: "members",
    label: "Members",
-   content: "Manage team roles, invitations, and access.",
+   content: "Priya, Tomas, and the on-call rotation.",
   },
   {
    value: "security",
    label: "Security",
-   content: "Two-factor authentication and audit logs.",
+   content: "Two-factor auth and the audit log.",
   },
  ],
  defaultValue: "general",
+ orientation: "vertical",
 });
 </script>
 
@@ -28,7 +29,7 @@ const machine = tabs({
  <div class="flex shrink-0 flex-col gap-1" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare px-4 py-2 text-left text-sm font-medium text-text-muted transition-colors hover:bg-surface-raised hover:text-text"]}
+    class="bare rounded-md px-4 py-2 text-left text-sm font-medium transition-colors hover:bg-surface-raised hover:text-text aria-[selected=true]:bg-surface-raised aria-[selected=true]:text-text aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>

@@ -6,13 +6,13 @@ const machine = tabs({
   {
    value: "tab1",
    label: "Charts",
-   content: "View charts and business metrics.",
+   content: "Latency and error budgets for Deploy #4821.",
   },
-  { value: "tab2", label: "Team", content: "Manage team members and roles." },
+  { value: "tab2", label: "Team", content: "Priya, Tomas, and the on-call rotation." },
   {
    value: "tab3",
    label: "Settings",
-   content: "Configure system preferences.",
+   content: "Workspace preferences and API tokens.",
   },
  ],
  defaultValue: "tab1",
@@ -20,12 +20,12 @@ const machine = tabs({
 </script>
 
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
- data-default="tab1" {...machine.getRootProps()}>
+ {...machine.getRootProps()}>
  <div class="mb-4 flex w-fit gap-1 rounded-lg bg-surface-raised p-1"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare grid h-10 w-10 place-items-center text-text-muted transition-all"]}
+    class="bare grid h-10 w-10 place-items-center rounded-md transition-all aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    ><span class="i-lucide-chart-bar text-sm" aria-hidden="true" show={row.value === "tab1"}></span><span class="i-lucide-users text-sm" aria-hidden="true" show={row.value === "tab2"}></span><span class="i-lucide-settings text-sm" aria-hidden="true" show={row.value === "tab3"}></span><span class="sr-only">{row.label}</span></button>
   </template>

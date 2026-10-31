@@ -12,7 +12,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
       class="grid h-14 w-10 place-items-center rounded-md bg-primary text-on-primary text-lg text-on-primary"
       aria-hidden="true">▶</div>
     <div>
-      <h3 class="text-sm">The Great Adventure</h3>
+      <strong class="text-sm text-text">The Great Adventure</strong>
       <p class="text-xs text-text-muted">Action • Adventure • 2024</p>
     </div>
   </div>
@@ -23,7 +23,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
       <div class="inline-flex" {...machine.getControlProps()}>
         <template for={machine.getItems()} as={row} key={row}>
           <span
-            class={["bare grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all", { "scale-110": machine.getItemState(row).highlighted, "text-primary": machine.getItemState(row).highlighted, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+            class={["bare grid h-8 w-8 cursor-pointer place-items-center rounded-md text-2xl text-border-strong transition-all", { "scale-110 text-primary": machine.getItemState(row).highlighted, "cursor-not-allowed opacity-50": machine.disabled }]}
             {...machine.getItemProps(row)}
           >
             <span class="relative"
@@ -32,7 +32,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
         </template>
       </div>
       <input {...machine.getHiddenInputProps()} />
-      <p class="mt-1 text-xs text-text-muted"
+      <p class="text-xs text-text-muted"
         show={machine.value > 0}>You rated this {machine.value} out of 5 stars</p>
     </div>
     <div class="flex gap-2">

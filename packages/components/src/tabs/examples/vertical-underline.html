@@ -6,20 +6,21 @@ const machine = tabs({
   {
    value: "account",
    label: "Account",
-   content: "Profile identity, username, and primary email.",
+   content: "Priya Raman, workspace owner.",
   },
   {
    value: "tokens",
    label: "API Tokens",
-   content: "Personal access tokens and webhook secrets.",
+   content: "checkout-api ships with two live tokens.",
   },
   {
    value: "sessions",
    label: "Sessions",
-   content: "Active browser sessions and authorized devices.",
+   content: "Three sessions, one from Berlin.",
   },
  ],
  defaultValue: "account",
+ orientation: "vertical",
 });
 </script>
 
@@ -29,7 +30,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare border-l-2 border-transparent px-4 py-2 text-left text-sm font-medium text-text-muted transition-colors hover:text-text", { "border-primary": machine.value === row.value }]}
+    class="bare border-l-2 border-solid px-4 py-2 text-left text-sm font-medium transition-colors hover:text-text aria-[selected=true]:border-primary aria-[selected=true]:text-text aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>

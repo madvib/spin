@@ -1,28 +1,32 @@
-<scope>props={ label: string = "System Status", tip: string = "Operational" } consume={ tooltip }</scope>
+<script lang="ts">
+import { tooltip } from "../tooltip.controller-def.ts";
 
-<button {...tooltip.getTriggerProps()}
+const ctl = tooltip();
+</script>
+
+<button {...ctl.getTriggerProps()}
   class="secondary s-sm inline-flex items-center gap-2">
   <span class="i-lucide-activity text-sm" aria-hidden="true"></span>
-  {label}
+  System Status
 </button>
 
-<tooltip {...tooltip.getContentProps()}
-  class="fixed max-w-[16rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+<tooltip {...ctl.getContentProps()}
+  class="fixed m-0 max-w-[16rem]">
   <div class="stack-xs">
     <div>
-      <div class="text-xs text-muted">Status</div>
+      <div class="text-xs text-text-muted">Status</div>
       <div class="text-xs font-semibold">Operational</div>
     </div>
     <div>
-      <div class="text-xs text-muted">Uptime</div>
+      <div class="text-xs text-text-muted">Uptime</div>
       <div class="text-xs font-semibold">99.9%</div>
     </div>
     <div>
-      <div class="text-xs text-muted">Deploy</div>
+      <div class="text-xs text-text-muted">Deploy</div>
       <div class="text-xs font-semibold">2h ago</div>
     </div>
     <div>
-      <div class="text-xs text-muted">Response</div>
+      <div class="text-xs text-text-muted">Response</div>
       <div class="text-xs font-semibold">145ms</div>
     </div>
   </div>

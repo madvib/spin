@@ -6,20 +6,21 @@ const machine = tabs({
   {
    value: "overview",
    label: "Overview",
-   content: "Dashboard with key metrics and insights.",
+   content: "Fleet health at a glance.",
   },
   {
    value: "projects",
    label: "Projects",
-   content: "Manage active development projects.",
+   content: "checkout-api and its preview deploys.",
   },
   {
    value: "packages",
    label: "Packages",
-   content: "View and organize package dependencies.",
+   content: "Canary channel and pinned versions.",
   },
  ],
  defaultValue: "overview",
+ orientation: "vertical",
 });
 </script>
 
@@ -29,10 +30,10 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class={["bare flex items-center gap-2 px-3 py-2 text-left text-sm font-medium text-text-muted transition-all", { "bg-surface": machine.value === row.value }]}
+    class="bare flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-all aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
-    <span class="i-lucide-home text-sm" aria-hidden="true"
+    <span class="i-lucide-house text-sm" aria-hidden="true"
      show={row.value === "overview"}></span>
     <span class="i-lucide-folder-open text-sm" aria-hidden="true"
      show={row.value === "projects"}></span>

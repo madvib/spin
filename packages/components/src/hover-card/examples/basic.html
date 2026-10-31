@@ -1,13 +1,17 @@
-<scope>props={ label: string = "Hover me" } consume={ hoverCard }</scope>
+<script lang="ts">
+import { hoverCard } from "../hover-card.controller-def.ts";
 
-<div {...hoverCard.getRootProps()} class="inline-block">
-  <span {...hoverCard.getTriggerProps()}
-    class="inline-block cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text transition-colors hover:bg-surface">{label}</span>
+const ctl = hoverCard();
+</script>
 
-  <div {...hoverCard.getContentProps()}
-    class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem] data-[placement=top]:origin-bottom-left data-[placement=bottom]:origin-top-left">
+<div {...ctl.getRootProps()} class="inline-block">
+  <span {...ctl.getTriggerProps()}
+    class="inline-block cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm text-text transition-colors hover:bg-surface">Hover me</span>
+
+  <div {...ctl.getContentProps()}
+    class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
     <div class="stack-sm">
-      <h3 class="text-sm text-text">Hover Card</h3>
+      <strong class="text-sm text-text">Hover Card</strong>
       <p
         class="text-sm text-text-muted">This is a basic hover card that appears when you hover over the trigger element.</p>
     </div>

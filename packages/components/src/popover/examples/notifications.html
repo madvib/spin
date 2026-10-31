@@ -1,15 +1,19 @@
-<scope>props={ label: string = "Notifications" } consume={ popover }</scope>
+<script lang="ts">
+import { popover } from "../popover.controller-def.ts";
 
-<button {...popover.getTriggerProps()}
+const ctl = popover();
+</script>
+
+<button {...ctl.getTriggerProps()}
   class="inline-flex items-center gap-2 secondary s-sm transition-colors hover:bg-surface">
   <span class="i-lucide-bell text-sm" aria-hidden="true"></span>
   Notifications
 </button>
 
-<popover {...popover.getContentProps()}
-  class="max-w-[20rem]">
+<popover {...ctl.getContentProps()}
+  class="m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg position-area-bottom-span-right max-w-[20rem]">
   <p class="text-sm font-medium text-text">Notifications</p>
-  <ul class="mt-2 stack-xs text-sm text-text-muted">
+  <ul class="flow-list stack-xs text-sm text-text-muted">
     <li>Maya liked your post</li>
     <li>David started following you</li>
     <li>Lisa invited you to a workspace</li>

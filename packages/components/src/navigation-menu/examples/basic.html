@@ -3,27 +3,69 @@ import { navigationMenu } from "../navigation-menu.presentation.ts";
 
 const machine = navigationMenu({
   items: [
-    { value: "docs", label: "Docs" },
-    { value: "components", label: "Components" },
-    { value: "blog", label: "Blog" },
+    {
+      value: "deployments",
+      label: "Deployments",
+      href: "#deployments",
+      badge: "#4821",
+      description: "Deploy #4821 is running: 10% of traffic on v4.12.0 in eu-west-1.",
+      cta: "Watch the rollout",
+      ctaHref: "#deploy-4821",
+    },
+    {
+      value: "services",
+      label: "Services",
+      href: "#services",
+      badge: "12 healthy",
+      description: "checkout-api runs 12 instances across 3 regions, all checks green.",
+      cta: "Open checkout-api",
+      ctaHref: "#checkout-api",
+    },
+    {
+      value: "team",
+      label: "Team",
+      href: "#team",
+      badge: "Priya",
+      description: "Priya Raman ships platform. Tomas Berg wrote release v4.12.0.",
+      cta: "See who is on call",
+      ctaHref: "#on-call",
+    },
   ],
 });
 </script>
 
-<nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="m-0 flex list-none items-center gap-1 p-0"
-    {...machine.getListProps()}>
+<nav class="relative flex w-full items-center justify-center" {...machine.getRootProps()}>
+  <ul class="row-list gap-1" {...machine.getListProps()}>
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
-          class={["flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]}
-          {...machine.getLinkProps(row)}>{row.label}</a>
+          class="bare inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface aria-[current=page]:bg-surface"
+          {...machine.getLinkProps(row)}
+        >
+          <span>{row.label}</span>
+          <span
+            aria-hidden="true"
+            class={["i-lucide-chevron-down text-xs text-text-muted transition-transform duration-fast", { "rotate-180 text-primary": machine.value === row.value }]}
+          ></span>
+        </a>
 
-        <div
-          class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate"
-          {...machine.getItemContentProps(row)}>
-          <p class="text-xs text-text-muted">{row.label} panel</p>
-        </div>
+        <panel
+          class="absolute left-0 top-full z-dropdown mt-1 w-64 origin-top-left transition duration-fast ease-decelerate"
+          {...machine.getItemContentProps(row)}
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-text">{row.label}</span>
+            <badge variant="neutral">{row.badge}</badge>
+          </div>
+          <p class="mt-1 text-xs text-text-muted">{row.description}</p>
+          <a
+            class="bare mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary no-underline hover:underline"
+            href={row.ctaHref}
+          >
+            <span>{row.cta}</span>
+            <span aria-hidden="true" class="i-lucide-arrow-right text-xs"></span>
+          </a>
+        </panel>
       </li>
     </template>
   </ul>

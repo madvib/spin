@@ -4,8 +4,9 @@ import { angleSlider } from "../angle-slider.presentation.ts";
 const machine = angleSlider({ value: "121" });
 </script>
 
-<div class="mx-auto flex w-full max-w-[20rem] items-center justify-center"
+<div class="mx-auto flex w-full max-w-[20rem] flex-col items-center justify-center"
   {...machine.getRootProps()}>
+  <label class="mb-2 text-sm font-medium text-text" {...machine.getLabelProps()}>Angle</label>
   <div class="relative p-8">
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
       <span
@@ -26,11 +27,11 @@ const machine = angleSlider({ value: "121" });
         class="absolute -translate-1/2 font-mono text-xs text-text-muted left-[18.4%] top-[18.4%]">315°</span>
     </div>
     <div
-      class="relative flex h-[15rem] w-[15rem] touch-none items-center justify-center rounded-full border border-solid border-border bg-surface-raised select-none"
+      class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border border-solid border-border bg-surface-raised"
       {...machine.getControlProps()}
     >
       <span
-        class="pointer-events-none absolute inset-y-0 left-1/2 ml-0 w-[2px]"
+        class="pointer-events-none absolute inset-y-0 left-1/2 w-[2px]"
         {...machine.getThumbProps({ needle: true })}
       >
         <span
@@ -41,19 +42,19 @@ const machine = angleSlider({ value: "121" });
         {...machine.getMarkerGroupProps()}>
         <template for={machine.getMarkers()} as={row} key={row}>
           <span
-            class="absolute inset-y-0 left-1/2 ml-0 w-[2px]"
+            class="absolute inset-y-0 left-1/2 w-[2px]"
             {...machine.getMarkerProps({ value: row, diameter: true })}
           >
             <span
-              class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full bg-border-strong", { "bg-semantic-success": machine.getMarkerState(row) === "under-value", "bg-primary": machine.getMarkerState(row) === "at-value" }]}
+              class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full", { "bg-border-strong": machine.getMarkerState(row) === "over-value", "bg-semantic-success": machine.getMarkerState(row) === "under-value", "bg-primary": machine.getMarkerState(row) === "at-value" }]}
               aria-hidden="true"></span>
           </span>
         </template>
       </div>
       <span class="flex flex-col items-center"
-        {...machine.getValueTextProps(machine.valueAsDegree)}>
+        {...machine.getValueTextProps()}>
         <span
-          class="text-2xl font-bold tabular-nums text-text">{machine.value}°</span>
+          class="stat-value tabular-nums">{machine.value}°</span>
         <span class="text-sm font-medium text-text-muted">degrees</span>
       </span>
     </div>

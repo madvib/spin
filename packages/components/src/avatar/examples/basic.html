@@ -1,23 +1,23 @@
 <script lang="ts">
   import { avatar } from "../avatar.presentation.ts";
 
-  const machine = avatar({ src: "https://i.pravatar.cc/300", label: "Paula Aster", fallback: "PA" });
+  const machine = avatar({ label: "Paula Aster", fallback: "PA", src: "https://i.pravatar.cc/80?img=1" });
 </script>
 
 
 <div class="mx-auto flex w-full max-w-[20rem] justify-center">
 <span
-  class="avatar relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted"
+  class="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken text-lg font-semibold text-text-muted"
   {...machine.getRootProps()}
 >
-  <img
-    class={["h-full w-full object-cover", { "hidden": !machine.loaded }]}
+  <img show={machine.src !== "" && machine.status !== "error"}
+    class="h-full w-full object-cover"
     draggable="false"
     {...machine.getImageProps()}
   />
-  <span
+  <span show={!machine.loaded}
     aria-hidden="true"
-    class={["grid h-full w-full place-items-center", { "hidden": machine.loaded }]}
+    class="grid h-full w-full place-items-center"
     {...machine.getFallbackProps()}
   >PA</span>
 </span>

@@ -1,29 +1,41 @@
 <script lang="ts">
 import { splitter } from "../splitter.presentation.ts";
 
-const machine = splitter({
- panels:
-  '[{"id":"left","minSize":20},{"id":"middle","minSize":20},{"id":"right","minSize":20}]',
- size: "[20, 60, 20]",
+const outer = splitter({
+ panels: '[{"id":"nav"},{"id":"middle"},{"id":"inspector"}]',
+ size: "[25, 50, 25]",
+});
+const inner = splitter({
+ panels: '[{"id":"top"},{"id":"bottom"}]',
+ size: "[50, 50]",
+ orientation: "vertical",
 });
 </script>
 
 <div class="h-60 w-full">
- <div class="gap-2" {...machine.getRootProps()}>
-  <template for={machine.getItems()} as={row} key={row.id}>
+ <div class="gap-2" {...outer.getRootProps()}>
+  <template for={outer.getItems()} as={row} key={row.id}>
    <div
-    class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": machine.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": machine.orientation === "vertical" && row.type === "handle" }]}
-    {...machine.getItemProps(row)}
-   ><span class={["block p-2 text-xs text-text-muted", { "hidden": row.type === "handle" }]} {...machine.getItemLabelProps(row)}>{row.id}</span><span
-   class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": row.type === "handle", "h-8 w-1": machine.orientation === "horizontal" && row.type === "handle", "h-1 w-8": machine.orientation === "vertical" && row.type === "handle" }]}
-   {...machine.getItemIndicatorProps(row)}
-  ></span><spin-splitter
-   class="h-full min-h-0"
-   panels='[{"id":"top"},{"id":"bottom","collapsible":true}]'
-   defaultSize="[50, 50]"
-   orientation="vertical"
-   show={row.id === "middle"}
-  ></spin-splitter></div>
+    class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus-visible:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": outer.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": outer.orientation === "vertical" && row.type === "handle" }]}
+    {...outer.getItemProps(row)}
+   ><span class={["block p-2 text-xs text-text-muted", { "hidden": row.type === "handle" }]} {...outer.getItemLabelProps(row)}>{row.id}</span><span
+   class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": row.type === "handle", "h-8 w-1": outer.orientation === "horizontal" && row.type === "handle", "h-1 w-8": outer.orientation === "vertical" && row.type === "handle" }]}
+   {...outer.getItemIndicatorProps(row)}
+  ></span><div
+    class="h-full w-full gap-2"
+    {...inner.getRootProps()}
+    show={row.id === "middle"}
+   >
+    <template for={inner.getItems()} as={cell} key={cell.id}>
+     <div
+      class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus-visible:bg-surface-sunken": cell.type === "handle", "w-2 cursor-col-resize": inner.orientation === "horizontal" && cell.type === "handle", "h-2 cursor-row-resize": inner.orientation === "vertical" && cell.type === "handle" }]}
+      {...inner.getItemProps(cell)}
+     ><span class={["block p-2 text-xs text-text-muted", { "hidden": cell.type === "handle" }]} {...inner.getItemLabelProps(cell)}>{cell.id}</span><span
+     class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": cell.type === "handle", "h-8 w-1": inner.orientation === "horizontal" && cell.type === "handle", "h-1 w-8": inner.orientation === "vertical" && cell.type === "handle" }]}
+     {...inner.getItemIndicatorProps(cell)}
+    ></span></div>
+    </template>
+   </div></div>
   </template>
  </div>
 </div>

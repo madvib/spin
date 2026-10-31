@@ -6,10 +6,10 @@
 
 <div class="w-full" {...machine.getRootProps()}>
   <div
-    class={["flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-surface px-4 py-6 text-center transition-colors duration-fast ease-decelerate", { "border-primary": machine.dragging, "bg-surface-raised": machine.dragging, "ring-2": machine.focused, "ring-border-strong": machine.focused, "cursor-not-allowed": machine.disabled, "opacity-50": machine.disabled }]}
+    class={["flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-surface px-4 py-6 text-center transition-colors duration-fast ease-decelerate", { "border-primary bg-surface-raised": machine.dragging, "ring-2 ring-border-strong": machine.focused, "cursor-not-allowed opacity-50": machine.disabled }]}
     {...machine.getDropzoneProps()}
   >
-    <span class="i-lucide-upload-cloud text-xl text-text-muted" aria-hidden="true"></span>
+    <span class="i-lucide-upload-cloud icon-lg text-text-muted" aria-hidden="true"></span>
     <span class="text-sm font-medium text-text" {...machine.getLabelProps()}>Drop files here or click to browse</span>
     <span class="text-xs text-text-muted">Up to 5 files supported</span>
   </div>
