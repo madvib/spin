@@ -66,7 +66,7 @@ export default function Studio(): JSX.Element {
         The visual workbench for the theme document. Studio runs beside your
         running app, so a token edit repaints the real page before it touches
         disk — and every edit is gated before it lands. This site presents the
-        Studio; the editor itself mounts in your project's Vite dev server.
+        Studio; the editor itself mounts in your project's dev server.
       </p>
 
       <div class="mt-6 grid gap-3 md:grid-cols-3">

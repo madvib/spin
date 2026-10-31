@@ -14,9 +14,9 @@ import {
 } from "@spinjs/preset";
 import { exampleSources } from "@spinjs/components/examples";
 import "@spinjs/components/examples";
-import { A, useParams } from "@solidjs/router";
+import { A, Navigate, useParams } from "@solidjs/router";
 import { EXAMPLE_ONLOAD, Specimen } from "@spinjs/kit";
-import { COMPONENT_GROUPS } from "../../nav.ts";
+import { COMPONENT_ALIASES, COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
 
@@ -51,7 +51,8 @@ export default function ComponentPage(): JSX.Element {
       group.items.some((item) => item.name === params.id)
     )?.label
   );
-  return (
+  const alias = createMemo(() => COMPONENT_ALIASES[params.id]);
+  const page = (
     <Show when={known()} fallback={<NotFound id={params.id} />}>
       <Show
         when={machineId() === null}
@@ -253,6 +254,12 @@ export default function ComponentPage(): JSX.Element {
           </nav>
         </main>
       </Show>
+    </Show>
+  );
+
+  return (
+    <Show when={alias()} fallback={page}>
+      {(target) => <Navigate href={`/components/${target()}`} />}
     </Show>
   );
 }

@@ -24,7 +24,6 @@ import {
   spinShortcuts,
 } from "@spinjs/preset";
 import { BASE_ROLES } from "@spinjs/theme";
-import { exampleMachines } from "@spinjs/components/examples";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
 
 export interface SearchEntry {
@@ -33,11 +32,6 @@ export interface SearchEntry {
   readonly href: string;
   readonly category: "Guide" | "Component" | "Utility" | "Token";
 }
-
-/** Machine component names, read off the example directories the gallery
- * renders — the same directories, so a machine with examples to show is
- * searchable and one without them is not. */
-const MACHINE_NAMES: readonly string[] = exampleMachines();
 
 function buildIndex(): readonly SearchEntry[] {
   const out: SearchEntry[] = [];
@@ -54,21 +48,18 @@ function buildIndex(): readonly SearchEntry[] {
         ...(contract?.tags ?? []),
         ...(contract?.variants.slice(0, 4) ?? []),
       ].join(" · ");
+      // The note and the vocabulary both narrow a query: searching "textarea"
+      // must find the field component that owns the tag.
+      const subtitle = [examples?.note, detail === "" ? undefined : detail]
+        .filter((part): part is string => part !== undefined && part !== "")
+        .join(" · ");
       out.push({
         title: item.name,
-        subtitle: examples?.note ?? (detail === "" ? undefined : detail),
+        subtitle: subtitle === "" ? undefined : subtitle,
         href: item.href,
         category: "Component",
       });
     }
-  }
-  for (const name of MACHINE_NAMES) {
-    out.push({
-      title: name,
-      subtitle: "interactive machine",
-      href: `/components/machine-${name}`,
-      category: "Component",
-    });
   }
   for (const section of SECTIONS) {
     out.push({

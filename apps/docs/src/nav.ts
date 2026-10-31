@@ -10,7 +10,6 @@ import {
   COMPONENT_ICONS,
   UNIFIED_COMPONENT_GROUPS,
 } from "@spinjs/components";
-import { exampleMachines } from "@spinjs/components/examples";
 import {
   primitiveContracts,
   primitiveElements,
@@ -83,7 +82,21 @@ export interface ComponentNavGroup {
  * machine page. A group the library empties is dropped rather than drawn
  * as a heading over nothing.
  */
-const MACHINES = new Set(exampleMachines());
+/** Tag names that resolve to the component that owns them. */
+export const COMPONENT_ALIASES: Readonly<Record<string, string>> = {
+  input: "field",
+  textarea: "field",
+  typography: "prose",
+};
+
+/** Machine members, read off the shared table's `component-` prefix. */
+const MACHINES = new Set(
+  UNIFIED_COMPONENT_GROUPS.flatMap((group) =>
+    group.members
+      .filter((member) => member.startsWith("component-"))
+      .map((member) => member.slice("component-".length))
+  ),
+);
 function unifiedHref(member: string): string {
   const bare = member.replace(/^component-/, "");
   return MACHINES.has(bare) ? `/components/machine-${bare}` : `/components/${bare}`;

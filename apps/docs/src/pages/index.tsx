@@ -11,9 +11,20 @@ import {
 } from "solid-js";
 import type { JSX } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { COMPONENT_ICONS } from "@spinjs/components";
-import { exampleSources } from "@spinjs/components/examples";
-import "@spinjs/components/examples";
+import {
+  COMPONENT_ICONS,
+  UNIFIED_COMPONENT_GROUPS,
+} from "@spinjs/components";
+// Only the specimens the hover cards mount: the full example registry is a
+// gallery concern, not a first-load one.
+import "@spinjs/components/mode-picker/examples/basic.html";
+import "@spinjs/components/theme-picker/examples/basic.html";
+import "@spinjs/components/tabs/examples/basic.html";
+import "@spinjs/components/menu/examples/basic.html";
+import "@spinjs/components/pagination/examples/basic.html";
+import "@spinjs/components/steps/examples/basic.html";
+import "@spinjs/components/angle-slider/examples/basic.html";
+import "@spinjs/components/date-input/examples/basic.html";
 import {
   examplesFor,
   primitiveContracts,
@@ -31,8 +42,11 @@ const STAGE_COUNT = 7;
 const WHEEL_THRESHOLD = 62;
 const STEP_COOLDOWN_MS = 650;
 
-const MACHINE_SOURCES = exampleSources();
-const MACHINE_COUNT = MACHINE_SOURCES.size;
+const MACHINE_COUNT = UNIFIED_COMPONENT_GROUPS.reduce(
+  (total, group) =>
+    total + group.members.filter((member) => member.startsWith("component-")).length,
+  0,
+);
 const ELEMENT_COUNT = primitiveElements.filter(
   (element) => primitiveContracts[element.name] !== undefined,
 ).length;
@@ -59,43 +73,42 @@ interface HoverTileSpec {
   readonly meta: string;
 }
 
-function buildTileSpec(name: string, isMachine: boolean): HoverTileSpec {
-  const icon = COMPONENT_ICONS[name] ?? "i-lucide-box";
-  if (isMachine) {
-    const first = MACHINE_SOURCES.get(name)?.[0]?.stem ?? "basic";
-    return {
-      name,
-      href: `/components/machine-${name}`,
-      icon,
-      mountHtml: `<${name}-${first}></${name}-${first}>`,
-      meta: "state machine",
-    };
-  }
-  const ex = examplesFor(name);
-  const contract = primitiveContracts[name];
-  const vCount = contract?.variants.length ?? 0;
+function primitiveTile(name: string): HoverTileSpec {
+  const example = examplesFor(name);
+  const variants = primitiveContracts[name]?.variants.length ?? 0;
   return {
     name,
     href: `/components/${name}`,
-    icon,
-    mountHtml: ex?.rows[0]?.html ?? `<${name}>${name}</${name}>`,
-    meta: vCount > 0 ? `${vCount} variants` : "pure css",
+    icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
+    mountHtml: example?.rows[0]?.html ?? `<${name}>${name}</${name}>`,
+    meta: variants > 0 ? `${variants} variants` : "pure CSS",
+  };
+}
+
+const MACHINE_TILES = [
+  { name: "mode-picker", stem: "basic" },
+  { name: "theme-picker", stem: "basic" },
+  { name: "tabs", stem: "basic" },
+  { name: "menu", stem: "basic" },
+  { name: "pagination", stem: "basic" },
+  { name: "steps", stem: "basic" },
+  { name: "angle-slider", stem: "basic" },
+  { name: "date-input", stem: "basic" },
+] as const;
+
+function machineTile(tile: (typeof MACHINE_TILES)[number]): HoverTileSpec {
+  return {
+    name: tile.name,
+    href: `/components/machine-${tile.name}`,
+    icon: COMPONENT_ICONS[tile.name] ?? "i-lucide-box",
+    mountHtml: `<${tile.name}-${tile.stem}></${tile.name}-${tile.stem}>`,
+    meta: "state machine",
   };
 }
 
 const HOVER_TILES: readonly HoverTileSpec[] = [
-  buildTileSpec("button", false),
-  buildTileSpec("breadcrumbs", false),
-  buildTileSpec("join", false),
-  buildTileSpec("kbd", false),
-  buildTileSpec("mode-picker", true),
-  buildTileSpec("theme-picker", true),
-  buildTileSpec("tabs", true),
-  buildTileSpec("menu", true),
-  buildTileSpec("pagination", true),
-  buildTileSpec("steps", true),
-  buildTileSpec("angle-slider", true),
-  buildTileSpec("date-input", true),
+  ...["button", "breadcrumbs", "join", "kbd"].map(primitiveTile),
+  ...MACHINE_TILES.map(machineTile),
 ];
 
 interface DtcgTokenSample {
@@ -209,6 +222,7 @@ export default function Home(): JSX.Element {
 
   // Section 3 (Primitives): interactive native controls
   const [switchChecked, setSwitchChecked] = createSignal(true);
+  const [classless, setClassless] = createSignal(true);
   const [progressVal, setProgressVal] = createSignal(72);
 
   // Section 4 (Components): HoverCard with live component specimen preview (like /components)
@@ -580,7 +594,7 @@ export default function Home(): JSX.Element {
                     const value = event.currentTarget.value;
                     if (isPackageManager(value)) setPackageManager(value);
                   }}
-                  class="min-h-0 w-fit px-2 py-1 text-xs"
+                  class="s-sm w-fit"
                 >
                   <For each={PACKAGE_MANAGERS}>
                     {(manager) => (
@@ -914,6 +928,43 @@ export default function Home(): JSX.Element {
                 </div>
               </div>
 
+              <div class="flex w-[19rem] max-w-full flex-col gap-1">
+                <div class="flex w-fit items-center gap-1 rounded-md border border-border bg-surface-raised p-1 shadow-sm">
+                  <button
+                    type="button"
+                    aria-pressed={classless()}
+                    onClick={() => setClassless(true)}
+                    class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                      classless()
+                        ? "bg-primary font-semibold text-on-primary"
+                        : "text-text-muted hover:bg-surface hover:text-text"
+                    }`}
+                  >
+                    classless
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={!classless()}
+                    onClick={() => setClassless(false)}
+                    class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                      !classless()
+                        ? "bg-primary font-semibold text-on-primary"
+                        : "text-text-muted hover:bg-surface hover:text-text"
+                    }`}
+                  >
+                    classless: false
+                  </button>
+                </div>
+                <code class="font-mono text-xs text-text-muted">
+                  {classless()
+                    ? "<button>Save</button>"
+                    : '<button class="button">Save</button>'}
+                </code>
+                <span class="text-xs text-text-muted">
+                  Preset option, set once when the stylesheet is built.
+                </span>
+              </div>
+
               <A
                 href="/components?kind=elements"
                 class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
@@ -1092,7 +1143,7 @@ export default function Home(): JSX.Element {
                   Shape tokens visually. Ship recipes in one click.
                 </h2>
                 <p class="m-0 text-sm text-text-muted">
-                  Spin Studio runs beside your Vite dev server: edit DTCG
+                  Spin Studio runs beside your app in development: edit DTCG
                   palettes and type, verify WCAG contrast across modes, vendor
                   icons, tune motion, and copy component recipes into your repo.
                 </p>
