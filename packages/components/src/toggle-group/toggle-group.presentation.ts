@@ -6,8 +6,8 @@ import {
   focuser,
   isComposing,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { toggleGroup as toggleGroupMachine } from "./toggle-group.machine.ts";
 import {
@@ -24,12 +24,12 @@ import type {
 export type { ToggleGroupArgs, ToggleGroupItem, ToggleGroupValueChange };
 
 type Ctx = ToggleGroupContext;
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   ToggleGroupContext,
   ToggleGroupEvents,
   "idle" | "focused"
 >;
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   ToggleGroupContext,
   ToggleGroupEvents,

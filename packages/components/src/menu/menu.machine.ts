@@ -33,12 +33,11 @@ const clearAll = (): Partial<MenuContext> => {
  * send OPEN when the delay elapses, and the machine has no transitional
  * states at all.
  *
- * Submenus are likewise not statechart children — each submenu is a
- * separate machine instance and the parent's context tracks the highlighted
- * child. Same answer here: `openSubmenu` is a context map keyed by item
- * value, exactly as tree-view tracks per-node loading. This is why a flat
- * fork covers a menu: there is no genuine hierarchy to model, only
- * per-instance state.
+ * A submenu is not a second machine — `openSubmenu` names the parent row
+ * whose level is showing, and the highlight roams both levels in one
+ * field. The child's highlight keeps the level open; the parent's closes
+ * it. This is why a flat fork covers a menu: there is no genuine
+ * hierarchy to model, only one open level at a time.
  *
  * Context-menu anchoring (`anchorPoint`) stays: it is input, like a
  * click coordinate, not state that transitions.
@@ -51,7 +50,6 @@ const config: MachineSpec<MenuContext, MenuEvents, MenuState> = {
     highlightedValue: null as string | null,
     openSubmenu: null as string | null,
     anchorPoint: null as { x: number; y: number } | null,
-    isSubmenu: false,
     loopFocus: false,
     closeOnSelect: false,
     typeahead: true,
@@ -64,6 +62,13 @@ const config: MachineSpec<MenuContext, MenuEvents, MenuState> = {
         OPEN: { target: "open", assign: clearAnchor },
         CONTROLLED_OPEN: { target: "open", assign: clearAnchor },
         TRIGGER_CLICK: { target: "open", assign: clearAnchor },
+        "ENTRIES.SET": {
+          assign: (ctx, event) => {
+            return sameEntries(ctx.entries, event.entries)
+              ? {}
+              : { entries: event.entries };
+          },
+        },
         CONTEXT_MENU: {
           target: "open",
           assign: (_ctx, e) => {
@@ -82,6 +87,14 @@ const config: MachineSpec<MenuContext, MenuEvents, MenuState> = {
           assign: (ctx, e) => {
             return e.type === "HIGHLIGHT" && e.value !== ctx.highlightedValue
               ? { highlightedValue: e.value, openSubmenu: null }
+              : {};
+          },
+        },
+        SUBMENU_HIGHLIGHT: {
+          assign: (ctx, e) => {
+            return e.type === "SUBMENU_HIGHLIGHT" &&
+                e.value !== ctx.highlightedValue
+              ? { highlightedValue: e.value }
               : {};
           },
         },
@@ -155,9 +168,14 @@ export function menu(
     /**
      * The `open` prop is NOT here: it drives the machine's STATE, not a
      * context field, so the element's reconcile keeps it in step.
+     *
+     * `items` IS here, though no context field reads it: the field list is
+     * what declares the element's props, and a host-written `items` that
+     * the element never declared lands as a dead own-property instead of
+     * reaching reconcile's ENTRIES.SET.
      */
     fields: {
-      isSubmenu: {},
+      items: {},
     },
   });
 }

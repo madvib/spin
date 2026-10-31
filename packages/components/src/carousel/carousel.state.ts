@@ -7,6 +7,7 @@ export interface CarouselSlide {
   readonly content: string;
   readonly image?: string | undefined;
   readonly avatar?: string | undefined;
+  readonly tag?: string | undefined;
 }
 
 export const slidesOf = (raw: unknown): readonly CarouselSlide[] => {
@@ -20,12 +21,14 @@ export const slidesOf = (raw: unknown): readonly CarouselSlide[] => {
     const content: unknown = entry["content"];
     const image: unknown = entry["image"];
     const avatar: unknown = entry["avatar"];
+    const tag: unknown = entry["tag"];
     slides.push({
       value,
       label: typeof label === "string" ? label : "",
       content: typeof content === "string" ? content : "",
       ...(typeof image === "string" ? { image } : {}),
       ...(typeof avatar === "string" ? { avatar } : {}),
+      ...(typeof tag === "string" ? { tag } : {}),
     });
   }
   return slides;

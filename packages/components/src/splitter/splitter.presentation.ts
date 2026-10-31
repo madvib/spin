@@ -6,9 +6,9 @@ import {
   defineComponent,
   focuser,
   isComposing,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import {
@@ -50,8 +50,8 @@ export interface SplitterItem {
   readonly afterId: string;
 }
 
-type ScopeLike = ScopeFor<SplitterContext, SplitterEvents, SplitterState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<SplitterContext, SplitterEvents, SplitterState>;
+type SlotLike<R> = SlotViewFor<
   R,
   SplitterContext,
   SplitterEvents,

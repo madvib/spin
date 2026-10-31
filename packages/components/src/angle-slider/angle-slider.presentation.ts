@@ -2,13 +2,12 @@ import {
   type ApiOf,
   ariaLabelledBy,
   type ComponentDef,
-  dataAttr,
   defineComponent,
   focuser,
   isComposing,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { angleSlider as angleSliderMachine } from "./angle-slider.machine.ts";
@@ -60,13 +59,13 @@ export interface AngleSliderValueChangeEnd {
   readonly valueAsDegree: string;
 }
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   AngleSliderContext,
   AngleSliderEvents,
   AngleSliderState
 >;
 
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   AngleSliderContext,
   AngleSliderEvents,
@@ -264,7 +263,7 @@ const def = {
             ariaLabel.length > 0 ? undefined : { part: "label" },
           ),
           ...sliderThumb({
-            max: "360",
+            max: "359",
             min: "0",
             now: String(ctx.value),
           }),
@@ -362,16 +361,8 @@ const def = {
         const context = scope.context;
         const shown = displayAngle(slot.value, context.dir);
         const radius = slot.radius ?? 46;
-        const state = slot.value < context.value
-          ? "under-value"
-          : slot.value > context.value
-          ? "over-value"
-          : "at-value";
         return {
           id: scope.id("marker", slot.value),
-          "data-value": String(slot.value),
-          "data-state": state,
-          "data-disabled": dataAttr(scope.context.disabled),
           style: {
             // Diameter markup centers itself; the bag keeps rotation only.
             ...(slot.diameter === true

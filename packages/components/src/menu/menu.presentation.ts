@@ -8,8 +8,8 @@ import {
   disclosureTrigger,
   listSurface,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { menu as menuMachine } from "./menu.machine.ts";
@@ -36,14 +36,13 @@ import type {
  * bags, and commands to sends. Navigation computes its target against
  * context rows and sends it in — the machine never walks data.
  *
- * A submenu level is its own bridge instance; levels meet through the
- * element tree. A parent writes the child instance's `open` attribute,
- * and the child reports a close back up as a bubbling `submenuclose`
- * event so the parent clears the context that drove it.
+ * A submenu level renders inline in the parent's recipe, gated on the
+ * `openSubmenu` reader: one machine owns both levels, and the child's rows
+ * highlight without collapsing the level that holds them.
  */
 
-type ScopeLike = ScopeFor<MenuContext, MenuEvents, MenuState>;
-type SlotLike<R> = SlotScopeFor<R, MenuContext, MenuEvents, MenuState>;
+type ScopeLike = ViewFor<MenuContext, MenuEvents, MenuState>;
+type SlotLike<R> = SlotViewFor<R, MenuContext, MenuEvents, MenuState>;
 
 /** The trigger exclusion travels in the dismissable action's params
  * (excludeId/excludeParent) — no def-side DOM query. */
@@ -197,6 +196,12 @@ const isMenuBlock = (value: unknown): value is MenuBlock => {
   return Array.isArray(rows);
 };
 
+const isMenuRow = (value: unknown): value is MenuRow => {
+  if (typeof value !== "object" || value === null) return false;
+  return typeof Reflect.get(value, "value") === "string" &&
+    Array.isArray(Reflect.get(value, "children"));
+};
+
 const highlight = (scope: ScopeLike, value: string | null): void => {
   scope.send({ type: "HIGHLIGHT", value });
 };
@@ -222,6 +227,14 @@ const rowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
   const made: RowHandlerSet = {
     onPointerMove: (event: PointerEvent): void => {
       if (event.pointerType !== "mouse" || row.disabled) return;
+      const at = event.target;
+      if (
+        row.children.length > 0 && typeof Element !== "undefined" &&
+        at instanceof Element &&
+        at.closest('[data-part="submenu-content"]') !== null
+      ) return;
+
+
       scope.send({ type: "HIGHLIGHT", value: row.value });
     },
     onClick: (event: MouseEvent): void => {
@@ -232,17 +245,36 @@ const rowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
   return made;
 };
 
+/** Submenu-row handlers: hover highlights within the level (the level stays
+ * open), a click selects (the whole menu closes). Grandchildren are not
+ * rendered, so a child always selects, never opens deeper. */
+const submenuRowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
+  let byRow = rowHandlersByBridge.get(scope.send);
+  if (byRow === undefined) {
+    byRow = new WeakMap();
+    rowHandlersByBridge.set(scope.send, byRow);
+  }
+  const hit = byRow.get(row);
+  if (hit !== undefined) return hit;
+  const made: RowHandlerSet = {
+    onPointerMove: (event: PointerEvent): void => {
+      if (event.pointerType !== "mouse" || row.disabled) return;
+      scope.send({ type: "SUBMENU_HIGHLIGHT", value: row.value });
+    },
+    onClick: (event: MouseEvent): void => {
+      if (row.disabled) return;
+      scope.send({ type: "ITEM_CLICK", value: row.value });
+      if (scope.context.closeOnSelect) closeSelf(scope);
+    },
+  };
+  byRow.set(row, made);
+  return made;
+};
+
 const closeSelf = (scope: ScopeLike): void => {
   scope.send({ type: "CLOSE" });
 };
 
-/** Tell the level above that this one closed, so it clears the context
- * that opened it. A select means the whole chain closes. */
-const reportClose = (scope: ScopeLike, select: boolean): void => {
-  scope.root().dispatchEvent(
-    new CustomEvent("submenuclose", { bubbles: true, detail: { select } }),
-  );
-};
 
 const typeaheadMatch = (scope: ScopeLike, key: string): void => {
   const buffer = typeaheadOf(scope);
@@ -270,14 +302,23 @@ const activate = (scope: ScopeLike, row: MenuRow): void => {
     return;
   }
   scope.send({ type: "ITEM_CLICK", value: row.value });
-  if (scope.context.closeOnSelect) {
-    closeSelf(scope);
-    reportClose(scope, true);
-  }
+  if (scope.context.closeOnSelect) closeSelf(scope);
 };
 
 const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   if (event.defaultPrevented) return;
+  // An open level owns the arrows: DOM focus stays on the parent content
+  // (the level mounts after settled runs), so the parent routes every key
+  // to the level while one is open. ArrowLeft backs out through the
+  // level's own handler, which returns the highlight to the parent row.
+  const openValue = scope.context.openSubmenu;
+  if (openValue !== null) {
+    const parent = rowByValue(scope, openValue);
+    if (parent !== undefined) {
+      onSubmenuKeydown(scope, parent, event);
+      return;
+    }
+  }
   const current = scope.context.highlightedValue;
   // Horizontal arrows are structural (submenu in/out), not roving:
   // they bypass the intent table, which only knows next/prev/first/last.
@@ -315,12 +356,6 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       }
       break;
     }
-    case "ArrowLeft": {
-      if (!scope.context.isSubmenu) break;
-      closeSelf(scope);
-      reportClose(scope, false);
-      break;
-    }
     case "Enter": {
       const row = rowByValue(scope, current);
       if (row !== undefined) activate(scope, row);
@@ -342,6 +377,55 @@ const onContentKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
       break;
   }
   event.preventDefault();
+};
+
+/** Submenu arrows stay in the level: the parent's content handler would move
+ * the wrong highlight, so every handled key prevents default (the parent
+ * skips prevented events) and stops there. */
+const onSubmenuKeydown = (
+  scope: ScopeLike,
+  parent: MenuRow,
+  event: KeyboardEvent,
+): void => {
+  if (event.defaultPrevented) return;
+  const rows = rowsOf(parent.children).filter((row) => !row.disabled);
+  const current = scope.context.highlightedValue;
+  const at = rows.findIndex((row) => row.value === current);
+  const move = (next: MenuRow | undefined): void => {
+    if (next === undefined) return;
+    event.preventDefault();
+    scope.send({ type: "SUBMENU_HIGHLIGHT", value: next.value });
+  };
+  switch (event.key) {
+    case "ArrowDown":
+      move(rows[at < 0 ? 0 : (at + 1) % rows.length]);
+      return;
+    case "ArrowUp":
+      move(rows[at < 0 ? rows.length - 1 : (at - 1 + rows.length) % rows.length]);
+      return;
+    case "Home":
+      move(rows[0]);
+      return;
+    case "End":
+      move(rows[rows.length - 1]);
+      return;
+    case "ArrowLeft":
+      event.preventDefault();
+      scope.send({ type: "SUBMENU_CLOSE" });
+      scope.send({ type: "HIGHLIGHT", value: parent.value });
+      return;
+    case "Enter":
+    case " ": {
+      const row = rows.find((entry) => entry.value === current);
+      if (row === undefined) return;
+      event.preventDefault();
+      scope.send({ type: "ITEM_CLICK", value: row.value });
+      if (scope.context.closeOnSelect) closeSelf(scope);
+      return;
+    }
+    default:
+      return;
+  }
 };
 
 const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
@@ -382,21 +466,6 @@ const onTriggerKeydown = (scope: ScopeLike, event: KeyboardEvent): void => {
   event.preventDefault();
 };
 
-const onSubmenuClose = (scope: ScopeLike, event: Event): void => {
-  if (!("detail" in event)) return;
-  const detail: unknown = event.detail;
-  const select = typeof detail === "object" && detail !== null &&
-    Reflect.get(detail, "select") === true;
-  if (select) {
-    if (scope.context.closeOnSelect) closeSelf(scope);
-    return;
-  }
-  const target = event.target;
-  const openValue = scope.context.openSubmenu;
-  if (openValue === null || !(target instanceof Element)) return;
-  if (target.id !== scope.id("submenu", openValue)) return;
-  scope.send({ type: "SUBMENU_CLOSE" });
-};
 
 export const def = {
   name: "menu",
@@ -407,9 +476,8 @@ export const def = {
     return props["defaultOpen"] === true ? "open" : "closed";
   },
   reconcile: ({ state, parsed, authored, send }) => {
-    // The items arrive as a host write: a parent menu hands its subtree
-    // over after the child has connected, so the machine's first entries
-    // are only the first word.
+    // The items arrive as a host write, so the machine's first entries
+    // are only the first word: every reconcile re-seeds them.
     const entries = entriesOf(parsed["items"]);
     send({ type: "ENTRIES.SET", entries });
     // The host owns the panel when it authored `open`: the machine
@@ -434,7 +502,6 @@ export const def = {
             hasPopup: scope.context.composite ? "menu" : "dialog",
             controls: { part: "content" },
           }),
-          hidden: scope.context.isSubmenu,
           "data-state": open ? "open" : "closed",
           onClick: (): void => {
             if (scope.state === "open") {
@@ -456,9 +523,7 @@ export const def = {
     },
     contextTrigger: {
       attrs: (scope: ScopeLike) => ({
-        hidden: scope.context.isSubmenu,
         onContextMenu: (event: MouseEvent): void => {
-          if (scope.context.isSubmenu) return;
           event.preventDefault();
           scope.send({
             type: "CONTEXT_MENU",
@@ -468,7 +533,6 @@ export const def = {
         "use:long-press": {
           delay: 700,
           onPress: (point: { x: number; y: number }): void => {
-            if (scope.context.isSubmenu) return;
             scope.send({ type: "CONTEXT_MENU", point });
           },
         },
@@ -478,6 +542,7 @@ export const def = {
       attrs: (scope: ScopeLike) => ({
         id: scope.id("positioner"),
         "data-state": scope.state === "open" ? "open" : "closed",
+        hidden: scope.state === "open" ? undefined : true,
         // Positioning is the anchor action's job: it measures the trigger,
         // flips on viewport veto, writes literals, and re-runs on
         // resize/scroll.
@@ -487,37 +552,33 @@ export const def = {
     content: {
       attrs: (scope: ScopeLike) => {
         const highlightedValue = scope.context.highlightedValue;
+        const openValue = scope.context.openSubmenu;
+        const inLevel = openValue !== null && highlightedValue !== null &&
+          rowsOf(
+            rowByValue(scope, openValue)?.children ?? [],
+          ).some((row) => row.value === highlightedValue);
         return {
           id: scope.id("content"),
           role: scope.context.composite ? "menu" : "dialog",
           tabindex: 0,
-          // A leaf row's instance has no rows to show: keep it out of the
-          // accessibility tree and out of hit-testing entirely.
-          hidden: scope.context.isSubmenu && scope.context.entries.length === 0,
           ...listSurface(scope, {
             activeDescendant: highlightedValue === null
               ? undefined
+              : inLevel
+              ? { part: "submenuItem", slot: highlightedValue }
               : { part: "item", slot: highlightedValue },
             labelledBy: { part: "trigger" },
           }),
           "data-state": scope.state === "open" ? "open" : "closed",
-          class:
-            "rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
           onKeydown: (event: KeyboardEvent): void =>
             onContentKeydown(scope, event),
-          onSubmenuclose: (event: Event): void => onSubmenuClose(scope, event),
           "use:dismissable": {
-            excludeId: scope.context.isSubmenu
-              ? undefined
-              : scope.id("trigger"),
-            excludeParent: scope.context.isSubmenu,
+            excludeId: scope.id("trigger"),
             onOutside: (): void => {
               closeSelf(scope);
-              reportClose(scope, false);
             },
             onEscape: (): void => {
               closeSelf(scope);
-              reportClose(scope, false);
             },
           },
         };
@@ -577,17 +638,22 @@ export const def = {
           const trigger = disclosureTrigger(scope, {
             expanded,
             hasPopup: scope.context.composite ? "menu" : "dialog",
-            controls: { id: `${scope.id("submenu", row.value)}:content` },
+            controls: { part: "submenuContent", slot: row.value },
           });
           bag["aria-haspopup"] = trigger["aria-haspopup"];
           bag["aria-expanded"] = trigger["aria-expanded"];
           bag["aria-controls"] = trigger["aria-controls"];
           bag["data-state"] = expanded ? "open" : "closed";
-          bag["use:hover-intent"] = {
-            delay: 200,
+          bag["use:hover-delay"] = {
+            openDelay: 200,
+            closeDelay: 250,
             onOpen: (): void =>
               scope.send({ type: "SUBMENU_OPEN", value: row.value }),
-            onClose: (): void => scope.send({ type: "SUBMENU_CLOSE" }),
+            onClose: (): void => {
+              if (scope.context.highlightedValue === row.value) {
+                scope.send({ type: "SUBMENU_CLOSE" });
+              }
+            },
           };
         }
         return bag;
@@ -641,21 +707,59 @@ export const def = {
         hidden: !scope.slot.separator,
       }),
     },
-    // The parent level spreads this onto the child instance's element:
-    // `open` reflects the level's state, `items` its subtree.
-    // Transport coerces the JSON string; the machine shapes on receipt.
-    submenu: {
+    // The submenu renders inline in the parent's recipe, gated on
+    // `openSubmenu`: one machine owns both levels, so no child instance
+    // mounts and no JSON crosses an element boundary.
+    submenuContent: {
+      id: "submenu-content",
       indexes: (context) =>
         blocksOf(context.entries).flatMap((block) => block.rows),
       attrs: (scope: SlotLike<MenuRow>) => {
         const row = scope.slot;
         return {
-          id: scope.id("submenu", row.value),
-          open: scope.context.openSubmenu === row.value ? "true" : "false",
-          // The subtree crosses as values: the child instance's transport
-          // coerces what the host writes, so no JSON text crosses here.
-          items: row.children,
-          label: row.label,
+          id: scope.id("submenuContent", row.value),
+          role: scope.context.composite ? "menu" : "dialog",
+          tabindex: 0,
+          ...ariaLabelledBy(scope, { part: "item", slot: row.value }),
+          "data-state": scope.context.openSubmenu === row.value
+            ? "open"
+            : "closed",
+          class:
+            "absolute start-full top-0 ms-2 min-w-40 rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
+          "use:hover-delay": {
+            closeDelay: 250,
+            onClose: (): void => {
+              const at = scope.context.highlightedValue;
+              if (rowsOf(row.children).some((child) => child.value === at)) {
+                scope.send({ type: "SUBMENU_CLOSE" });
+              }
+            },
+          },
+          onKeydown: (event: KeyboardEvent): void =>
+            onSubmenuKeydown(scope, row, event),
+        };
+      },
+    },
+    submenuItem: {
+      id: "submenu-item",
+      indexes: (context) =>
+        blocksOf(context.entries).flatMap((block) => block.rows).flatMap(
+          (row) => rowsOf(row.children),
+        ),
+      attrs: (scope: SlotLike<MenuRow>) => {
+        const row = scope.slot;
+        return {
+          id: scope.id("submenuItem", row.value),
+          role: row.checked === undefined ? "menuitem" : "menuitemcheckbox",
+          ...optionRow({
+            ...(row.checked === undefined ? {} : { checked: row.checked }),
+            ...(row.disabled ? { disabled: true } : {}),
+          }),
+          ...(row.disabled ? { "data-disabled": "" } : {}),
+          ...(scope.context.highlightedValue === row.value
+            ? { "data-highlighted": "" }
+            : {}),
+          ...submenuRowHandlers(scope, row),
         };
       },
     },
@@ -675,6 +779,9 @@ export const def = {
     highlightedValue: {
       read: (context: MenuContext) => context.highlightedValue,
     },
+    openSubmenu: {
+      read: (context: MenuContext) => context.openSubmenu,
+    },
   },
   methods: {
     getBlocks: {
@@ -688,6 +795,21 @@ export const def = {
       ): readonly MenuRow[] => {
         if (!isMenuBlock(block)) return [];
         return block.rows;
+      },
+    },
+    getSubmenuBlocks: {
+      call: (
+        _context: MenuContext,
+        _state,
+        [row]: [row: MenuRow],
+      ): readonly MenuBlock[] => {
+        if (!isMenuRow(row)) return [];
+        // The level renders beside its parent's blocks: qualify the ids,
+        // or the group's label points at the wrong element.
+        return blocksOf(row.children).map((block) => ({
+          ...block,
+          id: `${row.value}:${block.id}`,
+        }));
       },
     },
   },
@@ -720,9 +842,9 @@ export const def = {
     if (event.type === "HIGHLIGHT") {
       const value = event["value"];
       if (typeof value === "string") focus("item", value);
-    } else if (event.type === "SUBMENU_OPEN") {
-      const v = event["value"];
-      if (typeof v === "string") focus("submenu", v);
+    } else if (event.type === "SUBMENU_HIGHLIGHT") {
+      const value = event["value"];
+      if (typeof value === "string") focus("submenuItem", value);
     } else if (event.type === "TRIGGER_CLICK" || event.type === "OPEN") {
       focus("content");
     }

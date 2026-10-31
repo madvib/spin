@@ -1,6 +1,9 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import type { NavigationMenuApi } from "./navigation-menu.presentation.ts";
+import type {
+  NavigationMenuApi,
+  NavItemRecord,
+} from "./navigation-menu.presentation.ts";
 
 test("NavigationMenuApi promises the component's surface", () => {
   const keys: (keyof NavigationMenuApi)[] = [
@@ -30,7 +33,7 @@ test("NavigationMenuApi promises the component's surface", () => {
   const valueTyped: AssertExact<NavigationMenuApi["value"], string> = true;
   const itemsTyped: AssertExact<
     NavigationMenuApi["items"],
-    readonly { value: string; label: string }[]
+    readonly NavItemRecord[]
   > = true;
   deepStrictEqual(
     [stateTyped, showTyped, valueTyped, itemsTyped].every(Boolean),

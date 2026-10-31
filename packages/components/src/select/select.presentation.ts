@@ -10,8 +10,8 @@ import {
   disclosureTrigger,
   listSurface,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { dataAttr } from "./select.shared.ts";
 import { select as selectMachine } from "./select.machine.ts";
@@ -70,8 +70,8 @@ const OPEN_REASON: Record<string, string> = {
   "LAYER.INTERACT_OUTSIDE": "interact-outside",
 };
 
-type ScopeLike = ScopeFor<SelectContext, SelectEvents, SelectState>;
-type SlotLike<R> = SlotScopeFor<R, SelectContext, SelectEvents, SelectState>;
+type ScopeLike = ViewFor<SelectContext, SelectEvents, SelectState>;
+type SlotLike<R> = SlotViewFor<R, SelectContext, SelectEvents, SelectState>;
 
 const rowsOf = (parsed: Record<string, unknown>): readonly SelectRow[] => {
   const raw = parsed["items"];
@@ -249,6 +249,14 @@ export const def = {
   start: (props, authored) => {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
+  },
+  settled: ({ event, before, after, focus }: {
+    readonly event: { readonly type: string } & Record<string, unknown>;
+    readonly before: { readonly state: string };
+    readonly after: { readonly state: string };
+    readonly focus: (part: string, slot?: unknown) => void;
+  }) => {
+    if (before.state === "open" && after.state === "focused") focus("trigger");
   },
   reconcile: (
     { context, parsed, send }: {

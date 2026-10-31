@@ -137,13 +137,17 @@ const graftChildren = (
   target: string,
   added: readonly TreeNodeShape[],
 ): TreeNodeShape[] =>
-  list.map((item) =>
-    item.value === target
-      ? { ...item, children: [...(item.children ?? []), ...added] }
-      : item.children !== undefined
-      ? { ...item, children: graftChildren(item.children, target, added) }
-      : item
-  );
+  list.map((item) => {
+    if (item.value !== target) {
+      return item.children !== undefined
+        ? { ...item, children: graftChildren(item.children, target, added) }
+        : item;
+    }
+    const have = new Set((item.children ?? []).map((child) => child.value));
+    const fresh = added.filter((child) => !have.has(child.value));
+    if (fresh.length === 0) return item;
+    return { ...item, children: [...(item.children ?? []), ...fresh] };
+  });
 
 export const loadDone: TreeAssign<"NODE.LOAD_DONE"> = (ctx, e) => ({
   loadingStatus: {

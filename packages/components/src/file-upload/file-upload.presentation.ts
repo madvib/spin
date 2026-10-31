@@ -6,8 +6,8 @@ import {
   dataAttr,
   defineComponent,
   isRecord,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { fileUpload as fileUploadMachine } from "./file-upload.machine.ts";
 import type {
@@ -51,8 +51,8 @@ export interface FileRow {
   readonly file: FileRecord;
 }
 
-type ScopeLike = ScopeFor<FileUploadContext, FileUploadEvents, FileUploadState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<FileUploadContext, FileUploadEvents, FileUploadState>;
+type SlotLike<R> = SlotViewFor<
   R,
   FileUploadContext,
   FileUploadEvents,
@@ -196,6 +196,13 @@ export const def = {
               type: "DROP",
               files: toRecords(event.dataTransfer?.files ?? null),
             });
+          },
+          onPaste: (event: ClipboardEvent): void => {
+            const files = event.clipboardData?.files ?? null;
+            if (files === null || files.length === 0) return;
+            event.preventDefault();
+            if (disabled) return;
+            scope.send({ type: "DROP", files: toRecords(files) });
           },
         };
       },

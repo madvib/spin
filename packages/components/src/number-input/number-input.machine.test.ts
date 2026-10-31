@@ -980,6 +980,42 @@ test("Given a rail that was never grabbed / When a stray move arrives / Then not
   deepStrictEqual(h.state(), "idle", "and the machine stayed idle");
 });
 
+test("Given two scrubbing inputs / When one gesture ends / Then the other's drag still steps", () => {
+  const a = mount({ defaultValue: "5" });
+  const b = mount({ defaultValue: "42" });
+  a.grabScrubber({ clientX: 100 });
+  b.grabScrubber({ clientX: 100 });
+  a.dropScrubber();
+  b.dragScrubber(140);
+  deepStrictEqual(b.api.value, "43", "the surviving gesture keeps its anchor");
+  deepStrictEqual(a.api.value, "5", "and the ended one never moved");
+});
+
+test("Given two bindings on one root / When both scrub / Then each keeps its own anchor", () => {
+  const h = mount({ defaultValue: "5" });
+  const second = createNumberInputBridge(
+    () => ({ defaultValue: "42", "@@authored": () => false }),
+    () => h.root,
+    "number-input:inner",
+  );
+  const drag = (api: NumberInputApi, clientX: number): void =>
+    handler<(event: PointerEvent) => void>(
+      api.getScrubberProps(),
+      "onPointerMove",
+    )(pointer({ clientX, clientY: 40 }));
+  const grab = (api: NumberInputApi, clientX: number): void =>
+    handler<(event: PointerEvent) => void>(
+      api.getScrubberProps(),
+      "onPointerDown",
+    )(pointer({ clientX, clientY: 40 }));
+  grab(h.api, 100);
+  grab(second.api, 100);
+  drag(h.api, 140);
+  drag(second.api, 140);
+  deepStrictEqual(h.api.value, "6", "the first binding steps its own value");
+  deepStrictEqual(second.api.value, "43", "and the second steps its own");
+  second.dispose();
+});
 test("Given a disabled input / When the rail is grabbed / Then the gesture never starts", () => {
   const h = mount({ defaultValue: "5", disabled: true });
   h.grabScrubber({ clientX: 100 });

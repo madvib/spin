@@ -140,3 +140,20 @@ test("image and fallback visibility invert across loading, loaded, and error sta
   deepStrictEqual(api.getImageProps()["data-state"], "hidden");
   deepStrictEqual(api.getFallbackProps()["data-state"], "visible");
 });
+
+test("the observer reports the node's live src, not the bag's captured one", () => {
+  const { api } = mount({ src: "a.png" });
+  handler<() => void>(api.getImageProps(), "onLoad")();
+  deepStrictEqual(api.src, "a.png");
+  const params = api.getImageProps()["use:observe"] as {
+    onAttributes: (node: { getAttribute(name: string): string | null }) => void;
+  };
+  params.onAttributes({ getAttribute: () => "b.png" });
+  deepStrictEqual(api.src, "b.png");
+  deepStrictEqual(api.status, "loading");
+});
+
+test("the fallback announces the label, not the initials", () => {
+  const { api } = mount({ label: "Paula Aster", fallback: "PA" });
+  deepStrictEqual(api.getFallbackProps()["aria-label"], "Paula Aster");
+});

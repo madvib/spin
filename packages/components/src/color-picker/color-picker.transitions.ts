@@ -86,11 +86,30 @@ export const setChannelFromPoint: ColorPickerAssign<
   "CHANNEL_SLIDER.POINTER_DOWN" | "CHANNEL_SLIDER.POINTER_MOVE"
 > = (ctx, event) => {
   const { color } = parse(ctx.value, "#000000");
-  const next = color.withChannelValue(
-    event.channel,
-    color.getChannelPercentValue(event.channel, event.percent),
-  );
-  return { value: serialize(next, ctx.format) };
+  const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
+  const channel = event.channel;
+  const native = (): string => {
+    const next = color.withChannelValue(
+      channel,
+      color.getChannelPercentValue(channel, event.percent),
+    );
+    return serialize(next, ctx.format);
+  };
+  // Hue/saturation/brightness/lightness are not rgb channels: read them off
+  // the area value, the way the machine steps them. Alpha and rgb natively.
+  if (channel === "alpha" || channel === "red" || channel === "green" || channel === "blue") {
+    return { value: native() };
+  }
+  try {
+    const source = color.toFormat(areaFormat);
+    const next = source.withChannelValue(
+      channel,
+      source.getChannelPercentValue(channel, event.percent),
+    );
+    return { value: serialize(next, ctx.format) };
+  } catch {
+    return { value: native() };
+  }
 };
 
 export const setValue: ColorPickerAssign<"VALUE.SET"> = (ctx, event) => {
@@ -153,7 +172,9 @@ export const stepChannelValue: ColorPickerAssign<"CHANNEL_SLIDER.ARROW"> = (
 ) => {
   const { color } = parse(ctx.value, "#000000");
   const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-  const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
+  const native = event.channel === "alpha" || event.channel === "red" ||
+    event.channel === "green" || event.channel === "blue";
+  const v = native ? color : color.toFormat(areaFormat);
   const stepped = event.delta > 0
     ? v.incrementChannel(event.channel, event.delta)
     : v.decrementChannel(event.channel, -event.delta);
@@ -166,7 +187,9 @@ export const boundChannelValue: ColorPickerAssign<"CHANNEL_SLIDER.HOME_END"> = (
 ) => {
   const { color } = parse(ctx.value, "#000000");
   const areaFormat: AreaFormat = ctx.format.startsWith("hsl") ? "hsla" : "hsba";
-  const v = event.channel === "alpha" ? color : color.toFormat(areaFormat);
+  const native = event.channel === "alpha" || event.channel === "red" ||
+    event.channel === "green" || event.channel === "blue";
+  const v = native ? color : color.toFormat(areaFormat);
   const range = v.getChannelRange(event.channel);
   if (range === undefined) return {};
   return {

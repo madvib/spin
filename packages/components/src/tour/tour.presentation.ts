@@ -3,7 +3,7 @@ import {
   ariaHidden,
   type ComponentDef,
   defineComponent,
-  type ScopeFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { tour as tourMachine } from "./tour.machine.ts";
 import type { TourArgs, TourContext, TourState } from "./tour.state.ts";
@@ -25,7 +25,7 @@ export type {
  * props to channels, parts to attribute bags, and commands to sends.
  */
 
-type ScopeLike = ScopeFor<TourContext, TourEvents, TourState>;
+type ScopeLike = ViewFor<TourContext, TourEvents, TourState>;
 
 const runningState = (state: string): boolean =>
   state === "resolving" || state === "scrolling" || state === "active";
@@ -201,6 +201,13 @@ export const def = {
           text: `${ctx.step + 1} of ${ctx.steps.length}`,
         };
       },
+    },
+    startTrigger: {
+      id: "start",
+      attrs: (scope: ScopeLike) => ({
+        "aria-label": "Start tour",
+        onClick: (): void => scope.send({ type: "START" }),
+      }),
     },
     prevTrigger: {
       id: "prev",

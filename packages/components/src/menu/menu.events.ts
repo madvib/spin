@@ -9,6 +9,7 @@ export interface MenuEvents {
   "TRIGGER_CLICK": {};
   "CONTEXT_MENU": { point: { x: number; y: number } };
   "HIGHLIGHT": { value: string | null };
+  "SUBMENU_HIGHLIGHT": { value: string | null };
   "ENTRIES.SET": { entries: readonly MenuEntry[] };
   "SUBMENU_OPEN": { value: string };
   "SUBMENU_CLOSE": {};

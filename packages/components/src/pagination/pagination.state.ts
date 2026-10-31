@@ -1,4 +1,5 @@
 import { defaultTwin } from "@spinjs/runtime";
+import type { PaginationPageItem } from "./pagination.events.ts";
 
 export type PaginationState = "idle";
 
@@ -111,6 +112,15 @@ export function pageWindow(ctx: PaginationContext): (number | "ellipsis")[] {
     }
   }
   return pages;
+}
+
+export function pageOptions(ctx: PaginationContext): PaginationPageItem[] {
+  return range(1, totalPages(ctx)).map((value) => ({
+    type: "page" as const,
+    value,
+    key: `page:${value}`,
+    label: String(value),
+  }));
 }
 
 export function pageItems(

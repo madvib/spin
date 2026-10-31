@@ -241,9 +241,9 @@ test("Given a fresh toast region / When nothing is authored / Then stack is the 
   deepStrictEqual(h.api.getGroupProps()["style"], {
     gap: "16px",
     bottom: "1rem",
-    left: "50%",
-    right: "50%",
-  }, "the region's own box rides the style channel");
+    left: "1rem",
+    right: "1rem",
+  }, "the centered region spans the viewport minus its margins");
 });
 
 test("Given toasts on the items prop / When the region mounts / Then the queue holds them newest first", () => {
@@ -955,4 +955,11 @@ test("Given two regions on one page / When one takes a toast / Then the other ke
     "the first region's clocks run",
   );
   deepStrictEqual(first.api.layout, "stack", "and its posture is its own");
+});
+
+test("Given an end-aligned region / When the group is read / Then it pins one edge, not both", () => {
+  const h = mount([], { placement: "bottom-end" });
+  const style = h.api.getGroupProps()["style"] as Record<string, string>;
+  deepStrictEqual(style["right"], "1rem", "the region pins the inline-end edge");
+  deepStrictEqual(style["left"], undefined, "and leaves the other edge free");
 });

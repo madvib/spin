@@ -67,6 +67,7 @@ export function ratingGroup(
           entry: [{ assign: clearHoveredValue }],
           on: {
             GROUP_POINTER_OVER: { target: "hover" },
+            POINTER_OVER: { target: "hover", assign: setHoveredValue },
             FOCUS: { target: "focus" },
             CLICK: { assign: setValue },
           },

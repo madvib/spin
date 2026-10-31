@@ -3,6 +3,7 @@ import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { signal } from "@spinjs/runtime";
 import { datePicker } from "./date-picker.presentation.ts";
+import { readFileSync } from "node:fs";
 const createDatePickerBridge = datePicker.createBridge;
 import type {
   DatePickerApi,
@@ -161,6 +162,48 @@ test("Given an open range picker / When two days are clicked / Then the span sel
   h.dispose();
 });
 
+test("Given a seeded range / When a day is clicked / Then the span mutates on the first click and the cell state reads live", () => {
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    selectionMode: "range",
+    defaultValue: '["2024-02-10","2024-02-16"]',
+  });
+  handler<() => void>(trigger(h), "onClick")();
+  handler<() => void>(cellBag(h, "2024-02-22"), "onClick")();
+  deepStrictEqual(
+    strings(h.api),
+    ["2024-02-10", "2024-02-22"],
+    "the seeded arm commits without a second click",
+  );
+  const key = h.api.getCells().find((cell) =>
+    cellBagDay(cell) === "2024-02-22"
+  )!.key;
+  deepStrictEqual(
+    h.api.getCellState(key).selected,
+    true,
+    "the clicked day reads selected by its stable key",
+  );
+  deepStrictEqual(
+    cellBag(h, "2024-02-22")["aria-selected"],
+    true,
+    "the rebuilt bag carries the live selection",
+  );
+  h.dispose();
+});
+
+test("Given a cell key / When no cell carries it / Then the state reads all false", () => {
+  const h = harness({
+    defaultFocusedValue: "2024-02-01",
+    selectionMode: "range",
+  });
+  deepStrictEqual(
+    h.api.getCellState("no-such-day"),
+    { selected: false, inRange: false, disabled: false, outside: false },
+    "an unknown key never throws",
+  );
+  h.dispose();
+});
+
 test("Given an open range picker / When the pointer hovers after arming / Then the preview extends", () => {
   const h = harness({
     defaultFocusedValue: "2024-02-01",
@@ -220,10 +263,25 @@ test("Given the day view / When the view control clicks / Then it drills to mont
   const h = harness({ defaultValue: '["2024-02-15"]' });
   handler<() => void>(trigger(h), "onClick")();
   deepStrictEqual(h.api.view, "day");
+  deepStrictEqual(
+    h.api.getGridProps()["class"],
+    "grid grid-cols-7 gap-1",
+    "days lay out seven across",
+  );
   handler<() => void>(h.api.getViewControlProps(), "onClick")();
   deepStrictEqual(h.api.view, "month", "the view control climbs to months");
+  deepStrictEqual(
+    h.api.getGridProps()["class"],
+    "grid grid-cols-3 gap-1",
+    "months lay out three across",
+  );
   handler<() => void>(h.api.getViewControlProps(), "onClick")();
   deepStrictEqual(h.api.view, "year", "and to years");
+  deepStrictEqual(
+    h.api.getGridProps()["class"],
+    "grid grid-cols-4 gap-1",
+    "years lay out four across",
+  );
   // A year cell click drills into that year's months.
   const yearCell = cellBag(h, "2026-01-01");
   handler<() => void>(yearCell, "onClick")();
@@ -300,5 +358,24 @@ test("Given a closeOnSelect=false picker / When a day is clicked / Then the pane
   handler<() => void>(cellBag(h, "2024-02-20"), "onClick")();
   deepStrictEqual(h.api.isOpen, true, "the picker stays open for the next pick");
   deepStrictEqual(strings(h.api), ["2024-02-20"], "and the day selected");
+  h.dispose();
+});
+
+test("Given a range selection / When the trigger paints / Then endpoints and a separator show", () => {
+  const h = harness({
+    defaultValue: '["2024-02-14", "2024-02-20"]',
+    selectionMode: "range",
+  });
+  const rows = h.api.getValueTextRows();
+  deepStrictEqual(rows.length, 2, "the range paints two endpoints");
+  deepStrictEqual(rows[0]?.first, true, "the first endpoint leads with no separator");
+  deepStrictEqual(rows[1]?.first, false, "the second endpoint is separator-led");
+  const html = readFileSync(
+    new URL("./examples/appointment.html", import.meta.url),
+    "utf8",
+  );
+  if (!html.includes("show={!row.first}")) {
+    throw new Error("appointment example must gate the separator on non-first rows");
+  }
   h.dispose();
 });

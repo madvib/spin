@@ -201,3 +201,80 @@ test("Given a disabled menu / When an item is clicked / Then nothing opens", () 
   deepStrictEqual(h.api.open, false, "the disabled click is refused");
   h.dispose();
 });
+
+test("Given items with custom fields / When parsed / Then extra properties survive on machine.items", () => {
+  const h = harness({
+    items: [
+      { value: "docs", label: "Docs", description: "Guides", badge: "v2" },
+    ],
+  });
+  deepStrictEqual(
+    h.api.items[0]?.["description"],
+    "Guides",
+    "custom description field survives",
+  );
+  deepStrictEqual(
+    h.api.items[0]?.["badge"],
+    "v2",
+    "custom badge field survives",
+  );
+  h.dispose();
+});
+
+test("Given a closed menubar / When ArrowRight lands on an item / Then the neighbor opens", () => {
+  const h = harness();
+  const press = (value: string, key: string): void => {
+    handler<(event: KeyboardEvent) => void>(
+      itemBag(h, value),
+      "onKeydown",
+    )({ key, preventDefault: () => {} } as KeyboardEvent);
+  };
+  press("docs", "ArrowRight");
+  deepStrictEqual(h.api.value, "guides", "the arrow opens the neighbor");
+  deepStrictEqual(h.api.open, true, "and the mode follows");
+  press("guides", "ArrowLeft");
+  deepStrictEqual(h.api.value, "docs", "the arrow walks back with wrap");
+  h.dispose();
+});
+
+test("Given an open menubar / When Escape lands on an item / Then it closes", () => {
+  const h = harness();
+  open(h, "docs");
+  handler<(event: KeyboardEvent) => void>(
+    itemBag(h, "docs"),
+    "onKeydown",
+  )({ key: "Escape" } as KeyboardEvent);
+  deepStrictEqual(h.api.value, "", "the escape closes the open item");
+  deepStrictEqual(h.api.open, false, "and the mode follows");
+  h.dispose();
+});
+
+test("Given a disabled menubar / When an arrow lands / Then nothing opens", () => {
+  const h = harness({ disabled: true });
+  handler<(event: KeyboardEvent) => void>(
+    itemBag(h, "docs"),
+    "onKeydown",
+  )({ key: "ArrowRight", preventDefault: () => {} } as KeyboardEvent);
+  deepStrictEqual(h.api.open, false, "the disabled arrow is refused");
+  h.dispose();
+});
+
+test("Given the item bags / When read / Then aria-controls points at the panel", () => {
+  const h = harness();
+  const item = h.items[0];
+  if (item === undefined) throw new Error("no item");
+  const panelId = String(h.api.getItemContentProps(item)["id"]);
+  deepStrictEqual(
+    String(itemBag(h, "docs")["aria-controls"]),
+    panelId,
+    "the trigger names its own panel",
+  );
+  h.dispose();
+});
+
+test("Given an authored open value / When mounted / Then the state starts open", () => {
+  const h = harness({ value: "guides" });
+  deepStrictEqual(h.api.value, "guides", "the seed lands");
+  deepStrictEqual(h.api.open, true, "the mounted state matches the seed");
+  h.dispose();
+});

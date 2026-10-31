@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { signal } from "@spinjs/runtime";
-import { floatingPanel } from "./floating-panel.presentation.ts";
+import { def as floatingPanelDef, floatingPanel } from "./floating-panel.presentation.ts";
 const createFloatingPanelBridge = floatingPanel.createBridge;
 import type { FloatingPanelApi } from "./floating-panel.presentation.ts";
 import type { FloatingPanelSize } from "./floating-panel.machine.ts";
@@ -326,4 +326,63 @@ test("Given min and max sizes / When resizing past them / Then the size clamps",
   release(nw);
   deepStrictEqual(h.api.size, { w: 280, h: 180 }, "resize clamps to the min");
   h.dispose();
+});
+
+test("Given an open panel / When the trigger is read / Then it controls the dialog positioner", () => {
+  const h = harness({ defaultOpen: true });
+  const trigger = h.api.getTriggerProps();
+  const positioner = h.api.getPositionerProps();
+  deepStrictEqual(
+    trigger["aria-controls"],
+    positioner["id"],
+    "the trigger names the positioner it opens",
+  );
+  h.dispose();
+});
+
+test("Given a close with focus inside / When it settles / Then focus returns to the trigger", () => {
+  const seen: string[] = [];
+  const settled = floatingPanelDef.settled;
+  if (settled === undefined) throw new Error("the def must settle");
+  const root = document.createElement("div");
+  const inner = document.createElement("button");
+  root.appendChild(inner);
+  document.body.appendChild(root);
+  Object.defineProperty(document, "activeElement", {
+    value: inner,
+    configurable: true,
+  });
+  settled({
+    event: { type: "CLOSE" },
+    before: { context: {}, state: "open" },
+    after: { context: {}, state: "closed" },
+    root: () => root,
+    focus: (part: string) => seen.push(part),
+  } as unknown as Parameters<NonNullable<typeof settled>>[0]);
+  deepStrictEqual(seen, ["trigger"], "the trigger retakes focus on close");
+  root.remove();
+});
+
+test("Given a close with focus outside / When it settles / Then focus stays put", () => {
+  const seen: string[] = [];
+  const settled = floatingPanelDef.settled;
+  if (settled === undefined) throw new Error("the def must settle");
+  const root = document.createElement("div");
+  const outsider = document.createElement("button");
+  document.body.appendChild(root);
+  document.body.appendChild(outsider);
+  Object.defineProperty(document, "activeElement", {
+    value: outsider,
+    configurable: true,
+  });
+  settled({
+    event: { type: "CLOSE" },
+    before: { context: {}, state: "open" },
+    after: { context: {}, state: "closed" },
+    root: () => root,
+    focus: (part: string) => seen.push(part),
+  } as unknown as Parameters<NonNullable<typeof settled>>[0]);
+  deepStrictEqual(seen, [], "an outside focus is never yanked");
+  root.remove();
+  outsider.remove();
 });

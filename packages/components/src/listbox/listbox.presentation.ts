@@ -7,8 +7,8 @@ import {
   optionRow,
   type ApiOf,
   type ComponentDef,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { listbox as listboxMachine } from "./listbox.machine.ts";
 import type { ListboxArgs, ListboxArgsItem, ListboxContext } from "./listbox.state.ts";
@@ -63,8 +63,8 @@ export interface ListboxSelect {
   readonly itemValue: string;
 }
 
-type ScopeLike = ScopeFor<ListboxContext, ListboxEvents, "idle">;
-type SlotLike<R> = SlotScopeFor<R, ListboxContext, ListboxEvents, "idle">;
+type ScopeLike = ViewFor<ListboxContext, ListboxEvents, "idle">;
+type SlotLike<R> = SlotViewFor<R, ListboxContext, ListboxEvents, "idle">;
 
 const toRow = (item: ListboxItem): ListboxRow | undefined => {
   if (typeof item.value !== "string" || item.value.length === 0) return undefined;
@@ -165,19 +165,19 @@ const rowHandlers = (scope: ScopeLike, row: ListboxRow): RowHandlerSet => {
       if (row.disabled) return;
       scope.send({ type: "ITEM.POINTER_LEAVE" });
     },
-    // Shift is selection, not the browser's: it extends the range from the
-    // highlight, which is the anchor Zag reads. The other modifiers are
-    // the browser's — a new tab, a download, a context menu.
+    // Shift extends the range from the highlight; command/control toggles
+    // one row in a multiple group. Alt stays the browser's.
     onClick: (event: MouseEvent): void => {
       if (event.defaultPrevented) return;
       if (scope.context.disabled) return;
       if (row.disabled) return;
-      if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.button !== 0 || event.altKey) return;
       const anchor = scope.context.highlightedValue;
       scope.send({
         type: "ITEM.CLICK",
         value: row.value,
         ...(event.shiftKey ? { shiftKey: true as const } : {}),
+        ...(event.metaKey || event.ctrlKey ? { metaKey: true as const } : {}),
         ...(anchor === null ? {} : { anchorValue: anchor }),
       });
     },

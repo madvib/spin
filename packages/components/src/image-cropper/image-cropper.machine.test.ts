@@ -328,3 +328,46 @@ test("aria contract on the selection", () => {
   deepStrictEqual(bag["aria-roledescription"], "2d slider");
   deepStrictEqual(bag["tabindex"], "0");
 });
+
+test("each handle centers on its own edge point", () => {
+  const h = mount();
+  const styleOf = (position: CropHandle): Record<string, string> =>
+    (h.api.getHandleProps({ position }) as Record<string, unknown>)[
+      "style"
+    ] as Record<string, string>;
+  deepStrictEqual(styleOf("nw"), {
+    left: "0%",
+    top: "0%",
+    translate: "-50% -50%",
+  });
+  deepStrictEqual(styleOf("se"), {
+    left: "100%",
+    top: "100%",
+    translate: "-50% -50%",
+  });
+  deepStrictEqual(styleOf("n"), {
+    left: "50%",
+    top: "0%",
+    translate: "-50% -50%",
+  });
+  deepStrictEqual(styleOf("w"), {
+    left: "0%",
+    top: "50%",
+    translate: "-50% -50%",
+  });
+});
+
+test("the two grids stamp distinct ids", () => {
+  const h = mount();
+  const horizontal = h.api.getGridProps({ axis: "horizontal" }) as Record<
+    string,
+    unknown
+  >;
+  const vertical = h.api.getGridProps({ axis: "vertical" }) as Record<
+    string,
+    unknown
+  >;
+  deepStrictEqual(typeof horizontal["id"], "string");
+  deepStrictEqual(typeof vertical["id"], "string");
+  deepStrictEqual(horizontal["id"] === vertical["id"], false);
+});

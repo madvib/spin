@@ -33,8 +33,11 @@ export function initial(
   args: AvatarArgs = {},
   authored: (name: string) => boolean,
 ): AvatarContext {
-  // A host that wrote `defaultSrc` wrote the src channel too.
+  // Presence is the evidence: the map drops absent fields, so a field
+  // present in the args was provided — by the host directly, by the
+  // recipe's own script, or resolved from its twin upstream.
   const written = (field: string): boolean =>
+    (args as Record<string, unknown>)[field] !== undefined ||
     authored(field) ||
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;

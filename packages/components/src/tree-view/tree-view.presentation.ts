@@ -2,13 +2,14 @@ import {
   type ApiOf,
   ariaControls,
   ariaHidden,
+  ariaLabelledBy,
   type ComponentDef,
   defineComponent,
   disclosureTrigger,
   isRecord,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { TreeState } from "./tree-view.state.ts";
 import { treeView as treeViewMachine } from "./tree-view.machine.ts";
@@ -50,8 +51,8 @@ export interface TreeItemState {
   readonly renaming: boolean;
 }
 
-type ScopeLike = ScopeFor<TreeContext, TreeEvents, TreeState>;
-type SlotLike<R> = SlotScopeFor<R, TreeContext, TreeEvents, TreeState>;
+type ScopeLike = ViewFor<TreeContext, TreeEvents, TreeState>;
+type SlotLike<R> = SlotViewFor<R, TreeContext, TreeEvents, TreeState>;
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -398,9 +399,10 @@ export const def = {
   },
   parts: {
     root: {
-      attrs: () => ({
+      attrs: (scope) => ({
         role: "tree",
         tabindex: -1,
+        ...ariaLabelledBy(scope, { part: "label" }),
       }),
     },
     tree: {
@@ -443,6 +445,7 @@ export const def = {
         const row = scope.slot;
         const state = itemStateOf(scope, row);
         return {
+          id: scope.id("item", row.node.value),
           type: "button",
           tabindex: state.focused ? 0 : -1,
           ...ariaControls(

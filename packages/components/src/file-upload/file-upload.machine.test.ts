@@ -162,6 +162,28 @@ test("Given a count cap / When a drop would exceed it / Then the extra is reject
   h.dispose();
 });
 
+test("Given a dropzone / When files arrive through paste / Then they validate and land", () => {
+  const h = harness({ multiple: true });
+  handler<(e: ClipboardEvent) => void>(h.api.getDropzoneProps(), "onPaste")({
+    preventDefault: () => undefined,
+    clipboardData: { files: [file("shot.png", 7, "image/png")] },
+  } as unknown as ClipboardEvent);
+  deepStrictEqual(names(h.api), ["shot.png"], "the pasted file lands");
+  deepStrictEqual(h.changes, ["shot.png"], "one value-change");
+  h.dispose();
+});
+
+test("Given a dropzone with files / When a fileless paste arrives / Then the selection holds", () => {
+  const h = harness({ multiple: true });
+  h.chooseFiles([file("a.png", 4, "image/png")]);
+  handler<(e: ClipboardEvent) => void>(h.api.getDropzoneProps(), "onPaste")({
+    preventDefault: () => undefined,
+    clipboardData: { files: [] },
+  } as unknown as ClipboardEvent);
+  deepStrictEqual(names(h.api), ["a.png"], "a text paste changes nothing");
+  h.dispose();
+});
+
 test("Given the modes / When focus and drag arrive / Then the dropzone reports them", () => {
   const h = harness();
   const dropzone = h.api.getDropzoneProps();

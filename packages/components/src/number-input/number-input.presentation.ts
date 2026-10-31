@@ -2,7 +2,7 @@ import {
   type ApiOf,
   type ComponentDef,
   defineComponent,
-  type ScopeFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { numberInput as numberInputMachine } from "./number-input.machine.ts";
 import type {
@@ -29,7 +29,7 @@ export type {
   NumberInputValueInvalid,
 };
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   NumberInputContext,
   NumberInputEvents,
   NumberInputState
@@ -89,8 +89,6 @@ const roundToDpr = (value: number, dpr: number): number =>
 const wrapPoint = (x: number, width: number): number =>
   width > 0 ? ((x % width) + width) % width : x;
 
-let lastScrubX: number | null = null;
-
 /** Element-lifetime handlers: created once per root, so a bag rebuild hands
  * the element the same listener identity instead of re-attaching every
  * move. The captured scope's context proxy reads live signals, so a
@@ -120,12 +118,13 @@ type HandlerTable = {
   readonly onTriggerUp: () => void;
   readonly onLabelClick: () => void;
 };
-const handlerTables = new WeakMap<Element, HandlerTable>();
+type IdFn = (part: string, slot?: unknown) => string;
+const handlerTables = new WeakMap<IdFn, HandlerTable>();
 
 const handlersOf = (scope: ScopeLike): HandlerTable => {
-  const root = scope.root();
-  const found = handlerTables.get(root);
+  const found = handlerTables.get(scope.id);
   if (found !== undefined) return found;
+  let lastScrubX: number | null = null;
   const made: HandlerTable = {
     onInputFocus: (): void => {
       scope.send({ type: "INPUT.FOCUS" });
@@ -256,7 +255,7 @@ const handlersOf = (scope: ScopeLike): HandlerTable => {
       focusInput(scope);
     },
   };
-  handlerTables.set(root, made);
+  handlerTables.set(scope.id, made);
   return made;
 };
 

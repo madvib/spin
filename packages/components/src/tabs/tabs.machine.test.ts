@@ -203,3 +203,16 @@ test("tabs bridge loopFocus false stops at first and last tab boundaries", () =>
   deepStrictEqual(h.api.value, "settings");
   h.dispose();
 });
+
+test("tabs bridge announces vertical orientation on the tablist", () => {
+  const h = mountTabs({ defaultValue: "overview", orientation: "vertical" });
+  deepStrictEqual(h.api.getListProps()["aria-orientation"], "vertical");
+  h.dispose();
+  const flat = mountTabs({ defaultValue: "overview" });
+  deepStrictEqual(
+    flat.api.getListProps()["aria-orientation"],
+    undefined,
+    "a horizontal tablist needs no orientation announcement",
+  );
+  flat.dispose();
+});

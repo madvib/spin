@@ -7,7 +7,7 @@ import {
   defineComponent,
   focuser,
   isRecord,
-  type ScopeFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { signaturePad as signaturePadMachine } from "./signature-pad.machine.ts";
@@ -31,7 +31,7 @@ export interface SegmentSlotProps {
   readonly path: string;
 }
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   SignaturePadContext,
   SignaturePadEvents,
   SignaturePadState
@@ -128,6 +128,7 @@ export const def = {
         const ctx = scope.context;
         const disabled = scope.context.disabled;
         return {
+          id: scope.id("control"),
           role: "application",
           ...ariaRoleDescription("signature pad"),
           "aria-label": "signature pad",
@@ -201,6 +202,35 @@ export const def = {
         };
       },
     },
+    preview: {
+      attrs: (scope: ScopeLike) => {
+        const drawing = scope.context.drawing;
+        const fill = drawingFill(drawing);
+        // Strokes are recorded in pad pixels; a preview box of any other
+        // size replays them 1:1 and clips. The viewBox maps the pad's
+        // measured box into the preview, so the whole signature fits.
+        // Unmeasurable (layout-less DOM) means no mapping, not a made-up
+        // one: the box replays raw, exactly as before.
+        const rect = scope.measure("control");
+        return {
+          style: {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            fill,
+          },
+          ...(rect !== null && rect.width > 0 && rect.height > 0
+            ? {
+              viewBox: `0 0 ${rect.width} ${rect.height}`,
+              preserveAspectRatio: "xMidYMid meet",
+            }
+            : {}),
+        };
+      },
+    },
     segmentPath: {
       attrs: (_scope, _arg: unknown) => ({
         d: segmentPathOf(_arg),
@@ -262,10 +292,13 @@ export const def = {
   },
   methods: {
     getDataUrl: {
-      call: () => {
-        // Serializing the canvas needs the control node; the host owns
-        // that ref, so this resolves the live SVG the recipe renders.
-        return Promise.resolve("");
+      call: (context: SignaturePadContext) => {
+        const paths = (context.paths ?? [])
+          .map((d) => `<path d="${d}"/>`)
+          .join("");
+        const svg =
+          `<svg xmlns="http://www.w3.org/2000/svg" fill="${drawingFill(context.drawing)}">${paths}</svg>`;
+        return Promise.resolve(`data:image/svg+xml,${encodeURIComponent(svg)}`);
       },
     },
   },

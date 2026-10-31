@@ -4,8 +4,8 @@ import {
   ariaInvalid,
   type ComponentDef,
   defineComponent,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { pinInput as pinInputMachine } from "./pin-input.machine.ts";
 import {
@@ -20,8 +20,8 @@ import type { PinInputSanitize } from "./pin-input.state.ts";
 
 /** Pin-input definition: the DOM contract as data. */
 
-type ScopeLike = ScopeFor<PinInputContext, PinInputEvents, PinInputState>;
-type SlotLike = SlotScopeFor<
+type ScopeLike = ViewFor<PinInputContext, PinInputEvents, PinInputState>;
+type SlotLike = SlotViewFor<
   number,
   PinInputContext,
   PinInputEvents,

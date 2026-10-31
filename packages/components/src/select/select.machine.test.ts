@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { signal } from "@spinjs/runtime";
-import { select } from "./select.presentation.ts";
+import { def as selectDef, select } from "./select.presentation.ts";
 const createSelectBridge = select.createBridge;
 import type {
   SelectHighlightChange,
@@ -669,4 +669,17 @@ test("Given an open select / When an outside press arrives / Then restoreFocus d
   h.api.setOpen(true);
   h.pressOutside(null, 2);
   deepStrictEqual(h.mode(), "idle", "a non-focusable press lands in idle");
+});
+
+test("Given an item pick that closes the panel / When it settles / Then focus returns to the trigger", () => {
+  const seen: string[] = [];
+  const settled = selectDef.settled;
+  if (settled === undefined) throw new Error("the def must settle");
+  settled({
+    event: { type: "ITEM.CLICK" },
+    before: { context: {}, state: "open" },
+    after: { context: {}, state: "focused" },
+    focus: (part: string) => seen.push(part),
+  } as unknown as Parameters<NonNullable<typeof settled>>[0]);
+  deepStrictEqual(seen, ["trigger"], "the trigger retakes focus on close");
 });

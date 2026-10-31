@@ -9,8 +9,8 @@ import {
   defineComponent,
   isComposing,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { ratingGroup as ratingGroupMachine } from "./rating-group.machine.ts";
 import type {
@@ -30,12 +30,12 @@ export type { RatingGroupHoverChange } from "./rating-group.events.ts";
 /** Rating-group definition: the DOM contract as data. */
 
 type _Ctx = RatingGroupContext;
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   RatingGroupContext,
   RatingGroupEvents,
   RatingGroupState
 >;
-type SlotLike = SlotScopeFor<
+type SlotLike = SlotViewFor<
   number,
   RatingGroupContext,
   RatingGroupEvents,

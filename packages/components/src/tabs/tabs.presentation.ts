@@ -2,10 +2,11 @@ import {
   type ApiOf,
   ariaControls,
   ariaLabelledBy,
+  ariaOrientation,
   type ComponentDef,
   defineComponent,
   optionRow,
-  type ScopeFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { tabs as tabsMachine } from "./tabs.machine.ts";
@@ -49,11 +50,16 @@ export const def = {
   parts: {
     root: {},
     list: {
-      attrs: () => ({ role: "tablist" }),
+      attrs: (scope: ViewFor<TabsContext, TabsEvents, TabsState>) => ({
+        role: "tablist",
+        ...ariaOrientation(
+          scope.context.orientation === "vertical" ? "vertical" : undefined,
+        ),
+      }),
     },
     trigger: {
       attrs: (
-        scope: ScopeFor<TabsContext, TabsEvents, TabsState> & {
+        scope: ViewFor<TabsContext, TabsEvents, TabsState> & {
           readonly slot: TabsItem;
         },
       ) => {
@@ -63,7 +69,6 @@ export const def = {
           id: scope.id("trigger", row.value),
           type: "button",
           role: "tab",
-          "data-state": isSelected ? "active" : "inactive",
           ...optionRow({ selected: isSelected ? "true" : "false" }),
           ...ariaControls(scope, { part: "content", slot: row.value }),
           tabindex: isSelected ? 0 : -1,
@@ -91,7 +96,7 @@ export const def = {
     },
     content: {
       attrs: (
-        scope: ScopeFor<TabsContext, TabsEvents, TabsState> & {
+        scope: ViewFor<TabsContext, TabsEvents, TabsState> & {
           readonly slot: TabsItem;
         },
       ) => {
@@ -100,7 +105,6 @@ export const def = {
         return {
           id: scope.id("content", row.value),
           role: "tabpanel",
-          "data-state": isSelected ? "active" : "inactive",
           ...ariaLabelledBy(scope, { part: "trigger", slot: row.value }),
           hidden: isSelected ? undefined : true,
         };

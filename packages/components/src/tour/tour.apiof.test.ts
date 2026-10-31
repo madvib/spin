@@ -26,13 +26,14 @@ test("TourApi promises the component's surface", () => {
     "getPositionerProps",
     "getProgressTextProps",
     "getTextRows",
+    "getStartTriggerProps",
     "getPrevTriggerProps",
     "getNextTriggerProps",
     "getDismissTriggerProps",
     "getSkipTriggerProps",
     "getBackdropProps",
   ];
-  deepStrictEqual(keys.length, 27);
+  deepStrictEqual(keys.length, 28);
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
   const stateTyped: AssertExact<

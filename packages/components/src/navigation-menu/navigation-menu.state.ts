@@ -5,6 +5,7 @@ export type NavValue = string;
 export interface NavItemRecord {
   readonly value: NavValue;
   readonly label: string;
+  readonly [key: string]: unknown;
 }
 
 export type NavigationMenuState = "idle" | "open";
@@ -57,7 +58,7 @@ export function parseItems(raw: unknown): NavItemRecord[] {
     const value: unknown = bag["value"];
     const label: unknown = bag["label"];
     if (typeof value !== "string" || typeof label !== "string") continue;
-    items.push({ value, label });
+    items.push({ ...bag, value, label });
   }
   return items;
 }

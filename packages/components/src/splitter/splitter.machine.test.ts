@@ -265,3 +265,25 @@ test("minSize clamps a drag", () => {
   // a cannot shrink below 40.
   deepStrictEqual(api.getSizes(), [40, 60]);
 });
+
+test("the handle names the value it moves and the panels it controls", () => {
+  const { api } = mount({ size: "[30, 70]" });
+  const bag = handle(api);
+  deepStrictEqual(bag["role"], "separator");
+  deepStrictEqual(bag["aria-valuemin"], "0");
+  deepStrictEqual(bag["aria-valuemax"], "100");
+  deepStrictEqual(bag["aria-valuenow"], "30");
+  deepStrictEqual(bag["aria-orientation"], "horizontal");
+  const controls = String(bag["aria-controls"] ?? "").split(" ");
+  deepStrictEqual(controls.length, 2, "the handle controls both neighbors");
+});
+
+test("a vertical handle announces its axis", () => {
+  const { api } = mount({ orientation: "vertical" });
+  const bag = handle(api);
+  deepStrictEqual(bag["aria-orientation"], "vertical");
+  deepStrictEqual(
+    (bag["style"] as Record<string, string>)["cursor"],
+    "row-resize",
+  );
+});

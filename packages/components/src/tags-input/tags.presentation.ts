@@ -6,9 +6,8 @@ import {
   defineComponent,
   isRecord,
   liveRegion,
-  machineTick,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import {
   type TagsArgs,
@@ -194,8 +193,8 @@ function parseTranslations(raw: unknown): TagsTranslations {
   };
 }
 
-type ScopeLike = ScopeFor<TagsContext, TagsEvents, TagsState>;
-type SlotLike<R> = SlotScopeFor<R, TagsContext, TagsEvents, TagsState>;
+type ScopeLike = ViewFor<TagsContext, TagsEvents, TagsState>;
+type SlotLike<R> = SlotViewFor<R, TagsContext, TagsEvents, TagsState>;
 
 /**
  * One row object per logical tag, reused across value changes: a `for` cell
@@ -503,9 +502,7 @@ export const def = {
       context.clearOnBlur = behavior.clearOnBlur;
       moved = true;
     }
-    // A silent write changes the context without a send, so the bags that
-    // read it through a snapshot need the invalidation bus.
-    if (moved) machineTick(machineTick() + 1);
+    if (moved) { /* silent write lands directly in the signal-backed context */ }
     return moved;
   },
 

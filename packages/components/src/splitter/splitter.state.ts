@@ -342,6 +342,7 @@ export function initial(
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[field] !== undefined ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const panels = written("panels") ? parsePanels(args.panels) : [];
   const spec = written("size") ? sizesOf(args.size) ?? [] : [];

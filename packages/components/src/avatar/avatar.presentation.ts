@@ -2,7 +2,7 @@ import {
   type ApiOf,
   type ComponentDef,
   defineComponent,
-  type ScopeFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { avatar as avatarMachine } from "./avatar.machine.ts";
 import type { AvatarArgs, AvatarContext, AvatarState } from "./avatar.state.ts";
@@ -12,7 +12,7 @@ export type { AvatarArgs, AvatarState };
 
 /** Avatar definition: the DOM contract as data. */
 
-type ScopeLike = ScopeFor<AvatarContext, AvatarEvents, AvatarState>;
+type ScopeLike = ViewFor<AvatarContext, AvatarEvents, AvatarState>;
 
 export const def = {
   name: "avatar",
@@ -28,7 +28,6 @@ export const def = {
           src: src.length > 0 ? src : undefined,
           alt: scope.context.label,
           "data-state": loaded ? "visible" : "hidden",
-          "data-hidden": scope.attr(!loaded),
           onLoad: () => {
             scope.send({ type: "IMG.LOADED" });
           },
@@ -36,12 +35,12 @@ export const def = {
             scope.send({ type: "IMG.ERROR" });
           },
           // A src swap outside the machine still reloads: the observer
-          // reports it and the machine returns to loading. The observer
-          // lives on the node, so it attaches here.
+          // reports the node's live attribute and the machine returns to
+          // loading. The observer lives on the node, so it attaches here.
           "use:observe": {
             attributes: ["src"],
-            onAttributes: (): void => {
-              scope.send({ type: "SRC.CHANGE", src });
+            onAttributes: (node: Element): void => {
+              scope.send({ type: "SRC.CHANGE", src: node.getAttribute("src") ?? "" });
             },
           },
         };
@@ -52,9 +51,8 @@ export const def = {
         const loaded = scope.state === "loaded";
         return {
           role: "img",
-          "aria-label": scope.context.fallback,
+          "aria-label": scope.context.label,
           "data-state": loaded ? "hidden" : "visible",
-          "data-hidden": scope.attr(loaded),
         };
       },
     },
@@ -66,6 +64,7 @@ export const def = {
   },
   readers: {
     loaded: { read: (_context, state) => state === "loaded" },
+    src: { read: (context) => context.src },
     status: {
       read: (_context, state): AvatarStatus =>
         state === "loaded" || state === "error" ? state : "loading",

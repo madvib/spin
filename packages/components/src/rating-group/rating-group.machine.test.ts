@@ -186,6 +186,16 @@ test("hover previews without committing", () => {
   deepStrictEqual(events.hoverChange[0]?.hoveredValue, 4);
 });
 
+test("the first hover tick previews without a group pre-arm", () => {
+  const { api } = mount();
+  handler<(e: PointerEvent) => void>(item(api, 4), "onPointermove")(
+    over(4, 30),
+  );
+  assert(api.hovering);
+  deepStrictEqual(api.hoveredValue, 4);
+  deepStrictEqual(api.value, -1);
+});
+
 test("a hovered click commits the preview, not the item", () => {
   const { api } = mount();
   handler<(e: PointerEvent) => void>(api.getControlProps(), "onPointermove")(

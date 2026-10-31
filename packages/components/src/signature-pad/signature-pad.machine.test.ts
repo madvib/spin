@@ -175,6 +175,34 @@ test("a press starts a stroke and the release commits one path", () => {
   deepStrictEqual(events.drawEnd[0]?.paths.length, 1);
 });
 
+test("getDataUrl exports the committed strokes as an SVG document", async () => {
+  const { api } = mount();
+  stroke(api);
+  const url = await api.getDataUrl();
+  assert(
+    url.startsWith("data:image/svg+xml,"),
+    "getDataUrl must return an SVG data URL",
+  );
+  const svg = decodeURIComponent(url.slice("data:image/svg+xml,".length));
+  assert(
+    svg.includes("<path") && svg.includes(api.paths[0] ?? "§"),
+    "the exported SVG must carry the committed path data",
+  );
+});
+
+test("getDataUrl on an empty pad exports an empty SVG document", async () => {
+  const { api } = mount();
+  const url = await api.getDataUrl();
+  assert(
+    url.startsWith("data:image/svg+xml,"),
+    "an empty pad still exports a readable SVG document",
+  );
+  assert(
+    !decodeURIComponent(url.slice("data:image/svg+xml,".length)).includes("<path"),
+    "an empty pad exports no path elements",
+  );
+});
+
 test("moves with no active stroke are refused", () => {
   const { api, events } = mount();
   dragParam(api.getControlProps()).onMove?.(move(40, 50, 20, 30));
@@ -234,6 +262,23 @@ test("the in-progress stroke is visible while drawing", () => {
   dragParam(control).onEnd?.({ cancelled: false });
   assert(!api.drawing);
   deepStrictEqual(api.paths.length, 1);
+});
+
+test("the clear trigger hides while the stroke is in progress and returns when it commits", () => {
+  const { api } = mount();
+  const control = api.getControlProps();
+  pressControl(control, press(20, 30));
+  deepStrictEqual(
+    api.getClearTriggerProps("Clear signature")["data-hidden"],
+    "",
+    "mid-stroke the trigger stands down",
+  );
+  dragParam(control).onEnd?.({ cancelled: false });
+  deepStrictEqual(
+    api.getClearTriggerProps("Clear signature")["data-hidden"],
+    undefined,
+    "the committed stroke brings the trigger back",
+  );
 });
 
 test("a press on the clear trigger never starts a stroke", () => {

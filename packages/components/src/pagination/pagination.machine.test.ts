@@ -203,3 +203,24 @@ test("host count write recalculates totalPages and resets a stranded page to one
   deepStrictEqual(api.totalPages, 3);
   deepStrictEqual(api.page, 1);
 });
+
+test("pageOptions lists every page for the select", () => {
+  const { api } = mount({ count: 95, pageSize: 10 });
+  deepStrictEqual(
+    api.pageOptions.map((item) => item.type === "page" ? item.value : -1),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  );
+  api.setPageSize(20);
+  deepStrictEqual(
+    api.pageOptions.map((item) => item.type === "page" ? item.value : -1),
+    [1, 2, 3, 4, 5],
+  );
+});
+
+test("a string page coerces, for select values", () => {
+  const { api } = mount({ count: 100, pageSize: 10 });
+  api.setPage("7" as unknown as number);
+  deepStrictEqual(api.page, 7);
+  api.setPage("nope" as unknown as number);
+  deepStrictEqual(api.page, 7);
+});

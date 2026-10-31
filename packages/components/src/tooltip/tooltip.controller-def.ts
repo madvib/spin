@@ -1,4 +1,4 @@
-import { type ControllerDef, signal } from "@spinjs/runtime";
+import { defineController, type ControllerDef, signal } from "@spinjs/runtime";
 import type { AnchorGeometry, AnchorPlacement } from "@spinjs/runtime/actions";
 
 /**
@@ -118,7 +118,9 @@ export function attachTooltip(el: Element): TooltipApi {
       "data-part": "content",
       popover: "",
       role: "tooltip",
-      "data-placement": geometry().placement,
+      get ["data-placement"](): AnchorPlacement {
+        return geometry().placement;
+      },
       // The measured geometry rides the bag's style object: the anchor
       // action measures, the bag carries the position, and the markup
       // names no property.
@@ -136,7 +138,7 @@ export function attachTooltip(el: Element): TooltipApi {
   };
 }
 
-export const tooltip: ControllerDef = {
+export const tooltip = defineController({
   attach: attachTooltip,
   commands: ["show", "hide", "setPlacement"],
   events: {
@@ -145,4 +147,4 @@ export const tooltip: ControllerDef = {
       detail: (change: TooltipOpenChange) => ({ open: change.open }),
     },
   },
-};
+});

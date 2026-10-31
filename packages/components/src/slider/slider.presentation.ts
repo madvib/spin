@@ -6,9 +6,9 @@ import {
   defineComponent,
   isComposing,
   isInteractive,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { slider as sliderMachine } from "./slider.machine.ts";
@@ -28,8 +28,8 @@ export type { SliderArgs, SliderState, ThumbCollisionBehavior };
 /** Slider definition: the DOM contract as data. */
 
 type Ctx = SliderContext;
-type ScopeLike = ScopeFor<SliderContext, SliderEvents, SliderState>;
-type SlotLike<R> = SlotScopeFor<R, SliderContext, SliderEvents, SliderState>;
+type ScopeLike = ViewFor<SliderContext, SliderEvents, SliderState>;
+type SlotLike<R> = SlotViewFor<R, SliderContext, SliderEvents, SliderState>;
 
 /** A client point as a stepped track value, measured off the track node. */
 const trackValue = (

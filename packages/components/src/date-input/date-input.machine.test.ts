@@ -61,6 +61,9 @@ const clipboard = (text: string): ClipboardEvent =>
     clipboardData: { getData: (): string => text },
   }) as unknown as ClipboardEvent;
 
+const blurOutside = (): FocusEvent =>
+  ({ relatedTarget: null }) as unknown as FocusEvent;
+
 interface Harness {
   readonly api: DateInputApi;
   readonly changes: DateInputValueChange[];
@@ -136,6 +139,29 @@ test("Given focus on the month / When digits type / Then the segment fills and a
     beforeInput("2"),
   );
   deepStrictEqual(texts(h.api)[0], "12", "the second digit completes the segment");
+  h.dispose();
+});
+
+test("Given focus on a segment / When read / Then only that segment reports focused and the label links both levels", () => {
+  const h = harness();
+  handler<() => void>(h.api.getSegmentProps(1), "onFocus")();
+  deepStrictEqual(h.api.activeSegment, 1, "the day owns the focus");
+  handler<(e: FocusEvent) => void>(h.api.getSegmentProps(1), "onBlur")(
+    blurOutside(),
+  );
+  deepStrictEqual(h.api.activeSegment, -1, "a true blur clears the focus");
+  const label = h.api.getLabelProps() as Record<string, unknown>;
+  const control = h.api.getControlProps() as Record<string, unknown>;
+  deepStrictEqual(
+    control["aria-labelledby"],
+    label["id"],
+    "the group names itself after the label's id",
+  );
+  deepStrictEqual(
+    typeof label["id"],
+    "string",
+    "the label carries the id the group points at",
+  );
   h.dispose();
 });
 

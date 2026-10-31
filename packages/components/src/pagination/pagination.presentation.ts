@@ -4,12 +4,13 @@ import {
   ariaHidden,
   type ComponentDef,
   defineComponent,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import {
   nextPage as nextPageFn,
   pageItems,
+  pageOptions,
   pageRange,
   type PaginationArgs,
   type PaginationContext,
@@ -21,8 +22,8 @@ import { pagination as paginationMachine } from "./pagination.machine.ts";
 import type { PaginationEvent, PaginationEvents } from "./pagination.events.ts";
 export type { PaginationArgs, PaginationState };
 
-type ScopeLike = ScopeFor<PaginationContext, PaginationEvents, PaginationState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<PaginationContext, PaginationEvents, PaginationState>;
+type SlotLike<R> = SlotViewFor<
   R,
   PaginationContext,
   PaginationEvents,
@@ -58,7 +59,6 @@ const triggerBag = (
 ): Record<string, unknown> => ({
   type: "button",
   "aria-label": label,
-  "data-disabled": scope.attr(!enabled),
   disabled: enabled ? undefined : true,
   onClick: (e: MouseEvent) => {
     if (e.defaultPrevented) return;
@@ -135,14 +135,12 @@ export const def = {
       attrs: (scope: SlotLike<ReturnType<typeof pageItems>[number]>) => {
         const item = scope.slot;
         if (item.type !== "page") {
-          return { "data-hidden": "", ...ariaHidden("true"), tabindex: "-1" };
+          return { hidden: true, ...ariaHidden("true"), tabindex: "-1" };
         }
         const current = item.value === scope.context.page;
         return {
           id: scope.id("item", item.value),
           type: "button",
-          "data-index": String(item.value),
-          "data-selected": scope.attr(current),
           ...ariaCurrent(current ? "page" : undefined),
           "aria-label": `page ${item.value}`,
           onClick: (e: MouseEvent) => {
@@ -157,7 +155,7 @@ export const def = {
       attrs: (scope: SlotLike<ReturnType<typeof pageItems>[number]>) => {
         const item = scope.slot;
         if (item.type !== "ellipsis") {
-          return { "data-hidden": "", ...ariaHidden("true") };
+          return { hidden: true, ...ariaHidden("true") };
         }
         return {
           id: scope.id("ellipsis", item.index),
@@ -191,6 +189,7 @@ export const def = {
     nextPage: { read: (context) => nextPageFn(context) },
     firstPage: { read: (context) => context.page === 1 },
     lastPage: { read: (context) => context.page >= totalPages(context) },
+    pageOptions: { read: (context) => pageOptions(context) },
   },
   methods: {
     getItems: {

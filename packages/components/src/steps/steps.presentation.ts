@@ -9,9 +9,9 @@ import {
   type ComponentDef,
   defineComponent,
   optionRow,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import {
   hasNextStep,
@@ -29,8 +29,8 @@ import type { StepsEvents } from "./steps.events.ts";
 export type { StepsArgs, StepsState };
 export type StepsComplete = { readonly step: number };
 
-type ScopeLike = ScopeFor<StepsContext, StepsEvents, StepsState>;
-type SlotLike<R> = SlotScopeFor<R, StepsContext, StepsEvents, StepsState>;
+type ScopeLike = ViewFor<StepsContext, StepsEvents, StepsState>;
+type SlotLike<R> = SlotViewFor<R, StepsContext, StepsEvents, StepsState>;
 
 const parseTitles = (raw: unknown): readonly string[] => {
   if (Array.isArray(raw)) {
@@ -91,16 +91,13 @@ export const def = {
   start: "idle",
   parts: {
     root: {
-      attrs: (scope: ScopeLike) => ({
-        "data-orientation": scope.context.orientation,
-      }),
+      attrs: () => ({}),
     },
     list: {
       attrs: (scope: ScopeLike) => {
         const items = stepIndexes(scope.context.count);
         return {
           role: "tablist",
-          "data-orientation": scope.context.orientation,
           ...ariaOwns(scope, {
             parts: items.map((index) => ({ part: "trigger", slot: index })),
           }),
@@ -146,7 +143,6 @@ export const def = {
             max: "100",
             text: `${Math.round(value)}% complete`,
           }),
-          "data-complete": scope.attr(value === 100),
         };
       },
     },
@@ -159,39 +155,45 @@ export const def = {
   slots: {
     item: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
-      attrs: (scope: SlotLike<number>) => {
-        const index = scope.slot;
-        const state = itemState(scope.context, index);
-        return {
-          ...ariaCurrent(state.current ? "step" : undefined),
-        };
-      },
-    },
-    trigger: {
+  attrs: (scope: SlotLike<number>) => {
+    const index = scope.slot;
+    const state = itemState(scope.context, index);
+    return {
+      ...ariaCurrent(state.current ? "step" : undefined),
+      "data-state": state.completed
+        ? "complete"
+        : state.current
+          ? "current"
+          : "upcoming",
+    };
+  },
+  },
+  trigger: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
-      attrs: (scope: SlotLike<number>) => {
-        const index = scope.slot;
-        const state = itemState(scope.context, index);
-        return {
-          id: scope.id("trigger", index),
-          role: "tab",
-          type: "button",
-          tabindex: scope.context.linear !== true || state.current ? "0" : "-1",
-          ...optionRow({ selected: state.current ? "true" : "false" }),
-          ...ariaControls(scope, { part: "content", slot: index }),
-          "data-state": state.current ? "open" : "closed",
-          "data-complete": scope.attr(state.completed),
-          "data-current": scope.attr(state.current),
-          "data-incomplete": scope.attr(state.incomplete),
-          onClick: (event: MouseEvent): void => {
-            if (event.defaultPrevented) return;
-            if (scope.context.linear === true) return;
-            scope.send({ type: "STEP.SET", value: index });
-          },
-          onKeydown: (event: KeyboardEvent): void =>
-            onTriggerKeydown(scope, event),
-        };
+  attrs: (scope: SlotLike<number>) => {
+    const index = scope.slot;
+    const state = itemState(scope.context, index);
+    return {
+      id: scope.id("trigger", index),
+      role: "tab",
+      type: "button",
+      tabindex: scope.context.linear !== true || state.current ? "0" : "-1",
+      "data-state": state.completed
+        ? "complete"
+        : state.current
+          ? "current"
+          : "upcoming",
+      ...optionRow({ selected: state.current ? "true" : "false" }),
+      ...ariaControls(scope, { part: "content", slot: index }),
+      onClick: (event: MouseEvent): void => {
+        if (event.defaultPrevented) return;
+        if (scope.context.linear === true) return;
+        scope.send({ type: "STEP.SET", value: index });
       },
+      onKeydown: (event: KeyboardEvent): void =>
+        onTriggerKeydown(scope, event),
+    };
+  },
     },
     content: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
@@ -203,7 +205,6 @@ export const def = {
           role: "tabpanel",
           tabindex: "0",
           hidden: state.current ? undefined : true,
-          "data-state": state.current ? "open" : "closed",
           ...ariaLabelledBy(scope, { part: "trigger", slot: index }),
         };
       },
@@ -211,29 +212,34 @@ export const def = {
     indicator: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
       attrs: (scope: SlotLike<number>) => {
-        const state = itemState(scope.context, scope.slot);
+        const index = scope.slot;
+        const state = itemState(scope.context, index);
         return {
           ...ariaHidden(true),
-          "data-complete": scope.attr(state.completed),
-          "data-current": scope.attr(state.current),
-          "data-incomplete": scope.attr(state.incomplete),
+          "data-state": state.completed
+            ? "complete"
+            : state.current
+              ? "current"
+              : "upcoming",
         };
       },
     },
     separator: {
       indexes: (context: StepsContext) => stepIndexes(context.count),
       attrs: (scope: SlotLike<number>) => {
-        const state = itemState(scope.context, scope.slot);
+        const index = scope.slot;
+        const state = itemState(scope.context, index);
         return {
-          "data-complete": scope.attr(state.completed),
-          "data-current": scope.attr(state.current),
-          "data-incomplete": scope.attr(state.incomplete),
+          "data-state": state.completed
+            ? "complete"
+            : state.current
+              ? "current"
+              : "upcoming",
         };
       },
     },
   },
   commands: {
-    goToNextStep: { event: () => ({ type: "STEP.NEXT" }) },
     goToPrevStep: { event: () => ({ type: "STEP.PREV" }) },
     resetStep: { event: () => ({ type: "STEP.RESET" }) },
     setStep: {

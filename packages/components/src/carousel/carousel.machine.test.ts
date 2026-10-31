@@ -123,6 +123,14 @@ test("Given page 0 of 5 / When next fires three times / Then it walks to page 3"
   svc.send({ type: "NEXT" });
   deepStrictEqual(contextOf(svc).index, 3);
 });
+test("Given page 0 of 3 / When next fires / Then the index and progress text advance", () => {
+  const svc = carousel(3);
+  deepStrictEqual(contextOf(svc).index, 0);
+  deepStrictEqual(`${contextOf(svc).index + 1} / ${contextOf(svc).pageCount}`, "1 / 3");
+  svc.send({ type: "NEXT" });
+  deepStrictEqual(contextOf(svc).index, 1);
+  deepStrictEqual(`${contextOf(svc).index + 1} / ${contextOf(svc).pageCount}`, "2 / 3");
+});
 
 test("Given the last page / When next fires / Then it holds", () => {
   const svc = carousel(3);

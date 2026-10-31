@@ -5,8 +5,8 @@ import {
   defineComponent,
   disclosureTrigger,
   isRecord,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta } from "@spinjs/runtime/actions";
 import { floatingPanel as floatingPanelMachine } from "./floating-panel.machine.ts";
@@ -64,13 +64,13 @@ const isEdge = (arg: unknown): arg is ResizeEdge =>
 
 const edgeOf = (arg: unknown): ResizeEdge => (isEdge(arg) ? arg : "se");
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   FloatingPanelContext,
   FloatingPanelEvents,
   FloatingPanelState
 >;
 
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   FloatingPanelContext,
   FloatingPanelEvents,
@@ -116,7 +116,7 @@ const dragFor = (scope: ScopeLike, mode: "move" | ResizeEdge): DragHandlers => {
   return made;
 };
 
-const def = {
+export const def = {
   name: "floating-panel",
   machine: (props, authored) =>
     floatingPanelMachine(props as FloatingPanelArgs, authored),
@@ -163,6 +163,7 @@ const def = {
           ...disclosureTrigger(scope, {
             expanded: open,
             hasPopup: "dialog",
+            controls: { part: "positioner" },
           }),
           "data-state": open ? "open" : "closed",
           hidden: open,
@@ -311,6 +312,13 @@ const def = {
     },
   },
   slots: {},
+  settled: ({ before, after, focus, root }) => {
+    if (before.state === "closed" || after.state !== "closed") return;
+    const active = typeof document === "undefined"
+      ? null
+      : document.activeElement;
+    if (active instanceof Element && root().contains(active)) focus("trigger");
+  },
   commands: {
     setOpen: { event: () => ({ type: "OPEN" }) },
     close: { event: () => ({ type: "CLOSE" }) },

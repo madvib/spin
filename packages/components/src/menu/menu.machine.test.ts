@@ -312,6 +312,7 @@ test("Given a closed menu / When the positioner props are read / Then the anchor
     { placement: "bottom", offset: 8 },
     "the bag declares behavior; the action positions",
   );
+  deepStrictEqual(bag["hidden"], true, "a closed menu is out of layout");
 });
 
 test("Given a closed menu / When the long-press action fires / Then the context menu opens", () => {
@@ -564,9 +565,9 @@ test("Given a submenu row / When it is clicked / Then the submenu opens on the p
     mouse(),
   );
   deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "true",
-    "the submenu instance is marked open",
+    h.api.openSubmenu,
+    "share",
+    "the submenu level is marked open",
   );
   deepStrictEqual(
     h.api.getItemProps(row)["aria-expanded"],
@@ -580,28 +581,28 @@ test("Given a submenu row / When it is clicked / Then the submenu opens on the p
   );
 });
 
-test("Given a submenu row / When the hover-intent action opens it / Then the parent context opens it too", () => {
+test("Given a submenu row / When the hover-delay action opens it / Then the parent context opens it too", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
-  callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
   deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "true",
+    h.api.openSubmenu,
+    "share",
     "the hover dwell opens the submenu",
   );
 });
 
-test("Given an open submenu / When the hover-intent action reports a close / Then the submenu closes", () => {
+test("Given an open submenu / When the hover-delay action reports a close / Then the submenu closes", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
   const bag = h.api.getItemProps(row);
-  callback<() => void>(bag, "use:hover-intent", "onOpen")();
-  callback<() => void>(bag, "use:hover-intent", "onClose")();
+  callback<() => void>(bag, "use:hover-delay", "onOpen")();
+  callback<() => void>(bag, "use:hover-delay", "onClose")();
   deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "false",
+    h.api.openSubmenu,
+    null,
     "leaving the row closes the submenu",
   );
   deepStrictEqual(
@@ -611,15 +612,79 @@ test("Given an open submenu / When the hover-intent action reports a close / The
   );
 });
 
+test("Given an open submenu / When the pointer crosses into it / Then the parent's pending close is void and leaving the submenu closes it", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  const row = h.row("share");
+  const bag = h.api.getItemProps(row);
+  callback<() => void>(bag, "use:hover-delay", "onOpen")();
+  const blocks = h.api.getSubmenuBlocks(row);
+  const child = h.api.getRows(blocks[0]!)[0]!;
+  handler<(event: PointerEvent) => void>(
+    h.api.getSubmenuItemProps(child),
+    "onPointerMove",
+  )(pointer("mouse"));
+  callback<() => void>(bag, "use:hover-delay", "onClose")();
+  deepStrictEqual(
+    h.api.openSubmenu,
+    "share",
+    "the parent's close fires after the pointer arrived inside, so it is void",
+  );
+  callback<() => void>(
+    h.api.getSubmenuContentProps(row),
+    "use:hover-delay",
+    "onClose",
+  )();
+  deepStrictEqual(
+    h.api.openSubmenu,
+    null,
+    "leaving the submenu with the highlight inside closes it",
+  );
+});
+
+test("Given an open submenu / When a move inside it bubbles to the parent row / Then the parent ignores it and the level stays open", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  const row = h.row("share");
+  const bag = h.api.getItemProps(row);
+  callback<() => void>(bag, "use:hover-delay", "onOpen")();
+  const blocks = h.api.getSubmenuBlocks(row);
+  const child = h.api.getRows(blocks[0]!)[0]!;
+  handler<(event: PointerEvent) => void>(
+    h.api.getSubmenuItemProps(child),
+    "onPointerMove",
+  )(pointer("mouse"));
+  const inside = {
+    closest: (selector: string): object | null =>
+      selector === '[data-part="submenu-content"]' ? {} : null,
+  };
+  handler<(event: PointerEvent) => void>(bag, "onPointerMove")({
+    pointerType: "mouse",
+    target: new Proxy(inside, {
+      getPrototypeOf: () => Element.prototype,
+    }),
+  } as unknown as PointerEvent);
+  deepStrictEqual(
+    h.api.openSubmenu,
+    "share",
+    "the bubbled move does not re-highlight the parent",
+  );
+  deepStrictEqual(
+    h.api.highlightedValue,
+    "mail",
+    "the highlight stays on the child",
+  );
+});
+
 test("Given an open submenu / When another row is highlighted / Then the submenu closes", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
-  callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
   h.api.setHighlighted("new");
   deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "false",
+    h.api.openSubmenu,
+    null,
     "highlighting another row closes the submenu",
   );
 });
@@ -632,146 +697,108 @@ test("Given an open menu on a submenu trigger / When ArrowRight arrives / Then t
     keyboard("ArrowRight"),
   );
   deepStrictEqual(
-    h.api.getSubmenuProps(h.row("share"))["open"],
-    "true",
+    h.api.openSubmenu,
+    "share",
     "arrow right enters the submenu",
   );
 });
 
-test("Given a submenu instance / When ArrowLeft arrives / Then it closes and reports the close upward", () => {
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const seen: string[] = [];
-  root.addEventListener("submenuclose", (event) => {
-    seen.push(Reflect.get(event, "select") === true ? "select" : "dismiss");
-  });
-  const bridge = createMenuBridge(
-    () => ({ items: NESTED, submenu: true }),
-    () => root,
-    "submenu",
+test("Given an open submenu / When a pointer moves over its item / Then the highlight moves and the level stays open", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  const row = h.row("share");
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
+  const blocks = h.api.getSubmenuBlocks(row);
+  deepStrictEqual(blocks.length, 1, "the children shape into one block");
+  const child = h.api.getRows(blocks[0]!)[0]!;
+  handler<(event: PointerEvent) => void>(
+    h.api.getSubmenuItemProps(child),
+    "onPointerMove",
+  )(pointer("mouse"));
+  deepStrictEqual(
+    h.api.highlightedValue,
+    "mail",
+    "the child's row highlights",
   );
-  bridge.api.open();
+  deepStrictEqual(
+    h.api.openSubmenu,
+    "share",
+    "highlighting within the level keeps it open",
+  );
+});
+
+test("Given an open submenu / When arrows arrive on its content / Then the highlight walks the level", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  const row = h.row("share");
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
+  const onKeydown = handler<(event: KeyboardEvent) => void>(
+    h.api.getSubmenuContentProps(row),
+    "onKeydown",
+  );
+  onKeydown(keyboard("ArrowDown"));
+  deepStrictEqual(h.api.highlightedValue, "mail", "down takes the first child");
+  onKeydown(keyboard("ArrowDown"));
+  deepStrictEqual(h.api.highlightedValue, "chat", "down walks to the second child");
+  deepStrictEqual(h.api.openSubmenu, "share", "walking the level keeps it open");
+});
+
+test("Given an open submenu / When arrows arrive on the parent content / Then the parent routes them to the level", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  h.api.setHighlighted("share");
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("ArrowRight"),
+  );
+  // DOM focus stays on the parent content (the level mounts after settled),
+  // so the arrows land on the parent's handler and must reach the level.
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("ArrowDown"),
+  );
+  deepStrictEqual(
+    h.api.highlightedValue,
+    "mail",
+    "the parent routes arrows into the open level",
+  );
+  deepStrictEqual(
+    h.api.getContentProps()["aria-activedescendant"],
+    "menu:menu:submenu-item:mail",
+    "the active descendant points at the level's row",
+  );
+});
+
+test("Given an open submenu / When ArrowLeft arrives on its content / Then the level closes onto its parent", () => {
+  const h = mount(NESTED);
+  h.api.open();
+  const row = h.row("share");
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
   handler<(event: KeyboardEvent) => void>(
-    bridge.api.getContentProps(),
+    h.api.getSubmenuContentProps(row),
     "onKeydown",
   )(keyboard("ArrowLeft"));
-  deepStrictEqual(seen, ["dismiss"], "a submenu reports its close upward");
-  deepStrictEqual(bridge.api.isOpen, false, "the submenu returns to closed");
+  deepStrictEqual(h.api.openSubmenu, null, "the submenu level closes");
+  deepStrictEqual(
+    h.api.highlightedValue,
+    "share",
+    "the highlight returns to the parent row",
+  );
+  deepStrictEqual(h.api.isOpen, true, "the parent menu stays open");
 });
 
-test("Given a submenu that closed itself / When the parent hears the close / Then the parent clears it", () => {
+test("Given an open submenu / When its item is clicked / Then it selects and the menu closes", () => {
   const h = mount(NESTED);
   h.api.open();
   const row = h.row("share");
-  callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-  deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "true",
-    "the submenu is open",
-  );
-
-  const child = document.createElement("div");
-  child.id = String(h.api.getSubmenuProps(row)["id"]);
-  h.root.appendChild(child);
-  const onSubmenuClose = handler<(event: Event) => void>(
-    h.api.getContentProps(),
-    "onSubmenuclose",
-  );
-  h.root.addEventListener("submenuclose", onSubmenuClose);
-  child.dispatchEvent(
-    new CustomEvent("submenuclose", {
-      bubbles: true,
-      detail: { select: false },
-    }),
-  );
-
-  deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "false",
-    "the dismissal clears the parent's open submenu",
-  );
-});
-
-test("Given a submenu that is open / When a different instance dismisses / Then the parent keeps it open", () => {
-  const h = mount(NESTED);
-  h.api.open();
-  const row = h.row("share");
-  callback<() => void>(h.api.getItemProps(row), "use:hover-intent", "onOpen")();
-
-  const other = document.createElement("div");
-  other.id = "menu:menu:submenu:not-mine";
-  h.root.appendChild(other);
-  const onSubmenuClose = handler<(event: Event) => void>(
-    h.api.getContentProps(),
-    "onSubmenuclose",
-  );
-  h.root.addEventListener("submenuclose", onSubmenuClose);
-  other.dispatchEvent(
-    new CustomEvent("submenuclose", {
-      bubbles: true,
-      detail: { select: false },
-    }),
-  );
-
-  deepStrictEqual(
-    h.api.getSubmenuProps(row)["open"],
-    "true",
-    "another instance's dismissal is not this one's",
-  );
-});
-
-test("Given closeOnSelect / When a descendant reports a select / Then this level closes", () => {
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const bridge = createMenuBridge(
-    () => ({
-      items: JSON.stringify(NESTED),
-      submenu: true,
-      open: true,
-      "@@authored": (name: string) => name === "open",
-    }),
-    () => root,
-    "submenu",
-  );
-  deepStrictEqual(
-    bridge.api.isOpen,
-    true,
-    "the authored open prop holds this level open",
-  );
-  handler<(event: Event) => void>(
-    bridge.api.getContentProps(),
-    "onSubmenuclose",
-  )(
-    new CustomEvent("submenuclose", { detail: { select: true } }),
-  );
-  deepStrictEqual(
-    bridge.api.isOpen,
-    false,
-    "a select with closeOnSelect closes this level too",
-  );
-});
-
-test("Given closeOnSelect false / When a descendant reports a select / Then this level stays open", () => {
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const bridge = createMenuBridge(
-    () => ({
-      items: JSON.stringify(NESTED),
-      submenu: true,
-      open: true,
-      closeOnSelect: false,
-      "@@authored": (name: string) => name === "open",
-    }),
-    () => root,
-    "submenu",
-  );
-  handler<(event: Event) => void>(
-    bridge.api.getContentProps(),
-    "onSubmenuclose",
-  )(
-    new CustomEvent("submenuclose", { detail: { select: true } }),
-  );
-  deepStrictEqual(bridge.api.isOpen, true, "a select does not close this level");
+  callback<() => void>(h.api.getItemProps(row), "use:hover-delay", "onOpen")();
+  const blocks = h.api.getSubmenuBlocks(row);
+  const child = h.api.getRows(blocks[0]!)[1]!;
+  handler<(event: MouseEvent) => void>(
+    h.api.getSubmenuItemProps(child),
+    "onClick",
+  )(mouse());
+  deepStrictEqual(h.events.select.length, 1, "the child's select reports");
+  deepStrictEqual(h.events.select[0]?.value, "chat", "the child's value selects");
+  deepStrictEqual(h.api.isOpen, false, "a submenu select closes the menu");
 });
 
 test("Given items with groups and separators / When the blocks are read / Then rows are grouped and divided", () => {
@@ -867,25 +894,26 @@ test("Given an item with a shortcut or children / When its props are read / Then
     false,
     "a submenu row shows the chevron",
   );
-  const props = h.api.getSubmenuProps(h.row("share"));
+  const props = h.api.getSubmenuContentProps(h.row("share"));
   deepStrictEqual(
-    props["label"],
-    "Share",
-    "the child instance is told its row's label",
+    props["data-state"],
+    "closed",
+    "the inline level starts closed",
   );
-  deepStrictEqual(props["open"], "false", "the child instance starts closed");
+  deepStrictEqual(
+    props["role"],
+    "menu",
+    "the inline level is a menu surface",
+  );
 });
 
 test("Given items the transport could not shape / When the rows are read / Then nothing renders", () => {
   const h = mount(FLAT);
   h.write("items", "{not shaped}" as unknown as readonly MenuEntry[]);
-  // Post-mount writes are inert without an event: the seed ran at mount.
-  // A non-array can never reach entries through the typed seed path, so
-  // the mount-time tree stands.
   deepStrictEqual(
     h.api.getBlocks().flatMap((block) => block.rows).map((row) => row.value),
-    ["new", "copy", "cut"],
-    "post-mount writes do not re-seed",
+    [],
+    "unshaped items coerce to an empty tree",
   );
 });
 
@@ -917,110 +945,66 @@ test("Given typeahead false / When a printable key arrives / Then the highlight 
   deepStrictEqual(h.api.highlightedValue, null, "typeahead is off");
 });
 
-test("Given a submenu row / When the child instance is configured / Then it is told its subtree as JSON", () => {
+test("Given a submenu trigger row / When the inline level ids are read / Then aria-controls points at the submenu content", () => {
   const h = mount(NESTED);
   const row = h.row("share");
-  const props = h.api.getSubmenuProps(row);
-  deepStrictEqual(
-    props["items"],
-    row.children,
-    "the subtree crosses as values; the child transport coerces",
-  );
-  deepStrictEqual(
-    props["id"],
-    "menu:menu:submenu:share",
-    "the child instance takes the row's id",
-  );
-});
-
-// ---- bug: submenu part ids were double-prefixed ----------------------------
-//
-// The child element's id is the parent's part id for it (`menu:<root>:submenu:
-// <value>`), which is already namespaced. The nested instance used to prefix it
-// again, so its content id was `menu:menu:<root>:submenu:<value>:content` and
-// the parent row's aria-controls dangled — which also made the focus call in
-// openSubmenu a no-op, so keyboard focus could not enter a submenu level.
-
-test("Given a nested instance / When it is handed an already-namespaced id / Then its parts are not double-prefixed", () => {
-  const root = document.createElement("div");
-  document.body.appendChild(root);
-  const ownerId = "menu:host";
-  const nested = createMenuBridge(() => ({ items: FLAT }), () => root, ownerId);
-  const contentId = String(nested.api.getContentProps()["id"]);
+  const contentId = String(h.api.getSubmenuContentProps(row)["id"]);
   deepStrictEqual(
     contentId,
-    `${ownerId}:content`,
-    "the nested content part id keeps one namespace",
-  );
-  deepStrictEqual(
-    String(nested.api.getTriggerProps()["id"]),
-    `${ownerId}:trigger`,
-    "the nested trigger part id keeps one namespace",
-  );
-  const row = nested.api.getBlocks().flatMap((block) =>
-    nested.api.getRows(block)
-  ).find((r) => r.value === "new");
-  deepStrictEqual(
-    row === undefined ? "" : String(nested.api.getItemProps(row)["id"]),
-    `${ownerId}:item:new`,
-  );
-});
-
-test("Given a submenu trigger row / When the child part ids are read / Then aria-controls points at the child's content", () => {
-  const h = mount(NESTED, { submenu: true });
-  const row = h.row("share");
-  const childId = String(h.api.getSubmenuProps(row)["id"]);
-  deepStrictEqual(
-    childId,
-    "menu:menu:submenu:share",
-    "the child element carries the parent's part id",
+    "menu:menu:submenu-content:share",
+    "the inline level carries the row's id",
   );
   deepStrictEqual(
     String(h.api.getItemProps(row)["aria-controls"]),
-    `${childId}:content`,
-    "the trigger row points at the child element's own content part",
+    contentId,
+    "the trigger row points at the inline level's content",
   );
 });
 
+test("Given a submenu level / When its props are read / Then the part owns its placement beside the row", () => {
+  const h = mount(NESTED);
+  const cls = String(h.api.getSubmenuContentProps(h.row("share"))["class"]);
+  const tokens = cls.split(" ");
+  for (const token of ["absolute", "start-full", "top-0", "ms-2", "min-w-40"]) {
+    deepStrictEqual(
+      tokens.includes(token),
+      true,
+      `the level escapes the row's box (${token})`,
+    );
+  }
+});
+
 test("Given a submenu row is opened by keyboard / When the level is focused / Then the focus target resolves in the document", () => {
-  const h = mount(NESTED, { submenu: true });
+  const h = mount(NESTED);
   const row = h.row("share");
-  const childId = String(h.api.getSubmenuProps(row)["id"]);
-  // The child level is its own bridge; its content part id is what
-  // openSubmenu's focus call looks up by. Wiring the child instance over the
-  // same DOM the parent's row points at is what the real element tree does.
-  const childRoot = document.createElement("div");
-  childRoot.id = childId;
-  h.root.appendChild(childRoot);
-  const nested = createMenuBridge(
-    () => ({ items: NESTED, submenu: true, open: true }),
-    () => childRoot,
-    childId,
-  );
-  const childContent = document.createElement("div");
-  childRoot.appendChild(childContent);
-  childContent.id = String(nested.api.getContentProps()["id"]);
-  childContent.tabIndex = 0;
+  const contentId = String(h.api.getSubmenuContentProps(row)["id"]);
+  const level = document.createElement("div");
+  level.id = contentId;
+  level.tabIndex = 0;
+  h.root.appendChild(level);
 
   h.api.open();
   h.api.setHighlighted("share");
+  handler<(event: KeyboardEvent) => void>(h.api.getContentProps(), "onKeydown")(
+    keyboard("ArrowRight"),
+  );
   const reachable = document.getElementById(
     `${String(h.api.getItemProps(row)["aria-controls"])}`,
   );
 
   deepStrictEqual(
     reachable,
-    childContent,
-    "the row's aria-controls and the child instance's content part are the same element",
+    level,
+    "the row's aria-controls and the inline level are the same element",
   );
-  childRoot.remove();
+  level.remove();
 });
 
 // ---- bug: rows were re-created on every highlight move ---------------------
 //
 // The api proxy rebuilt the connect per tick, so getBlocks handed out a fresh
 // array (and fresh rows) on every read. The `for` directive re-ran, replaced
-// the row nodes, and each replacement orphaned the previous use:hover-intent
+// the row nodes, and each replacement orphaned the previous use:hover-delay
 // timer — one firing after a reopen re-highlighted a row and re-opened its
 // submenu with no pointer event. Rows must be stable objects, and the bags must
 // be cached against the context fields they read.
@@ -1140,17 +1124,21 @@ test("Given an open menu / When nothing moves / Then re-reading the bags returns
   );
 });
 
-test("Given a menu whose items change post-mount / When the bags are read / Then the mount-time tree stands", () => {
+test("Given a closed menu / When the host writes new items / Then opening lists the new tree", () => {
   const h = mount(FLAT);
-  const first = h.row("new");
-  deepStrictEqual(h.api.getItemProps(first)["id"], "menu:menu:item:new");
-  // Post-mount writes are inert without an event: seed ran at mount.
-  // A host that needs a new tree sends an event (a hooks-layer job).
   h.write("items", [{ value: "other", label: "Other" }]);
   const rows = h.api.getBlocks().flatMap((block) => h.api.getRows(block));
   deepStrictEqual(
     rows.map((row) => row.value),
-    ["new", "copy", "cut"],
-    "post-mount writes do not re-seed",
+    ["other"],
+    "host-written items land while closed",
+  );
+});
+
+test("Given the menu component / When the compiler reads its fields / Then items is host-writable", () => {
+  deepStrictEqual(
+    (menu.fields as readonly string[]).includes("items"),
+    true,
+    "items is a declared element prop",
   );
 });

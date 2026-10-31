@@ -10,6 +10,7 @@ test("AvatarApi promises the component's surface", () => {
   const keys: (keyof AvatarApi)[] = [
     "state",
     "loaded",
+    "src",
     "status",
     "setSrc",
     "setLoaded",
@@ -18,7 +19,7 @@ test("AvatarApi promises the component's surface", () => {
     "getImageProps",
     "getFallbackProps",
   ];
-  deepStrictEqual(keys.length, 9);
+  deepStrictEqual(keys.length, 10);
   // Derived member signatures: state union and typed command tuples.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)
     : false;
@@ -33,12 +34,14 @@ test("AvatarApi promises the component's surface", () => {
     AvatarApi["status"],
     "loading" | "error" | "loaded"
   > = true;
+  const srcTyped: AssertExact<AvatarApi["src"], string> = true;
   deepStrictEqual(
     [
       stateTyped,
       setSrcTyped,
       setLoadedTyped,
       statusTyped,
+      srcTyped,
     ].every(Boolean),
     true,
   );

@@ -37,7 +37,6 @@ export interface MenuBlock {
 
 export interface MenuArgs {
   items?: string | readonly MenuEntry[];
-  submenu?: boolean;
   loopFocus?: boolean;
   closeOnSelect?: boolean;
   typeahead?: boolean;
@@ -50,7 +49,6 @@ export interface MenuContext {
   highlightedValue: string | null;
   openSubmenu: string | null;
   anchorPoint: { x: number; y: number } | null;
-  isSubmenu: boolean;
   loopFocus: boolean;
   closeOnSelect: boolean;
   typeahead: boolean;
@@ -121,7 +119,6 @@ export function initial(
     highlightedValue: null,
     openSubmenu: null,
     anchorPoint: null,
-    isSubmenu: args.submenu === true,
     loopFocus: args.loopFocus === true,
     closeOnSelect: args.closeOnSelect ?? true,
     typeahead: args.typeahead ?? true,

@@ -12,9 +12,9 @@ import {
   disclosureTrigger,
   isComposing,
   isRecord,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { colorPicker as colorPickerMachine } from "./color-picker.machine.ts";
@@ -84,13 +84,13 @@ const isColorFormat = (raw: unknown): raw is ColorFormat =>
   raw === "hex" || raw === "hexa" || raw === "rgb" || raw === "rgba" ||
   raw === "hsl" || raw === "hsla" || raw === "hsb" || raw === "hsba";
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   ColorPickerContext,
   ColorPickerEvents,
   ColorPickerState
 >;
 
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   ColorPickerContext,
   ColorPickerEvents,
@@ -148,7 +148,8 @@ const eyeDropperSupported = (): boolean => {
 const selectText = (target: EventTarget | null): void => {
   if (!isRecord(target)) return;
   const select: unknown = target["select"];
-  if (typeof select === "function") select();
+  // Called on the target: a detached `select()` throws Illegal invocation.
+  if (typeof select === "function") (select as (this: unknown) => void).call(target);
 };
 
 const channelOf = (arg: unknown): ChannelSlotProps => {
@@ -493,12 +494,19 @@ export const def = {
       id: "area-background",
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const { x, y } = areaChannels(arg);
+        const area: "hsla" | "hsba" = scope.context.format.startsWith("hsl")
+          ? "hsla"
+          : "hsba";
+        let hue = 0;
+        try {
+          hue = colorOf(scope).toFormat(area).getChannelValue("hue");
+        } catch {
+          hue = 0;
+        }
         return {
           "data-disabled": dataAttr(scope.context.disabled === true),
-          // The color is the machine's own value: the bag carries it as a
-          // concrete background, and the markup names no var.
           style: {
-            backgroundColor: colorOf(scope).toString("css"),
+            backgroundColor: `hsl(${hue}, 100%, 50%)`,
           },
         };
       },
@@ -585,8 +593,8 @@ export const def = {
           role: "presentation",
           "data-channel": slots.channel,
           "data-orientation": orientation,
-          // The gesture lives in the runtime; the percent comes from the
-          // handle's OWN box, the one the drag action reports.
+          // The gesture lives on the row, but the percent comes from the
+          // track's own box — the row carries the label and the value text.
           "use:drag": {
             enabled: scope.context.disabled !== true &&
               scope.context.readOnly !== true,
@@ -596,7 +604,7 @@ export const def = {
                 press.ctrlKey === true || press.metaKey === true ||
                 press.altKey === true
               ) return;
-              const rect = press.rect;
+              const rect = scope.measure("track", slots.channel) ?? press.rect;
               if (rect === null) return;
               const percent = trackPercent(
                 rect,
@@ -613,7 +621,7 @@ export const def = {
             },
             onMove: (delta: DragDelta): void => {
               if (scope.state !== "dragging") return;
-              const rect = delta.rect;
+              const rect = scope.measure("track", slots.channel) ?? delta.rect;
               if (rect === null) return;
               const percent = trackPercent(
                 rect,
@@ -642,15 +650,18 @@ export const def = {
         const slots = channelOf(arg);
         const orientation = slots.orientation ?? "horizontal";
         const color = colorOf(scope);
+        const bg = slots.channel === "hue"
+          ? "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)"
+          : slots.channel === "alpha"
+          ? `linear-gradient(to right, transparent, ${color.withChannelValue("alpha", 1).toString("css")})`
+          : color.toString("css");
         return {
           id: scope.id("track", slots.channel),
           role: "group",
           "data-channel": slots.channel,
           "data-orientation": orientation,
           style: {
-            // The track is the current color: the bag paints it, and the
-            // markup names no var.
-            background: color.toString("css"),
+            background: bg,
           },
         };
       },
@@ -790,7 +801,7 @@ export const def = {
       attrs: (scope: ScopeLike) => {
         const name = scope.context.name ?? "";
         return {
-          type: "text",
+          type: "hidden",
           name: name.length > 0 ? name : undefined,
           tabindex: "-1",
           readonly: scope.context.readOnly === true ? "" : undefined,
@@ -847,9 +858,7 @@ export const def = {
           "data-checked": dataAttr(state.checked),
           "data-value": slots.value,
           "data-disabled": dataAttr(state.disabled),
-          // The swatch's color is a published value: the theme paints the
-          // chip with it, so it stays a custom property.
-          style: { "--picker-swatch": slots.value },
+          style: { "--picker-swatch": slots.value, backgroundColor: slots.value },
           onClick: (): void => {
             if (state.disabled || scope.context.readOnly === true) return;
             scope.send({ type: "SWATCH_TRIGGER.CLICK", value: slots.value });
@@ -877,7 +886,7 @@ export const def = {
         return {
           "data-checked": dataAttr(checked),
           "data-value": slots.value,
-          style: { "--picker-swatch": slots.value },
+          style: { "--picker-swatch": slots.value, backgroundColor: slots.value },
         };
       },
     },

@@ -1,4 +1,4 @@
-import { type ControllerDef, signal } from "@spinjs/runtime";
+import { defineController, type ControllerDef, signal } from "@spinjs/runtime";
 import type { AnchorGeometry, AnchorPlacement } from "@spinjs/runtime/actions";
 
 /**
@@ -146,6 +146,8 @@ export function attachHoverCard(el: Element): HoverCardApi {
       "data-scope": "hover-card",
       "data-part": "trigger",
       "aria-expanded": readOpen(),
+      "aria-details": panelId,
+      "aria-haspopup": "dialog",
       "data-state": readOpen() ? "open" : "closed",
       ...(disabled ? { disabled: true } : {}),
       onFocus: show,
@@ -156,8 +158,11 @@ export function attachHoverCard(el: Element): HoverCardApi {
       "data-scope": "hover-card",
       "data-part": "content",
       popover: "",
+      role: "dialog",
       "data-state": readOpen() ? "open" : "closed",
-      "data-placement": geometry().placement,
+      get ["data-placement"](): AnchorPlacement {
+        return geometry().placement;
+      },
       // The measured geometry rides the bag's style object: the anchor
       // action measures, the bag carries the position, and the markup
       // names no property.
@@ -175,7 +180,7 @@ export function attachHoverCard(el: Element): HoverCardApi {
   };
 }
 
-export const hoverCard: ControllerDef = {
+export const hoverCard = defineController({
   attach: attachHoverCard,
   commands: ["show", "hide", "setPlacement"],
   events: {
@@ -184,4 +189,4 @@ export const hoverCard: ControllerDef = {
       detail: (change: HoverCardOpenChange) => ({ open: change.open }),
     },
   },
-};
+});

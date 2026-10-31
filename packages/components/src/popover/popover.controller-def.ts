@@ -1,11 +1,15 @@
-import type { ControllerDef } from "@spinjs/runtime";
+import { defineController, type ControllerDef } from "@spinjs/runtime";
 
 /**
  * Popover on the platform: the browser owns open/closed, the top layer,
  * light-dismiss, and Escape. There is no machine here — the `attach`
- * wires the native popover behavior to the declared commands and events,
- * and the surface, entrance, and backdrop come from the `popover`
- * primitive's CSS.
+ * wires the native popover behavior to the declared commands and events.
+ *
+ * Positioning is platform-owned too: the panel's `position-area` places it
+ * against its invoker (the implicit anchor needs no names), and the
+ * recipe's utilities carry the surface. The popover never reports where it
+ * landed — a recipe that needs the resolved placement wants the measured
+ * controller, not this one.
  *
  * The api is what markup spreads and what the app-controller hook reaches:
  * prop bags for the trigger and the panel, imperative commands that call
@@ -73,6 +77,8 @@ export function attachPopover(el: Element): PopoverApi {
       "data-part": "trigger",
       popovertarget: panelId,
       "aria-expanded": readOpen(),
+      "aria-details": panelId,
+      "aria-haspopup": "dialog",
       "data-state": readOpen() ? "open" : "closed",
     }),
     getContentProps: () => ({
@@ -80,12 +86,13 @@ export function attachPopover(el: Element): PopoverApi {
       "data-scope": "popover",
       "data-part": "content",
       popover: "",
+      role: "dialog",
       "data-state": readOpen() ? "open" : "closed",
     }),
   };
 }
 
-export const popover: ControllerDef = {
+export const popover = defineController({
   attach: attachPopover,
   commands: ["show", "hide", "toggle"],
   events: {
@@ -94,4 +101,4 @@ export const popover: ControllerDef = {
       detail: (change: PopoverOpenChange) => ({ open: change.open }),
     },
   },
-};
+});

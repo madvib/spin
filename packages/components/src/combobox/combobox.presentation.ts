@@ -12,8 +12,8 @@ import {
   isComposing,
   listSurface,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import {
   combobox as comboboxMachine,
@@ -38,6 +38,7 @@ export interface ComboboxItem {
   readonly label?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly group?: string | undefined;
+  readonly meta?: Readonly<Record<string, string>> | undefined;
 }
 
 export interface ComboboxBlock {
@@ -86,6 +87,10 @@ const toRow = (item: ComboboxItem): ComboboxRow | undefined => {
   if (typeof item.value !== "string" || item.value.length === 0) {
     return undefined;
   }
+  const meta =
+    typeof item.meta === "object" && item.meta !== null && !Array.isArray(item.meta)
+      ? { ...item.meta }
+      : undefined;
   return {
     value: item.value,
     label: typeof item.label === "string" && item.label.length > 0
@@ -94,6 +99,7 @@ const toRow = (item: ComboboxItem): ComboboxRow | undefined => {
     disabled: item.disabled === true,
     group: typeof item.group === "string" ? item.group : "",
     index: 0,
+    meta,
   };
 };
 
@@ -149,8 +155,8 @@ const OPEN_REASON: Record<string, string> = {
   "VALUE.CLEAR": "clear-trigger",
 };
 
-type ScopeLike = ScopeFor<ComboboxContext, ComboboxEvents, ComboboxState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<ComboboxContext, ComboboxEvents, ComboboxState>;
+type SlotLike<R> = SlotViewFor<
   R,
   ComboboxContext,
   ComboboxEvents,
@@ -532,6 +538,7 @@ export const def = {
             ? _placementRaw
             : "bottom";
         return {
+          hidden: !isOpenPhase(scope.state),
           "data-state": isOpenPhase(scope.state) ? "open" : "closed",
           // Zag measures a floating placement and reports it; the recipe
           // anchors the panel with utilities, so the authored placement and

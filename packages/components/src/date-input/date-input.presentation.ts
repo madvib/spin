@@ -8,9 +8,9 @@ import {
   dataAttr,
   defineComponent,
   isRecord,
-  type ScopeFor,
+  type ViewFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import {
   clampValue,
@@ -99,8 +99,8 @@ const placeholderFor = (field: DateInputField): string => {
   }
 };
 
-type ScopeLike = ScopeFor<DateInputContext, DateInputEvents, DateInputState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<DateInputContext, DateInputEvents, DateInputState>;
+type SlotLike<R> = SlotViewFor<
   R,
   DateInputContext,
   DateInputEvents,
@@ -339,11 +339,6 @@ export const def = {
           ...ariaReadOnly(scope.context.readOnly === true ? true : undefined),
           ...ariaDisabled(scope.context.disabled === true ? true : undefined),
           inputMode: field === "dayPeriod" ? undefined : "numeric",
-          "data-type": field,
-          "data-placeholder-shown": dataAttr(value === null),
-          "data-focus": dataAttr(
-            scope.state === "focused" && ctx.activeSegment === index,
-          ),
           contentEditable: editable ? "true" : undefined,
           spellcheck: editable ? "false" : undefined,
           ...handlersFor(scope, index),
@@ -357,6 +352,7 @@ export const def = {
     },
     label: {
       attrs: (scope: ScopeLike) => ({
+        id: scope.id("label"),
         htmlFor: scope.id("segment", 0),
       }),
     },
@@ -408,6 +404,9 @@ export const def = {
     value: { read: (context) => context.value },
     valueAsString: { read: (context) => valueAsString(context.value) },
     focused: { read: (_context, state) => state === "focused" },
+    activeSegment: {
+      read: (context, state) => state === "focused" ? context.activeSegment : -1,
+    },
     disabled: { read: (context) => context.disabled },
     readOnly: { read: (context) => context.readOnly },
     invalid: { read: (context) => context.invalid === true },

@@ -7,6 +7,7 @@ import {
   treeView,
   type VisibleRow,
 } from "./tree-view.presentation.ts";
+import { loadDone } from "./tree-view.transitions.ts";
 import type {
   TreeCheckedChange,
   TreeExpandedChange,
@@ -355,5 +356,40 @@ test("tree-view: lazy branch loading grafts children and emits load-complete", a
     ["remote", "remote/child.ts"],
   );
   deepStrictEqual(h.loadCompletes, [{ value: "remote" }]);
+  h.dispose();
+});
+
+test("tree-view: completing the same load twice grafts the children once", () => {
+  const done = {
+    type: "NODE.LOAD_DONE",
+    value: "remote",
+    children: [{ value: "remote/child.ts", label: "child.ts" }],
+  } as const;
+  const once = loadDone(
+    { nodes: [{ value: "remote", label: "remote" }], loadingStatus: {} },
+    done,
+  );
+  const twice = loadDone(
+    {
+      nodes: once.nodes ?? [],
+      loadingStatus: once.loadingStatus ?? {},
+    },
+    done,
+  );
+  deepStrictEqual(
+    twice.nodes?.flatMap((node) => node.children ?? []).map((node) => node.value),
+    ["remote/child.ts"],
+    "the echo and the event carry the same children; the second graft is a no-op",
+  );
+});
+
+test("tree-view: the branch control carries the id settled focus lands on", () => {
+  const h = setup();
+  const bag = h.api.getBranchControlProps(h.rowOf("src")) as Record<string, unknown>;
+  deepStrictEqual(
+    bag["id"],
+    "tree:test:item:src",
+    "the focusable row owns the focus path, or arrow keys move state no eye follows",
+  );
   h.dispose();
 });

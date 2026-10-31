@@ -373,6 +373,20 @@ test("multiple toggles with plain clicks in preserve mode", () => {
   deepStrictEqual([...h.api.value], ["apple", "banana"]);
 });
 
+test("command-click toggles one row in multiple mode", () => {
+  const h = mount(FRUIT_ITEMS, { multiple: true, value: ["apple"] });
+  h.clickRow("banana", { meta: true });
+  deepStrictEqual([...h.api.value], ["apple", "banana"], "the row joins");
+  h.clickRow("apple", { meta: true });
+  deepStrictEqual([...h.api.value], ["banana"], "and leaves again");
+});
+
+test("control-click toggles one row in multiple mode", () => {
+  const h = mount(FRUIT_ITEMS, { multiple: true, value: ["apple"] });
+  h.clickRow("banana", { ctrl: true });
+  deepStrictEqual([...h.api.value], ["apple", "banana"]);
+});
+
 test("shift-click extends the range in multiple mode", () => {
   const h = mount(FRUIT_ITEMS, { multiple: true });
   h.clickRow("apple");

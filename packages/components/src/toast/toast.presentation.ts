@@ -4,11 +4,10 @@ import {
   dataAttr,
   defineComponent,
   liveRegion,
-  machineTick,
   type ApiOf,
   type ComponentDef,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { toast as toastMachine } from "./toast.machine.ts";
 import type {
@@ -114,8 +113,8 @@ const sameEntry = (a: ToastItem, b: ToastEntry): boolean =>
   // A duration the host did not author keeps the clock it already has.
   (a.duration <= 0 || a.duration === b.remaining);
 
-type ScopeLike = ScopeFor<ToastContext, ToastEvents, ToastState>;
-type SlotLike<R> = SlotScopeFor<R, ToastContext, ToastEvents, ToastState>;
+type ScopeLike = ViewFor<ToastContext, ToastEvents, ToastState>;
+type SlotLike<R> = SlotViewFor<R, ToastContext, ToastEvents, ToastState>;
 type Ctx = ToastContext;
 
 
@@ -318,7 +317,10 @@ const def = {
           "data-stack": dataAttr(!overlapped),
           // The region's own box: the gap it stacks with, and the inset
           // its placement asks for. The recipe names no var — the bag
-          // carries the geometry.
+          // carries the geometry. A centered region spans the viewport
+          // between its margins: the rows center inside it, so the region
+          // never hangs into one half no matter how wide the recipe draws
+          // its rows.
           style: {
             gap: `${ctx.gap}px`,
             ...(side === "top" ? { top: offset } : { bottom: offset }),
@@ -326,7 +328,7 @@ const def = {
               ? { left: offset }
               : align === "end"
               ? { right: offset }
-              : { left: "50%", right: "50%" }),
+              : { left: offset, right: offset }),
           },
           "use:toast-region": {
             hotkey: hotkey.split(",").map((key) => key.trim()).filter((key) => key.length > 0),
@@ -374,7 +376,6 @@ const def = {
               : undefined,
           ),
           "data-state": visible ? "open" : "closed",
-          "data-type": entry.type,
           "data-placement": placement,
           "data-side": side,
           "data-align": align,
@@ -427,7 +428,6 @@ const def = {
         const entry = scope.slot;
         return {
           id: scope.id("toast", `${entry.id}:title`),
-          "data-type": entry.type,
         };
       },
     },
@@ -583,8 +583,6 @@ const def = {
       call: (context): readonly ToastEntry[] => {
         // The tick is the subscription that re-reads the queue after a
         // move. Rows rebind on resync, so plain entries are enough — no
-        // live getters needed.
-        machineTick();
         return [...context.toasts];
       },
     },

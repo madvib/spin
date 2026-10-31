@@ -260,3 +260,10 @@ test("constrainAngle wraps the top of the dial", () => {
   // The snap goes UP to the grid, not to the nearest.
   deepStrictEqual(constrainAngle(90.4, 1), 91);
 });
+
+test("the thumb announces the reachable max", () => {
+  const { api } = mount({ value: 45 });
+  const thumb = api.getThumbProps({ needle: true }) as Record<string, unknown>;
+  deepStrictEqual(thumb["aria-valuemax"], "359");
+  deepStrictEqual(thumb["aria-valuemin"], "0");
+});

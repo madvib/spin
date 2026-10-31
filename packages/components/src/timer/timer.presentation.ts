@@ -5,9 +5,8 @@ import {
   defineComponent,
   isRecord,
   liveRegion,
-  machineTick,
-  type ScopeFor,
-  type SlotScopeFor,
+  type SlotViewFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import {
   formatTime,
@@ -63,8 +62,8 @@ export interface TimerTickChange {
   readonly formattedTime: Time<string>;
 }
 
-type ScopeLike = ScopeFor<TimerContext, TimerEvents, TimerState>;
-type SlotLike<R> = SlotScopeFor<R, TimerContext, TimerEvents, TimerState>;
+type ScopeLike = ViewFor<TimerContext, TimerEvents, TimerState>;
+type SlotLike<R> = SlotViewFor<R, TimerContext, TimerEvents, TimerState>;
 
 const timeOf = (context: TimerContext): Time => msToTime(context.currentMs);
 
@@ -338,9 +337,6 @@ export const def = {
   methods: {
     getUnits: {
       call: (context) => {
-        // `machineTick` is the runtime's subscription for this path: it
-        // wakes the `for` directive so the digits get re-read.
-        machineTick();
         return [...(showDays(context) ? UNITS_WITH_DAYS : UNITS_WITHOUT_DAYS)];
       },
     },

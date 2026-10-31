@@ -1,4 +1,4 @@
-import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, type ApiOf, type ComponentDef, type ScopeFor, type SlotScopeFor } from "@spinjs/runtime";
+import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, type ApiOf, type ComponentDef, type ViewFor, type SlotViewFor } from "@spinjs/runtime";
 import { editable as editableMachine } from "./editable.machine.ts";
 import type { EditableArgs, EditableContext } from "./editable.state.ts";
 import type { EditableEvents } from "./editable.events.ts";
@@ -31,7 +31,7 @@ const TRANSLATIONS = {
 } as const;
 
 
-type ScopeLike = ScopeFor<EditableContext, EditableEvents, EditableState>;
+type ScopeLike = ViewFor<EditableContext, EditableEvents, EditableState>;
 const interactive = (scope: ScopeLike): boolean =>
   !(scope.context.disabled === true || scope.context.readOnly === true);
 

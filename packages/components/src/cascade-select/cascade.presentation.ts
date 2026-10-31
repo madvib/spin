@@ -11,8 +11,8 @@ import {
   isRecord,
   listSurface,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { cascade as cascadeMachine } from "./cascade.machine.ts";
 import {
@@ -167,8 +167,8 @@ const samePath = (a: readonly string[], b: readonly string[]): boolean =>
 const samePaths = (a: readonly string[][], b: readonly string[][]): boolean =>
   a.length === b.length && a.every((path, i) => samePath(path, b[i] ?? []));
 
-type ScopeLike = ScopeFor<CascadeContext, CascadeEvents, CascadeState>;
-type SlotLike<R> = SlotScopeFor<R, CascadeContext, CascadeEvents, CascadeState>;
+type ScopeLike = ViewFor<CascadeContext, CascadeEvents, CascadeState>;
+type SlotLike<R> = SlotViewFor<R, CascadeContext, CascadeEvents, CascadeState>;
 
 const isNode = (value: unknown): value is CascadeNode => {
   if (!isRecord(value)) return false;
@@ -748,6 +748,10 @@ export const def = {
     if (after.state === "open" && before.state !== "open") focus("content");
     if (event.type === "CLOSE" && event.restoreFocus === true) focus("trigger");
     if (event.type === "CLEAR_TRIGGER_CLICK") focus("trigger");
+    if (
+      event.type === "ITEM_CLICK" && before.state === "open" &&
+      after.state !== "open"
+    ) focus("trigger");
   },
   start: (raw) => (startOpen(raw) ? "open" : "idle"),
   reconcile: ({ context, parsed, authored, send, state }) => {

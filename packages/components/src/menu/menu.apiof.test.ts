@@ -12,11 +12,13 @@ test("MenuApi promises the component's surface", () => {
     "state",
     "isOpen",
     "highlightedValue",
+    "openSubmenu",
     "open",
     "close",
     "setHighlighted",
     "getBlocks",
     "getRows",
+    "getSubmenuBlocks",
     "getTriggerProps",
     "getTriggerIndicatorProps",
     "getContextTriggerProps",
@@ -30,7 +32,8 @@ test("MenuApi promises the component's surface", () => {
     "getItemShortcutProps",
     "getItemSubmenuIndicatorProps",
     "getSeparatorProps",
-    "getSubmenuProps",
+    "getSubmenuContentProps",
+    "getSubmenuItemProps",
     "getItemGroupIndexes",
     "getItemGroupLabelIndexes",
     "getItemIndexes",
@@ -39,9 +42,10 @@ test("MenuApi promises the component's surface", () => {
     "getItemShortcutIndexes",
     "getItemSubmenuIndicatorIndexes",
     "getSeparatorIndexes",
-    "getSubmenuIndexes",
+    "getSubmenuContentIndexes",
+    "getSubmenuItemIndexes",
   ];
-  deepStrictEqual(keys.length, 31);
+  deepStrictEqual(keys.length, 35);
   // Derived member signatures: state union, typed command tuples, typed
   // methods, and typed slot parameter records.
   type AssertExact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false)

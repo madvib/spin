@@ -337,3 +337,32 @@ test("aria contract on trigger and area", () => {
   deepStrictEqual(hue["role"], "slider");
   deepStrictEqual(hue["aria-label"], "hue");
 });
+
+test("channel arrows step alpha in an alpha format", () => {
+  const h = mount({ defaultValue: "#10b981ff", defaultFormat: "hexa" });
+  handler<() => void>(h.api.getTriggerProps(), "onClick")();
+  const thumb = h.api.getChannelSliderThumbProps({ channel: "alpha" });
+  handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(
+    keydown("ArrowLeft"),
+  );
+  deepStrictEqual(
+    h.api.value.toLowerCase(),
+    "#10b98100",
+    "alpha steps down and serializes",
+  );
+});
+
+test("channel arrows step alpha to nothing in hex", () => {
+  const h = mount({ defaultValue: "#10b981" });
+  handler<() => void>(h.api.getTriggerProps(), "onClick")();
+  const thumb = h.api.getChannelSliderThumbProps({ channel: "alpha" });
+  const before = h.api.value;
+  handler<(e: KeyboardEvent) => void>(thumb, "onKeydown")(
+    keydown("ArrowLeft"),
+  );
+  deepStrictEqual(
+    h.api.value,
+    before,
+    "hex cannot hold alpha, so the value holds",
+  );
+});

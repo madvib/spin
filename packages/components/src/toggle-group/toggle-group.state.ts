@@ -101,6 +101,7 @@ export function initial(
   const written = (field: string): boolean =>
     authored(field) ||
     authored(defaultTwin(field)) ||
+    (args as Record<string, unknown>)[field] !== undefined ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   return {
     value: written("value")

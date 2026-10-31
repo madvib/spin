@@ -6,6 +6,7 @@ export interface ComboboxRow {
   readonly disabled?: boolean;
   readonly group?: string;
   readonly index?: number;
+  readonly meta?: Readonly<Record<string, string>> | undefined;
 }
 
 export type ComboboxState = "idle" | "focused" | "interacting" | "suggesting";

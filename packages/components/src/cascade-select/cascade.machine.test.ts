@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual, notStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { signal } from "@spinjs/runtime";
-import { cascade } from "./cascade.presentation.ts";
+import { cascade, def as cascadeDef } from "./cascade.presentation.ts";
 const createCascadeBridge = cascade.createBridge;
 import type {
   CascadeApi,
@@ -1861,4 +1861,17 @@ test("Given a collection without labels / When the rows are read / Then the valu
     "plain",
     "the value stands in for the missing label",
   );
+});
+
+test("Given a leaf pick that closes the panel / When it settles / Then focus returns to the trigger", () => {
+  const seen: string[] = [];
+  const settled = cascadeDef.settled;
+  if (settled === undefined) throw new Error("the def must settle");
+  settled({
+    event: { type: "ITEM_CLICK" },
+    before: { context: {}, state: "open" },
+    after: { context: {}, state: "focused" },
+    focus: (part: string) => seen.push(part),
+  } as unknown as Parameters<NonNullable<typeof settled>>[0]);
+  deepStrictEqual(seen, ["trigger"], "the trigger retakes focus on close");
 });

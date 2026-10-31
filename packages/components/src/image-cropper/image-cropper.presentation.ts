@@ -9,9 +9,9 @@ import {
   defineComponent,
   isComposing,
   isRecord,
-  type ScopeFor,
   sliderThumb,
-  type SlotScopeFor,
+  type SlotViewFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
 import { imageCropper as imageCropperMachine } from "./image-cropper.machine.ts";
@@ -71,12 +71,12 @@ export interface ImageCropperFlipChange {
   readonly vertical: boolean;
 }
 
-type ScopeLike = ScopeFor<
+type ScopeLike = ViewFor<
   ImageCropperContext,
   ImageCropperEvents,
   ImageCropperState
 >;
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   ImageCropperContext,
   ImageCropperEvents,
@@ -107,6 +107,18 @@ const HANDLES: readonly CropHandle[] = [
   "sw",
   "w",
 ];
+
+/** The edge point each grip centers on, as selection-relative offsets. */
+const HANDLE_OFFSET: Record<CropHandle, { left: string; top: string }> = {
+  nw: { left: "0%", top: "0%" },
+  n: { left: "50%", top: "0%" },
+  ne: { left: "100%", top: "0%" },
+  e: { left: "100%", top: "50%" },
+  se: { left: "100%", top: "100%" },
+  s: { left: "50%", top: "100%" },
+  sw: { left: "0%", top: "100%" },
+  w: { left: "0%", top: "50%" },
+};
 
 /** A pointer point relative to the viewport node, measured through the
  * framework — defs never query the DOM. */
@@ -474,12 +486,21 @@ export const def = {
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = handleOf(arg);
         const fixed = scope.context.fixedCropArea;
+        const at = HANDLE_OFFSET[slots.position];
         return {
           id: scope.id("handle", slots.position),
           role: "presentation",
           ...ariaHidden("true"),
           "data-position": slots.position,
           "data-disabled": dataAttr(fixed),
+          style: {
+            // The grip sits on its edge point: the offset centers the
+            // 12px box on the selection's border, the way the selection
+            // carries its own rect as concrete properties.
+            left: at.left,
+            top: at.top,
+            translate: "-50% -50%",
+          },
           // The resize is the handle's own gesture: the press stops there,
           // so the selection's drag never arms behind it — and the moves
           // the resize needs come from this gesture, not from the
@@ -516,6 +537,7 @@ export const def = {
       attrs: (scope: ScopeLike, arg?: unknown) => {
         const slots = gridOf(arg);
         return {
+          id: scope.id("grid", slots.axis),
           ...ariaHidden("true"),
           "data-axis": slots.axis,
           "data-dragging": scope.attr(scope.state === "dragging"),

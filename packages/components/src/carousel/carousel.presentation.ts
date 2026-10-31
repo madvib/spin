@@ -10,10 +10,8 @@ import {
   defineComponent,
   isRecord,
   liveRegion,
-  machineTick,
   resolveTwins,
-  type ScopeFor,
-  type SlotScopeFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { carousel as carouselMachine } from "./carousel.machine.ts";
 import {
@@ -24,6 +22,7 @@ import {
   type CarouselState,
   initial,
   pageCountFor,
+  pageOf,
   slidesOf,
   slidesPerMoveOf,
   slidesPerPageOf,
@@ -102,8 +101,8 @@ const derive = (parsed: Record<string, unknown>): {
 
 type Ctx = CarouselContext;
 
-type ScopeLike = ScopeFor<CarouselContext, CarouselEvents, CarouselState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<CarouselContext, CarouselEvents, CarouselState>;
+type SlotLike<R> = SlotViewFor<
   R,
   CarouselContext,
   CarouselEvents,
@@ -637,7 +636,7 @@ export const def = {
       ) => {
         const item = scope.slot;
         const readOnly = isRecord(arg) && arg["readOnly"] === true;
-        const current = item.index === scope.context.index;
+        const current = pageOf(scope.context, item.index) === scope.context.index;
         return {
           id: scope.id("indicator", item.index),
           type: "button",
@@ -665,7 +664,7 @@ export const def = {
             }),
           onClick: (): void => {
             if (readOnly) return;
-            scope.send({ type: "GO_TO", index: item.index });
+            scope.send({ type: "GO_TO", index: pageOf(scope.context, item.index) });
           },
         };
       },
@@ -752,11 +751,8 @@ export const def = {
     getProgressRows: {
       call: (context: CarouselContext, _state, _args, _props, id) => {
         const ctx = context;
-        // The row's update re-reads the holder, which is why the holder is
-        // a stable object rewritten here rather than a captured string.
         const view = viewOf(isIdFn(id) ? id : fallbackId);
         view.readout.value = `${ctx.index + 1} / ${ctx.pageCount}`;
-        machineTick();
         return [view.readout];
       },
     },

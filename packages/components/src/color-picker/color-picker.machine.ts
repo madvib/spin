@@ -69,6 +69,14 @@ const config: MachineSpec<
           { target: "active" },
         ],
         "CHANNEL_INPUT.FOCUS": { target: "focused", assign: setActiveChannel },
+        "AREA.POINTER_DOWN": { target: "dragging", assign: setAreaFromPoint },
+        "CHANNEL_SLIDER.POINTER_DOWN": {
+          target: "dragging",
+          assign: setChannelFromPoint,
+        },
+        "SWATCH_TRIGGER.CLICK": { assign: setValueFromSwatch },
+        "AREA.ARROW": { assign: stepAreaValue },
+        "CHANNEL_SLIDER.ARROW": { assign: stepChannelValue },
       },
     },
     focused: {
@@ -86,6 +94,13 @@ const config: MachineSpec<
         "CHANNEL_INPUT.BLUR": { target: "idle", assign: setChannelFromInput },
         "TRIGGER.BLUR": { target: "idle" },
         "SWATCH_TRIGGER.CLICK": { assign: setValueFromSwatch },
+        "AREA.POINTER_DOWN": { target: "dragging", assign: setAreaFromPoint },
+        "CHANNEL_SLIDER.POINTER_DOWN": {
+          target: "dragging",
+          assign: setChannelFromPoint,
+        },
+        "AREA.ARROW": { assign: stepAreaValue },
+        "CHANNEL_SLIDER.ARROW": { assign: stepChannelValue },
       },
     },
     active: {
@@ -130,9 +145,15 @@ const config: MachineSpec<
     dragging: {
       on: {
         "AREA.POINTER_MOVE": { assign: setAreaFromPoint },
-        "AREA.POINTER_UP": { target: "active" },
+        "AREA.POINTER_UP": [
+          { cond: (ctx) => ctx.inline === true, target: "idle" },
+          { target: "active" },
+        ],
         "CHANNEL_SLIDER.POINTER_MOVE": { assign: setChannelFromPoint },
-        "CHANNEL_SLIDER.POINTER_UP": { target: "active" },
+        "CHANNEL_SLIDER.POINTER_UP": [
+          { cond: (ctx) => ctx.inline === true, target: "idle" },
+          { target: "active" },
+        ],
       },
     },
   },

@@ -9,8 +9,8 @@ import {
   disclosureTrigger,
   isRecord,
   optionRow,
-  type ScopeFor,
-  type SlotScopeFor,
+  type SlotViewFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { datePicker as datePickerMachine } from "./date-picker.machine.ts";
 import {
@@ -96,9 +96,9 @@ const monthName = (month: number, locale: string): string =>
     Date.UTC(2024, month - 1, 1),
   );
 
-type ScopeLike = ScopeFor<DatePickerContext, DatePickerEvents, DatePickerState>;
+type ScopeLike = ViewFor<DatePickerContext, DatePickerEvents, DatePickerState>;
 
-type SlotLike<R> = SlotScopeFor<
+type SlotLike<R> = SlotViewFor<
   R,
   DatePickerContext,
   DatePickerEvents,
@@ -519,10 +519,12 @@ const def = {
           role: "grid",
           tabIndex: 0,
           ...ariaLabelledBy(scope, { part: "label" }),
-          // The view decides the grid's shape: seven weekday columns,
-          // three months, four years. The recipe's `data-[view]` variants
-          // read it.
           "data-view": ctx.view,
+          class: ctx.view === "day"
+            ? "grid grid-cols-7 gap-1"
+            : ctx.view === "month"
+            ? "grid grid-cols-3 gap-1"
+            : "grid grid-cols-4 gap-1",
           onPointerLeave: (): void =>
             scope.send({ type: "TABLE.POINTER_LEAVE" }),
         };
@@ -595,8 +597,9 @@ const def = {
     cell: {
       indexes: (context: DatePickerContext) => cellsOf(context),
       attrs: (scope: SlotLike<DatePickerCellView>) => {
-        const cell = scope.slot;
+        const slot = scope.slot;
         const ctx = scope.context;
+        const cell = cellsOf(ctx).find((live) => live.key === slot.key) ?? slot;
         const locale = ctx.locale;
         const day = iso(cell.value);
         const focused = day === iso(ctx.focusedValue);
@@ -616,14 +619,9 @@ const def = {
             cell.isToday && ctx.view === "day" ? "date" : undefined,
           ),
           "data-value": day,
-          "data-outside-month": dataAttr(cell.outside),
-          "data-today": dataAttr(cell.isToday),
           "data-selected": dataAttr(cell.selected),
           "data-in-range": dataAttr(cell.inRange),
-          "data-range-start": dataAttr(cell.rangeEdge === "start"),
-          "data-range-end": dataAttr(cell.rangeEdge === "end"),
-          "data-disabled": dataAttr(cell.disabled),
-          "data-focus": dataAttr(focused),
+          "data-outside": dataAttr(cell.outside),
           // The view the cell belongs to, so the recipe can size day
           // rows differently from month and year rows.
           "data-view": ctx.view,
@@ -683,7 +681,7 @@ const def = {
         _args,
         _props,
         id,
-      ): readonly { readonly value: string; readonly text: string }[] => {
+      ): readonly { readonly value: string; readonly text: string; readonly first: boolean }[] => {
         const ctx = context;
         const locale = ctx.locale;
         const placeholder = ctx.placeholder;
@@ -702,11 +700,12 @@ const def = {
             }).format(date);
           };
         if (ctx.value.length === 0) {
-          return [rowFor(id, `empty:${placeholder}`, placeholder)];
+          return [{ ...rowFor(id, `empty:${placeholder}`, placeholder), first: true }];
         }
-        return ctx.value.map((day) =>
-          rowFor(id, iso(day), formatDay(day, locale))
-        );
+        return ctx.value.map((day, at) => ({
+          ...rowFor(id, iso(day), formatDay(day, locale)),
+          first: at === 0,
+        }));
       },
     },
     getViewTextRows: {
@@ -738,6 +737,26 @@ const def = {
     getCells: {
       call: (context: DatePickerContext): readonly DatePickerCellView[] =>
         cellsOf(context),
+    },
+    getCellState: {
+      call: (
+        context: DatePickerContext,
+        _state,
+        [key]: [key: string],
+      ): {
+        readonly selected: boolean;
+        readonly inRange: boolean;
+        readonly disabled: boolean;
+        readonly outside: boolean;
+      } => {
+        const hit = cellsOf(context).find((cell) => cell.key === key);
+        return {
+          selected: hit?.selected ?? false,
+          inRange: hit?.inRange ?? false,
+          disabled: hit?.disabled ?? false,
+          outside: hit?.outside ?? false,
+        };
+      },
     },
   },
   events: {
