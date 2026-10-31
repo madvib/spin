@@ -9,6 +9,16 @@
  * picking a colour.
  */
 
+import type { ClassDoc } from "./example.ts";
+
+export const METER_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<meter>",
+    kind: "Component",
+    description: "Native gauge over a known range; the platform classifies the value via low, high, and optimum",
+  },
+];
+
 export interface MeterExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -16,29 +26,22 @@ export interface MeterExample {
   readonly html: string;
 }
 
-const row = (inner: string): string =>
-  `<div class="flex flex-wrap items-center gap-2">
-${inner}
-        </div>`;
-
 export const meterFixtureNote =
   "A gauge over a known range: the platform classifies the value against `low`, `high` and `optimum`; the fills are the theme's semantic colors.";
 
 export const METER_EXAMPLES: readonly MeterExample[] = [
   {
     name: "Bands · optimum, suboptimum, even less good",
-    html: row(
-      `          <meter value="90" min="0" max="100" low="40" high="70" optimum="90"></meter>
-          <meter value="55" min="0" max="100" low="40" high="70" optimum="90"></meter>
-          <meter value="10" min="0" max="100" low="40" high="70" optimum="90"></meter>`,
-    ),
+    html: `<meter value="90" min="0" max="100" low="40" high="70" optimum="90"></meter>
+        <meter value="55" min="0" max="100" low="40" high="70" optimum="90"></meter>
+        <meter value="10" min="0" max="100" low="40" high="70" optimum="90"></meter>`,
   },
   {
     name: "Default range · value only",
-    html: row(`          <meter value="0.75"></meter>`),
+    html: `<meter value="0.75"></meter>`,
   },
   {
     name: "Disabled",
-    html: row(`          <meter value="0.6" disabled></meter>`),
+    html: `<meter value="0.6" disabled></meter>`,
   },
 ];

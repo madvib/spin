@@ -212,9 +212,4 @@ test("the elevation ladder is spent by height", () => {
     true,
     "a dialog floats above it",
   );
-  deepStrictEqual(
-    primitiveContracts["popover"]?.reads.includes("--shadow-lg"),
-    true,
-    "and a popover floats above it too",
-  );
 });

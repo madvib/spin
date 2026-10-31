@@ -14,9 +14,14 @@ import { DETAILS_EXAMPLES } from "./details.examples.ts";
  */
 const STRUCTURAL = new Set([
   "flex",
+  "flex-col",
   "flex-wrap",
   "items-start",
+  "items-stretch",
+  "gap-1",
   "gap-2",
+  "gap-4",
+  "stack-sm",
 ]);
 
 const isKnown = (cls: string, known: Set<string>): boolean =>

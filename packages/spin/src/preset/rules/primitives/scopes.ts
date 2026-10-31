@@ -41,10 +41,6 @@ import type { Claim } from "./scope.ts";
 export const primitiveClaims: Record<string, Claim> = {
   a11y: { self: "a11y", paints: [] },
   alert: { self: "alert", paints: [{ tag: "alert", where: "global" }] },
-  // The face is the image the avatar frames, so it is painted inside the
-  // avatar and nowhere else.
-  avatar: { self: "avatar", paints: [{ tag: "img", where: "descendant" }] },
-  "avatar-group": { self: "avatar-group", paints: [] },
   badge: { self: "badge", paints: [{ tag: "badge", where: "global" }] },
   // The trail's links and items are the trail's, not every link on the page.
   breadcrumbs: {
@@ -84,6 +80,7 @@ export const primitiveClaims: Record<string, Claim> = {
     self: "details",
     paints: [
       { tag: "details", where: "global" },
+      { tag: "details", where: "descendant" },
       { tag: "summary", where: "global" },
       { tag: "summary", where: "descendant" },
     ],
@@ -117,30 +114,16 @@ export const primitiveClaims: Record<string, Claim> = {
       { tag: "legend", where: "descendant" },
     ],
   },
-  // The group's members: the controls the join draws together.
-  group: {
-    self: "group",
-    paints: [
-      { tag: "badge", where: "descendant" },
-      { tag: "button", where: "descendant" },
-      { tag: "input", where: "descendant" },
-      { tag: "textarea", where: "descendant" },
-    ],
-  },
   hr: { self: "hr", paints: [{ tag: "hr", where: "global" }] },
   icon: { self: "icon", paints: [] },
   join: { self: "join", paints: [] },
   kbd: { self: "kbd", paints: [{ tag: "kbd", where: "global" }] },
   label: { self: "label", paints: [{ tag: "label", where: "global" }] },
-  meter: { self: "meter", paints: [{ tag: "meter", where: "global" }] },
-  mode: { self: "mode", paints: [] },
-  popover: {
-    self: "popover",
+  panel: {
+    self: "panel",
     paints: [
-      { tag: "popover", where: "global" },
-      { tag: "tooltip", where: "global" },
-      // The tip as it is shown: a sibling of the trigger it belongs to.
-      { tag: "tooltip", where: "descendant" },
+      { tag: "panel", where: "global" },
+      { tag: "panel-list", where: "global" },
     ],
   },
   progress: {
@@ -148,8 +131,11 @@ export const primitiveClaims: Record<string, Claim> = {
     paints: [{ tag: "progress", where: "global" }],
   },
   radio: { self: "radio", paints: [{ tag: "input", where: "global" }] },
+  range: { self: "range", paints: [{ tag: "input", where: "global" }] },
   skeleton: { self: "skeleton", paints: [] },
+  swatch: { self: "swatch", paints: [{ tag: "swatch", where: "global" }] },
   stat: { self: "stat", paints: [] },
+  tooltip: { self: "tooltip", paints: [{ tag: "tooltip", where: "global" }] },
   switch: { self: "switch", paints: [{ tag: "input", where: "global" }] },
   // The table and its cells: a cell is painted where the table is, and a
   // header cell is the table's own.

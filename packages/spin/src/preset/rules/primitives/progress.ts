@@ -8,9 +8,9 @@ import { claim, type Mode } from "./shared.ts";
  * A native element with a real value and a real indeterminate state, so no
  * JavaScript. What is hard about styling one is that it is the only control
  * with no cross-browser standard rendering: Chromium exposes
- * `::-webkit-progress-bar` and `::-webkit-progress-value`, Firefox exposes
- * `::-moz-progress-bar` and `::-moz-progress-value`. Neither engine reads the
- * other's, so both are stated.
+ * `::-webkit-progress-bar` (groove) and `::-webkit-progress-value` (fill),
+ * Firefox exposes only `::-moz-progress-bar` — which IS the fill, not the
+ * groove. Neither engine reads the other's, so both are stated.
  *
  * The difficulty is not the duplication — it is that **uno merges rules with
  * identical bodies into one selector list, and an unrecognised selector in a
@@ -104,17 +104,13 @@ function barRule(progress: string): Rule {
         "-moz-appearance": "none",
       };
 
-      // Each engine's groove. The declarations that differ are ones the engine
-      // actually needs rather than tokens to make the bodies differ.
+      // Each engine's groove: Chromium's `::-webkit-progress-bar`. Gecko has
+      // no groove pseudo — its `::-moz-progress-bar` IS the value fill — so
+      // the groove is webkit-only and the fill below covers both engines.
       yield {
         [ctx.symbols.selector]: () => `${progress}::-webkit-progress-bar`,
         ...track,
         overflow: "hidden",
-      };
-      yield {
-        [ctx.symbols.selector]: () => `${progress}::-moz-progress-bar`,
-        ...track,
-        "-moz-appearance": "none",
       };
 
       const fill: Record<string, string | undefined> = {
@@ -127,7 +123,7 @@ function barRule(progress: string): Rule {
         "-webkit-appearance": "none",
       };
       yield {
-        [ctx.symbols.selector]: () => `${progress}::-moz-progress-value`,
+        [ctx.symbols.selector]: () => `${progress}::-moz-progress-bar`,
         ...fill,
         "-moz-appearance": "none",
       };
@@ -176,12 +172,6 @@ function barRule(progress: string): Rule {
             `${progress}:indeterminate::-moz-progress-bar`,
           ...band,
           ...motion,
-          "-moz-appearance": "none",
-        };
-        yield {
-          [ctx.symbols.selector]: () =>
-            `${progress}:indeterminate::-moz-progress-value`,
-          "background-color": "transparent",
           "-moz-appearance": "none",
         };
       }
@@ -249,11 +239,6 @@ function indeterminateRule(progress: string): Rule[] {
           [ctx.symbols.selector]: () => `${states}::-webkit-progress-value`,
           "background-color": "transparent",
           "-webkit-appearance": "none",
-        };
-        yield {
-          [ctx.symbols.selector]: () => `${states}::-moz-progress-value`,
-          "background-color": "transparent",
-          "-moz-appearance": "none",
         };
       },
       { layer: "primitives", autocomplete: "progress-indeterminate" },

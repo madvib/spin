@@ -254,7 +254,7 @@ test("a field and a button share one control height", async () => {
   // assembled rather than designed. Both now state the same floor, from the
   // same three theme values.
   const css = await sheetFor("<input><button>Deploy</button>");
-  const field = declarationsFor(css, ":is(input, textarea)");
+  const field = declarationsFor(css, ":is(input, textarea, select)");
   const button = declarationsFor(
     css,
     ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])',

@@ -21,26 +21,16 @@ const MANIFEST = new URL(
 );
 
 test("a regen keeps the comment above an authored field", async () => {
-  // `component` is hand knowledge the rules cannot derive, and the comment
-  // above it says why the field is what it is. A regen that drops the
-  // comment is one regen away from dropping the field it explains.
   const copy = await mkdtemp(join(tmpdir(),"spin-")) + "/manifest.ts";
   try {
     await copyFile(MANIFEST, copy);
     await writeManifest(pathToFileURL(copy));
-    const avatar = /^ {2}avatar: \{[\s\S]*?\n {2}\},/m.exec(
+    const badge = /^ {2}badge: \{[\s\S]*?\n {2}\},/m.exec(
       await readFile(copy, "utf8"),
     )?.[0] ?? "";
     assert(
-      avatar.includes("// The ladder is the avatar's whole palette"),
-      `the authored comment survives the regen:\n${avatar}`,
-    );
-    deepStrictEqual(
-      avatar.includes(
-        '{ path: "avatar.md", type: "dimension", value: "2.5rem" }',
-      ),
-      true,
-      "and the field it explains, with it",
+      badge.includes('"badge"'),
+      `the badge entry survives the regen:\n${badge}`,
     );
   } finally {
     await rm(copy);

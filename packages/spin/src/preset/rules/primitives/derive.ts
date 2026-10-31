@@ -34,25 +34,23 @@ import {
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
-import { avatarGroupRules } from "./avatar-group.ts";
-import { avatarRules } from "./avatar.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
-import { groupRules } from "./group.ts";
 import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { iconRules } from "./icon.ts";
 import { joinRules } from "./join.ts";
 import { meterRules } from "./meter.ts";
-import { modeRules } from "./mode.ts";
-import { popoverRules } from "./popover.ts";
-import { progressRules } from "./progress.ts";
+import { panelRules } from "./panel.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
+import { rangeRules } from "./range.ts";
 import { skeletonRules } from "./skeleton.ts";
+import { swatchRules } from "./swatch.ts";
 import { statRules } from "./stat.ts";
 import { tableRules } from "./table.ts";
+import { tooltipRules } from "./tooltip.ts";
 import { textareaRules } from "./textarea.ts";
 import {
   type Claim,
@@ -552,8 +550,6 @@ function runRule(
 const RULE_SOURCES: Record<string, () => Rule[]> = {
   a11y: () => a11yRules(["a11y"]),
   alert: () => alertRules(["alert"], { classless: true }),
-  "avatar-group": () =>
-    avatarGroupRules(["avatar-group"], { classless: false }),
   badge: () => badgeRules(["badge"], { classless: true }),
   breadcrumbs: () => breadcrumbsRules(["breadcrumbs"], { classless: false }),
   button: () => buttonRules(["button"]),
@@ -566,19 +562,17 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   details: () => disclosureRules(["details"], { classless: true }),
   progress: () => progressRules(["progress"], { classless: true }),
   table: () => tableRules(["table"], { classless: true }),
-  popover: () => popoverRules(["popover"], { classless: true }),
   prose: () => proseRules(["prose"], { classless: true }),
-  group: () => groupRules(["group"]),
   radio: () => radioRules(["radio"]),
+  range: () => rangeRules(["range"]),
   icon: () => iconRules(["icon"]),
   meter: () => meterRules(["meter"], { classless: true }),
-  mode: () => modeRules(["mode"], { classless: false }),
-  field: () => [fieldBox(), ...textareaRules(["field"])],
-  avatar: () => avatarRules(["avatar"], { classless: false }),
+  panel: () => panelRules(["panel"], { classless: true }),
   hr: () => hrRules(["hr"], { classless: true }),
   kbd: () => kbdRules(["kbd"], { classless: true }),
   stat: () => statRules(["stat"], { classless: false }),
-  label: () => labelRules(["label"], { classless: true }),
+  swatch: () => swatchRules(["swatch"], { classless: true }),
+  tooltip: () => tooltipRules(["tooltip"], { classless: true }),
   fieldset: () => fieldsetRules(["fieldset"], { classless: true }),
 };
 

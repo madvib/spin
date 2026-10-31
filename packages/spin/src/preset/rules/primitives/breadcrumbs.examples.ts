@@ -13,6 +13,8 @@
  * do.
  */
 
+import type { ClassDoc } from "./example.ts";
+
 export interface BreadcrumbsExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -22,6 +24,29 @@ export interface BreadcrumbsExample {
 
 export const breadcrumbsFixtureNote =
   "A trail of links; the last step is `aria-current`, not a link. The separator is content, not a component.";
+
+export const BREADCRUMBS_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".breadcrumbs",
+    kind: "Component",
+    description: "The trail: its type and spacing, and every rule about what sits in it",
+  },
+  {
+    name: ".breadcrumbs-list",
+    kind: "Part",
+    description: "The list: the steps in a row, wrapping when the trail is long",
+  },
+  {
+    name: ".breadcrumbs-box",
+    kind: "Part",
+    description: "The boxed trail: the trail itself as an object — a raised surface with an edge",
+  },
+  {
+    name: ".breadcrumbs-arrow",
+    kind: "Part",
+    description: "The arrow trail: a chevron instead of a slash, reading as direction",
+  },
+];
 
 const trail = (
   indent: string,
@@ -63,7 +88,7 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
   {
     name: "Breadcrumbs · three steps",
     html: trail(
-      "        ",
+      "",
       link("/", "Lodestar"),
       link("/services/checkout-api", "checkout-api"),
       current("Deploy #4821"),
@@ -72,7 +97,7 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
   {
     name: "Breadcrumbs · a trail that wraps",
     html: trail(
-      "        ",
+      "",
       link("/", "Lodestar"),
       link("/services", "Services"),
       link("/services/checkout-api", "checkout-api"),
@@ -84,16 +109,14 @@ export const BREADCRUMBS_EXAMPLES: readonly BreadcrumbsExample[] = [
   },
   {
     name: "Breadcrumbs · in a page header",
-    html: `        <header>
-          <h2>Rollout settings</h2>
-${
-      trail(
-        "          ",
-        link("/", "Lodestar"),
-        link("/services/checkout-api", "checkout-api"),
-        current("Rollout settings"),
-      )
-    }
-        </header>`,
+    html: `<header>
+${trail(
+  "  ",
+  link("/", "Lodestar"),
+  link("/services/checkout-api", "checkout-api"),
+  current("Rollout settings"),
+)}
+  <h2>Rollout settings</h2>
+</header>`,
   },
 ];

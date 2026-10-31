@@ -73,6 +73,23 @@ function freeNames(expr: string, bound: Set<string>): string[] {
   return found;
 }
 
+/** A static handler's own params: `(event) => ...` binds `event`, so the
+ * scope rewrite must leave it alone. Simple identifiers only — a handler
+ * with destructured or defaulted params keeps the old (broken) rewrite
+ * rather than a cleverer wrong one. */
+function handlerParams(handler: string): string[] {
+  const arrow = handler.match(
+    /^\s*(?:\(([^()]*)\)|([A-Za-z_$][A-Za-z0-9_$]*))\s*=>/,
+  );
+  if (arrow === null) return [];
+  const list = arrow[1] ?? arrow[2] ?? "";
+  const params = list.split(",").map((p) => p.trim()).filter((p) =>
+    /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(p)
+  );
+  const rawCount = list.trim() === "" ? 0 : list.split(",").length;
+  return params.length === rawCount ? params : [];
+}
+
 function scopeExpr(expr: string, bound: Set<string>): string {
   // Rewrite free identifiers to values reads. Member bases stay bare
   // when bound (row.item) and become values reads otherwise.
@@ -120,15 +137,10 @@ export function emit(ir: ComponentIr): EmitOutput {
             if (part.kind === "static") return JSON.stringify(part.value);
             return `String((${scopeExpr(part.expr, bound)}) ?? "")`;
           }).join(" + ");
-          // ONE writer: the effect re-runs on the machine tick (bag reads
-          // are raw, so the tick is the invalidation bus) plus the fresh
-          // signal the for-cell update bumps on resync. Top-level text has
-          // no resync caller — without the tick read it renders its seed
-          // value and never moves again.
           out.push(
             `${
               pad(depth)
-            }{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); machineTick(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
+            }{ const ${id} = document.createTextNode(""); const ${id}Fresh = signal(0); effect(() => { ${id}Fresh(); ${id}.data = (${reads}); }); ${parts}.push(() => ${id}Fresh(${id}Fresh() + 1)); ${host}.appendChild(${id}); }`,
           );
         }
         continue;
@@ -308,10 +320,11 @@ export function emit(ir: ComponentIr): EmitOutput {
       }
       for (const ev of node.events) {
         bindings++;
+        const shadowed = new Set([...bound, ...handlerParams(ev.handler)]);
         out.push(
           `${pad(iDepth + 1)}on(${el}, ${
             JSON.stringify(ev.event)
-          }, (...args) => (${scopeExpr(ev.handler, bound)})(...args));`,
+          }, (...args) => (${scopeExpr(ev.handler, shadowed)})(...args));`,
         );
       }
       for (const use of node.actions) {
@@ -367,7 +380,7 @@ export function emit(ir: ComponentIr): EmitOutput {
 
   const inner = emitNodes(ir.nodes, 2, "frag", "parts", new Set());
   const js = [
-    `import { runAction, on, bindAttr, bindText, classOf, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect, machineTick } from "@spinjs/runtime";`,
+    `import { runAction, on, bindAttr, bindText, classOf, bindFor, bindIf, bindActionProps, bindSpread, placeSlot, signal, effect } from "@spinjs/runtime";`,
     `export function create(actions, values, _host) {`,
     `  const parts = [];`,
     `  const frag = document.createDocumentFragment();`,

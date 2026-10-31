@@ -1,3 +1,4 @@
+import type { ClassDoc } from "./example.ts";
 /**
  * Prose examples — the markup a consumer writes, beside the rule that
  * styles it.
@@ -26,6 +27,56 @@ export interface ProseExample {
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export const PROSE_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".prose",
+    kind: "Component",
+    description: "Long-form reading container: a 65ch measure with flush edges and document furniture.",
+  },
+  {
+    name: ".prose > :first-child",
+    kind: "Behavior",
+    description: "Drops the leading block margin so the first block sits flush with the container.",
+  },
+  {
+    name: ".prose > :last-child",
+    kind: "Behavior",
+    description: "Drops the trailing block margin so the last block sits flush with the container.",
+  },
+];
+
+export const TYPOGRAPHY_CLASSES: readonly ClassDoc[] = [
+  { name: "<a>", kind: "Component", description: "Link: themed ink and underline on hover." },
+  { name: "<abbr>", kind: "Component", description: "Abbreviation: dotted underline signaling an expansion." },
+  { name: "<b>", kind: "Component", description: "Bold run: heavier weight without semantic emphasis." },
+  { name: "<blockquote>", kind: "Component", description: "Quotation: inset with a leading rule." },
+  { name: "<code>", kind: "Component", description: "Inline code: monospace face at the code size." },
+  { name: "<dd>", kind: "Component", description: "Description detail: indented under its term." },
+  { name: "<del>", kind: "Component", description: "Deleted run: struck-through." },
+  { name: "<dl>", kind: "Component", description: "Description list: term/detail pairs." },
+  { name: "<dt>", kind: "Component", description: "Description term: bolded label." },
+  { name: "<figcaption>", kind: "Component", description: "Figure caption: small muted line." },
+  { name: "<figure>", kind: "Component", description: "Figure: spaced block with caption." },
+  { name: "<h1>", kind: "Component", description: "Heading level 1: largest scale step." },
+  { name: "<h2>", kind: "Component", description: "Heading level 2." },
+  { name: "<h3>", kind: "Component", description: "Heading level 3." },
+  { name: "<h4>", kind: "Component", description: "Heading level 4." },
+  { name: "<h5>", kind: "Component", description: "Heading level 5." },
+  { name: "<h6>", kind: "Component", description: "Heading level 6: smallest scale step." },
+  { name: "<ins>", kind: "Component", description: "Inserted run: underlined." },
+  { name: "<li>", kind: "Component", description: "List item: spaced row with marker." },
+  { name: "<mark>", kind: "Component", description: "Highlighted run." },
+  { name: "<ol>", kind: "Component", description: "Ordered list: numbered markers." },
+  { name: "<p>", kind: "Component", description: "Paragraph: spaced block of body copy." },
+  { name: "<pre>", kind: "Component", description: "Preformatted block: code chrome." },
+  { name: "<samp>", kind: "Component", description: "Sample output: monospace." },
+  { name: "<small>", kind: "Component", description: "Small text: smaller size, muted." },
+  { name: "<strong>", kind: "Component", description: "Strong emphasis: heavier weight." },
+  { name: "<sub>", kind: "Component", description: "Subscript: smaller, lowered." },
+  { name: "<sup>", kind: "Component", description: "Superscript: smaller, raised." },
+  { name: "<ul>", kind: "Component", description: "Unordered list: bulleted markers." },
+];
 
 export const proseFixtureNote =
   "The document column: a `<prose>` states nothing about type — it adds the furniture of a long-form read: the quotation's inset, the media's box, the code block's chrome, the marks.";
@@ -67,7 +118,7 @@ export const TYPOGRAPHY_EXAMPLES: readonly ProseExample[] = [
   {
     name: "A figure in a page",
     html: `<figure>
-            <img src="chart.png" alt="Latency by region over 24 hours" />
+            <pre><code>eu-west-1   p95: 42ms\nus-east-2   p95: 58ms</code></pre>
             <figcaption>p95 latency by region, last 24 hours</figcaption>
           </figure>`,
   },
@@ -86,7 +137,7 @@ export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
     html: `<prose>
           <blockquote>The canary looked clean for ten minutes, which is exactly how long the last failure took.<footer>Tomas Berg, release manager</footer></blockquote>
           <figure>
-            <img src="chart.png" alt="Latency by region over 24 hours" />
+            <pre><code>eu-west-1   p95: 42ms\nus-east-2   p95: 58ms</code></pre>
             <figcaption>p95 latency by region, last 24 hours</figcaption>
           </figure>
           <pre><code>deploy status --service checkout-api</code></pre>

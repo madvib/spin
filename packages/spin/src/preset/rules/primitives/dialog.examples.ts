@@ -11,6 +11,8 @@
  * package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
+
 export interface DialogExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -38,6 +40,29 @@ const close =
 export const dialogFixtureNote =
   "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
+export const DIALOG_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<dialog>",
+    kind: "Component",
+    description: "Modal panel; centred card capped to the viewport, scrolling inside itself",
+  },
+  {
+    name: "<header>",
+    kind: "Part",
+    description: "Title row; heading grows while the close control pins to the panel corner",
+  },
+  {
+    name: "<footer>",
+    kind: "Part",
+    description: "Actions row; wraps right-aligned so narrow panels keep their way out",
+  },
+  {
+    name: "::backdrop",
+    kind: "Behavior",
+    description: "Themed scrim behind the top-layer panel; a neutral veil when the theme states none",
+  },
+];
+
 /**
  * `data-open="id"` names the dialog a row opens; a native dialog only opens
  * from `showModal()`, so the fixture ships the line that calls it.
@@ -47,7 +72,7 @@ export const dialogOnLoad =
 
 export const DIALOG_EXAMPLES: readonly DialogExample[] = [
   {
-    name: "Modal",
+    name: "Destructive confirm",
     html: row(
       `          <button data-open="confirm">Roll back</button>
           <dialog id="confirm">
@@ -64,22 +89,22 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
     ),
   },
   {
-    name: "Without a footer",
+    name: "Service readme",
     html: row(
-      `          <button data-open="info">Details</button>
+      `          <button class="secondary" data-open="info">About checkout-api</button>
           <dialog id="info">
             <header>
               <h2>About checkout-api</h2>
               ${close}
             </header>
-            <p>The service was created on 15 March 2024 and last deployed on 19 October 2026 at 09:14 UTC.</p>
+            <p>Created 15 March 2024 · last deployed 19 October 2026 at 09:14 UTC by Tomas Berg. Owns auth, carts, and the tax calculator.</p>
           </dialog>`,
     ),
   },
   {
-    name: "With a form",
+    name: "Rename service",
     html: row(
-      `          <button data-open="rename">Rename service</button>
+      `          <button class="outline" data-open="rename">Rename service</button>
           <dialog id="rename">
             <header>
               <h2>Rename service</h2>

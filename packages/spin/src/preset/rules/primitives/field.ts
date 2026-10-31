@@ -60,8 +60,8 @@ export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   };
 }
 
-/** Every control that renders a field box: the two text-like elements. */
-export const FIELDS = ":is(input, textarea)";
+/** Every control that renders a field box: the text-like elements plus select. */
+export const FIELDS = ":is(input, textarea, select)";
 
 /**
  * The fields that are one line of text and therefore one control height.
@@ -106,7 +106,7 @@ export const BOX_TYPES =
  */
 export function fieldBox(): Rule {
   const rule: Rule = [
-    /^(?:input|textarea)$/,
+    /^(?:input|textarea|select)$/,
     function* (_m, context) {
       const {
         spacing2,
@@ -202,6 +202,7 @@ export function fieldBox(): Rule {
           : {}),
       };
 
+
       // The box types lay out their own contents and must not be padded or
       // stretched like a text field, including the native range control the
       // inline `bare` style does not cover. The selector IS the list of those
@@ -211,6 +212,21 @@ export function fieldBox(): Rule {
         [context.symbols.selector]: () => `${FIELDS}:is(${BOX_TYPES})`,
         padding: "0",
         width: "auto",
+      };
+      // `type=search` keeps the field box. Firefox floors a search field's
+      // line box above `line-height: 1`, so the shared fixed height clips
+      // its text while every sibling fits. Restating the same fixed height
+      // here wins the cascade over the UA's taller search line box.
+      yield {
+        [context.symbols.selector]: () => 'input[type="search"]',
+        "line-height": "1",
+        ...(fontSize !== undefined && spacing2 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            height:
+              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
       };
 
       // The opt-out for chrome-adjacent inline editing: a borderless input or

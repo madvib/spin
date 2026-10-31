@@ -107,12 +107,16 @@ export function face(
   // Every candidate is read, not only the one that answers: a token the rule
   // reaches when the theme is silent is still a token the rule spends, and a
   // manifest that leaves it out understates the contract.
-  let found: string | undefined;
-  for (const candidate of chain) {
-    const value = token(ctx, candidate);
-    if (value !== undefined && found === undefined) found = value;
+  const values = chain.map((candidate) => token(ctx, candidate));
+  let nested: string | undefined;
+  for (let i = values.length - 1; i >= 0; i -= 1) {
+    const value = values[i];
+    if (value === undefined) continue;
+    if (typeof value !== "string" || nested === undefined) nested = `${value}`;
+    else if (value.endsWith(")")) nested = `${value.slice(0, -1)}, ${nested})`;
+    else return value;
   }
-  return found;
+  return nested;
 }
 
 /* ------------------------------------------------ the per-element decisions -- */

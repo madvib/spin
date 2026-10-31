@@ -221,30 +221,8 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "bare",
     inked: false,
     body: () => ({
-      background: "none",
-      border: "none",
-      padding: "0",
-      "box-shadow": "none",
       cursor: "pointer",
-      // The component tokens are part of the paint, so the opt-out takes them
-      // back: without these resets a bare button still reads as its theme's
-      // control — bold, tracked, uppercase in the loud starters — while
-      // looking like chrome.
-      "font-weight": "normal",
-      "text-transform": "none",
-      "letter-spacing": "normal",
-      // The base states a minimum height for the control's touch target;
-      // a bare button is chrome — a link that happens to be a button — and
-      // a 34px floor on every chrome control is a tax the app pays for a
-      // default it did not choose.
       "min-height": "0",
-      // No `font: inherit`, no `color: inherit`: the selector is
-      // `:is(button, [type=…], …).bare`, so both are (0,2,0) and beat any
-      // single class utility — the opt-out would freeze the ink and the face
-      // of the very control that opts out to paint itself. Dropping them
-      // leaves the paint-free base (no fill, no edge, no shadow, no padding)
-      // and lets utilities decide the rest; an author who wants the page's
-      // ink spells `text-text`.
     }),
   },
   secondary: {
@@ -284,10 +262,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: true,
     body: (ctx) => ({
       "background-color": token(ctx, "color.semantic.error"),
-      // The ink on the error fill is `on-semantic-error`: the role the
-      // contract requires and the floor it owes. A second name for the same
-      // ink (`on-danger`) was a second answer to one question, and the
-      // danger button wore one while the contract floored the other.
+      "border-color": token(ctx, "color.semantic.error"),
       color: token(ctx, "color.on-semantic-error"),
     }),
   },
@@ -419,16 +394,9 @@ const VARIANT_HOVER: Record<string, {
     }),
   },
   bare: {
-    // The base's hover spends the theme's lift — the button's movement, and
-    // part of its component tokens the same way the shadow is. The opt-out
-    // takes those tokens back with the paint: chrome around a control does not
-    // move when it is pointed at, and a bare button that hops is a link
-    // wearing a button's gesture.
     selector: `${BUTTON}.bare:hover${ALIVE}:not([aria-busy="true"])`,
     body: () => ({
       "box-shadow": "none",
-      background: "none",
-      border: "none",
       transform: "none",
     }),
   },
@@ -521,8 +489,8 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               ...BASE_COMPONENT_STEPS,
             ),
           ),
-          ...(borderWidth !== undefined && onPrimary !== undefined
-            ? ([["border", `${borderWidth} solid ${onPrimary}`]] as Entry[])
+          ...(borderWidth !== undefined && primary !== undefined
+            ? ([["border", `${borderWidth} solid ${primary}`]] as Entry[])
             : []),
           ["background-color", primary],
           ["color", onPrimary],
@@ -713,6 +681,31 @@ export function buttonRules(roots: readonly string[]): Rule[] {
             [ctx.symbols.selector]: () => variantSelector(def),
             ...def.body(ctx),
           };
+          // The paint and voice reset live one selector lighter than the
+          // variant: at `:is(button, …).bare` (0,2,0) they would beat every
+          // single-class utility, freezing the fill, edge, ink and face of
+          // the control that opts out to paint itself. Here they beat the
+          // base by source order and lose to utilities the same way.
+          if (variant === "bare") {
+            yield {
+              [ctx.symbols.selector]: () => `.bare, [variant~="bare"]`,
+              background: "transparent",
+              // A reset that leaves the base's edge and rounding in place is
+              // not a reset: a bare control that recolors its edge would
+              // inherit a 1px rounded rect it never asked for. Zero both;
+              // utilities that want an edge state their own width and shape.
+              "border-width": "0",
+              "border-color": "transparent",
+              "border-radius": "0",
+              "box-shadow": "none",
+              color: "inherit",
+              cursor: "pointer",
+              "min-height": "0",
+              "font-weight": "normal",
+              "text-transform": "none",
+              "letter-spacing": "normal",
+            };
+          }
           // A dead variant wears the posture: the same fill and the same ink
           // whatever it was. The rule is its own rather than the base's,
           // because a variant's own ink is as specific as the base's dead
@@ -792,7 +785,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
             `${GROUP} > button[aria-pressed="true"]`,
           "background-color": token(ctx, "color.primary"),
           color: token(ctx, "color.on-primary"),
-          "border-color": token(ctx, "color.on-primary"),
+          "border-color": token(ctx, "color.primary"),
           "z-index": 1,
         };
       },

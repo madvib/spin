@@ -137,7 +137,7 @@ test("a focused field paints the ring as an outline, and its edge takes the ring
   const css = await sheetFor('<input type="text">');
   const focused = declarationsFor(
     css,
-    ":is(input, textarea):focus-visible",
+    ":is(input, textarea, select):focus-visible",
   );
   deepStrictEqual(focused["outline"], RING.outline, "the ring is an outline");
   deepStrictEqual(
@@ -289,7 +289,7 @@ test("a pointer that lands on a control leaves no ring", async () => {
   const css = await sheetFor('<input type="text"><button>Deploy</button>');
   const field = declarationsFor(
     css,
-    ":is(input, textarea):focus:not(:focus-visible)",
+    ":is(input, textarea, select):focus:not(:focus-visible)",
   );
   deepStrictEqual(field["outline"], "none", "the field's own ring goes");
   const button = declarationsFor(
@@ -310,7 +310,7 @@ test("the ring is painted for engines without :focus-visible", async () => {
   );
   const fallback = declarationsFor(
     css,
-    ":is(input, textarea):focus",
+    ":is(input, textarea, select):focus",
   );
   deepStrictEqual(
     fallback["outline"],

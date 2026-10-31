@@ -9,6 +9,8 @@
  * catalog; the self-resolution test fails the suite if an example demonstrates
  * what the package cannot do.
  */
+import type { ClassDoc } from "./example.ts";
+
 
 export interface TableExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -19,6 +21,28 @@ export interface TableExample {
 
 export const tableFixtureNote =
   "A document, not a spreadsheet: figures align on the digit, cells are separated by a rule. `striped` is the only class.";
+export const TABLE_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<table>",
+    kind: "Component",
+    description: "Full-width document table; tabular figures, collapsed row rules, scrolling container",
+  },
+  {
+    name: "<caption>",
+    kind: "Part",
+    description: "Table title; muted small type above the header row",
+  },
+  {
+    name: "<th>",
+    kind: "Part",
+    description: "Header cell; semibold sticky header that stays put while the body scrolls",
+  },
+  {
+    name: ".striped",
+    kind: "Modifier",
+    description: "Zebra fill on every other body row for long tables",
+  },
+];
 
 export const TABLE_EXAMPLES: readonly TableExample[] = [
   {
@@ -34,10 +58,10 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
             </tr>
           </thead>
           <tbody>
-            <tr><td>checkout-api</td><td>128</td><td>214</td><td>+12%</td></tr>
-            <tr><td>payments-worker</td><td>96</td><td>198</td><td>+4%</td></tr>
-            <tr><td>search-indexer</td><td>61</td><td>176</td><td>-3%</td></tr>
-            <tr><td>webhooks-relay</td><td>24</td><td>203</td><td>+21%</td></tr>
+            <tr><td>checkout-api</td><td>128</td><td>214</td><td><badge variant="success">+12%</badge></td></tr>
+            <tr><td>payments-worker</td><td>96</td><td>198</td><td><badge variant="success">+4%</badge></td></tr>
+            <tr><td>search-indexer</td><td>61</td><td>176</td><td><badge variant="danger">-3%</badge></td></tr>
+            <tr><td>webhooks-relay</td><td>24</td><td>203</td><td><badge variant="warning">+21%</badge></td></tr>
           </tbody>
         </table>`,
   },

@@ -1,8 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
-import { avatarGroupRules } from "./avatar-group.ts";
-import { avatarRules } from "./avatar.ts";
 import { badgeRules } from "./badge.ts";
 import { breadcrumbsRules } from "./breadcrumbs.ts";
 import { buttonRules } from "./button.ts";
@@ -13,19 +11,20 @@ import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
 import { fieldBox } from "./field.ts";
 import { fieldsetRules } from "./fieldset.ts";
-import { groupRules } from "./group.ts";
 import { joinRules } from "./join.ts";
 import { hrRules } from "./hr.ts";
 import { kbdRules } from "./kbd.ts";
 import { labelRules } from "./label.ts";
 import { meterRules } from "./meter.ts";
-import { modeRules } from "./mode.ts";
+import { panelRules } from "./panel.ts";
 import { progressRules } from "./progress.ts";
-import { radioRules } from "./radio.ts";
 import { proseRules } from "./prose.ts";
-import { skeletonRules } from "./skeleton.ts";
+import { radioRules } from "./radio.ts";
+import { rangeRules } from "./range.ts";
 import { statRules } from "./stat.ts";
+import { swatchRules } from "./swatch.ts";
 import { tableRules } from "./table.ts";
+import { tooltipRules } from "./tooltip.ts";
 import { textareaRules } from "./textarea.ts";
 
 /**
@@ -54,8 +53,6 @@ export function primitiveRules(
     // because they are one box with two contents.
     ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
-    ...avatarGroupRules(roots, mode),
-    ...avatarRules(roots, mode),
     ...alertRules(roots, mode),
     ...badgeRules(roots, mode),
     ...breadcrumbsRules(roots, mode),
@@ -67,17 +64,18 @@ export function primitiveRules(
     ...fieldsetRules(roots, mode),
     ...progressRules(roots, mode),
     ...proseRules(roots, mode),
-    ...groupRules(roots),
     ...joinRules(roots, mode),
     ...hrRules(roots, mode),
     ...kbdRules(roots, mode),
     ...labelRules(roots, mode),
-    ...modeRules(roots, mode),
     ...meterRules(roots, mode),
-    ...skeletonRules(roots, mode),
+    ...panelRules(roots, mode),
     ...statRules(roots, mode),
+    ...swatchRules(roots, mode),
     ...tableRules(roots, mode),
     ...textareaRules(roots),
     ...radioRules(roots),
+    ...rangeRules(roots),
+    ...tooltipRules(roots, mode),
   ];
 }

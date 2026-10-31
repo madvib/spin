@@ -15,7 +15,7 @@
  * anything.
  */
 
-import { generateThemeCss } from "../theme/index.ts";
+import { generateThemeCss, themeModes } from "../theme/index.ts";
 import type { TokenTree } from "../theme/index.ts";
 import { documentDefaults, fontFaces, readFonts } from "../theme/base/index.ts";
 import type { FontResult, PreflightProvider } from "../theme/base/index.ts";
@@ -40,6 +40,11 @@ import type { ThemeDocument } from "./index.ts";
 const RESET_CSS =
   "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
 
+// The `hidden` attribute hides, full stop. Every primitive states `display`,
+// and a utility can too — both beat the UA stylesheet, so without this a
+// machine that hides its trigger renders it anyway. `!important` is the
+// whole point: no display declaration outranks an explicit hide.
+const HIDDEN_CSS = "[hidden] { display: none !important; }";
 /**
  * The motion floor, applied once rather than copied into every component that
  * animates. A component that needs to do more than stop — a busy spinner that
@@ -134,6 +139,12 @@ function assemble(
       getCSS: () => RESET_CSS,
     },
     {
+      name: "reset-hidden",
+      layer: "reset",
+      order: LAYER.reset,
+      getCSS: () => HIDDEN_CSS,
+    },
+    {
       name: "theme/motion-policy",
       layer: "theme",
       order: LAYER.theme,
@@ -143,14 +154,20 @@ function assemble(
       name: "theme/variables",
       layer: "theme",
       order: LAYER.theme,
-      getCSS: () =>
-        generateThemeCss(input.trees, {
+      getCSS: () => {
+        const modes: Record<string, readonly ("light" | "dark")[]> = {};
+        for (const [name, doc] of Object.entries(input.documents)) {
+          modes[name] = themeModes(doc);
+        }
+        return generateThemeCss(input.trees, {
           // The first theme is the one the app boots with, so its custom
           // properties are also written at `:root` — where `body {}` can
           // read them. Without it an app's base type silently falls back to
           // the browser default.
           rootTheme: Object.keys(input.trees)[0],
-        }),
+          modes,
+        });
+      },
     },
     ...base,
     // Motion is unconditional: a component that names a keyframe must never

@@ -20,6 +20,11 @@ const STRUCTURAL: Record<string, true> = {
   "items-center": true,
   "items-start": true,
   "gap-2": true,
+  "grow": true,
+  "w-full": true,
+  "w-3/4": true,
+  "h-36": true,
+  "max-w-sm": true,
 };
 
 const isKnown = (cls: string, known: Set<string>): boolean =>

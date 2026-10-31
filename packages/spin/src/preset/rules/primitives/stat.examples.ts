@@ -9,6 +9,8 @@
  * own catalog; the self-resolution test fails the suite if an example
  * demonstrates what the package cannot do.
  */
+import type { ClassDoc } from "./example.ts";
+
 
 export interface StatExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -20,12 +22,39 @@ export interface StatExample {
 export const statFixtureNote =
   "A labelled number: title, value and description as part classes on a `stat` container. A row of them is a `stat-row`, and a row wraps.";
 
+export const STAT_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".stat",
+    kind: "Component",
+    description: "Labelled number container; flex column with a gap between the parts",
+  },
+  {
+    name: ".stat-row",
+    kind: "Modifier",
+    description: "Wrapping row of stats aligned on the shared top edge",
+  },
+  {
+    name: ".stat-title",
+    kind: "Part",
+    description: "Label above the number; small muted semibold with wide tracking",
+  },
+  {
+    name: ".stat-value",
+    kind: "Part",
+    description: "The number itself; largest type stat carries, set in mono",
+  },
+  {
+    name: ".stat-desc",
+    kind: "Part",
+    description: "Context below the number; small muted supporting line",
+  },
+];
 export const STAT_EXAMPLES: readonly StatExample[] = [
   {
     name: "Stat · title, value, description",
     html: `        <div class="stat">
           <div class="stat-title">Error rate</div>
-          <div class="stat-value">0.42%</div>
+          <div class="stat-value">0.42% <badge variant="success">-0.11%</badge></div>
           <div class="stat-desc">last 24 hours</div>
         </div>`,
   },
@@ -53,7 +82,7 @@ export const STAT_EXAMPLES: readonly StatExample[] = [
     name: "Stat · with a delta",
     html: `        <div class="stat">
           <div class="stat-title">Uptime</div>
-          <div class="stat-value">99.98% <span>+0.02%</span></div>
+          <div class="stat-value">99.98% <badge variant="success">+0.02%</badge></div>
           <div class="stat-desc">vs. last week</div>
         </div>`,
   },

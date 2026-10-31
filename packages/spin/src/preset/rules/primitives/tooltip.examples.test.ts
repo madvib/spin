@@ -1,10 +1,10 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { primitiveVariants } from "./manifest.ts";
-import { AVATAR_GROUP_EXAMPLES } from "./avatar-group.examples.ts";
+import { TOOLTIP_EXAMPLES } from "./tooltip.examples.ts";
 
 /**
- * Examples are dogfood: every class in every avatar-group example resolves
+ * Examples are dogfood: every class in every tooltip example resolves
  * against the preset's own vocabulary (primitive variants + utility names).
  * An example demonstrating what the package cannot do fails here, not in a
  * user's browser.
@@ -20,13 +20,23 @@ const STRUCTURAL: Record<string, true> = {
   "items-center": true,
   "items-start": true,
   "gap-2": true,
+  "relative": true,
+  "inline-flex": true,
+  "bare": true,
+  "peer": true,
+  "start-0": true,
+  "top-full": true,
+  "whitespace-normal": true,
+  "whitespace-nowrap": true,
+  "peer-hover:visible": true,
+  "peer-focus-visible:visible": true,
 };
 
 const isKnown = (cls: string, known: Set<string>): boolean =>
   known.has(cls) || cls.startsWith("i-");
 
-describe("avatar-group examples resolve", () => {
-  for (const example of AVATAR_GROUP_EXAMPLES) {
+describe("tooltip examples resolve", () => {
+  for (const example of TOOLTIP_EXAMPLES) {
     it(example.name, () => {
       const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
@@ -37,7 +47,7 @@ describe("avatar-group examples resolve", () => {
       for (const cls of classes) {
         assert(
           isKnown(cls, known),
-          `avatar-group example "${example.name}" uses unknown class "${cls}"`,
+          `tooltip example "${example.name}" uses unknown class "${cls}"`,
         );
       }
     });

@@ -12,3 +12,22 @@ export interface FixtureExample {
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export type ClassDocKind =
+  | "Component"
+  | "Color"
+  | "Style"
+  | "Size"
+  | "Modifier"
+  | "Part"
+  | "Behavior";
+
+/** One row in a component's class & tag reference table. */
+export interface ClassDoc {
+  /** The tag (`<button>`) or class (`.secondary`) an author writes. */
+  readonly name: string;
+  /** Category badge shown in the Type column. */
+  readonly kind: ClassDocKind;
+  /** Concise description of what this tag or class does. */
+  readonly description: string;
+}

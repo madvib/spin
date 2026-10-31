@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { primitiveComponents } from "../../src/preset/index.ts";
 import { componentExamples } from "../../src/preset/rules/primitives/examples-index.ts";
-import { listedComponents } from "../../src/preset/primitives-procedures.ts";
+import { listedPrimitives as listedComponents } from "../../src/api/components-procedures.ts";
 
 /**
  * The gallery list is a CONTRACT, not a projection of the manifest.

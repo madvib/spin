@@ -1,5 +1,5 @@
 import { createGenerator, type Preset, type UserShortcuts } from "@unocss/core";
-import { createUnplugin } from "unplugin";
+import { createUnplugin, type UnpluginOptions } from "unplugin";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "./catalog.ts";
 import { parseTokens, type ThemeDocument } from "../theme/index.ts";
@@ -9,7 +9,7 @@ import {
   onOverlayChange,
   resolveThemes,
 } from "./session.ts";
-import { spinElementsPlugin, type SpinElementsOptions } from "./elements.ts";
+import { spinComponentsStage } from "./components-compiler.ts";
 
 /**
  * The slice of a dev server the overlay lifecycle touches. Structural, so
@@ -47,8 +47,46 @@ interface Specifier {
   readonly targets: readonly string[];
 }
 
+/**
+ * One alias per `@spinjs/components` subpath, read off its exports map.
+ *
+ * The generic `components/(.+)` entry below maps a subpath to a source
+ * DIRECTORY, which the bundler cannot load — and the filename is not
+ * derivable (`cascade-select` lives in `cascade.presentation.ts`). The
+ * exports map already names every file, so the entries are generated from
+ * it instead of maintained by hand. Missing map (published layout) falls
+ * away, and resolution runs natively — the same rule as every other
+ * table entry.
+ */
+async function componentSubpathEntries(
+  componentsIndex: string,
+): Promise<Specifier[]> {
+  const { readFile } = await import("node:fs/promises");
+  const { dirname, join } = await import("node:path");
+  try {
+    const componentsDir = dirname(dirname(componentsIndex));
+    const manifest = JSON.parse(
+      await readFile(join(componentsDir, "package.json"), "utf8"),
+    ) as { exports?: Record<string, { default?: unknown }> };
+    const out: Specifier[] = [];
+    for (const [key, value] of Object.entries(manifest.exports ?? {})) {
+      if (!key.startsWith("./") || key === "./package.json") continue;
+      const target = value?.default;
+      if (typeof target !== "string" || !target.endsWith(".ts")) continue;
+      const replacement = join(componentsDir, target.slice("./".length));
+      out.push({
+        find: `@spinjs/components/${key.slice("./".length)}`,
+        replacement,
+        targets: [replacement, componentsIndex],
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 async function spinWorkspaceRoot(): Promise<string> {
-  // Walk up until a real workspace manifest is found: a package.json with a
   // non-empty `workspaces` array. Every package in the repo has its own
   // package.json, so "first manifest wins" would stop at the preset itself —
   // and the specifier this walk exists for (the uno pin) lives in the hoisted
@@ -108,9 +146,16 @@ interface SpecTableEntry {
 export async function spinAliases(): Promise<SpecTableEntry[]> {
   const { stat } = await import("node:fs/promises");
   const { fileURLToPath } = await import("node:url");
-  const { join } = await import("node:path");
+  const { dirname, join } = await import("node:path");
+  const { createRequire } = await import("node:module");
   const pkg = (rel: string): string =>
     fileURLToPath(new URL(rel, import.meta.url));
+  // The two sibling workspaces are resolved by package name, never by a
+  // path climb: the packages' source trees move without touching this file,
+  // and bun's isolated `node_modules` is followed rather than assumed.
+  const req = createRequire(import.meta.url);
+  const runtimeSrc = dirname(req.resolve("@spinjs/runtime"));
+  const componentsSrc = dirname(req.resolve("@spinjs/components"));
   const source = {
     spinSrc: pkg("../"),
     themeSrc: pkg("../theme/"),
@@ -120,16 +165,19 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     presetIndex: pkg("./index.ts"),
     apiIndex: pkg("../api/index.ts"),
     projectIndex: pkg("../project/index.ts"),
-    runtimeIndex: pkg("../../../runtime/src/index.ts"),
-    componentsIndex: pkg("../../../components/src/index.ts"),
+    runtimeSrc,
+    runtimeIndex: join(runtimeSrc, "index.ts"),
+    componentsSrc,
+    componentsIndex: join(componentsSrc, "index.ts"),
     diagnosticsIndex: pkg("../diagnostics/index.ts"),
   };
   const unoCore = join(
     await spinWorkspaceRoot(),
     "node_modules/@unocss/core/dist/index.mjs",
   );
+  const componentsEntries = await componentSubpathEntries(source.componentsIndex);
   const table: readonly Specifier[] = [
-    // Canonical: the spin package's own subpaths.
+    ...componentsEntries,
     {
       find: "@spinjs/spin/vite",
       replacement: pkg("./plugin.ts"),
@@ -149,6 +197,11 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spinjs/spin/mcp",
       replacement: pkg("../mcp/main.ts"),
       targets: [source.apiIndex],
+    },
+    {
+      find: "@spinjs/spin/kit/skill",
+      replacement: pkg("../kit/skill.ts"),
+      targets: [pkg("../kit/skill.ts")],
     },
     {
       find: "@spinjs/spin/kit",
@@ -248,27 +301,27 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     },
     {
       find: "@spinjs/components/controller",
-      replacement: pkg("../../../components/src/controller.ts"),
+      replacement: join(source.componentsSrc, "controller.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: "@spinjs/components/solid",
-      replacement: pkg("../../../components/src/solid/solid.ts"),
+      replacement: join(source.componentsSrc, "solid/solid.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: "@spinjs/components/react",
-      replacement: pkg("../../../components/src/react/react.ts"),
+      replacement: join(source.componentsSrc, "react/react.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: "@spinjs/components/spin-element",
-      replacement: pkg("../../../components/src/spin-element.ts"),
+      replacement: join(source.componentsSrc, "spin-element.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: /^@spinjs\/components\/(.+)$/,
-      replacement: `${pkg("../../../components/src/")}$1`,
+      replacement: `${source.componentsSrc}/$1`,
       targets: [source.componentsIndex],
     },
     {
@@ -278,32 +331,32 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     },
     {
       find: "@spinjs/runtime/plugin/elements",
-      replacement: pkg("./elements.ts"),
+      replacement: pkg("./components-compiler.ts"),
       targets: [source.presetIndex],
     },
     {
       find: "@spinjs/runtime/props",
-      replacement: pkg("../../../runtime/src/props.ts"),
+      replacement: join(source.runtimeSrc, "props.ts"),
       targets: [source.runtimeIndex],
     },
     {
       find: "@spinjs/runtime/fsm",
-      replacement: pkg("../../../runtime/src/machine/fsm/machine.ts"),
+      replacement: join(source.runtimeSrc, "machine/fsm/machine.ts"),
       targets: [source.runtimeIndex],
     },
     {
       find: "@spinjs/runtime/load",
-      replacement: pkg("../../../runtime/src/directives/load.ts"),
+      replacement: join(source.runtimeSrc, "directives/load.ts"),
       targets: [source.runtimeIndex],
     },
     {
       find: "@spinjs/runtime/actions",
-      replacement: pkg("../../../runtime/src/actions/index.ts"),
+      replacement: join(source.runtimeSrc, "actions/index.ts"),
       targets: [source.runtimeIndex],
     },
     {
       find: /^@spinjs\/runtime\/(.+)$/,
-      replacement: `${pkg("../../../runtime/src/")}$1`,
+      replacement: `${source.runtimeSrc}/$1`,
       targets: [source.runtimeIndex],
     },
     {
@@ -313,17 +366,17 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
     },
     {
       find: "@spinjs/hooks/solid",
-      replacement: pkg("../../../components/src/solid/solid.ts"),
+      replacement: join(source.componentsSrc, "solid/solid.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: "@spinjs/hooks/react",
-      replacement: pkg("../../../components/src/react/react.ts"),
+      replacement: join(source.componentsSrc, "react/react.ts"),
       targets: [source.componentsIndex],
     },
     {
       find: "@spinjs/hooks",
-      replacement: pkg("../../../components/src/spin-element.ts"),
+      replacement: join(source.componentsSrc, "spin-element.ts"),
       targets: [source.componentsIndex],
     },
     {
@@ -432,8 +485,23 @@ export interface SpinPluginOptions {
    * the studio over the studio. The studio is the tool, not its own target.
    */
   readonly launcher?: boolean;
-  /** `.html → define()` compilation. Off unless `elements` is set. */
-  readonly elements?: SpinElementsOptions | false;
+  /**
+   * Project directory holding theme documents, resolved against the
+   * project root. Default `"spin"`. A package specifier names a shared
+   * package's tree instead of a local directory.
+   */
+  readonly themesDir?: string;
+  /**
+   * Project directory holding user-authored `.html` components, resolved
+   * against the project root. Default `"lib/components"`. A package
+   * specifier names a shared package's tree instead of a local directory.
+   */
+  readonly componentsDir?: string;
+  /**
+   * Custom-element prefix for files under `componentsDir`. Defaults to the
+   * sanitized project `package.json` name, else `"app"`.
+   */
+  readonly prefix?: string;
 }
 
 /**
@@ -467,31 +535,43 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * content, and any extra presets such as icons.
  */
 /**
- * Every `spin/*.json` at the root, parsed.
+ * Every theme document the project's directory holds, parsed.
  *
  * A file that doesn't parse is skipped rather than thrown on: a half
  * written theme in an editor would otherwise break the whole stylesheet,
- * and one bad theme should not cost the app its other themes.
+ * and one bad theme should not cost the app its other themes. The
+ * directory is the configured one — a local path or a package
+ * specifier — and a specifier naming one file serves that file alone.
  */
-async function themesFromDisk(
+export async function themesFromDisk(
   root: string,
+  themesDir = "spin",
 ): Promise<Record<string, ThemeDocument>> {
   const { readdir, readFile } = await import("node:fs/promises");
-  const { join } = await import("node:path");
-  let names: string[];
-  try {
-    names = (await readdir(join(root, "spin"))).filter((name) =>
-      name.endsWith(".json")
-    );
-  } catch {
-    return {};
+  const { basename, join } = await import("node:path");
+  const { resolveProjectDir } = await import("../project/resolve-dir.ts");
+  const resolved = await resolveProjectDir(root, themesDir, "themes");
+  const pairs: [string, string][] = [];
+  if (resolved.file) {
+    const stem = basename(resolved.path, ".json");
+    if (resolved.path.endsWith(".json")) pairs.push([stem, resolved.path]);
+  } else {
+    let names: string[];
+    try {
+      names = (await readdir(resolved.path)).filter((name) =>
+        name.endsWith(".json")
+      );
+    } catch {
+      return {};
+    }
+    for (const name of names) {
+      pairs.push([name.slice(0, -".json".length), join(resolved.path, name)]);
+    }
   }
   const themes: Record<string, ThemeDocument> = {};
-  for (const name of names) {
+  for (const [stem, file] of pairs) {
     try {
-      themes[name.slice(0, -".json".length)] = JSON.parse(
-        await readFile(join(root, "spin", name), "utf8"),
-      );
+      themes[stem] = JSON.parse(await readFile(file, "utf8"));
     } catch {
       // Skipped: see above.
     }
@@ -514,7 +594,12 @@ export function projectThemes(
   return { ...starterThemes, ...overrides };
 }
 
-const spinMain = createUnplugin<SpinPluginOptions | undefined, false>((options = {}) => {
+type StylesheetStage = UnpluginOptions & {
+  /** Vite dev-server lifecycle: unplugin forwards this root hook to vite untouched. */
+  configureServer?: (server: DevServer) => void;
+};
+
+function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
   // `configResolved` sets this before anything generates; the default only
   // covers non-vite hosts.
   let root = process.cwd();
@@ -527,17 +612,45 @@ const spinMain = createUnplugin<SpinPluginOptions | undefined, false>((options =
 
   async function generate(): Promise<string> {
     // No `themes` option means the project's own: the shipped starters,
-    // forked by `spin/*.json` at the root. Reading disk on every generate is
-    // cheap — a handful of small files — and means a theme forked while the
-    // server is running is live on the next generate rather than needing a
-    // restart.
-    const themes = options.themes ?? projectThemes(await themesFromDisk(root));
+    // forked by the configured directory at the root. Reading disk on
+    // every generate is cheap — a handful of small files — and means a
+    // theme forked while the server is running is live on the next
+    // generate rather than needing a restart.
+    const themes = options.themes ??
+      projectThemes(await themesFromDisk(root, options.themesDir));
     noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens
     // whose utilities must resolve even though no file changed.
+    const componentsDir = options.componentsDir ?? "lib/components";
+    const content = options.content ?? {};
+    // The toolchain's own sources are content in every app: example modules
+    // carry the glyph names and utilities the example markup spends, the
+    // kit's components carry the chrome they render, and the machine example
+    // recipes carry their own utilities. They resolve from this file and the
+    // installed components package, so no app spells the workspace geometry.
+    const { fileURLToPath } = await import("node:url");
+    const { createRequire } = await import("node:module");
+    const { dirname } = await import("node:path");
+    const own = dirname(fileURLToPath(import.meta.url));
+    const machines = dirname(
+      createRequire(import.meta.url).resolve("@spinjs/components"),
+    );
+    const internal = [
+      `${own}/rules/primitives/*.examples.ts`,
+      `${own}/rules/primitives/categories.ts`,
+      `${dirname(own)}/kit/**/*.{tsx,ts}`,
+      `${machines}/*/examples/*.html`,
+      `${machines}/index.ts`,
+    ];
+    const filesystem = [
+      ...internal,
+      ...(content.filesystem ?? []),
+      `${componentsDir}/**/*.{html,ts,tsx}`,
+    ];
+    const include = [...(content.pipeline?.include ?? []), /\.html($|\?)/];
     cachedSources ??= joinContent(
-      await scanContent(options.content ?? {}, root),
+      await scanContent({ ...content, filesystem, pipeline: { ...content.pipeline, include } }, root),
     );
     const safelist = catalogUtilities(resolveThemes(themes));
     // Static: index.ts never imports plugin.ts, so this edge runs one way —
@@ -572,8 +685,21 @@ const spinMain = createUnplugin<SpinPluginOptions | undefined, false>((options =
       // dev server able to read the workspace and the two virtual URLs
       // the stylesheet serves under.
       async config() {
+        const aliases = await spinAliases();
+        // Recipes resolve through the components stage, not the table: an
+        // exact-machine entry would otherwise steer an example recipe
+        // beneath the presentation module. `$1` is the identity the stage
+        // claims — aliases ride ahead of plugin hooks. (The examples
+        // registration deliberately shares the gallery module's specifier:
+        // importing it for its side effect registers, importing names
+        // reads data — one specifier, no second virtual id to keep in
+        // step.)
+        const stage = {
+          find: /^(@spinjs\/components\/.+\.html|lib\/components\/.+\.html)$/,
+          replacement: "$1",
+        };
         return {
-          resolve: { alias: await spinAliases() },
+          resolve: { alias: [stage, ...aliases] },
           server: {
             fs: {
               allow: [
@@ -650,35 +776,24 @@ spinOverlay("${studioBase}/rpc"${
       options.mount?.({ server, root });
     },
   };
-});
+}
 
 /**
  * The single plugin a spin app wires: `spin.vite()`.
  *
- * One call, two stages: the `.html → define()` elements transform runs
+ * One call, two stages: the `.html → define()` components transform runs
  * `pre` (it must claim `.html` before the bundler parses it as a document),
  * and the stylesheet + dev chrome runs `post`. A single plugin object
- * cannot carry two `enforce` phases, so the two unplugin definitions compose
+ * cannot carry two `enforce` phases, so the two unplugin stages compose
  * here — the app still names one plugin, and the phases stay where each
  * stage needs them.
  */
-export const spin = {
-  vite(options?: SpinPluginOptions) {
-    if (options?.elements !== undefined && options.elements !== false) {
-      return [spinElementsPlugin.vite(options.elements), spinMain.vite(options)];
-    }
-    return [spinMain.vite(options)];
-  },
-  rollup(options?: SpinPluginOptions) {
-    return spinMain.rollup(options);
-  },
-  rspack(options?: SpinPluginOptions) {
-    return spinMain.rspack(options);
-  },
-  webpack(options?: SpinPluginOptions) {
-    return spinMain.webpack(options);
-  },
-  esbuild(options?: SpinPluginOptions) {
-    return spinMain.esbuild(options);
-  },
-};
+export const spin = createUnplugin<SpinPluginOptions | undefined, true>(
+  (options = {}) => [
+    spinComponentsStage({
+      componentsDir: options.componentsDir,
+      prefix: options.prefix,
+    }),
+    spinStylesheetStage(options),
+  ],
+);

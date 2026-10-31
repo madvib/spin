@@ -15,7 +15,9 @@ import { PROGRESS_EXAMPLES } from "./progress.examples.ts";
 const STRUCTURAL = new Set([
   "flex",
   "flex-wrap",
+  "flex-col",
   "items-center",
+  "gap-1",
   "gap-2",
 ]);
 

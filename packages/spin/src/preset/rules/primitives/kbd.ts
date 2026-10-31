@@ -17,8 +17,11 @@ function kbdRule(mode: Mode): Rule {
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { border: `${t.borderWidth} solid ${t.border}` }
           : {}),
-        ...(t.borderWidth !== undefined
-          ? { "border-block-end-width": `calc(${t.borderWidth} * 2)` }
+        // The keycap's bottom step is a shadow, not a thicker border: a
+        // doubled block-end border eats the face on chunky-border themes
+        // until the cap reads as a solid brick.
+        ...(t.borderWidth !== undefined && t.border !== undefined
+          ? { "box-shadow": `0 ${t.borderWidth} 0 0 ${t.border}` }
           : {}),
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         ...(t.raised !== undefined ? { "background-color": t.raised } : {}),

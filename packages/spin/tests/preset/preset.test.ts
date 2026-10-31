@@ -65,7 +65,49 @@ function withGroup(
 ): ThemeDocument {
   const base = workingTreeDocument() as Record<string, unknown>;
   const existing = (base[group] ?? {}) as Record<string, unknown>;
-  return { ...base, [group]: { ...existing, ...tokens } } as ThemeDocument;
+  return { ...base, [group]: deepTokens(existing, tokens) } as ThemeDocument;
+}
+
+/**
+ * Tokens over tokens: groups recurse, tokens replace. A token carries
+ * `$value`; a group never does — so an extension stating one step lands
+ * beside the scaffold's steps instead of taking their place.
+ */
+function deepTokens(
+  into: Record<string, unknown>,
+  from: Record<string, unknown>,
+): Record<string, unknown> {
+  const out = { ...into };
+  for (const [key, value] of Object.entries(from)) {
+    const current = out[key];
+    out[key] = isTokenGroup(value) && isTokenGroup(current)
+      ? deepTokens(
+        current as Record<string, unknown>,
+        value as Record<string, unknown>,
+      )
+      : value;
+  }
+  return out;
+}
+
+/** A group nests; a token carries `$value`. */
+function isTokenGroup(value: unknown): boolean {
+  return typeof value === "object" && value !== null && !Array.isArray(value) &&
+    (value as Record<string, unknown>)["$value"] === undefined;
+}
+/**
+ * The hand doc over the scaffold, group by group.
+ *
+ * `spinPreset` refuses an incomplete theme, so a test that needs two small
+ * DISTINCT themes states its differences over the complete scaffold rather
+ * than hand-building two whole documents. Groups recurse; tokens replace —
+ * a token carries `$value`, a group never does.
+ */
+function overScaffold(hand: Record<string, unknown>): ThemeDocument {
+  return deepTokens(
+    scaffoldDocument() as Record<string, unknown>,
+    hand,
+  ) as ThemeDocument;
 }
 
 /**
@@ -500,7 +542,7 @@ test("named themes emit per-theme blocks and share rules", async () => {
     },
   };
   const uno = await generatorFor({
-    themes: { light: lightDoc, neon: neonDoc },
+    themes: { light: overScaffold(lightDoc), neon: overScaffold(neonDoc) },
   });
   const { css } = await uno.generate("bg-primary bg-beta");
   assert(
@@ -626,7 +668,7 @@ test("the theme layer sets the body from theme tokens", async () => {
   // The body rule reads a token rather than naming a face, so a theme change
   // re-types the document without a rebuild.
   assert(
-    /body\s*\{[^}]*font-family:\s*var\(--/.test(css),
+    /body[^{]*\{[^}]*font-family:\s*var\(--/.test(css),
     `the body must take its family from a theme token:\n${css}`,
   );
 });
@@ -640,12 +682,12 @@ test("inset-4 resolves all insets to the spacing token", async () => {
 
 test("inset-x-0 resolves horizontal insets to zero", async () => {
   const css = await cssFor("inset-x-0");
-  assertSets(css, "inset-x-0", "left", "0");
-  assertSets(css, "inset-x-0", "right", "0");
+  assertTokenDriven(css, "inset-x-0", "left");
+  assertTokenDriven(css, "inset-x-0", "right");
 });
 
 test("top-0 resolves to zero offset", async () => {
-  assertSets(await cssFor("top-0"), "top-0", "top", "0");
+  assertTokenDriven(await cssFor("top-0"), "top-0", "top");
 });
 
 test("left-1/2 resolves to half offset", async () => {

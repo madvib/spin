@@ -3,7 +3,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { describeCatalog, scaffoldDocument, spinPreset } from "../../src/preset/index.ts";
-import { parseTokens } from "../../src/theme/index.ts";
+import { BASE_ROLES, parseTokens, scaffoldTheme, treeToJson } from "../../src/theme/index.ts";
 import { claims } from "../../src/preset/utils/claimed.ts";
 
 /**
@@ -52,11 +52,13 @@ test("every utility the catalog names actually generates", async () => {
 });
 
 test("a theme with no scales is described honestly", () => {
-  // The scaffold declares roles and no scales. The families that need a scale
-  // have nothing to describe, so the catalog must not claim them — a reference
-  // listing `p-4` for a theme with no spacing scale would be telling a user to
-  // write a class that does nothing.
-  const parsed = parseTokens(scaffoldDocument());
+  // Roles without scales. The families that need a scale have nothing to
+  // describe, so the catalog must not claim them — a reference listing `p-4`
+  // for a theme with no spacing scale would be telling a user to write a
+  // class that does nothing.
+  const parsed = parseTokens(
+    treeToJson(scaffoldTheme(BASE_ROLES.map((role) => role.path))),
+  );
   if (!parsed.ok) throw new Error(parsed.error);
   const padding = describeCatalog(parsed.tree).find((s) => s.id === "padding");
   deepStrictEqual(padding?.utilities, [], "no spacing scale, nothing to claim");

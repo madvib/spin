@@ -812,6 +812,33 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     icon: "i-lucide-gauge",
     component: [],
   },
+  panel: {
+    tags: ["panel", "panel-list"],
+    variants: [],
+    reads: [
+      "--border-width",
+      "--color-border",
+      "--color-surface",
+      "--color-surface-raised",
+      "--color-text",
+      "--color-text-muted",
+      "--opacity-50",
+      "--radius-lg",
+      "--shadow-lg",
+      "--spacing-1",
+      "--spacing-2",
+    ],
+    scope: {
+      self: "panel",
+      paints: [
+        { tag: "panel", where: "global", owns: ["background", "corner", "edge", "elevation", "ink"] },
+        { tag: "panel-list", where: "global", owns: [] },
+      ],
+    },
+    category: "containers",
+    icon: "i-lucide-panel-top",
+    component: [],
+  },
   mode: {
     tags: [],
     variants: ["button", "mode"],

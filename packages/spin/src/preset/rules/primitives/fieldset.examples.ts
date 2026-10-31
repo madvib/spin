@@ -1,17 +1,5 @@
-/**
- * Fieldset examples — the markup a consumer writes, beside the rule that
- * styles it.
- *
- * A bare `<fieldset>` groups related fields; `disabled` on the fieldset
- * disables all of them at once — the platform does the disabling. The
- * legend reads as the group's name. Grouping semantics come from
- * `role="group"`, not a class: there is no `group` class.
- *
- * The group's own box is drawn by utilities on the element, because spin
- * claims no `fieldset` variant: a class named `group` would displace the
- * `role=group` primitive's rules, and the element selector is the one hook
- * that collides with nothing.
- */
+import type { ClassDoc } from "./example.ts";
+
 export interface FieldsetExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -22,22 +10,52 @@ export interface FieldsetExample {
 export const fieldsetFixtureNote =
   "A fieldset groups related fields and disables them at once; the legend reads as the group's name.";
 
+export const FIELDSET_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<fieldset>",
+    kind: "Component",
+    description: "Grouping box; flex column with the field box's border, radius, and spacing",
+  },
+  {
+    name: "<legend>",
+    kind: "Part",
+    description: "Group name on the border; semibold small type with side padding",
+  },
+  {
+    name: "disabled",
+    kind: "Behavior",
+    description: "Disables every control inside at once; the platform does the disabling",
+  },
+];
+
 export const FIELDSET_EXAMPLES: readonly FieldsetExample[] = [
   {
-    name: "A group",
+    name: "Notification preferences",
     html:
-      `        <fieldset class="flex flex-col gap-2 rounded-md border border-solid border-border p-4">
-          <legend class="px-2 text-sm font-semibold">Release policy</legend>
-          <label><input type="text" placeholder="eu-west-1"><span>Region</span></label>
-          <label><input type="text" placeholder="v4.12.0"><span>Release tag</span></label>
+      `        <fieldset>
+          <legend><i class="i-lucide-bell" aria-hidden="true"></i>Notify me about</legend>
+          <label><input type="checkbox" checked><span>Deploys to eu-west-1</span></label>
+          <label><input type="checkbox"><span>Failed health checks</span></label>
+          <label><input type="checkbox"><span>Weekly changelog</span></label>
         </fieldset>`,
   },
   {
-    name: "Disabled as one",
+    name: "Release channel",
     html:
-      `        <fieldset class="flex flex-col gap-2 rounded-md border border-solid border-border p-4" disabled>
-          <legend class="px-2 text-sm font-semibold">Locked while a deploy runs</legend>
+      `        <fieldset>
+          <legend><i class="i-lucide-rocket" aria-hidden="true"></i>Release channel<badge variant="primary">stable</badge></legend>
+          <label><input type="radio" name="channel" checked><span>Stable · v4.12.0</span></label>
+          <label><input type="radio" name="channel"><span>Beta · v4.12.1-rc2</span></label>
+          <label><input type="radio" name="channel"><span>Nightly</span></label>
+        </fieldset>`,
+  },
+  {
+    name: "Locked while deploying",
+    html:
+      `        <fieldset disabled>
+          <legend><i class="i-lucide-lock" aria-hidden="true"></i>Locked while a deploy runs</legend>
           <label><input type="text" value="checkout-api"><span>Service</span></label>
+          <label><input type="range" value="10"><span>Canary traffic</span></label>
         </fieldset>`,
   },
 ];

@@ -17,7 +17,8 @@ export function skeletonRules(roots: readonly string[], _mode: Mode): Rule[] {
 /** The theme values a skeleton spends, resolved once per rule. */
 function tokens(ctx: ThemeContext | undefined) {
   return {
-    field: token(ctx, "color.field"),
+    well: token(ctx, "color.surface-sunken"),
+    ink: token(ctx, "color.text-muted"),
     radiusSm: token(ctx, "radius.sm"),
     radiusFull: token(ctx, "radius.full"),
     spacing2: token(ctx, "spacing.2"),
@@ -36,19 +37,23 @@ function tokens(ctx: ThemeContext | undefined) {
 /**
  * The block — the placeholder itself.
  *
- * `field`, not `surface-raised`: a placeholder is the inset surface a control
- * takes, the hole the content has not filled yet. A raised block would read
- * as content that already arrived.
+ * The sunken well mixed toward the muted ink, not `field`: a placeholder is
+ * the hole the content has not filled yet, and on the light starters the
+ * field is white on a near-white page — invisible. The mix keeps the block
+ * legible on a tinted surface without minting a new token.
  */
 function block(): Rule {
   return [
     /^skeleton$/,
     function* (_m, ctx) {
       const t = tokens(ctx);
+      const fill = t.well !== undefined && t.ink !== undefined
+        ? `color-mix(in oklab, ${t.well} 88%, ${t.ink})`
+        : t.well;
       yield {
         [ctx.symbols.selector]: () => ".skeleton",
         display: "block",
-        ...(t.field !== undefined ? { "background-color": t.field } : {}),
+        ...(fill !== undefined ? { "background-color": fill } : {}),
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
         // Both halves of the timing come from the motion scale, so a theme
         // without motion has a skeleton that holds still rather than one
@@ -82,6 +87,10 @@ function textLine(): Rule {
       const t = tokens(ctx);
       yield {
         [ctx.symbols.selector]: () => ".skeleton.skeleton-text",
+        width: "100%",
+        // A line with no width paints nothing: the placeholder's width is
+        // the line's own (full measure by default, narrowed by the
+        // consumer's `w-*`), so an unwidthed example still paints.
         ...(t.textSize !== undefined ? { height: t.textSize } : {}),
         ...(t.radiusFull !== undefined
           ? { "border-radius": t.radiusFull }
@@ -89,7 +98,6 @@ function textLine(): Rule {
         ...(t.spacing2 !== undefined ? { "margin-block-end": t.spacing2 } : {}),
       };
     },
-    { layer: "primitives", autocomplete: "skeleton-text" },
   ];
 }
 

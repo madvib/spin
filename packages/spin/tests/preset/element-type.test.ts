@@ -189,7 +189,7 @@ test("a display face that the theme does not name falls back to the body", async
   const result = await generate("<h1>a</h1>", doc);
   deepStrictEqual(
     bodyFor(result, "h1")["font-family"],
-    "var(--font-family-body)",
+    "var(--font-family-body, var(--font-family-sans))",
   );
 });
 

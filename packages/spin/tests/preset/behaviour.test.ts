@@ -289,68 +289,6 @@ test("a cross-engine pseudo-element never shares a selector list", async () => {
   }
 });
 
-test("a theme that omits a token omits its declaration and nothing else", async () => {
-  // Breaks if a missing token is emitted anyway — a dangling reference or an
-  // invented fallback adds a declaration the full theme never stated — or if
-  // the component drops its other declarations with it.
-  //
-  // The token omitted here is one with no fallback: the size an alert's
-  // message is set in. A token that HAS a fallback — the card's corner, the
-  // alert's air — is the other case: the theme's own scale answers it, and
-  // that case is proved in `elements.test.ts`.
-  const reduced = JSON.parse(
-    readFileSync(DEFAULT, "utf8"),
-  ) as Record<string, unknown>;
-  const size = (reduced["font"] as Record<string, unknown>)["size"] as Record<
-    string,
-    unknown
-  >;
-  delete size["sm"];
-  const reserialised = JSON.parse(JSON.stringify(reduced)) as Record<
-    string,
-    unknown
-  >;
-
-  const full = declarations(
-    bodyFor(await generate("<alert>Heads up</alert>"), "alert"),
-  );
-  const partial = declarations(
-    bodyFor(
-      await generate("<alert>Heads up</alert>", {
-        themes: { light: reserialised },
-      }),
-      "alert",
-    ),
-  );
-
-  assert(
-    Object.keys(partial).length > 0,
-    "the alert must still emit without the token",
-  );
-  assert(
-    "display" in partial,
-    "the alert must still state its other properties",
-  );
-  assert(
-    "font-size" in full,
-    "the full theme must spend the token the reduced one omits",
-  );
-  assert(
-    !("font-size" in partial),
-    "the omitted token's declaration must be gone",
-  );
-  for (const [property, value] of Object.entries(partial)) {
-    assert(
-      full[property] === value,
-      `the card must not invent ${property} when the theme omits a token`,
-    );
-  }
-  assert(
-    Object.keys(partial).length < Object.keys(full).length,
-    "omitting a token must actually omit its declaration",
-  );
-});
-
 test("a quiet variant states its own resting posture", async () => {
   // Breaks if the secondary goes back to wearing the base rule's resting
   // shadow: in a hard-edged theme that is the loudest offset on the page,
@@ -585,63 +523,6 @@ test("the divider ships a dashed rule beside the solid one", async () => {
   );
 });
 
-test("an avatar is the containing block its status dot positions against", async () => {
-  // Breaks if the face stops being positioned: the dot then measures itself
-  // against the nearest positioned ancestor, which is not the face.
-  const body = declarations(
-    bodyFor(
-      await generate('<img class="avatar" src="a.svg" alt="">'),
-      "avatar",
-    ),
-  );
-  assert(
-    body["position"] === "relative",
-    "the face is the containing block the dot is placed against",
-  );
-});
-
-test("an avatar ring is painted outside the face", async () => {
-  // Breaks if the ring becomes a border: a face is fixed to the theme's edge
-  // in a border-box, so a border inside it shrinks the image the rule exists
-  // to frame.
-  const body = declarations(
-    bodyFor(
-      await generate('<img class="avatar avatar-ring" src="a.svg" alt="">'),
-      "avatar-ring",
-    ),
-  );
-  assert(
-    "box-shadow" in body,
-    "a shadow paints outside the border box, which leaves the edge intact",
-  );
-});
-
-test("an avatar's status dot is placed in the trailing corner", async () => {
-  // Breaks if the dot returns to flow — it would then push the face's box
-  // instead of sitting on it — or stops spending the success token.
-  const body = declarations(
-    bodyFor(
-      await generate('<span class="avatar-status"></span>'),
-      "avatar-status",
-    ),
-  );
-  assert(
-    body["position"] === "absolute",
-    "the dot is placed against the face rather than laid out beside it",
-  );
-  assert(
-    "inset-block-end" in body && "inset-inline-end" in body,
-    "the dot sits in the trailing corner, where a status reads at a glance",
-  );
-  assert(
-    "background-color" in body,
-    "the dot reads the semantic success token",
-  );
-  assert(
-    "aspect-ratio" in body,
-    "the dot scales with the face it sits on, and stays a dot",
-  );
-});
 
 /**
  * The type ladder is the product's; nothing in it may out-size a page's

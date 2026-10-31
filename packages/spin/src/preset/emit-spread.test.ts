@@ -71,3 +71,14 @@ test("emit binds a class to a state read", () => {
   assert(js.includes(`"class"`));
   assert(js.includes("values.slider.dragging"));
 });
+
+test("emit leaves a static handler's own params unscoped", () => {
+  const ir = parse(
+    `<select on:change={(event) => machine.setPage(event.target.value)}></select>`,
+  );
+  const { js } = emit(ir);
+  assert(
+    js.includes("(event) => values.machine.setPage(event.target.value)"),
+    "the event param stays a param; only machine reads through values",
+  );
+});

@@ -9,6 +9,7 @@
  * the package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
 export interface LabelExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
@@ -22,29 +23,37 @@ ${inner}
         </div>`;
 
 export const labelFixtureNote =
-  "A working label with no class: the control it names is a child, and the label inherits the type beside it.";
+  "A working label with no class: the caption above the control it names.";
+
+export const LABEL_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<label>",
+    kind: "Component",
+    description: "Bare label as a captioned control",
+  },
+];
 
 export const LABEL_EXAMPLES: readonly LabelExample[] = [
   {
     name: "Naming a control",
     html: row(
-      `          <label><input type="text" placeholder="v4.12.0"><span>Release tag</span></label>
-          <label><input type="text" value="checkout-api"><span>Service name</span></label>
-          <label><input type="text" value="payments-worker" disabled><span>Locked by policy</span></label>`,
+      `          <label><span>Release tag</span><input type="text" placeholder="v4.12.0"></label>
+          <label><span>Service name</span><input type="text" value="checkout-api"></label>
+          <label><span>Locked by policy</span><input type="text" value="payments-worker" disabled></label>`,
     ),
   },
   {
     name: "With a select",
     html: row(
-      `          <label><select><option>production</option><option>staging</option></select><span>Target</span></label>
+      `          <label><span>Target</span><select><option>production</option><option>staging</option></select></label>
           <label><select disabled><option>preview</option></select><span>Locked by policy</span></label>`,
     ),
   },
   {
     name: "With a textarea",
     html: row(
-      `          <label><textarea rows="2" placeholder="Why are you rolling back?"></textarea><span>Reason</span></label>
-          <label><textarea rows="2" disabled>Deploy blocked by failing health checks</textarea><span>Locked by policy</span></label>`,
+      `          <label><span>Reason</span><textarea rows="2" placeholder="Why are you rolling back?"></textarea></label>
+          <label><span>Locked by policy</span><textarea rows="2" disabled>Deploy blocked by failing health checks</textarea></label>`,
     ),
   },
 ];

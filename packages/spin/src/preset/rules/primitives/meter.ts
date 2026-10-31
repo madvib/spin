@@ -14,12 +14,9 @@ import { claim, type Mode } from "./shared.ts";
  *
  * The engine gap is the one `progress` has: Chromium paints
  * `::-webkit-meter-*` and ignores `::-moz-*`, Gecko paints the reverse, so
- * both spellings of the fill are stated. Gecko has one bar pseudo where
- * Chromium has three, so its single bar takes the success fill.
- *
- * All of it yields from the one `/^meter$/` rule: uno keeps only the first
- * rule matching a token, so separate rules per pseudo-element would leave
- * every pseudo but the first unstyled.
+ * both spellings of the fill are stated. Gecko qualifies its single bar
+ * pseudo with `:-moz-meter-*` on the element, so each band gets its own
+ * selector chain rather than its own pseudo.
  */
 export function meterRules(roots: readonly string[], mode: Mode): Rule[] {
   if (!roots.includes("meter")) return [];
@@ -31,15 +28,43 @@ function meterRule(mode: Mode): Rule {
   return [
     /^meter$/,
     function* (_m, ctx) {
-      // The element itself: the platform draws the frame, so this spends
-      // nothing but the type the gauge's fallback text is read in.
+      // The element itself: the type the gauge's fallback text is read in,
+      // plus Gecko's trough. Firefox draws the groove on the element box,
+      // not a pseudo, so the element carries the trough paint and drops
+      // native appearance — without it the trough renders the platform's
+      // white on every dark theme. WebKit keeps its native element and
+      // paints the trough on its bar pseudo below.
       yield {
         [ctx.symbols.selector]: () => meter,
+        display: "block",
+        width: "100%",
+        "-moz-appearance": "none",
+        // Gecko's UA sheet paints a light gradient on the element box and
+        // `appearance: none` does not lift it: the trough's theme colour
+        // needs the gradient explicitly gone.
+        "background-image": "none",
+        ...(token(ctx, "spacing.2") !== undefined
+          ? { height: token(ctx, "spacing.2") }
+          : {}),
         ...(token(ctx, "font.family.sans") !== undefined
           ? { "font-family": token(ctx, "font.family.sans") }
           : {}),
         ...(token(ctx, "font.size.sm") !== undefined
           ? { "font-size": token(ctx, "font.size.sm") }
+          : {}),
+        ...(token(ctx, "color.field") !== undefined
+          ? { "background-color": token(ctx, "color.field") }
+          : {}),
+        ...(token(ctx, "border.width") !== undefined &&
+            token(ctx, "color.border") !== undefined
+          ? {
+            border: `${token(ctx, "border.width")} solid ${
+              token(ctx, "color.border")
+            }`,
+          }
+          : {}),
+        ...(token(ctx, "radius.sm") !== undefined
+          ? { "border-radius": token(ctx, "radius.sm") }
           : {}),
       };
 
@@ -96,11 +121,39 @@ function meterRule(mode: Mode): Rule {
         "-webkit-appearance": "none",
       };
 
-      // Gecko's one bar pseudo carries the success fill, its only band.
+      // Gecko's one bar pseudo, qualified by the band the value is in.
+      // Firefox exposes `:-moz-meter-optimum` and friends on the ELEMENT,
+      // so the bar takes the band's colour and the optimum band is the
+      // default a bare gauge reads in.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-moz-meter-bar`,
         ...(token(ctx, "color.semantic.success") !== undefined
           ? { "background-color": token(ctx, "color.semantic.success") }
+          : {}),
+        ...(token(ctx, "radius.sm") !== undefined
+          ? { "border-radius": token(ctx, "radius.sm") }
+          : {}),
+        "-moz-appearance": "none",
+      };
+      yield {
+        [ctx.symbols.selector]: () =>
+          `${meter}:-moz-meter-sub-optimum::-moz-meter-bar`,
+        ...(token(ctx, "color.semantic.warning") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.warning") }
+          : {}),
+        ...(token(ctx, "radius.sm") !== undefined
+          ? { "border-radius": token(ctx, "radius.sm") }
+          : {}),
+        "-moz-appearance": "none",
+      };
+      yield {
+        [ctx.symbols.selector]: () =>
+          `${meter}:-moz-meter-sub-sub-optimum::-moz-meter-bar`,
+        ...(token(ctx, "color.semantic.error") !== undefined
+          ? { "background-color": token(ctx, "color.semantic.error") }
+          : {}),
+        ...(token(ctx, "radius.sm") !== undefined
+          ? { "border-radius": token(ctx, "radius.sm") }
           : {}),
         "-moz-appearance": "none",
       };

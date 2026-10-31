@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { primitiveVariants } from "./manifest.ts";
-import { CONTROL_EXAMPLES } from "./control.examples.ts";
+import { CHECKBOX_EXAMPLES, SWITCH_EXAMPLES } from "./control.examples.ts";
 
 /**
  * Examples are dogfood: every class in every control example resolves against
@@ -25,8 +25,8 @@ const STRUCTURAL: Record<string, true> = {
 const isKnown = (cls: string, known: Set<string>): boolean =>
   known.has(cls) || cls.startsWith("i-");
 
-describe("control examples resolve", () => {
-  for (const example of CONTROL_EXAMPLES) {
+describe("checkbox examples resolve", () => {
+  for (const example of CHECKBOX_EXAMPLES) {
     it(example.name, () => {
       const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
         .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
@@ -37,7 +37,26 @@ describe("control examples resolve", () => {
       for (const cls of classes) {
         assert(
           isKnown(cls, known),
-          `control example "${example.name}" uses unknown class "${cls}"`,
+          `checkbox example "${example.name}" uses unknown class "${cls}"`,
+        );
+      }
+    });
+  }
+});
+
+describe("switch examples resolve", () => {
+  for (const example of SWITCH_EXAMPLES) {
+    it(example.name, () => {
+      const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
+        .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
+      const known = new Set([
+        ...primitiveVariants(),
+        ...Object.keys(STRUCTURAL),
+      ]);
+      for (const cls of classes) {
+        assert(
+          isKnown(cls, known),
+          `switch example "${example.name}" uses unknown class "${cls}"`,
         );
       }
     });

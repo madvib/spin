@@ -17,6 +17,7 @@
  * here resolves against the preset's own catalog; the self-resolution test
  * fails the suite if an example demonstrates what the package cannot do.
  */
+import type { ClassDoc } from "./example.ts";
 
 export interface IconExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -24,6 +25,24 @@ export interface IconExample {
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+export const ICON_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".icon-sm",
+    kind: "Size",
+    description: "Small icon step; font-size from the theme's icon.sm (em-scaled)",
+  },
+  {
+    name: ".icon-md",
+    kind: "Size",
+    description: "Default icon step restated as a class; font-size from the theme's icon.md",
+  },
+  {
+    name: ".icon-lg",
+    kind: "Size",
+    description: "Large icon step; font-size from the theme's icon.lg (em-scaled)",
+  },
+];
+
 
 const row = (inner: string): string =>
   `<div class="flex flex-wrap items-center gap-2">

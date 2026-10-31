@@ -9,6 +9,7 @@
  * package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
 import { sample } from "./sample-copy.ts";
 
 export interface AlertExample {
@@ -17,6 +18,34 @@ export interface AlertExample {
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export const ALERT_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<alert>",
+    kind: "Component",
+    description: "Surface with a strong edge in its tone",
+  },
+  {
+    name: 'role="status"',
+    kind: "Behavior",
+    description: "Advisory edge for notices that need no action",
+  },
+  {
+    name: 'role="alert"',
+    kind: "Behavior",
+    description: "Heavier edge for failures that demand attention",
+  },
+  {
+    name: 'variant="*"',
+    kind: "Color",
+    description: "Tone marks the edge; the surface stays the surface",
+  },
+  {
+    name: 'variant="*-muted"',
+    kind: "Color",
+    description: "Quieter tone that tints the surface instead",
+  },
+];
 
 const row = (inner: string): string =>
   `<div class="flex flex-wrap items-center gap-2">

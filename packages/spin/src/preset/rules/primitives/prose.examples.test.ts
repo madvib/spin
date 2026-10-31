@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { primitiveVariants } from "./manifest.ts";
-import { PROSE_EXAMPLES } from "./prose.examples.ts";
+import { PROSE_DOC_EXAMPLES, PROSE_EXAMPLES, TYPOGRAPHY_EXAMPLES } from "./prose.examples.ts";
 
 /**
  * Examples are dogfood: every class in every prose example resolves against
@@ -22,6 +22,38 @@ const STRUCTURAL = new Set([
 
 const isKnown = (cls: string, known: Set<string>): boolean =>
   known.has(cls) || cls.startsWith("i-");
+
+describe("prose typography examples resolve", () => {
+  for (const example of TYPOGRAPHY_EXAMPLES) {
+    it(example.name, () => {
+      const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
+        .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
+      const known = new Set([...primitiveVariants(), ...STRUCTURAL]);
+      for (const cls of classes) {
+        assert(
+          isKnown(cls, known),
+          `prose example "${example.name}" uses unknown class "${cls}"`,
+        );
+      }
+    });
+  }
+});
+
+describe("prose document examples resolve", () => {
+  for (const example of PROSE_DOC_EXAMPLES) {
+    it(example.name, () => {
+      const classes = [...example.html.matchAll(/class="([^"]*)"/g)]
+        .flatMap((m) => (m[1] as string).split(/\s+/).filter(Boolean));
+      const known = new Set([...primitiveVariants(), ...STRUCTURAL]);
+      for (const cls of classes) {
+        assert(
+          isKnown(cls, known),
+          `prose example "${example.name}" uses unknown class "${cls}"`,
+        );
+      }
+    });
+  }
+});
 
 describe("prose examples resolve", () => {
   for (const example of PROSE_EXAMPLES) {

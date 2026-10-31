@@ -67,6 +67,7 @@ declare module "solid-js" {
       rating: SpinElementAttributes;
       skeleton: SpinElementAttributes;
       stat: SpinElementAttributes;
+      swatch: SpinElementAttributes;
       tooltip: SpinElementAttributes;
     }
   }

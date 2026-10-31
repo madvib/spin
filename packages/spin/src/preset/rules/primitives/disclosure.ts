@@ -109,23 +109,38 @@ function detailsRule(details: string, summary: string): Rule {
           : {}),
         ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
         ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
+      };
+      // The body is inset from the label so the content reads as belonging to
+      // it rather than as a sibling that happens to sit underneath. Only the
+      // sides and bottom carry padding — the summary above owns the top gap,
+      // so opening adds no space above the body, only below the label. Direct
+      // children only: a nested disclosure is itself a card, not body text.
+      yield {
+        [ctx.symbols.selector]: () => `${details} > :not(${summary}):not(${details})`,
         ...(t.spacing2 !== undefined
           ? {
-            "padding-block-start": t.spacing2,
-            "padding-block-end": t.spacing2,
             "padding-inline-start": t.spacing2,
             "padding-inline-end": t.spacing2,
+            "padding-block-end": t.spacing2,
           }
           : {}),
       };
-      // The body is inset from the label so the content reads as belonging to
-      // it rather than as a sibling that happens to sit underneath. The
-      // summary is the only child exempt — it IS the label.
+      // A nested disclosure hangs off the parent's full measure — edge to
+      // edge, like any block child — so the parent's side padding does not
+      // frame it as a pill inside the body.
       yield {
-        [ctx.symbols.selector]: () =>
-          `${details} > :not(${summary}):not(${summary} *)`,
+        [ctx.symbols.selector]: () => `${details} ${details}`,
         ...(t.spacing2 !== undefined
-          ? { "padding-block-start": t.spacing2 }
+          ? {
+            "margin-inline-start": `calc(-1 * ${t.spacing2})`,
+            "margin-inline-end": `calc(-1 * ${t.spacing2})`,
+          }
+          : {}),
+      };
+      yield {
+        [ctx.symbols.selector]: () => `${details} > ${details}:last-child`,
+        ...(t.spacing2 !== undefined
+          ? { "margin-block-end": `calc(-1 * ${t.spacing2})` }
           : {}),
       };
       // The reveal, and the reason a disclosure is not a `<div>`.
@@ -190,17 +205,16 @@ function summaryRule(summary: string, details: string): Rule {
         [ctx.symbols.selector]: () => summary,
         display: "flex",
         // The label's row WRAPS, the way the card's footer and the dialog's
-        // actions row do. The row holds the label and the indicator beside
-        // it, and a row that cannot wrap pushes the indicator out of the
-        // label it belongs to — a chevron that has left its summary is a
-        // disclosure with no state to read. The width a label needs is the
-        // theme's own type scale, so a theme with a wider scale would break
-        // every summary in a narrow column — the row that wraps is what
-        // keeps the label and its indicator together in all of them.
+        // actions row do: a row that cannot wrap pushes the indicator out of
+        // the label it belongs to. The layout contract pins this.
         "flex-wrap": "wrap",
         "align-items": "center",
         ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),
-        ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
+        // The label owns the row's padding — the container carries none — so
+        // the hover fill reaches the card edge instead of floating as an
+        // inset pill inside the card's own padding.
+        ...(t.spacing2 !== undefined ? { padding: t.spacing2 } : {}),
+        ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
         cursor: "pointer",
         // Firefox. The webkit marker is a pseudo-element and needs its own
         // declaration below; there is no spelling that reaches both at once,
@@ -224,11 +238,18 @@ function summaryRule(summary: string, details: string): Rule {
 
       // The row is the control, so pointing at it says so before the press.
       // The fill is the sunken surface — the page's own step below the card —
-      // and it stops at the summary's own corners rather than bleeding to the
-      // surface edge, so the row reads as a row inside the disclosure.
+      // and the label owns the row's padding, so the fill reaches the card
+      // edge instead of floating as an inset pill.
       yield {
         [ctx.symbols.selector]: () => `${summary}:hover`,
         ...(t.sunken !== undefined ? { "background-color": t.sunken } : {}),
+      };
+      // Open: the body hangs below the label, so the label keeps only its
+      // top corners — bottom rounding mid-card would read as a second edge.
+      yield {
+        [ctx.symbols.selector]: () => `${details}[open] > ${summary}`,
+        "border-end-end-radius": "0",
+        "border-end-start-radius": "0",
       };
 
       yield {

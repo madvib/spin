@@ -10,7 +10,66 @@
  * package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
 import { sample } from "./sample-copy.ts";
+
+export const CARD_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<card>",
+    kind: "Component",
+    description: "Raised surface that groups a topic",
+  },
+  {
+    name: "<card-header>",
+    kind: "Part",
+    description: "Top row holding title, description, and action",
+  },
+  {
+    name: "<card-title>",
+    kind: "Part",
+    description: "Name of what the card is about",
+  },
+  {
+    name: "<card-description>",
+    kind: "Part",
+    description: "One-line summary under the title",
+  },
+  {
+    name: "<card-action>",
+    kind: "Part",
+    description: "Control or state pinned to the header's end",
+  },
+  {
+    name: "<card-content>",
+    kind: "Part",
+    description: "Body of the card",
+  },
+  {
+    name: "<card-footer>",
+    kind: "Part",
+    description: "Action row along the bottom edge",
+  },
+  {
+    name: "<card-figure>",
+    kind: "Part",
+    description: "Media band across the top of the card",
+  },
+  {
+    name: ".card-narrow",
+    kind: "Size",
+    description: "Sidebar-width card (24rem)",
+  },
+  {
+    name: ".card-wide",
+    kind: "Size",
+    description: "Main-column card (48rem)",
+  },
+  {
+    name: ".card-ghost",
+    kind: "Style",
+    description: "Drops the chrome; keeps the parts",
+  },
+];
 
 export interface CardExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -116,7 +175,7 @@ export const CARD_EXAMPLES: readonly CardExample[] = [
     html: row(
       `          <card class="card-narrow">
             <card-figure>
-              <img src="https://picsum.photos/400/200" alt="Deploy #4821 in eu-west-1" class="block w-full">
+              <div class="flex h-20 w-full items-center justify-center bg-surface-sunken text-primary"><i class="i-lucide-rocket icon-lg" aria-hidden="true"></i></div>
             </card-figure>
             <card-header>
               <card-title>Deploy #4821</card-title>

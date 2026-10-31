@@ -9,12 +9,105 @@
  * demonstrates what the package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
+
 export interface FieldExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export const INPUT_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<input>",
+    kind: "Component",
+    description: "Text field that carries its own box; the tag is the opt-in",
+  },
+  {
+    name: 'input[type="range" | "submit" | "reset" | "button" | "file" | "image" | "hidden"]',
+    kind: "Behavior",
+    description: "Box types that lay out their own contents: no field padding or stretch",
+  },
+  {
+    name: ".bare",
+    kind: "Behavior",
+    description: "Unstyled reset that drops the box for chrome-adjacent inline editors",
+  },
+  {
+    name: "::placeholder",
+    kind: "Part",
+    description: "Muted placeholder text at full opacity",
+  },
+  {
+    name: ":focus-visible",
+    kind: "Behavior",
+    description: "Focus ring painted as an outline that never changes the field's size",
+  },
+  {
+    name: "[aria-invalid]",
+    kind: "Behavior",
+    description: "Unjudged field: primary border, attention without judgement",
+  },
+  {
+    name: '[aria-invalid="false"]',
+    kind: "Behavior",
+    description: "Passed validation: success border",
+  },
+  {
+    name: '[aria-invalid="true"]',
+    kind: "Behavior",
+    description: "Failed validation: error border",
+  },
+  {
+    name: ":disabled / [aria-disabled=\"true\"]",
+    kind: "Behavior",
+    description: "Disabled posture: theme's disabled fill and ink, not-allowed cursor",
+  },
+];
+
+export const TEXTAREA_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<textarea>",
+    kind: "Component",
+    description: "Multi-line field that wraps and resizes vertically, with a min height",
+  },
+  {
+    name: ".bare",
+    kind: "Behavior",
+    description: "Unstyled reset that drops the box for chrome-adjacent inline editors",
+  },
+  {
+    name: "::placeholder",
+    kind: "Part",
+    description: "Muted placeholder text at full opacity",
+  },
+  {
+    name: ":focus-visible",
+    kind: "Behavior",
+    description: "Focus ring painted as an outline that never changes the field's size",
+  },
+  {
+    name: "[aria-invalid]",
+    kind: "Behavior",
+    description: "Unjudged field: primary border, attention without judgement",
+  },
+  {
+    name: '[aria-invalid="false"]',
+    kind: "Behavior",
+    description: "Passed validation: success border",
+  },
+  {
+    name: '[aria-invalid="true"]',
+    kind: "Behavior",
+    description: "Failed validation: error border",
+  },
+  {
+    name: ":disabled / [aria-disabled=\"true\"]",
+    kind: "Behavior",
+    description: "Disabled posture: theme's disabled fill and ink, not-allowed cursor",
+  },
+];
 
 const row = (inner: string): string =>
   `<div class="flex flex-wrap items-center gap-2">

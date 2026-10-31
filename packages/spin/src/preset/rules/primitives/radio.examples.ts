@@ -8,12 +8,41 @@
  * the suite if an example demonstrates what the package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
+
 export interface RadioExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export const RADIO_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".radio",
+    kind: "Component",
+    description:
+      "Drawn radio control: appearance:none with a border, surface, and ::after dot",
+  },
+  {
+    name: ":checked",
+    kind: "Behavior",
+    description:
+      "Checked takes the tone in the border, keeping the surface so the ring-and-dot reads",
+  },
+  {
+    name: ":focus-visible",
+    kind: "Behavior",
+    description:
+      "Focus ring drawn on the control's own border so a mouse press leaves none",
+  },
+  {
+    name: ":disabled",
+    kind: "Behavior",
+    description:
+      "Disables the control and its dot together, so a dead radio is dead all the way through",
+  },
+];
 
 const row = (inner: string): string =>
   `<div class="flex flex-wrap items-center gap-2">

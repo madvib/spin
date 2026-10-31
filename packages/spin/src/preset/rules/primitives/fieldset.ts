@@ -34,10 +34,10 @@ function fieldsetRule(mode: Mode): Rule {
       const box: Record<string, string | undefined> = {
         display: "flex",
         "flex-direction": "column",
+        // Children fill the measure: a shrink-wrapped label beside a
+        // full-width box reads as content escaping its group.
+        "align-items": "stretch",
       };
-      if (token(ctx, "spacing.2") !== undefined) {
-        Object.assign(box, { gap: token(ctx, "spacing.2") });
-      }
       if (token(ctx, "spacing.4") !== undefined) {
         Object.assign(box, { padding: token(ctx, "spacing.4") });
       }

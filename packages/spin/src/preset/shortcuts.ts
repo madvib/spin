@@ -41,8 +41,6 @@ export const spinShortcuts: UserShortcuts = {
   split: "flex items-center justify-between gap-4",
   /** A cluster that centres its items and its own content. */
   inline: "inline-flex items-center gap-1",
-  /** A raised surface: the theme's fill, edge, corners and air. */
-  panel: "bg-surface-raised border border-border rounded-md p-4",
   /** Overline label: small, tracked, uppercase muted caption. */
   overline: "text-xs font-semibold uppercase tracking-wider text-text-muted",
 };

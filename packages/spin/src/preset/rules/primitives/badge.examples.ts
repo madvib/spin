@@ -9,6 +9,41 @@
  * demonstrates what the package cannot do.
  */
 
+import type { ClassDoc } from "./example.ts";
+
+export const BADGE_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<badge>",
+    kind: "Component",
+    description: "Smallest surface; spends a tone for counts and states",
+  },
+  {
+    name: 'variant="*"',
+    kind: "Color",
+    description: "Tone fills the badge (also as class .badge-*)",
+  },
+  {
+    name: 'variant="*-muted"',
+    kind: "Color",
+    description: "Quieter tone for states that wait",
+  },
+  {
+    name: ".badge-sm",
+    kind: "Size",
+    description: "Compact badge for dense rows",
+  },
+  {
+    name: ".badge-lg",
+    kind: "Size",
+    description: "Roomy badge for standalone counts",
+  },
+  {
+    name: ".badge-close",
+    kind: "Part",
+    description: "Dismiss control inside a badge",
+  },
+];
+
 export interface BadgeExample {
   /** What this example is showing. Rendered as the row's label. */
   readonly name: string;

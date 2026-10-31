@@ -72,7 +72,6 @@ function yieldsFor(
  * is also a control, so its rule lives in the prose family.
  */
 const SPENDERS: Record<string, string> = {
-  avatar: "avatar",
   badge: "badge",
   button: "button",
   checkbox: "checkbox",
@@ -157,7 +156,7 @@ test("a theme that omits an element's token gets the shared scale's answer", asy
   );
 });
 
-test("a theme that omits avatar, icon and badge tokens still dresses them from the shared scales", async () => {
+test("a theme that omits icon and badge tokens still dresses them from the shared scales", async () => {
   // The fallbacks are a contract with the SHARED scales, and the shared scales
   // are every starter's. A fallback that worked in silk and fell through in
   // synthwave would be a component that changes shape with the theme.
@@ -165,19 +164,8 @@ test("a theme that omits avatar, icon and badge tokens still dresses them from t
     const without = structuredClone(
       document as Record<string, unknown>,
     );
-    delete without["avatar"];
     delete without["icon"];
     delete without["badge"];
-
-    const avatar = yieldsFor(
-      await generate('<div class="avatar"></div>', without),
-      "avatar",
-    );
-    deepStrictEqual(
-      avatar.find((y) => "width" in y.body)?.body["width"],
-      "var(--spacing-10)",
-      `${name}: an avatar with no avatar.md token falls back to spacing.10`,
-    );
 
     const icon = yieldsFor(
       await generate('<span class="icon-md"></span>', without),

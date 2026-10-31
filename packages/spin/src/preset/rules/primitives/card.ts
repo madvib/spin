@@ -135,6 +135,13 @@ function cardSurface(card: string): Rule {
   return [
     /^card$/,
     function* (_m, ctx) {
+      if (
+        ctx.rawSelector !== undefined &&
+        ctx.rawSelector !== "card" &&
+        ctx.rawSelector !== ".card"
+      ) {
+        return;
+      }
       const { spacing, radius, borderWidth, border, raised, shadow } =
         cardTokens(ctx);
       yield {

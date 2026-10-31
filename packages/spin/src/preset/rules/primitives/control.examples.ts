@@ -9,6 +9,7 @@
  * so a tick cannot be the platform's blue and a switch cannot be a tinted
  * box.
  */
+import type { ClassDoc } from "./example.ts";
 
 export interface ControlExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -16,6 +17,52 @@ export interface ControlExample {
   /** The markup, exactly as a consumer would write it. */
   readonly html: string;
 }
+
+export const CHECKBOX_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".checkbox",
+    kind: "Component",
+    description: "Self-drawn checkbox; the tick is a clip-path, not a glyph",
+  },
+  {
+    name: ":checked",
+    kind: "Behavior",
+    description: "Draws the tick in via an animating clip-path polygon",
+  },
+  {
+    name: ":focus-visible",
+    kind: "Behavior",
+    description: "Focus ring paint on the control",
+  },
+  {
+    name: ":disabled",
+    kind: "Behavior",
+    description: "Dead posture: no depth, not-allowed cursor",
+  },
+];
+
+export const SWITCH_CLASSES: readonly ClassDoc[] = [
+  {
+    name: ".switch",
+    kind: "Component",
+    description: "Track plus thumb on a grid; the thumb travels on the grid, not a translate",
+  },
+  {
+    name: ":checked",
+    kind: "Behavior",
+    description: "Primary fill and thumb moves to the other end of the track",
+  },
+  {
+    name: ":focus-visible",
+    kind: "Behavior",
+    description: "Focus ring paint on the control",
+  },
+  {
+    name: ":disabled",
+    kind: "Behavior",
+    description: "Dead posture on track and thumb",
+  },
+];
 
 const row = (inner: string): string =>
   `<div class="flex flex-wrap items-center gap-2">

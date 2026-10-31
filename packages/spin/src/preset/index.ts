@@ -73,11 +73,6 @@ export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
 export { overlayContract, overlayRouter } from "./overlay.ts";
 export {
-  listedComponents,
-  primitivesContract,
-  primitivesRouter,
-} from "./primitives-procedures.ts";
-export {
   type CatalogGroupId,
   claimedGroups,
   type Sample,
@@ -104,7 +99,11 @@ export {
   componentExamples,
   examplesFor,
 } from "./rules/primitives/examples-index.ts";
-export type { FixtureExample } from "./rules/primitives/example.ts";
+export type {
+  ClassDoc,
+  ClassDocKind,
+  FixtureExample,
+} from "./rules/primitives/example.ts";
 export {
   type Wind4Exclusion,
   wind4Exclusions,

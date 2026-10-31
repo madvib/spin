@@ -97,6 +97,7 @@ function trailRule(): Rule {
         [ctx.symbols.selector]: () => ".breadcrumbs li",
         display: "inline-flex",
         "align-items": "center",
+        margin: "0",
       };
 
       // The separator, between every item but the first. `::before` on a
@@ -106,12 +107,7 @@ function trailRule(): Rule {
         [ctx.symbols.selector]: () => ".breadcrumbs li + li::before",
         content: '"/"',
         ...(t.muted !== undefined ? { color: t.muted } : {}),
-        ...(t.separatorGap !== undefined
-          ? { "padding-inline-start": t.separatorGap }
-          : {}),
-        ...(t.separatorGap !== undefined
-          ? { "padding-inline-end": t.separatorGap }
-          : {}),
+        ...(t.gap !== undefined ? { "padding-inline-end": t.gap } : {}),
       };
     },
     { layer: "primitives", autocomplete: "breadcrumbs" },

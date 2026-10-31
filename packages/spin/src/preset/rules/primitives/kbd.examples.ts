@@ -7,6 +7,7 @@
  * separate keycaps joined by `+`, and a keycap sits inline beside text or a
  * control without leaving the line box.
  */
+import type { ClassDoc } from "./example.ts";
 
 export interface KbdExample {
   /** What this example is showing. Rendered as the row's label. */
@@ -15,25 +16,43 @@ export interface KbdExample {
   readonly html: string;
 }
 
+export const KBD_CLASSES: readonly ClassDoc[] = [
+  {
+    name: "<kbd>",
+    kind: "Component",
+    description: "Keyboard input: a keycap for a key on the keyboard.",
+  },
+];
+
 export const kbdFixtureNote =
   "A keycap for keyboard input — what to press, not what the computer printed. Combinations are keycaps joined by `+`.";
 
 export const KBD_EXAMPLES: readonly KbdExample[] = [
   {
-    name: "Kbd · single key",
-    html: `<kbd>K</kbd>`,
+    name: "Kbd · single & modifier keys",
+    html: `<div class="flex flex-wrap items-center gap-2">
+  <kbd>⌘</kbd>
+  <kbd>⇧</kbd>
+  <kbd>⌥</kbd>
+  <kbd>⌃</kbd>
+  <kbd>Enter</kbd>
+  <kbd>Esc</kbd>
+</div>`,
   },
   {
     name: "Kbd · combination",
-    html: `<kbd>Ctrl</kbd> + <kbd>Enter</kbd>`,
+    html: `<span><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>`,
   },
   {
     name: "Kbd · inline in prose",
-    html: `<p>Press <kbd>Enter</kbd> to deploy to production.</p>`,
+    html: `<p>Press <kbd>⌘</kbd> + <kbd>K</kbd> to jump to a service, or <kbd>Enter</kbd> to deploy to production.</p>`,
   },
   {
     name: "Kbd · beside a control",
-    html:
-      `<label><kbd>⌘</kbd> <input type="text" placeholder="Search services"></label>`,
+    html: `<label class="flex items-center gap-2">
+  <input type="search" placeholder="Search services" aria-label="Search services">
+  <kbd>⌘</kbd>
+  <kbd>K</kbd>
+</label>`,
   },
 ];

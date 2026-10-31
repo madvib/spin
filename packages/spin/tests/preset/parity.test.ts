@@ -20,19 +20,33 @@ const referenceRoot = `${repo}apps/reference/`;
  */
 type ViteOptions = {
   configResolved?: (config: { root: string; command: string }) => void;
-  resolveId?: (id: string) => string | null;
+  resolveId?: (id: string) => string | null | Promise<string | null>;
   load?: (id: string) => string | null | Promise<string | null>;
 };
+
+/**
+ * The stage that owns the sheet: the one whose `resolveId` claims it.
+ *
+ * `spin.vite()` composes the components-pre and stylesheet-post stages, so
+ * the test drives the one that answers the stylesheet id — not the first
+ * stage, whose async `resolveId` answers a Promise for every id.
+ */
+async function stylesheetStage(
+  stages: readonly ViteOptions[],
+): Promise<ViteOptions> {
+  for (const stage of stages) {
+    if ((await stage.resolveId?.("uno.css")) != null) return stage;
+  }
+  return stages[0]!;
+}
 
 /** The reference app's config, expressed against `spin()` instead of Uno. */
 const PLUGIN_INCLUDE = [
   /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
 ];
 
-function referencePlugin(): ViteOptions {
-  // `spin.vite()` composes the elements-pre and stylesheet-post stages, so
-  // the test drives the stage that owns the sheet: the first whose
-  // `resolveId` claims the stylesheet id.
+async function referencePlugin(): Promise<ViteOptions> {
+  // The test drives the stage that owns the sheet.
   const stages = spin.vite({
     themes: starterThemes,
     presets: [presetIcons({ collections: { lucide } } as never)],
@@ -44,19 +58,19 @@ function referencePlugin(): ViteOptions {
       pipeline: { include: PLUGIN_INCLUDE },
     },
   }) as unknown as ViteOptions[];
-  const options = stages.find((stage) => stage.resolveId?.("uno.css") !== null) ?? stages[0]!;
+  const options = await stylesheetStage(stages);
   options.configResolved?.({ root: referenceRoot, command: "serve" });
   return options;
 }
 
-test("the id the app imports resolves to the plugin's own module", () => {
-  const plugin = referencePlugin();
-  deepStrictEqual(plugin.resolveId!("uno.css"), "/__uno.css");
+test("the id the app imports resolves to the plugin's own module", async () => {
+  const plugin = await referencePlugin();
+  deepStrictEqual(await plugin.resolveId!("uno.css"), "/__uno.css");
 });
 
-test("an id the app does not import is left to someone else", () => {
-  const plugin = referencePlugin();
-  deepStrictEqual(plugin.resolveId!("/src/app.tsx"), null);
+test("an id the app does not import is left to someone else", async () => {
+  const plugin = await referencePlugin();
+  deepStrictEqual(await plugin.resolveId!("/src/app.tsx"), null);
 });
 
 test("a project without themes in config reads spin/*.json from disk", async () => {
@@ -73,14 +87,10 @@ test("a project without themes in config reads spin/*.json from disk", async () 
     `${root}/spin/brand.json`,
     JSON.stringify(doc),
   );
-  const stages = spin.vite({ content: { filesystem: [] } }) as unknown as {
-    configResolved?: (config: { root: string; command: string }) => void;
-    resolveId?: (id: string) => string | null;
-    load?: (id: string) => Promise<string | null>;
-  }[];
-  const plugin = stages.find((stage) => stage.resolveId?.("uno.css") !== null) ?? stages[0]!;
+  const stages = spin.vite({ content: { filesystem: [] } }) as unknown as ViteOptions[];
+  const plugin = await stylesheetStage(stages);
   plugin.configResolved?.({ root, command: "serve" });
-  const css = (await plugin.load!(plugin.resolveId!("uno.css")!)) as string;
+  const css = (await plugin.load!(await plugin.resolveId!("uno.css")!)) as string;
   assert(
     css.includes("--color-primary: #b91c1c"),
     "the disk theme's primary lands in the sheet",
@@ -94,18 +104,18 @@ test("the boot theme's variables are declared at the root", async () => {
   // own base rule falls back to the browser's default font, which is how a
   // studio chrome ends up rendering in Times. The first theme is the one the
   // app boots with, so it is also written at root.
-  const plugin = referencePlugin();
-  const css = (await plugin.load!(plugin.resolveId!("uno.css")!)) as string;
+  const plugin = await referencePlugin();
+  const css = (await plugin.load!(await plugin.resolveId!("uno.css")!)) as string;
   // The root theme's block is a default now (`:where(:root)`), so a theme in
   // force beats it — but it still carries the boot theme's variables for the
   // page as a whole.
-  const root = css.match(/:where\(:root\) \{([^}]*)\}/)?.[1] ?? "";
+  const roots = [...css.matchAll(/:where\(:root\) \{([^}]*)\}/g)].map((m) => m[1] ?? "").join("\n");
   assert(
-    root.includes("--color-primary:"),
+    roots.includes("--color-primary:"),
     "the root block carries the boot theme's variables",
   );
   assert(
-    root.includes("--font-family-sans:"),
+    roots.includes("--font-family-sans:"),
     "which is what lets `body {}` resolve a font-family at all",
   );
 });
