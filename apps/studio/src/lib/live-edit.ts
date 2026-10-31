@@ -311,9 +311,15 @@ function floorIssue(
         continue;
       }
       if (ratio < floor.min) {
-        return `${role} on ${floor.bg} is ${
+        const roleShort = role.startsWith("color.")
+          ? role.slice("color.".length)
+          : role;
+        const bgShort = floor.bg.startsWith("color.")
+          ? floor.bg.slice("color.".length)
+          : floor.bg;
+        return `${roleShort} on ${bgShort} is ${
           ratio.toFixed(2)
-        }:1, below the ${floor.min}:1 floor`;
+        }:1 — text needs ${floor.min}:1`;
       }
     }
   }

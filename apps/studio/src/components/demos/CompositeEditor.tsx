@@ -54,7 +54,6 @@ import BorderEditor from "./BorderEditor.tsx";
 import TransitionEditor from "./TransitionEditor.tsx";
 import GradientEditor from "./GradientEditor.tsx";
 import { createSpinComponent } from "@spinjs/components/solid";
-import "./spin-step-list.html";
 
 /**
  * A row of a panel.
@@ -91,8 +90,7 @@ let panelCount = 0;
  *
  * The dismissal is the platform's own — a click elsewhere, or Escape — the
  * two things a reader reaches for when a panel is in the way. The rows are
- * a `spin-step-list`: the listbox machine owns the highlight, the arrows,
- * the typeahead, and the pick, and the panel owns only the overlay.
+ * a `studio-step-list`: the listbox machine owns the highlight, the arrows,
  */
 function Panel(props: {
   /** What the control is called, for the reader and for the pointer. */
@@ -100,7 +98,7 @@ function Panel(props: {
   /** The affordance's own face. */
   trigger: JSX.Element;
   /** The rows the panel offers, and the way to close it. */
-  children: (close: () => void) => JSX.Element;
+  children: (close: () => void, isOpen: () => boolean) => JSX.Element;
 }) {
   const id = `composite-panel-${panelCount++}`;
   const open = () => openPanel() === id;
@@ -113,8 +111,9 @@ function Panel(props: {
    * the page over.
    */
   const dismiss = () => {
+    const wasOpen = open();
     hide();
-    trigger?.focus();
+    if (wasOpen) trigger?.focus({ preventScroll: true });
   };
   let root: HTMLDivElement | undefined;
   let trigger: HTMLButtonElement | undefined;
@@ -201,33 +200,12 @@ function Panel(props: {
         class={PANEL}
         onKeyDown={onPanelKey}
       >
-        {props.children(dismiss)}
+        {props.children(dismiss, open)}
       </div>
     </div>
   );
 }
 
-declare module "solid-js" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "spin-step-list": {
-        ref?: HTMLElement | ((el: HTMLElement) => void);
-        id?: string;
-        "prop:items"?: readonly {
-          value: string;
-          label: string;
-          disabled?: boolean;
-          group?: string;
-        }[];
-        "prop:value"?: string;
-        "prop:onValueChange"?: (detail: {
-          value: readonly string[];
-          items: readonly { value: string; label: string }[];
-        }) => void;
-      };
-    }
-  }
-}
 
 /**
  * The ladder's rows, owned by the listbox machine.
@@ -251,9 +229,7 @@ function StepList(props: {
   // reads its callbacks when it builds, and a prop set after that read
   // never becomes a subscription.
   createEffect(() => {
-    const ctl = list();
-    if (ctl === undefined) return undefined;
-    return ctl.bind(
+    const unbind = list.bind(
       {
         items: props.steps.map((step) => ({
           value: step.value,
@@ -264,13 +240,16 @@ function StepList(props: {
       {
         "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
           const picked = event.detail.value[0];
-          if (picked !== undefined) props.onPick(picked);
+          if (picked !== undefined && picked !== props.value) {
+            props.onPick(picked);
+          }
         },
       },
     );
+    onCleanup(unbind);
   });
   return (
-    <spin-step-list
+    <studio-step-list
       ref={setElement}
       prop:items={props.steps.map((step) => ({
         value: step.value,
@@ -313,11 +292,12 @@ export function StepPicker(props: {
       label={props.label}
       trigger={<span class="truncate">{shown()}</span>}
     >
-      {(close) => (
+      {(close, isOpen) => (
         <StepList
           steps={props.steps}
           value={props.value}
           onPick={(value) => {
+            if (!isOpen()) return;
             const step = props.steps.find((entry) => entry.value === value);
             if (step !== undefined) props.onPick(step);
             close();
@@ -366,11 +346,12 @@ export function StepField(props: {
           label={`${props.label}: ${shown()}`}
           trigger={<span class="truncate">{shown()}</span>}
         >
-          {(close) => (
+          {(close, isOpen) => (
             <StepList
               steps={props.steps}
               value={props.value}
               onPick={(value) => {
+                if (!isOpen()) return;
                 props.onPick(value);
                 close();
               }}

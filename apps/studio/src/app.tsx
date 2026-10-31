@@ -41,8 +41,9 @@ import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
 import FindingsPage from "./routes/findings.tsx";
-import { For, onMount, Show, Suspense } from "solid-js";
-import type { Component } from "solid-js";
+import { createEffect, createSignal, For, onMount, Show, Suspense, type Component } from "solid-js";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { toast } from "@spinjs/components/toast";
 import "uno.css";
 import PreviewStyles from "./components/PreviewStyles.tsx";
 import Checks from "./components/Checks.tsx";
@@ -53,6 +54,8 @@ import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
 import {
   activeMode,
   activeName,
+  dismissNotice,
+  dismissRefusal,
   dockSide,
   lastNotice,
   lastRefusal,
@@ -176,16 +179,60 @@ const INK_RESTING = "text-text hover:text-accent";
 function RailTip(props: { label: string; top?: string }) {
   return (
     <tooltip
-      class={`absolute ${
+      class={`${
         props.top ?? "top-0"
-      } translate-none peer-hover:invisible ${
+      } ms-2 whitespace-nowrap peer-hover:visible peer-focus-visible:visible ${
         inDrawer() && dockSide() === "right"
-          ? "end-full start-auto"
+          ? "end-full start-auto me-2 ms-0"
           : "start-full"
       }`}
     >
       {props.label}
     </tooltip>
+  );
+}
+
+/**
+ * Refusals and notices as toasts, bottom-left: an error interrupts, so it
+ * interrupts there — the banner it replaces stuck to the top of every
+ * scroll and read as page content. Each standing message gets one toast;
+ * a resolved message takes its toast with it.
+ */
+function ToastTray() {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const ctl = createSpinComponent(element, toast);
+  const live = new Set<string>();
+  createEffect(() => {
+    const refusal = lastRefusal();
+    const notice = lastNotice();
+    const want = new Map<string, { title: string; description: string }>();
+    if (refusal !== undefined) {
+      want.set("refusal", { title: "Not applied", description: refusal });
+    }
+    if (notice !== undefined) {
+      want.set("notice", { title: "Studio", description: notice });
+    }
+    for (const [id, toast] of want) {
+      if (live.has(id)) continue;
+      live.add(id);
+        ctl.commands.create({
+        id,
+        title: toast.title,
+        description: toast.description,
+        type: id === "refusal" ? "error" : "info",
+        duration: 0,
+      });
+    }
+    for (const id of [...live]) {
+      if (want.has(id)) continue;
+      live.delete(id);
+      ctl.commands.dismiss(id);
+    }
+  });
+  return (
+    <studio-toast-tray
+      ref={(el: HTMLElement) => setElement(el)}
+    />
   );
 }
 
@@ -308,31 +355,31 @@ export default function App() {
                   says "this is a different thing", which is what a mark is.
                   */
                   }
+                  <span class="relative mb-2 flex w-full shrink-0 items-center justify-center">
                   <A
                     href={hostPath(MARK.path)}
                     // `end`: the mark is the overview and nothing else. Without it
                     // the root path matches every path, and the mark would read as
                     // current on every page.
                     end
-                    class="peer mb-2 flex h-10 w-full shrink-0 items-center justify-center rounded-md hover:bg-surface"
+                    class="peer flex h-10 w-full shrink-0 items-center justify-center rounded-md hover:bg-surface"
                     activeClass={INK_CURRENT}
                     inactiveClass={INK_RESTING}
-                    title={MARK.label}
                     aria-label={MARK.label}
                   >
                     <Web size={40} class="h-10 w-10 shrink-0" />
                   </A>
                   <RailTip label={MARK.label} top="top-4" />
-                  <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
+                  </span>
+                  <ul class="flex w-full shrink-0 flex-col items-center gap-1">
                     <For each={CONCERNS}>
                       {(route) => (
-                        <li class="m-0 w-full">
+                        <li class="relative m-0 w-full">
                           <A
                             href={hostPath(route.path)}
                             activeClass={INK_CURRENT}
                             inactiveClass={INK_RESTING}
                             class={ROW}
-                            title={route.label}
                             aria-label={route.label}
                           >
                             <span
@@ -372,17 +419,16 @@ export default function App() {
                   }
                   <div class="mt-auto w-full">
                     <hr class="w-full" />
-                    <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
+                    <ul class="flex w-full shrink-0 flex-col items-center gap-1">
                       <Checks tip={<RailTip label="Checks" />} />
                       <For each={FOOT}>
                         {(route) => (
-                          <li class="m-0 w-full">
+                          <li class="relative m-0 w-full">
                             <A
                               href={hostPath(route.path)}
                               activeClass={INK_CURRENT}
                               inactiveClass={INK_RESTING}
                               class={ROW}
-                              title={route.label}
                               aria-label={route.label}
                             >
                               <span
@@ -395,12 +441,11 @@ export default function App() {
                         )}
                       </For>
                       <Show when={embedded()}>
-                        <li class="m-0 w-full rounded-md hover:bg-surface">
+                        <li class="relative m-0 w-full rounded-md hover:bg-surface">
                           <button
                             type="button"
                             class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-accent"
                             aria-label={inDrawer() ? "Modal" : "Drawer"}
-                            title={inDrawer() ? "Modal" : "Drawer"}
                             onClick={toggleHostMode}
                           >
                             <span
@@ -410,12 +455,11 @@ export default function App() {
                           </button>
                           <RailTip label={inDrawer() ? "Modal" : "Drawer"} />
                         </li>
-                        <li class="m-0 w-full rounded-md hover:bg-surface">
+                        <li class="relative m-0 w-full rounded-md hover:bg-surface">
                           <button
                             type="button"
                             class="bare peer flex h-10 w-full items-center justify-center text-text hover:text-accent"
                             aria-label="Close"
-                            title="Close"
                             onClick={closeStudio}
                           >
                             <span
@@ -450,39 +494,7 @@ export default function App() {
                     // the page, and the document scrolls.
                     classList={{ "min-h-0": !inDrawer() }}
                   >
-                    {
-                      /* What the studio refused, and what it did about the
-                      file: said where the state is. Both are the tool's own
-                      words about the author's own document, so they belong
-                      with the chrome rather than inside the project they are
-                      talking about. */
-                    }
-                    <Show
-                      when={lastRefusal() !== undefined ||
-                        lastNotice() !== undefined}
-                    >
-                      <div
-                        role="status"
-                        class="shrink-0 border-b border-border bg-surface px-3 py-2 text-sm"
-                      >
-                        <Show when={lastRefusal()}>
-                          {(message) => (
-                            <p class="text-semantic-error">
-                              <span
-                                class="i-lucide-shield-alert mr-2 inline-block align-middle"
-                                aria-hidden="true"
-                              />
-                              {message()}
-                            </p>
-                          )}
-                        </Show>
-                        <Show when={lastNotice()}>
-                          {(message) => (
-                            <p class="text-text-muted">{message()}</p>
-                          )}
-                        </Show>
-                      </div>
-                    </Show>
+                    <ToastTray />
                     {
                       /* The preview carries the project's theme. Everything
                       around it is chrome and stays on the studio's own.

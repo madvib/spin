@@ -163,13 +163,6 @@ export default function Checks(props: {
           : `${findings().length} ${
             findings().length === 1 ? "issue" : "issues"
           }`}
-        title={findings().length === 0
-          ? "What the checks say about this document"
-          : `${findings()[0]!.message}${
-            findings()[0]!.remedy === undefined
-              ? ""
-              : ` — ${remedyText(findings()[0]!.remedy!)}`
-          }`}
         onClick={() => setChecksOpen(true)}
       >
         <span

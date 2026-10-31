@@ -38,16 +38,16 @@ export default function BezierEditor(props: {
         />
       }
     >
-      <div class="row-sm flex-wrap gap-2">
+      <div class="row-sm flex-wrap items-center gap-2">
         {(["x1", "y1", "x2", "y2"] as const).map((key) => (
-          <label class="text-xs text-text-muted">
-            {key}
+          <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+            <span>{key}</span>
             <input
               type="number"
-              step="0.01"
-              min="0"
-              max="1"
-              class="w-[3.5rem]"
+              step="0.05"
+              min={key.startsWith("x") ? "0" : "-0.5"}
+              max={key.startsWith("x") ? "1" : "1.5"}
+              class="w-[3.5rem] px-1.5 text-center font-mono text-xs tabular-nums"
               value={draft()[key]}
               onChange={(e) =>
                 commit({ ...draft(), [key]: e.currentTarget.value })}
@@ -69,7 +69,7 @@ function parse(
   y2: string;
 } {
   const match = value.trim().match(
-    /^cubic-bezier\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/,
+    /^cubic-bezier\(\s*([-+]?[\d.]+)\s*,\s*([-+]?[\d.]+)\s*,\s*([-+]?[\d.]+)\s*,\s*([-+]?[\d.]+)\s*\)$/,
   );
   if (!match) {
     return { kind: "other", x1: "0.2", y1: "0", x2: "0", y2: "1" };

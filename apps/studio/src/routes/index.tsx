@@ -31,7 +31,9 @@ import {
 } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { scaffoldTheme, treeToJson } from "@spinjs/theme";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { menu } from "@spinjs/components/menu";
+import { toHex } from "@spinjs/theme";
 import { refetchProjectThemes } from "../components/Settings.tsx";
 import { inDrawer } from "../lib/host.ts";
 import {
@@ -39,43 +41,92 @@ import {
   activeMode,
   activeModes,
   activeName,
+  activeTree,
   library,
+  note,
   project,
   projectFailure,
   refetchProject,
   refetchThemes,
   registerMarkup,
+  seed,
+  setThemeTextFor,
+  themeText,
   registry,
   reloadFromDisk,
   revertToSaved,
   setActiveName,
+  noteDiscarded,
   themeSummaries,
-  themeText,
 } from "../lib/store.ts";
+import type { ThemeSummary } from "../lib/store.ts";
 import {
   copyTheme,
   initProject,
   listProjectThemes,
   problemText,
   removeTheme,
-  saveTheme,
 } from "../lib/themes.ts";
-import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens, toPx } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
+import { addMode, declaredModes, removeMode } from "../lib/theme.ts";
 import Palette from "../components/Palette.tsx";
+import { GenerateTheme } from "../components/GenerateTheme.tsx";
+import { ensureDraftFontStyles, facesOf } from "../components/ThemePreview.tsx";
 import {
   elementSamples,
   faceSpecimens,
   paletteChips,
   spaceSteps,
+  seedToken,
   surfaceSteps,
+  themeCardMenuItems,
 } from "../lib/overview.ts";
-import type { Chip, ElementSample, Face } from "../lib/overview.ts";
-import { durationMs } from "../lib/motion.ts";
-import { DISPLAY, MONOSPACE, PHRASE } from "../lib/specimen-copy.ts";
+import type { CardMenuItem, Chip, ElementSample, Face } from "../lib/overview.ts";
+import { DISPLAY, PANGRAM } from "../lib/specimen-copy.ts";
 import type { RoutePath } from "../lib/routes.ts";
-
+function ThemeCardMenu(props: {
+  summary: ThemeSummary;
+  onReload: () => void;
+  onToggleMode: (mode: "light" | "dark", add: boolean) => void;
+  onDuplicate: () => void;
+  onDiscard: () => void;
+  onDelete: () => void;
+  confirmingName: string | null;
+}) {
+  const [el, setEl] = createSignal<HTMLElement>();
+  const ctl = createSpinComponent(el, menu);
+  createEffect(() => {
+    const text = seed(props.summary.name) ?? "";
+    ensureDraftFontStyles(facesOf(text));
+  });
+  createEffect(() =>
+    ctl.bind(
+      {
+        items: themeCardMenuItems(
+          props.summary,
+          seed(props.summary.name) ?? "",
+          activeName(),
+          props.confirmingName,
+        ),
+      },
+      {
+        select: (event: CustomEvent<{ value: string }>) => {
+          const value = event.detail.value;
+          if (value === "reload") props.onReload();
+          else if (value === "add-light") props.onToggleMode("light", true);
+          else if (value === "remove-light") props.onToggleMode("light", false);
+          else if (value === "add-dark") props.onToggleMode("dark", true);
+          else if (value === "remove-dark") props.onToggleMode("dark", false);
+          else if (value === "duplicate") props.onDuplicate();
+          else if (value === "discard") props.onDiscard();
+          else if (value === "delete") props.onDelete();
+        },
+      },
+    ),
+  );
+  return <studio-theme-menu ref={setEl} />;
+}
 export default function OverviewPage() {
   const summaries = createMemo(() => themeSummaries());
   const active = createMemo(() =>
@@ -97,8 +148,8 @@ export default function OverviewPage() {
 
   /** The token rows one group has, in the mode being shown. */
   function rows(prefixes: string[][]): TokenRow[] {
-    const tree = analyzeTheme(themeText()).tree;
-    return tree === undefined ? [] : groupTokens(tree, prefixes, activeMode());
+    const tree = activeTree();
+    return groupTokens(tree, prefixes, activeMode());
   }
 
   const palette = createMemo(() => paletteChips(themeText(), activeMode()));
@@ -118,7 +169,6 @@ export default function OverviewPage() {
   const radius = createMemo(() => rows([["radius"]]));
   const shadow = createMemo(() => rows([["shadow"]]));
   const durations = createMemo(() => rows([["motion", "duration"]]));
-  const easings = createMemo(() => rows([["motion", "easing"]]));
   const samples = createMemo(() => elementSamples(library() ?? []));
   const componentsLine = () => (activeComponents() ?? []).join(", ");
 
@@ -141,96 +191,33 @@ export default function OverviewPage() {
       // animation utilities, and they are named here for the same reason
       // the elements are: what is on screen is what the sheet is generated
       // for.
-      "animate-slide-up animate-spin",
+      "animate-fade-in",
     ].join("\n"));
   });
   onCleanup(() => registerMarkup(""));
 
   // The dialog's state.
   const [open, setOpen] = createSignal(false);
-  const [name, setName] = createSignal("");
-  const [source, setSource] = createSignal<string | undefined>(undefined);
-  const [blanks, setBlanks] = createSignal(false);
-  const [problem, setProblem] = createSignal<string | null>(null);
   const [confirming, setConfirming] = createSignal<string | null>(null);
   /** The error a delete reported, per theme: the card wears it. */
   const [deleteProblems, setDeleteProblems] = createSignal<
     Record<string, string>
   >({});
-  /** What the studio did about a theme's file, said on the page. */
-  const [note, setNote] = createSignal<string | null>(null);
   /** The first theme's name, for a project that has none. */
   const [projectName, setProjectName] = createSignal("default");
   /** Why the project could not be created, when it could not. */
   const [projectProblem, setProjectProblem] = createSignal<string | null>(null);
 
   /**
-   * What the copy starts from.
+   * Copies a theme into the project's own files.
    *
-   * The first theme in the registry rather than a name it may not have:
-   * the picker was once seeded with one name while the select beside it
-   * showed another, so creating a theme copied something that did not
-   * exist and said nothing about it.
+   * A built-in is read-only until a project copies it: the save copies it on
+   * the first write, but an author looking at a built-in has no obvious way
+   * to start, and a built-in that is only ever edited in memory is a theme
+   * that never reaches a build. So the card offers the copy, names it after
+   * the theme it came from, and seats it.
    */
-  const chosen = () => source() ?? registry()?.[0]?.name ?? "";
-
-  /**
-   * Whether the project already serves a theme under this name.
-   *
-   * A name that is taken is a name the daemon refuses to overwrite: the
-   * copy answers "a theme named X already exists", and a scaffold's write
-   * would destroy the theme that was there. The studio asks the project
-   * itself, freshly — a list read a moment ago may not know about a theme
-   * another tab created since — and says the daemon's words.
-   */
-  async function taken(next: string): Promise<boolean> {
-    const listed = await listProjectThemes();
-    return listed.some((theme) => theme.name === next);
-  }
-
-  async function create(): Promise<void> {
-    const next = name().trim();
-    if (next === "") return;
-    setProblem(null);
-    try {
-      if (await taken(next)) {
-        setProblem(`a theme named ${next} already exists`);
-        return;
-      }
-      const written = blanks()
-        ? await saveTheme(next, treeToJson(scaffoldTheme()))
-        : await copyTheme(chosen(), next);
-      if (written.error !== null) {
-        setProblem(written.error);
-        return;
-      }
-      refetchThemes();
-      refetchProjectThemes();
-      setOpen(false);
-      setName("");
-      setSource(undefined);
-      setBlanks(false);
-      setActiveName(next);
-    } catch (err) {
-      // A refused call rejects rather than answering: the contract turned
-      // the request down — a name the file system will not take, a shape
-      // the schema will not accept — and an uncaught rejection leaves the
-      // dialog open with nothing said. The reason is what the author needs.
-      setProblem(problemText(err));
-    }
-  }
-
-  /**
-   * Copies a shipped starter into the project's own files.
-   *
-   * A starter is read-only until a project forks it: the save forks it on
-   * the first write, but an author looking at a starter has no obvious way
-   * to start, and a starter that is only ever edited in memory is a theme
-   * that never reaches a build. So the card offers the fork, names the copy
-   * after the theme it came from, and seats it.
-   */
-  async function fork(theme: string): Promise<void> {
-    setNote(null);
+  async function duplicate(theme: string): Promise<void> {
     try {
       const taken = new Set(
         (await listProjectThemes()).map((item) => item.name),
@@ -241,15 +228,15 @@ export default function OverviewPage() {
       }
       const written = await copyTheme(theme, next);
       if (written.error !== null) {
-        setNote(written.error);
+        note(written.error);
         return;
       }
       refetchThemes();
       refetchProjectThemes();
       setActiveName(next);
-      setNote(`${theme} forked to ${next}.`);
+      note(`${theme} duplicated to ${next}.`);
     } catch (err) {
-      setNote(problemText(err));
+      note(problemText(err));
     }
   }
 
@@ -292,17 +279,16 @@ export default function OverviewPage() {
    * has to know about before the next save overwrites it.
    */
   async function reload(theme: string): Promise<void> {
-    setNote(null);
     try {
       const state = await reloadFromDisk(theme);
       refetchThemes();
-      setNote(
+      note(
         state === "changed"
           ? `${theme} changed on disk — the studio now shows the file.`
           : `${theme} reloaded from disk.`,
       );
     } catch (err) {
-      setNote(problemText(err));
+      note(problemText(err));
     }
   }
 
@@ -358,9 +344,6 @@ export default function OverviewPage() {
               about this page — and a fact that is visible everywhere does
               not need a second telling on one page. */
           }
-          <Show when={note() !== null}>
-            <p class="text-sm text-text-muted" role="status">{note()}</p>
-          </Show>
         </header>
 
         {
@@ -390,8 +373,8 @@ export default function OverviewPage() {
                 A project is a folder with a <code>spin/</code>{" "}
                 directory in it. The daemon is serving{" "}
                 <code class="break-all">{report().root}</code>, and that folder
-                has no such directory — so the themes below are the shipped
-                starters, and nothing here is the project's own yet.
+                has no such directory — so the themes below are the built-ins,
+                and nothing here is the project's own yet.
               </p>
               <p class="text-sm text-text-muted">
                 Creating the project writes the directory, a first theme, and
@@ -419,8 +402,7 @@ export default function OverviewPage() {
         </Show>
 
         <section class="stack-sm" aria-label="Themes">
-          <div class="split">
-            <h2>Themes</h2>
+          <div class="flex justify-end">
             <span class="text-sm text-text-muted">
               {summaries().length} themes
             </span>
@@ -433,23 +415,38 @@ export default function OverviewPage() {
             }}
           >
             <For each={summaries()}>
-              {(summary) => (
+              {(summary) => {
+                const cardText = (): string | undefined => {
+                  const text = seed(summary.name) ?? "";
+                  if (declaredModes(text).length !== 1) return undefined;
+                  return seedToken(text, "color.text") || undefined;
+                };
+                const cardMuted = (): string | undefined => {
+                  const text = seed(summary.name) ?? "";
+                  if (declaredModes(text).length !== 1) return undefined;
+                  return seedToken(text, "color.text-muted") || cardText();
+                };
+                return (
                 <article
-                  class="stack-sm rounded-lg border border-border bg-surface-raised p-3"
+                  class="flex min-h-44 flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3"
                   classList={{
                     "border-primary border-2": summary.name === activeName(),
                   }}
+                  style={{
+                    background: declaredModes(seed(summary.name) ?? "").length === 1
+                      ? seedToken(seed(summary.name) ?? "", "color.surface") || undefined
+                      : undefined,
+                    color: cardText(),
+                  }}
                 >
-                  <div class="row-sm">
+                  <div class="row-sm flex-wrap">
                     <button
                       type="button"
-                      // `bare` opts out of the control's paint AND of
-                      // `color: inherit`, so the ink has to be spelled or it
-                      // falls to the UA default — which is white, on a page
-                      // this light. `justify-start` too: the primitive is a
-                      // flex box that centers its label, and text-align
-                      // cannot answer a justify-content.
                       class="bare min-w-0 flex-1 justify-start text-left font-medium text-text"
+                      style={{
+                        "font-family": seedToken(seed(summary.name) ?? "", "font.family.heading", "inherit"),
+                        color: cardText(),
+                      }}
                       onClick={() => setActiveName(summary.name)}
                       aria-current={summary.name === activeName()}
                       title="Switch to this theme"
@@ -476,19 +473,28 @@ export default function OverviewPage() {
                           : `${summary.issues.length} issues`}
                       </span>
                     </Show>
-                    <Show
-                      when={summary.name !== activeName() &&
-                        summary.file !== null}
-                    >
-                      <button
-                        type="button"
-                        class="bare shrink-0 text-text-muted"
-                        title="Delete this theme"
-                        onClick={() => remove(summary.name)}
-                      >
-                        {confirming() === summary.name ? "Confirm?" : "Delete"}
-                      </button>
-                    </Show>
+                    <ThemeCardMenu
+                      summary={summary}
+                      onReload={() => void reload(summary.name)}
+                      onToggleMode={(mode, add) => {
+                        const text = seed(summary.name) ?? "";
+                        try {
+                          const next = add ? addMode(text, mode) : removeMode(text, mode);
+                          if (setThemeTextFor(summary.name, next)) {
+                            note(add ? `${mode} mode added.` : `${mode} mode removed.`);
+                          }
+                        } catch (err) {
+                          note(problemText(err));
+                        }
+                      }}
+                      onDuplicate={() => void duplicate(summary.name)}
+                      onDiscard={() => {
+                        revertToSaved(summary.name);
+                        noteDiscarded(summary.name);
+                      }}
+                      onDelete={() => void remove(summary.name)}
+                      confirmingName={confirming()}
+                    />
                   </div>
                   <Show when={deleteProblems()[summary.name]}>
                     {(message) => (
@@ -497,64 +503,6 @@ export default function OverviewPage() {
                       </p>
                     )}
                   </Show>
-                  {
-                    /*
-                      The file's own two verbs. The author is editing a
-                      document that a file holds, and there are two things
-                      they may want to do with that: take the file's word
-                      for it (reload), or drop their own edits and go back
-                      to the last thing that was written (discard). Both
-                      live here rather than behind an API, because an
-                      author whose file changed underneath them has to be
-                      able to say so without leaving the page.
-                    */
-                  }
-                  <div class="row-sm">
-                    {
-                      /*
-                        A shipped starter has no file of its own to save to,
-                        so the way to start is to take a copy of it. The verb
-                        says so, and names the copy it makes.
-                      */
-                    }
-                    <Show when={summary.file === null}>
-                      <button
-                        type="button"
-                        class="bare text-text-muted"
-                        title="Copy this starter into the project so it can be edited and saved"
-                        onClick={() => void fork(summary.name)}
-                      >
-                        Fork
-                      </button>
-                    </Show>
-                    <button
-                      type="button"
-                      class="bare text-text-muted"
-                      title={summary.file === null
-                        ? "Take the starter's own text back"
-                        : "Re-read this theme from disk"}
-                      onClick={() => reload(summary.name)}
-                    >
-                      {summary.file === null
-                        ? "Reset to starter"
-                        : "Reload from disk"}
-                    </button>
-                    <Show when={summary.dirty}>
-                      <button
-                        type="button"
-                        class="bare text-text-muted"
-                        title="Drop the edits that have not been saved"
-                        onClick={() => {
-                          revertToSaved(summary.name);
-                          setNote(
-                            `${summary.name} — the unsaved edits were dropped.`,
-                          );
-                        }}
-                      >
-                        Discard changes
-                      </button>
-                    </Show>
-                  </div>
                   <Show
                     when={summary.swatches.some((group) =>
                       group.chips.length > 0
@@ -573,7 +521,7 @@ export default function OverviewPage() {
                       >
                         {(group) => (
                           <div class="flex items-center gap-2">
-                            <span class="w-10 shrink-0 font-mono text-xs text-text-muted">
+                            <span class="w-10 shrink-0 font-mono text-xs text-text-muted" style={{ color: cardMuted() }}>
                               {group.mode}
                             </span>
                             <div class="flex h-6 flex-1 overflow-hidden rounded-sm border border-border">
@@ -596,11 +544,12 @@ export default function OverviewPage() {
                       </For>
                     </div>
                   </Show>
-                  <p class="truncate text-xs text-text-muted">
+                  <p class="mt-auto truncate text-xs text-text-muted" style={{ color: cardMuted() }}>
                     {summary.tokens} tokens · {summary.file ?? "@spinjs/theme"}
                   </p>
                 </article>
-              )}
+                );
+              }}
             </For>
           </div>
         </section>
@@ -634,7 +583,6 @@ export default function OverviewPage() {
             <TypeCard faces={faces()} />
             <MotionCard
               durations={durations()}
-              easings={easings()}
               fill={acting()}
             />
             <ElementsCard samples={samples()} />
@@ -651,11 +599,6 @@ export default function OverviewPage() {
           <div class="flex flex-wrap gap-x-4 gap-y-1">
             <span>{active()?.file ?? "@spinjs/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
-            <span>Modes: {activeModes().join(", ")}</span>
-            <span>
-              Components:{" "}
-              {componentsLine() === "" ? "preset defaults" : componentsLine()}
-            </span>
           </div>
         </footer>
       </div>
@@ -663,7 +606,7 @@ export default function OverviewPage() {
       <Show when={open()}>
         <dialog
           aria-label="New theme"
-          class="stack panel w-[18rem]"
+          class="stack panel w-[56rem] max-w-[calc(100vw-2rem)]"
           ref={(el: HTMLDialogElement) => {
             requestAnimationFrame(() => {
               if (el.isConnected && !el.open) el.showModal();
@@ -671,78 +614,10 @@ export default function OverviewPage() {
           }}
           onClose={() => setOpen(false)}
         >
-          <h2>New theme</h2>
-          <input
-            type="text"
-            placeholder="Name"
-            value={name()}
-            onInput={(event) => setName(event.currentTarget.value)}
+          <GenerateTheme
+            onDone={() => setOpen(false)}
+            onCancel={() => setOpen(false)}
           />
-          <fieldset class="stack-sm">
-            <legend class="text-text-muted">Start from</legend>
-            <label class="row-sm text-sm">
-              <input
-                type="radio"
-                name="new-theme-source"
-                checked={!blanks()}
-                onChange={() => setBlanks(false)}
-              />
-              <span>Copy a theme</span>
-            </label>
-            <Show when={!blanks()}>
-              {
-                /*
-                  The source is a list of the project's own names, as radio
-                  rows: a native select is drawn by the browser, and the
-                  studio does not wear the browser's idea of a control. The
-                  rows are also the keyboard contract the platform already
-                  has, which a hand-built menu would have to re-earn.
-                */
-              }
-              <fieldset
-                class="stack-sm max-h-[40vh] overflow-y-auto ps-5"
-                aria-label="Source theme"
-              >
-                <legend class="text-text-muted">Copy from</legend>
-                <For each={registry() ?? []}>
-                  {(theme) => (
-                    <label class="row-sm text-sm">
-                      <input
-                        type="radio"
-                        name="new-theme-source-theme"
-                        value={theme.name}
-                        checked={chosen() === theme.name}
-                        onChange={() => setSource(theme.name)}
-                      />
-                      <span>{theme.name}</span>
-                    </label>
-                  )}
-                </For>
-              </fieldset>
-            </Show>
-            <label class="row-sm text-sm">
-              <input
-                type="radio"
-                name="new-theme-source"
-                checked={blanks()}
-                onChange={() => setBlanks(true)}
-              />
-              <span>Scaffold the required roles</span>
-            </label>
-          </fieldset>
-          <Show when={problem() !== null}>
-            <p class="text-sm text-semantic-error" role="alert">
-              {problem()}
-            </p>
-          </Show>
-          <footer class="row-sm justify-end">
-            <button type="button" onClick={create}>
-              Create
-            </button>
-            <button type="button" onClick={() => setOpen(false)}>
-              Cancel
-            </button>
-          </footer>
         </dialog>
       </Show>
     </div>
@@ -764,7 +639,6 @@ export default function OverviewPage() {
 function ConcernCard(props: {
   path: RoutePath;
   title: string;
-  blurb: string;
   /** Stretches the card across the row: for a specimen that needs width. */
   wide?: boolean;
   children?: JSX.Element;
@@ -789,7 +663,6 @@ function ConcernCard(props: {
           />
         </A>
       </h3>
-      <p class="text-sm text-text-muted">{props.blurb}</p>
       <div class="flex min-h-0 flex-1 flex-col">{props.children}</div>
     </article>
   );
@@ -809,7 +682,6 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
       path="/colors"
       title="Palette"
       wide={props.wide === true}
-      blurb="The named colour roles in palette order — accents first, then status — resolved for the active mode."
     >
       <Show
         when={props.chips.length > 0}
@@ -845,11 +717,13 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
  * ink on it is the ink this theme pairs with that surface.
  */
 function SurfaceCard(props: { steps: readonly Chip[] }) {
+  const recessed = () => props.steps.find((step) => step.path === "color.surface-sunken");
+  const page = () => props.steps.find((step) => step.path === "color.surface");
+  const raised = () => props.steps.find((step) => step.path === "color.surface-raised");
   return (
     <ConcernCard
       path="/colors"
       title="Surface"
-      blurb="The three depths as layers, one on the next — sunken, page, raised — so a step that does not separate fails visibly."
     >
       <Show
         when={props.steps.length > 0}
@@ -859,34 +733,50 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
           </p>
         }
       >
-        <div class="flex flex-1 flex-col gap-2">
-          <For each={props.steps}>
-            {(step) => (
-              <div
-                class={`flex flex-1 flex-col justify-center gap-1 rounded-md border border-border px-3 ${step.paint}`}
+        <div
+          class="flex flex-1 flex-col rounded-md border border-border p-2"
+          style={{ background: recessed()?.value ?? page()?.value ?? "transparent" }}
+        >
+          <span
+            class="px-2 py-1 font-mono text-xs"
+            style={{ color: recessed()?.ink ?? page()?.ink ?? "inherit" }}
+          >
+            {toHex(recessed()?.value ?? page()?.value ?? "") ?? recessed()?.value ?? page()?.value ?? ""}
+          </span>
+          <div
+            class="flex flex-1 flex-col rounded-md border border-border p-2"
+            style={{ background: page()?.value ?? "transparent" }}
+          >
+            <span
+              class="px-2 py-1 font-mono text-xs"
+              style={{ color: page()?.ink ?? "inherit" }}
+            >
+              {toHex(page()?.value ?? "") ?? page()?.value ?? ""}
+            </span>
+            <div
+              class="flex flex-1 flex-col justify-end rounded-md border border-border p-2"
+              style={{ background: raised()?.value ?? "transparent" }}
+            >
+              <span
+                class="px-2 py-1 font-mono text-xs"
+                style={{ color: raised()?.ink ?? "inherit" }}
               >
-                <div class="split">
-                  <span class="text-sm text-text">
-                    {step.label}
-                  </span>
-                  <code class="shrink-0">
-                    {step.value}
-                  </code>
-                </div>
-                <p class="truncate text-sm text-text">{PHRASE}</p>
-              </div>
-            )}
-          </For>
+                {toHex(raised()?.value ?? "") ?? raised()?.value ?? ""}
+              </span>
+            </div>
+          </div>
         </div>
       </Show>
     </ConcernCard>
   );
 }
-
 /** What a slot's specimen says, when the specimen wants saying. */
 const SPECIMEN: Record<string, string> = {
   heading: DISPLAY,
-  mono: MONOSPACE,
+  mono: "0123456789idarwin",
+  body: PANGRAM,
+  sans: PANGRAM,
+  serif: PANGRAM,
 };
 
 function TypeCard(props: { faces: readonly Face[] }) {
@@ -894,7 +784,6 @@ function TypeCard(props: { faces: readonly Face[] }) {
     <ConcernCard
       path="/type"
       title="Type"
-      blurb="Every face slot the theme declares, set in the face it names."
     >
       <Show
         when={props.faces.length > 0}
@@ -916,9 +805,9 @@ function TypeCard(props: { faces: readonly Face[] }) {
                     {face.stack}
                   </span>
                 </div>
-                <p class={`${face.paint} truncate text-xl`}>
-                  {SPECIMEN[face.slot] ?? PHRASE}
-                </p>
+                <h3 class={`${face.paint} truncate`}>
+                  {SPECIMEN[face.slot] ?? PANGRAM}
+                </h3>
               </div>
             )}
           </For>
@@ -981,7 +870,6 @@ function ShapeCard(props: {
     <ConcernCard
       path="/style"
       title="Shape"
-      blurb="How round the theme's corners are — the ladder, nested — and how high each shadow step lifts."
     >
       <Show
         when={!empty()}
@@ -995,7 +883,7 @@ function ShapeCard(props: {
           <Show when={props.radius.length > 0}>
             <div class="stack-sm">
               <RadiusLadder rows={props.radius} />
-              <ul class="flow-list stack-sm">
+              <ul class="stack-sm">
                 <For each={props.radius}>
                   {(row) => (
                     <li class="split">
@@ -1067,7 +955,6 @@ function SpaceCard(props: {
     <ConcernCard
       path="/spacing"
       title="Space"
-      blurb="First, middle and last of the scale, standing on one baseline: the spacing, without the whole table."
     >
       <Show
         when={props.steps.length > 0}
@@ -1112,71 +999,25 @@ function SpaceCard(props: {
 }
 
 /**
- * The motion card: the theme's own clock, spent on something that moves.
+ * The motion card: every duration the theme declares, racing.
  *
- * The card this replaces showed a swatch changing colour on a loop, and then
- * grew into a slide show: a ladder of durations, a ladder of easings, and
- * three specimens all moving at once, so the eye had nothing to rest on.
- *
- * So the card spends the theme's clock on ONE motion — a card that arrives,
- * which is what a theme's signature looks like — and says the rest as
- * numbers. The durations are a ladder of shares, the easings are the curves
- * they curve by, and the one thing that never stops is the spinner, which
- * turns at the theme's LOOP: the period it gave an endless animation, not
- * its slowest transition. A spinner that turns as fast as a hover is not a
- * loading indicator, it is a flicker — and the loop is the step a theme
- * declares precisely so that this one thing can be slow.
- *
- * The specimens are the library's `animate-*` utilities, and those spend the
- * theme's motion tokens rather than naming a time: `animate-slide-up` runs
- * for `--motion-duration-base` and curves by `--motion-easing-decelerate`.
- * So what moves here moves at the edited theme's tempo, and the numbers
- * beside it are that theme's own.
+ * A duration is a TIME, and a time is only legible against another time:
+ * every step runs the same arrival at once, so the ladder reads as the
+ * stagger it is — the fast one lands while the slow one is still travelling.
+ * The track replays on press, because a race run once is a result and a race
+ * re-run is a comparison.
  */
 function MotionCard(props: {
   durations: readonly TokenRow[];
-  easings: readonly TokenRow[];
   fill: string | undefined;
 }) {
-  /** The counter that makes the specimen arrive again. */
+  /** The counter that restages the race. */
   const [run, setRun] = createSignal(0);
-
-  /** One token's own value, read by the name it ends in. */
-  const valueOf = (
-    rows: readonly TokenRow[],
-    name: string,
-  ): string | undefined =>
-    rows.find((row) => row.path.split(".").pop() === name)?.value;
-
-  const base = () => valueOf(props.durations, "base");
-  const decelerate = () => valueOf(props.easings, "decelerate");
-  const linear = () => valueOf(props.easings, "linear");
-
-  /**
-   * The period of an endless animation, if the theme declares one.
-   *
-   * A theme that declares no loop falls back to its slowest transition,
-   * which is the same fallback the library's own endless utilities make.
-   */
-  const loop = () =>
-    props.durations.find((row) => row.path === "motion.duration.loop") ??
-      props.durations.find((row) => row.path === "motion.duration.slow");
-
-  /** Whether the theme gave the spinner a period of its own. */
-  const hasLoop = () =>
-    props.durations.some((row) => row.path === "motion.duration.loop");
-
-  /**
-   * The longest run on the ladder, so a share is a share of something.
-   */
-  const longest = () =>
-    Math.max(1, ...props.durations.map((row) => durationMs(row.value) ?? 0));
 
   return (
     <ConcernCard
       path="/motion"
       title="Motion"
-      blurb="The theme's own clock: the durations and easings it declares, spent on one motion that moves."
     >
       <Show
         when={props.durations.length > 0}
@@ -1187,122 +1028,38 @@ function MotionCard(props: {
           </p>
         }
       >
-        <div class="stack-sm flex-1 justify-between">
-          <div class="stack-sm">
-            <span class="text-xs font-semibold uppercase text-text-muted">
-              Durations
-            </span>
-            <ul class="flow-list stack-sm">
+        <For each={[run()]}>
+          {() => (
+            <button
+              type="button"
+              class="bare flex flex-1 flex-col justify-center gap-3 rounded-md p-1 text-left"
+              title="Run the race again"
+              onClick={() => setRun(run() + 1)}
+            >
               <For each={props.durations}>
                 {(row) => (
-                  <li class="stack-sm">
-                    <div class="split">
-                      <code class="truncate">
-                        {row.path.split(".").pop()}
-                      </code>
-                      <code class="shrink-0">
-                        {row.value}
-                      </code>
-                    </div>
-                    <div class="h-2 w-full overflow-hidden rounded-sm bg-surface-sunken">
+                  <div class="flex items-center gap-2">
+                    <code class="w-16 shrink-0 truncate text-xs">
+                      {row.path.split(".").pop()}
+                    </code>
+                    <div class="h-8 flex-1 overflow-hidden rounded-sm bg-surface-sunken">
                       <div
-                        class="h-full rounded-sm"
-                        // The share is arithmetic over the theme's own
-                        // numbers — not a length the studio chose — so it is
-                        // written here rather than named by a token.
+                        class="flex h-full w-16 items-center rounded-sm px-2 animate-fade-in"
                         style={{
                           background: props.fill,
-                          width: `${
-                            ((durationMs(row.value) ?? 0) / longest()) * 100
-                          }%`,
+                          "animation-duration": row.value,
+                          "animation-fill-mode": "both",
                         }}
-                      />
+                      >
+                        <code class="shrink-0 text-xs">{row.value}</code>
+                      </div>
                     </div>
-                  </li>
+                  </div>
                 )}
               </For>
-            </ul>
-          </div>
-
-          <Show when={props.easings.length > 0}>
-            <div class="stack-sm">
-              <span class="text-xs font-semibold uppercase text-text-muted">
-                Easings
-              </span>
-              <ul class="flow-list stack-sm">
-                <For each={props.easings}>
-                  {(row) => (
-                    <li class="split">
-                      <code class="truncate">
-                        {row.path.split(".").pop()}
-                      </code>
-                      <span
-                        class="min-w-0 truncate text-xs text-text-muted"
-                        title={row.value}
-                      >
-                        {row.value}
-                      </span>
-                    </li>
-                  )}
-                </For>
-              </ul>
-            </div>
-          </Show>
-
-          <div class="stack-sm">
-            <div class="split">
-              <span class="text-xs font-semibold uppercase text-text-muted">
-                Spent
-              </span>
-              <button
-                type="button"
-                class="bare shrink-0 text-text-muted hover:text-text"
-                title="Run the specimen again"
-                onClick={() => setRun(run() + 1)}
-              >
-                play
-              </button>
-            </div>
-            {
-              /*
-                The one specimen. The counter is the key: a new one remakes
-                the element, and an element that is made afresh runs its
-                entrance again. The spinner is outside it — it never stops.
-              */
-            }
-            <For each={[run()]}>
-              {() => (
-                <div class="animate-slide-up rounded-md border border-border bg-surface p-3 text-sm">
-                  A card that arrives — {base() ?? "base"} by{" "}
-                  {decelerate() ?? "decelerate"}.
-                </div>
-              )}
-            </For>
-            <Show when={loop()}>
-              {(row) => (
-                <div class="row-sm">
-                  <span
-                    class="inline-block shrink-0 animate-spin icon-md i-lucide-loader-circle"
-                    // The period is the theme's own token, spent by name: the
-                    // spinner turns at the loop, never at a time the studio
-                    // chose.
-                    style={{ "animation-duration": `var(${row().variable})` }}
-                    aria-hidden="true"
-                  />
-                  <span class="text-xs text-text-muted">
-                    {hasLoop()
-                      ? `A spinner at the theme's loop — ${row().value} by ${
-                        linear() ?? "linear"
-                      }.`
-                      : `No loop declared, so the spinner turns at the slowest step — ${row().value} by ${
-                        linear() ?? "linear"
-                      }.`}
-                  </span>
-                </div>
-              )}
-            </Show>
-          </div>
-        </div>
+            </button>
+          )}
+        </For>
       </Show>
     </ConcernCard>
   );
@@ -1313,7 +1070,6 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
     <ConcernCard
       path="/components"
       title="Elements"
-      blurb="Three of the library's primitives, dressed by this theme alone."
     >
       <Show
         when={props.samples.length > 0}

@@ -5,12 +5,12 @@
  * directly, which shipped the whole domain into the browser bundle and meant
  * the studio's component pages described the library rather than read it:
  * four pages of hand-written markup, none of it the ledger. Every consumer
- * reads the same `primitives.list`, so there is one answer to "what are the
+ * reads the same `components.list`, so there is one answer to "what are the
  * button examples" and it lives with the rules.
  */
 
-import { spinClient } from "./client.ts";
 import { EXAMPLE_ONLOAD } from "@spinjs/kit";
+import { spinClient } from "./client.ts";
 
 /** One example row, as the RPC surface carries it. */
 export interface RpcExample {
@@ -40,69 +40,71 @@ export interface RpcComponent {
   readonly variants: readonly string[];
   /** The custom properties this component reads, so one call carries both
    * the vocabulary and what it spends. */
-  readonly reads: readonly string[];
   readonly examples?: {
     readonly note: string;
     /** The line that finishes an example markup alone cannot finish. */
     readonly onLoad?: string;
+    readonly classes?: readonly {
+      readonly name: string;
+      readonly kind: string;
+      readonly description: string;
+    }[];
     readonly rows: readonly RpcExample[];
   };
 }
 
+type ListedEntry = {
+  readonly name: string;
+  readonly tags: readonly string[];
+  readonly variants: readonly string[];
+  readonly reads: readonly string[];
+  readonly manifest?: RpcComponent["manifest"];
+  readonly examples?: RpcComponent["examples"];
+};
+
 /** Every component, in one call. Primitives plus machine components. */
 export async function listPrimitives(): Promise<readonly RpcComponent[]> {
   const client = await spinClient();
-  const [primitives, machines] = await Promise.all([
-    client.primitives.list({}),
-    client.components.list({}),
-  ]);
-  const rows = machines as unknown as {
-    readonly name: string;
-    readonly examples: readonly string[];
-    readonly manifest: RpcComponent["manifest"];
-  }[];
-  const machineRows = await Promise.all(
-    rows.map(async (entry) => {
-      const [ex, rd] = await Promise.all([
-        client.components.examples({ name: entry.name }),
-        client.components.reads({ name: entry.name }),
-      ]);
-      return { entry, examples: ex.examples, reads: rd.reads };
-    }),
-  );
-  return [
-    ...(primitives as readonly RpcComponent[]),
-    ...machineRows.map(({ entry, examples, reads }) => ({
-      name: `component-${entry.name}`,
-      kind: "machine" as const,
-      manifest: entry.manifest,
-      tags: [`spin-${entry.name}`],
-      variants: [...entry.examples],
-      reads: [...reads],
-      examples: {
-        note:
-          "Interactive machine component. Requires the runtime (@spinjs/runtime).",
-        rows: examples.map((row) => {
-          const stem = row.name;
-          const onLoad = EXAMPLE_ONLOAD[`${entry.name}/${stem}`];
-          return {
-            name: `${entry.name} — ${row.title}`,
-            html: row.html,
-            mountHtml: `<${entry.name}-${stem}></${entry.name}-${stem}>`,
-            stem,
-            ...(onLoad !== undefined ? { onLoad } : {}),
-          };
-        }),
-      },
-    })),
-  ];
+  const listed = (await client.components.list({})) as readonly ListedEntry[];
+  return listed.map((entry) => {
+    if (entry.manifest !== undefined) {
+      const examples = entry.examples === undefined
+        ? undefined
+        : {
+          ...entry.examples,
+          rows: entry.examples.rows.map((row) => {
+            const onLoad = row.stem !== undefined
+              ? (EXAMPLE_ONLOAD[`${entry.name}/${row.stem}`] ?? row.onLoad)
+              : row.onLoad;
+            return onLoad === undefined ? row : { ...row, onLoad };
+          }),
+        };
+      return {
+        name: `component-${entry.name}`,
+        kind: "machine" as const,
+        manifest: entry.manifest,
+        tags: [...entry.tags],
+        variants: [...entry.variants],
+        reads: [...entry.reads],
+        examples,
+      };
+    }
+    return {
+      name: entry.name,
+      kind: "primitive" as const,
+      tags: [...entry.tags],
+      variants: [...entry.variants],
+      reads: [...entry.reads],
+      examples: entry.examples,
+    };
+  });
 }
 
 /** Copy one machine example into the project at `spin/<name>/<example>.html`. */
 export async function copyComponentExample(
   name: string,
   example: string,
-): Promise<{ file: string | null; error: string | null }> {
+): Promise<{ file: string | null; tag: string | null; error: string | null }> {
   const bare = name.startsWith("component-")
     ? name.slice("component-".length)
     : name;
@@ -113,8 +115,6 @@ export async function copyComponentExample(
 export interface RpcComponentToken {
   readonly path: string;
   readonly type: string;
-  /** What the token starts at — a manifest default, sometimes a reference
-   * like `{border.width}` that the document resolves as authored. */
   readonly value: string;
 }
 
@@ -128,9 +128,9 @@ export interface RpcContract {
 
 /**
  * A component's contract in one call — chiefly the component-token axis, which
- * `primitives.list` does not carry: the manifest's authored idea of what
- * `button.weight` starts at, so the component page can offer to CREATE the
- * token in themes that do not have it yet, scaffolded as authored.
+ * `components.list` does not carry for machines: the manifest's authored idea
+ * of what `button.weight` starts at, so the component page can offer to CREATE
+ * the token in themes that do not have it yet, scaffolded as authored.
  *
  * Undefined when the daemon knows no such component: the RPC spells that as
  * an error union rather than a failed call, and a page whose name does not
@@ -140,12 +140,80 @@ export interface RpcContract {
 export async function primitivesContract(
   name: string,
 ): Promise<RpcContract | undefined> {
-  const result = await (await spinClient()).primitives.contract({ name });
+  const result = await (await spinClient()).components.contract({ name });
   if ("error" in result) return undefined;
-  return result;
+  if (result.kind !== "primitive") return undefined;
+  return {
+    tags: [...result.tags],
+    variants: [...result.variants],
+    reads: [...result.reads],
+    component: [...result.component],
+  };
 }
 
 /** The custom properties a component reads, grouped by token group. */
 export async function primitivesTokens(name: string) {
-  return await (await spinClient()).primitives.tokens({ name });
+  return await (await spinClient()).components.tokens({ name });
+}
+
+export { EXAMPLE_ONLOAD };
+
+export function displayComponentName(name: string): string {
+  return name.replace(/^component-/, "").replace(/-/g, " ");
+}
+
+/** One unified rail group: a purpose, and the rows filed under it. */
+export interface UnifiedGroup {
+  readonly label: string;
+  readonly rows: readonly { readonly name: string; readonly icon: string }[];
+}
+import { UNIFIED_COMPONENT_GROUPS } from "@spinjs/components";
+const UNIFIED = UNIFIED_COMPONENT_GROUPS;
+
+/**
+ * The unified rail: every component filed by purpose, primitives and machines
+ * side by side, in the order a reader arrives in.
+ *
+ * Anything the taxonomy does not name lands in "Other" rather than vanishing:
+ * a rail that drops a component it was given is a rail lying about the
+ * library. Rows sort by their display name, so the filing is stable however
+ * the daemon lists them.
+ */
+export function unifiedComponentGroups(
+  items: readonly RpcComponent[],
+  filter: "all" | "primitive" | "machine",
+  query: string,
+  icons: Readonly<Record<string, string>>,
+): readonly UnifiedGroup[] {
+  const needle = query.trim().toLowerCase();
+  const kept = new Map<string, RpcComponent>();
+  for (const item of items) {
+    if (filter !== "all" && item.kind !== filter) continue;
+    if (
+      needle !== "" &&
+      !displayComponentName(item.name).includes(needle) &&
+      !item.name.replace(/-/g, " ").includes(needle)
+    ) continue;
+    kept.set(item.name, item);
+  }
+  const rowOf = (name: string) => ({
+    name,
+    icon: icons[name] ?? "i-lucide-box",
+  });
+  const byName = (a: { name: string }, b: { name: string }): number =>
+    displayComponentName(a.name).localeCompare(displayComponentName(b.name));
+  const groups = UNIFIED.map((group) => ({
+    label: group.label,
+    rows: group.members
+      .filter((name) => kept.has(name))
+      .map(rowOf)
+      .sort(byName),
+  })).filter((group) => group.rows.length > 0);
+  const filed = new Set(UNIFIED.flatMap((group) => group.members));
+  const rest = [...kept.keys()]
+    .filter((name) => !filed.has(name))
+    .map(rowOf)
+    .sort(byName);
+  if (rest.length > 0) groups.push({ label: "Other", rows: rest });
+  return groups;
 }

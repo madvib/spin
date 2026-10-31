@@ -101,10 +101,62 @@ export function stackFor(
 ): string {
   const font = catalog.find((entry) => entry.id === face.fontsource);
   const family = font?.family ?? face.fontsource;
-  const fallback = font?.category?.includes("serif")
-    ? "Georgia, serif"
-    : font?.category?.includes("mono")
+  const category = font?.category?.toLowerCase() ?? "";
+  const fallback = category.includes("mono")
     ? "ui-monospace, monospace"
+    : category === "serif" || category === "slab-serif"
+    ? "Georgia, serif"
     : "ui-sans-serif, system-ui, sans-serif";
   return `"${family}", ${fallback}`;
+}
+
+export interface SpinFontDeclaration {
+  readonly family: string;
+  readonly src: string;
+  readonly weight: string;
+  readonly style: string;
+  readonly display: string;
+}
+
+export function fontDeclarationFor(font: CatalogFont): SpinFontDeclaration {
+  const url = font.variable
+    ? `https://cdn.jsdelivr.net/fontsource/fonts/${font.id}:vf@latest/latin-wght-normal.woff2`
+    : `https://cdn.jsdelivr.net/fontsource/fonts/${font.id}@latest/latin-${
+      font.weights.includes(400) ? 400 : (font.weights[0] ?? 400)
+    }-normal.woff2`;
+  const minW = font.weights.length > 0 ? Math.min(...font.weights) : 400;
+  const maxW = font.weights.length > 0 ? Math.max(...font.weights) : 700;
+  const weight = font.variable && minW !== maxW
+    ? `${minW} ${maxW}`
+    : `${font.weights.includes(400) ? 400 : minW}`;
+  return {
+    family: font.family,
+    src: `url(${url}) format("woff2")`,
+    weight,
+    style: "normal",
+    display: "swap",
+  };
+}
+const previewedDraftFonts = new Set<string>();
+
+export function injectFontFaces(faces: readonly SpinFontDeclaration[]): void {
+  if (typeof document === "undefined" || faces.length === 0) return;
+  for (const face of faces) {
+    if (previewedDraftFonts.has(face.family)) continue;
+    previewedDraftFonts.add(face.family);
+    const style = document.createElement("style");
+    style.dataset.draftFont = face.family;
+    style.textContent = `@font-face { font-family: "${face.family}"; src: ${face.src}; font-weight: ${face.weight}; font-style: ${face.style}; font-display: swap; }`;
+    document.head.appendChild(style);
+  }
+}
+
+export function facesOf(text: string): readonly SpinFontDeclaration[] {
+  try {
+    const doc = JSON.parse(text) as { $extensions?: { spin?: { fonts?: readonly SpinFontDeclaration[] } } };
+    const fonts = doc.$extensions?.spin?.fonts;
+    return Array.isArray(fonts) ? fonts : [];
+  } catch {
+    return [];
+  }
 }

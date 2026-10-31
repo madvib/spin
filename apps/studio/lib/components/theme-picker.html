@@ -1,0 +1,47 @@
+<script lang="ts">
+import { themePicker } from "@spinjs/components/theme-picker";
+
+const machine = themePicker({ syncDocument: false });
+</script>
+
+<div class="relative shrink-0" {...machine.getRootProps()}>
+  <button
+    class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface hover:text-text"
+    data-testid="theme-picker"
+    {...machine.getTriggerProps()}
+  >
+    <span class="inline-flex h-4 items-center gap-1" data-swatch-theme={machine.value} {...machine.getTriggerSwatchProps()}>
+      <span class="h-2 w-2 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+      <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
+      <span class="h-2 w-2 shrink-0 rounded-full bg-text"></span>
+    </span>
+    <span class="sr-only">{machine.value}</span>
+  </button>
+  <div class="absolute z-dropdown" {...machine.getPositionerProps()}>
+    <div
+      class="min-w-40 rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      data-testid="theme-list"
+      {...machine.getContentProps()}
+    >
+      <div {...machine.getListProps()}>
+        <template for={machine.getItems()} as={row} key={row.value}>
+          <div
+            class={["bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-surface-sunken", { "bg-surface-sunken text-primary font-medium": machine.getItemState(row).selected, "text-text": !machine.getItemState(row).selected }]}
+            role="option"
+            data-theme-option={row.value}
+            {...machine.getItemProps(row)}
+          >
+            <span class="inline-flex h-4 items-center gap-1" data-swatch-theme={row.value} {...machine.getItemSwatchProps(row)}>
+              <span class="h-2 w-2 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+              <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
+              <span class="h-2 w-2 shrink-0 rounded-full bg-text"></span>
+            </span>
+            <span class="flex-1 truncate" {...machine.getItemLabelProps(row)}>{row.label}</span>
+            <span class="inline-block i-lucide-sun h-3 w-3 shrink-0 text-text-muted" show={machine.getItemState(row).dualMode}></span>
+            <span class="inline-block i-lucide-check h-4 w-4 shrink-0 text-primary" show={machine.getItemState(row).selected} {...machine.getItemIndicatorProps(row)}></span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>

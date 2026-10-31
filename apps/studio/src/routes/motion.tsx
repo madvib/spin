@@ -5,11 +5,14 @@ import {
   For,
   onCleanup,
   Show,
-  untrack,
 } from "solid-js";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { motionStage } from "../machines/motion-stage/motion-stage.presentation.ts";
+import { withShares } from "../machines/motion-stage/motion-stage.state.ts";
+import type { MotionLane } from "../machines/motion-stage/motion-stage.state.ts";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
-import { ConcernPage, Frame, Section } from "../components/Concern.tsx";
+import { ConcernPage, Frame, Section, TokenLine } from "../components/Concern.tsx";
 import {
   bezierY,
   durationMs,
@@ -18,10 +21,9 @@ import {
   easingValue,
 } from "../lib/motion.ts";
 import { durationUtility, tokenValue } from "../lib/overview.ts";
-import { analyzeTheme } from "../lib/theme.ts";
 import { groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
-import { activeMode, themeText } from "../lib/store.ts";
+import { activeMode, activeTree } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
 import { createLockstep } from "../lib/lockstep.ts";
 import { paintPreview } from "../lib/preview.ts";
@@ -94,33 +96,26 @@ function lanesFor(
   }));
 }
 
-/** The longest run on a stage, so shares and holds are measured against it. */
-function longestOf(lanes: Lane[]): number {
-  return Math.max(1, ...lanes.map((lane) => durationMs(lane.value) ?? 0));
-}
-
 /**
- * A stage: a lane per token, running under a loop the section owns.
+ * A stage: a lane per token, run by the motion-stage machine.
  *
- * The cycle is reset → run → hold. Reset paints every bar at zero, the two
- * frames are the pause that makes the browser see two states rather than
- * coalesce them into none, run races each bar to the far edge under its own
- * duration, and the hold outlasts the longest so the last arrival is seen
- * rather than assumed before it starts again.
+ * The machine owns the cycle — reset → run → hold — and the play, loop
+ * and speed the toolbar drives. The page owns the lanes: the token path,
+ * its variable, and the ValueInput editor that writes it, passed as the
+ * lane's light-DOM child.
  *
  * The clock a lane runs on is the token's OWN property, not a utility name:
  * a utility is a name the scanner has to see written down, and a theme may
  * name its durations and its curves anything at all — the property is the
  * value, so the race is the theme's race.
  */
-function RaceStage(props: {
+function Stage(props: {
+  id: string;
   lanes: Lane[];
   /** The lane's own time, as the custom property that carries it. */
   durationOf: (lane: Lane) => string | undefined;
   /** The lane's own curve, as the custom property that carries it. */
   easingOf: (lane: Lane) => string | undefined;
-  /** The colour this family's bars wear. */
-  paint: string;
   onEdit: (path: string, value: string) => boolean;
   /** Reports a value a lane's control proposes while dragged. */
   onPreview?: (path: string, value: string) => void;
@@ -128,111 +123,95 @@ function RaceStage(props: {
   onCancel?: () => void;
   /** Returns the live proposed value for a path while the group is dragged. */
   shown?: (path: string, committed: string) => string;
-  /** Under the section's loop control; stopped, the stage rests at its shares. */
-  running: boolean;
 }) {
-  const [phase, setPhase] = createSignal<"idle" | "reset" | "run">("idle");
-  const preview = props.onPreview;
-
-  createEffect(() => {
-    if (!props.running) {
-      setPhase("idle");
-      return;
+  const [element, setElement] = createSignal<HTMLElement>();
+  const stage = createSpinComponent(element, motionStage);
+  const bare = (name: string | undefined): string =>
+    (name ?? "").replace(/^var\(/, "").replace(/\)$/, "");
+  // Projected rows are moved out from under Solid's For by the element's
+  // slot projection, so the For must never rebuild a row whose lane did
+  // not change: a fresh object identity reads as a new row, and replacing
+  // projected nodes breaks the reconciliation the next render depends on.
+  // The cache keys rows by token path and reuses the prior object while
+  // every field matches; a commit mints exactly one new object.
+  const rowCache = new Map<string, Lane>();
+  const stableLanes = (lanes: readonly Lane[]): readonly Lane[] => {
+    const next: Lane[] = [];
+    const seen = new Set<string>();
+    for (const lane of lanes) {
+      seen.add(lane.path);
+      const prev = rowCache.get(lane.path);
+      const same = prev !== undefined &&
+        prev.utility === lane.utility && prev.value === lane.value &&
+        prev.type === lane.type && prev.variable === lane.variable &&
+        ((prev.points === undefined && lane.points === undefined) ||
+          (prev.points !== undefined && lane.points !== undefined &&
+            prev.points.every((n, i) => n === lane.points?.[i])));
+      if (same) {
+        next.push(prev);
+      } else {
+        rowCache.set(lane.path, lane);
+        next.push(lane);
+      }
     }
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let frame = 0;
-    const cycle = () => {
-      setPhase("reset");
-      frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => {
-          setPhase("run");
-          timer = setTimeout(() => {
-            cycle();
-          }, untrack(() => longestOf(props.lanes)) + 700);
-        });
-      });
-    };
-    cycle();
-    onCleanup(() => {
-      if (timer !== undefined) clearTimeout(timer);
-      cancelAnimationFrame(frame);
-    });
-  });
-
-  // A bar's width at rest is its share of the longest duration, so the scale
-  // is legible before anything is pressed.
-  const share = (lane: Lane) => {
-    if (phase() === "run") return 100;
-    if (phase() === "reset") return 0;
-    const longest = longestOf(props.lanes);
-    return ((durationMs(lane.value) ?? longest) / longest) * 100;
+    for (const key of [...rowCache.keys()]) {
+      if (!seen.has(key)) rowCache.delete(key);
+    }
+    return next;
   };
-
-  /**
-   * The bar's own clock.
-   *
-   * The transition is written out rather than named by a utility, for the
-   * reason the specimen is: a utility is a name the sheet has to have been
-   * told about, and the theme's own durations and curves are the values the
-   * race is supposed to be running at.
-   */
-  const clock = (lane: Lane) => {
-    const duration = props.durationOf(lane);
-    const easing = props.easingOf(lane);
-    if (duration === undefined || easing === undefined) return {};
-    return {
-      "transition-property": "all",
-      "transition-duration": `var(${duration})`,
-      "transition-timing-function": `var(${easing})`,
-    };
-  };
-
+  const motionLanes = (): MotionLane[] =>
+    withShares(
+      stableLanes(props.lanes).map((lane, index) => ({
+        id: `${props.id}-${index}`,
+        path: lane.path,
+        utility: lane.utility,
+        value: lane.value,
+        durationMs: durationMs(lane.value) ?? 1,
+        variable: lane.variable,
+        durationVar: bare(props.durationOf(lane) ?? lane.variable),
+        easingVar: bare(props.easingOf(lane) ?? lane.variable),
+      })),
+    );
+  createEffect(() =>
+    stage.bind({
+      lanes: motionLanes(),
+    })
+  );
   return (
-    <ul class="flow-list">
-      <For each={props.lanes}>
-        {(lane) => (
-          <li class="stack-sm">
-            <div class="row-sm flex-wrap justify-between gap-3">
-              <code>{lane.path}</code>
-              <div class="row-sm flex-wrap gap-2">
-                <code class="whitespace-nowrap">{lane.utility}</code>
-                <ValueInput
-                  value={lane.value}
-                  type={lane.type}
-                  onCommit={(value) => props.onEdit(lane.path, value)}
-                  group={props.lanes.map((other) => other.value)}
-                  variable={lane.variable}
-                  label={lane.path}
-                  onPreview={preview === undefined
-                    ? undefined
-                    : (value) => preview(lane.path, value)}
-                  onCancel={props.onCancel}
-                  proposed={props.shown?.(lane.path, lane.value)}
-                />
-              </div>
-            </div>
-            {
-              /* The lane's own clock on the bar, so the specimen is the
-                token and not a stand-in for it. */
-            }
-            <div
-              class="spin-preview h-5 overflow-hidden rounded-sm bg-surface-sunken"
-              aria-hidden="true"
-            >
-              <div
-                class={`h-full rounded-sm ${props.paint}`}
-                style={{
-                  width: `${share(lane)}%`,
-                  ...(phase() === "run" ? clock(lane) : {}),
-                }}
+    <studio-motion-stage ref={(el: HTMLElement) => setElement(el)} prop:lanes={motionLanes()}>
+      {/*
+        Keyed by path, not by lane object: the element projects these rows
+        out of Solid's tree, so a fresh object identity per commit would
+        read as a new row and replace nodes the projection already moved.
+        Path strings compare by value, so an edit updates the row's
+        bindings in place and the projected nodes never move.
+      */}
+      <For each={props.lanes.map((lane) => lane.path)}>
+        {(path, index) => {
+          const lane = () => props.lanes.find((row) => row.path === path) ?? props.lanes[index()]!;
+          return (
+            <div slot={`${props.id}-${index()}`}>
+              <ValueInput
+                value={lane().value}
+                type={lane().type}
+                onCommit={(value) => props.onEdit(lane().path, value)}
+                group={props.lanes.map((other) => other.value)}
+                variable={lane().variable}
+                label={lane().path}
+                onPreview={props.onPreview === undefined
+                  ? undefined
+                  : (value) => props.onPreview?.(lane().path, value)}
+                onCancel={props.onCancel}
+                proposed={props.shown?.(lane().path, lane().value)}
               />
             </div>
-          </li>
-        )}
+          );
+        }}
       </For>
-    </ul>
+    </studio-motion-stage>
   );
 }
+/* RaceStage removed: Stage above runs the motion-stage machine. */
 
 /**
  * Every easing drawn on one chart, and editable where it is drawn.
@@ -510,42 +489,51 @@ function EasingChart(props: {
             </For>
           </Show>
         </svg>
-        <ul class="flow-list stack-sm text-xs">
+        <ul
+          class="stack-xs flex-1 text-xs"
+          style={{ "min-width": "14rem" }}
+        >
           <For each={props.lanes}>
             {(lane, index) => (
-              <li>
+              <li class="min-w-0">
                 <button
                   type="button"
-                  class="bare text-text"
-                  classList={{
-                    "font-semibold underline": active()?.path === lane.path,
-                    "text-accent": active()?.path === lane.path,
-                  }}
+                  class="bare w-full min-w-0 text-left text-text"
                   aria-pressed={active()?.path === lane.path}
                   onClick={() => setSelected(lane.path)}
                 >
-                  <span class="row-sm gap-2">
-                    <svg width="20" height="8" aria-hidden="true">
-                      <line
-                        x1="0"
-                        y1="4"
-                        x2="20"
-                        y2="4"
-                        style={{
-                          stroke: active()?.path === lane.path
-                            ? props.ink
-                            : props.curve,
-                        }}
-                        stroke-dasharray={DASH[index() % DASH.length]}
-                        stroke-width="2"
-                      />
-                    </svg>
-                    <code>{lane.utility}</code>
+                  <span
+                    class="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border px-2.5 py-1.5"
+                    classList={{
+                      "border-accent bg-surface": active()?.path === lane.path,
+                      "border-transparent": active()?.path !== lane.path,
+                    }}
+                  >
+                    <span class="row-sm min-w-0 flex-wrap items-center gap-2">
+                      <svg width="20" height="8" aria-hidden="true">
+                        <line
+                          x1="0"
+                          y1="4"
+                          x2="20"
+                          y2="4"
+                          style={{
+                            stroke: active()?.path === lane.path
+                              ? props.ink
+                              : props.curve,
+                          }}
+                          stroke-dasharray={DASH[index() % DASH.length]}
+                          stroke-width="2"
+                        />
+                      </svg>
+                      <span class="font-mono text-xs font-semibold text-text">
+                        {lane.path.split(".").pop()}
+                      </span>
+                      <code class="text-xs text-text-muted">{lane.utility}</code>
+                    </span>
                     <Show when={lane.points}>
                       {(points) => (
-                        <span class="text-text-muted">
-                          {Math.round(bezierY(points(), 0.5) * 100)}% at half
-                          time
+                        <span class="font-mono text-xs text-text-muted tabular-nums">
+                          {Math.round(bezierY(points(), 0.5) * 100)}% at t=0.5
                         </span>
                       )}
                     </Show>
@@ -556,10 +544,6 @@ function EasingChart(props: {
           </For>
         </ul>
       </div>
-      <p class="text-xs text-text-muted">
-        The legend picks a curve; drag its handles and the curve writes the
-        easing, on release. The bars below run it.
-      </p>
     </div>
   );
 }
@@ -585,7 +569,7 @@ function LoopButton(props: {
     <button
       type="button"
       aria-pressed={props.running}
-      class={`rounded-md border px-2 py-1 text-xs ${
+      class={`bare rounded-md border px-2 py-1 text-xs ${
         props.running
           ? `border-transparent ${props.paint}`
           : "ghost border-border text-text-muted hover:text-text"
@@ -598,19 +582,8 @@ function LoopButton(props: {
 }
 
 export default function MotionPage() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const durations = createLockstep(() => {
-    const current = tree();
-    return current
-      ? groupTokens(current, [["motion", "duration"]], activeMode())
-      : [];
-  }, "motion.duration");
-  const easings = createMemo(() => {
-    const current = tree();
-    return current
-      ? groupTokens(current, [["motion", "easing"]], activeMode())
-      : [];
-  });
+  const durations = createLockstep(() => groupTokens(activeTree(), [["motion", "duration"]], activeMode()), "motion.duration");
+  const easings = createMemo(() => groupTokens(activeTree(), [["motion", "easing"]], activeMode()));
   /**
    * The transitions the theme spells in one token.
    *
@@ -618,14 +591,11 @@ export default function MotionPage() {
    * neither a duration nor a curve on the stages above: it is the pair,
    * written as one value, and it gets a row of its own.
    */
-  const transitions = createMemo(() => {
-    const current = tree();
-    return current
-      ? groupTokens(current, [["motion"]], activeMode()).filter((row) =>
-        row.type === "transition"
-      )
-      : [];
-  });
+  const transitions = createMemo(() =>
+    groupTokens(activeTree(), [["motion"]], activeMode()).filter((row) =>
+      row.type === "transition"
+    )
+  );
   const edit = (path: string, value: string) =>
     editToken(path.split("."), value);
   /**
@@ -635,14 +605,9 @@ export default function MotionPage() {
    * property is generated output, and a chart that names one is a chart that
    * has to be re-read every time the theme is edited.
    */
-  const colour = (path: string): string | undefined => {
-    const current = tree();
-    return current === undefined
-      ? undefined
-      : tokenValue(current, activeMode(), path);
-  };
+  const colour = (path: string): string | undefined =>
+    tokenValue(activeTree(), activeMode(), path);
 
-  const [durationLoop, setDurationLoop] = createSignal(false);
   const [easingLoop, setEasingLoop] = createSignal(false);
 
   // Every duration races under one shared easing, and every easing over one
@@ -673,25 +638,16 @@ export default function MotionPage() {
   };
 
   return (
-    <ConcernPage
-      title="Motion"
-      note="A duration is only legible against another duration, and a curve only against another curve, so each stage runs every token at once."
-    >
+    <ConcernPage title="Motion">
       <Section
         title="Durations"
         fact={`${durations.rows().length} steps`}
-        note="Every duration, raced under one shared easing, so the ranking is the specimen. Loop it: 150ms played once is gone before you have seen it."
+        info="Every duration raced under a shared easing curve; linked steps scale proportionally."
         aside={
           <div class="row-sm gap-2">
             <LinkToggle
               group="motion.duration"
               ratio={durations.activeRatio()}
-            />
-            <LoopButton
-              running={durationLoop()}
-              onToggle={() => setDurationLoop(!durationLoop())}
-              label="loop all"
-              paint="bg-primary text-on-primary"
             />
           </div>
         }
@@ -705,16 +661,15 @@ export default function MotionPage() {
           }
         >
           <Frame>
-            <RaceStage
+            <Stage
+              id="durations"
               lanes={lanesFor(durations.rows(), durationUtility, false)}
               durationOf={(lane) => lane.variable}
               easingOf={() => sharedEasing()?.variable}
-              paint="bg-primary"
               onEdit={(path, value) => durations.commit(path, value)}
               onPreview={(path, value) => durations.preview(path, value)}
               onCancel={durations.abandon}
               shown={durations.shown}
-              running={durationLoop()}
             />
           </Frame>
         </Show>
@@ -724,7 +679,7 @@ export default function MotionPage() {
         title="Easings"
         fact={`${easings().length} curves`}
         tone="accent"
-        note="Every curve, drawn on one chart and raced over one shared duration, so the shape shows up as speed."
+        info="Select a curve to drag its cubic-bezier control points on the chart, or race all curves over a shared duration."
         aside={
           <LoopButton
             running={easingLoop()}
@@ -742,37 +697,35 @@ export default function MotionPage() {
             </p>
           }
         >
-          <Frame>
-            <EasingChart
-              lanes={lanesFor(easings(), easingUtility, true)}
-              ink={colour("color.accent") ?? "currentColor"}
-              axis={colour("color.border")}
-              guide={colour("color.border-strong")}
-              curve={colour("color.text")}
-              surface={colour("color.surface")}
-              onEdit={edit}
-              running={easingLoop()}
-              periodMs={anchorMs()}
-            />
-          </Frame>
-          <div class="stack-sm">
-            <Frame>
-              <RaceStage
-                lanes={lanesFor(easings(), easingUtility, false)}
-                durationOf={() => preferredDuration()?.variable}
-                easingOf={(lane) => lane.variable}
-                paint="bg-accent"
+          <Frame class="stack min-w-0">
+            <div class="min-w-0 rounded-md border border-border bg-surface-sunken p-3">
+              <EasingChart
+                lanes={lanesFor(easings(), easingUtility, true)}
+                ink={colour("color.accent") ?? "currentColor"}
+                axis={colour("color.border")}
+                guide={colour("color.border-strong")}
+                curve={colour("color.text")}
+                surface={colour("color.surface")}
                 onEdit={edit}
                 running={easingLoop()}
+                periodMs={anchorMs()}
               />
-            </Frame>
-          </div>
+            </div>
+            <Stage
+              id="easings"
+              lanes={lanesFor(easings(), easingUtility, false)}
+              durationOf={() => preferredDuration()?.variable}
+              easingOf={(lane) => lane.variable}
+              onEdit={edit}
+            />
+          </Frame>
         </Show>
       </Section>
+
       <Section
         title="Transitions"
         fact={`${transitions().length} pairs`}
-        note="A transition in one token: a duration and an easing, written together. Both are steps of the scales above, so the editor offers the theme's own."
+        info="Composite transition tokens combining a duration, an easing curve, and a CSS property."
       >
         <Show
           when={transitions().length > 0}
@@ -782,24 +735,26 @@ export default function MotionPage() {
             </p>
           }
         >
-          <ul class="flow-list">
-            <For each={transitions()}>
-              {(row) => (
-                <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
-                  <code class="w-[10rem] shrink-0 truncate">{row.path}</code>
-                  <div class="min-w-0">
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => edit(row.path, value)}
-                      variable={row.variable}
-                      label={row.path}
-                    />
-                  </div>
-                </li>
-              )}
-            </For>
-          </ul>
+          <Frame class="p-3">
+            <ul>
+              <For each={transitions()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) => edit(row.path, value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
         </Show>
       </Section>
     </ConcernPage>

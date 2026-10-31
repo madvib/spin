@@ -39,27 +39,34 @@
  * a theme must not be restyled by the theme it is saving.
  */
 
-import { Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import {
   activeMode,
   activeName,
   activeTokenCount,
   canRedo,
   canUndo,
+  closeSaveCopy,
   divergedFromDisk,
+  hasProjectFile,
   isDirty,
   note,
+  noteDiscarded,
   noteRefusal,
+  pendingSaveCopy,
   redo,
+  registry,
   reloadFromDisk,
   revertToSaved,
+  saveStarterAsProjectTheme,
   saveThemeToDisk,
   undo,
 } from "../lib/store.ts";
 import { problemText } from "../lib/themes.ts";
 import { stateLabel } from "../lib/theme.ts";
 import { inDrawer } from "../lib/host.ts";
-import { ModePicker, ThemePicker } from "./Settings.tsx";
+import { ModePicker, refetchProjectThemes, ThemePicker } from "./Settings.tsx";
+import CommandPalette from "./CommandPalette.tsx";
 
 /**
  * The bar's own look.
@@ -76,22 +83,23 @@ const BAR =
  * A glyph button in the bar.
  *
  * One size, one ink, one hover — so the controls in the strip are a row of
- * equals. A control that is a word wide beside controls that are a glyph
- * wide reads as a different kind of thing, and the row stops being a strip
- * and becomes a list.
+ * equals. The box is smaller than the glyph's own measure and borderless:
+ * `bare` clears the fill but not the hairline, so the edge is stated here
+ * rather than inherited from the chrome. The air between the verbs is wider
+ * than the box, so three quiet glyphs read as three controls and not as
+ * one smudge.
  */
 const ICON_BUTTON =
-  "bare flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-text disabled:opacity-50";
+  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-text-muted hover:bg-surface hover:text-text disabled:opacity-50";
 
 /**
  * The three verbs, and the air between them.
  *
- * The gap is wider than the gap between the pickers and the verbs on the
- * other side of the bar: the pickers say WHAT is being edited, and the
- * verbs CHANGE it, and the space between the two says so before anything
+ * The gap is wider than the box: the pickers say WHAT is being edited, and
+ * the verbs CHANGE it, and the space between the two says so before anything
  * is read.
  */
-const VERBS = "flex items-center gap-3";
+const VERBS = "flex items-center gap-4";
 
 /**
  * What is true about the file, in the studio's words.
@@ -120,7 +128,32 @@ export default function TopBar() {
   const dirty = () => isDirty(theme());
   /** Whether the file moved under the studio. */
   const diverged = () => divergedFromDisk(theme());
+  const [copyName, setCopyName] = createSignal("");
+  const [copyProblem, setCopyProblem] = createSignal<string | null>(null);
 
+  createEffect(() => {
+    const source = pendingSaveCopy();
+    if (source === null) return;
+    const existing = new Set((registry() ?? []).map((t) => t.name));
+    let candidate = `${source}-copy`;
+    let i = 2;
+    while (existing.has(candidate)) {
+      candidate = `${source}-copy-${i++}`;
+    }
+    setCopyName(candidate);
+    setCopyProblem(null);
+  });
+
+  async function submitCopy(): Promise<void> {
+    const source = pendingSaveCopy();
+    if (source === null) return;
+    const outcome = await saveStarterAsProjectTheme(source, copyName());
+    if (!outcome.written) {
+      setCopyProblem(outcome.problem ?? "Could not save copy.");
+      return;
+    }
+    refetchProjectThemes();
+  }
   /**
    * Takes the file's word for it.
    *
@@ -146,7 +179,7 @@ export default function TopBar() {
   function discard(): void {
     const name = theme();
     revertToSaved(name);
-    note(`${name} — the unsaved edits were dropped.`);
+    noteDiscarded(name);
   }
 
   return (
@@ -241,93 +274,177 @@ export default function TopBar() {
           */
         }
         <Show when={diverged()}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label="Reload from disk"
-            title="Re-read this theme from disk"
-            onClick={() => {
-              void reload();
-            }}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-refresh-cw"
-              aria-hidden="true"
-            />
-          </button>
+          <span class="inline-flex items-center">
+            <button
+              type="button"
+              class={ICON_BUTTON}
+              aria-label="Reload from disk"
+              onClick={() => {
+                void reload();
+              }}
+            >
+              <span
+                class="inline-block shrink-0 icon-md i-lucide-refresh-cw"
+                aria-hidden="true"
+              />
+            </button>
+            <tooltip class="end-0 start-auto translate-none">
+              Re-read this theme from disk
+            </tooltip>
+          </span>
         </Show>
         <Show when={dirty() && !diverged()}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            aria-label="Discard changes"
-            title="Drop the edits that have not been saved"
-            onClick={discard}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-eraser"
-              aria-hidden="true"
-            />
-          </button>
+          <span class="inline-flex items-center">
+            <button
+              type="button"
+              class={ICON_BUTTON}
+              aria-label="Discard changes"
+              onClick={discard}
+            >
+              <span
+                class="inline-block shrink-0 icon-md i-lucide-eraser"
+                aria-hidden="true"
+              />
+            </button>
+            <tooltip class="end-0 start-auto translate-none">
+              Drop the edits that have not been saved
+            </tooltip>
+          </span>
         </Show>
 
         <div class={VERBS}>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            title="Undo"
-            aria-label="Undo"
-            disabled={!canUndo()}
-            onClick={() => undo()}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-undo-2"
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            type="button"
-            class={ICON_BUTTON}
-            title="Redo"
-            aria-label="Redo"
-            disabled={!canRedo()}
-            onClick={() => redo()}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-redo-2"
-              aria-hidden="true"
-            />
-          </button>
-          {
-            /*
-              The save says what it does. A theme that is written says
-              "Saved" and offers nothing; a theme with edits in it says
-              "Save to disk", and the title says what will happen when it is
-              pressed — or why it cannot be.
-            */
-          }
-          <button
-            type="button"
-            data-testid="save"
-            class={ICON_BUTTON}
-            title={diverged()
-              ? "The file changed on disk — reload from disk first"
-              : dirty()
-              ? "Save to disk"
-              : "Saved"}
-            aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
-            disabled={!dirty()}
-            onClick={() => {
-              void saveThemeToDisk(theme());
-            }}
-          >
-            <span
-              class="inline-block shrink-0 icon-md i-lucide-save"
-              aria-hidden="true"
-            />
-          </button>
+          <CommandPalette />
+          <span class="relative inline-flex items-center">
+            <button
+              type="button"
+              class={ICON_BUTTON}
+              aria-label="Undo"
+              disabled={!canUndo()}
+              onClick={() => undo()}
+            >
+              <span
+                class="inline-block shrink-0 icon-md i-lucide-undo-2"
+                aria-hidden="true"
+              />
+            </button>
+            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Undo</tooltip>
+          </span>
+          <span class="relative inline-flex items-center">
+            <button
+              type="button"
+              class={ICON_BUTTON}
+              aria-label="Redo"
+              disabled={!canRedo()}
+              onClick={() => redo()}
+            >
+              <span
+                class="inline-block shrink-0 icon-md i-lucide-redo-2"
+                aria-hidden="true"
+              />
+            </button>
+            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Redo</tooltip>
+          </span>
+          <span class="relative inline-flex items-center">
+            <button
+              type="button"
+              data-testid="save"
+              class={ICON_BUTTON}
+              aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
+              disabled={!dirty()}
+              onClick={() => {
+                void saveThemeToDisk(theme());
+              }}
+            >
+              <span
+                class="inline-block shrink-0 icon-md i-lucide-save"
+                aria-hidden="true"
+              />
+            </button>
+            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+              {diverged()
+                ? "The file changed on disk — reload from disk first"
+                : dirty()
+                ? "Save to disk"
+                : "Saved"}
+            </tooltip>
+          </span>
         </div>
       </div>
+      <Show when={pendingSaveCopy()}>
+        <div
+          class="fixed inset-0 z-modal flex items-center justify-center bg-surface/60"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeSaveCopy();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeSaveCopy();
+          }}
+        >
+          <dialog
+            open
+            aria-label="Save as project theme"
+            class="stack panel w-[20rem]"
+          >
+            <div class="split">
+              <h2>Save as project theme</h2>
+              <button
+                type="button"
+                class="secondary s-sm"
+                onClick={() => closeSaveCopy()}
+              >
+                Close
+              </button>
+            </div>
+            <p class="text-sm text-text-muted">
+              Built-in themes are read-only. Save your edits as a project
+              theme in <code>spin/</code>.
+            </p>
+            <div class="field">
+              <label for="save-copy-name">Theme name</label>
+              <input
+                id="save-copy-name"
+                type="text"
+                aria-label="Theme name"
+                value={copyName()}
+                onInput={(event) => {
+                  setCopyName(event.currentTarget.value);
+                  setCopyProblem(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void submitCopy();
+                  }
+                }}
+              />
+            </div>
+            <Show when={copyProblem()}>
+              {(msg) => (
+                <p class="text-sm text-semantic-error" role="alert">
+                  {msg()}
+                </p>
+              )}
+            </Show>
+            <div class="row justify-end">
+              <button
+                type="button"
+                class="secondary"
+                onClick={() => closeSaveCopy()}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void submitCopy();
+                }}
+              >
+                Save copy
+              </button>
+            </div>
+          </dialog>
+        </div>
+      </Show>
     </header>
   );
 }

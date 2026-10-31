@@ -32,16 +32,7 @@ function tokenSuffix(path: string): string {
   return path.split(".").slice(1).join("-").toLowerCase();
 }
 
-export default function TokenRow_({
-  row,
-  onEdit,
-  swatch = false,
-  group,
-  variable,
-  onPreview,
-  onCancel,
-  proposed,
-}: {
+export default function TokenRow_(props: {
   row: TokenRow;
   /** Applies an edit. Returns false when the theme refused it. */
   onEdit: (path: string[], value: string) => boolean;
@@ -58,28 +49,28 @@ export default function TokenRow_({
   /** Live proposed value when a linked sibling in the group is being dragged. */
   proposed?: string;
 }) {
-  const id = `token-${row.path}`;
+  const id = () => `token-${props.row.path}`;
   const projectText = () =>
     registry()?.find((theme) => theme.name === activeName())?.text;
   const status = createMemo(() =>
-    tokenStatus(themeText(), projectText(), row.path, activeMode())
+    tokenStatus(themeText(), projectText(), props.row.path, activeMode())
   );
   return (
     <>
-      <card class="split p-2">
+      <card class="min-h-12 flex-row items-center justify-between gap-4 px-3 py-2">
         <div class="row-sm min-w-0">
-          <Show when={swatch}>
+          <Show when={props.swatch ?? false}>
             <div
-              class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(row.path)}`}
+              class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(props.row.path)}`}
             />
           </Show>
-          <label for={id} class="truncate">
-            {row.path}
+          <label for={id()} class="truncate">
+            {props.row.path}
           </label>
           <Show when={status().aliasOf}>
             {(target) => (
               <span
-                class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+                class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-text-muted"
                 title={`Points at ${target()}`}
               >
                 → {target()}
@@ -88,7 +79,7 @@ export default function TokenRow_({
           </Show>
           <Show when={activeMode() === "dark" && status().restatedInDark}>
             <span
-              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+              class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-accent"
               title="Overridden in dark mode"
             >
               dark
@@ -96,26 +87,27 @@ export default function TokenRow_({
           </Show>
           <Show when={status().modified}>
             <span
-              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+              class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-primary"
               title="Modified in this session"
             >
               edited
             </span>
           </Show>
         </div>
-        <div class="row-sm min-w-0 flex-1 flex-wrap justify-end gap-2">
+        <div class="row-sm min-w-0 shrink-0 items-center justify-end gap-2">
           <ValueInput
-            id={id}
-            value={row.value}
-            type={row.type}
-            onCommit={(value) => onEdit(row.path.split("."), value)}
-            group={group}
-            variable={variable}
-            onPreview={onPreview === undefined
+            id={id()}
+            value={props.row.value}
+            type={props.row.type}
+            label={props.row.path}
+            onCommit={(value) => props.onEdit(props.row.path.split("."), value)}
+            group={props.group}
+            variable={props.variable ?? props.row.variable}
+            onPreview={props.onPreview === undefined
               ? undefined
-              : (value) => onPreview(row.path, value)}
-            onCancel={onCancel}
-            proposed={proposed}
+              : (value) => props.onPreview!(props.row.path, value)}
+            onCancel={props.onCancel}
+            proposed={props.proposed}
           />
         </div>
       </card>
@@ -123,7 +115,7 @@ export default function TokenRow_({
         /* The refusal belongs beside the control that asked for the value:
           the banner at the top of the work is a different line of sight. */
       }
-      <Show when={refusalFor(row.path)}>
+      <Show when={refusalFor(props.row.path)}>
         {(message) => (
           <p class="text-xs text-semantic-error" role="alert">
             {message()}

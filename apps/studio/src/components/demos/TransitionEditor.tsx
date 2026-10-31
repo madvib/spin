@@ -76,17 +76,17 @@ export default function TransitionEditor(props: {
       <div class="row-sm items-center gap-3">
         <button
           type="button"
+          class="secondary s-sm font-mono text-xs"
           style={{
             ...transition(),
-            width: pressed() ? "6rem" : "3rem",
+            width: pressed() ? "9rem" : "5.5rem",
           }}
           aria-pressed={pressed()}
           aria-label="Take the transition this token holds"
           onClick={() => setPressed(!pressed())}
-        />
-        <span class="text-xs text-text-muted">
-          The bar takes the transition when it is pressed.
-        </span>
+        >
+          {pressed() ? "← Reset" : "Test →"}
+        </button>
       </div>
     </div>
   );

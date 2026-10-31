@@ -235,3 +235,27 @@ test("elementSamples samples the components that have examples", () => {
   deepStrictEqual(samples[0]?.row.name, "default");
   deepStrictEqual(samples[0]?.row.html, "<button>Ok</button>");
 });
+
+test("paletteChips pairs a role with its on-colour ink", () => {
+  const doc = {
+    ...DOC,
+    color: {
+      ...DOC.color,
+      primary: { $value: "#112233" },
+      "on-primary": { $value: "#aabbcc" },
+    },
+  };
+  const chip = paletteChips(JSON.stringify(doc), "light").find(
+    (c) => c.path === "color.primary",
+  );
+  deepStrictEqual(chip?.ink, "#aabbcc");
+});
+
+test("paletteChips falls back to the higher-contrast of text and white", () => {
+  const light = paletteChips(TEXT, "light").find((c) => c.path === "color.link");
+  deepStrictEqual(light?.ink, "#ffffff");
+  const sunken = surfaceSteps(TEXT, "light").find(
+    (c) => c.path === "color.surface-sunken",
+  );
+  deepStrictEqual(sunken?.ink, "#111111");
+});

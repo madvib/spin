@@ -5,7 +5,7 @@ import {
 } from "./theme";
 import type { EditSlot } from "./theme";
 import { activeMode, noteRefusal, setThemeText, themeText } from "./store";
-
+import type { SpinFontDeclaration } from "./fonts";
 /** One edit, as the controls spell it: a DTCG path and the value to write. */
 export interface TokenEdit {
   path: string[];
@@ -46,8 +46,8 @@ export function editTokens(
   // the answer is whether the DOCUMENT moved, which is what the control
   // needs in order to revert.
   const before = themeText();
-  setThemeText(next, edits.map((edit) => edit.path.join(".")));
-  return themeText() !== before;
+  const wrote = setThemeText(next, edits.map((edit) => edit.path.join(".")));
+    return themeText() !== before;
 }
 
 /** Apply one token edit, into `mode`'s slot when the caller names one. */
@@ -140,4 +140,35 @@ function pathExists(text: string, path: readonly string[]): boolean {
     node = (node as Record<string, unknown>)[segment];
   }
   return node !== undefined;
+}
+
+export function editFontFamily(
+  path: readonly string[],
+  stack: string,
+  font?: SpinFontDeclaration,
+): boolean {
+  const slot = activeMode() === "dark" ? "dark" : "base";
+  let next: string;
+  try {
+    next = applyEdits(themeText(), [{ path: [...path], value: stack }], slot);
+    if (font !== undefined) {
+      const doc = JSON.parse(next) as Record<string, unknown>;
+      const ext = ((doc["$extensions"] ?? {}) as Record<string, unknown>);
+      const spin = ((ext["spin"] ?? {}) as Record<string, unknown>);
+      const existing = Array.isArray(spin["fonts"])
+        ? (spin["fonts"] as Record<string, unknown>[])
+        : [];
+      const filtered = existing.filter((entry) => entry["family"] !== font.family);
+      spin["fonts"] = [...filtered, { ...font }];
+      ext["spin"] = spin;
+      doc["$extensions"] = ext;
+      next = `${JSON.stringify(doc, null, 2)}\n`;
+    }
+  } catch (err) {
+    noteRefusal(err instanceof Error ? err.message : String(err));
+    return false;
+  }
+  const before = themeText();
+  setThemeText(next, [path.join(".")]);
+  return themeText() !== before;
 }

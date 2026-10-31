@@ -34,11 +34,12 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
-import { A, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
+import "@spinjs/components/examples";
 import {
   copyComponentExample,
+  displayComponentName,
   primitivesContract,
-  primitivesTokens,
   type RpcExample,
 } from "../../lib/primitives.ts";
 import {
@@ -49,19 +50,28 @@ import {
 } from "../../lib/store.ts";
 import { createToken, editToken } from "../../lib/editing.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
-import {
-  editorRouteFor,
-  tokenPathsByVar,
-  tokenRowAt,
-} from "../../lib/tokens.ts";
+import { tokenRowAt } from "../../lib/tokens.ts";
 import { measure } from "../../lib/scale.ts";
 import { Specimen } from "@spinjs/kit";
 import TokenRow from "../../components/demos/TokenRow.tsx";
-import { Badge, Marker, TokenChip } from "../../components/Concern.tsx";
+import { Badge } from "../../components/Concern.tsx";
 
-/** The measure a specimen's content is set at. */
-const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
+const NARROW_COMPONENTS = new Set([
+  "component-mode-picker",
+]);
 
+const OVERLAY_COMPONENTS = new Set([
+  "component-cascade-select",
+  "component-color-picker",
+  "component-combobox",
+  "component-date-picker",
+  "component-hover-card",
+  "component-menu",
+  "component-navigation-menu",
+  "component-popover",
+  "component-select",
+  "component-tooltip",
+]);
 /**
  * One fixture: the specimen, or the markup that produced it.
  *
@@ -81,13 +91,19 @@ function ExampleSection(props: {
   // the studio's own: copying the example into the project, which is daemon
   // knowledge the kit must never carry.
   const [copiedFile, setCopiedFile] = createSignal<string | null>(null);
-  // The panel decides the room the specimen gets, and the markup says which
-  // room it is: a page header is a page-width thing, and the md measure —
-  // where the page's own prose reads — squeezes a header until its trail
-  // wraps into a column of links. Everything else reads at the measure.
-  const measure = props.row.html.trimStart().startsWith("<header")
-    ? ""
-    : SPECIMEN_MEASURE;
+  const isNarrow = () =>
+    !props.row.html.trimStart().startsWith("<header") &&
+    props.componentName !== undefined &&
+    NARROW_COMPONENTS.has(props.componentName);
+  const isOverlay = () =>
+    props.componentName !== undefined &&
+    OVERLAY_COMPONENTS.has(props.componentName);
+  const stageMeasure = () =>
+    isNarrow() && !isOverlay()
+      ? "mx-auto flex w-full max-w-md flex-col items-center"
+      : "w-full";
+  const overlayClass = () =>
+    isOverlay() ? "flex flex-col items-stretch justify-start pt-2" : "";
   const copyExample = async (): Promise<void> => {
     if (props.componentName === undefined || props.row.stem === undefined) {
       return;
@@ -96,8 +112,8 @@ function ExampleSection(props: {
       props.componentName,
       props.row.stem,
     );
-    if (result.error === null && result.file !== null) {
-      setCopiedFile(result.file);
+    if (result.error === null && result.tag !== null) {
+      setCopiedFile(`<${result.tag}>`);
     }
   };
   return (
@@ -105,9 +121,11 @@ function ExampleSection(props: {
       name={props.row.name}
       html={props.row.mountHtml ?? props.row.html}
       source={props.row.html}
-      onLoad={props.onLoad ?? props.row.onLoad}
-      stage={`spin-preview ${measure}`}
-      panelClass={`mx-auto ${measure ? SPECIMEN_MEASURE : "max-w-full"}`}
+      onLoad={props.row.onLoad ?? props.onLoad}
+      stage={`spin-preview ${stageMeasure()} ${overlayClass()}`.trim()}
+      stageStyle={isOverlay() ? { "min-height": "14rem" } : undefined}
+      overlay={isOverlay()}
+      panelClass="w-full"
       actions={
         <Show when={props.row.stem !== undefined}>
           <button
@@ -125,12 +143,6 @@ function ExampleSection(props: {
 
 export default function ComponentPage() {
   const params = useParams();
-  // The shared registry: the side list and this page are one fetch, and the
-  // store owns it so neither can drift from the other.
-  const [tokens] = createResource(
-    () => params.name,
-    (name) => primitivesTokens(name),
-  );
   // The contract carries what the list does not: the component tokens this
   // component declares, as the manifest authors them.
   const [contract] = createResource(
@@ -141,10 +153,14 @@ export default function ComponentPage() {
   // const would snapshot `undefined` and never move. The memo re-derives when
   // the list lands, and the early return below still narrows it.
   const found = createMemo(() =>
-    library()?.find((c) => c.name === params.name)
+    library()?.find(
+      (c) => c.name === params.name || c.name === `component-${params.name}`,
+    )
   );
   const rows = () => found()?.examples?.rows ?? [];
   const [showTokens, setShowTokens] = createSignal(false);
+  const [showApi, setShowApi] = createSignal(false);
+  const [showClasses, setShowClasses] = createSignal(false);
 
   /**
    * Uno reads source text, which is how the chrome gets its CSS — but the
@@ -157,30 +173,6 @@ export default function ComponentPage() {
     registerMarkup(rows().map((row) => row.html).join("\n"));
   });
   onCleanup(() => registerMarkup(""));
-
-  /**
-   * The tokens the component reads, and what each is worth.
-   *
-   * The contract names the variables a component reads; the live theme says
-   * which token path each one is, so the readout is editable identity rather
-   * than emitted output — and the value beside the path is the theme's own
-   * answer for it now, so the chip says what the token IS rather than only
-   * what it is called.
-   */
-  const tokenEntries = () => {
-    const tree = analyzeTheme(themeText()).tree;
-    if (tree === undefined) return [];
-    const byVar = tokenPathsByVar(tree);
-    const vars = Object.values(tokens()?.reads ?? {}).flat() as string[];
-    const paths = vars
-      .map((variable) => byVar.get(variable))
-      .filter((path): path is string => path !== undefined);
-    return [...new Set(paths)].map((path) => ({
-      path,
-      value: tokenRowAt(tree, path, activeMode())?.value ?? "—",
-    }));
-  };
-
   /**
    * Each declared component token with the theme's own word for it, or
    * nothing where the theme is missing the path — which is the row that
@@ -188,16 +180,8 @@ export default function ComponentPage() {
    * re-derives: an edit or a creation writes the document, and the row that
    * was a Create button comes back as the control that edits it.
    */
-  const componentTokens = createMemo(() => {
-    const declared = contract()?.component ?? [];
-    const tree = analyzeTheme(themeText()).tree;
-    return declared.map((entry) => ({
-      entry,
-      row: tree === undefined
-        ? undefined
-        : tokenRowAt(tree, entry.path, activeMode()),
-    }));
-  });
+  const declaredTokens = createMemo(() => contract()?.component ?? []);
+  const parsedTree = createMemo(() => analyzeTheme(themeText()).tree);
 
   // A component token's slider ceiling is its FAMILY's — icon.sm beside
   // icon.md and icon.lg — so siblings share one track the way a scale's
@@ -206,19 +190,57 @@ export default function ComponentPage() {
   // `button.tracking` a length, and letting one rule the other's ceiling
   // turned a hundredth of an em into a seventy-five-em track.
   const siblingsFor = (path: string): readonly string[] | undefined => {
+    const tree = parsedTree();
+    if (tree === undefined) return undefined;
     const root = path.split(".")[0];
-    const own = componentTokens().find((c) => c.entry.path === path)?.row;
+    const own = tokenRowAt(tree, path, activeMode());
     const kind = own === undefined ? undefined : measure(own.value)?.kind;
     if (kind === undefined) return undefined;
-    const values = componentTokens()
-      .filter((c) =>
-        c.entry.path.split(".")[0] === root && c.row !== undefined &&
-        measure(c.row.value)?.kind === kind
-      )
-      .map((c) => c.row!.value);
+    const values: string[] = [];
+    for (const entry of declaredTokens()) {
+      if (entry.path.split(".")[0] !== root) continue;
+      const row = tokenRowAt(tree, entry.path, activeMode());
+      if (row !== undefined && measure(row.value)?.kind === kind) {
+        values.push(row.value);
+      }
+    }
     return values.length > 1 ? values : undefined;
   };
 
+  const classRowsFor = (
+    component: NonNullable<ReturnType<typeof found>>,
+  ): readonly { name: string; kind: string; description: string }[] => {
+    if (
+      component.kind === "primitive" &&
+      component.examples?.classes !== undefined &&
+      component.examples.classes.length > 0
+    ) {
+      return component.examples.classes;
+    }
+    // No curated rows: list the tags and stop. Guessing Color/Style/Size
+    // from variant names produced filler ("Style class for Details") that
+    // reads as documentation but documents nothing.
+    const label = displayComponentName(component.name);
+    return component.tags
+      .filter((tag) => {
+        if (component.name === "button" && tag === "span") return false;
+        if (
+          component.name === "breadcrumbs" &&
+          (tag === "a" || tag === "li")
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((tag) => ({
+        name: `<${tag}>`,
+        kind: "Component",
+        description:
+          component.kind === "machine"
+            ? `Custom element host for the ${label} component`
+            : `Base HTML element styled by the ${label} primitive`,
+      }));
+  };
   return (
     <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4">
       <Show
@@ -245,21 +267,37 @@ export default function ComponentPage() {
             <header class="mb-4 flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
                 <h1 class="capitalize">
-                  {component.name.replace(/-/g, " ")}
+                  {displayComponentName(component.name)}
                 </h1>
-                <p class="truncate font-mono text-xs text-text-muted">
-                  <Show when={component.tags.length > 0}>
-                    {component.tags.map((t: string) => `<${t}>`).join("  ")}
-                  </Show>
-                  <Show when={component.variants.length > 0}>
-                    <span class="ml-2 text-text-muted">
-                      variants {component.variants.join(" ")}
-                    </span>
-                  </Show>
-                </p>
+                <Show
+                  when={
+                    component.kind !== "machine" &&
+                    Boolean(component.examples?.note)
+                  }
+                >
+                  <p class="mt-1 max-w-screen-md text-sm text-text-muted">
+                    {component.examples?.note}
+                  </p>
+                </Show>
               </div>
               <div class="flex shrink-0 items-center gap-2">
-                <Show when={componentTokens().length > 0}>
+                <Show
+                  when={component.kind === "machine" &&
+                    component.manifest !== undefined}
+                >
+                  <button
+                    type="button"
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                      showApi()
+                        ? "border-transparent bg-primary text-on-primary"
+                        : "border-border bg-surface-raised text-text"
+                    }`}
+                    onClick={() => setShowApi((v) => !v)}
+                  >
+                    {showApi() ? "hide api" : "api"}
+                  </button>
+                </Show>
+                <Show when={declaredTokens().length > 0}>
                   <button
                     type="button"
                     // The chip that opens the panel wears the acting colour
@@ -276,7 +314,20 @@ export default function ComponentPage() {
                     onClick={() => setShowTokens((v) => !v)}
                   >
                     {showTokens() ? "hide" : "component tokens"}{" "}
-                    ({componentTokens().length})
+                    ({declaredTokens().length})
+                  </button>
+                </Show>
+                <Show when={classRowsFor(component).length > 0}>
+                  <button
+                    type="button"
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                      showClasses()
+                        ? "border-transparent bg-primary text-on-primary"
+                        : "border-border bg-surface-raised text-text"
+                    }`}
+                    onClick={() => setShowClasses((v) => !v)}
+                  >
+                    {showClasses() ? "hide" : "classes & tags"}
                   </button>
                 </Show>
                 <badge class="shrink-0">
@@ -285,37 +336,99 @@ export default function ComponentPage() {
               </div>
             </header>
 
-            <p class="max-w-screen-md text-sm text-text-muted">
-              {component.examples?.note ?? ""}
-            </p>
-
+            <Show when={showClasses() && classRowsFor(component).length > 0}>
+              <div
+                data-studio-chrome=""
+                class="mb-4 w-fit max-w-full overflow-x-auto rounded-md border border-border bg-surface text-left text-xs"
+                aria-label="Classes and tags"
+              >
+                <table class="m-0 w-full border-collapse text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-border bg-surface-raised text-text-muted">
+                      <th class="whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
+                        Class / Tag
+                      </th>
+                      <th class="whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
+                        Type
+                      </th>
+                      <th class="px-3 py-2 text-xs font-medium">
+                        Description
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={classRowsFor(component)}>
+                      {(item) => (
+                        <tr class="border-b border-border last:border-b-0">
+                          <td class="whitespace-nowrap px-3 py-1 font-mono text-xs font-medium text-primary">
+                            <code>{item.name}</code>
+                          </td>
+                          <td class="whitespace-nowrap px-3 py-1 font-mono text-xs text-text-muted">
+                            <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 font-mono text-xs">
+                              {item.kind}
+                            </span>
+                          </td>
+                          <td class="px-3 py-1 text-xs text-text-muted">
+                            {item.description}
+                          </td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            </Show>
             <Show
-              when={component.kind === "machine" &&
+              when={showApi() &&
+                component.kind === "machine" &&
                 component.manifest !== undefined}
             >
               <div
-                class="mt-3 flex flex-wrap gap-1"
+                data-studio-chrome=""
+                class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4"
                 aria-label="Machine contract"
               >
-                <For
-                  each={Object.entries(component.manifest!) as [
-                    string,
-                    readonly string[],
-                  ][]}
-                >
-                  {([tier, names]) => (
-                    <Show when={names.length > 0}>
-                      <span class="rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
-                        {tier}: {names.length}
-                      </span>
-                    </Show>
-                  )}
-                </For>
+                <div class="flex items-center justify-between">
+                  <h2>Machine API</h2>
+                  <button
+                    type="button"
+                    class="bare p-0 text-text-muted hover:text-text"
+                    onClick={() => setShowApi(false)}
+                  >
+                    close
+                  </button>
+                </div>
+                <div class="stack-sm">
+                  <For
+                    each={Object.entries(component.manifest!) as [
+                      string,
+                      readonly string[],
+                    ][]}
+                  >
+                    {([tier, names]) => (
+                      <Show when={names.length > 0}>
+                        <div class="flex flex-wrap items-baseline gap-2">
+                          <span class="w-20 shrink-0 font-mono text-xs text-text-muted">
+                            {tier}
+                          </span>
+                          <div class="flex flex-wrap gap-1">
+                            <For each={names}>
+                              {(name) => (
+                                <code class="rounded-sm border border-border bg-surface px-1 py-0.5 font-mono text-xs text-text">
+                                  {name}
+                                </code>
+                              )}
+                            </For>
+                          </div>
+                        </div>
+                      </Show>
+                    )}
+                  </For>
+                </div>
               </div>
             </Show>
-
-            <Show when={showTokens() && componentTokens().length > 0}>
-              <div class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4">
+            <Show when={showTokens() && declaredTokens().length > 0}>
+              <div data-studio-chrome="" class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4">
                 <div class="flex items-center justify-between">
                   <h2>Component tokens</h2>
                   <button
@@ -325,7 +438,7 @@ export default function ComponentPage() {
                     // loudest action in it. Without it the theme's own
                     // primary fill and hard shadow reach a control that
                     // meant to read as a link.
-                    class="bare text-text-muted hover:text-text"
+                    class="bare p-0 text-text-muted hover:text-text"
                     onClick={() => setShowTokens(false)}
                   >
                     close
@@ -337,45 +450,56 @@ export default function ComponentPage() {
                   when the theme currently relies on the shared scale.
                 </p>
                 <div class="stack-sm">
-                  <For each={componentTokens()}>
-                    {(entry) =>
-                      entry.row !== undefined
-                        ? (
-                          <TokenRow
-                            row={entry.row}
-                            onEdit={editToken}
-                            variable={entry.row.variable}
-                            group={siblingsFor(entry.entry.path)}
-                          />
-                        )
-                        : (
-                          <card class="split p-2">
-                            <div class="row-sm min-w-0">
-                              <span class="truncate font-mono text-xs">
-                                {entry.entry.path}
-                              </span>
-                            </div>
-                            <div class="row-sm min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-                              <span class="font-mono text-xs text-text-muted">
-                                {entry.entry.type} · falls back to{" "}
-                                {entry.entry.value}
-                              </span>
-                              <Badge tone="warning">not declared</Badge>
-                              <button
-                                type="button"
-                                class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
-                                onClick={() =>
-                                  createToken(
-                                    entry.entry.path.split("."),
-                                    entry.entry.type,
-                                    entry.entry.value,
-                                  )}
-                              >
-                                Create
-                              </button>
-                            </div>
-                          </card>
-                        )}
+                  <For each={declaredTokens()}>
+                    {(entry) => {
+                      const row = createMemo(() => {
+                        const tree = parsedTree();
+                        return tree === undefined
+                          ? undefined
+                          : tokenRowAt(tree, entry.path, activeMode());
+                      });
+                      return (
+                        <Show
+                          when={row()}
+                          fallback={
+                            <card class="min-h-12 flex-row items-center justify-between gap-4 px-3 py-2">
+                              <div class="row-sm min-w-0">
+                                <span class="truncate font-mono text-xs">
+                                  {entry.path}
+                                </span>
+                              </div>
+                              <div class="row-sm min-w-0 shrink-0 items-center justify-end gap-2">
+                                <span class="font-mono text-xs text-text-muted">
+                                  {entry.type} · falls back to {entry.value}
+                                </span>
+                                <Badge tone="warning">not declared</Badge>
+                                <button
+                                  type="button"
+                                  class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
+                                  onClick={() =>
+                                    createToken(
+                                      entry.path.split("."),
+                                      entry.type,
+                                      entry.value,
+                                    )}
+                                >
+                                  Create
+                                </button>
+                              </div>
+                            </card>
+                          }
+                        >
+                          {(currentRow) => (
+                            <TokenRow
+                              row={currentRow()}
+                              onEdit={editToken}
+                              variable={currentRow().variable}
+                              group={siblingsFor(entry.path)}
+                            />
+                          )}
+                        </Show>
+                      );
+                    }}
                   </For>
                 </div>
               </div>
@@ -391,26 +515,6 @@ export default function ComponentPage() {
               )}
             </For>
 
-            <Show when={tokenEntries().length > 0}>
-              <section class="mt-6 stack-sm" aria-label="Tokens this reads">
-                <h2 class="row-sm">
-                  <Marker />
-                  <span>Tokens this reads</span>
-                </h2>
-                <div class="flex flex-wrap gap-2">
-                  <For each={tokenEntries()}>
-                    {(entry) => (
-                      <A
-                        href={editorRouteFor(entry.path)}
-                        class="no-underline hover:underline"
-                      >
-                        <TokenChip path={entry.path} value={entry.value} />
-                      </A>
-                    )}
-                  </For>
-                </div>
-              </section>
-            </Show>
           </div>
         )}
       </Show>

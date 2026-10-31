@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@spin/check": "workspace:*",
     "@solidjs/meta": "^0.28.0",
     "@solidjs/router": "^1.0.0",
     "@spinjs/spin": "workspace:*",
@@ -15,8 +16,7 @@
     "build": "vite build",
     "test": "bun test src/",
     "typecheck": "tsc --noEmit",
-    "e2e": "bun test e2e/",
-    "screenshots": "bun run ./visual/shot.ts",
-    "check": "bun run ./visual/check.ts"
+    "e2e": "bun test --max-concurrency 1 e2e/",
+    "visual": "bun run ./visual/check.ts"
   }
 }

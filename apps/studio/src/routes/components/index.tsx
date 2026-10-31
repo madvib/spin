@@ -20,79 +20,68 @@
  * the family they want is scanning the same marks they scan everywhere else.
  */
 
-import { createMemo, For, Match, Switch } from "solid-js";
+import { createMemo, createSignal, For, Match, Switch } from "solid-js";
 import { A } from "@solidjs/router";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
-import { primitiveCategories, primitiveElements } from "@spinjs/preset";
+import { COMPONENT_ICONS } from "@spinjs/components";
+import { primitiveElements } from "@spinjs/preset";
+import {
+  displayComponentName,
+  unifiedComponentGroups,
+} from "../../lib/primitives.ts";
 import { library } from "../../lib/store.ts";
 import { inDrawer } from "../../lib/host.ts";
 import { Marker } from "../../components/Concern.tsx";
-
-const MACHINE_TAXONOMY = COMPONENT_GROUPS.map((g) => ({
-  id: g.id,
-  label: `${g.label} · interactive`,
-  members: g.members.map((m) => ({
-    name: `component-${m}`,
-    icon: COMPONENT_ICONS[m] ?? "i-lucide-box",
-  })),
-}));
+const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
+  ...primitiveElements.map((element) => [element.name, element.icon] as const),
+  ...Object.entries(COMPONENT_ICONS).map(
+    ([name, icon]) => [`component-${name}`, icon] as const,
+  ),
+]);
 export default function ComponentsIndex() {
-  // Read through a memo, so the gallery re-lays-out when the host switches
-  // the studio between the drawer and the modal: a grid that only changed
-  // on the next navigation was a grid that was stale until the author left.
   const drawer = createMemo(() => inDrawer());
+  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">("all");
 
-  /**
-   * The groups, in the taxonomy's order, with the cards each one shows.
-   *
-   * The taxonomy is the filing: it says which group an element belongs to
-   * and in what order the groups are read, so the gallery cannot drift from
-   * the rail beside it.
-   */
   const groups = createMemo(() => {
-    const kept = new Map(
-      (library() ?? []).map((component) => [component.name, component]),
-    );
-    return [
-      ...primitiveCategories
-        .map((category) => ({
-          label: category.label,
-          rows: primitiveElements
-            .filter((element) => element.category === category.id)
-            .map((element) => ({
-              name: element.name,
-              icon: element.icon,
-              component: kept.get(element.name),
-            }))
-            .filter((row) => row.component !== undefined),
-        })),
-      ...MACHINE_TAXONOMY.map((category) => ({
-        label: category.label,
-        rows: category.members
-          .map((element) => ({
-            name: element.name,
-            icon: element.icon,
-            component: kept.get(element.name),
-          }))
-          .filter((row) => row.component !== undefined),
+    const all = library() ?? [];
+    const byName = new Map(all.map((component) => [component.name, component]));
+    return unifiedComponentGroups(all, kindFilter(), "", ICONS).map((group) => ({
+      label: group.label,
+      rows: group.rows.map((row) => ({
+        ...row,
+        component: byName.get(row.name),
       })),
-    ]
-      .filter((group) => group.rows.length > 0);
+    }));
   });
-
   return (
-    <div class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-8">
-      <header class="stack-sm">
-        <h1>Components</h1>
-        <p class="max-w-screen-md text-sm text-text-muted">
-          Every primitive the preset ships, in the groups the library files them
-          by. Pick one to see its variants, what it reads, and where to change
-          it.
-        </p>
-      </header>
-      <Switch
-        fallback={
-          <div class="mt-6 flex flex-col gap-8">
+    <div
+      data-studio-chrome=""
+      class="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6"
+    >
+      <div class="mx-auto max-w-screen-lg stack-lg">
+        <header class="stack-sm">
+          <h1>Components</h1>
+          <p class="max-w-screen-md text-sm text-text-muted">
+            Every primitive and interactive component in the library. Pick one
+            to inspect its variants, interactive examples, and tokens.
+          </p>
+          <div role="group" aria-label="Component kind" class="flex w-fit shrink-0 gap-1 rounded-md border border-solid border-border p-1">
+            <For each={(["all", "primitive", "machine"] as const)}>
+              {(kind) => (
+                <button
+                  type="button"
+                  aria-pressed={kindFilter() === kind}
+                  onClick={() => setKindFilter(kind)}
+                  class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+                >
+                  {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+                </button>
+              )}
+            </For>
+          </div>
+        </header>
+        <Switch
+          fallback={
+            <div class="flex flex-col gap-8">
             <For each={groups()}>
               {(group) => (
                 <section class="stack-sm" aria-label={group.label}>
@@ -119,11 +108,19 @@ export default function ComponentsIndex() {
                               aria-hidden="true"
                             />
                             <strong class="capitalize text-text">
-                              {row.name.replace(/-/g, " ")}
+                              {displayComponentName(row.name)}
                             </strong>
                           </span>
-                          <span class="text-sm text-text-muted">
-                            {row.component?.examples?.rows.length ?? 0} examples
+                          <span class="flex items-center justify-between text-xs text-text-muted">
+                            <span>
+                              {row.component?.examples?.rows.length ?? 0}{" "}
+                              examples
+                            </span>
+                            <span>
+                              {row.name.startsWith("component-")
+                                ? "interactive"
+                                : "primitive"}
+                            </span>
                           </span>
                         </A>
                       )}
@@ -143,7 +140,8 @@ export default function ComponentsIndex() {
             No components. Is the API running?
           </p>
         </Match>
-      </Switch>
+        </Switch>
+      </div>
     </div>
   );
 }

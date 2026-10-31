@@ -78,21 +78,10 @@ function decimals(text: string): number {
  */
 function quantumOf(raw: string, m: Measure): number {
   if (m.unit === "rem") {
-    // Context-dependent: a small value steps finely, a large value coarsely.
-    // A fixed grid (1/32) makes a 0.25rem value jump 12.5% per step; scaling
-    // the quantum with the value's own magnitude keeps the drag responsive
-    // at every scale without inventing steps the scale never had. The
-    // sixteenth floor is the layout grid a rem value is authored on.
-    return Math.max(1 / 64, Math.abs(m.n) * 0.02);
+    return Math.abs(m.n) >= 0.5 ? 0.125 : 0.0625;
   }
   if (m.unit === "em") {
-    // An em is a type-relative unit, and its values are fine measures —
-    // tracking lives between a hundredth and a fifth of one. The floor that
-    // keeps a rem drag responsive lands coarser than the values themselves,
-    // so the thumb would sit near its number instead of on it; the magnitude
-    // alone is the grid. Zero has no magnitude and keeps the floor.
-    const step = Math.abs(m.n) * 0.02;
-    return step > 0 ? step : 1 / 64;
+    return 0.005;
   }
   if (m.unit === "ms") return 1;
   if (m.unit === "s") return 0.001;
@@ -135,9 +124,10 @@ export function scaleValue(value: string, factor: number): string | undefined {
  * family.
  */
 export function robustMax(values: readonly number[]): number {
-  const sorted = values
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => b - a);
+  const finite = values.filter((n) => Number.isFinite(n));
+  const underCap = finite.filter((n) => n > 0 && n < 512);
+  const pool = underCap.length > 0 ? underCap : finite;
+  const sorted = [...pool].sort((a, b) => b - a);
   const top = sorted[0];
   if (top === undefined) return 0;
   const next = sorted.slice(1).find((n) => n > 0);
@@ -185,11 +175,27 @@ export function lockstepEdits(
     ? canonical(proposed) / canonical(before)
     : 0;
   if (!linked || !Number.isFinite(ratio) || ratio <= 0) return [own];
+  const clampedRatio = Math.min(4, Math.max(0.05, ratio));
   const out: ScaleEdit[] = [];
   for (const step of steps) {
-    const value = step.path === editedPath
-      ? next
-      : scaleValue(step.value, ratio);
+    let value: string | undefined;
+    if (step.path === editedPath) {
+      value = next;
+    } else {
+      const m = measure(step.value);
+      if (m === undefined) continue;
+      const stepPx = canonical(m);
+      if (
+        step.path.endsWith(".full") ||
+        (m.kind === "length" && stepPx > 512)
+      ) {
+        continue;
+      }
+      const factor = m.kind === "length" && stepPx > 0
+        ? Math.min(clampedRatio, 512 / stepPx)
+        : clampedRatio;
+      value = scaleValue(step.value, factor);
+    }
     if (value !== undefined && value !== step.value) {
       out.push({ path: step.path.split("."), value });
     }

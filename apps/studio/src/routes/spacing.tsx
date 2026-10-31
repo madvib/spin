@@ -8,13 +8,12 @@ import {
   Section,
   TokenLine,
 } from "../components/Concern.tsx";
-import { analyzeTheme } from "../lib/theme.ts";
 import { actingColour, tokenValue } from "../lib/overview.ts";
 import { groupTokens, toPx } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
-import { activeMode, themeText } from "../lib/store.ts";
+import { activeMode, activeTree } from "../lib/store.ts";
 import { createLockstep } from "../lib/lockstep.ts";
-
+import { inDrawer } from "../lib/host.ts";
 /**
  * Spacing — the scale, and what each step is for.
  *
@@ -49,16 +48,9 @@ function stepOf(path: string): string {
 }
 
 export default function SpacingPage() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const stepRows = createMemo(() => {
-    const current = tree();
-    return current ? groupTokens(current, [["spacing"]], activeMode()) : [];
-  });
+  const stepRows = createMemo(() => groupTokens(activeTree(), [["spacing"]], activeMode()));
   const steps = createLockstep(() => stepRows(), "spacing");
-  const breakpointRows = createMemo(() => {
-    const current = tree();
-    return current ? groupTokens(current, [["breakpoint"]], activeMode()) : [];
-  });
+  const breakpointRows = createMemo(() => groupTokens(activeTree(), [["breakpoint"]], activeMode()));
   const breakpoints = createLockstep(() => breakpointRows(), "breakpoint");
   const widest = () =>
     Math.max(
@@ -72,18 +64,9 @@ export default function SpacingPage() {
    * specimen shows the theme's colour, and a utility paints whatever the
    * studio's own sheet happens to say.
    */
-  const colour = (path: string): string | undefined => {
-    const current = tree();
-    return current === undefined
-      ? undefined
-      : tokenValue(current, activeMode(), path);
-  };
-  const acting = createMemo(() => {
-    const current = tree();
-    return current === undefined
-      ? undefined
-      : actingColour(current, activeMode());
-  });
+  const colour = (path: string): string | undefined =>
+    tokenValue(activeTree(), activeMode(), path);
+  const acting = createMemo(() => actingColour(activeTree(), activeMode()));
 
   // The ramp, shortest bar first: the order is the comparison, and a step
   // the length parser cannot read still has to appear — at the end, where
@@ -116,14 +99,11 @@ export default function SpacingPage() {
   };
 
   return (
-    <ConcernPage
-      title="Spacing"
-      note="Every gap, pad and inset is one of these steps, and a step only means something beside the others, so the scale is drawn as a ramp."
-    >
+    <ConcernPage title="Spacing">
       <Section
         title="Scale"
         fact={`${steps.rows().length} steps`}
-        note="The ramp: each step on one track, each step against the ratio that made it. A row opens the step's editor and its two applied figures."
+        info="Click any step to inspect its applied padding and gap specimens; drag a bar or use −/+ to adjust."
         aside={<LinkToggle group="spacing" ratio={steps.activeRatio()} />}
       >
         <Show
@@ -134,93 +114,158 @@ export default function SpacingPage() {
             </p>
           }
         >
-          <ul class="flow-list">
-            <For each={ramp()}>
-              {(entry, index) => (
-                <li>
-                  {
-                    /* `bare` keeps the primitive's flex centering, so the row
-                      span fills the button rather than being aligned by
-                      text-align — the columns line up across rows only then.
-                      The row that is in play wears the acting colour on its
-                      edge, the way the overview marks the theme being edited.
-                      The edge is drawn by a VARIANT, because a variant is
-                      worth more than the colour it competes with: a row
-                      that is transparent by default cannot also be told to
-                      be primary without the two arguing over one edge. */
-                  }
-                  <button
-                    type="button"
-                    class="bare w-full select-none text-text"
-                    aria-pressed={selected()?.row.path === entry.row.path}
-                    onClick={() => setSelectedPath(entry.row.path)}
-                  >
-                    <span
-                      class="row-sm w-full gap-3 rounded-md border border-transparent px-2 py-2 data-[current]:border-primary"
-                      data-current={selected()?.row.path === entry.row.path
-                        ? ""
-                        : undefined}
-                      classList={{
-                        "bg-surface-raised": selected()?.row.path ===
-                          entry.row.path,
-                      }}
-                    >
-                      <code class="w-24 shrink-0 truncate">
-                        {entry.row.path}
-                      </code>
-                      <span class="min-w-0 flex-1">
-                        <ScaleBar
-                          fill={acting()}
-                          variable={entry.row.variable}
-                          px={entry.px}
-                          maxPx={rampMax()}
-                          onCommit={(rem) => steps.commit(entry.row.path, rem)}
-                          onPreview={(rem) =>
-                            steps.preview(entry.row.path, rem)}
-                          onCancel={steps.abandon}
-                        />
-                      </span>
-                      <code class="w-16 shrink-0 text-right tabular-nums">
-                        {steps.shown(entry.row.path, entry.row.value)}
-                      </code>
-                      <code class="w-10 shrink-0 text-right tabular-nums">
-                        {ratioAt(index())}
-                      </code>
-                    </span>
-                  </button>
-                </li>
-              )}
-            </For>
-          </ul>
+          <div
+            class={
+              inDrawer()
+                ? "stack-lg"
+                : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] [&>*]:min-w-0"
+            }
+          >
+            <Frame class="min-w-0 p-2">
+              <ul class="divide-y divide-border">
+                <For each={ramp()}>
+                  {(entry, index) => {
+                    const shownVal = () =>
+                      steps.shown(entry.row.path, entry.row.value);
+                    const shownPx = () => toPx(shownVal()) ?? entry.px;
+                    return (
+                      <li>
+                        <button
+                          type="button"
+                          class="bare w-full select-none text-text"
+                          aria-pressed={
+                            selected()?.row.path === entry.row.path
+                          }
+                          onClick={() => setSelectedPath(entry.row.path)}
+                        >
+                          <span
+                            class="row-sm w-full gap-3 rounded-md border border-transparent px-3 py-2.5 data-[current]:border-primary"
+                            data-current={
+                              selected()?.row.path === entry.row.path
+                                ? ""
+                                : undefined
+                            }
+                            classList={{
+                              "bg-surface-sunken":
+                                selected()?.row.path === entry.row.path,
+                            }}
+                          >
+                            <span
+                              data-studio-chrome=""
+                              class="w-8 shrink-0 font-mono text-xs font-semibold text-text"
+                            >
+                              {stepOf(entry.row.path)}
+                            </span>
+                            <code
+                              data-studio-chrome=""
+                              class="w-24 shrink-0 truncate text-xs text-text-muted"
+                            >
+                              {entry.row.path}
+                            </code>
+                            <span
+                              data-studio-specimen=""
+                              class="min-w-0 flex-1"
+                            >
+                              <ScaleBar
+                                fill={acting()}
+                                variable={entry.row.variable}
+                                px={entry.px}
+                                maxPx={rampMax()}
+                                onCommit={(rem) =>
+                                  steps.commit(entry.row.path, rem)
+                                }
+                                onPreview={(rem) =>
+                                  steps.preview(entry.row.path, rem)
+                                }
+                                onCancel={steps.abandon}
+                              />
+                            </span>
+                            <code
+                              data-studio-chrome=""
+                              class="w-16 shrink-0 text-right tabular-nums"
+                            >
+                              {shownVal()}
+                            </code>
+                            <span
+                              data-studio-chrome=""
+                              class="w-12 shrink-0 text-right font-mono text-xs text-text-muted tabular-nums"
+                            >
+                              {shownPx() !== undefined
+                                ? `${Math.round(shownPx()!)}px`
+                                : ""}
+                            </span>
+                            <code
+                              data-studio-chrome=""
+                              class="w-12 shrink-0 text-right text-xs text-text-muted tabular-nums"
+                            >
+                              {ratioAt(index())}
+                            </code>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  }}
+                </For>
+              </ul>
+            </Frame>
 
-          <Show when={selected()}>
-            {(entry) => (
-              <Frame>
-                <div class="row-sm flex-wrap justify-between gap-3">
-                  <code>
-                    {entry().row.path}
-                  </code>
-                  <ValueInput
-                    value={entry().row.value}
-                    type={entry().row.type}
-                    onCommit={(value) => steps.commit(entry().row.path, value)}
-                    group={steps.rows().map((row) => row.value)}
-                    variable={entry().row.variable}
-                    label={entry().row.path}
-                    onPreview={(value) =>
-                      steps.preview(entry().row.path, value)}
-                    onCancel={steps.abandon}
-                    proposed={steps.shown(entry().row.path, entry().row.value)}
-                  />
-                </div>
-                <StepFigures
-                  row={entry().row}
-                  fill={acting()}
-                  edge={colour("color.border-strong")}
-                />
-              </Frame>
-            )}
-          </Show>
+            <div
+              class="min-w-0"
+              classList={{ "lg:sticky lg:top-4": !inDrawer() }}
+            >
+              <Show when={selected()}>
+                {(entry) => {
+                  const shownVal = () =>
+                    steps.shown(entry().row.path, entry().row.value);
+                  const shownPx = () => toPx(shownVal()) ?? entry().px ?? 0;
+                  return (
+                    <Frame class="stack">
+                      <div
+                        data-studio-chrome=""
+                        class="split items-baseline gap-2"
+                      >
+                        <div class="row-sm items-baseline">
+                          <span class="text-base font-semibold text-text">
+                            Step {stepOf(entry().row.path)}
+                          </span>
+                          <code class="text-xs text-text-muted">
+                            {entry().row.path}
+                          </code>
+                        </div>
+                        <span class="rounded-md bg-surface-sunken px-2 py-0.5 font-mono text-xs text-text-muted tabular-nums">
+                          {Math.round(shownPx())}px
+                        </span>
+                      </div>
+                      <div data-studio-chrome="">
+                        <ValueInput
+                          value={entry().row.value}
+                          type={entry().row.type}
+                          onCommit={(value) =>
+                            steps.commit(entry().row.path, value)
+                          }
+                          group={steps.rows().map((row) => row.value)}
+                          variable={entry().row.variable}
+                          label={entry().row.path}
+                          onPreview={(value) =>
+                            steps.preview(entry().row.path, value)
+                          }
+                          onCancel={steps.abandon}
+                          proposed={shownVal()}
+                        />
+                      </div>
+                      <div data-studio-specimen="">
+                        <StepFigures
+                          row={entry().row}
+                          fill={acting()}
+                          edge={colour("color.border-strong")}
+                        />
+                      </div>
+                    </Frame>
+                  );
+                }}
+              </Show>
+            </div>
+          </div>
         </Show>
       </Section>
 
@@ -228,7 +273,7 @@ export default function SpacingPage() {
         title="Breakpoints"
         fact={`${breakpoints.rows().length} widths`}
         tone="accent"
-        note="The viewport widths a layout changes at. Each is shown as a share of the widest this theme declares, which is the only relative fact about one."
+        info="Viewport min-width thresholds for responsive prefixes (sm:, md:, lg:, xl:)."
         aside={
           <LinkToggle
             group="breakpoint"
@@ -244,69 +289,72 @@ export default function SpacingPage() {
             </p>
           }
         >
-          <Frame>
-            <div class="flex flex-wrap items-end gap-4">
+          <Frame class="stack">
+            <div
+              data-studio-specimen=""
+              class="stack-sm rounded-md border border-border bg-surface-sunken p-4"
+            >
               <For each={breakpoints.rows()}>
-                {(row) => (
-                  <figure class="stack-sm w-24">
-                    <div class="h-4 overflow-hidden rounded-sm bg-surface-sunken">
-                      <div
-                        class="h-full rounded-sm"
-                        style={{
-                          background: colour("color.accent"),
-                          width: `${
-                            ((toPx(row.value) ?? 0) / widest()) * 100
-                          }%`,
-                        }}
-                      />
+                {(row) => {
+                  const shown = () => breakpoints.shown(row.path, row.value);
+                  const pct = () =>
+                    Math.max(8, ((toPx(shown()) ?? 0) / widest()) * 100);
+                  return (
+                    <div class="row-sm items-center gap-3">
+                      <span class="w-10 shrink-0 font-mono text-xs font-semibold text-text">
+                        {row.path.split(".").pop()}
+                      </span>
+                      <div class="h-4 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface">
+                        <div
+                          class="h-full rounded-sm"
+                          style={{
+                            background: colour("color.accent"),
+                            width: `${pct()}%`,
+                          }}
+                        />
+                      </div>
+                      <code class="w-16 shrink-0 text-right text-xs text-text-muted tabular-nums">
+                        {shown()}
+                      </code>
                     </div>
-                    <figcaption class="truncate text-center">
-                      {row.path.split(".").pop()}
-                    </figcaption>
-                  </figure>
-                )}
+                  );
+                }}
               </For>
             </div>
+            <ul>
+              <For each={breakpoints.rows()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    utility={`${row.path.split(".").pop()}:*`}
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) =>
+                          breakpoints.commit(row.path, value)
+                        }
+                        group={breakpoints.rows().map((r) => r.value)}
+                        variable={row.variable}
+                        label={row.path}
+                        onPreview={(value) =>
+                          breakpoints.preview(row.path, value)
+                        }
+                        onCancel={breakpoints.abandon}
+                        proposed={breakpoints.shown(row.path, row.value)}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
           </Frame>
-          <ul class="flow-list">
-            <For each={breakpoints.rows()}>
-              {(row) => (
-                <TokenLine
-                  path={row.path}
-                  editor={
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => breakpoints.commit(row.path, value)}
-                      group={breakpoints.rows().map((r) => r.value)}
-                      variable={row.variable}
-                      label={row.path}
-                      onPreview={(value) =>
-                        breakpoints.preview(row.path, value)}
-                      onCancel={breakpoints.abandon}
-                      proposed={breakpoints.shown(row.path, row.value)}
-                    />
-                  }
-                />
-              )}
-            </For>
-          </ul>
         </Show>
       </Section>
     </ConcernPage>
   );
 }
 
-/**
- * One step spent two ways: as padding around a box, and as a gap between
- * boxes — the step's own utility, `p-4` and `gap-4`, spent on real boxes.
- *
- * The step is read through its own custom property rather than through the
- * utility: a utility is a name the sheet has to have been told about, and
- * the scale's steps are named by the theme, so the property is the only
- * spelling that is right for every one of them. The caption still says what
- * an author writes.
- */
 function StepFigures(props: {
   row: TokenRow;
   fill: string | undefined;
@@ -314,36 +362,48 @@ function StepFigures(props: {
 }) {
   const step = () => stepOf(props.row.path);
   return (
-    <div class="row-sm flex-wrap items-start gap-4">
-      <figure class="stack-sm">
-        <div class="spin-preview">
-          <div
-            class="border border-dashed"
-            style={{
-              "border-color": props.edge,
-              padding: `var(${props.row.variable})`,
-            }}
-          >
-            <div
-              class="h-3 w-10 rounded-sm"
-              style={{ background: props.fill }}
-            />
-          </div>
+    <div class="stack-sm">
+      <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
+        <div class="split items-center">
+          <span class="text-xs font-semibold text-text">Container padding</span>
+          <code class="text-xs text-text-muted">{`p-${step()}`}</code>
         </div>
-        <figcaption>{`p-${step()}`}</figcaption>
-      </figure>
-      <figure class="stack-sm">
         <div
-          class="spin-preview flex"
+          class="spin-preview overflow-hidden rounded-sm border border-dashed bg-surface"
+          style={{
+            "border-color": props.edge,
+            padding: `var(${props.row.variable})`,
+          }}
+        >
+          <div
+            class="h-6 w-full rounded-sm"
+            style={{ background: props.fill }}
+          />
+        </div>
+      </div>
+      <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
+        <div class="split items-center">
+          <span class="text-xs font-semibold text-text">Stack / row gap</span>
+          <code class="text-xs text-text-muted">{`gap-${step()}`}</code>
+        </div>
+        <div
+          class="spin-preview flex items-center overflow-hidden rounded-sm border border-border bg-surface p-2"
           style={{ gap: `var(${props.row.variable})` }}
         >
-          <div class="h-3 w-3 rounded-sm" style={{ background: props.fill }} />
-          <div class="h-3 w-3 rounded-sm" style={{ background: props.fill }} />
+          <div
+            class="h-6 w-10 shrink-0 rounded-sm"
+            style={{ background: props.fill }}
+          />
+          <div
+            class="h-6 w-10 shrink-0 rounded-sm"
+            style={{ background: props.fill }}
+          />
+          <div
+            class="h-6 w-10 shrink-0 rounded-sm"
+            style={{ background: props.fill }}
+          />
         </div>
-        <figcaption>
-          {`gap-${step()}`}
-        </figcaption>
-      </figure>
+      </div>
     </div>
   );
 }

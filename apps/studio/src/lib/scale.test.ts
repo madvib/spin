@@ -48,7 +48,7 @@ test("scaleValue keeps the precision the author wrote", () => {
   // a nudge that would land between steps snaps back rather than inventing
   // a value the scale never had.
   deepStrictEqual(scaleValue("1rem", 1.001), "1rem");
-  deepStrictEqual(scaleValue("1rem", 1.02), "1.02rem");
+  deepStrictEqual(scaleValue("1rem", 1.125), "1.125rem");
 });
 
 test("scaleValue refuses what a factor cannot mean", () => {
@@ -92,9 +92,9 @@ test("sliderRange gives every step of a group the same ceiling", () => {
   deepStrictEqual(sliderRange("0.25rem", steps), {
     min: 0,
     max: 8,
-    step: 0.015625,
+    step: 0.0625,
   });
-  deepStrictEqual(sliderRange("4rem", steps), { min: 0, max: 8, step: 0.08 });
+  deepStrictEqual(sliderRange("4rem", steps), { min: 0, max: 8, step: 0.125 });
   const durations = ["150ms", "250ms", "400ms"];
   deepStrictEqual(sliderRange("150ms", durations), { min: 0, max: 800, step: 1 });
   deepStrictEqual(sliderRange("1000", ["0", "1000", "2000", "3000"]), {
@@ -110,7 +110,7 @@ test("sliderRange lets a row above the ramp take its own headroom", () => {
   deepStrictEqual(sliderRange("0.5rem", radii), {
     min: 0,
     max: 1,
-    step: 0.015625,
+    step: 0.125,
   });
   // …and it still has room to grow.
   deepStrictEqual(sliderRange("9999px", radii), {
@@ -134,7 +134,7 @@ test("sliderRange never hands back a dead track", () => {
   deepStrictEqual(sliderRange("0rem", ["0rem"]), {
     min: 0,
     max: 1,
-    step: 0.015625,
+    step: 0.0625,
   });
 });
 
@@ -145,31 +145,27 @@ test("sliderRange gives a value below zero room on both sides", () => {
   deepStrictEqual(sliderRange("-0.01em", ["-0.01em"]), {
     min: -0.02,
     max: 0.02,
-    step: 0.0002,
+    step: 0.005,
   });
   // A family with a positive step keeps that ceiling; the negative row's
   // floor stays its own.
   deepStrictEqual(sliderRange("-0.01em", ["-0.01em", "0.05em"]), {
     min: -0.02,
     max: 0.1,
-    step: 0.0002,
+    step: 0.005,
   });
 });
 
 test("sliderRange steps an em on its own magnitude, not a layout floor", () => {
-  // A tracking value is smaller than a sixteenth of an em; the old floor
-  // landed coarser than the value itself, and the thumb could only sit near
-  // its own number. The magnitude is the grid.
   deepStrictEqual(sliderRange("0.05em", ["0.05em"]), {
     min: 0,
     max: 0.1,
-    step: 0.001,
+    step: 0.005,
   });
-  // A zero has no magnitude to step on and keeps the floor.
   deepStrictEqual(sliderRange("0em", ["0em"]), {
     min: 0,
     max: 1,
-    step: 0.015625,
+    step: 0.005,
   });
 });
 
@@ -263,5 +259,20 @@ test("lockstepEdits carries the ratio across units", () => {
 test("lockstepEdits answers a path it does not hold with the edit alone", () => {
   deepStrictEqual(lockstepEdits(RAMP, "spacing.9", "9rem", true), [
     { path: ["spacing", "9"], value: "9rem" },
+  ]);
+});
+
+test("lockstepEdits leaves pill sentinels (radius.full / > 512px) untouched", () => {
+  const radii = [
+    { path: "radius.none", value: "0" },
+    { path: "radius.sm", value: "0.125rem" },
+    { path: "radius.md", value: "0.25rem" },
+    { path: "radius.lg", value: "0.4375rem" },
+    { path: "radius.full", value: "9999px" },
+  ];
+  deepStrictEqual(lockstepEdits(radii, "radius.md", "0.5rem", true), [
+    { path: ["radius", "sm"], value: "0.25rem" },
+    { path: ["radius", "md"], value: "0.5rem" },
+    { path: ["radius", "lg"], value: "0.875rem" },
   ]);
 });

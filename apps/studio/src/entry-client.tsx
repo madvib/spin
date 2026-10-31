@@ -9,4 +9,5 @@ import App from "./app.tsx";
 // The app's own compositions are not here either. They are shortcuts, declared
 // in `vite.config.ts`, so they are generated with the rest of the sheet — one
 // stylesheet, one source of truth.
+import "spin/components";
 render(() => <App />, document.getElementById("app")!);

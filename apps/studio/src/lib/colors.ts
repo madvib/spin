@@ -20,6 +20,7 @@
 import {
   aliasTarget,
   BASE_ROLES,
+  contrastRatio,
   indexTree,
   toHex,
   valuesInMode,
@@ -32,14 +33,6 @@ export type Family = "brand" | "neutral" | "status";
 
 /** The families, in the order the page shows them. */
 export const FAMILIES: readonly Family[] = ["brand", "neutral", "status"];
-
-/** What each family is for, in one line. */
-export const FAMILY_NOTES: Readonly<Record<Family, string>> = {
-  brand:
-    "The colours the product wears: the action, the second action, the emphasis, the link.",
-  neutral: "The surfaces and the inks everything else is drawn on.",
-  status: "What the interface says about the state of the world.",
-};
 
 /** What each family is called on the page. */
 export const FAMILY_TITLES: Readonly<Record<Family, string>> = {
@@ -123,12 +116,18 @@ export interface Role {
   readonly doc: string;
   /** The family the role belongs to. */
   readonly family: Family;
-  /** The base value: the token's own `$value`. */
-  readonly base: RoleValue;
-  /** The dark restatement, when the theme serves a dark mode. */
+  /** The light value, when the theme serves a light mode. */
+  readonly light: RoleValue | null;
+  /** The dark value, when the theme serves a dark mode. */
   readonly dark: RoleValue | null;
-  /** Whether the theme restates this role for its dark mode. */
+  /** Which mode the token's own `$value` is written in. A dark-base theme
+   * (synthwave) writes dark in `$value` and restates light under `$modes`. */
+  readonly baseSlot: "light" | "dark";
+  /** Whether the theme restates this role for a mode other than the base. */
   readonly restated: boolean;
+  /** The base value: the slot the token's `$value` is written in. Kept so
+   * callers that read `role.base` keep reading the authored slot. */
+  readonly base: RoleValue;
 }
 
 /**
@@ -137,28 +136,54 @@ export interface Role {
  * The ramp is not a role: a numbered step of the grey scale is a step, and
  * the page shows the ramp as a ramp — under a disclosure — rather than as
  * twenty rows of "50" and "100" that a reader cannot act on.
+ *
+ * Slots follow the modes the theme declares, never the assumption that
+ * `$value` is light: a dark-base theme writes dark in `$value`, and a
+ * single-mode dark theme has no light slot at all.
  */
 export function colorRoles(
-  tree: TokenTree | undefined,
-  servesDark: boolean,
+  tree: TokenTree,
+  modes: readonly ("light" | "dark")[],
 ): Role[] {
-  if (tree === undefined) return [];
   const roles: Role[] = [];
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     if (leaf.path[0] !== "color") continue;
     if (isRampStep(leaf.path)) continue;
     const path = leaf.path.join(".");
+    const baseSlot: "light" | "dark" = baseSlotOf(leaf, modes);
+    const light = modes.includes("light") ? slotValue(tree, leaf, "light") : null;
+    const dark = modes.includes("dark") ? slotValue(tree, leaf, "dark") : null;
     roles.push({
       path,
       name: leaf.path.slice(1).join("."),
       doc: DOCS.get(path) ?? leaf.description ?? "",
       family: familyOf(leaf.path),
-      base: slotValue(tree, leaf, "base"),
-      dark: servesDark ? slotValue(tree, leaf, "dark") : null,
-      restated: leaf.modes?.["dark"] !== undefined,
+      light,
+      dark,
+      baseSlot,
+      base: baseSlot === "light" ? light ?? dark! : dark ?? light!,
+      restated: modes.some(
+        (mode) => mode !== baseSlot && leaf.modes?.[mode] !== undefined,
+      ),
     });
   }
   return roles.sort(byFamily);
+}
+
+/**
+ * The mode a leaf's own `$value` is written in.
+ *
+ * A light restatement on a dark deck (`synthwave`'s `$modes.light`) means the
+ * base is dark; a theme that serves dark alone (`console`) is dark-based by
+ * declaration. Otherwise the base is light — the system's own default.
+ */
+function baseSlotOf(
+  leaf: TokenLeaf,
+  modes: readonly ("light" | "dark")[],
+): "light" | "dark" {
+  if (leaf.modes?.["light"] !== undefined) return "dark";
+  if (!modes.includes("light") && modes.includes("dark")) return "dark";
+  return "light";
 }
 
 /** The roles of one family, in the order the family reads. */
@@ -189,10 +214,9 @@ export interface Target {
  * a surface at a step of the ramp is how a theme keeps its greys in step.
  */
 export function colorTargets(
-  tree: TokenTree | undefined,
+  tree: TokenTree,
   mode: string,
 ): Target[] {
-  if (tree === undefined) return [];
   const out: Target[] = [];
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     if (leaf.path[0] !== "color") continue;
@@ -207,7 +231,184 @@ export function colorTargets(
   return out;
 }
 
-/** One step of the neutral ramp. */
+/**
+ * A path as words: `color.on-primary` is `On Primary`, `color.semantic.error`
+ * is `Error`.
+ *
+ * Paths are for linking and copying; what a reader sees is the name. Only
+ * `color.*` paths are renamed — anything else passes through untouched.
+ * `semantic` is the contract's filing and nobody's vocabulary, so it reads
+ * as nothing: the leaf is the word.
+ */
+export function humanName(path: string): string {
+  if (!path.startsWith("color.")) return path;
+  const words = path
+    .slice("color.".length)
+    .split(".")
+    .filter((segment) => segment !== "semantic")
+    .flatMap((segment) => segment.split("-"))
+    .map((word) => word === "" ? word : word[0]!.toUpperCase() + word.slice(1));
+  // The flat `on-semantic-*` leaves read `On Semantic X`: the contract's
+  // filing again, in a hyphen. The leaf is still the word.
+  if (words.length >= 3 && words[0] === "On" && words[1] === "Semantic") {
+    words.splice(1, 1);
+  }
+  return words.join(" ");
+}
+/**
+ * The ink that reads on a paint: white or near-black, whichever contrasts
+ * more. No paint means no say — the caller falls back to its chrome ink.
+ */
+export function contrastInk(paint: string | null): string | undefined {
+  if (paint === null) return undefined;
+  return contrastRatio("#ffffff", paint) >= contrastRatio("#111111", paint)
+    ? "#ffffff"
+    : "#111111";
+}
+
+/**
+ * What a role is read on: an on-role sits on its fill, and everything
+ * else wears its own colour — a fill's own ground is the card's whole
+ * point.
+ */
+export function pairGround(path: string, fill: string): string {
+  const leaf = path.split(".").pop() ?? "";
+  if (leaf.startsWith("on-")) return fill;
+  return path;
+}
+
+/** The visual job a role plays on a card. */
+export type RoleKind = "fill" | "surface" | "ink" | "stroke" | "on-ink";
+
+const SURFACES = new Set([
+  "color.surface",
+  "color.surface-raised",
+  "color.surface-sunken",
+  "color.field",
+]);
+
+const INKS = new Set([
+  "color.text",
+  "color.text-muted",
+  "color.link",
+]);
+
+const STROKES = new Set([
+  "color.border",
+  "color.border-strong",
+  "color.focus-ring",
+]);
+
+export function roleKind(path: string): RoleKind {
+  const leaf = path.split(".").pop() ?? "";
+  if (leaf.startsWith("on-")) return "on-ink";
+  if (SURFACES.has(path)) return "surface";
+  if (INKS.has(path)) return "ink";
+  if (STROKES.has(path)) return "stroke";
+  return "fill";
+}
+
+/** The `on-*` ink token paired with a fill role, when the contract defines one. */
+export function pairedInkPath(path: string): string | null {
+  if (!path.startsWith("color.")) return null;
+  const rest = path.slice("color.".length);
+  if (rest.startsWith("semantic.")) {
+    return `color.on-semantic-${rest.slice("semantic.".length)}`;
+  }
+  if (
+    rest === "primary" ||
+    rest === "secondary" ||
+    rest === "accent" ||
+    rest === "disabled"
+  ) {
+    return `color.on-${rest}`;
+  }
+  return null;
+}
+
+/** The fill role an `on-*` ink sits on. */
+export function pairedFillPath(path: string): string | null {
+  if (!path.startsWith("color.on-")) return null;
+  const rest = path.slice("color.on-".length);
+  if (rest.startsWith("semantic-")) {
+    return `color.semantic.${rest.slice("semantic-".length)}`;
+  }
+  return `color.${rest}`;
+}
+
+/** A card in a family grid: a primary role and its paired `on-*` ink when present. */
+export interface RoleCard {
+  readonly role: Role;
+  readonly ink: Role | null;
+}
+
+/**
+ * The cards a family renders.
+ *
+ * Paired `on-*` roles fold into their fill card so the card wears the
+ * actual ink on the actual fill instead of repeating the fill twice. An
+ * `on-*` role whose fill is absent from the theme still renders its own
+ * card so no declared token disappears.
+ */
+export function familyCards(
+  roles: readonly Role[],
+  family: Family,
+): readonly RoleCard[] {
+  const byPath = new Map(roles.map((role) => [role.path, role]));
+  const inFamily = rolesOf(roles, family);
+  const out: RoleCard[] = [];
+  for (const role of inFamily) {
+    const fillPath = pairedFillPath(role.path);
+    if (fillPath !== null && byPath.has(fillPath)) continue;
+    const inkPath = pairedInkPath(role.path);
+    const ink = inkPath !== null ? (byPath.get(inkPath) ?? null) : null;
+    out.push({ role, ink });
+  }
+  return out;
+}
+
+/**
+ * Who each ramp step's value reaches: the roles resolving to it in the mode.
+ *
+ * A role pointing at a step by reference and a role holding the step's
+ * value literally are the same fact — the step's colour is on the screen
+ * because of them — so both count. A step nobody's value equals reads as
+ * the empty array: an orphan, not an absence.
+ */
+export function stepConsumers(
+  tree: TokenTree,
+  mode: string,
+): ReadonlyMap<string, readonly string[]> {
+  const values = valuesInMode(tree, mode);
+  const steps = new Map<string, string | null>();
+  const roles: { path: string; value: string | null }[] = [];
+  for (const leaf of Object.values(indexTree(tree).leaves)) {
+    if (leaf.path[0] !== "color") continue;
+    const path = leaf.path.join(".");
+    const value = resolve(values, path);
+    if (isRampStep(leaf.path)) steps.set(path, value);
+    else roles.push({ path, value });
+  }
+  const out = new Map<string, readonly string[]>();
+  for (const [step, value] of steps) {
+    if (value === null) {
+      out.set(step, []);
+      continue;
+    }
+    out.set(
+      step,
+      roles
+        .filter((role) => role.value === value)
+        .map((role) => humanName(role.path))
+        .sort(),
+    );
+  }
+  return out;
+}
+
+/**
+ * One step of the neutral ramp.
+ */
 export interface RampStep {
   /** The dotted path the theme declares it by. */
   readonly path: string;
@@ -221,9 +422,8 @@ export interface RampStep {
 
 /** The neutral ramp, in the order the ramp reads. */
 export function neutralRamp(
-  tree: TokenTree | undefined,
+  tree: TokenTree,
 ): RampStep[] {
-  if (tree === undefined) return [];
   const steps: RampStep[] = [];
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     if (!isRampStep(leaf.path)) continue;
@@ -274,23 +474,22 @@ function byFamily(a: Role, b: Role): number {
 /**
  * What one slot holds for a role, references followed.
  *
- * The base slot resolves against the base values and the dark slot against
- * the dark ones, so a dark reference points at the dark value of the token
- * it names — which is what a theme means when it restates a surface as
- * `{color.neutral.200}`.
+ * Each slot resolves against that mode's values (`valuesInMode`), so a dark
+ * reference points at the dark value of the token it names — which is what
+ * a theme means when it restates a surface as `{color.neutral.200}`.
  */
 function slotValue(
   tree: TokenTree,
   leaf: TokenLeaf,
-  slot: "base" | "dark",
+  slot: "light" | "dark",
 ): RoleValue {
   const path = leaf.path.join(".");
-  const raw = slot === "base" ? leaf.value : leaf.modes?.[slot] ?? leaf.value;
+  const raw = leaf.modes?.[slot] ?? leaf.value;
   const text = typeof raw === "string" || typeof raw === "number"
     ? String(raw)
     : "";
   const reference = aliasTarget(text);
-  const resolved = resolve(slotValues(tree, slot), path);
+  const resolved = resolve(valuesInMode(tree, slot), path);
   return {
     raw: text,
     computed: reference !== null,
@@ -298,19 +497,6 @@ function slotValue(
     value: resolved,
     hex: toHex(resolved) ?? null,
   };
-}
-
-/** The values a document holds in one slot, keyed by path. */
-function slotValues(
-  tree: TokenTree,
-  slot: "base" | "dark",
-): Map<string, unknown> {
-  if (slot === "dark") return valuesInMode(tree, "dark");
-  const out = new Map<string, unknown>();
-  for (const leaf of Object.values(indexTree(tree).leaves)) {
-    out.set(leaf.path.join("."), leaf.value);
-  }
-  return out;
 }
 
 /** What a slot is worth at a path, references followed. */

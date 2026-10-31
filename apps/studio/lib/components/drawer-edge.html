@@ -1,0 +1,26 @@
+<script lang="ts">
+import { toggleGroup } from "@spinjs/components/toggle-group";
+
+const machine = toggleGroup({
+  items: [
+    { value: "left", label: "Left" },
+    { value: "right", label: "Right" },
+  ],
+  value: ["right"],
+});
+</script>
+
+<div class="row-sm gap-2" role="group" aria-label="Drawer edge" {...machine.getRootProps()}>
+  <span class="text-sm text-text-muted">Drawer</span>
+  <template for={machine.getItems()} as={row} key={row.value}>
+    <button
+      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary text-text font-semibold": machine.value.includes(row.value), "text-text-muted": !machine.value.includes(row.value) }]}
+      data-edge={row.value}
+      {...machine.getItemProps(row)}
+    >
+      <span class="inline-block icon-sm i-lucide-panel-left" aria-hidden="true" show={row.value === "left"}></span>
+      <span class="inline-block icon-sm i-lucide-panel-right" aria-hidden="true" show={row.value === "right"}></span>
+      <span>{row.label}</span>
+    </button>
+  </template>
+</div>

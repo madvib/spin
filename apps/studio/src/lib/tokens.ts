@@ -430,6 +430,7 @@ export function compositeLadders(
   };
 }
 
+
 function formatValue(value: unknown): string {
   if (typeof value === "string" || typeof value === "number") {
     return String(value);

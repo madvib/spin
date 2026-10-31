@@ -21,6 +21,12 @@
       "~/*": [
         "./src/*"
       ],
+      "lib/components/*.html": [
+        "./lib/components/*.html"
+      ],
+      "@spinjs/components/examples": [
+        "../../packages/components/src/examples.ts"
+      ],
       "@spinjs/theme": [
         "../../packages/spin/src/theme/index.ts"
       ],
@@ -64,7 +70,6 @@
   },
   "include": [
     "src",
-    "../../packages/spin/src/preset/solid.d.ts",
     "vite.config.ts"
   ],
   "exclude": [

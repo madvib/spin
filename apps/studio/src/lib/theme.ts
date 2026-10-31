@@ -36,20 +36,86 @@ export function analyzeTheme(text: string): ThemeState {
  * parse, not by the mode list.
  */
 export function declaredModes(text: string): Mode[] {
+  let doc: Record<string, unknown>;
   try {
-    const doc = JSON.parse(text) as Record<string, unknown>;
-    const modes = doc["modes"];
-    if (
-      Array.isArray(modes) &&
-      modes.length > 0 &&
-      modes.every((mode) => mode === "light" || mode === "dark")
-    ) {
-      return modes as Mode[];
-    }
+    doc = JSON.parse(text) as Record<string, unknown>;
   } catch {
     return ["light", "dark"];
   }
-  return ["light", "dark"];
+  const modes = doc["modes"];
+  if (
+    Array.isArray(modes) &&
+    modes.length > 0 &&
+    modes.every((mode) => mode === "light" || mode === "dark")
+  ) {
+    return modes as Mode[];
+  }
+  // A document that declares no `modes` array is not necessarily single-mode:
+  // it may still carry dark overrides on individual tokens. Infer from
+  // content so a Blank scaffold (no modes, no overrides) reports one mode.
+  let hasDark = false;
+  const walk = (node: unknown, depth: number): void => {
+    if (depth > 24 || typeof node !== "object" || node === null) return;
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item, depth + 1);
+      return;
+    }
+    const record = node as Record<string, unknown>;
+    const modesNode = record["$modes"];
+    if (
+      typeof modesNode === "object" &&
+      modesNode !== null &&
+      !Array.isArray(modesNode) &&
+      Object.prototype.hasOwnProperty.call(modesNode, "dark")
+    ) {
+      hasDark = true;
+    }
+    for (const key of Object.keys(record)) {
+      walk(record[key], depth + 1);
+    }
+  };
+  walk(doc, 0);
+  return hasDark ? ["light", "dark"] : ["light"];
+}
+
+export function addMode(text: string, mode: "light" | "dark"): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const current = declaredModes(text);
+  const next = current.includes(mode) ? current : [...current, mode];
+  doc["modes"] = next;
+  return JSON.stringify(doc, null, 2);
+}
+
+export function removeMode(text: string, mode: "light" | "dark"): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const current = declaredModes(text);
+  const next = current.filter((m) => m !== mode);
+  if (next.length === 0) throw new Error("cannot remove the last mode");
+  doc["modes"] = next;
+  const strip = (node: unknown, depth: number): void => {
+    if (depth > 24 || typeof node !== "object" || node === null) return;
+    if (Array.isArray(node)) {
+      for (const item of node) strip(item, depth + 1);
+      return;
+    }
+    const record = node as Record<string, unknown>;
+    const modesNode = record["$modes"];
+    if (
+      typeof modesNode === "object" &&
+      modesNode !== null &&
+      !Array.isArray(modesNode)
+    ) {
+      delete (modesNode as Record<string, unknown>)[mode];
+      if (Object.keys(modesNode as Record<string, unknown>).length === 0) {
+        delete record["$modes"];
+      }
+    }
+    for (const key of Object.keys(record)) {
+      strip(record[key], depth + 1);
+    }
+  };
+  strip(doc, 0);
+  return JSON.stringify(doc, null, 2);
 }
 
 /**

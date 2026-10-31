@@ -1,0 +1,38 @@
+<script lang="ts">
+import { menu } from "@spinjs/components/menu";
+
+const machine = menu({});
+</script>
+
+<div class="relative shrink-0">
+  <button
+    class="bare inline-flex h-8 w-8 items-center justify-center rounded-md p-0 opacity-70 transition-opacity hover:opacity-100"
+    aria-label="Theme actions"
+    data-testid="theme-menu"
+    {...machine.getTriggerProps()}
+  >
+    <span class="inline-block h-4 w-4 i-lucide-ellipsis-vertical" aria-hidden="true"></span>
+  </button>
+  <div class="absolute right-0 z-dropdown w-max" {...machine.getPositionerProps()}>
+    <div
+      class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      {...machine.getContentProps()}
+    >
+      <template for={machine.getBlocks()} as={block} key={block.id}>
+        <div class="py-1" {...machine.getItemGroupProps(block)}>
+          <template for={machine.getRows(block)} as={row} key={row.value}>
+            <div
+              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default hover:bg-surface-sunken"
+              {...machine.getItemProps(row)}
+            >
+              <span class="shrink-0 text-text-muted" aria-hidden="true"><span class="inline-block h-4 w-4 i-lucide-copy" aria-hidden="true" show={row.value === "duplicate"}></span><span class="inline-block h-4 w-4 i-lucide-rotate-cw" aria-hidden="true" show={row.value === "reload"}></span><span class="inline-block h-4 w-4 i-lucide-sun" aria-hidden="true" show={row.value === "add-light" || row.value === "remove-light"}></span><span class="inline-block h-4 w-4 i-lucide-moon" aria-hidden="true" show={row.value === "add-dark" || row.value === "remove-dark"}></span><span class="inline-block h-4 w-4 i-lucide-eraser" aria-hidden="true" show={row.value === "discard"}></span><span class="inline-block h-4 w-4 i-lucide-trash" aria-hidden="true" show={row.value === "delete"}></span></span>
+              <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
+              <span class="shrink-0 text-xs text-text-muted" {...machine.getItemShortcutProps(row)}>{row.shortcut}</span>
+            </div>
+          </template>
+        </div>
+        <hr {...machine.getSeparatorProps(block)} />
+      </template>
+    </div>
+  </div>
+</div>

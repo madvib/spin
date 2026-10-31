@@ -25,26 +25,73 @@ import { spinClient } from "./client.ts";
  * previous paint first — two painters on one variable cannot both take it
  * off.
  */
+const paintedProps = new Set<string>();
+
+function previewTargets(): HTMLElement[] {
+  if (typeof document === "undefined") return [];
+  const host = document.querySelector<HTMLElement>(".spin-preview[data-theme]");
+  const specimens = Array.from(
+    document.querySelectorAll<HTMLElement>(
+      ".spin-preview [data-studio-specimen]",
+    ),
+  );
+  return host === null ? specimens : [host, ...specimens];
+}
+
+export function clearPreviewPaint(): void {
+  if (typeof document === "undefined") return;
+  const targets = previewTargets();
+  for (const el of targets) {
+    for (const name of paintedProps) el.style.removeProperty(name);
+  }
+  paintedProps.clear();
+}
+
 export function paintPreview(vars: Record<string, string>): () => void {
   if (typeof document === "undefined") return () => {};
-  // The pane, by the class that marks it a preview and the attribute that
-  // says which theme it wears. NOT a child combinator: the studio's error
-  // boundary, the shell's layout row and the work column all sit between
-  // the themed root and the pane, so `[data-theme="studio"] > [data-theme]`
-  // matched nothing and every drag painted into the void.
-  const host = document.querySelector<HTMLElement>(".spin-preview[data-theme]");
-  if (host === null) return () => {};
+  const targets = previewTargets();
+  if (targets.length === 0) return () => {};
   for (const [name, value] of Object.entries(vars)) {
-    host.style.setProperty(name, value);
+    paintedProps.add(name);
+    for (const el of targets) el.style.setProperty(name, value);
   }
   return () => {
-    for (const name of Object.keys(vars)) host.style.removeProperty(name);
+    const current = previewTargets();
+    for (const name of Object.keys(vars)) {
+      for (const el of current) el.style.removeProperty(name);
+    }
   };
 }
 
 /** Why a preview could not be generated. */
 export interface PreviewFailure {
   readonly error: string;
+}
+
+/** What the preview resource fetches for, or `undefined` while the theme text has not arrived. */
+export interface PreviewKey {
+  readonly tree: unknown;
+  readonly name: string;
+  readonly markup?: string;
+  readonly text: string;
+}
+
+/**
+ * The preview resource key: present only once there is text to generate from.
+ *
+ * The registry answers after first paint, so the editor document starts
+ * empty — and a fetch for empty text fails with an invalid-JSON banner
+ * while leaving every specimen unstyled. No key, no fetch, no banner: the
+ * last good stylesheet stays until the registry answers and the key lands.
+ */
+export function previewKey(
+  text: string,
+  name: string,
+  tree: unknown,
+  markup?: string,
+): PreviewKey | undefined {
+  if (text.trim() === "") return undefined;
+  return { tree, name, markup, text };
 }
 
 /**

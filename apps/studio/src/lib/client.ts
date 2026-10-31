@@ -21,9 +21,10 @@ import { createSpinClient, type SpinClient } from "@spinjs/api/client";
  * load, the choice lasts the session; a reload without the param is a
  * different mode, the studio's own project, and starts over.
  */
-const namedAtLoad: string | null = new URLSearchParams(location.search).get(
-  "app",
-);
+function namedAtLoad(): string | null {
+  if (typeof location === "undefined") return null;
+  return new URLSearchParams(location.search).get("app");
+}
 
 /**
  * The API base, absolute against the page's own origin so it follows
@@ -37,8 +38,9 @@ function rpcUrl(): string {
   // studio with a host app — it is named by `?app=`, and every call goes
   // there, not just the overlay write. Without this the studio would edit
   // whatever project its own checkout happens to mount.
-  if (namedAtLoad !== null) {
-    return new URL("/__spin/rpc", new URL(namedAtLoad)).toString();
+  const named = namedAtLoad();
+  if (named !== null) {
+    return new URL("/__spin/rpc", new URL(named)).toString();
   }
   // A `file://` preview or an opaque origin reports `"null"`: fall back
   // to the page URL rather than a dead origin.
@@ -63,9 +65,8 @@ export async function spinClient(): Promise<SpinClient> {
  * saying which project is being edited.
  */
 export function hostPath(path: string): string {
-  return namedAtLoad === null
-    ? path
-    : `${path}?app=${encodeURIComponent(namedAtLoad)}`;
+  const named = namedAtLoad();
+  return named === null ? path : `${path}?app=${encodeURIComponent(named)}`;
 }
 
 /**

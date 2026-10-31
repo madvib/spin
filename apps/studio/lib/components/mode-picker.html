@@ -1,0 +1,20 @@
+<script lang="ts">
+import { modePicker } from "@spinjs/components/mode-picker";
+
+const machine = modePicker({ syncDocument: false, hideWhenSingle: false });
+</script>
+
+<span {...machine.getRootProps()}>
+<button
+  class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface hover:text-text"
+  data-testid="mode-button"
+  {...machine.getTriggerProps()}
+>
+  <span class="inline-flex h-4 w-4 items-center justify-center" {...machine.getIconProps()}>
+    <span class="inline-block i-lucide-sun h-4 w-4" show={machine.next === "light"}></span>
+    <span class="inline-block i-lucide-moon h-4 w-4" show={machine.next === "dark"}></span>
+    <span class="inline-block i-lucide-monitor h-4 w-4" show={machine.next === "system"}></span>
+  </span>
+  <span class="sr-only">{machine.label}</span>
+</button>
+</span>

@@ -20,9 +20,14 @@ import {
 } from "./theme.ts";
 import type { FileState } from "./theme.ts";
 import { indexTree } from "@spinjs/theme";
-import type { Mode } from "@spinjs/theme";
+import type { Mode, TokenTree } from "@spinjs/theme";
+import { compositeLadders, type CompositeLadders } from "./tokens.ts";
+
+/** The tree before any document parses: no tokens, no modes, no crash. */
+const EMPTY_TREE: TokenTree = [];
 import { documentFailure, editRefusal } from "./live-edit.ts";
 import { keepFocus } from "./keep-focus.ts";
+import { clearPreviewPaint } from "./preview.ts";
 import {
   currentProject,
   listProjectThemes,
@@ -44,9 +49,11 @@ const [registryData, { refetch: refetchResource }] = createResource(
   listProjectThemes,
 );
 
-/** The registry, or `undefined` before it answers. */
+/** The registry, or `undefined` before it answers. A background refetch
+ * keeps the resolved list on screen: `<Suspense>` must not tear the route
+ * tree down for data it already has. */
 export function registry() {
-  return registryData();
+  return registryData.state === "refreshing" ? registryData.latest : registryData();
 }
 
 export function refetchThemes(): void {
@@ -83,9 +90,10 @@ const [projectData, { refetch: refetchProjectResource }] = createResource(
   currentProject,
 );
 
-/** The project the daemon serves, or `undefined` before it answers. */
+/** The project the daemon serves, or `undefined` before it answers. A
+ * background refetch keeps the resolved project on screen. */
 export function project(): ProjectReport | undefined {
-  return projectData();
+  return projectData.state === "refreshing" ? projectData.latest : projectData();
 }
 
 /** Why the project could not be read, when it could not be read. */
@@ -129,9 +137,10 @@ const [libraryData, { refetch: refetchLibraryResource }] = createResource(
   listPrimitives,
 );
 
-/** Every component the API knows, or `undefined` before it answers. */
+/** Every component the API knows, or `undefined` before it answers. A
+ * background refetch keeps the resolved list on screen. */
 export function library(): readonly RpcComponent[] | undefined {
-  return libraryData();
+  return libraryData.state === "refreshing" ? libraryData.latest : libraryData();
 }
 
 export function refetchLibrary(): void {
@@ -207,6 +216,7 @@ const [activeName, setActiveNameSignal] = createSignal(
  * no longer holds is clamped by the seat effect when the registry answers.
  */
 export function setActiveName(name: string): void {
+  clearPreviewPaint();
   setActiveNameSignal(name);
   remember("spin-theme", name);
 }
@@ -356,7 +366,7 @@ createEffect(() => {
 });
 
 /** Seed the editor from the registry entry when it first becomes visible. */
-function seed(name: string): string | undefined {
+export function seed(name: string): string | undefined {
   const fromDisk = registry()?.find(
     (theme: StudioTheme) => theme.name === name,
   )?.text;
@@ -582,6 +592,30 @@ export function lastNotice(): string | undefined {
 /** Say what the studio did about the file. */
 export function note(message: string): void {
   setNotice(message);
+  globalThis.setTimeout(() => {
+    if (notice() === message) setNotice(undefined);
+  }, 4000);
+}
+
+/** Record that a theme's unsaved edits were dropped. */
+export function noteDiscarded(theme: string): void {
+  note(`${theme} — the unsaved edits were dropped.`);
+}
+/** Dismiss the notice before its time. */
+export function dismissNotice(): void {
+  setNotice(undefined);
+}
+
+/** Dismiss the standing refusal. */
+export function dismissRefusal(): void {
+  const theme = activeName();
+  setRefusals((prev) => {
+    const forTheme = prev[theme];
+    if (forTheme === undefined || forTheme[""] === undefined) return prev;
+    const next = { ...forTheme };
+    delete next[""];
+    return { ...prev, [theme]: next };
+  });
 }
 
 /**
@@ -603,17 +637,22 @@ export function note(message: string): void {
  * The arithmetic lives in `live-edit.ts`: it is pure, and it is the same
  * arithmetic a control needs while an author is dragging a value.
  */
-export function setThemeText(
+export function setThemeTextFor(
+  name: string,
   next: string,
   touched: readonly string[] = [],
 ): boolean {
-  const name = activeName();
+  const refused = editRefusal(
+    (docs()[name] ?? seed(name) ?? ""),
+    next,
+    touched,
+  );
   // The rule is the theme's, not the studio's: the same judgement
   // `spinPreset` applies when it generates, so the two cannot disagree.
   // What is refused is the edit that BREAKS the theme — a problem the
   // document already had is the author's to repair, and the studio is where
   // they repair it.
-  const refused = editRefusal(themeText(), next, touched);
+  // (refusal already computed above)
   if (refused !== undefined) {
     refuse(refused.message, refused.path);
     return false;
@@ -633,7 +672,7 @@ export function setThemeText(
   // first entry is the current state has nothing behind it — undo would be
   // enabled and do nothing.
   const at = historyFor(name);
-  const before = themeText();
+  const before = docs()[name] ?? seed(name) ?? "";
   if (at.present === next) return true;
   setHistory((prev) => ({
     ...prev,
@@ -646,6 +685,10 @@ export function setThemeText(
   setDocs((prev) => ({ ...prev, [name]: next }));
   void pushOverlay(name, next);
   return true;
+}
+
+export function setThemeText(next: string, touched: readonly string[] = []): boolean {
+  return setThemeTextFor(activeName(), next, touched);
 }
 
 /**
@@ -698,6 +741,7 @@ export function canRedo(): boolean {
 }
 
 export function undo(): void {
+  clearPreviewPaint();
   const name = activeName();
   const at = historyFor(name);
   const previous = at.past[at.past.length - 1];
@@ -716,6 +760,7 @@ export function undo(): void {
 }
 
 export function redo(): void {
+  clearPreviewPaint();
   const name = activeName();
   const at = historyFor(name);
   const next = at.future[0];
@@ -755,6 +800,7 @@ function forgetHistory(name: string, text: string): void {
  * touched — this is about what the editor shows.
  */
 export function revertToSaved(name: string): void {
+  clearPreviewPaint();
   const snapshot = saved()[name];
   if (snapshot === undefined) return;
   setDocs((prev) => ({ ...prev, [name]: snapshot }));
@@ -763,17 +809,8 @@ export function revertToSaved(name: string): void {
   void pushOverlay(name, snapshot);
 }
 
-/**
- * Re-reads one theme from disk, and shows what the file holds.
- *
- * The file moved under the studio — a branch checked out, an editor saved
- * it, another tab wrote it — and the studio's document is a document that
- * no longer exists on disk. This replaces the editor's text with the
- * file's and reports what it found: a file that differs from what the
- * studio last wrote is a change the author has to know about before the
- * next save overwrites it.
- */
 export async function reloadFromDisk(name: string): Promise<FileState> {
+  clearPreviewPaint();
   const text = await loadProjectTheme(name);
   if (text === undefined) return fileStateOf(name);
   const moved = text !== saved()[name];
@@ -828,6 +865,16 @@ export interface SaveOutcome {
  * disk is only as fresh as its last look at it, and a save that trusted a
  * stale picture would destroy exactly the change it had not seen yet.
  */
+const [saveCopyRequest, setSaveCopyRequest] = createSignal<string | null>(null);
+
+export function pendingSaveCopy(): string | null {
+  return saveCopyRequest();
+}
+
+export function closeSaveCopy(): void {
+  setSaveCopyRequest(null);
+}
+
 export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
   seed(name);
   const document = docs()[name];
@@ -836,8 +883,11 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
     noteRefusal(problem);
     return { written: false, problem };
   }
+  if (!hasProjectFile(name)) {
+    setSaveCopyRequest(name);
+    return { written: false, problem: null };
+  }
 
-  // The file's own text, read now.
   let disk: string | undefined;
   try {
     disk = await loadProjectTheme(name);
@@ -847,14 +897,9 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
     return { written: false, problem };
   }
   if (disk !== undefined) {
-    // The studio's picture of the disk is now the file's own answer, not the
-    // registry's older one.
     setOnDisk((prev) => ({ ...prev, [name]: disk }));
   }
 
-  // A file the project held and no longer holds is a file that moved too:
-  // the read falls back to a shipped starter, and there is nothing there to
-  // write over — the author has to know before the save makes one.
   const moved = fileMoved(saved()[name], disk) ||
     (disk === undefined && hasProjectFile(name));
   if (moved) {
@@ -873,13 +918,42 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
   return { written: true, problem: null };
 }
 
-/**
- * Whether the project holds a file for this theme.
- *
- * The registry says so, and it is what tells a deleted file from a theme
- * that never had one.
- */
-function hasProjectFile(name: string): boolean {
+export async function saveStarterAsProjectTheme(
+  sourceName: string,
+  targetName: string,
+): Promise<SaveOutcome> {
+  const trimmed = targetName.trim();
+  if (trimmed === "") {
+    return { written: false, problem: "Enter a name for the project theme." };
+  }
+  const listed = await listProjectThemes();
+  if (listed.some((t) => t.name === trimmed)) {
+    return {
+      written: false,
+      problem: `a theme named ${trimmed} already exists`,
+    };
+  }
+  const document = docs()[sourceName] ?? seed(sourceName);
+  if (document === undefined) {
+    return { written: false, problem: "the studio holds no document to write" };
+  }
+  const result = await saveTheme(trimmed, document);
+  if (result.error !== null) {
+    return { written: false, problem: result.error };
+  }
+  revertToSaved(sourceName);
+  setDocs((prev) => ({ ...prev, [trimmed]: document }));
+  setSaved((prev) => ({ ...prev, [trimmed]: document }));
+  setOnDisk((prev) => ({ ...prev, [trimmed]: document }));
+  forgetHistory(trimmed, document);
+  refetchThemes();
+  setSaveCopyRequest(null);
+  setActiveName(trimmed);
+  note(`${sourceName} saved as ${trimmed}.`);
+  return { written: true, problem: null };
+}
+
+export function hasProjectFile(name: string): boolean {
   const listed = registry()?.find((theme) => theme.name === name);
   return listed !== undefined && listed.file !== null;
 }
@@ -892,14 +966,34 @@ function hasProjectFile(name: string): boolean {
  * have to be one answer.
  */
 export function activeTokenCount(): number {
-  const state = analyzeTheme(themeText());
-  if (state.tree === undefined) return 0;
-  return Object.values(indexTree(state.tree).leaves).length;
+  try {
+    return Object.values(indexTree(activeTree()).leaves).length;
+  } catch {
+    return 0;
+  }
 }
 
 /** The modes the active theme declares. */
 export function activeModes(): Mode[] {
   return declaredModes(themeText());
+}
+
+/**
+ * The active theme's tree, narrowed once at the store boundary.
+ *
+ * A mid-keystroke document may not parse; the last valid tree holds until
+ * the author repairs it, so routes read a tree and never a maybe-tree.
+ */
+let lastValidTree: TokenTree | undefined;
+export function activeTree(): TokenTree {
+  const state = analyzeTheme(themeText());
+  if (state.tree !== undefined) lastValidTree = state.tree;
+  return lastValidTree ?? EMPTY_TREE;
+}
+
+/** The ladders of the theme being edited, narrowed once at the store boundary. */
+export function activeLadders(): CompositeLadders {
+  return compositeLadders(activeTree(), activeMode());
 }
 
 /** The preview component selection, read from the active theme's raw text. */

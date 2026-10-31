@@ -1,0 +1,60 @@
+<script lang="ts">
+import { motionStage } from "../../src/machines/motion-stage/motion-stage.presentation.ts";
+
+const machine = motionStage({});
+</script>
+
+<div {...machine.getRootProps()}>
+  <div class="split items-center border-b border-border pb-3">
+    <div class="row-sm items-center gap-2" {...machine.getToolbarProps()}>
+      <button
+        class="secondary s-sm row-sm whitespace-nowrap"
+        data-testid="motion-play"
+        {...machine.getPlayTriggerProps()}
+      >
+        <span class="inline-block icon-sm i-lucide-play" show={machine.state === "idle"}></span>
+        <span class="inline-block icon-sm i-lucide-square" show={machine.state !== "idle"}></span>
+        <span>{machine.running ? "Stop" : "Play"}</span>
+      </button>
+      <button
+        class="secondary s-sm row-sm whitespace-nowrap"
+        data-testid="motion-loop"
+        aria-label="Loop"
+        {...machine.getLoopTriggerProps()}
+      >
+        <span class="inline-block icon-sm i-lucide-repeat"></span>
+        <span>{machine.loop ? "On" : "Off"}</span>
+      </button>
+      <button
+        class="secondary s-sm row-sm whitespace-nowrap"
+        data-testid="motion-speed"
+        aria-label="Playback speed"
+        {...machine.getSpeedTriggerProps()}
+      >
+        <span>{machine.speed}x</span>
+      </button>
+    </div>
+  </div>
+  <ul class="flow-list divide-y divide-border" {...machine.getTrackListProps()}>
+    <template for={machine.getLanes()} as={lane} key={lane.id}>
+      <li class="stack-xs py-3" {...machine.getLaneProps(lane)}>
+        <div class="split flex-wrap items-center gap-3">
+          <div class="row-sm flex-wrap items-baseline gap-2">
+            <code>{lane.path}</code>
+            <code class="whitespace-nowrap text-xs text-text-muted">{lane.utility}</code>
+          </div>
+          <slot name={lane.id}></slot>
+        </div>
+        <div
+          class="spin-preview h-4 overflow-hidden rounded-sm bg-surface-sunken"
+          aria-hidden="true"
+        >
+          <div
+            class="h-full rounded-sm bg-primary"
+            {...machine.getLaneBarProps(lane)}
+          ></div>
+        </div>
+      </li>
+    </template>
+  </ul>
+</div>

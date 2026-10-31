@@ -2,8 +2,8 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
-import { spin } from "../../packages/spin/src/preset/plugin.ts";
+import { mountSpinApp } from "@spinjs/spin/api";
+import { spin } from "@spinjs/spin/vite";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import studioTheme from "./theme.json" with { type: "json" };
 
@@ -83,9 +83,6 @@ export default defineConfig(({ command }) => ({
   },
   plugins: [
     spin.vite({
-      elements: {
-        machines: resolve(import.meta.dirname, "../../packages/components/src"),
-      },
       // The chrome is themed by the studio's own static theme. Project
       // themes are injected at runtime by the preview surface, so editing one
       // cannot restyle the tool doing the editing.
@@ -115,7 +112,7 @@ export default defineConfig(({ command }) => ({
       // app: a real spin app with `spin/*.json` on disk, which is the
       // same themes it renders — so what the studio edits is what the
       // app shows.
-      mount: mountSpinApp(resolve(import.meta.dirname, "../../apps/reference")),
+      mount: mountSpinApp(resolve(import.meta.dirname, "../reference")),
       content: {
         filesystem: [
           // The file the compositions are declared in. A class written down
@@ -124,37 +121,8 @@ export default defineConfig(({ command }) => ({
           // with the markup that uses it.
           "vite.config.ts",
           "src/**/*.{tsx,ts}",
-          // Primitives register their demo markup through the daemon, so the
-          // studio's Uno scan cannot see a class written in an example to
-          // generate a rule for it - which is exactly how component icons came
-          // to render nothing. Scanning the example modules brings the real
-          // glyph names into the studio's sheet. Mirrors the reference app.
-          resolve(
-            import.meta.dirname,
-            "../../packages/spin/src/preset/rules/primitives/*.examples.ts",
-          ),
-          // The taxonomy names the glyph each element wears. The icon preset
-          // generates a rule for a name that is written down and for no name
-          // that is not, so the gallery's rows would draw nothing at all
-          // without the names reaching the scanner. Mirrors the reference app.
-          resolve(
-            import.meta.dirname,
-            "../../packages/spin/src/preset/rules/primitives/categories.ts",
-          ),
-          // The kit's shared components carry classes too — a section, a
-          // specimen, the theme picker — and a class the scan does not see is
-          // a class the sheet does not carry. The kit is internal chrome, so
-          // its source is part of every app's content.
-          resolve(
-            import.meta.dirname,
-            "../../packages/spin/src/kit/**/*.{tsx,ts}",
-          ),
-          // Machine component examples: `.html` files compiled by
-          // spinElements above. Mirrors the reference app.
-          resolve(
-            import.meta.dirname,
-            "../../packages/components/src/*/examples/*.html",
-          ),
+          "lib/components/**/*.{html,ts}",
+          "../../packages/spin/src/kit/**/*.{tsx,ts}",
         ],
         pipeline: {
           include: [

@@ -89,39 +89,35 @@ function Swatch(props: {
 }) {
   const swatch = (
     <span
-      class={`block w-full rounded-md border border-border ${
+      class={`flex w-full flex-col items-start justify-end gap-1 rounded-md border border-border p-2 text-left ${
         props.tall ? "h-24" : "h-16"
       }`}
       style={{ background: props.chip.value }}
       title={`${props.chip.label} ${props.chip.value}`}
-      aria-hidden="true"
-    />
+    >
+      <span
+        class="w-full truncate text-sm font-medium"
+        style={{ color: props.chip.ink }}
+      >
+        {props.chip.label}
+      </span>
+      <Hex value={props.chip.value} pill ink={props.chip.ink} />
+    </span>
   );
   return (
     <figure class="stack-sm">
-      <Show
-        when={props.onPick}
-        fallback={swatch}
-      >
-        <button
-          type="button"
-          // `bare`: a swatch is a colour, not a control with a fill of its
-          // own — the button's own paint would frame every colour in the
-          // palette with the theme's primary.
-          class="bare block w-full cursor-pointer text-left"
-          title={`Edit ${props.chip.label}`}
-          aria-label={`Edit ${props.chip.label}`}
-          onClick={() => props.onPick?.(props.chip.path)}
-        >
-          {swatch}
-        </button>
-      </Show>
-      <figcaption class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span class="shrink-0 text-sm text-text">
-          {props.chip.label}
-        </span>
-        <Hex value={props.chip.value} />
-      </figcaption>
+      <div class="relative">
+        {swatch}
+        <Show when={props.onPick}>
+          <button
+            type="button"
+            class="bare absolute inset-0 z-0 cursor-pointer"
+            title={`Edit ${props.chip.label}`}
+            aria-label={`Edit ${props.chip.label}`}
+            onClick={() => props.onPick?.(props.chip.path)}
+          />
+        </Show>
+      </div>
     </figure>
   );
 }
@@ -139,7 +135,7 @@ function Swatch(props: {
  * reaches for. A value that is not a colour at all (a reference the caller
  * failed to resolve) is shown as it stands: there is no hex to give.
  */
-export function Hex(props: { value: string }) {
+export function Hex(props: { value: string; pill?: boolean; ink?: string }) {
   const [copied, setCopied] = createSignal(false);
   let copiedFor: ReturnType<typeof globalThis.setTimeout> | undefined;
   const hex = createMemo(() => toHex(props.value) ?? props.value);
@@ -162,10 +158,18 @@ export function Hex(props: { value: string }) {
   return (
     <button
       type="button"
-      class="bare s-sm min-w-0 shrink cursor-pointer justify-start text-left text-xs text-text-muted hover:text-text"
+      class={
+        props.pill
+          ? "bare relative z-10 h-4 cursor-pointer truncate rounded-md p-0 font-mono text-xs opacity-70 hover:opacity-100"
+          : "bare h-4 w-16 shrink-0 cursor-pointer overflow-hidden p-0 text-right font-mono text-xs tabular-nums text-text-muted hover:text-text"
+      }
+      style={props.ink ? { color: props.ink } : undefined}
       title={props.value}
       aria-label={`Copy ${hex()}`}
-      onClick={() => void copy()}
+      onClick={(e) => {
+        e.stopPropagation();
+        void copy();
+      }}
     >
       <Show
         when={copied()}

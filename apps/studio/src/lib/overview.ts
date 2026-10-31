@@ -7,9 +7,9 @@
  * that is itself a reference would read as reference text.
  */
 
-import { aliasTarget, themeModes, valuesInMode } from "@spinjs/theme";
+import { aliasTarget, contrastRatio, themeModes, valuesInMode } from "@spinjs/theme";
 import type { TokenTree } from "@spinjs/theme";
-import { analyzeTheme } from "./theme.ts";
+import { analyzeTheme, declaredModes } from "./theme.ts";
 import { groupTokens, toPx } from "./tokens.ts";
 import type { TokenRow } from "./tokens.ts";
 
@@ -23,6 +23,8 @@ interface ChipSpec {
 export interface Chip extends ChipSpec {
   /** The value resolved for the mode being shown. */
   readonly value: string;
+  /** The ink that reads on the value: the paired on-colour, or the higher-contrast of text and white. */
+  readonly ink: string;
 }
 
 /** The roles an author checks first, in the order a palette reads. */
@@ -129,6 +131,17 @@ export function actingColour(
   return tokenValue(tree, mode, "color.primary");
 }
 
+/** Pairing of a colour role to its on-colour role in the theme contract. */
+const INK_FOR: Readonly<Record<string, string>> = {
+  "color.primary": "color.on-primary",
+  "color.secondary": "color.on-secondary",
+  "color.accent": "color.on-accent",
+  "color.semantic.success": "color.on-semantic-success",
+  "color.semantic.warning": "color.on-semantic-warning",
+  "color.semantic.error": "color.on-semantic-error",
+  "color.semantic.info": "color.on-semantic-info",
+};
+
 /** The specs this theme declares, each with the value it is worth now. */
 function resolve(
   text: string,
@@ -140,7 +153,14 @@ function resolve(
   const out: Chip[] = [];
   for (const spec of specs) {
     const value = tokenValue(tree, mode, spec.path);
-    if (value !== undefined) out.push({ ...spec, value });
+    if (value === undefined) continue;
+    const inkPath = INK_FOR[spec.path];
+    let ink = inkPath === undefined ? undefined : tokenValue(tree, mode, inkPath);
+    if (ink === undefined) {
+      const text = tokenValue(tree, mode, "color.text") ?? "#111111";
+      ink = contrastRatio(text, value) >= contrastRatio("#ffffff", value) ? text : "#ffffff";
+    }
+    out.push({ ...spec, value, ink });
   }
   return out;
 }
@@ -254,4 +274,88 @@ export function faceSpecimens(text: string, mode: string): Face[] {
     if (stack !== undefined) out.push({ ...slot, stack });
   }
   return out;
+}
+
+/** One row in a theme card's menu. */
+export interface CardMenuItem {
+  value: string;
+  label: string;
+}
+
+/** Build the menu items for a theme card. Pure: callers resolve seed text. */
+export function themeCardMenuItems(
+  summary: { name: string; file: string | null; dirty: boolean },
+  text: string,
+  activeName: string,
+  confirmingName: string | null,
+): CardMenuItem[] {
+  const hasLight = declaredModes(text).includes("light");
+  const hasDark = declaredModes(text).includes("dark");
+  const list: CardMenuItem[] = [];
+  list.push({ value: "reload", label: "Reload" });
+  if (hasLight && hasDark) list.push({ value: "remove-light", label: "Remove light mode" });
+  else if (!hasLight) list.push({ value: "add-light", label: "Add light mode" });
+  if (hasDark && hasLight) list.push({ value: "remove-dark", label: "Remove dark mode" });
+  else if (!hasDark) list.push({ value: "add-dark", label: "Add dark mode" });
+  list.push({ value: "duplicate", label: "Duplicate" });
+  if (summary.dirty) list.push({ value: "discard", label: "Discard changes" });
+  if (summary.name !== activeName && summary.file !== null)
+    list.push({
+      value: "delete",
+      label: confirmingName === summary.name ? "Confirm delete?" : "Delete",
+    });
+  return list;
+}
+
+export function seedToken(text: string, path: string, fallback = ""): string {
+  try {
+    const tree = analyzeTheme(text).tree;
+    if (tree === undefined) return fallback;
+    const mode = declaredModes(text)[0] ?? "light";
+    return tokenValue(tree, mode, path) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export interface SeedTokens {
+  primary: string;
+  secondary: string;
+  accent: string;
+  bodyFont: string;
+  headingFont: string;
+}
+
+export function seedTokens(text: string): SeedTokens {
+  let primary = "#1c62c2";
+  let secondary = "#1c62c2";
+  let accent = "#1c62c2";
+  let bodyFont = "";
+  let headingFont = "";
+  try {
+    const tree = analyzeTheme(text).tree;
+    if (tree) {
+      const p = tokenValue(tree, "light", "color.primary");
+      primary = p ?? "#1c62c2";
+      const s = tokenValue(tree, "light", "color.secondary");
+      secondary = s ?? primary;
+      const a = tokenValue(tree, "light", "color.accent");
+      accent = a ?? primary;
+      const b = tokenValue(tree, "light", "font.family.body");
+      bodyFont = b ?? "";
+      const h = tokenValue(tree, "light", "font.family.heading");
+      headingFont = h ?? bodyFont;
+    } else {
+      secondary = primary;
+      accent = primary;
+      headingFont = bodyFont;
+    }
+  } catch {
+    primary = "#1c62c2";
+    secondary = primary;
+    accent = primary;
+    bodyFont = "";
+    headingFont = "";
+  }
+  return { primary, secondary, accent, bodyFont, headingFont };
 }

@@ -14,10 +14,12 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { scaffoldTheme, treeToJson } from "@spinjs/theme";
 import {
+  addMode,
   analyzeTheme,
   declaredModes,
   fileMoved,
   fileState,
+  removeMode,
   resolveMode,
   stateLabel,
 } from "./theme.ts";
@@ -68,9 +70,20 @@ test("the modes a document declares are the modes it serves", () => {
     JSON.stringify({ modes: ["light"], color: {} }),
   );
   deepStrictEqual(light, ["light"]);
-  // A document that declares nothing serves both: the pair is the system's
-  // own default, and a document that cannot be read is caught by the parse.
-  deepStrictEqual(declaredModes("{}"), ["light", "dark"]);
+  // A document with a dark override but no `modes` key serves both.
+  deepStrictEqual(
+    declaredModes(
+      JSON.stringify({
+        color: { text: { $value: "#000", $modes: { dark: "#fff" } } },
+      }),
+    ),
+    ["light", "dark"],
+  );
+  // A scaffold-shaped document (no modes key, no overrides) serves one.
+  deepStrictEqual(declaredModes("{}"), ["light"]);
+  deepStrictEqual(declaredModes(treeToJson(scaffoldTheme())), ["light"]);
+  // An explicit dark-only declaration stays dark-only.
+  deepStrictEqual(declaredModes(JSON.stringify({ modes: ["dark"] })), ["dark"]);
   deepStrictEqual(declaredModes("{ not json"), ["light", "dark"]);
 });
 
@@ -134,4 +147,46 @@ test("a file that is not what the studio wrote has moved", () => {
   // is nothing for it to have moved away from.
   deepStrictEqual(fileMoved(undefined, "moved"), false);
   deepStrictEqual(fileMoved("written", undefined), false);
+});
+  
+test("addMode appends a mode without reordering the base", () => {
+  const lightOnly = JSON.stringify({ modes: ["light"], color: {} }, null, 2);
+  deepStrictEqual(JSON.parse(addMode(lightOnly, "dark")).modes, ["light", "dark"]);
+  const darkOnly = JSON.stringify({ modes: ["dark"], color: {} }, null, 2);
+  deepStrictEqual(JSON.parse(addMode(darkOnly, "light")).modes, ["dark", "light"]);
+});
+
+test("removeMode strips the mode overrides and drops the mode", () => {
+  const dual = JSON.stringify(
+    { modes: ["light", "dark"], color: { text: { $value: "#000", $modes: { dark: "#fff" } } } },
+    null,
+    2,
+  );
+  const removedDark = removeMode(dual, "dark");
+  deepStrictEqual(JSON.parse(removedDark).modes, ["light"]);
+  deepStrictEqual(
+    (JSON.parse(removedDark).color as Record<string, { $modes?: Record<string, string> }>).text.$modes,
+    undefined,
+  );
+  const removedLight = removeMode(dual, "light");
+  deepStrictEqual(JSON.parse(removedLight).modes, ["dark"]);
+  deepStrictEqual(
+    (JSON.parse(removedLight).color as Record<string, { $modes?: Record<string, string> }>).text.$modes,
+    { dark: "#fff" },
+  );
+});
+
+test("removeMode refuses to remove the last mode", () => {
+  const lightOnly = JSON.stringify({ modes: ["light"], color: {} }, null, 2);
+  assert.throws(() => removeMode(lightOnly, "light"));
+  const darkOnly = JSON.stringify({ modes: ["dark"], color: {} }, null, 2);
+  assert.throws(() => removeMode(darkOnly, "dark"));
+});
+
+test("addMode throws on unparseable input", () => {
+  assert.throws(() => addMode("{ not json", "dark"));
+});
+
+test("removeMode throws on unparseable input", () => {
+  assert.throws(() => removeMode("{ not json", "dark"));
 });

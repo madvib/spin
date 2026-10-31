@@ -53,7 +53,7 @@ export function keepFocus(): void {
   queueMicrotask(() => {
     const next = document.getElementById(id);
     if (next === null || next === active) return;
-    next.focus();
+    next.focus({ preventScroll: true });
     if (
       selection !== undefined && selection[0] !== null &&
       selection[1] !== null &&

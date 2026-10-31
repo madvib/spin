@@ -7,22 +7,52 @@
  */
 
 import { createEffect, createResource, Show } from "solid-js";
-import { previewCssSafely } from "../lib/preview.ts";
+import type { Mode, TokenTree } from "@spinjs/theme";
+import studioTheme from "../../theme.json" with { type: "json" };
+import { previewCssSafely, previewKey } from "../lib/preview.ts";
+import {
+  activeMode,
+  activeName,
+  activeTree,
+  renderedMarkup,
+  themeText,
+} from "../lib/store.ts";
 import { analyzeTheme } from "../lib/theme.ts";
-import { activeName, renderedMarkup, themeText } from "../lib/store.ts";
+import { groupTokens } from "../lib/tokens.ts";
 
+const ISOLATED_GROUPS: string[][] = [
+  ["spacing"],
+  ["radius"],
+  ["font", "size"],
+  ["motion", "duration"],
+  ["motion", "easing"],
+];
+
+function extractScaleDeclarations(
+  tree: TokenTree | undefined,
+  mode: Mode,
+): string {
+  if (tree === undefined) return "";
+  const rows = groupTokens(tree, ISOLATED_GROUPS, mode);
+  return rows
+    .filter((row) => row.value !== "")
+    .map((row) => `${row.variable}: ${row.value};`)
+    .join(" ");
+}
+
+const STUDIO_CHROME_VARS = (() => {
+  const parsed = analyzeTheme(JSON.stringify(studioTheme));
+  return extractScaleDeclarations(parsed.tree, "light");
+})();
 export default function PreviewStyles() {
   const [css] = createResource(
     // The markup is a key, not just an argument: it arrives after first
     // render, and a resource keyed only on theme would generate for an
     // empty page and never refetch once the route registers what it
     // renders. Every specimen would sit unstyled.
-    () => ({
-      tree: analyzeTheme(themeText()).tree,
-      name: activeName(),
-      markup: renderedMarkup(),
-    }),
-    () => previewCssSafely(themeText(), activeName(), renderedMarkup()),
+    () =>
+      previewKey(themeText(), activeName(), activeTree(), renderedMarkup()),
+    (key) => previewCssSafely(key.text, key.name, key.markup),
   );
 
   // A failure is rendered as a banner on the preview surface, never as a
@@ -63,6 +93,27 @@ export default function PreviewStyles() {
     // A failed generation leaves the last good stylesheet in place and says
     // so, rather than wiping the preview to nothing.
     tag.textContent = typeof rendered === "string" ? rendered : "";
+  });
+
+  createEffect(() => {
+    const tree = activeTree();
+    const mode = activeMode();
+    const name = activeName();
+    let iso = document.getElementById("studio-layout-isolation");
+    if (!iso) {
+      iso = document.createElement("style");
+      iso.id = "studio-layout-isolation";
+      document.head.appendChild(iso);
+    }
+    const specimenVars = extractScaleDeclarations(tree, mode);
+    iso.textContent = [
+      `[data-studio-chrome] { ${STUDIO_CHROME_VARS} }`,
+      `input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--spacing-4, 1rem); height: var(--spacing-4, 1rem); border-radius: 50%; background-color: var(--color-surface); border: var(--border-width, 1px) solid var(--color-primary); cursor: pointer; }`,
+      `input[type="range"]::-moz-range-thumb { -moz-appearance: none; appearance: none; width: var(--spacing-4, 1rem); height: var(--spacing-4, 1rem); border-radius: 50%; background-color: var(--color-surface); border: var(--border-width, 1px) solid var(--color-primary); cursor: pointer; }`,
+      specimenVars === ""
+        ? ""
+        : `.spin-preview[data-theme="${name}"], .spin-preview[data-theme="${name}"] [data-studio-specimen] { ${specimenVars} }`,
+    ].join("\n");
   });
 
   return (

@@ -1,19 +1,20 @@
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
-import { primitiveCategories, primitiveElements } from "@spinjs/preset";
+import { COMPONENT_ICONS } from "@spinjs/components";
+import { primitiveElements } from "@spinjs/preset";
+import {
+  displayComponentName,
+  unifiedComponentGroups,
+} from "../lib/primitives.ts";
 import { library } from "../lib/store.ts";
 import { inDrawer } from "../lib/host.ts";
-
-const MACHINE_TAXONOMY = COMPONENT_GROUPS.map((g) => ({
-  id: g.id,
-  label: `${g.label} · interactive`,
-  members: g.members.map((m) => ({
-    name: `component-${m}`,
-    icon: COMPONENT_ICONS[m] ?? "i-lucide-box",
-  })),
-}));
+const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
+  ...primitiveElements.map((element) => [element.name, element.icon] as const),
+  ...Object.entries(COMPONENT_ICONS).map(
+    ([name, icon]) => [`component-${name}`, icon] as const,
+  ),
+]);
 
 /**
  * The component gallery's side list, read from the daemon.
@@ -116,63 +117,149 @@ interface Row {
   readonly icon: string;
 }
 
+/** The rail's list, as a stable component the split can place. */
+function NavBody(props: {
+  drawer: () => boolean;
+  navClass: () => string;
+  listClass: () => string;
+  query: () => string;
+  setQuery: (query: string) => void;
+  kindFilter: () => "all" | "primitive" | "machine";
+  setKindFilter: (kind: "all" | "primitive" | "machine") => void;
+  needle: () => string;
+  total: () => number;
+  shown: () => readonly { readonly name: string }[];
+  groups: () => readonly { readonly label: string; readonly rows: readonly Row[] }[];
+  path: () => string;
+}) {
+  return (
+    <>
+      <h2
+        class={props.drawer() ? "text-sm text-text-muted" : "text-sm font-semibold"}
+      >
+        Components
+      </h2>
+      <div role="group" aria-label="Component kind" class="flex w-full min-w-0 shrink-0 flex-col gap-1 rounded-md border border-solid border-border p-1">
+        <For each={(["all", "primitive", "machine"] as const)}>
+          {(kind) => (
+            <button
+              type="button"
+              aria-pressed={props.kindFilter() === kind}
+              onClick={() => props.setKindFilter(kind)}
+              class="bare w-full rounded-md border border-solid border-transparent px-2 py-1 text-left text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+            >
+              {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+            </button>
+          )}
+        </For>
+      </div>
+      <label class="flex min-w-0 items-center gap-2">
+        <i
+          class="i-lucide-search icon-sm shrink-0 text-text-muted"
+          aria-hidden="true"
+        />
+        <input
+          type="search"
+          value={props.query()}
+          onInput={(event) => props.setQuery(event.currentTarget.value)}
+          aria-label="Filter the components"
+          placeholder="filter…"
+          class="min-w-0 flex-1"
+        />
+      </label>
+      <div class="flex items-center justify-between gap-2 text-xs text-text-muted">
+        <span>components</span>
+        <span class="font-mono">
+          {props.needle() === "" ? `${props.total()}` : `${props.shown().length} of ${props.total()}`}
+        </span>
+      </div>
+      <Switch
+        fallback={
+          <Show
+            when={props.shown().length > 0}
+            fallback={
+              <p class="text-xs text-text-muted">
+                No component matches “{props.query()}”.
+              </p>
+            }
+          >
+            <div
+              class={props.drawer() ? "flex flex-col gap-3" : "flex flex-col"}
+            >
+              <For each={props.groups()}>
+                {(group) => (
+                  <>
+                    {props.drawer()
+                      ? <div class={DRAWER_BAND}>{group.label}</div>
+                      : <div class={RAIL_BAND}>{group.label}</div>}
+                    <ul class={props.listClass()}>
+                      <For each={group.rows}>
+                        {(row) => (
+                          <li>
+                            <A
+                              href={`/components/${row.name}`}
+                              class={props.drawer() ? DRAWER_LINK : RAIL_LINK}
+                              data-current={props.path() ===
+                                  `/components/${row.name}`
+                                ? ""
+                                : undefined}
+                              activeClass=""
+                              inactiveClass=""
+                            >
+                              <i
+                                class={`${row.icon} icon-md shrink-0`}
+                                aria-hidden="true"
+                              />
+                              <span class="min-w-0 truncate capitalize">
+                                {displayComponentName(row.name)}
+                              </span>
+                            </A>
+                          </li>
+                        )}
+                      </For>
+                    </ul>
+                  </>
+                )}
+              </For>
+            </div>
+          </Show>
+        }
+      >
+        <Match when={library() === undefined}>
+          <p class="text-sm text-text-muted">loading…</p>
+        </Match>
+        <Match when={(library() ?? []).length === 0}>
+          <p class="text-sm text-text-muted">
+            No components. Is the daemon running?
+          </p>
+        </Match>
+      </Switch>
+    </>
+  );
+}
+
 export default function ComponentsLayout(props: { children?: JSX.Element }) {
   const location = useLocation();
-  // The drawer has no room for a rail beside the content: the list becomes a
-  // wrapping strip above the page it navigates. It is read through a memo, so
-  // the page re-lays-out when the host switches the studio between the
-  // drawer and the modal — a layout that only changed on the next
-  // navigation was a layout that was stale until the author left.
-  const drawer = createMemo(() => inDrawer());
+  const drawer = () => inDrawer();
   const [query, setQuery] = createSignal("");
+  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">("all");
   const needle = () => query().trim().toLowerCase();
   const total = () => library()?.length ?? 0;
   const shown = () => {
     const all = library() ?? [];
     const asked = needle();
-    return asked === ""
-      ? all
-      : all.filter((c) => c.name.replace(/-/g, " ").includes(asked));
+    const kind = kindFilter();
+    return all.filter((c) =>
+      (kind === "all" || c.kind === kind) &&
+      (asked === "" ||
+        displayComponentName(c.name).includes(asked) ||
+        c.name.replace(/-/g, " ").includes(asked))
+    );
   };
 
-  /**
-   * The groups, in the taxonomy's order, with the rows each one shows.
-   *
-   * The order is the taxonomy's rather than the library's: the taxonomy is
-   * where the elements are filed, and a group the reader has to hunt for is
-   * not a group. A group the filter empties is dropped rather than drawn as a
-   * heading over nothing.
-   */
-  const groups = createMemo(() => {
-    const kept = new Map(
-      shown().map((component) => [component.name, component]),
-    );
-    return [
-      ...primitiveCategories
-        .map((category) => ({
-          label: category.label,
-          rows: primitiveElements
-            .filter((element) => element.category === category.id)
-            .map((element): Row | undefined =>
-              kept.has(element.name)
-                ? { name: element.name, icon: element.icon }
-                : undefined
-            )
-            .filter((row): row is Row => row !== undefined),
-        })),
-      ...MACHINE_TAXONOMY.map((category) => ({
-        label: category.label,
-        rows: category.members
-          .map((element): Row | undefined =>
-            kept.has(element.name)
-              ? { name: element.name, icon: element.icon }
-              : undefined
-          )
-          .filter((row): row is Row => row !== undefined),
-      })),
-    ]
-      .filter((group) => group.rows.length > 0);
-  });
+  const groups = createMemo(() =>
+    unifiedComponentGroups(library() ?? [], kindFilter(), query(), ICONS)
+  );
 
   /**
    * The rail's own shape, and the page's beside it.
@@ -188,112 +275,58 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
   const navClass = () =>
     drawer()
       ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
-      : "flex w-full shrink-0 flex-col gap-4 border-b border-border bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:overflow-y-auto";
+      : "flex w-full shrink-0 flex-col gap-3 border-b border-border bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
   const listClass = () =>
     drawer()
-      ? "flow-list flex flex-wrap gap-x-2 gap-y-1"
-      : "flow-list flex flex-wrap gap-x-2 gap-y-1 lg:flex-col lg:flex-nowrap lg:gap-1";
+      ? "flex flex-wrap gap-x-2 gap-y-1"
+      : "flex flex-wrap gap-x-2 gap-y-1 lg:flex-col lg:flex-nowrap lg:gap-1";
 
   return (
-    <div
-      class={drawer()
-        ? "flex min-h-0 flex-col"
-        : "drawer-scroll flex flex-col lg:flex-row"}
-    >
-      <nav aria-label="Components" class={navClass()}>
-        <h2
-          class={drawer() ? "text-sm text-text-muted" : "text-sm font-semibold"}
-        >
-          Components
-        </h2>
-        <label class="flex min-w-0 items-center gap-2">
-          <i
-            class="i-lucide-search icon-sm shrink-0 text-text-muted"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            value={query()}
-            onInput={(event) => setQuery(event.currentTarget.value)}
-            aria-label="Filter the components"
-            placeholder="filter…"
-            class="min-w-0 flex-1"
-          />
-        </label>
-        <div class="flex items-center justify-between gap-2 text-xs text-text-muted">
-          <span>components</span>
-          <span class="font-mono">
-            {needle() === "" ? `${total()}` : `${shown().length} of ${total()}`}
-          </span>
+    <Show
+      when={!inDrawer()}
+      fallback={
+        <div class="flex min-h-0 flex-col">
+          <nav data-studio-chrome="" aria-label="Components" class={navClass()}>
+            <NavBody
+              drawer={drawer}
+              navClass={navClass}
+              listClass={listClass}
+              query={query}
+              setQuery={setQuery}
+              kindFilter={kindFilter}
+              setKindFilter={setKindFilter}
+              needle={needle}
+              total={total}
+              shown={shown}
+              groups={groups}
+              path={() => location.pathname}
+            />
+          </nav>
+          {props.children}
         </div>
-        <Switch
-          fallback={
-            <Show
-              when={shown().length > 0}
-              fallback={
-                <p class="text-xs text-text-muted">
-                  No component matches “{query()}”.
-                </p>
-              }
-            >
-              <div
-                class={drawer() ? "flex flex-col gap-3" : "flex flex-col"}
-              >
-                <For each={groups()}>
-                  {(group) => (
-                    <>
-                      {drawer()
-                        ? <div class={DRAWER_BAND}>{group.label}</div>
-                        : <div class={RAIL_BAND}>{group.label}</div>}
-                      <ul class={listClass()}>
-                        <For each={group.rows}>
-                          {(row) => (
-                            <li>
-                              <A
-                                href={`/components/${row.name}`}
-                                class={drawer() ? DRAWER_LINK : RAIL_LINK}
-                                // The row is current when the URL names it.
-                                // The state is drawn by `data-[current]:`, so
-                                // the router's own active class has nothing to
-                                // add — and a class that styles nothing is a
-                                // class that lies.
-                                data-current={location.pathname ===
-                                    `/components/${row.name}`
-                                  ? ""
-                                  : undefined}
-                                activeClass=""
-                                inactiveClass=""
-                              >
-                                <i
-                                  class={`${row.icon} icon-md shrink-0`}
-                                  aria-hidden="true"
-                                />
-                                <span class="min-w-0 truncate capitalize">
-                                  {row.name.replace(/-/g, " ")}
-                                </span>
-                              </A>
-                            </li>
-                          )}
-                        </For>
-                      </ul>
-                    </>
-                  )}
-                </For>
-              </div>
-            </Show>
-          }
-        >
-          <Match when={library() === undefined}>
-            <p class="text-sm text-text-muted">loading…</p>
-          </Match>
-          <Match when={(library() ?? []).length === 0}>
-            <p class="text-sm text-text-muted">
-              No components. Is the daemon running?
-            </p>
-          </Match>
-        </Switch>
-      </nav>
-      {props.children}
-    </div>
+      }
+    >
+      <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <nav data-studio-chrome="" aria-label="Components" class={navClass()}>
+          <NavBody
+            drawer={drawer}
+            navClass={navClass}
+            listClass={listClass}
+            query={query}
+            setQuery={setQuery}
+            kindFilter={kindFilter}
+            setKindFilter={setKindFilter}
+            needle={needle}
+            total={total}
+            shown={shown}
+            groups={groups}
+            path={() => location.pathname}
+          />
+        </nav>
+        <div class="drawer-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+          {props.children}
+        </div>
+      </div>
+    </Show>
   );
 }

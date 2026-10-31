@@ -5,15 +5,21 @@ import {
   For,
   Match,
   on,
+  onCleanup,
   Show,
   Switch,
 } from "solid-js";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { combobox } from "@spinjs/components/combobox";
+import { colorPicker } from "@spinjs/components/color-picker";
+
 import { formatHex, indexTree, parseColor } from "@spinjs/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
-import { analyzeTheme } from "../../lib/theme.ts";
 import {
+  activeLadders,
   activeMode,
   activeName,
+  activeTree,
   registry,
   themeText,
 } from "../../lib/store.ts";
@@ -24,7 +30,7 @@ import {
   tokenPath,
 } from "../../lib/live-edit.ts";
 import { removeToken } from "../../lib/editing.ts";
-import { compositeLadders, isCompositeType } from "../../lib/tokens.ts";
+import { isCompositeType } from "../../lib/tokens.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
 import BezierEditor from "./BezierEditor.tsx";
 import CompositeEditor from "./CompositeEditor.tsx";
@@ -34,10 +40,120 @@ function isBezierValue(value: string): boolean {
 }
 
 function isShadowValue(value: string): boolean {
-  return /^\s*-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+\d+(?:\.\d+)?(?:px|rem|em|%)?\s+-?\d+(?:\.\d+)?(?:px|rem|em|%)?\s+.+$/
+  return /^\s*(-?\d+(?:\.\d+)?(?:px|rem|em|%)?)\s+(-?\d+(?:\.\d+)?(?:px|rem|em|%)?)\s+(\d+(?:\.\d+)?(?:px|rem|em|%)?)(?:\s+(-?\d+(?:\.\d+)?(?:px|rem|em|%)?))?\s+((?:#|rgb|hsl|oklch|var\(|color\(|[a-zA-Z]).*)$/
     .test(
       value.trim(),
     );
+}
+
+function cleanNum(n: number): number {
+  return Number(n.toFixed(4));
+}
+
+function controlRange(
+  value: string,
+  group: readonly string[],
+  label?: string,
+  type?: string,
+): { min: number; max: number; step: number } {
+  const base = sliderRange(value, group);
+  const own = measure(value);
+  if (own === undefined) return base;
+  if (
+    type === "fontWeight" ||
+    label?.startsWith("font.weight") ||
+    label?.endsWith(".weight") ||
+    label?.endsWith("-weight") ||
+    (own.unit === "" &&
+      own.n >= 100 &&
+      own.n <= 900 &&
+      own.n % 100 === 0 &&
+      group.length > 1 &&
+      group.every((g) => {
+        const m = measure(g);
+        return m !== undefined && m.unit === "" && m.n >= 100 && m.n <= 900;
+      }))
+  ) {
+    return { min: 100, max: 900, step: 100 };
+  }
+  if (
+    label?.startsWith("opacity.") ||
+    (own.unit === "" &&
+      own.n >= 0 &&
+      own.n <= 1 &&
+      group.length > 0 &&
+      group.every((g) => {
+        const m = measure(g);
+        return m !== undefined && m.unit === "" && m.n >= 0 && m.n <= 1;
+      }))
+  ) {
+    return { min: 0, max: 1, step: 0.05 };
+  }
+  if (label?.startsWith("z-index.")) {
+    const step =
+      own.n >= 100 && own.n % 100 === 0
+        ? 100
+        : own.n >= 10 && own.n % 10 === 0
+          ? 10
+          : 1;
+    return { min: base.min, max: Math.max(base.max, 1000), step };
+  }
+  if (label?.startsWith("breakpoint.") && own.unit === "px") {
+    const step = own.n % 32 === 0 ? 32 : 16;
+    return { min: 320, max: Math.max(base.max, 1920), step };
+  }
+  if (
+    (label?.startsWith("border.") || label?.startsWith("focus.")) &&
+    own.unit === "px"
+  ) {
+    const step = Number.isInteger(own.n) ? 1 : 0.5;
+    return { min: 0, max: Math.max(base.max, 16), step };
+  }
+  if (own.unit === "rem") {
+    const step = Math.abs(own.n) >= 0.5 ? 0.125 : 0.0625;
+    const min = own.n > 0 ? Math.max(base.min, 0.0625) : base.min;
+    return {
+      min,
+      max: Math.max(base.max, step * 4),
+      step,
+    };
+  }
+  if (own.unit === "em") {
+    return {
+      min: Math.min(base.min, -0.05),
+      max: Math.max(base.max, 0.1),
+      step: 0.005,
+    };
+  }
+  if (own.unit === "ms") {
+    const step =
+      own.n >= 500 && own.n % 50 === 0
+        ? 50
+        : own.n % 10 === 0
+          ? 10
+          : 1;
+    const min = own.n > 0 ? Math.max(base.min, step) : base.min;
+    return { min, max: base.max, step };
+  }
+  if (own.unit === "s") {
+    const step = 0.05;
+    const min = own.n > 0 ? Math.max(base.min, step) : base.min;
+    return { min, max: Math.max(base.max, 2), step };
+  }
+  if (own.unit === "px") {
+    const step = Number.isInteger(own.n) ? 1 : 0.5;
+    const min = own.n > 0 ? Math.max(base.min, step) : base.min;
+    return { min, max: base.max, step };
+  }
+  return base;
+}
+
+function formatStepped(value: string, n: number, step: number): string {
+  const own = measure(value);
+  if (own === undefined || !Number.isFinite(n)) return value;
+  const q = step > 0 ? step : 1;
+  const snapped = cleanNum(Math.round(n / q) * q);
+  return `${snapped}${own.unit}`;
 }
 
 function asHex(value: string): string | undefined {
@@ -106,15 +222,9 @@ export default function ValueInput(props: {
   /** Live proposed value when a linked sibling in the group is being dragged. */
   proposed?: string;
 }) {
-  // The theme's own ladders, for a composite whose parts are steps the
-  // theme declared elsewhere. Read from the document being edited, in the
-  // mode being edited, so the steps offered are the ones in force.
-  const ladders = createMemo(() => {
-    const tree = analyzeTheme(themeText()).tree;
-    return tree === undefined
-      ? undefined
-      : compositeLadders(tree, activeMode());
-  });
+  // The theme's own ladders, narrowed once at the store boundary so the
+  // steps offered are the ones in force.
+  const ladders = createMemo(() => activeLadders());
   /**
    * The control's id: the caller's, or one derived from the token's path.
    *
@@ -127,13 +237,13 @@ export default function ValueInput(props: {
     props.id ??
       (props.label === undefined ? undefined : `token-${props.label}`);
   return (
-    <div class="row-sm gap-2">
+    <div data-studio-chrome="" class="row-sm gap-2">
       <Switch fallback={<TextControl {...props} id={controlId()} />}>
-        <Match when={isCompositeType(props.type) && ladders() !== undefined}>
+        <Match when={isCompositeType(props.type)}>
           <CompositeEditor
             type={props.type}
             value={props.value}
-            ladders={ladders()!}
+            ladders={ladders()}
             onCommit={props.onCommit}
             id={controlId()}
             label={props.label}
@@ -142,7 +252,20 @@ export default function ValueInput(props: {
         <Match when={isBezierValue(props.value)}>
           <BezierEditor value={props.value} onCommit={props.onCommit} />
         </Match>
-        <Match when={isShadowValue(props.value)}>
+        <Match
+          when={
+            props.type === "textTransform" ||
+            props.label?.endsWith(".case")
+          }
+        >
+          <TextTransformControl
+            value={props.value}
+            onCommit={props.onCommit}
+            id={controlId()}
+            label={props.label}
+          />
+        </Match>
+        <Match when={props.type === "shadow" || isShadowValue(props.value)}>
           <ShadowEditor value={props.value} onCommit={props.onCommit} />
         </Match>
         <Match when={controlFor(props.type, props.value) === "boolean"}>
@@ -214,7 +337,7 @@ function ResetButton(props: {
   return (
     <button
       type="button"
-      class="secondary s-sm shrink-0 text-text-muted hover:border-primary hover:text-text disabled:opacity-50"
+      class="secondary s-sm shrink-0 shadow-none"
       title={title()}
       aria-label={title()}
       disabled={inert()}
@@ -233,8 +356,35 @@ function ResetButton(props: {
     </button>
   );
 }
+/** The spin picker as a swatch: a press opens the panel, a committed move writes the token. */
+function ColorSwatch(props: {
+  value: string;
+  onCommit: (value: string) => boolean;
+  id?: string;
+}) {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const ctl = createSpinComponent(element, colorPicker);
+  createEffect(() =>
+    ctl.bind(
+      { value: props.value, format: "hex" },
+      {
+        "value-change-end": (event: CustomEvent<{ value: string }>) => {
+          props.onCommit(event.detail.value);
+        },
+      },
+    )
+  );
+  return (
+    <studio-color-picker
+      ref={(el: HTMLElement) => setElement(el)}
+      id={props.id}
+      prop:value={props.value}
+      prop:format="hex"
+    />
+  );
+}
 
-/** A color: the picker is the path, the text is for values it cannot express. */
+ /** A color: the picker is the path, the text is for values it cannot express. */
 function ColorControl(props: {
   value: string;
   onCommit: (value: string) => boolean;
@@ -277,20 +427,10 @@ function ColorControl(props: {
     >
       {(current) => (
         <>
-          <input
+          <ColorSwatch
             id={props.id}
-            type="color"
-            // A sized swatch, not a stretched field: inside a flex row the
-            // picker would otherwise claim the space the hex readout needs.
-            class="h-8 w-12 shrink-0"
             value={String(current())}
-            onChange={(event) => {
-              // A refused commit reports it, and the control goes back to
-              // what the document says.
-              if (props.onCommit(event.currentTarget.value) === false) {
-                event.currentTarget.value = String(current());
-              }
-            }}
+            onCommit={props.onCommit}
           />
           <code>{props.value}</code>
         </>
@@ -355,8 +495,54 @@ function CheckControl(props: {
  * value under a pointer that has moved, so the two disagree and the value
  * walks backwards while the finger walks forwards.
  */
+const TEXT_TRANSFORM_OPTIONS = [
+  "none",
+  "uppercase",
+  "lowercase",
+  "capitalize",
+] as const;
+
+function TextTransformControl(props: {
+  value: string;
+  onCommit: (value: string) => boolean;
+  id?: string;
+  label?: string;
+}) {
+  return (
+    <div
+      id={props.id}
+      role="group"
+      aria-label={props.label ?? "Text transform"}
+      class="row-xs items-center rounded-md border border-border bg-surface p-1"
+    >
+      <For each={TEXT_TRANSFORM_OPTIONS}>
+        {(option) => {
+          const active = () => props.value.trim() === option;
+          return (
+            <button
+              type="button"
+              aria-pressed={active()}
+              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none ${
+                active()
+                  ? "border-transparent bg-primary text-on-primary"
+                  : "bare border-transparent text-text-muted hover:text-text"
+              }`}
+              onClick={() => {
+                if (!active()) props.onCommit(option);
+              }}
+            >
+              {option}
+            </button>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
+
 function RangeControl(props: {
   value: string;
+  type?: string;
   onCommit: (value: string) => boolean;
   id?: string;
   label?: string;
@@ -367,8 +553,13 @@ function RangeControl(props: {
   proposed?: string;
 }) {
   const current = () => measure(props.value);
-  const range = () => sliderRange(props.value, props.group ?? [props.value]);
-  // What the track proposes while it is being dragged; the document's own
+  const range = () =>
+    controlRange(
+      props.value,
+      props.group ?? [props.value],
+      props.label,
+      props.type,
+    );
   // value once the gesture is over.
   const [draft, setDraft] = createSignal<string | undefined>(undefined);
   let textInput: HTMLInputElement | undefined;
@@ -385,6 +576,24 @@ function RangeControl(props: {
   // How far along the value is, as the share of the travel the fill paints.
   const progress = () =>
     rangeProgress(shownNumber() ?? range().min, range().min, range().max);
+  const isStepperOnly = () =>
+    /^(font|icon|breakpoint|border|focus|opacity|z-index)\./.test(
+      props.label ?? "",
+    ) ||
+    props.label === "radius.none" ||
+    props.label === "radius.full";
+
+  const stepBy = (dir: -1 | 1) => {
+    const m = measure(shown());
+    if (m === undefined) return;
+    const r = range();
+    const target = cleanNum(
+      Math.min(r.max, Math.max(r.min, m.n + dir * r.step)),
+    );
+    const next = formatStepped(props.value, target, r.step);
+    if (next === props.value) return;
+    props.onCommit(next);
+  };
 
   return (
     <Show
@@ -397,77 +606,98 @@ function RangeControl(props: {
         />
       }
     >
-      <div class="row-sm flex-wrap gap-2">
-        <input
-          id={props.id}
-          type="range"
-          aria-label={props.label}
-          min={range().min}
-          max={range().max}
-          step={range().step}
-          value={shownNumber() ?? range().min}
-          // The fill the groove paints stops where the thumb is: the sheet
-          // cannot read the value, so the control hands it the share.
-          style={{ "--range-progress": progress() }}
-          class="min-w-16 max-w-32 flex-1"
-          onInput={(event) => {
-            const next = quantize(
-              props.value,
-              Number(event.currentTarget.value),
-            );
-            setDraft(next);
-            // A family preview paints the whole group and owns its paint;
-            // a lone token paints only its own property.
-            if (props.onPreview !== undefined) {
-              props.onPreview(next);
-            } else if (props.variable !== undefined) {
+      <div class="row-sm items-center gap-2">
+        <Show when={!isStepperOnly()}>
+          <input
+            id={props.id}
+            type="range"
+            aria-label={props.label}
+            min={range().min}
+            max={range().max}
+            step={range().step}
+            value={shownNumber() ?? range().min}
+            style={{ "--range-progress": progress() }}
+            class="min-w-20 max-w-36 flex-1"
+            onInput={(event) => {
+              const next = formatStepped(
+                props.value,
+                Number(event.currentTarget.value),
+                range().step,
+              );
+              setDraft(next);
+              if (props.onPreview !== undefined) {
+                props.onPreview(next);
+              } else if (props.variable !== undefined) {
+                release();
+                clear = paintPreview({ [props.variable]: next });
+              }
+            }}
+            onChange={(event) => {
+              const next = formatStepped(
+                props.value,
+                Number(event.currentTarget.value),
+                range().step,
+              );
               release();
-              clear = paintPreview({ [props.variable]: next });
-            }
-          }}
-          onChange={(event) => {
-            const next = quantize(
-              props.value,
-              Number(event.currentTarget.value),
-            );
-            release();
-            const accepted = props.onCommit(next);
-            setDraft(undefined);
-            // A refused commit puts the thumb back on the document's value,
-            // which is the only word the readout will show.
-            if (!accepted) {
-              event.currentTarget.value = String(current()?.n ?? "");
-            }
-          }}
-          onPointerCancel={() => {
-            release();
-            props.onCancel?.();
-            setDraft(undefined);
-          }}
-        />
-        <input
-          ref={textInput}
-          id={props.id === undefined ? undefined : `${props.id}-text`}
-          type="text"
-          aria-label={props.label === undefined
-            ? "Token value"
-            : `${props.label} value`}
-          class="w-[5.5rem] shrink-0 text-right tabular-nums"
-          value={shown()}
-          title={shown()}
-          onChange={(event) => {
-            const raw = event.currentTarget.value.trim();
-            // A bare number typed into a unit-bearing token adopts the
-            // token's unit so typing "16" into a "12px" token writes "16px".
-            const unit = current()?.unit ?? "";
-            const next = /^-?\d+(?:\.\d+)?$/.test(raw) && unit !== ""
-              ? `${raw}${unit}`
-              : raw;
-            if (!props.onCommit(next) && textInput !== undefined) {
-              textInput.value = props.value;
-            }
-          }}
-        />
+              const accepted = props.onCommit(next);
+              setDraft(undefined);
+              if (!accepted) {
+                event.currentTarget.value = String(current()?.n ?? "");
+              }
+            }}
+            onPointerCancel={() => {
+              release();
+              props.onCancel?.();
+              setDraft(undefined);
+            }}
+          />
+        </Show>
+        <div class="row-xs shrink-0 items-center">
+          <button
+            id={props.id === undefined ? undefined : `${props.id}-dec`}
+            type="button"
+            class="secondary s-sm px-2 font-mono text-xs shadow-none"
+            aria-label={`Decrease ${props.label ?? "value"}`}
+            disabled={(shownNumber() ?? range().min) <= range().min}
+            onClick={() => stepBy(-1)}
+          >
+            −
+          </button>
+          <input
+            ref={textInput}
+            id={isStepperOnly()
+              ? props.id
+              : props.id === undefined
+              ? undefined
+              : `${props.id}-text`}
+            type="text"
+            aria-label={props.label === undefined
+              ? "Token value"
+              : `${props.label} value`}
+            class="w-24 shrink-0 px-2 font-mono text-xs text-center tabular-nums"
+            value={shown()}
+            onChange={(event) => {
+              const raw = event.currentTarget.value.trim();
+              const unit = current()?.unit ?? "";
+              const next = /^-?\d+(?:\.\d+)?$/.test(raw) && unit !== ""
+                ? `${raw}${unit}`
+                : raw;
+              if (!props.onCommit(next) && textInput !== undefined) {
+                textInput.value = props.value;
+              }
+            }}
+          />
+          <button
+            id={props.id === undefined ? undefined : `${props.id}-inc`}
+            type="button"
+            class="secondary s-sm px-2 font-mono text-xs shadow-none"
+            aria-label={`Increase ${props.label ?? "value"}`}
+            disabled={(shownNumber() ?? range().max) >= range().max}
+            onClick={() => stepBy(1)}
+          >
+            +
+          </button>
+        </div>
         <code hidden title={shown()}>
           {shown()}
         </code>
@@ -493,35 +723,24 @@ function TextControl(props: {
   // one they will next act on. `on` so typing is not undone by the effect's
   // own read.
   createEffect(on(() => props.value, (value) => setDraft(value)));
-  const paths = () => {
-    const current = analyzeTheme(themeText()).tree;
-    if (current === undefined) return [];
-    return Object.keys(indexTree(current).leaves);
-  };
+  const paths = () => Object.keys(indexTree(activeTree()).leaves);
   const isShadow = (v: string) => v.includes("px") && v.split(" ").length >= 3;
   return (
     <Show
       when={multiline()}
       fallback={
-        <>
-          <input
-            id={props.id}
-            type="text"
-            list="spin-token-paths"
-            class="w-[10rem]"
-            value={draft()}
-            onChange={(event) => {
-              const next = event.currentTarget.value;
-              setDraft(next);
-              // A refused value stays in the document's word, so the field
-              // says what is true rather than what was typed at it.
-              if (!props.onCommit(next)) setDraft(props.value);
-            }}
-          />
-          <datalist id="spin-token-paths">
-            <For each={paths()}>{(p) => <option value={`{${p}}`} />}</For>
-          </datalist>
-        </>
+        <ReferenceField
+          value={draft()}
+          paths={paths()}
+          onCommit={(next) => {
+            setDraft(next);
+            if (!props.onCommit(next)) {
+              setDraft(props.value);
+              return false;
+            }
+            return true;
+          }}
+        />
       }
     >
       <div class="stack-sm">
@@ -543,10 +762,66 @@ function TextControl(props: {
             style={{ "box-shadow": draft() }}
           />
         </Show>
-        <datalist id="spin-token-paths">
-          <For each={paths()}>{(p) => <option value={`{${p}}`} />}</For>
-        </datalist>
       </div>
     </Show>
   );
+}
+
+/**
+ * A single-line token value: a searchable reference that still takes
+ * literals.
+ *
+ * The combobox owns the filtered list of `{token.path}` references; a pick
+ * commits the reference. A literal the list does not offer — a hex, a
+ * length — commits on Enter or blur through the input the machine owns,
+ * the same honesty the bare field kept.
+ */
+function ReferenceField(props: {
+  value: string;
+  paths: readonly string[];
+  onCommit: (value: string) => boolean;
+}) {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const box = createSpinComponent(element, combobox);
+  const items = () =>
+    props.paths.map((path) => ({ value: `{${path}}`, label: `{${path}}` }));
+  const commitLiteral = (input: HTMLInputElement | null): void => {
+    if (input === null) return;
+    props.onCommit(input.value);
+  };
+  createEffect(() =>
+    box.bind(
+      {
+        items: items(),
+        allowCustomValue: true,
+        value: props.value,
+        inputValue: props.value,
+      },
+      {
+        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+          const next = event.detail.value[0];
+          if (next !== undefined) props.onCommit(next);
+        },
+      },
+    )
+  );
+  // The document is the truth while typing is the author's: an undo, redo
+  // or reset lands in the field without swallowing the word being typed,
+  // because only the committed value moves this.
+  createEffect(() => {
+    box.commands.setInputValue(props.value);
+  });
+  // The machine owns the input: Enter on a literal and blur commit what
+  // the field holds, which is how the bare field behaved.
+  createEffect(() => {
+    const host = element() ?? null;
+    const input = host?.querySelector("input") ?? null;
+    if (input === null || input.dataset["literal"] === "wired") return;
+    input.dataset["literal"] = "wired";
+    input.addEventListener("keydown", (event) => {
+      if ((event as KeyboardEvent).key === "Enter") commitLiteral(input);
+    });
+    input.addEventListener("focusout", () => commitLiteral(input));
+  });
+  return <studio-token-combobox ref={(el: HTMLElement) => setElement(el)} prop:items={items()} prop:inputValue={props.value} prop:allowCustomValue={true} />;
 }

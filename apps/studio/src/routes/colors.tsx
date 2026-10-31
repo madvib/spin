@@ -1,11 +1,17 @@
-import { createMemo, createSignal, For, Show } from "solid-js";
-import { generateScale } from "@spinjs/theme";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { modePicker } from "@spinjs/components/mode-picker";
+import { ColorField } from "../components/ColorField.tsx";
+import { ReferencePicker } from "../components/ReferencePicker.tsx";
+import { contrastRatio, generateScale, toHex } from "@spinjs/theme";
 import { inDrawer } from "../lib/host.ts";
-import { analyzeTheme } from "../lib/theme.ts";
 import {
   activeMode,
   activeModes,
+  activeTree,
+  lastRefusal,
   refusalFor,
+  setActiveMode,
   themeText,
 } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
@@ -13,60 +19,64 @@ import { type MeasuredFloor, measureFloors } from "../lib/floors.ts";
 import {
   colorRoles,
   colorTargets,
+  contrastInk,
   FAMILIES,
-  FAMILY_NOTES,
   FAMILY_TITLES,
+  familyCards,
+  humanName,
   neutralRamp,
+  pairedFillPath,
+  pairedInkPath,
   type Role,
-  rolesOf,
+  type RoleCard,
+  roleKind,
   type RoleValue,
+  stepConsumers,
   type Target,
 } from "../lib/colors.ts";
 import { ConcernPage, Section } from "../components/Concern.tsx";
-import Palette, { Hex } from "../components/Palette.tsx";
-import { paletteChips } from "../lib/overview.ts";
+import { tokenValue } from "../lib/overview.ts";
 
-/**
- * Colors — a theme's colours: the roles the interface paints with, what
- * each role is for, and which of them you set.
- *
- * A colour page is a palette first, and a palette is read as swatches. So
- * the page opens with the palette: the colours a theme picks, in the order a
- * palette reads, each swatch a control that opens the picker for that role.
- * The picker is where the value, the floor and the choices are, so copying a
- * colour and changing it are the same place.
- *
- * Under the palette the theme's roles are read as what they are: three
- * families — brand, neutral, status — and a row for each role, saying what
- * the role is for, what it is worth, and whether the value is set or
- * computed. The neutrals are the roles, not the ramp's numbers: "the page",
- * "the hairline", "the ink", because 50 and 900 are the ramp's own
- * spelling and not a thing a reader can act on. The ramp is still here,
- * under a disclosure, for the author who wants the steps.
- *
- * Both modes are on the page at once, because a preview stands in one mode
- * at a time and dark overrides are invisible until you switch into them.
- * Each slot writes where it sits: light the token's own `$value`, dark its
- * `$modes.dark` — and a dark slot saying what the light slot says is a slot
- * with nothing to say, so it reads as a fallback instead.
- */
+/** Where a slot's commit lands: the authored `$value` when the slot is the
+ * base slot, otherwise that mode's `$modes` restatement. */
+function commitSlot(role: Role, slot: "light" | "dark"): "base" | "light" | "dark" {
+  if (slot !== role.baseSlot) return slot;
+  return "base";
+}
 
-/** Where a slot's commit lands: the token's own value, or the dark one. */
-function commitSlot(slot: "light" | "dark"): "base" | "dark" {
-  return slot === "dark" ? "dark" : "base";
+function slotOf(role: Role | null | undefined, mode: string): RoleValue | null {
+  if (!role) return null;
+  return mode === "dark" ? role.dark ?? role.base : role.light ?? role.base;
+}
+
+function opaqueHex(hex: string | null | undefined): string | null {
+  if (!hex) return null;
+  return hex.length === 9 && hex.startsWith("#") ? hex.slice(0, 7) : hex;
+}
+
+function safeInk(
+  preferredHex: string | null | undefined,
+  bgHex: string | null | undefined,
+): string | undefined {
+  const bg = opaqueHex(bgHex);
+  const fg = opaqueHex(preferredHex);
+  if (!bg) return undefined;
+  if (fg && contrastRatio(fg, bg) >= 4.55) {
+    return fg;
+  }
+  return contrastInk(bg);
 }
 
 export default function ColorsPage() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
+  const tree = createMemo(() => activeTree());
   const mode = createMemo(() => activeMode());
-  const servesDark = createMemo(() => activeModes().includes("dark"));
-  const roles = createMemo(() => colorRoles(tree(), servesDark()));
-  const palette = createMemo(() => paletteChips(themeText(), mode()));
+  const modes = createMemo(() => activeModes());
+  const roles = createMemo(() => colorRoles(tree(), modes()));
   const floors = createMemo(() => measureFloors(themeText(), mode()));
   const targets = createMemo(() => colorTargets(tree(), mode()));
   const [editing, setEditing] = createSignal("");
 
-  /** The role the picker holds: the one pressed, or the first the theme has. */
+  /** The role the inspector holds: the one pressed, or the first the theme has. */
   const editingRole = createMemo(() => {
     const all = roles();
     return all.find((role) => role.path === editing()) ?? all[0];
@@ -74,104 +84,164 @@ export default function ColorsPage() {
 
   let picker: HTMLDivElement | undefined;
 
-  /**
-   * Choose the role the picker holds.
-   *
-   * A swatch in the palette sits right above the picker, so choosing one
-   * needs no movement. A swatch in a family row does not, and a reader who
-   * pressed it would be left looking at a picker they cannot see — so the
-   * page brings the picker into view.
-   */
   function select(path: string): void {
     setEditing(path);
-    if (palette().some((chip) => chip.path === path)) return;
+    if (!inDrawer()) return;
     picker?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   return (
     <ConcernPage
       title="Colors"
-      note="A theme's colours: the roles the interface paints with, what each role is for, and which of them you set."
+      action={<ModeToggle />}
     >
-      <Section
-        title="Palette"
-        fact={mode()}
-        note="The colours a theme picks, in the order a palette reads. Press a swatch to edit the role below it; press a hex to copy it."
+      <div
+        class={inDrawer()
+          ? "stack-lg"
+          : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] [&>*]:min-w-0"}
       >
-        <Show
-          when={palette().length > 0}
-          fallback={
-            <p class="text-sm text-text-muted">
-              This theme declares no palette roles yet.
-            </p>
-          }
+        <div class="stack-lg min-w-0">
+          <For each={FAMILIES}>
+            {(family, index) => {
+              const cards = createMemo(() => familyCards(roles(), family));
+              return (
+                <Section
+                  title={FAMILY_TITLES[family]}
+                  fact={index() === 0 ? mode() : `${cards().length} cards`}
+                >
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <For each={cards()}>
+                      {(card) => (
+                        <RoleCardView
+                          card={card}
+                          mode={mode()}
+                          floors={floors()}
+                          selectedPath={editingRole()?.path ?? ""}
+                          onPick={select}
+                        />
+                      )}
+                    </For>
+                  </div>
+                </Section>
+              );
+            }}
+          </For>
+
+          <Ramp />
+          <InUse />
+        </div>
+
+        <div
+          ref={picker}
+          class="min-w-0"
+          classList={{ "lg:sticky lg:top-4": !inDrawer() }}
         >
-          <Palette chips={palette()} tall onPick={select} />
-        </Show>
-        <div ref={picker}>
           <RolePicker
             role={editingRole()}
+            allRoles={roles()}
             mode={mode()}
             floors={floors()}
             targets={targets()}
+            onSelectRole={select}
           />
         </div>
-      </Section>
-
-      <For each={FAMILIES}>
-        {(family) => (
-          <Section
-            title={FAMILY_TITLES[family]}
-            fact={`${rolesOf(roles(), family).length} roles`}
-            note={FAMILY_NOTES[family]}
-          >
-            <For each={rolesOf(roles(), family)}>
-              {(role) => (
-                <RoleRow
-                  role={role}
-                  mode={mode()}
-                  floors={floors()}
-                  selected={role.path === editingRole()?.path}
-                  onPick={select}
-                />
-              )}
-            </For>
-          </Section>
-        )}
-      </For>
-
-      <Ramp />
-      <InUse />
+      </div>
     </ConcernPage>
   );
 }
 
+function ModeToggle() {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const ctl = createSpinComponent(element, modePicker);
+  createEffect(() =>
+    ctl.bind(
+      {
+        value: activeMode(),
+        modes: [...activeModes()],
+        hideWhenSingle: activeModes().length <= 1,
+      },
+      {
+        "value-change": (event: CustomEvent<{ value: string }>) => {
+          const next = event.detail.value;
+          if (next === "light" || next === "dark") setActiveMode(next);
+        },
+      },
+    )
+  );
+  return (
+    <studio-mode-picker
+      ref={(el: HTMLElement) => setElement(el)}
+      prop:value={activeMode()}
+      prop:modes={[...activeModes()]}
+      prop:hideWhenSingle={activeModes().length <= 1}
+    />
+  );
+}
+
 /**
- * The picker: the role being edited, in one place.
- *
- * The value, the floor it owes, the contrast it measures, and the ways to
- * set it — a literal colour, or a reference to another token. A role whose
- * value is a reference says so, and the reference is one of the choices, so
- * a computed role is as editable as a set one.
+ * The right-hand inspector: edits the selected role, lets paired Fill/Ink
+ * roles flip in one click, and shows live contrast pairs with 1-click fixes.
  */
 function RolePicker(props: {
   role: Role | undefined;
+  allRoles: readonly Role[];
   mode: string;
   floors: readonly MeasuredFloor[];
   targets: readonly Target[];
+  onSelectRole: (path: string) => void;
 }) {
+  const partnerRole = createMemo<Role | null>(() => {
+    const role = props.role;
+    if (!role) return null;
+    const partnerPath = pairedInkPath(role.path) ?? pairedFillPath(role.path);
+    if (!partnerPath) return null;
+    return props.allRoles.find((r) => r.path === partnerPath) ?? null;
+  });
+
+  const fillAndInk = createMemo<{ fill: Role; ink: Role } | null>(() => {
+    const role = props.role;
+    const partner = partnerRole();
+    if (!role || !partner) return null;
+    return roleKind(role.path) === "on-ink"
+      ? { fill: partner, ink: role }
+      : { fill: role, ink: partner };
+  });
+
   const owed = createMemo(() =>
     props.floors.filter((floor) => floor.fg === props.role?.path)
   );
   const carried = createMemo(() =>
     props.floors.filter((floor) => floor.bg === props.role?.path)
   );
-  /** The role's value in the mode being looked at: the summary at the top. */
-  const current = createMemo(() => {
-    const role = props.role;
-    if (role === undefined) return null;
-    return props.mode === "dark" && role.dark !== null ? role.dark : role.base;
+  const pairs = createMemo(() => {
+    const seen = new Set<string>();
+    const list: MeasuredFloor[] = [];
+    for (const floor of [...owed(), ...carried()]) {
+      const key = `${floor.fg} on ${floor.bg}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        list.push(floor);
+      }
+    }
+    return list;
   });
+
+  const current = createMemo(() => slotOf(props.role, props.mode));
+  const [fixing, setFixing] = createSignal<string | null>(null);
+
+  createEffect(() => {
+    const key = fixing();
+    if (key === null) return;
+    const floor = pairs().find((f) => `${f.fg} on ${f.bg}` === key);
+    if (floor === undefined || floor.ratio >= floor.min) setFixing(null);
+  });
+
+  const refusal = createMemo(() => {
+    const path = props.role?.path;
+    if (!path) return undefined;
+    return refusalFor(path) ?? lastRefusal();
+  });
+
   return (
     <Show
       when={props.role}
@@ -182,80 +252,123 @@ function RolePicker(props: {
       }
     >
       {(role) => (
-        <div class="stack rounded-md border border-border bg-surface-raised p-4">
-          <div class="split">
-            <h3>Editing {role().name}</h3>
-            <Hex value={current()?.value ?? ""} />
-          </div>
-          <Show when={role().doc}>
-            <p class="text-sm text-text-muted">{role().doc}</p>
-          </Show>
-          <div
-            class="grid gap-3"
-            classList={{ "sm:grid-cols-2": !inDrawer() }}
-          >
-            <SlotEditor
-              role={role()}
-              slot="light"
-              value={role().base}
-              targets={props.targets}
-            />
-            <Show when={role().dark}>
-              {(dark) => (
-                <SlotEditor
-                  role={role()}
-                  slot="dark"
-                  value={dark()}
-                  targets={props.targets}
-                  restated={role().restated}
-                />
-              )}
+        <div
+          class="stack rounded-md border border-border bg-surface-raised p-4"
+          data-testid="color-inspector"
+        >
+          <div class="stack-sm">
+            <div class="split">
+              <h2 class="truncate text-lg font-semibold" title={role().path}>
+                {humanName(role().path)}
+              </h2>
+              <span class="row-sm font-mono text-xs text-text-muted">
+                <span class="truncate">{role().path}</span>
+                <CopyButton text={role().path} label={`Copy ${role().path}`} />
+              </span>
+            </div>
+
+            <Show when={fillAndInk()}>
+              {(pair) => {
+                const fillHex = () => slotOf(pair().fill, props.mode)?.hex ?? "";
+                const inkHex = () => slotOf(pair().ink, props.mode)?.hex ?? "";
+                const onFill = () => role().path === pair().fill.path;
+                return (
+                  <div
+                    class="grid grid-cols-2 gap-1 rounded-md border border-border bg-surface p-1"
+                    role="group"
+                    aria-label="Paired role target"
+                  >
+                    <button
+                      type="button"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
+                      classList={{
+                        "bg-surface-raised text-text shadow-sm": onFill(),
+                        "text-text-muted hover:text-text": !onFill(),
+                      }}
+                      onClick={() => props.onSelectRole(pair().fill.path)}
+                    >
+                      <swatch class="s-sm" style={{ "--swatch": fillHex() }} aria-hidden="true" />
+                      <span class="truncate">Fill · {humanName(pair().fill.path)}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
+                      classList={{
+                        "bg-surface-raised text-text shadow-sm": !onFill(),
+                        "text-text-muted hover:text-text": onFill(),
+                      }}
+                      onClick={() => props.onSelectRole(pair().ink.path)}
+                    >
+                      <swatch class="s-sm" style={{ "--swatch": inkHex() }} aria-hidden="true" />
+                      <span class="truncate">Ink · {humanName(pair().ink.path)}</span>
+                    </button>
+                  </div>
+                );
+              }}
             </Show>
+
+            <InspectorSpecimen role={role()} mode={props.mode} current={current()} />
           </div>
-          {
-            /* The refusal belongs beside the role it is about: the banner
-              at the top of the work is a different line of sight from the
-              slot the author just committed. */
-          }
-          <Show when={refusalFor(role().path)}>
-            {(message) => (
-              <p class="text-sm text-semantic-error" role="alert">
-                {message()}
+
+          <Show when={current()}>
+            {(value) => (
+              <SlotEditor
+                role={role()}
+                mode={props.mode}
+                value={value()}
+                targets={props.targets}
+              />
+            )}
+          </Show>
+
+          <Show when={refusal()}>
+            {(msg) => (
+              <p
+                role="alert"
+                class="rounded-md border border-semantic-error bg-surface p-2 text-xs text-semantic-error"
+              >
+                {msg()}
               </p>
             )}
           </Show>
-          <div class="stack-sm">
-            <h4>Floors</h4>
-            <Show when={owed().length > 0}>
-              <For each={owed()}>
-                {(floor) => (
-                  <FloorReadout
-                    floor={floor}
-                    role={role()}
-                    mode={props.mode}
-                  />
-                )}
-              </For>
-            </Show>
-            <Show when={carried().length > 0}>
-              <p class="text-xs text-text-muted">Read on it</p>
-              <For each={carried()}>
-                {(floor) => (
-                  <FloorReadout
-                    floor={floor}
-                    role={role()}
-                    mode={props.mode}
-                  />
-                )}
-              </For>
-            </Show>
-            <Show when={owed().length === 0 && carried().length === 0}>
-              <p class="text-sm text-text-muted">
-                This role owes no floor and carries none: nothing is read on it,
-                and nothing is read in it.
-              </p>
-            </Show>
-          </div>
+
+          <Show when={pairs().length > 0}>
+            <div class="stack-sm border-t border-border pt-3">
+              <span class="text-xs font-medium text-text-muted">Legibility checks</span>
+              <div class="row-sm flex-wrap">
+                <For each={pairs()}>
+                  {(floor) => (
+                    <PairChip
+                      floor={floor}
+                      mode={props.mode}
+                      open={fixing() === `${floor.fg} on ${floor.bg}`}
+                      onToggle={() => {
+                        const key = `${floor.fg} on ${floor.bg}`;
+                        setFixing(fixing() === key ? null : key);
+                      }}
+                    />
+                  )}
+                </For>
+              </div>
+              <Show when={fixing()}>
+                {(key) => {
+                  const floor = pairs().find((f) => `${f.fg} on ${f.bg}` === key());
+                  return (
+                    <Show when={floor !== undefined && floor.ratio < floor.min ? floor : undefined}>
+                      {(failed) => (
+                        <FloorFix
+                          floor={failed()}
+                          role={role()}
+                          mode={props.mode}
+                          onClose={() => setFixing(null)}
+                        />
+                      )}
+                    </Show>
+                  );
+                }}
+              </Show>
+            </div>
+          </Show>
         </div>
       )}
     </Show>
@@ -263,347 +376,658 @@ function RolePicker(props: {
 }
 
 /**
- * One slot of a role: the value, how to set it, and what it can point at.
- *
- * The swatch is the control: a press opens the browser's own colour
- * picker, and the commit writes the token. The field beside it takes the
- * value as the document spells it — a hex, an `oklch(…)`, a reference — so
- * a theme that writes its colours in a space the swatch cannot reach is
- * still editable here.
+ * Compact live specimen inside the inspector showing the selected role on its
+ * actual ground without screaming giant hex text.
  */
-function SlotEditor(props: {
-  role: Role;
-  slot: "light" | "dark";
-  value: RoleValue;
-  targets: readonly Target[];
-  /** Whether the theme restates this role for the dark mode. */
-  restated?: boolean;
-}) {
-  /** The text field, so a refused value can be put back where it was. */
-  let field: HTMLInputElement | undefined;
-
-  /**
-   * Write the value, or say why not by putting the field back.
-   *
-   * The document is the truth: a value the gate refuses must not stay in the
-   * box, because the box is what the author will act on next. The refusal
-   * itself is rendered by the picker, beside the role.
-   */
-  function commit(value: string): boolean {
-    const accepted = editToken(
-      props.role.path.split("."),
-      value,
-      commitSlot(props.slot),
-    );
-    if (!accepted && field !== undefined) field.value = props.value.raw;
-    return accepted;
-  }
-  return (
-    <div class="stack-sm rounded-md border border-border p-3">
-      <div class="row-sm">
-        <span class="w-10 shrink-0 text-xs text-text-muted">{props.slot}</span>
-        <label
-          class="relative block h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border"
-          // The swatch wears the value the document resolves to: the studio
-          // wears its own theme, so a utility here would paint the studio's
-          // colour and call it the theme being edited.
-          style={{ background: props.value.hex ?? "" }}
-          title={`Pick a colour for ${props.role.path} in ${props.slot}`}
-        >
-          <span class="visually-hidden">
-            {props.role.path} in {props.slot}
-          </span>
-          <input
-            id={`token-${props.role.path}-${props.slot}`}
-            type="color"
-            class="visually-hidden"
-            value={props.value.hex ?? "#000000"}
-            onChange={(event) => {
-              // A refused colour goes back to the value the document holds,
-              // the same honesty the text field keeps.
-              if (!commit(event.currentTarget.value)) {
-                event.currentTarget.value = props.value.hex ?? "#000000";
-              }
-            }}
-          />
-        </label>
-        <Hex value={props.value.value ?? ""} />
-      </div>
-      <p class="text-xs text-text-muted">
-        {props.value.computed
-          ? `computed — points at ${props.value.reference}`
-          : props.restated === false
-          ? "falls back to the base"
-          : "set"}
-      </p>
-      <input
-        ref={field}
-        type="text"
-        class="w-full"
-        value={props.value.raw}
-        aria-label={`${props.role.path} value in ${props.slot}`}
-        onChange={(event) => {
-          // The value the document refused never stays in the field: the
-          // refusal is rendered above, and the field says what is true.
-          commit(event.currentTarget.value);
-        }}
-      />
-      <div class="stack-sm">
-        <span class="text-xs text-text-muted">Point at another token</span>
-        <div class="flex max-h-[8rem] flex-wrap gap-1 overflow-y-auto rounded-md border border-border p-2">
-          <For each={props.targets}>
-            {(target) => (
-              <button
-                type="button"
-                class="bare cursor-pointer text-text"
-                title={target.path}
-                aria-current={target.path === props.value.reference
-                  ? "true"
-                  : undefined}
-                onClick={() => commit(`{${target.path}}`)}
-              >
-                <span
-                  class="row-sm rounded-sm border border-border px-1 text-xs"
-                  classList={{
-                    "border-primary": target.path === props.value.reference,
-                  }}
-                >
-                  <span
-                    class="h-3 w-3 shrink-0 rounded-sm border border-border"
-                    style={{ background: target.hex ?? "" }}
-                    aria-hidden="true"
-                  />
-                  <span class="truncate">{target.name}</span>
-                </span>
-              </button>
-            )}
-          </For>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * One role, in its family: the swatch, the name and what it is for, the
- * value in each mode, and the floor it owes.
- *
- * The swatch is the way in: a press hands the role to the picker. The mode
- * column says what the role is worth in each mode, and whether the theme
- * restates it there or lets the base stand — a mode is a restatement, and a
- * role the dark mode does not restate falls back to its own base.
- */
-function RoleRow(props: {
+function InspectorSpecimen(props: {
   role: Role;
   mode: string;
-  floors: readonly MeasuredFloor[];
-  selected: boolean;
-  onPick: (path: string) => void;
+  current: RoleValue | null;
 }) {
-  const owed = createMemo(() =>
-    props.floors.filter((floor) => floor.fg === props.role.path)
-  );
-  const carried = createMemo(() =>
-    props.floors.filter((floor) => floor.bg === props.role.path)
-  );
-  /**
-   * The floors this row shows.
-   *
-   * The ones the role owes, when it owes any. A role that owes none but
-   * carries some — a fill, or a surface — shows the tightest pair it
-   * carries: the one with the least room over its floor, which is the pair
-   * that would fail first.
-   */
-  const shown = createMemo(() => {
-    const own = owed();
-    if (own.length > 0) return own;
-    const on = carried();
-    if (on.length === 0) return [];
-    return [
-      on.reduce((tightest, floor) =>
-        floor.ratio / floor.min < tightest.ratio / tightest.min
-          ? floor
-          : tightest
-      ),
-    ];
+  const kind = () => roleKind(props.role.path);
+  const hexOf = (path: string): string | null =>
+    opaqueHex(toHex(tokenValue(activeTree(), props.mode, path)));
+  const surfaceHex = () => hexOf("color.surface") ?? "#ffffff";
+  const textHex = () => hexOf("color.text") ?? "#111111";
+
+  const bg = createMemo(() => {
+    const k = kind();
+    if (k === "ink" || k === "stroke") return surfaceHex();
+    if (k === "on-ink") {
+      const fill = pairedFillPath(props.role.path);
+      return (fill ? hexOf(fill) : null) ?? surfaceHex();
+    }
+    return opaqueHex(props.current?.hex) ?? surfaceHex();
   });
-  /** The role's value in the mode being looked at. */
-  const current = createMemo(() =>
-    props.mode === "dark" && props.role.dark !== null
-      ? props.role.dark
-      : props.role.base
-  );
-  const swatch = createMemo(() => current().hex);
+
+  const fg = createMemo(() => {
+    const k = kind();
+    const preferred = (() => {
+      if (k === "ink" || k === "on-ink") return props.current?.hex ?? textHex();
+      if (k === "stroke" || k === "surface") return textHex();
+      const inkPath = pairedInkPath(props.role.path);
+      return (inkPath ? hexOf(inkPath) : null) ?? contrastInk(bg());
+    })();
+    return safeInk(preferred, bg());
+  });
+
   return (
     <div
-      class="stack-sm rounded-md border border-border p-3"
-      classList={{ "border-primary": props.selected }}
+      class="split rounded-md border border-border px-3 py-2"
+      style={{
+        background: bg(),
+        color: fg(),
+        "border-color": kind() === "stroke" ? (props.current?.hex ?? undefined) : undefined,
+      }}
     >
-      <div class="flex items-start gap-3">
-        <button
-          type="button"
-          class="bare h-12 w-12 shrink-0 cursor-pointer"
-          title={`Edit ${props.role.name}`}
-          aria-label={`Edit ${props.role.name}`}
-          aria-current={props.selected ? "true" : undefined}
-          onClick={() => props.onPick(props.role.path)}
-        >
-          <span
-            class="block h-12 w-12 rounded-md border border-border"
-            style={{ background: swatch() ?? "" }}
+      <div class="row-sm min-w-0">
+        <span class="text-base font-bold">Aa</span>
+        <span class="truncate text-xs font-medium">
+          {humanName(props.role.path)}
+        </span>
+      </div>
+      <Show when={props.current?.reference}>
+        {(followed) => (
+          <span class="truncate font-mono text-xs" title={`follows ${followed()}`}>
+            → {humanName(followed())}
+          </span>
+        )}
+      </Show>
+    </div>
+  );
+}
+
+function CopyButton(props: { text: string; label: string }) {
+  const [copied, setCopied] = createSignal(false);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  async function copy(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(props.text);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    clearTimeout(timer);
+    timer = setTimeout(() => setCopied(false), 1200);
+  }
+  return (
+    <button
+      type="button"
+      class="bare shrink-0 cursor-pointer p-0 opacity-80 hover:opacity-100"
+      title={props.text}
+      aria-label={props.label}
+      onClick={(e) => {
+        e.stopPropagation();
+        void copy();
+      }}
+    >
+      <Show
+        when={copied()}
+        fallback={<span class="i-lucide-copy icon-sm" aria-hidden="true" />}
+      >
+        <span class="i-lucide-check icon-sm" aria-hidden="true" />
+      </Show>
+    </button>
+  );
+}
+
+function SlotEditor(props: {
+  role: Role;
+  mode: string;
+  value: RoleValue;
+  targets: readonly Target[];
+}) {
+  const slot = (): "light" | "dark" => props.mode === "dark" ? "dark" : "light";
+  const name = () => humanName(props.role.path);
+  function commit(value: string): boolean {
+    return editToken(
+      props.role.path.split("."),
+      value,
+      commitSlot(props.role, slot()),
+    );
+  }
+  return (
+    <div class="stack rounded-md border border-border bg-surface p-3">
+      <div class="stack-sm">
+        <span class="text-xs font-medium text-text-muted">Color</span>
+        <div class="split">
+          <ColorField
+            bare
+            id={`token-${props.role.path}-${slot()}`}
+            label={`${props.role.path} value in ${slot()}`}
+            value={props.value.hex ?? "#000000"}
+            onCommit={(v) => commit(v)}
           />
-        </button>
-        <div class="stack-sm min-w-0 flex-1">
-          <div class="split">
-            <span class="truncate">{props.role.name}</span>
-            <Hex value={current().value ?? ""} />
-          </div>
-          <Show when={props.role.doc}>
-            <p class="text-sm text-text-muted">{props.role.doc}</p>
-          </Show>
-          <div class="stack-sm text-xs">
-            <SlotLine
-              slot="light"
-              value={props.role.base}
-              hex={props.role.base.hex}
-            />
-            <Show when={props.role.dark}>
-              {(dark) => (
-                <SlotLine
-                  slot="dark"
-                  value={dark()}
-                  hex={dark().hex}
-                  fallback={!props.role.restated}
-                />
-              )}
-            </Show>
-          </div>
-          <For each={shown()}>
-            {(floor) => (
-              <FloorReadout
-                floor={floor}
-                role={props.role}
-                mode={props.mode}
-                small
-              />
-            )}
-          </For>
+          <CopyValue
+            value={props.value.hex ?? ""}
+            label={`Copy ${name()} value ${props.value.hex ?? ""}`}
+          />
         </div>
+      </div>
+
+      <div class="stack-sm border-t border-border pt-3">
+        <span class="text-xs font-medium text-text-muted">Theme swatch</span>
+        <ReferencePicker
+          targets={props.targets.filter((t) => t.path !== props.role.path)}
+          current={props.value.reference}
+          ownHex={props.value.hex ?? ""}
+          onPick={(path) => commit(`{${path}}`)}
+          onUnlink={() => {
+            if (props.value.hex !== null) commit(props.value.hex);
+          }}
+        />
       </div>
     </div>
   );
 }
 
 /**
- * One mode's worth of a role: the colour, and whether the theme sets it
- * there or lets the base stand.
+ * Single labeled hex copy control inside the inspector: quiet mono text + copy icon.
  */
-function SlotLine(props: {
-  slot: "light" | "dark";
-  value: RoleValue;
-  hex: string | null;
-  /** Whether the theme leaves this mode to the base. */
-  fallback?: boolean;
-}) {
+function CopyValue(props: { value: string; label: string }) {
+  const [copied, setCopied] = createSignal(false);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  async function copy(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(props.value);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    clearTimeout(timer);
+    timer = setTimeout(() => setCopied(false), 1200);
+  }
   return (
-    <div class="row-sm">
-      <span class="w-10 shrink-0 text-text-muted">{props.slot}</span>
-      <span class="font-mono">{props.hex ?? props.value.raw}</span>
-      <span class="truncate text-text-muted">
-        {props.fallback === true
-          ? "falls back to the base"
-          : props.value.computed
-          ? `computed · ${props.value.reference}`
-          : "set"}
-      </span>
-    </div>
+    <button
+      type="button"
+      class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 font-mono text-xs text-text hover:bg-surface-sunken"
+      title={`Copy ${props.value}`}
+      aria-label={props.label}
+      onClick={(e) => {
+        e.stopPropagation();
+        void copy();
+      }}
+    >
+      <Show when={copied()} fallback={<span>{props.value}</span>}>
+        <span>copied</span>
+      </Show>
+      <span class="i-lucide-copy icon-sm text-text-muted" aria-hidden="true" />
+    </button>
   );
 }
 
 /**
- * A floor, measured: the ratio the pair makes, the ratio it owes, and the
- * value that would clear it.
+ * A role card in the family grid.
  *
- * The measurement is the theme module's and the remedy is the studio's, so
- * the number on the page is the number the checks panel will say — and the
- * value offered beside it is one that clears the floor when it is applied.
- *
- * The remedy is written to the token that FAILS, which is not always the
- * role being edited: a fill owes nothing itself, and the ink on it does.
- * So the floor says which pair it is, and the offer names the token it
- * would change.
+ * - Fill cards (`Primary`, `Accent`, `Success`, `Disabled`, …) paint the card
+ *   with the fill and write the specimen in the actual paired `On *` ink,
+ *   including a direct sub-target pill for `On *` and the live contrast badge.
+ * - Surface cards (`Surface`, `Surface Raised`, …) wear `Text` and `Text Muted`.
+ * - Ink cards (`Text`, `Text Muted`, `Link`) sit on `Surface` so their text
+ *   legibility is visible directly.
+ * - Stroke cards (`Border`, `Border Strong`, `Focus Ring`) frame a sample box
+ *   on `Surface`.
  */
-function FloorReadout(props: {
+function RoleCardView(props: {
+  card: RoleCard;
+  mode: string;
+  floors: readonly MeasuredFloor[];
+  selectedPath: string;
+  onPick: (path: string) => void;
+}) {
+  const role = () => props.card.role;
+  const inkRole = () => props.card.ink;
+  const kind = () => roleKind(role().path);
+
+  const current = createMemo(() => slotOf(role(), props.mode));
+  const inkCurrent = createMemo(() => slotOf(inkRole(), props.mode));
+
+  const selectedFill = () => props.selectedPath === role().path;
+  const selectedInk = () => inkRole() !== null && props.selectedPath === inkRole()!.path;
+  const selectedAny = () => selectedFill() || selectedInk();
+
+  const hexOf = (path: string): string | null =>
+    opaqueHex(toHex(tokenValue(activeTree(), props.mode, path)));
+  const surfaceVal = createMemo(() => hexOf("color.surface") ?? "#ffffff");
+  const surfaceRaisedVal = createMemo(() =>
+    hexOf("color.surface-raised") ?? surfaceVal()
+  );
+  const textVal = createMemo(() => hexOf("color.text") ?? "#111111");
+  const textMutedVal = createMemo(() =>
+    hexOf("color.text-muted") ?? textVal()
+  );
+
+  const cardBg = createMemo(() => {
+    const k = kind();
+    if (k === "ink" || k === "stroke") return surfaceVal();
+    if (k === "on-ink") {
+      const fill = pairedFillPath(role().path);
+      return (fill ? hexOf(fill) : null) ?? surfaceVal();
+    }
+    return opaqueHex(current()?.hex) ?? surfaceVal();
+  });
+
+  const cardInk = createMemo(() => {
+    const k = kind();
+    if (k === "fill") {
+      return safeInk(inkCurrent()?.hex, cardBg());
+    }
+    if (k === "on-ink") {
+      return safeInk(current()?.hex, cardBg());
+    }
+    return safeInk(textVal(), cardBg());
+  });
+
+  /** The primary contrast floor this card demonstrates. */
+  const primaryFloor = createMemo<MeasuredFloor | null>(() => {
+    const ink = inkRole();
+    if (ink) {
+      const exact = props.floors.find(
+        (f) => f.fg === ink.path && f.bg === role().path
+      );
+      if (exact) return exact;
+    }
+    const owed = props.floors.filter((f) => f.fg === role().path);
+    if (owed.length > 0) {
+      return owed.reduce((a, b) => (a.ratio / a.min < b.ratio / b.min ? a : b));
+    }
+    const carried = props.floors.filter((f) => f.bg === role().path);
+    if (carried.length > 0) {
+      return carried.reduce((a, b) => (a.ratio / a.min < b.ratio / b.min ? a : b));
+    }
+    return null;
+  });
+
+  const liveRatio = createMemo<number | null>(() => {
+    const f = primaryFloor();
+    if (f) return f.ratio;
+    const c = current()?.hex;
+    if (!c) return null;
+    if (kind() === "surface") {
+      const t = tokenValue(activeTree(), props.mode, "color.text");
+      return t ? contrastRatio(t, c) : null;
+    }
+    return null;
+  });
+
+  const [fixing, setFixing] = createSignal(false);
+  createEffect(() => {
+    const f = primaryFloor();
+    if (!f || f.ratio >= f.min) setFixing(false);
+  });
+
+  const name = () => humanName(role().path);
+  const other = (): "light" | "dark" | null =>
+    props.mode === "dark"
+      ? (role().light === null ? null : "light")
+      : (role().dark === null ? null : "dark");
+  const otherValue = (): string | null => {
+    const slot = other();
+    if (slot === null) return null;
+    const value = slot === "dark" ? role().dark : role().light;
+    return value?.hex ?? null;
+  };
+
+  return (
+    <div
+      class="relative flex flex-col justify-between gap-3 rounded-md border border-border p-3 transition-colors"
+      classList={{
+        "border-primary border-2 shadow-lg": selectedAny(),
+      }}
+      style={{
+        background: cardBg(),
+        color: cardInk(),
+      }}
+    >
+      {/* Whole-card click selects the primary role */}
+      <button
+        type="button"
+        class="bare absolute inset-0 z-0 cursor-pointer"
+        title={`Edit ${name()}`}
+        aria-label={`Edit ${name()}`}
+        aria-current={selectedFill() ? "true" : undefined}
+        onClick={() => props.onPick(role().path)}
+      />
+      {/* Top row: Role Name + Quiet Metadata */}
+      <div class="split">
+        <div class="row-sm min-w-0">
+          <Show when={kind() === "ink" || kind() === "stroke"}>
+            <swatch
+              class="s-md shrink-0"
+              style={{ "--swatch": current()?.hex ?? "" }}
+              aria-hidden="true"
+            />
+          </Show>
+          <span class="truncate text-base font-semibold" title={role().path}>
+            {name()}
+          </span>
+        </div>
+        <Show
+          when={current()?.reference}
+          fallback={
+            <span class="shrink-0 font-mono text-xs">
+              {current()?.hex ?? ""}
+            </span>
+          }
+        >
+          {(followed) => (
+            <span
+              class="shrink-0 truncate font-mono text-xs"
+              title={`Follows ${followed()} (${current()?.hex ?? ""})`}
+            >
+              → {humanName(followed())}
+            </span>
+          )}
+        </Show>
+      </div>
+
+      {/* Middle row: Live Legibility Specimen */}
+      <div class="split gap-2 py-1">
+        <Show when={kind() === "fill"}>
+          <div class="row-sm min-w-0">
+            <span class="text-xl font-bold">Aa</span>
+            <span class="truncate text-sm font-medium">
+              {inkRole() ? `${humanName(inkRole()!.path)} ink` : "Sample text"}
+            </span>
+          </div>
+        </Show>
+
+        <Show when={kind() === "surface"}>
+          <div class="stack-xs min-w-0">
+            <span class="truncate text-sm font-semibold" style={{ color: safeInk(textVal(), cardBg()) }}>
+              Aa — Text on {name()}
+            </span>
+            <span class="truncate text-xs" style={{ color: safeInk(textMutedVal(), cardBg()) }}>
+              Muted text specimen
+            </span>
+          </div>
+        </Show>
+
+        <Show when={kind() === "ink" || kind() === "on-ink"}>
+          <div
+            class="row-sm min-w-0"
+            style={{ color: safeInk(current()?.hex, cardBg()) }}
+          >
+            <span
+              class="text-xl font-bold"
+              classList={{ underline: role().path === "color.link" }}
+            >
+              Aa
+            </span>
+            <span
+              class="truncate text-sm font-medium"
+              classList={{ underline: role().path === "color.link" }}
+            >
+              {name()} on Surface
+            </span>
+          </div>
+        </Show>
+
+        <Show when={kind() === "stroke"}>
+          <div
+            class="w-full rounded-md border-2 border-solid px-3 py-1 text-xs font-medium"
+            style={{
+              "border-color": current()?.hex ?? undefined,
+              background: surfaceRaisedVal(),
+              color: safeInk(textVal(), surfaceRaisedVal()),
+            }}
+          >
+            Framed with {name()}
+          </div>
+        </Show>
+
+        <Show
+          when={primaryFloor()}
+          fallback={
+            <Show when={liveRatio()}>
+              {(ratio) => (
+                <span
+                  class="shrink-0 rounded-sm border border-current px-2 py-1 font-mono text-xs font-semibold"
+                  title={`Text on ${name()} · ${ratio().toFixed(2)}:1`}
+                >
+                  {ratio().toFixed(1)}:1 ✓
+                </span>
+              )}
+            </Show>
+          }
+        >
+          {(floor) => {
+            const holds = () => floor().ratio >= floor().min;
+            return (
+              <button
+                type="button"
+                class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border px-2 py-1 font-mono text-xs font-semibold"
+                classList={{
+                  "border-current": holds(),
+                  "border-semantic-error bg-semantic-error text-on-semantic-error": !holds(),
+                }}
+                title={`${humanName(floor().fg)} on ${humanName(floor().bg)} · ${floor().ratio.toFixed(2)}:1 (floor ${floor().min}:1)`}
+                aria-label={
+                  holds()
+                    ? `${humanName(floor().fg)} on ${humanName(floor().bg)} · ${floor().ratio.toFixed(1)}:1 of ${floor().min}:1`
+                    : `${humanName(floor().fg)} on ${humanName(floor().bg)} · ${floor().ratio.toFixed(1)}:1 of ${floor().min}:1. Show the fix.`
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!holds()) setFixing(!fixing());
+                  else props.onPick(role().path);
+                }}
+              >
+                {holds()
+                  ? `${floor().ratio.toFixed(1)}:1 ✓`
+                  : `${floor().ratio.toFixed(1)}:1 < ${floor().min} · Fix`}
+              </button>
+            );
+          }}
+        </Show>
+      </div>
+
+      {/* In-card FloorFix when failing contrast badge is clicked */}
+      <Show when={fixing() && primaryFloor() && primaryFloor()!.ratio < primaryFloor()!.min ? primaryFloor() : undefined}>
+        {(failed) => (
+          <div class="relative z-10">
+            <FloorFix
+              floor={failed()}
+              role={role()}
+              mode={props.mode}
+              onClose={() => setFixing(false)}
+            />
+          </div>
+        )}
+      </Show>
+
+      {/* Bottom row: Paired Ink selector + Other-mode switch */}
+      <div class="split border-t border-current/20 pt-2 text-xs">
+        <Show
+          when={inkRole()}
+          fallback={
+            <span class="truncate">
+              <Show
+                when={primaryFloor()}
+                fallback={
+                  <span>
+                    {kind() === "surface" ? `Carries Text & Border` : `On Surface`}
+                  </span>
+                }
+              >
+                {(floor) => (
+                  <span>
+                    Floor {floor().min}:1 on {humanName(floor().bg)}
+                  </span>
+                )}
+              </Show>
+            </span>
+          }
+        >
+          {(ink) => (
+            <button
+              type="button"
+              class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 text-xs font-medium"
+              classList={{
+                "border-current": selectedInk(),
+                "border-transparent hover:border-current": !selectedInk(),
+              }}
+              title={`Edit ${humanName(ink().path)} (${inkCurrent()?.hex ?? ""})`}
+              aria-label={`Edit ${humanName(ink().path)}`}
+              aria-current={selectedInk() ? "true" : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                props.onPick(ink().path);
+              }}
+            >
+              <swatch
+                class="s-sm"
+                style={{ "--swatch": inkCurrent()?.hex ?? "" }}
+                aria-hidden="true"
+              />
+              <span class="truncate">Ink: {humanName(ink().path)}</span>
+            </button>
+          )}
+        </Show>
+
+        <Show when={otherValue()}>
+          {(hex) => (
+            <button
+              type="button"
+              class="bare relative z-10 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-1 py-1 text-xs"
+              title={`Switch to ${other() ?? ""} mode (${hex()})`}
+              aria-label={`Show ${name()} in ${other() ?? ""} mode`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (other() !== null) setActiveMode(other()!);
+              }}
+            >
+              <span class="uppercase">{other()}</span>
+              <swatch class="s-sm" style={{ "--swatch": hex() }} aria-hidden="true" />
+            </button>
+          )}
+        </Show>
+      </div>
+
+    </div>
+  );
+}
+
+function PairChip(props: {
+  floor: MeasuredFloor;
+  mode: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const [numbers, setNumbers] = createSignal(false);
+  const holds = () => props.floor.ratio >= props.floor.min;
+  const bg = createMemo(() => opaqueHex(toHex(tokenValue(activeTree(), props.mode, props.floor.bg))) ?? "#ffffff");
+  const ink = createMemo(() => opaqueHex(toHex(tokenValue(activeTree(), props.mode, props.floor.fg))) ?? "#111111");
+  const ratio = () => `${props.floor.ratio.toFixed(1)} of ${props.floor.min}`;
+  const label = () =>
+    `${humanName(props.floor.fg)} on ${humanName(props.floor.bg)} · ${props.floor.ratio.toFixed(2)}:1 of ${props.floor.min}:1`;
+  return (
+    <button
+      type="button"
+      class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border border-border p-0"
+      classList={{ "border-semantic-error border-2": !holds() }}
+      style={{ background: bg() }}
+      title={label()}
+      aria-label={holds() ? label() : `${label()}. Show the fix.`}
+      aria-expanded={props.open}
+      onClick={(e) => {
+        e.stopPropagation();
+        setNumbers(!numbers());
+        if (!holds()) props.onToggle();
+      }}
+    >
+      <span class="row-sm px-2 py-1 text-xs font-medium" style={{ color: safeInk(ink(), bg()) }}>
+        <swatch class="s-sm" style={{ "--swatch": ink() }} aria-hidden="true" />
+        <span class="truncate">{humanName(props.floor.fg)} on {humanName(props.floor.bg)}</span>
+        <Show when={numbers()} fallback={<span>{props.floor.ratio.toFixed(1)}:1</span>}>
+          <span>{ratio()}</span>
+        </Show>
+      </span>
+    </button>
+  );
+}
+
+function FloorFix(props: {
   floor: MeasuredFloor;
   role: Role;
   mode: string;
-  small?: boolean;
+  onClose: () => void;
 }) {
-  const holds = () => props.floor.ratio >= props.floor.min;
-  /** The token the pair fails on: the ink, whichever side it is on. */
-  const fails = () => props.floor.fg;
-  const pair = () =>
-    `${props.floor.fg.replace("color.", "")} on ${
-      props.floor.bg.replace("color.", "")
-    }`;
+  const slot = (): "light" | "dark" => props.mode === "dark" ? "dark" : "light";
   return (
-    <div class="row-sm text-xs">
-      <span
-        classList={{
-          "text-semantic-error": !holds(),
-          "text-text-muted": holds(),
-        }}
-      >
-        {props.floor.ratio.toFixed(2)}:1
-      </span>
-      <span class="truncate text-text-muted">
-        {pair()} · needs {props.floor.min}:1
-      </span>
-      <Show when={!holds() && props.floor.remedy !== null}>
+    <div class="stack-sm rounded-md border border-border bg-surface p-3 text-text">
+      <div class="split text-xs">
+        <span>
+          {humanName(props.floor.fg)} on {humanName(props.floor.bg)} is {props.floor.ratio.toFixed(2)}:1 — needs {props.floor.min}:1.
+        </span>
         <button
           type="button"
-          class="bare shrink-0 text-link"
-          title={`Set ${fails()} to ${props.floor.remedy}`}
-          onClick={() =>
-            editToken(
-              fails().split("."),
-              props.floor.remedy as string,
-              commitSlot(props.mode === "dark" ? "dark" : "light"),
-            )}
+          class="bare relative z-10 shrink-0 cursor-pointer p-0 opacity-80 hover:opacity-100"
+          aria-label="Close"
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onClose();
+          }}
         >
-          use {props.floor.remedy}
+          <span class="i-lucide-x icon-sm" aria-hidden="true" />
+        </button>
+      </div>
+      <Show
+        when={props.floor.remedy !== null}
+        fallback={
+          <span class="text-xs text-text-muted">No automatic fix — adjust the background fill first.</span>
+        }
+      >
+        <button
+          type="button"
+          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left text-xs font-medium text-text"
+          title={`Set ${props.floor.fg} to ${props.floor.remedy}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            editToken(
+              props.floor.fg.split("."),
+              props.floor.remedy as string,
+              commitSlot(props.role, slot()),
+            );
+          }}
+        >
+          <span class="row-sm">
+            <swatch class="s-sm" style={{ "--swatch": props.floor.remedy ?? "" }} aria-hidden="true" />
+            <span class="underline">Use {humanName(props.floor.fg)} {props.floor.remedy}</span>
+          </span>
         </button>
       </Show>
     </div>
   );
 }
 
-/**
- * The ramp: the greys the neutrals are cut from.
- *
- * The steps are the ramp's own spelling, so they live under a disclosure:
- * a reader who wants to know what "the page" is made of does not need
- * eleven numbers, and an author who wants them has them one press away.
- * The builder is the theme's own scale generator, so a ramp built here is
- * the same ramp the theme module builds.
- */
 function Ramp() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const steps = createMemo(() => neutralRamp(tree()));
+  const mode = createMemo(() => activeMode());
+  const steps = createMemo(() => neutralRamp(activeTree()));
+  const consumers = createMemo(() => stepConsumers(activeTree(), mode()));
   const [open, setOpen] = createSignal(false);
-  const [base, setBase] = createSignal("#7c2d12");
-  const scale = createMemo(() => {
+  const [custom, setCustom] = createSignal<string | null>(null);
+  const valueInMode = (step: { light: string | null; dark: string | null }): string | null =>
+    mode() === "dark" ? step.dark ?? step.light : step.light;
+  const base = () =>
+    custom() ?? valueInMode(steps().find((step) => step.step === "500") ?? { light: null, dark: null })
+      ?? "#808080";
+  const scale = createMemo<string[]>(() => {
     try {
-      return generateScale(base(), 11);
+      return generateScale(base(), steps().length);
     } catch {
       return [];
     }
   });
+  const usedBy = (path: string): string => {
+    const names = consumers().get(path) ?? [];
+    return names.length > 0 ? `Used by ${names.join(", ")}` : "Unused step";
+  };
   return (
     <Section
-      title="The ramp"
+      title="Neutral ramp"
       fact={`${steps().length} steps`}
-      note="The greys the neutrals are cut from. The steps are the ramp's own spelling; the roles above are what the steps are for."
+      info="The numbered grey scale that Surface, Border, and Text tokens reference. Rebuild regenerates all steps from one mid-tone seed."
       aside={
         <button
           type="button"
@@ -611,107 +1035,78 @@ function Ramp() {
           aria-expanded={open()}
           onClick={() => setOpen(!open())}
         >
-          {open() ? "Hide the steps" : "Show the steps"}
+          {open() ? "Close rebuild" : "Rebuild from seed…"}
         </button>
       }
     >
-      <Show when={open()}>
-        <div class="stack-sm">
-          <div class="flex gap-1">
+      <div class="stack rounded-md border border-border bg-surface-raised p-3">
+          <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
             <For each={steps()}>
-              {(step) => (
-                <div class="stack-sm flex-1">
+              {(step) => {
+                const rolesUsing = () => consumers().get(step.path) ?? [];
+                return (
                   <div
-                    class="h-8 rounded-sm border border-border"
-                    style={{ background: step.light ?? "" }}
-                    title={`${step.path} · ${step.light}`}
-                  />
-                  <div
-                    class="h-8 rounded-sm border border-border"
-                    style={{ background: step.dark ?? "" }}
-                    title={`${step.path} · dark · ${step.dark ?? "the base"}`}
-                  />
-                  <span class="text-center text-xs text-text-muted">
-                    {step.step}
-                  </span>
-                </div>
-              )}
+                    class="stack-xs rounded-sm border border-border bg-surface p-1"
+                    title={`${step.step} · ${valueInMode(step) ?? ""} — ${usedBy(step.path)}`}
+                  >
+                    <div
+                      class="h-8 w-full rounded-sm border border-border"
+                      classList={{ "opacity-60": rolesUsing().length === 0 }}
+                      style={{ background: valueInMode(step) ?? "" }}
+                    />
+                    <div class="split px-1">
+                      <span class="font-mono text-xs font-semibold text-text">
+                        {step.step}
+                      </span>
+                      <span class="truncate text-xs text-text-muted">
+                        {rolesUsing()[0] ?? "—"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }}
             </For>
           </div>
-          <div class="row-sm">
-            <label for="ramp-base">Base</label>
-            <label
-              class="relative block h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border"
-              style={{ background: base() }}
-              title="The hue the ramp is cut from"
-            >
-              <span class="visually-hidden">The ramp's base colour</span>
-              <input
-                id="ramp-base"
-                type="color"
-                class="visually-hidden"
+        <Show when={open()}>
+          <div class="split flex-wrap gap-2 border-t border-border pt-2">
+            <div class="row-sm">
+              <span class="text-xs text-text-muted">Seed hue</span>
+              <ColorField
+                bare
                 value={base()}
-                onInput={(event) => setBase(event.currentTarget.value)}
+                onCommit={(v) => {
+                  setCustom(v);
+                  return true;
+                }}
               />
-            </label>
+            </div>
             <button
               type="button"
+              class="secondary s-sm"
+              title={`Repaints ${steps().map((s) => s.step).join(", ")} from ${base()}`}
               onClick={() => {
-                const names = [
-                  "50",
-                  "100",
-                  "200",
-                  "300",
-                  "400",
-                  "500",
-                  "600",
-                  "700",
-                  "800",
-                  "900",
-                  "950",
-                ];
+                const names = steps().map((step) => step.step);
                 scale().forEach((hex, index) => {
                   const name = names[index];
                   if (name !== undefined) {
                     editToken(["color", "neutral", name], hex);
                   }
                 });
+                setCustom(null);
               }}
             >
-              Apply to neutral
+              Rebuild ramp
             </button>
           </div>
-          <div class="flex gap-1">
-            <For each={scale()}>
-              {(hex) => (
-                <div
-                  class="h-10 flex-1 rounded-sm border border-border"
-                  style={{ background: hex }}
-                  title={hex}
-                />
-              )}
-            </For>
-          </div>
-        </div>
-      </Show>
+        </Show>
+      </div>
     </Section>
   );
 }
 
-/**
- * The palette in use: the roles on the elements they paint.
- *
- * A page of swatches is the theme's parts; this is the theme working. The
- * specimens wear the theme being edited, because the page is inside the
- * theme's own scope — the studio's chrome keeps its own colours, and what
- * the theme says is what these elements say.
- */
 function InUse() {
   return (
-    <Section
-      title="Palette in use"
-      note="The roles on the elements they paint, wearing the theme being edited."
-    >
+    <Section title="Palette in use">
       <div class="row-sm flex-wrap items-center gap-3 rounded-md border border-border bg-surface-raised p-4">
         <button type="button">Primary</button>
         <button type="button" class="danger">Danger</button>

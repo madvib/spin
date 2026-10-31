@@ -157,8 +157,9 @@ export interface MeasuredFloor {
   readonly ratio: number;
   /** The value the role would take to clear the floor, when one exists. */
   readonly remedy: string | null;
+  /** Which way that value moves, when a remedy exists. */
+  readonly remedyDirection: Direction | null;
 }
-
 /**
  * Every floor the contract declares, measured in one mode.
  *
@@ -199,6 +200,7 @@ export function measureFloors(
       min: floor.min,
       ratio,
       remedy: remedy?.value ?? null,
+      remedyDirection: remedy?.direction ?? null,
     });
   }
   return out;

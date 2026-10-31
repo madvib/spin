@@ -2,7 +2,10 @@ import { createSignal } from "solid-js";
 
 function toRem(px: number): string {
   if (px <= 0) return "0";
-  return `${Number((px / 16).toFixed(2))}rem`;
+  const raw = px / 16;
+  const step = raw >= 0.5 ? 0.125 : 0.0625;
+  const snapped = Number((Math.round(raw / step) * step).toFixed(4));
+  return snapped <= 0 ? "0" : `${snapped}rem`;
 }
 
 /**
@@ -46,8 +49,10 @@ export default function ScaleBar(props: {
   let startX = 0;
   let startPx = 0;
 
+  const clampPx = (raw: number) => Math.min(Math.max(0, raw), max());
   const onPointerMove = (event: PointerEvent) => {
-    const px = Math.max(0, startPx + event.clientX - startX);
+    if (dragPx() === undefined && Math.abs(event.clientX - startX) < 3) return;
+    const px = clampPx(startPx + event.clientX - startX);
     setDragPx(px);
     props.onPreview?.(toRem(px));
   };
@@ -55,7 +60,7 @@ export default function ScaleBar(props: {
     (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
     const final = dragPx();
     setDragPx(undefined);
-    if (final !== undefined) props.onCommit(toRem(final));
+    if (final !== undefined) props.onCommit(toRem(clampPx(final)));
   };
 
   return (

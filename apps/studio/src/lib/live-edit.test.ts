@@ -268,7 +268,7 @@ test("a composite's colour that fails the floor it owes is refused", () => {
   assert(refusal !== undefined, "the floor was broken and the edit allowed");
   deepStrictEqual(refusal.path, "border.focus-ring");
   assert(
-    refusal.message.includes("below the 3:1 floor"),
+    refusal.message.includes("text needs 3:1"),
     `the refusal does not say what is wrong: ${refusal.message}`,
   );
 });

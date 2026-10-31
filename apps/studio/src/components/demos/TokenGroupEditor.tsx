@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
 import Row from "./TokenRow.tsx";
 
@@ -26,21 +26,37 @@ export default function TokenGroupEditor(props: {
   // The whole group rides on every row: the slider's ceiling is the
   // group's top, so the rows' thumbs line up as the ramp they belong to.
   const values = () => props.tokens.map((row) => row.value);
+  const paths = createMemo(
+    () => props.tokens.map((row) => row.path),
+    undefined,
+    {
+      equals: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]),
+    },
+  );
   return (
     <div class="stack-sm">
-      <For each={props.tokens}>
-        {(row) => (
-          <Row
-            row={row}
-            onEdit={props.onEdit}
-            swatch={props.swatch}
-            group={values()}
-            variable={row.variable}
-            onPreview={props.onPreview}
-            onCancel={props.onCancel}
-            proposed={props.shown?.(row.path, row.value)}
-          />
-        )}
+      <For each={paths()}>
+        {(path) => {
+          const row = createMemo(() =>
+            props.tokens.find((token) => token.path === path),
+          );
+          return (
+            <Show when={row()}>
+              {(current) => (
+                <Row
+                  row={current()}
+                  onEdit={props.onEdit}
+                  swatch={props.swatch}
+                  group={values()}
+                  variable={current().variable}
+                  onPreview={props.onPreview}
+                  onCancel={props.onCancel}
+                  proposed={props.shown?.(current().path, current().value)}
+                />
+              )}
+            </Show>
+          );
+        }}
       </For>
     </div>
   );

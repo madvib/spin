@@ -1,0 +1,31 @@
+<script lang="ts">
+import { splitter } from "@spinjs/components/splitter";
+
+const machine = splitter({
+  panels: '[{"id":"primary","minSize":25},{"id":"secondary","minSize":25}]',
+  size: "[56, 44]",
+});
+</script>
+
+<div class="flex h-full min-h-0 flex-1 w-full gap-2" {...machine.getRootProps()}>
+  <template for={machine.getItems()} as={row} key={row.id}>
+    <div
+      class="flex h-full min-h-0 min-w-0 flex-col"
+      show={row.type === "panel"}
+      {...machine.getItemProps(row)}
+    >
+      <slot name={row.id}></slot>
+    </div>
+    <div
+      class="grid w-2 shrink-0 cursor-col-resize place-items-center rounded-md border border-solid border-transparent bg-transparent transition-colors hover:bg-surface-sunken"
+      show={row.type === "handle"}
+      {...machine.getItemProps(row)}
+    >
+      <span
+        class="block h-8 w-1 rounded-full bg-border-strong"
+        aria-hidden="true"
+        {...machine.getItemIndicatorProps(row)}
+      ></span>
+    </div>
+  </template>
+</div>

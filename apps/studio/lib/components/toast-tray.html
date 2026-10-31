@@ -1,0 +1,31 @@
+<script lang="ts">
+import { toast } from "@spinjs/components/toast";
+
+const machine = toast({
+ placement: "bottom-start",
+});
+</script>
+
+<div
+  class="pointer-events-none fixed bottom-0 left-0 z-toast flex w-full max-w-sm flex-col gap-2 px-4 pb-4"
+  {...machine.getGroupProps()}
+>
+  <template for={machine.getToasts()} as={row} key={row.id}>
+    <div
+      class="pointer-events-auto origin-bottom-left transition-all duration-fast ease-decelerate"
+      {...machine.getToastProps(row)}
+    >
+      <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium text-text" {...machine.getTitleProps(row)}>{row.title}</div>
+          <div class="text-sm text-text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
+        </div>
+        <button
+          class="bare shrink-0 cursor-pointer p-0 text-text-muted hover:text-text"
+          aria-label="Dismiss"
+          {...machine.getCloseTriggerProps(row)}
+        ><span class="i-lucide-x icon-sm" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </template>
+</div>

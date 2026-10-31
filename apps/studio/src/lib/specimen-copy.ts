@@ -35,7 +35,7 @@ export const PARAGRAPH =
   "A theme that moves its type moves every paragraph on the page at once, which is why a specimen reads as a decision and a token row reads as a setting.";
 
 /** What a monospace specimen says. */
-export const MONOSPACE = "color.primary = var(--color-primary)";
+export const MONOSPACE = "0123456789 · const scale = [12, 14, 16, 20];";
 
 /** What a quotation specimen says. */
 export const QUOTE =

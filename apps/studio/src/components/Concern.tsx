@@ -56,13 +56,14 @@ export { Marker, Section } from "@spinjs/kit";
 export function ConcernPage(props: {
   title: string;
   /** One line, in plain words: what the page is for. */
-  note: string;
+  note?: string;
   /** Optional header action beside the page title. */
   action?: JSX.Element;
   children: JSX.Element;
 }) {
   return (
     <div
+      data-studio-chrome=""
       class={inDrawer()
         ? "drawer-flow bg-surface p-4 sm:p-6"
         : "drawer-scroll overflow-y-auto bg-surface p-4 sm:p-6"}
@@ -73,7 +74,7 @@ export function ConcernPage(props: {
             <h1>{props.title}</h1>
             {props.action}
           </div>
-          <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
+          {props.note ? <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p> : null}
         </header>
         {props.children}
       </div>
@@ -90,8 +91,12 @@ export function ConcernPage(props: {
  * studio does not restate them.
  */
 export function Frame(props: { children: JSX.Element; class?: string }) {
+  const hasPad = () => /\bp[xytrbl]?-\d|\bp-\[/.test(props.class ?? "");
   return (
-    <card class={props.class}>
+    <card
+      data-studio-specimen=""
+      class={`${hasPad() ? "" : "p-4"} ${props.class ?? ""}`.trim()}
+    >
       {props.children}
     </card>
   );
@@ -125,35 +130,50 @@ export function TokenLine(props: {
     tokenStatus(themeText(), projectText(), props.path, activeMode())
   );
   return (
-    <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
+    <li data-studio-chrome="" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
       <div class="row-sm min-w-[10rem] shrink-0">
         <code class="truncate">
           {props.path}
         </code>
         <Show when={status().aliasOf}>
           {(target) => (
-            <span
-              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
-              title={`Points at ${target()}`}
-            >
-              → {target()}
+            <span class="inline-flex items-center">
+              <span
+                tabindex="0"
+                class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+              >
+                → {target()}
+              </span>
+              <tooltip class="start-0 translate-none">
+                Points at {target()}
+              </tooltip>
             </span>
           )}
         </Show>
         <Show when={activeMode() === "dark" && status().restatedInDark}>
-          <span
-            class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
-            title="Overridden in dark mode"
-          >
-            dark
+          <span class="inline-flex items-center">
+            <span
+              tabindex="0"
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+            >
+              dark
+            </span>
+            <tooltip class="start-0 translate-none">
+              Overridden in dark mode
+            </tooltip>
           </span>
         </Show>
         <Show when={status().modified}>
-          <span
-            class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
-            title="Modified in this session"
-          >
-            edited
+          <span class="inline-flex items-center">
+            <span
+              tabindex="0"
+              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+            >
+              edited
+            </span>
+            <tooltip class="start-0 translate-none">
+              Modified in this session
+            </tooltip>
           </span>
         </Show>
       </div>
@@ -163,7 +183,7 @@ export function TokenLine(props: {
         </code>
       </Show>
       <Show when={props.specimen}>
-        <div class="min-w-[8rem] flex-1">{props.specimen}</div>
+        <div data-studio-specimen="" class="min-w-[8rem] flex-1">{props.specimen}</div>
       </Show>
       <div class="ms-auto min-w-0">{props.editor}</div>
       {

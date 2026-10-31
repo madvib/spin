@@ -8,11 +8,10 @@ import {
   Section,
   TokenLine,
 } from "../components/Concern.tsx";
-import { analyzeTheme } from "../lib/theme.ts";
 import { actingColour, tokenValue } from "../lib/overview.ts";
 import { borderUtilityOf, groupTokens } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
-import { activeMode, themeText } from "../lib/store.ts";
+import { activeMode, activeTree } from "../lib/store.ts";
 import { editToken } from "../lib/editing.ts";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
 
@@ -57,11 +56,8 @@ function stepOf(path: string): string {
 }
 
 export default function StylePage() {
-  const tree = createMemo(() => analyzeTheme(themeText()).tree);
-  const group = (prefixes: string[][]): TokenRow[] => {
-    const current = tree();
-    return current ? groupTokens(current, prefixes, activeMode()) : [];
-  };
+  const group = (prefixes: string[][]): TokenRow[] =>
+    groupTokens(activeTree(), prefixes, activeMode());
   const radii = createLockstep(() => group([["radius"]]), "radius");
   const shadows = createMemo(() => group([["shadow"]]));
   const layers = createMemo(() => group([["z-index"]]));
@@ -90,51 +86,56 @@ export default function StylePage() {
    * specimen shows the theme's colour, and a utility paints whatever the
    * studio's own sheet happens to say.
    */
-  const colour = (path: string): string | undefined => {
-    const current = tree();
-    return current === undefined
-      ? undefined
-      : tokenValue(current, activeMode(), path);
-  };
-  const acting = createMemo(() => {
-    const current = tree();
-    return current === undefined
-      ? undefined
-      : actingColour(current, activeMode());
-  });
+  const colour = (path: string): string | undefined =>
+    tokenValue(activeTree(), activeMode(), path);
+  const acting = createMemo(() => actingColour(activeTree(), activeMode()));
   const edit = (row: TokenRow, value: string) =>
     editToken(row.path.split("."), value);
 
   return (
-    <ConcernPage
-      title="Style"
-      note="The values that shape a surface: how round its corners are, how high it stands off the page, and which of two things wins when they overlap."
-    >
+    <ConcernPage title="Style">
       <Family
         title="Radius"
         fact={`${radii.rows().length} corners`}
-        note="A corner, on a box the theme's own surface and edge draw."
+        info="Corner radii scale proportionally while linked; radius.full stays pinned as a pill."
         rows={radii.rows()}
         prefix="rounded"
         onEdit={(row, value) => radii.commit(row.path, value)}
         family={radii}
-        figure={<RadiusFigure rows={radii.rows()} fill={acting()} />}
+        specimenOf={(row) => (
+          <div
+            class="bg-surface-sunken"
+            style={{
+              width: stepOf(row.path) === "full" ? "3rem" : "1.75rem",
+              height: "1.25rem",
+              border: `2px solid ${acting() ?? "currentColor"}`,
+              "border-radius": `var(${row.variable})`,
+            }}
+          />
+        )}
+        figure={
+          <RadiusFigure
+            rows={radii.rows()}
+            fill={acting()}
+            shownOf={(row) => radii.shown(row.path, row.value)}
+          />
+        }
       />
 
       <Family
         title="Elevation"
         fact={`${shadows().length} steps`}
-        note="A card stood off a sunken ground, so the shadow is the distance. A shadow is a list of offsets, blurs and colours rather than one number, so it edits as the string the author wrote."
+        info="Box shadows rendered on raised surface cards over a sunken stage. Use ArrowUp/ArrowDown in x, y, blur, or spread to step by 1px."
         rows={shadows()}
         prefix="shadow"
         onEdit={edit}
-        figure={<LiftFigure rows={shadows()} fill={acting()} />}
+        figure={<LiftFigure rows={shadows()} />}
       />
 
       <Family
         title="Stack order"
         fact={`${layers().length} layers`}
-        note="Layers stacked, so the winner is visible. Each carries its own utility; the one that sits highest is the one whose step is largest."
+        info="Cascading z-index layers; higher values stack in front of lower ones."
         rows={layers()}
         prefix="z"
         onEdit={edit}
@@ -145,7 +146,6 @@ export default function StylePage() {
       <Family
         title="Opacity"
         fact={`${opacities().length} steps`}
-        note="How much of a thing is shown, from invisible to fully there. The specimen spends the token's own value; the step a theme edits is the step everything else reads."
         rows={opacities()}
         prefix="opacity"
         utilityOf={(row) => `opacity-${suffixOf(row.path)}`}
@@ -156,92 +156,82 @@ export default function StylePage() {
       <Family
         title="Border"
         fact={`${borderWidths().length} widths`}
-        note="The edge a control and surface draw with, as a width. The specimen is the edge, and the page spends the token's own thickness on it."
         rows={borderWidths()}
         prefix="border"
         utilityOf={(row) => borderUtilityOf(row.path)}
         onEdit={edit}
-        figure={
-          <BorderFigure
-            rows={borderWidths()}
-            fill={acting()}
-            edge={colour("color.text")}
-          />
-        }
+        figure={<BorderFigure rows={borderWidths()} fill={acting()} />}
       />
 
-      <Section
-        title="Composite borders"
-        fact={`${borderComposites().length} edges`}
-        note="An edge in one token: a width, a style and a colour. The width is a step of the ladder above and the colour is a role of the palette, so the editor offers the theme's own."
-      >
-        <Show
-          when={borderComposites().length > 0}
-          fallback={
-            <p class="text-sm text-text-muted">
-              This theme declares no composite borders yet.
-            </p>
-          }
+      <Show when={borderComposites().length > 0}>
+        <Section
+          title="Composite borders"
+          fact={`${borderComposites().length} edges`}
         >
-          <ul class="flow-list">
-            <For each={borderComposites()}>
-              {(row) => (
-                <TokenLine
-                  path={row.path}
-                  editor={
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => edit(row, value)}
-                      variable={row.variable}
-                      label={row.path}
-                    />
-                  }
-                />
-              )}
-            </For>
-          </ul>
-        </Show>
-      </Section>
+          <Frame class="p-3">
+            <ul>
+              <For each={borderComposites()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    specimen={
+                      <div
+                        class="h-6 w-24 rounded-sm bg-surface-sunken"
+                        style={{ border: `var(${row.variable})` }}
+                      />
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) => edit(row, value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
+        </Section>
+      </Show>
 
-      <Section
-        title="Gradient"
-        fact={`${gradients().length} fills`}
-        note="A fill in one token: a direction and a list of stops. The stops are the theme's own colours, so a palette change moves the fill with it."
-      >
-        <Show
-          when={gradients().length > 0}
-          fallback={
-            <p class="text-sm text-text-muted">
-              This theme declares no gradients yet.
-            </p>
-          }
-        >
-          <ul class="flow-list">
-            <For each={gradients()}>
-              {(row) => (
-                <TokenLine
-                  path={row.path}
-                  editor={
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => edit(row, value)}
-                      variable={row.variable}
-                      label={row.path}
-                    />
-                  }
-                />
-              )}
-            </For>
-          </ul>
-        </Show>
-      </Section>
+      <Show when={gradients().length > 0}>
+        <Section title="Gradient" fact={`${gradients().length} fills`}>
+          <Frame class="p-3">
+            <ul>
+              <For each={gradients()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
+                    specimen={
+                      <div
+                        class="h-6 w-24 rounded-sm border border-border"
+                        style={{ background: `var(${row.variable})` }}
+                      />
+                    }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) => edit(row, value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
+        </Section>
+      </Show>
 
       <Family
         title="Focus"
         fact={`${focuses().length} steps`}
-        note="The ring that marks the interactive element, shared by every control: its thickness and the gap between it and its control. Each carries its own custom property, so the ring is the value."
+        info="Focus ring thickness and offset shared across interactive controls."
         rows={focuses()}
         prefix="focus"
         onEdit={edit}
@@ -253,16 +243,10 @@ export default function StylePage() {
   );
 }
 
-/**
- * One family: the ladder it is, and the table that names its steps.
- *
- * The figure comes first and the table under it, because the figure is the
- * answer to the family's question and the table is the way to change it.
- */
 function Family(props: {
   title: string;
   fact: string;
-  note: string;
+  info?: string;
   /** The figure: every step of the family, at once. */
   figure: JSX.Element;
   rows: readonly TokenRow[];
@@ -271,6 +255,8 @@ function Family(props: {
   onEdit: (row: TokenRow, value: string) => boolean;
   /** Maps a row to the utility name an author writes, when it is not the prefix. */
   utilityOf?: (row: TokenRow) => string;
+  /** Optional inline specimen rendered inside each token row. */
+  specimenOf?: (row: TokenRow) => JSX.Element;
   /**
    * Present only for a family whose values are a scale: rows move in
    * lockstep while linked, and the family takes the drag's preview itself.
@@ -282,7 +268,7 @@ function Family(props: {
     <Section
       title={props.title}
       fact={props.fact}
-      note={props.note}
+      info={props.info}
       aside={
         <Show when={family}>
           {(active) => (
@@ -302,24 +288,24 @@ function Family(props: {
           </p>
         }
       >
-        {
-          /* The figure and the table, side by side where there is room.
-            The figure is the family's answer and the table is the way to
-            change it, and a table under a figure leaves the two a screen
-            apart — so they share the row: the figure takes a third of the
-            measure and the table the rest, and the table's columns stay
-            together instead of being spread across the page. */
-        }
-        <div class="grid gap-4 lg:grid-cols-3 lg:items-start">
-          <Frame>{props.figure}</Frame>
-          <ul class="flow-list lg:col-span-2">
+        <Frame class="stack">
+          <div
+            data-studio-specimen=""
+            class="rounded-md border border-border bg-surface-sunken p-4"
+          >
+            {props.figure}
+          </div>
+          <ul>
             <For each={props.rows}>
               {(row) => (
                 <TokenLine
                   path={row.path}
-                  utility={props.utilityOf === undefined
-                    ? `${props.prefix}-${suffixOf(row.path)}`
-                    : props.utilityOf(row)}
+                  utility={
+                    props.utilityOf === undefined
+                      ? `${props.prefix}-${suffixOf(row.path)}`
+                      : props.utilityOf(row)
+                  }
+                  specimen={props.specimenOf?.(row)}
                   editor={
                     <ValueInput
                       value={row.value}
@@ -328,9 +314,11 @@ function Family(props: {
                       group={props.rows.map((r) => r.value)}
                       variable={row.variable}
                       label={row.path}
-                      onPreview={family === undefined
-                        ? undefined
-                        : (value) => family.preview(row.path, value)}
+                      onPreview={
+                        family === undefined
+                          ? undefined
+                          : (value) => family.preview(row.path, value)
+                      }
                       onCancel={family?.abandon}
                       proposed={family?.shown(row.path, row.value)}
                     />
@@ -339,77 +327,80 @@ function Family(props: {
               )}
             </For>
           </ul>
-        </div>
+        </Frame>
       </Show>
     </Section>
   );
 }
 
-/**
- * The radius ladder: one box per corner, each at its own roundness.
- *
- * The boxes are the same size, so the eye reads the progression rather than
- * five separate shapes — a bigger box and a rounder one at once would be
- * two facts where the question is one. The fill is the theme's acting
- * colour, because a corner is a corner on a thing that is painted, and a
- * painted corner against a card is the only way the curve shows.
- *
- * The radius is the token's OWN property rather than the utility an author
- * writes: the utility is a name the scanner has to see written down, and a
- * theme may name its corners anything at all — the property is the value,
- * and it moves while the author drags.
- */
-function RadiusFigure(
-  props: { rows: readonly TokenRow[]; fill: string | undefined },
-) {
+function RadiusFigure(props: {
+  rows: readonly TokenRow[];
+  fill: string | undefined;
+  shownOf: (row: TokenRow) => string;
+}) {
   return (
-    <div class="flex flex-wrap items-end gap-2">
+    <div class="flex flex-wrap items-end gap-4">
       <For each={props.rows}>
-        {(row) => (
-          <figure class="stack-sm w-12">
-            <div
-              class="h-12 w-12"
-              style={{
-                background: props.fill,
-                "border-radius": `var(${row.variable})`,
-              }}
-            />
-            <figcaption class="truncate text-center">
-              {stepOf(row.path)}
-            </figcaption>
-          </figure>
-        )}
+        {(row) => {
+          const isFull = () => stepOf(row.path) === "full";
+          return (
+            <figure
+              class="stack-xs flex-1 items-center"
+              style={{ "min-width": "5rem" }}
+            >
+              <div
+                class="flex w-full items-center justify-center"
+                style={{ height: "3.5rem" }}
+              >
+                <div
+                  class="bg-surface"
+                  style={{
+                    width: isFull() ? "5.5rem" : "3.25rem",
+                    height: isFull() ? "2.25rem" : "3.25rem",
+                    border: `2px solid ${props.fill ?? "currentColor"}`,
+                    background: props.fill
+                      ? `color-mix(in oklab, ${props.fill} 16%, transparent)`
+                      : undefined,
+                    "border-radius": `var(${row.variable})`,
+                  }}
+                />
+              </div>
+              <figcaption class="stack-xs items-center text-center">
+                <span class="font-mono text-xs font-semibold text-text">
+                  {stepOf(row.path)}
+                </span>
+                <code class="text-xs text-text-muted tabular-nums">
+                  {props.shownOf(row)}
+                </code>
+              </figcaption>
+            </figure>
+          );
+        }}
       </For>
     </div>
   );
 }
 
-/**
- * The elevation ladder: every shadow, as a card on one sunken ground.
- *
- * The ground is the same for all of them, so the distance each card stands
- * off is the only thing that differs — which is the whole question the
- * family asks. The card is painted, because a shadow is invisible on a
- * white card in a white room.
- */
-function LiftFigure(
-  props: { rows: readonly TokenRow[]; fill: string | undefined },
-) {
+function LiftFigure(props: { rows: readonly TokenRow[] }) {
   return (
-    <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
+    <div class="grid grid-cols-2 gap-5 sm:grid-cols-4">
       <For each={props.rows}>
         {(row) => (
-          <figure class="stack-sm w-16">
+          <figure class="stack-xs items-center">
             <div
-              class="h-12 w-full rounded-md"
+              class="flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-border bg-surface p-3"
               style={{
-                background: props.fill,
+                "min-height": "4.75rem",
                 "box-shadow": `var(${row.variable})`,
               }}
-            />
-            <figcaption class="truncate text-center">
-              {stepOf(row.path)}
-            </figcaption>
+            >
+              <span class="font-mono text-xs font-semibold text-text">
+                {stepOf(row.path)}
+              </span>
+              <code class="text-xs text-text-muted">
+                shadow-{suffixOf(row.path)}
+              </code>
+            </div>
           </figure>
         )}
       </For>
@@ -417,18 +408,7 @@ function LiftFigure(
   );
 }
 
-/**
- * The stacking ladder: every layer, fanned, so the order is the z-index.
- *
- * The fan offset is demo geometry — how far each card peeks from behind the
- * one above — not a value the theme owns, so it is set inline rather than
- * through a token. The z-index itself is the token's own utility, so the
- * card that paints on top is the card the theme says wins — and the winner
- * is painted, because "this one is on top" is the fact the figure exists
- * to say.
- */
 function StackFigure(props: { rows: readonly TokenRow[] }) {
-  /** The layer the theme puts highest: the one that wins. */
   const winner = () => {
     let best: TokenRow | undefined;
     for (const row of props.rows) {
@@ -443,99 +423,132 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
   };
 
   return (
-    <div class="spin-preview relative h-[7rem]">
+    <div
+      class="spin-preview relative w-full"
+      style={{
+        height: `${Math.max(7, props.rows.length * 1.75 + 2.25)}rem`,
+      }}
+    >
       <For each={props.rows}>
-        {(row, index) => (
-          <div
-            class={`absolute inset-0 stack-sm rounded-md border border-border p-3 ${
-              row.path === winner() ? "bg-primary" : "bg-surface-raised"
-            }`}
-            style={{
-              top: `${index() * 10}px`,
-              left: `${index() * 10}px`,
-              "z-index": `var(${row.variable})`,
-            }}
-          >
-            {
-              /* A span and not a `code`: the theme draws inline code on its
-                own little surface, and a chip of that surface on a painted
-                card would carry the page's ink under the card's ink. */
-            }
-            <span
-              class={`font-mono text-xs ${
-                row.path === winner() ? "text-on-primary" : "text-text-muted"
-              }`}
-            >
-              {row.path}
-            </span>
-          </div>
-        )}
-      </For>
-    </div>
-  );
-}
-
-/**
- * The opacity ladder: the acting colour, at every step of its presence.
- *
- * The swatches stand on a sunken ground, because a colour at forty per cent
- * over a white page and a colour at forty per cent over a sunken well are
- * two different colours, and the well is the one the theme draws it on.
- * They share the row equally, so the ladder reads as one ramp from the
- * invisible step to the whole one, and the table beside it names them in
- * the same order.
- */
-function OpacityFigure(
-  props: { rows: readonly TokenRow[]; fill: string | undefined },
-) {
-  return (
-    <div class="flex items-end gap-1 rounded-md bg-surface-sunken p-3">
-      <For each={props.rows}>
-        {(row) => (
-          <div
-            class="h-12 min-w-0 flex-1 rounded-sm"
-            style={{
-              background: props.fill,
-              opacity: `var(${row.variable})`,
-            }}
-            title={`${stepOf(row.path)} · ${row.value}`}
-          />
-        )}
-      </For>
-    </div>
-  );
-}
-
-/**
- * The border ladder: the acting colour, edged at every thickness.
- *
- * The fill is the colour so that the edge is the only thing the eye has to
- * read — a hairline drawn around a white box on a white card is a hairline
- * nobody can see.
- */
-function BorderFigure(
-  props: {
-    rows: readonly TokenRow[];
-    fill: string | undefined;
-    edge: string | undefined;
-  },
-) {
-  return (
-    <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
-      <For each={props.rows}>
-        {(row) => (
-          <figure class="stack-sm w-16">
+        {(row, index) => {
+          const isWinner = () => row.path === winner();
+          const leftPct = () =>
+            props.rows.length > 1
+              ? (index() / (props.rows.length - 1)) * 40
+              : 0;
+          return (
             <div
-              class="h-12 w-full rounded-md"
+              class={`
+                absolute rounded-md border border-border px-3 py-1.5 shadow-sm
+                ${isWinner() ? "bg-primary" : "bg-surface-raised"}
+              `}
               style={{
-                background: props.fill,
+                top: `${index() * 28}px`,
+                left: `${leftPct()}%`,
+                width: "60%",
+                height: "3.75rem",
+                "z-index": `var(${row.variable})`,
+              }}
+            >
+              <div class="split items-center gap-2">
+                <span
+                  class={`
+                    font-mono text-xs font-semibold truncate
+                    ${isWinner() ? "text-on-primary" : "text-text"}
+                  `}
+                >
+                  {stepOf(row.path)}
+                </span>
+                <span
+                  class={`
+                    font-mono text-xs tabular-nums
+                    ${isWinner() ? "text-on-primary" : "text-text-muted"}
+                  `}
+                >
+                  {row.value}
+                </span>
+              </div>
+            </div>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
+
+function OpacityFigure(props: {
+  rows: readonly TokenRow[];
+  fill: string | undefined;
+}) {
+  return (
+    <div class="flex flex-wrap items-end gap-3">
+      <For each={props.rows}>
+        {(row) => {
+          const pct = () => {
+            const n = Number(row.value);
+            return Number.isFinite(n) ? `${Math.round(n * 100)}%` : row.value;
+          };
+          return (
+            <figure
+              class="stack-xs flex-1 items-center"
+              style={{ "min-width": "4rem" }}
+            >
+              <div
+                class="h-12 w-full rounded-md border border-border bg-surface p-1"
+                style={{ height: "3rem" }}
+              >
+                <div
+                  class="h-full w-full rounded-sm"
+                  style={{
+                    background: props.fill,
+                    opacity: `var(${row.variable})`,
+                  }}
+                />
+              </div>
+              <figcaption class="stack-xs items-center text-center">
+                <span class="font-mono text-xs font-semibold text-text">
+                  {stepOf(row.path)}
+                </span>
+                <code class="text-xs text-text-muted tabular-nums">
+                  {pct()}
+                </code>
+              </figcaption>
+            </figure>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
+
+function BorderFigure(props: {
+  rows: readonly TokenRow[];
+  fill: string | undefined;
+}) {
+  return (
+    <div class="flex flex-wrap items-end gap-4">
+      <For each={props.rows}>
+        {(row) => (
+          <figure
+            class="stack-xs flex-1 items-center"
+            style={{ "min-width": "5.5rem" }}
+          >
+            <div
+              class="h-12 w-full rounded-md bg-surface"
+              style={{
+                height: "3.25rem",
                 "border-width": `var(${row.variable})`,
                 "border-style": "solid",
-                "border-color": props.edge,
+                "border-color": props.fill,
               }}
             />
-            <figcaption class="truncate text-center">
-              {stepOf(row.path)}
+            <figcaption class="stack-xs items-center text-center">
+              <span class="font-mono text-xs font-semibold text-text">
+                {stepOf(row.path)}
+              </span>
+              <code class="text-xs text-text-muted tabular-nums">
+                {row.value}
+              </code>
             </figcaption>
           </figure>
         )}
@@ -544,28 +557,27 @@ function BorderFigure(
   );
 }
 
-/**
- * The focus ladder: the ring, at every step of its thickness and its gap.
- *
- * The ring is the theme's own focus colour, and it is drawn around a
- * painted control, because a ring around nothing is a ring nobody reads.
- * The step under edit is the one the specimen isolates: the width's ring
- * sits on the control itself, and the offset's ring stands off it.
- */
-function FocusFigure(
-  props: { rows: readonly TokenRow[]; ring: string | undefined },
-) {
+function FocusFigure(props: {
+  rows: readonly TokenRow[];
+  ring: string | undefined;
+}) {
   return (
-    <div class="flex flex-wrap items-end gap-4 rounded-md bg-surface-sunken p-4">
+    <div class="flex flex-wrap items-end gap-4">
       <For each={props.rows}>
         {(row) => (
-          <figure class="stack-sm w-24">
-            <div class="flex h-12 items-center justify-center">
+          <figure
+            class="stack-xs flex-1 items-center"
+            style={{ "min-width": "7rem" }}
+          >
+            <div
+              class="flex h-12 w-full items-center justify-center rounded-md border border-border bg-surface"
+              style={{ height: "3.25rem" }}
+            >
               <button
                 type="button"
                 class="secondary s-sm"
                 style={{
-                  outline: `var(--focus-width, 1px) solid ${
+                  outline: `var(--focus-width, 2px) solid ${
                     props.ring ?? "transparent"
                   }`,
                   "outline-offset": row.path.endsWith("offset")
@@ -576,8 +588,13 @@ function FocusFigure(
                 focus
               </button>
             </div>
-            <figcaption class="truncate text-center">
-              {stepOf(row.path)}
+            <figcaption class="stack-xs items-center text-center">
+              <span class="font-mono text-xs font-semibold text-text">
+                {stepOf(row.path)}
+              </span>
+              <code class="text-xs text-text-muted tabular-nums">
+                {row.value}
+              </code>
             </figcaption>
           </figure>
         )}

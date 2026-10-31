@@ -23,13 +23,22 @@
  * in order.
  */
 
-import { createResource, createSignal, Match, Show, Switch } from "solid-js";
-import { ConcernPage, Section } from "../components/Concern.tsx";
+import {
+  createMemo,
+  createResource,
+  createSignal,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
+import { Badge, ConcernPage, Frame, Section } from "../components/Concern.tsx";
 import {
   ClassOrders,
   FindingGroups,
   Repetitions,
 } from "../components/Findings.tsx";
+import { checks } from "../lib/floors.ts";
+import { activeName, themeText } from "../lib/store.ts";
 import {
   type ClassOrderFile,
   declareShortcut,
@@ -117,11 +126,12 @@ export default function FindingsPage() {
   const findings = () => report()?.groups ?? [];
   const repetition = () => corpus()?.repetition ?? [];
   const order = () => corpus()?.order ?? [];
+  const themeChecks = createMemo(() => checks(themeText()));
 
   return (
     <ConcernPage
       title="Findings"
-      note="What the lints say about this project's own source: the findings, grouped by the rule that said them, and the two facts the corpus holds about the code as a whole. A fix is applied to the file, and the lints are read again afterwards — so a finding that is gone is gone because the code changed."
+      note="Theme checks and source-code lints for this project. Fixes update the theme or source file directly."
     >
       <Show when={notice() !== null}>
         <div
@@ -132,88 +142,143 @@ export default function FindingsPage() {
         </div>
       </Show>
 
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Frame class="stack-xs p-3">
+          <div class="split">
+            <span class="text-xs font-medium text-text-muted">
+              Theme checks
+            </span>
+            <Badge
+              tone={themeChecks().length === 0 ? "primary" : "warning"}
+            >
+              {themeChecks().length === 0
+                ? "ok"
+                : `${themeChecks().length} issues`}
+            </Badge>
+          </div>
+          <p class="m-0 text-sm font-medium text-text">{activeName()}</p>
+        </Frame>
+        <Frame class="stack-xs p-3">
+          <div class="split">
+            <span class="text-xs font-medium text-text-muted">
+              Source lints
+            </span>
+            <Badge tone={findings().length === 0 ? "primary" : "warning"}>
+              {findings().length === 0 ? "clean" : `${findings().length} rules`}
+            </Badge>
+          </div>
+          <p class="m-0 text-sm font-medium text-text">
+            {report()?.files ?? 0} files scanned
+          </p>
+        </Frame>
+        <Frame class="stack-xs p-3">
+          <div class="split">
+            <span class="text-xs font-medium text-text-muted">Repetition</span>
+            <Badge tone="info">{repetition().length}</Badge>
+          </div>
+          <p class="m-0 text-sm font-medium text-text">
+            repeated class lists
+          </p>
+        </Frame>
+        <Frame class="stack-xs p-3">
+          <div class="split">
+            <span class="text-xs font-medium text-text-muted">
+              Class order
+            </span>
+            <Badge tone="info">{order().length}</Badge>
+          </div>
+          <p class="m-0 text-sm font-medium text-text">files out of order</p>
+        </Frame>
+      </div>
+
       <Section
         title="The lints"
         fact={`${report()?.files ?? 0} files`}
-        note="The rules are spin's own, read against this project's theme: a class the theme cannot produce, a decision the theme already made, an ink the palette does not pair. Each finding carries the rule's own sentence and the rule's own way out."
+        note="Invalid or conflicting utility classes detected across project source files."
       >
-        <Switch>
-          <Match when={report() === undefined}>
-            <p class="text-sm text-text-muted">reading the source…</p>
-          </Match>
-          <Match when={report.error !== undefined}>
-            <p class="text-sm text-text-muted">
-              The findings could not be read. Is the API running?
+        <Frame class="p-4">
+          <Switch>
+            <Match when={report() === undefined}>
+              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+            </Match>
+            <Match when={report.error !== undefined}>
+              <p class="m-0 text-sm text-text-muted">
+                The findings could not be read. Is the API running?
+              </p>
+            </Match>
+            <Match when={findings().length === 0}>
+              <p class="m-0 text-sm text-text-muted">
+                Nothing to report: every class in the project's source is one
+                the theme can produce, and no class fights a decision the theme
+                has already made.
+              </p>
+            </Match>
+            <Match when={findings().length > 0}>
+              <FindingGroups
+                groups={findings()}
+                busy={busy()}
+                onFix={(finding) => void fix(finding)}
+              />
+            </Match>
+          </Switch>
+          <Show when={(report()?.unreadable.length ?? 0) > 0}>
+            <p class="m-0 text-sm text-text-muted">
+              {report()?.unreadable.join(", ")} could not be read.
             </p>
-          </Match>
-          <Match when={findings().length === 0}>
-            <p class="text-sm text-text-muted">
-              Nothing to report: every class in the project's source is one the
-              theme can produce, and no class fights a decision the theme has
-              already made.
-            </p>
-          </Match>
-          <Match when={findings().length > 0}>
-            <FindingGroups
-              groups={findings()}
-              busy={busy()}
-              onFix={(finding) => void fix(finding)}
-            />
-          </Match>
-        </Switch>
-        <Show when={(report()?.unreadable.length ?? 0) > 0}>
-          <p class="text-sm text-text-muted">
-            {report()?.unreadable.join(", ")} could not be read.
-          </p>
-        </Show>
+          </Show>
+        </Frame>
       </Section>
 
       <Section
         title="Repetition"
         fact={`${repetition().length}`}
-        note="The compositions this source writes over and over. A composition the author writes thirty times is a composition the project should declare: a shortcut is a class the project composes once, and the repetition is the argument for it."
+        note="Repeated utility compositions that can be promoted to named shortcuts in your project config."
       >
-        <Switch>
-          <Match when={corpus() === undefined}>
-            <p class="text-sm text-text-muted">reading the source…</p>
-          </Match>
-          <Match when={repetition().length === 0}>
-            <p class="text-sm text-text-muted">
-              Nothing repeats: no composition is written twice.
-            </p>
-          </Match>
-          <Match when={repetition().length > 0}>
-            <Repetitions
-              repetition={repetition()}
-              busy={busy()}
-              onDeclare={(name, classes) => void declare(name, classes)}
-            />
-          </Match>
-        </Switch>
+        <Frame class="p-4">
+          <Switch>
+            <Match when={corpus() === undefined}>
+              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+            </Match>
+            <Match when={repetition().length === 0}>
+              <p class="m-0 text-sm text-text-muted">
+                Nothing repeats: no composition is written twice.
+              </p>
+            </Match>
+            <Match when={repetition().length > 0}>
+              <Repetitions
+                repetition={repetition()}
+                busy={busy()}
+                onDeclare={(name, classes) => void declare(name, classes)}
+              />
+            </Match>
+          </Switch>
+        </Frame>
       </Section>
 
       <Section
         title="Class order"
         fact={`${order().length}`}
-        note="Utility against utility is source-order: the last one in the stylesheet wins. A class list that is not in the stylesheet's order therefore reads backwards, and this is a formatter's answer — write the classes in the order the sheet writes them."
+        note="Source files whose utility classes can be reordered to match canonical stylesheet order."
       >
-        <Switch>
-          <Match when={corpus() === undefined}>
-            <p class="text-sm text-text-muted">reading the source…</p>
-          </Match>
-          <Match when={order().length === 0}>
-            <p class="text-sm text-text-muted">
-              Every class list is in the order the stylesheet writes them.
-            </p>
-          </Match>
-          <Match when={order().length > 0}>
-            <ClassOrders
-              order={order()}
-              busy={busy()}
-              onOrder={(file) => void writeOrder(file)}
-            />
-          </Match>
-        </Switch>
+        <Frame class="p-4">
+          <Switch>
+            <Match when={corpus() === undefined}>
+              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+            </Match>
+            <Match when={order().length === 0}>
+              <p class="m-0 text-sm text-text-muted">
+                Every class list is in the order the stylesheet writes them.
+              </p>
+            </Match>
+            <Match when={order().length > 0}>
+              <ClassOrders
+                order={order()}
+                busy={busy()}
+                onOrder={(file) => void writeOrder(file)}
+              />
+            </Match>
+          </Switch>
+        </Frame>
       </Section>
     </ConcernPage>
   );

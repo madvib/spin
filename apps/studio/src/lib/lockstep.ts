@@ -1,7 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 import { editTokens } from "./editing.ts";
 import type { TokenEdit } from "./editing.ts";
-import { paintPreview } from "./preview.ts";
+import { clearPreviewPaint, paintPreview } from "./preview.ts";
 import { lockstepEdits, measure } from "./scale.ts";
 import type { TokenRow } from "./tokens.ts";
 
@@ -45,6 +45,7 @@ let paint: (() => void) | undefined;
 export function abandon(): void {
   paint?.();
   paint = undefined;
+  clearPreviewPaint();
 }
 
 function propose(

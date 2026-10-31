@@ -2,7 +2,7 @@ import { createMemo, For, Show } from "solid-js";
 import { Badge, ConcernPage, Frame, Section } from "../components/Concern.tsx";
 import { DrawerEdge } from "../components/Settings.tsx";
 import { inDrawer } from "../lib/host.ts";
-import { dockSide } from "../lib/store.ts";
+import { dockSide, project, registry } from "../lib/store.ts";
 import { paletteChips } from "../lib/overview.ts";
 import studioTheme from "../../theme.json" with { type: "json" };
 
@@ -38,8 +38,43 @@ export default function PreferencesPage() {
   return (
     <ConcernPage
       title="Preferences"
-      note="How the studio behaves. Nothing here ships with the theme: the bar along the bottom names the project under edit and the mode it is shown in, and switching either swaps every page."
+      note="Project configuration and studio behavior settings."
     >
+      <Section
+        title="Project"
+        fact={project()?.wired ? "wired" : "unwired"}
+        note="The project directory and build configuration the studio is connected to."
+      >
+        <Frame>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="stack-xs">
+              <span class="text-xs text-text-muted">Root</span>
+              <code class="truncate">{project()?.root ?? "—"}</code>
+            </div>
+            <div class="stack-xs">
+              <span class="text-xs text-text-muted">Preset status</span>
+              <code class="truncate">
+                {project()?.wired ? "spinPreset wired" : "not wired"}
+              </code>
+            </div>
+            <div class="stack-xs">
+              <span class="text-xs text-text-muted">Themes</span>
+              <span class="text-sm text-text">
+                {registry()?.filter((t) => t.file !== null).length ?? 0} project
+                {" · "}
+                {registry()?.filter((t) => t.file === null).length ?? 0}{" "}
+                built-ins
+              </span>
+            </div>
+            <div class="stack-xs">
+              <span class="text-xs text-text-muted">Themes directory</span>
+              <code class="truncate">
+                {project()?.spin ? "spin/" : "not initialized"}
+              </code>
+            </div>
+          </div>
+        </Frame>
+      </Section>
       <Section
         title="Drawer edge"
         fact={side()}
