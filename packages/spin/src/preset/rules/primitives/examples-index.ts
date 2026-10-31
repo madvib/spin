@@ -55,7 +55,6 @@ import {
   INPUT_EXAMPLES,
   TEXTAREA_CLASSES,
   TEXTAREA_EXAMPLES,
-  textareaFixtureNote,
 } from "./field.examples.ts";
 import {
   FIELDSET_CLASSES,
@@ -73,11 +72,9 @@ import { PROGRESS_CLASSES, PROGRESS_EXAMPLES, progressFixtureNote } from "./prog
 import { RADIO_CLASSES, RADIO_EXAMPLES, radioFixtureNote } from "./radio.examples.ts";
 import {
   PROSE_CLASSES,
-  PROSE_DOC_EXAMPLES,
+  PROSE_EXAMPLES,
   proseFixtureNote,
   TYPOGRAPHY_CLASSES,
-  TYPOGRAPHY_EXAMPLES,
-  typographyFixtureNote,
 } from "./prose.examples.ts";
 import { SKELETON_CLASSES, SKELETON_EXAMPLES, skeletonFixtureNote } from "./skeleton.examples.ts";
 import { STAT_CLASSES, STAT_EXAMPLES, statFixtureNote } from "./stat.examples.ts";
@@ -174,7 +171,14 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     rows: FIELDSET_EXAMPLES,
   },
   icon: { id: "icon", note: iconFixtureNote, classes: ICON_CLASSES, rows: ICON_EXAMPLES },
-  input: { id: "input", note: fieldFixtureNote, classes: INPUT_CLASSES, rows: INPUT_EXAMPLES },
+  field: {
+    id: "field",
+    note: fieldFixtureNote,
+    classes: [...INPUT_CLASSES, ...TEXTAREA_CLASSES.filter((cls) =>
+      !INPUT_CLASSES.some((input) => input.name === cls.name)
+    )],
+    rows: [...INPUT_EXAMPLES, ...TEXTAREA_EXAMPLES],
+  },
   join: { id: "join", note: joinFixtureNote, classes: JOIN_CLASSES, rows: JOIN_EXAMPLES },
   kbd: { id: "kbd", note: kbdFixtureNote, classes: KBD_CLASSES, rows: KBD_EXAMPLES },
   label: { id: "label", note: labelFixtureNote, classes: LABEL_CLASSES, rows: LABEL_EXAMPLES },
@@ -186,7 +190,14 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     classes: PROGRESS_CLASSES,
     rows: PROGRESS_EXAMPLES,
   },
-  prose: { id: "prose", note: proseFixtureNote, classes: PROSE_CLASSES, rows: PROSE_DOC_EXAMPLES },
+  prose: {
+    id: "prose",
+    note: proseFixtureNote,
+    classes: [...PROSE_CLASSES, ...TYPOGRAPHY_CLASSES.filter((cls) =>
+      !PROSE_CLASSES.some((prose) => prose.name === cls.name)
+    )],
+    rows: PROSE_EXAMPLES,
+  },
   radio: { id: "radio", note: radioFixtureNote, classes: RADIO_CLASSES, rows: RADIO_EXAMPLES },
   skeleton: {
     id: "skeleton",
@@ -224,18 +235,6 @@ export const componentExamples: Readonly<Record<string, ComponentExamples>> = {
     note: tableFixtureNote,
     classes: TABLE_CLASSES,
     rows: TABLE_EXAMPLES,
-  },
-  textarea: {
-    id: "textarea",
-    note: textareaFixtureNote,
-    classes: TEXTAREA_CLASSES,
-    rows: TEXTAREA_EXAMPLES,
-  },
-  typography: {
-    id: "typography",
-    note: typographyFixtureNote,
-    classes: TYPOGRAPHY_CLASSES,
-    rows: TYPOGRAPHY_EXAMPLES,
   },
 };
 

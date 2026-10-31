@@ -571,6 +571,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   panel: () => panelRules(["panel"], { classless: true }),
   hr: () => hrRules(["hr"], { classless: true }),
   kbd: () => kbdRules(["kbd"], { classless: true }),
+  label: () => labelRules(["label"], { classless: true }),
   stat: () => statRules(["stat"], { classless: false }),
   swatch: () => swatchRules(["swatch"], { classless: true }),
   tooltip: () => tooltipRules(["tooltip"], { classless: true }),

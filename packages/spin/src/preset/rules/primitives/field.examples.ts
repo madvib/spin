@@ -35,6 +35,16 @@ export const INPUT_CLASSES: readonly ClassDoc[] = [
     description: "Unstyled reset that drops the box for chrome-adjacent inline editors",
   },
   {
+    name: ".s-sm",
+    kind: "Size",
+    description: "Small control: sm type, one spacing step of padding, small field height",
+  },
+  {
+    name: ".s-lg",
+    kind: "Size",
+    description: "Large control: lg type, four spacing steps of padding, large field height",
+  },
+  {
     name: "::placeholder",
     kind: "Part",
     description: "Muted placeholder text at full opacity",

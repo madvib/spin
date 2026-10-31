@@ -75,8 +75,6 @@ export const PRIMITIVE_ELEMENTS: readonly PrimitiveElement[] = [
   { name: "radio", category: "inputs", icon: "i-lucide-circle-dot" },
   { name: "switch", category: "inputs", icon: "i-lucide-toggle-right" },
   { name: "field", category: "inputs", icon: "i-lucide-form" },
-  { name: "input", category: "inputs", icon: "i-lucide-text-cursor-input" },
-  { name: "textarea", category: "inputs", icon: "i-lucide-text-cursor" },
   { name: "meter", category: "inputs", icon: "i-lucide-gauge" },
   { name: "label", category: "inputs", icon: "i-lucide-tag" },
   { name: "card", category: "containers", icon: "i-lucide-square" },
@@ -94,7 +92,6 @@ export const PRIMITIVE_ELEMENTS: readonly PrimitiveElement[] = [
   { name: "skeleton", category: "feedback", icon: "i-lucide-square-dashed" },
   { name: "tooltip", category: "feedback", icon: "i-lucide-message-circle" },
   { name: "prose", category: "typography", icon: "i-lucide-whole-word" },
-  { name: "typography", category: "typography", icon: "i-lucide-type" },
   { name: "icon", category: "typography", icon: "i-lucide-image" },
 ];
 

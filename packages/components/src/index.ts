@@ -154,8 +154,6 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
     id: "inputs",
     label: "Inputs",
     members: [
-      "input",
-      "textarea",
       "checkbox",
       "radio",
       "switch",
@@ -229,7 +227,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
   {
     id: "typography-icons",
     label: "Typography & Icons",
-    members: ["prose", "typography", "icon"],
+    members: ["prose", "icon"],
   },
 ];
 

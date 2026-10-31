@@ -203,6 +203,41 @@ export function fieldBox(): Rule {
       };
 
 
+      // The size ladder, the same steps a button takes. A field's type and
+      // padding move with the step; a single-line control also lands on the
+      // step's height, while a textarea keeps its own lines. Without this a
+      // chrome control had to restate the small metrics at every call site.
+      for (const [name, fontToken, spaceToken] of [
+        ["s-sm", "font.size.sm", "spacing.1"],
+        ["s-lg", "font.size.lg", "spacing.4"],
+      ] as const) {
+        const size = token(context, fontToken);
+        const space = token(context, spaceToken);
+        if (size !== undefined) {
+          yield {
+            [context.symbols.selector]: () => `${FIELDS}.${name}`,
+            "font-size": size,
+          };
+        }
+        if (space !== undefined) {
+          yield {
+            [context.symbols.selector]: () => `${FIELDS}.${name}`,
+            "padding-block-start": space,
+            "padding-block-end": space,
+            "padding-inline-start": space,
+            "padding-inline-end": space,
+          };
+        }
+        if (size !== undefined && space !== undefined && borderWidth !== undefined) {
+          const height = `calc(${size} + (2 * ${space}) + (2 * ${borderWidth}))`;
+          yield {
+            [context.symbols.selector]: () => `:is(input, select).${name}`,
+            height,
+            "min-height": height,
+          };
+        }
+      }
+
       // The box types lay out their own contents and must not be padded or
       // stretched like a text field, including the native range control the
       // inline `bare` style does not cover. The selector IS the list of those

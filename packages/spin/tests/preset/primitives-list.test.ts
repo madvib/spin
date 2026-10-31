@@ -45,12 +45,17 @@ test("manifest data rides along where the manifest models the component", () => 
   deepStrictEqual(button.reads, [...manifest.reads]);
 });
 
-test("a component the manifest does not model still lists with an empty vocabulary", () => {
-  const input = listed.find((component) => component.name === "input");
-  assert(input !== undefined, "input ships examples and must be browsable");
-  deepStrictEqual(input.tags, []);
-  deepStrictEqual(input.variants, []);
-  deepStrictEqual(input.reads, []);
+test("the field component lists the tags its box owns", () => {
+  // input, textarea, and select are tags of one component, not components of
+  // their own: the field entry is where their examples and claims live.
+  const field = listed.find((component) => component.name === "field");
+  assert(field !== undefined, "field must be browsable");
+  for (const tag of ["input", "textarea", "select"]) {
+    assert(field.tags.includes(tag), `field does not claim ${tag}`);
+  }
+  const html = (field.examples?.rows ?? []).map((row) => row.html).join(" ");
+  assert(html.includes("<input"), "field examples omit the input");
+  assert(html.includes("<textarea"), "field examples omit the textarea");
 });
 
 test("a component's wiring agrees with the attributes its examples use", () => {

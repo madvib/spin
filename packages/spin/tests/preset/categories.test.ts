@@ -51,6 +51,16 @@ test("every component the library ships is filed in a group", () => {
   deepStrictEqual(missing, [], missing.join(", "));
 });
 
+test("every filed element has a contract", () => {
+  // A filed element without a rule is a page with nothing behind it: the
+  // taxonomy names a component the manifest does not know. Tags alias to
+  // the component that owns them; they are not filed as elements.
+  const ghosts = PRIMITIVE_ELEMENTS
+    .filter((element) => primitiveContracts[element.name] === undefined)
+    .map((element) => element.name);
+  deepStrictEqual(ghosts, [], `filed without a contract: ${ghosts.join(", ")}`);
+});
+
 test("every group carries at least one element", () => {
   // A group with nothing in it is a heading over nothing: the rail would
   // draw a band the reader could not act on.

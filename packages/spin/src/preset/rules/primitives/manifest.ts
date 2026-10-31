@@ -500,7 +500,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
   },
   field: {
     tags: ["input", "select", "textarea"],
-    variants: ["bare"],
+    variants: ["bare", "s-lg", "s-sm"],
     reads: [
       "--border-width",
       "--color-border",
@@ -519,11 +519,15 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--focus-offset",
       "--focus-width",
       "--font-family-sans",
+      "--font-size-lg",
       "--font-size-md",
+      "--font-size-sm",
       "--motion-duration-fast",
       "--motion-easing-standard",
       "--radius-md",
+      "--spacing-1",
       "--spacing-2",
+      "--spacing-4",
     ],
     scope: {
       self: "field",
@@ -698,6 +702,26 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     },
     category: "actions",
     icon: "i-lucide-keyboard",
+    component: [],
+  },
+  label: {
+    tags: ["label"],
+    variants: [],
+    reads: [
+      "--color-text",
+      "--font-family-sans",
+      "--font-size-sm",
+      "--font-weight-medium",
+      "--spacing-1",
+    ],
+    scope: {
+      self: "label",
+      paints: [
+        { tag: "label", where: "global", owns: ["face", "ink", "size", "weight"] },
+      ],
+    },
+    category: "inputs",
+    icon: "i-lucide-tag",
     component: [],
   },
   meter: {
@@ -1132,6 +1156,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
 
 
 
+
+
 /* --------------------------------------------------------------- readers --
 
 /**
@@ -1248,8 +1274,6 @@ export const primitiveElements: readonly PrimitiveElement[] = [
   { name: "radio", category: "inputs", icon: "i-lucide-circle-dot" },
   { name: "switch", category: "inputs", icon: "i-lucide-toggle-right" },
   { name: "field", category: "inputs", icon: "i-lucide-form" },
-  { name: "input", category: "inputs", icon: "i-lucide-text-cursor-input" },
-  { name: "textarea", category: "inputs", icon: "i-lucide-text-cursor" },
   { name: "meter", category: "inputs", icon: "i-lucide-gauge" },
   { name: "label", category: "inputs", icon: "i-lucide-tag" },
   { name: "card", category: "containers", icon: "i-lucide-square" },
@@ -1267,6 +1291,5 @@ export const primitiveElements: readonly PrimitiveElement[] = [
   { name: "skeleton", category: "feedback", icon: "i-lucide-square-dashed" },
   { name: "tooltip", category: "feedback", icon: "i-lucide-message-circle" },
   { name: "prose", category: "typography", icon: "i-lucide-whole-word" },
-  { name: "typography", category: "typography", icon: "i-lucide-type" },
   { name: "icon", category: "typography", icon: "i-lucide-image" },
 ];
