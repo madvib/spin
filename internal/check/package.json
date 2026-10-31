@@ -2,5 +2,11 @@
   "name": "@spin/check",
   "version": "0.1.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "main": "./harness.ts",
+  "types": "./harness.ts",
+  "dependencies": {
+    "@spinjs/spin": "workspace:*",
+    "playwright-core": "^1.63.0"
+  }
 }

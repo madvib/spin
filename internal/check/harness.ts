@@ -20,7 +20,7 @@
  */
 
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { chromium, type Page } from "playwright-core";
+import { chromium, firefox, type Page } from "playwright-core";
 import {
   AUDIT_GLOBAL,
   type AuditFinding,
@@ -28,6 +28,9 @@ import {
   type AuditResult,
   type ContrastFinding,
 } from "./audit.ts";
+
+export { AUDIT_GLOBAL, auditInstallScript };
+export type { AuditFinding, AuditResult, ContrastFinding };
 import {
   animationsSettled,
   blankDocument,
@@ -49,7 +52,7 @@ import {
   stateSubject,
   type SubjectState,
 } from "./state.ts";
-import { STROBE_FLOOR_MS } from "../../packages/theme/src/contract/motion.ts";
+import { STROBE_FLOOR_MS } from "@spinjs/spin/theme";
 /** Lowest ratio a text node may measure against its background. */
 const MIN_CONTRAST = 4.5;
 /**
@@ -138,8 +141,17 @@ export function findingKey(finding: Finding): string {
 export interface Route {
   /** The hash the app routes on, without the leading '#'. */
   readonly hash: string;
+  /** Absolute path the app routes on, e.g. "/colors". When set, loads `${url}${path}${query ?? ""}` instead of `${url}#${hash}`. */
+  readonly path?: string;
+  /** Query string appended after path or hash, e.g. "?mode=drawer". */
+  readonly query?: string;
   /** The heading the route has to render, when it has one to render. */
   readonly expectHeading: string | null;
+}
+
+function routeUrl(base: string, route: Route): string {
+  const target = route.path ?? `#${route.hash}`;
+  return `${base}${target}${route.query ?? ""}`;
 }
 
 export interface Matrix {
@@ -174,7 +186,7 @@ export interface PageAdapter {
   /** Seeds the theme and mode the way the app itself stores them. */
   readonly seedTheme: (
     seed: { readonly theme: string; readonly mode: string },
-  ) => void;
+  ) => void | Promise<void>;
   /** The geometry claims a route is held to; routes with none carry none. */
   readonly geometryClaimsFor: (hash: string) => readonly string[];
   /** The claims, measured where they render. */
@@ -227,6 +239,7 @@ interface Options {
   readonly writeBaseline: string | null;
   readonly allowBaseline: boolean;
   readonly chrome: string | undefined;
+  readonly firefox: string | undefined;
   /** Measure the states the app's controls can be in. */
   readonly stateContrast: boolean;
   /** Let the state-contrast findings decide the run. */
@@ -265,8 +278,11 @@ class PageLog {
     page.on("requestfailed", (request) => {
       const reason = request.failure()?.errorText ?? "failed";
       // Navigating away aborts whatever the page it replaced had in flight,
-      // which is the browser working rather than the page breaking.
-      if (reason === "net::ERR_ABORTED") return;
+      // which is the browser working rather than the page breaking. Chromium
+      // and Firefox name the same abort differently; both are ignored.
+      if (reason === "net::ERR_ABORTED" || reason === "NS_BINDING_ABORTED") {
+        return;
+      }
       this.#failures.add(`${request.url()} — ${reason}`);
     });
   }
@@ -313,11 +329,11 @@ class Driver {
   }
 
   /** A page-side function, called with a JSON argument. */
-  #call<T>(source: string, args?: unknown): Promise<T> {
+  async #call<T>(source: string, args?: unknown): Promise<T> {
     const expression = args === undefined
       ? `(${source})()`
-      : `(${source})(${JSON.stringify(args)})`;
-    return this.evalPage<T>(expression);
+      : `(async () => await (${source})(${JSON.stringify(args)}))()`;
+    return await this.evalPage<T>(expression);
   }
 
   /** A pointer outside the viewport, where the browser hit-tests nothing. */
@@ -387,7 +403,7 @@ class Driver {
     const { route, theme, mode } = matrix;
     const findings: Finding[] = [];
     this.#log.reset();
-    await this.#load(`${this.#options.url}#${route.hash}`);
+    await this.#load(routeUrl(this.#options.url, route));
     await this.neutralPointer();
     let state = await this.#call<FrameState>(
       this.#config.page.pageState.toString(),
@@ -396,7 +412,7 @@ class Driver {
     // A boot that beat the theme write reads null; one reload is about
     // catching that race, not about tolerating a wrong rendering.
     if (state.theme !== theme || state.mode !== mode) {
-      await this.#load(`${this.#options.url}#${route.hash}`);
+      await this.#load(routeUrl(this.#options.url, route));
       await this.neutralPointer();
       state = await this.#call<FrameState>(
         this.#config.page.pageState.toString(),
@@ -1148,6 +1164,7 @@ function usage(config: CheckConfig): string {
   --write-baseline PATH  write a baseline report to this path
   --allow-baseline       exit 0 when nothing new appears beyond the baseline
   --chrome PATH          Chromium executable to drive (default: playwright's own)
+  --firefox PATH         Firefox executable to drive instead of Chromium
   --viewport WxH         viewport for every capture (default 1280x800)
   --help                 this message
 `;
@@ -1261,6 +1278,7 @@ export async function runCheck(
       : null,
     allowBaseline: args.present.has("allow-baseline"),
     chrome: last(args.values.get("chrome")),
+    firefox: last(args.values.get("firefox")),
     // The state-contrast pass drives every control in every state it can be
     // in. It used to be opt-in while the starters were being held to it; they
     // now pass it across every theme and mode, so it is part of the default
@@ -1279,10 +1297,12 @@ export async function runCheck(
     return 2;
   }
 
-  const browser = await chromium.launch({
-    executablePath: options.chrome,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
+  const browser = options.firefox !== undefined
+    ? await firefox.launch({ executablePath: options.firefox })
+    : await chromium.launch({
+      executablePath: options.chrome,
+      args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    });
   try {
     const page = await browser.newPage({ viewport });
     // The audit lives in the document, not in the call: each combo loads a

@@ -15,6 +15,9 @@
  *   assumes the worst. The static attr never fires.
  * - A bagless `<button>` inside a `<form>` without `type=` is a submit by
  *   default. The only place the attr does anything is in a form.
+ * - A `data-testid` in an example ships in the code users copy. Tests select
+ *   by part (`[data-part="trigger"]`) or mount tag (`<machine-stem>`); the
+ *   studio's own components keep their testids for e2e.
  *
  *   deno run -A scripts/recipe-check.ts
  *
@@ -22,13 +25,15 @@
  * human's memory of which patterns break.
  */
 
-import { readdir, readdirSync, readFileSync, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
+import { readdirSync, readFileSync } from "node:fs";
 import * as components from "../packages/components/src/index.ts";
 
 /** No recipe may spell `var(--x)`: custom properties are framework
  * transport (defs, actions), never author markup. */
 const VAR_GRANDFATHERED: ReadonlySet<string> = new Set([]);
 const ROOT = "packages/components/src";
+const STUDIO_COMPONENTS = "apps/studio/lib/components";
 async function* walkFiles(root: string, exts: string[]): AsyncGenerator<{ path: string; isFile: boolean }> {
   const entries = await readdir(root, { withFileTypes: true });
   for (const e of entries) {
@@ -42,6 +47,7 @@ type Manifest = {
   readonly slots: readonly string[];
   readonly readers: readonly string[];
   readonly methods: readonly string[];
+  readonly commands: readonly string[];
 };
 
 const cap = (name: string): string =>
@@ -49,58 +55,84 @@ const cap = (name: string): string =>
 
 /** Every callable/readable member an example may touch on the machine. */
 function membersOf(manifest: Manifest): Set<string> {
-  const out = new Set<string>([...manifest.readers, ...manifest.methods]);
-  for (const part of [...manifest.parts, ...manifest.slots]) {
+  const out = new Set<string>([
+    ...(manifest.readers ?? []),
+    ...(manifest.methods ?? []),
+    ...(manifest.commands ?? []),
+  ]);
+  for (const part of [...(manifest.parts ?? []), ...(manifest.slots ?? [])]) {
     out.add(`get${cap(part)}Props`);
   }
-  for (const slot of manifest.slots) out.add(`get${cap(slot)}Indexes`);
+  for (const slot of manifest.slots ?? []) out.add(`get${cap(slot)}Indexes`);
   return out;
 }
 
-/** Reader checking: `machine.member` must name a real reader, method,
+/** Reader checking: `binding.member` must name a real reader, method,
  * channel, or derived bag getter. A misspelled reader renders empty and
  * nothing fails — this is the check that fails instead. For-bound rows
  * (`as={row}`) carry view data, not machine state, so `row.*` is out of
- * scope; bare identifiers are scope props or row passthrough. */
-function readersOf(path: string, source: string): void {
-  const scope = source.match(
-    /<scope>props=\{([^}]*)\}\s*consume=\{\s*(\w+)\s*\}/,
-  );
-  if (scope === null) return;
-  const machine = scope[2] ?? "";
-  // Controllers and hand-rolled bridges export a sibling `<name>Manifest`.
-  const ns = components as Record<string, unknown>;
-  const handle = ns[machine] as { readonly manifest?: Manifest } | undefined;
-  const sibling = ns[`${machine}Manifest`] as Manifest | undefined;
-  const manifest = handle?.manifest ?? sibling;
-  if (manifest === undefined) {
-    problems.push(`${path}: unknown consume machine \`${machine}\``);
-    return;
-  }
-  const valid = membersOf(manifest);
-  const rows = new Set<string>();
-  for (const match of source.matchAll(/as=\{(\w+)\}/g)) {
-    rows.add(match[1] ?? "");
-  }
-  // Machine-rooted refs inside expressions only (a class like
-  // `avatar.cc` is paint, not a member read): spreads, show, text,
-  // for-sources, attribute expressions.
-  const expressions: string[] = [];
-  for (const match of source.matchAll(/\{([^{}]*?)\}/g)) {
-    expressions.push(match[1] ?? "");
-  }
-  const body = expressions.join("\n");
-  const pattern = new RegExp(
-    `(?<![a-zA-Z])${machine}\\.([a-zA-Z][a-zA-Z0-9_]*)`,
-    "g",
-  );
-  for (const match of body.matchAll(pattern)) {
-    const member = match[1] ?? "";
-    if (!valid.has(member)) {
-      problems.push(`${path}: unknown member \`${machine}.${member}\``);
+ * scope; bare identifiers are script bindings or row passthrough. */
+async function readersOf(path: string, source: string): Promise<void> {
+  const script = /<script(\s[^>]*)?>([\s\S]*?)<\/script>/.exec(source);
+  if (script === null) return;
+  const body = script[2] ?? "";
+  // Factory name -> its module specifier, so a file outside the catalog
+  // (a studio element naming its own machine) resolves beside itself.
+  const specifiers = new Map<string, string>();
+  for (const match of body.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']([^"']+)["']/g)) {
+    for (const name of (match[1] ?? "").split(",")) {
+      const trimmed = name.trim().split(/\s+as\s+/).pop() ?? "";
+      if (trimmed.length > 0) specifiers.set(trimmed, match[2] ?? "");
     }
   }
-  void rows;
+  for (
+    const match of body.matchAll(
+      /const\s+(\w+)\s*=\s*(\w+)\s*\(/g,
+    )
+  ) {
+    const binding = match[1] ?? "";
+    const factory = match[2] ?? "";
+    if (factory === "consume") continue;
+    // Controllers and hand-rolled bridges export a sibling `<name>Manifest`.
+    const ns = components as Record<string, unknown>;
+    const handle = ns[factory] as { readonly manifest?: Manifest } | undefined;
+    const sibling = ns[`${factory}Manifest`] as Manifest | undefined;
+    let manifest = handle?.manifest ?? sibling;
+    if (manifest === undefined) {
+      // Not the catalog: resolve the factory's own module beside the file.
+      const spec = specifiers.get(factory);
+      if (spec !== undefined && (spec.startsWith("./") || spec.startsWith("../"))) {
+        try {
+          const url = new URL(spec, `file://${process.cwd()}/${path}`).href;
+          const mod = await import(url) as Record<string, unknown>;
+          const named = mod[factory] as { readonly manifest?: Manifest } | undefined;
+          manifest = named?.manifest;
+        } catch {
+          // Unresolvable here; the unknown-factory finding below says so.
+        }
+      }
+    }
+    if (manifest === undefined) {
+      problems.push(`${path}: unknown script factory \`${factory}\``);
+      continue;
+    }
+    const valid = membersOf(manifest);
+    const expressions: string[] = [];
+    for (const m of source.matchAll(/\{([^{}]*?)\}/g)) {
+      expressions.push(m[1] ?? "");
+    }
+    const refs = expressions.join("\n");
+    const pattern = new RegExp(
+      `(?<![a-zA-Z])${binding}\\.([a-zA-Z][a-zA-Z0-9_]*)`,
+      "g",
+    );
+    for (const m of refs.matchAll(pattern)) {
+      const member = m[1] ?? "";
+      if (!valid.has(member)) {
+        problems.push(`${path}: unknown member \`${binding}.${member}\``);
+      }
+    }
+  }
 }
 
 const problems: string[] = [];
@@ -137,7 +169,9 @@ function writtenHooks(dir: string): Set<string> {
  * component writes. A name it does not write is a dead rule — the style
  * never applies, and nothing says so. */
 function hooksOf(path: string, source: string): void {
-  const dir = path.slice(0, path.indexOf("/examples/"));
+  const at = path.indexOf("/examples/");
+  if (at < 0) return;
+  const dir = path.slice(0, at);
   const hooks = writtenHooks(dir);
   if (hooks.size === 0) return;
   for (
@@ -162,6 +196,18 @@ function hooksOf(path: string, source: string): void {
   }
 }
 
+/** No example ships a `data-testid`: it would copy into user projects. */
+function testidsOf(path: string, source: string): void {
+  const at = path.indexOf("/examples/");
+  if (at < 0) return;
+  const match = /data-testid="([^"]*)"/.exec(source);
+  if (match !== null) {
+    problems.push(
+      `${path}: \`data-testid="${match[1] ?? ""}"\` — select by part or mount tag instead`,
+    );
+  }
+}
+
 /** Every element's literal class list and attribute text, per recipe. */
 function elementsOf(path: string, source: string): void {
   // Form depth: a `<form>` ancestor is the only place a button's type
@@ -182,7 +228,7 @@ function elementsOf(path: string, source: string): void {
     const staticStyle = attrs.match(/style="([^"]*)"/)?.[1];
 
     // Width without style paints nothing.
-    const width = classes.find((token) => /^border(-[0-9]+)?$/.test(token));
+    const width = classes.find((token) => /^border(-[1-9][0-9]*)?$/.test(token));
     const style = classes.find((token) =>
       /^border-(solid|dashed|dotted|double|hidden|none)$/.test(token)
     );
@@ -221,14 +267,50 @@ function elementsOf(path: string, source: string): void {
     }
   }
 }
+function classObjectsOf(path: string, source: string): void {
+  if (source.includes("data:image/")) {
+    problems.push(
+      `${path}: inline data:image/ URI in authored example — use token-driven markup or initials instead`,
+    );
+  }
+  for (const match of source.matchAll(/class=\{\[([\s\S]*?)\]\}/g)) {
+    const inner = match[1] ?? "";
+    for (const objMatch of inner.matchAll(/\{([^{}]+)\}/g)) {
+      const obj = objMatch[1] ?? "";
+      const seen = new Set<string>();
+      for (
+        const pair of obj.matchAll(
+          /(?:"([^"]+)"|'([^']+)'|([A-Za-z0-9_-]+))\s*:\s*([^,}]+)/g,
+        )
+      ) {
+        const cond = (pair[4] ?? "").trim();
+        if (cond.length === 0) continue;
+        if (seen.has(cond)) {
+          problems.push(
+            `${path}: duplicate class condition \`${cond}\` — group classes under one key`,
+          );
+        }
+        seen.add(cond);
+      }
+    }
+  }
+}
+
 
 // Vocabulary is uno-class-check's job (generator truth, same preset +
 // themes the app builds with). This file keeps the structural traps only.
 for await (const entry of walkFiles(ROOT, [".html"])) {
   const source = await readFile(entry.path, "utf8");
   elementsOf(entry.path, source);
-  readersOf(entry.path, source);
+  await readersOf(entry.path, source);
   hooksOf(entry.path, source);
+  testidsOf(entry.path, source);
+}
+for await (const entry of walkFiles(STUDIO_COMPONENTS, [".html"])) {
+  const source = await readFile(entry.path, "utf8");
+  elementsOf(entry.path, source);
+  await readersOf(entry.path, source);
+  classObjectsOf(entry.path, source);
 }
 
 // The bindings' shape: no channels apparatus, no global DOM lookups, no

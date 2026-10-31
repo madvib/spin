@@ -465,6 +465,20 @@ async function prepare(
     // A package with no installed dependencies needs no link.
   }
 
+  // Sibling trees the sources import as siblings: the house skill's
+  // markdown is read through `../../skill/*.md?raw` from `src/`, so the
+  // copy carries the same directory beside its own `src/`.
+  const skillSrc = join(dir, "skill");
+  if (await exists(skillSrc)) {
+    const skillDest = join(copyDir, "skill");
+    await mkdir(skillDest, { recursive: true });
+    for (const file of await walk(skillSrc)) {
+      const target = join(skillDest, file);
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(join(skillSrc, file), target);
+    }
+  }
+
   return { dir, copyDir, copySrc, manifest, entryFiles, declarationExports };
 }
 
@@ -485,6 +499,43 @@ function publishedTargets(prepared: Prepared): string[] {
 interface Built {
   readonly name: string;
   readonly files: number;
+}
+
+/**
+ * The `?raw` imports a glob expands to, answered with the file's text.
+ *
+ * A `import.meta.glob("./x/*.html", { query: "?raw" })` compiles to one
+ * import per match with a `?raw` suffix, and only vite answers those —
+ * the dist compiler does not. This loader does: a `?raw` id resolves
+ * against its importer to the file, and loads as a default-exported
+ * string. The suffix is stripped before the resolve so the module graph
+ * holds the file, not the query.
+ */
+function rawLoader(): {
+  name: string;
+  resolveId(
+    id: string,
+    importer: string | undefined,
+  ): string | undefined;
+  load(id: string): Promise<string | undefined>;
+} {
+  return {
+    name: "spin-raw",
+    resolveId(id, importer) {
+      if (!id.endsWith("?raw")) return undefined;
+      if (importer === undefined) return undefined;
+      const dir = importer.slice(0, importer.lastIndexOf("/"));
+      return join(dir, id.slice(0, -"?raw".length));
+    },
+    async load(id) {
+      if (!id.endsWith(".html") && !id.endsWith(".md")) return undefined;
+      try {
+        return `export default ${JSON.stringify(await readFile(id, "utf8"))};`;
+      } catch {
+        return undefined;
+      }
+    },
+  };
 }
 
 /** Compile one package's dist. */
@@ -516,6 +567,12 @@ async function buildPackage(
       outExtensions: () => ({ js: ".js", dts: ".d.ts" }),
       outputOptions: { preserveModules: true, preserveModulesRoot: "src" },
       deps: { neverBundle: bareExternals(manifest) },
+      plugins: [rawLoader()],
+      // The kit's `.tsx` is Solid source, not React: rolldown's default
+      // automatic runtime would emit `react/jsx-runtime` imports no
+      // dependency declares. Preserved, the consumer's own Solid plugin
+      // compiles it — the same transform the workspace apps apply.
+      inputOptions: { transform: { jsx: "preserve" } },
     });
     console.error(`  ${name}: tsdown written`);
 
@@ -617,12 +674,43 @@ async function buildPackage(
     for (const dir of await emptyDirs(dist)) {
       await rm(dir).catch(() => {});
     }
-
     // A bin is run, not imported: it says how it is run, and it is allowed
     // to run. npm links the file into `node_modules/.bin`, and the link is
     // only as good as the file it points at.
     await markBins(dir);
 
+    // The studio bundle, built by `bun run build:studio` in this checkout.
+    // A published `@spinjs/spin` serves `/__spin/studio` from this copy;
+    // absent (studio never built) the mount skips it instead of failing.
+    if (manifest.name === "@spinjs/spin") {
+      const built = join(REPO, "apps", "studio", "dist");
+      const shipped = join(dist, "studio");
+      if ((await exists(join(built, "index.html")))) {
+        await rm(shipped, { recursive: true }).catch(() => {});
+        await mkdir(shipped, { recursive: true });
+        for (const file of await walk(built)) {
+          const target = join(shipped, file);
+          await mkdir(dirname(target), { recursive: true });
+          await copyFile(join(built, file), target);
+        }
+      }
+    }
+    if (manifest.name === "@spinjs/components") {
+      const srcBase = join(REPO, "packages", "components", "src");
+      for (const file of await walk(srcBase)) {
+        if (!/\/examples\/[^/]+\.html$/.test(file)) continue;
+        const target = join(dist, file);
+        await mkdir(dirname(target), { recursive: true });
+        // The example's script imports by source paths (`../x.ts`); the
+        // dist beside it is compiled, so the shipped copy names the
+        // emitted modules instead.
+        const text = await readFile(join(srcBase, file), "utf8");
+        await writeFile(
+          target,
+          text.replace(/from\s*(["'])(\.\.?\/[^"']+?)\.ts\1/g, 'from $1$2.js$1'),
+        );
+      }
+    }
     return { name: manifest.name, files: (await walk(dist)).length };
   } finally {
     await rm(copyDir, { recursive: true }).catch(() => {});
@@ -726,6 +814,51 @@ async function main(): Promise<void> {
     );
   }
 }
+
+/**
+ * The manifest a tarball ships, written beside the workspace one.
+ *
+ * The workspace manifest points at `src/` so development never builds;
+ * the packed manifest must point at `dist/` or the installed package
+ * resolves subpaths to sources that are not shipped. `bun pm pack`
+ * packs `package.json` as written, so packing runs through
+ * `scripts/pack.ts`: it swaps each manifest, packs, and restores.
+ * Kept here because the swap reads the same `Manifest` shape the
+ * build reads — one shape, two writers.
+ */
+export function packManifestOf(
+  raw: Record<string, unknown>,
+  versions: ReadonlyMap<string, string>,
+): Record<string, unknown> | undefined {
+  const publishExports =
+    (raw["publishConfig"] as { exports?: unknown } | undefined)?.exports;
+  if (publishExports === undefined) return undefined;
+  const pin = (
+    deps: Record<string, string> | undefined,
+  ): Record<string, string> | undefined => {
+    if (deps === undefined) return undefined;
+    const out: Record<string, string> = {};
+    for (const [dep, range] of Object.entries(deps)) {
+      out[dep] = range === "workspace:*" && versions.has(dep)
+        ? versions.get(dep)!
+        : range;
+    }
+    return out;
+  };
+  const next: Record<string, unknown> = { ...raw };
+  next["exports"] = publishExports;
+  delete next["publishConfig"];
+  const dependencies = pin(
+    raw["dependencies"] as Record<string, string> | undefined,
+  );
+  const peerDependencies = pin(
+    raw["peerDependencies"] as Record<string, string> | undefined,
+  );
+  if (dependencies !== undefined) next["dependencies"] = dependencies;
+  if (peerDependencies !== undefined) next["peerDependencies"] = peerDependencies;
+  return next;
+}
+
 
 if (import.meta.main) {
   await main();

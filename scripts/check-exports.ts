@@ -203,8 +203,12 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
 
   // Nothing extra ships: every file in the dist is reachable from a
   // subpath. A declaration is reachable when the module beside it is — the
-  // two are one file's worth of contract.
-  const shipped = await walk(dist);
+  // two are one file's worth of contract. The studio bundle is the one
+  // exception: it ships as static files the dev server mounts, not as
+  // modules a subpath imports, so it is expected rather than reachable.
+  const shipped = (await walk(dist)).filter((file) =>
+    !file.startsWith("studio/") && !/\/examples\/[^/]+\.html$/.test(file)
+  );
   const reachable = await reachableFiles(
     dist,
     targets.map((file) => file.replace(/^\.\/dist\//, "")),
@@ -267,7 +271,13 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
       );
     }
   }
+  // A peer is the consumer's to provide, and a types-only peer never
+  // survives the bundle: the adapters name the host's types without
+  // importing its runtime. The import-without-declaration check above
+  // still fires for those, so no runtime dep can hide behind a peer.
+  const peers = new Set(Object.keys(pkg.peerDependencies ?? {}));
   for (const dependency of declared) {
+    if (peers.has(dependency)) continue;
     const used = [...imports].some((specifier) =>
       specifier === dependency ||
       specifier.startsWith(dependency + "/")

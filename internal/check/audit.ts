@@ -205,6 +205,13 @@ export function auditPage(options: AuditOptions): AuditResult {
       if (style.display === "none" || style.visibility === "hidden") {
         return false;
       }
+      // A clip-path that removes the element from view without removing it
+      // from the tree — the screen-reader-only pattern — leaves a 1px box
+      // the rect check above still sees, but no painted text to measure.
+      if (style.clipPath !== "none") {
+        const rect = n.getBoundingClientRect();
+        if (rect.width <= 1 && rect.height <= 1) return false;
+      }
     }
     return true;
   }

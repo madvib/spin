@@ -25,6 +25,7 @@ import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [
   "packages/components/src",
+  "apps/studio/lib/components",
 ];
 
 /** A `class="..."` attribute's value, minus anything dynamic. */
@@ -50,8 +51,7 @@ function classesOfMarkup(source: string): string[] {
   const stripped = expandVariantGroups(
     source
       .replace(/<!--[\s\S]*?-->/g, "")
-      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
-      .replace(/<scope>[\s\S]*?<\/scope>\s*/g, ""),
+      .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, ""),
   );
   return classTokens(parse(stripped));
 }
@@ -82,6 +82,8 @@ for (const root of SOURCES) {
 // generated: the generator would never match them either way.
 import { animationVariants } from "../packages/spin/src/animation/index.ts";
 const ANIMATED = animationVariants();
+/** Scope markers: not utilities, but load-bearing hooks the sheet reads. */
+const SCOPED = new Set(["spin-preview"]);
 const uno = await createGenerator({
   presets: [
     spinPreset({ themes: starterThemes }),
@@ -91,13 +93,47 @@ const uno = await createGenerator({
 
 const generated = await uno.generate(new Set(tokens), { preflights: false });
 const dead = [...tokens].filter((token) =>
-  !generated.matched.has(token) && !ANIMATED.has(token)
+  !generated.matched.has(token) && !ANIMATED.has(token) && !SCOPED.has(token)
 )
   .sort();
 
 if (dead.length > 0) {
   console.error(`uno: ${dead.length} class(es) match no rule:`);
   for (const token of dead) console.error(`  ${token}`);
+  process.exit(1);
+}
+
+// A class that matches but reads a variable no theme declares is dead in
+// the browser: `rounded-xl` emits `var(--radius-xl)` and only one starter
+// declares it. Every `var()` a matched rule reads without a fallback must
+// be declared by EVERY starter theme.
+const declaredBy = new Map<string, Set<string>>();
+for (const [name, doc] of Object.entries(starterThemes)) {
+  const scoped = await createGenerator({
+    presets: [spinPreset({ themes: { [name]: doc } })],
+  });
+  const { css } = await scoped.generate("x", { preflights: true });
+  for (const match of css.matchAll(/(--[\w-]+)\s*:/g)) {
+    const set = declaredBy.get(match[1]) ?? new Set<string>();
+    set.add(name);
+    declaredBy.set(match[1], set);
+  }
+}
+const names = new Set(Object.keys(starterThemes));
+const undeclared = new Set<string>();
+for (const match of generated.css.matchAll(/var\((--[\w-]+)\)/g)) {
+  const owners = declaredBy.get(match[1]);
+  if (owners === undefined || owners.size !== names.size) undeclared.add(match[1]);
+}
+// Wind4's own internals (`--un-*`) are registered by the engine, not the theme.
+for (const name of [...undeclared]) {
+  if (name.startsWith("--un-")) undeclared.delete(name);
+}
+if (undeclared.size > 0) {
+  console.error(
+    `uno: ${undeclared.size} variable(s) read but not declared by every starter theme:`,
+  );
+  for (const name of [...undeclared].sort()) console.error(`  ${name}`);
   process.exit(1);
 }
 console.log(`uno: ${tokens.size} classes, all matched`);

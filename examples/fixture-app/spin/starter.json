@@ -261,6 +261,9 @@
       "$modes": {
         "dark": "{color.neutral.600}"
       }
+    },
+    "scrim": {
+      "$value": "rgb(15 19 30 / 45%)"
     }
   },
   "spacing": {
@@ -273,14 +276,56 @@
     "2": {
       "$value": "0.5rem"
     },
+    "3": {
+      "$value": "0.75rem"
+    },
     "4": {
       "$value": "1rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
     },
     "8": {
       "$value": "2rem"
     },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "14": {
+      "$value": "3.5rem"
+    },
     "16": {
       "$value": "4rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    },
+    "36": {
+      "$value": "9rem"
+    },
+    "40": {
+      "$value": "10rem"
+    },
+    "56": {
+      "$value": "14rem"
+    },
+    "60": {
+      "$value": "15rem"
+    },
+    "64": {
+      "$value": "16rem"
     },
     "$type": "dimension",
     "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
@@ -300,6 +345,9 @@
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, Menlo, monospace",
         "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif"
       }
     },
     "size": {
@@ -346,7 +394,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -393,8 +441,6 @@
     }
   },
   "opacity": {
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
@@ -438,7 +484,9 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
-    }
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
   },
   "shadow": {
     "$type": "shadow",
@@ -497,6 +545,9 @@
       },
       "slow": {
         "$value": "400ms"
+      },
+      "loop": {
+        "$value": "1.2s"
       }
     },
     "easing": {
@@ -556,7 +607,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -580,7 +631,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

@@ -65,8 +65,15 @@ async function main(): Promise<void> {
   const modules: string[] = [];
   const failures: string[] = [];
   try {
+    const paths: string[] = [];
     for await (const entry of walkFiles(ROOT + "packages/components/src", [".html"])) {
-      if (!entry.isFile) continue;
+      if (entry.isFile) paths.push(entry.path);
+    }
+    for await (const entry of walkFiles(ROOT + "apps/studio/lib/components", [".html"])) {
+      if (entry.isFile) paths.push(entry.path);
+    }
+    for (const path of paths) {
+      const entry = { path, isFile: true };
       const source = await readFile(entry.path, "utf8");
       const body = extractScript(source);
       if (body === undefined) continue;
@@ -94,7 +101,6 @@ async function main(): Promise<void> {
         }, [] as string[]).join("/");
         const included = await readFile(normalized, "utf8");
         const includedBody = included
-          .replace(/<scope>[\s\S]*?<\/scope>\s*/, "")
           .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/, "");
         resolvedSource = resolvedSource.replace(m[0], includedBody);
       }
