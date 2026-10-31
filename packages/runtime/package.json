@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/runtime",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "The component runtime: signals, bridges, elements, and directives.",
   "type": "module",
   "license": "MIT",
