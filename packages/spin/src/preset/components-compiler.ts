@@ -293,8 +293,13 @@ export function spinComponentsStage(options: SpinComponentsOptions = {}): Unplug
         return renderComponentsModule(files, projectRoot);
       }
       const real = id.split("?")[0]!;
+      const path = await import("node:path");
       const fs = await import("node:fs/promises");
-      return fs.readFile(real, "utf8");
+      // The dependency scanner can hand a root-anchored project file back
+      // without its leading slash; resolve it against the project root so
+      // the scan does not read a path relative to the process cwd.
+      const file = path.isAbsolute(real) ? real : path.resolve(projectRoot, real);
+      return fs.readFile(file, "utf8");
     },
     transformInclude(id) {
       return id.endsWith("?spin-component");
