@@ -1,0 +1,17 @@
+<script lang="ts">
+import { modePicker } from "../mode-picker.presentation.ts";
+
+const machine = modePicker({ defaultValue: "system" });
+</script>
+
+<button
+  class={["bare inline-flex items-center gap-2 rounded-full border border-solid border-border bg-surface px-3 py-1 text-sm text-text transition-colors hover:bg-surface-raised", { "opacity-50 cursor-not-allowed": machine.disabled }]}
+  {...machine.getTriggerProps()}
+>
+  <span class="inline-flex h-4 w-4 items-center justify-center" {...machine.getIconProps()}>
+    <span class="inline-block i-lucide-sun h-4 w-4" show={machine.singleMode ? machine.resolvedMode === "light" : machine.value === "light"}></span>
+    <span class="inline-block i-lucide-moon h-4 w-4" show={machine.singleMode ? machine.resolvedMode === "dark" : machine.value === "dark"}></span>
+    <span class="inline-block i-lucide-monitor h-4 w-4" show={!machine.singleMode && machine.value === "system"}></span>
+  </span>
+  <span {...machine.getLabelProps()}>{machine.singleMode ? machine.resolvedMode : machine.value}</span>
+</button>

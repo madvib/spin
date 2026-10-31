@@ -1,0 +1,42 @@
+<script lang="ts">
+import { themePicker } from "../theme-picker.presentation.ts";
+
+const machine = themePicker({
+  syncDocument: false,
+  defaultValue: "silk",
+  themes: [
+    { value: "silk", label: "Silk" },
+    { value: "neobrut", label: "Neobrut", modes: ["light"] },
+    { value: "nord", label: "Nord" },
+    { value: "synthwave", label: "Synthwave", modes: ["dark"] },
+  ],
+});
+</script>
+
+<div class="relative inline-flex" {...machine.getRootProps()}>
+  <button
+    class="bare inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface hover:text-text"
+    {...machine.getTriggerProps()}
+  >
+    <span class="inline-block i-lucide-palette h-4 w-4"></span>
+    <span {...machine.getTriggerLabelProps()}>{machine.value}</span>
+  </button>
+  <div class="absolute z-dropdown" {...machine.getPositionerProps()}>
+    <div
+      class="rounded-lg border border-solid border-border bg-surface p-1 shadow-lg"
+      {...machine.getContentProps()}
+    >
+      <div {...machine.getListProps()}>
+        <template for={machine.getItems()} as={row} key={row.value}>
+          <div
+            class="bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors hover:bg-surface-raised"
+            {...machine.getItemProps(row)}
+          >
+            <span class="flex-1" {...machine.getItemLabelProps(row)}>{row.label}</span>
+            <span class="inline-block i-lucide-check h-3 w-3 text-primary" show={machine.getItemState(row).selected} {...machine.getItemIndicatorProps(row)}></span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>

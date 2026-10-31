@@ -1,0 +1,31 @@
+<script lang="ts">
+import { themePicker } from "../theme-picker.presentation.ts";
+
+const machine = themePicker({
+  syncDocument: false,
+  defaultValue: "silk",
+  themes: [
+    { value: "silk", label: "Silk" },
+    { value: "neobrut", label: "Neobrut", modes: ["light"] },
+    { value: "nord", label: "Nord" },
+    { value: "synthwave", label: "Synthwave", modes: ["dark"] },
+  ],
+});
+</script>
+
+<div class="flex flex-wrap items-center gap-2" {...machine.getRootProps()}>
+  <template for={machine.getItems()} as={row} key={row.value}>
+    <button
+      class={["bare inline-flex items-center gap-2 rounded-full border border-solid bg-surface px-3 py-1 text-sm text-text transition-colors", { "border-border": machine.getItemState(row).selected === false, "border-primary ring-1 ring-primary": machine.getItemState(row).selected }]}
+      {...machine.getItemProps(row)}
+    >
+      <span class="inline-flex h-3 items-center gap-1" {...machine.getItemSwatchProps(row)}>
+        <span class="h-2 w-2 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+        <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
+        <span class="h-2 w-2 shrink-0 rounded-full bg-text"></span>
+      </span>
+      <span {...machine.getItemLabelProps(row)}>{row.label}</span>
+      <span class="inline-block i-lucide-check h-3 w-3 text-primary" show={machine.getItemState(row).selected} {...machine.getItemIndicatorProps(row)}></span>
+    </button>
+  </template>
+</div>
