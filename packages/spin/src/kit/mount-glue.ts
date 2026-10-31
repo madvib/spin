@@ -6,17 +6,6 @@
  * the docs both read it from here — never copy it into an app.
  */
 export const EXAMPLE_ONLOAD: Record<string, string> = {
-  "pagination/pagesize": `
-    document.querySelectorAll("pagination-pagesize").forEach((host) => {
-      if (host.getAttribute("data-wired") === "true") return;
-      host.setAttribute("data-wired", "true");
-      // Delegated: page changes re-render and replace the select node.
-      host.addEventListener("change", (event) => {
-        const select = event.target?.closest("[data-size]");
-        if (select && typeof host.setPageSize === "function") host.setPageSize(Number(select.value));
-      });
-    });
-  `,
   "tags-input/with-combobox": `
     document.querySelectorAll("tags-input-with-combobox").forEach((host) => {
       if (host.getAttribute("data-wired") === "true") return;
@@ -37,7 +26,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           // The combobox's own clear trigger resets its field through
           // the machine; synthetic input events never survive the
           // controlled binding.
-          const clear = host.querySelector("[data-scope=combobox][data-part=clear-trigger]");
+          const clear = host.querySelector("[data-scope=combobox][data-part=clearTrigger]");
           if (clear instanceof HTMLElement) clear.click();
           const input = host.querySelector("[data-scope=combobox][data-part=input]");
           if (input instanceof HTMLInputElement) input.focus();
@@ -85,28 +74,6 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
         btn.addEventListener("click", () => update(btn.getAttribute("data-placement-choice") ?? "bottom"));
       });
       update("bottom");
-    });
-  `,
-  "signature-pad/with-preview": `
-    document.querySelectorAll("signature-pad-with-preview").forEach((host) => {
-      if (host.getAttribute("data-wired") === "true") return;
-      host.setAttribute("data-wired", "true");
-      const box = host.querySelector("[data-preview]");
-      const frame = host.querySelector("[data-preview-box]");
-      const render = () => {
-        const svg = host.querySelector("svg");
-        if (!svg || !frame || !box) return;
-        const clone = svg.cloneNode(true);
-        clone.setAttribute("class", "h-24 w-full");
-        frame.replaceChildren(clone);
-        box.hidden = false;
-      };
-      host.addEventListener("draw-end", render);
-      host.querySelector("[data-preview-clear]")?.addEventListener("click", () => {
-        if (typeof host.clear === "function") host.clear();
-        if (frame) frame.replaceChildren();
-        if (box) box.hidden = true;
-      });
     });
   `,
   "hover-card/custom-positioning": `
@@ -203,18 +170,19 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
   `,
   "toast/types": `
     document.querySelectorAll("toast-types").forEach((pg) => {
-      const btn = pg.querySelector("[data-fire]");
-      if (btn === null || btn.getAttribute("data-wired") === "true") return;
-      btn.setAttribute("data-wired", "true");
-      btn.addEventListener("click", () => {
-        pg.create({
-          id: "t" + Date.now(),
-          title: btn.getAttribute("data-title") ?? "",
-          description: btn.getAttribute("data-description") ?? "",
-          type: btn.getAttribute("data-type") ?? "info",
-          duration: Number(btn.getAttribute("data-duration") ?? 5000),
-          priority: 0,
-          action: btn.getAttribute("data-action") ?? "",
+      pg.querySelectorAll("[data-fire]").forEach((btn) => {
+        if (btn.getAttribute("data-wired") === "true") return;
+        btn.setAttribute("data-wired", "true");
+        btn.addEventListener("click", () => {
+          pg.create({
+            id: "t" + Date.now() + Math.random().toString(36).slice(2),
+            title: btn.getAttribute("data-title") ?? "",
+            description: btn.getAttribute("data-description") ?? "",
+            type: btn.getAttribute("data-type") ?? "info",
+            duration: Number(btn.getAttribute("data-duration") ?? 5000),
+            priority: 0,
+            action: btn.getAttribute("data-action") ?? "",
+          });
         });
       });
     });
@@ -329,26 +297,42 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
   `,
   "toast/promise": `
     document.querySelectorAll("toast-promise").forEach((pg) => {
-      const id = "upload";
-      pg.create({ id: id, title: "Uploading file...", description: "Please wait.", type: "loading", duration: 0, priority: 0, action: "" });
-      setTimeout(() => {
-        pg.update(id, { title: "Upload successful!", description: "Your file is live.", type: "success", duration: 5000 });
-      }, 2500);
+      const run = () => {
+        const id = "upload";
+        pg.create({ id: id, title: "Uploading file...", description: "Please wait.", type: "loading", duration: 0, priority: 0, action: "" });
+        setTimeout(() => {
+          pg.update(id, { title: "Upload successful!", description: "Your file is live.", type: "success", duration: 5000 });
+        }, 2500);
+      };
+      const btn = pg.querySelector("[data-fire]");
+      if (btn !== null && btn.getAttribute("data-wired") !== "true") {
+        btn.setAttribute("data-wired", "true");
+        btn.addEventListener("click", run);
+      }
+      run();
     });`,
   "toast/updatable": `
     document.querySelectorAll("toast-updatable").forEach((pg) => {
-      const id = "progress";
-      pg.create({ id: id, title: "Uploading...", description: "Starting.", type: "loading", duration: 0, priority: 0, action: "" });
-      let step = 0;
-      const timer = setInterval(() => {
-        step += 1;
-        if (step >= 3) {
-          clearInterval(timer);
-          pg.update(id, { title: "Upload complete!", description: "Done.", type: "success", duration: 5000 });
-        } else {
-          pg.update(id, { description: "Part " + step + " of 3." });
-        }
-      }, 1200);
+      const run = () => {
+        const id = "progress";
+        pg.create({ id: id, title: "Uploading...", description: "Starting.", type: "loading", duration: 0, priority: 0, action: "" });
+        let step = 0;
+        const timer = setInterval(() => {
+          step += 1;
+          if (step >= 3) {
+            clearInterval(timer);
+            pg.update(id, { title: "Upload complete!", description: "Done.", type: "success", duration: 5000 });
+          } else {
+            pg.update(id, { description: "Part " + step + " of 3." });
+          }
+        }, 1200);
+      };
+      const btn = pg.querySelector("[data-fire]");
+      if (btn !== null && btn.getAttribute("data-wired") !== "true") {
+        btn.setAttribute("data-wired", "true");
+        btn.addEventListener("click", run);
+      }
+      run();
     });`,
   "pagination/dropdown": `
     document.querySelectorAll("pagination-dropdown").forEach((pg) => {
@@ -675,6 +659,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
             const pad = (n) => String(n).padStart(2, "0");
             timer.textContent = pad(parts[0]) + ":" + pad(parts[1]) + ":" + pad(parts[2]);
           }, 1000);
+        }
       };
       wait();
     });`,
@@ -783,8 +768,8 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
         await new Promise((resolve) => setTimeout(resolve, 800));
         if (value === "packages") {
           return [
-            { value: "packages/components", label: "components" },
-            { value: "packages/runtime", label: "runtime" },
+            { value: "packages/components", label: "components", children: [] },
+            { value: "packages/runtime", label: "runtime", children: [] },
           ];
         }
         return [];

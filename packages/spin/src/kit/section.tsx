@@ -41,6 +41,8 @@ export function Section(props: {
   fact?: string;
   /** One line: what the section is for. */
   note?: string;
+  /** Hover text for the title's info mark: copy that explains, out of the way. */
+  info?: string;
   /** The colour the section's family wears. */
   tone?: "primary" | "accent";
   /** A control that belongs to the section, on the right of its heading. */
@@ -61,6 +63,25 @@ export function Section(props: {
         <h2 class="row-sm">
           <Marker tone={props.tone} />
           <span class="min-w-0">{props.title}</span>
+          <Show when={props.info}>
+            {(info) => (
+              <span class="relative inline-flex items-center">
+                <button
+                  type="button"
+                  class="bare peer inline-flex items-center text-text-muted hover:text-text"
+                  aria-label={info()}
+                >
+                  <span
+                    class="i-lucide-info inline-block shrink-0 text-sm"
+                    aria-hidden="true"
+                  />
+                </button>
+                <tooltip class="start-0 top-full mt-1 translate-none whitespace-normal peer-hover:visible peer-focus-visible:visible">
+                  {info()}
+                </tooltip>
+              </span>
+            )}
+          </Show>
         </h2>
         <div class="row-sm shrink-0">
           <Show when={props.fact}>

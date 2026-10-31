@@ -464,7 +464,7 @@ The shape of a token:
   and then there is nothing to restate. A theme that serves dark and restates
   half of it is half a theme.
 
-Scaffold a new document with `scaffoldTheme()` from `@spin/theme`, or fork a
+Scaffold a new document with `scaffoldTheme()` from `@spinjs/spin/theme`, or fork a
 starter. A scaffold's values are valid, legible, and obviously unfinished:
 `#111111` on `#ffffff`, `system-ui`, and no shadow anywhere. Every one of them
 is a decision you still owe.
@@ -476,13 +476,13 @@ call; the fourth is a browser; the fifth is a person.
 
 ### Gate one: completeness
 
-`validateTheme(text, { required, modes })` from `@spin/theme`. The same judge
+`validateTheme(text, { required, modes })` from `@spinjs/spin/theme`. The same judge
 the studio's issues panel uses, so the same answer.
 
 `required` is the list of paths the document must declare. Absent, it is the
 contract's base roles — the palette, the floors that make it usable, and the
 focus ring. An app that enables more elements owes more roles, and
-`requiredRolesFor()` from `@spin/preset` names them. `modes` is the claim about
+`requiredRolesFor()` from `@spinjs/spin/preset` names them. `modes` is the claim about
 which modes the theme serves; absent, the document's own root `modes` says it.
 
 What the failures mean:
@@ -543,7 +543,7 @@ options are the ones above: `required` is the roles the app owes, `modes` is the
 claim the theme makes.
 
 ```ts
-import { themeGates } from "@spin/theme";
+import { themeGates } from "@spinjs/spin/theme";
 
 const report = themeGates(text);
 for (const gate of report.gates) {
@@ -573,7 +573,7 @@ Run it against the document you just wrote — a project theme, not a starter:
 ```sh
 bun -e "
 import { readFile } from 'node:fs/promises';
-import { themeGates } from '@spin/theme';
+import { themeGates } from '@spinjs/spin/theme';
 const text = await readFile('spin/<name>.json', 'utf8');
 const report = themeGates(text);
 console.log(JSON.stringify(report, null, 2));

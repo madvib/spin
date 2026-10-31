@@ -7,15 +7,23 @@ export function formatExampleHtml(html: string): string {
     /src=(["'])data:[^"']*/g,
     (_match, quote: string) => `src=${quote}data:…`,
   );
-  const lines = collapsed.replace(/\t/g, "  ").split("\n");
-  const indents = lines
+  const rawLines = collapsed.replace(/\t/g, "  ").split("\n");
+  while (rawLines.length > 0 && rawLines[0]!.trim() === "") rawLines.shift();
+  while (rawLines.length > 0 && rawLines[rawLines.length - 1]!.trim() === "") {
+    rawLines.pop();
+  }
+  const indents = rawLines
     .filter((line) => line.trim() !== "")
     .map((line) => line.match(/^\s*/)?.[0].length ?? 0);
-  const strip = indents.length === 0 ? 0 : Math.min(...indents);
+  const minAll = indents.length === 0 ? 0 : Math.min(...indents);
+  const restMin = indents.length > 1 ? Math.min(...indents.slice(1)) : 0;
   const out: string[] = [];
   let blank = 0;
-  for (const line of lines) {
-    const text = line.slice(strip).replace(/\s+$/, "");
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i]!;
+    const strip = minAll > 0 ? minAll : i > 0 ? restMin : 0;
+    const lead = line.match(/^\s*/)?.[0].length ?? 0;
+    const text = line.slice(Math.min(strip, lead)).replace(/\s+$/, "");
     if (text === "") {
       blank++;
       continue;

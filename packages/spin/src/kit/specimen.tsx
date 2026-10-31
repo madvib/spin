@@ -40,17 +40,22 @@ const COPY_CONTROL =
   "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-border-strong hover:text-text";
 
 const CODE_PRE =
-  "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-dashed border-border bg-surface p-4 font-mono text-sm text-text shadow-sm";
+  "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-border bg-surface p-4 font-mono text-sm text-text shadow-sm";
 
 const SPECIMEN_PANEL =
-  "min-h-[2rem] flex items-center justify-center rounded-md border border-dashed border-border bg-surface-raised p-4 shadow-sm";
+  "min-h-[2rem] flex items-center justify-center rounded-md border border-border bg-surface p-6 shadow-sm";
+/** A panel whose content floats: menus, calendars, popovers, and crops escape the card instead of clipping inside it. */
+const SPECIMEN_PANEL_OVERLAY =
+  "min-h-[2rem] flex items-center justify-center overflow-visible rounded-md border border-border bg-surface p-6 shadow-sm";
 
 export interface SpecimenProps {
   /** The example's name, as the row's heading reads it. */
   readonly name: string;
   /** The markup, exactly as a consumer writes it. */
   readonly html: string;
-  /** The authored source, as the code view shows and the copy control copies. */
+  /** The authored recipe, as the code view shows and the copy control copies.
+   * The mounted tag upgrades in place; the recipe is what a consumer copies
+   * into their project (or takes with `spin component copy`). */
   readonly source?: string;
   /** Runs against the row after it mounts, for property-driven examples. */
   readonly onLoad?: string;
@@ -62,16 +67,21 @@ export interface SpecimenProps {
   readonly actions?: JSX.Element;
   /** A class on the inner stage host. */
   readonly stage?: string;
+  /** Inline style on the inner stage host. */
+  readonly stageStyle?: JSX.CSSProperties;
   /** A class on the outer specimen panel and code container. */
   readonly panelClass?: string;
   /** A class on the code view. */
   readonly codeClass?: string;
+  /** The content floats above the card (menu, calendar, popover): let it overflow instead of clipping. */
+  readonly overlay?: boolean;
 }
 
 function StageHost(props: {
   readonly html: string;
   readonly onLoad?: string;
   readonly class?: string;
+  readonly style?: JSX.CSSProperties;
 }): JSX.Element {
   let host!: HTMLDivElement;
   onMount(() => {
@@ -87,7 +97,14 @@ function StageHost(props: {
     });
     new Function("document", script)(scopedDocument);
   });
-  return <div ref={host} class={props.class} innerHTML={props.html} />;
+  return (
+    <div
+      ref={host}
+      class={props.class}
+      style={props.style}
+      innerHTML={props.html}
+    />
+  );
 }
 
 /**
@@ -126,36 +143,41 @@ export function Specimen(props: SpecimenProps): JSX.Element {
             <Marker />
             {props.name}
           </h3>
-          {props.actions}
         </div>
-        <div class="flex items-center gap-1" role="group" aria-label="view">
-          <button
-            type="button"
-            class={SWITCH}
-            aria-pressed={view() === "component"}
-            onClick={() => setView("component")}
-          >
-            component
-          </button>
-          <button
-            type="button"
-            class={SWITCH}
-            aria-pressed={view() === "code"}
-            onClick={() => setView("code")}
-          >
-            code
-          </button>
+        <div class="flex items-center gap-2">
+          {props.actions}
+          <div class="flex items-center gap-1" role="group" aria-label="view">
+            <button
+              type="button"
+              class={SWITCH}
+              aria-pressed={view() === "component"}
+              onClick={() => setView("component")}
+            >
+              component
+            </button>
+            <button
+              type="button"
+              class={SWITCH}
+              aria-pressed={view() === "code"}
+              onClick={() => setView("code")}
+            >
+              code
+            </button>
+          </div>
         </div>
       </div>
       <Show when={view() === "component"}>
-        <div class={`${SPECIMEN_PANEL} ${props.panelClass ?? ""}`}>
+        <div
+          class={`${props.overlay === true ? SPECIMEN_PANEL_OVERLAY : SPECIMEN_PANEL} ${props.panelClass ?? ""}`}
+        >
           <Show
             when={props.preview}
             fallback={
               <StageHost
                 html={props.html}
                 onLoad={props.onLoad}
-                class={props.stage}
+                class={`flex w-full min-w-0 flex-col items-center ${props.stage ?? ""}`}
+                style={props.stageStyle}
               />
             }
           >

@@ -190,17 +190,43 @@ export function createThemeState(
 /**
  * The default state: the shipped starters, remembered under the kit's keys.
  *
- * A module-level instance because the docs and any small app serve exactly the
- * starters and have one document. An app with its own theme map calls
- * `createThemeState` instead and hands the result to the controls.
+ * Built on first use, not at import: creating it stamps the document and
+ * the storage, so a page with its own state (which imports this module for
+ * the controls) must not get a second state stamping over it. The docs and
+ * any small app serve exactly the starters and have one document; they
+ * reach it through these bindings, which build it when first read. An app
+ * with its own theme map calls `createThemeState` instead and hands the
+ * result to the controls.
  */
-const defaultState = createThemeState();
+let defaultState: ThemeState | undefined;
+function defaultStateOf(): ThemeState {
+  return (defaultState ??= createThemeState());
+}
 
-export const defaultThemeState: ThemeState = defaultState;
-export const theme = defaultState.theme;
-export const setTheme = defaultState.setTheme;
-export const want = defaultState.want;
-export const setWant = defaultState.setWant;
-export const mode = defaultState.mode;
-export const setMode = defaultState.setMode;
-export const starterDocuments = defaultState.documents;
+export const defaultThemeState: ThemeState = new Proxy({} as ThemeState, {
+  get: (_target, key) => Reflect.get(defaultStateOf(), key as string),
+  set: (_target, key, value) => Reflect.set(defaultStateOf(), key as string, value),
+  has: (_target, key) => Reflect.has(defaultStateOf(), key as string),
+  ownKeys: () => Reflect.ownKeys(defaultStateOf()),
+  getOwnPropertyDescriptor: (_target, key) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(defaultStateOf(), key as string);
+    if (descriptor === undefined) return undefined;
+    return { ...descriptor, configurable: true };
+  },
+});
+export const theme: ThemeState["theme"] = (...args: []) => defaultStateOf().theme();
+export const setTheme: ThemeState["setTheme"] = (name) => defaultStateOf().setTheme(name);
+export const want: ThemeState["want"] = () => defaultStateOf().want();
+export const setWant: ThemeState["setWant"] = (m) => defaultStateOf().setWant(m);
+export const mode: ThemeState["mode"] = () => defaultStateOf().mode();
+export const setMode: ThemeState["setMode"] = (m) => defaultStateOf().setMode(m);
+export const starterDocuments: ThemeState["documents"] = new Proxy({} as ThemeState["documents"], {
+  get: (_target, key) => Reflect.get(defaultStateOf().documents, key as string),
+  has: (_target, key) => Reflect.has(defaultStateOf().documents, key as string),
+  ownKeys: () => Reflect.ownKeys(defaultStateOf().documents),
+  getOwnPropertyDescriptor: (_target, key) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(defaultStateOf().documents, key as string);
+    if (descriptor === undefined) return undefined;
+    return { ...descriptor, configurable: true };
+  },
+});
