@@ -24,6 +24,7 @@ import {
   spinShortcuts,
 } from "@spinjs/preset";
 import { BASE_ROLES } from "@spinjs/theme";
+import { exampleMachines } from "@spinjs/components/examples";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
 
 export interface SearchEntry {
@@ -36,17 +37,7 @@ export interface SearchEntry {
 /** Machine component names, read off the example directories the gallery
  * renders — the same directories, so a machine with examples to show is
  * searchable and one without them is not. */
-const MACHINE_NAMES: readonly string[] = [
-  ...new Set(
-    Object.keys(
-      import.meta.glob("../../../packages/components/src/*/examples/*.html", {
-        query: "?raw",
-        import: "default",
-        eager: true,
-      }),
-    ).map((path) => path.split("/").at(-3) ?? ""),
-  ),
-].filter((name) => name !== "").sort();
+const MACHINE_NAMES: readonly string[] = exampleMachines();
 
 function buildIndex(): readonly SearchEntry[] {
   const out: SearchEntry[] = [];
@@ -186,17 +177,13 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
     <dialog
       ref={dialog}
       aria-label="search"
-      class="panel w-full max-w-screen-sm overflow-hidden"
+      class="w-full max-w-screen-sm overflow-hidden rounded-md border border-border bg-surface-raised p-4"
       onClose={props.onClose}
       onClick={(event) => {
         if (event.target === dialog) props.onClose();
       }}
     >
-      <div class="stack-sm p-4">
-        <div
-          class="w-full overflow-hidden rounded-md border border-border bg-surface shadow-lg"
-          role="document"
-        >
+      <div class="stack-sm p-4" role="document">
           <input
             ref={input}
             type="search"
@@ -206,10 +193,10 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
               setQuery(event.currentTarget.value);
               setHighlight(0);
             }}
-            class="w-full bg-transparent placeholder:text-text-muted focus:outline-none"
+            class="w-full rounded-sm border border-border bg-surface px-3 py-2 placeholder:text-text-muted focus:outline-none"
             aria-label="search"
           />
-          <ul class="max-h-[50vh] overflow-y-auto" role="listbox">
+          <ul role="listbox">
             <For
               each={results()}
               fallback={
@@ -227,7 +214,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                       setHighlight(index())}
                     onClick={() =>
                       props.onNavigate(entry.href)}
-                    class={`flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left transition-colors duration-fast ${
+                    class={`bare flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left transition-colors duration-fast ${
                       index() === highlight()
                         ? "bg-surface-raised text-text"
                         : "text-text-muted"
@@ -251,7 +238,9 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
               )}
             </For>
           </ul>
-        </div>
+          <p class="px-3 pt-1 text-xs text-text-muted">
+            {results().length} shown — keep typing to narrow.
+          </p>
       </div>
     </dialog>
   );

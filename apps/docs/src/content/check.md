@@ -9,12 +9,16 @@ that gap with a real browser: Playwright loads your app, drives it through every
 state, measures what a person would measure, and reports what fails.
 
 The harness lives in `internal/check/` and each app feeds it a config: the
-reference app's is `apps/reference/visual/check.ts`. It runs with:
+reference app's is `apps/reference/visual/check.ts`, the studio's is
+`apps/studio/visual/check.ts`. They run with:
 
 ```bash
-deno task visual                                   # the whole matrix
-deno task visual -- --route components/button      # one route
-deno task visual -- --write-baseline               # refresh the baseline
+bun run visual                                     # reference: the whole matrix
+bun run visual -- --route components/button        # reference: one route
+bun run visual -- --write-baseline                 # reference: refresh the baseline
+bun run visual:studio                              # studio: modal + drawer layouts
+bun run visual:studio -- --route /colors           # studio: one route
+bun run visual:studio -- --write-baseline          # studio: refresh both baselines
 ```
 
 ## The eight probes
@@ -38,21 +42,33 @@ assertions only that app can state:
 
 ```ts
 // apps/reference/visual/check.ts (excerpt)
-import { type CheckConfig, runCheck } from "../../../internal/check/harness.ts";
+import { type CheckConfig, runCheck } from "@spin/check";
 
 const config: CheckConfig = {
-  routes: routes(), // from the app's own registry — a new route is checked on the next run
-  themes: starterThemes, // every theme, both modes
-  adapter: { seedTheme, renderReady, pageState },
-  geometryClaimsFor, // per-route alignment, containment, non-overlap
+  baseDir: BASE,
+  defaultUrl: "http://localhost:5174",
+  routes, // from the app's own registry — a new route is checked on the next run
+  themes: Object.keys(SERVED), // every theme the app renders
+  modesFor, // the modes each theme serves
+  hoverSelector: "nav button, nav a",
+  stateScope: "main",
+  outDir: `${BASE}out`,
+  baseline: `${BASE}baseline.json`,
+  errorText: ["No such section", "Not found"],
+  page: { renderReady, pageState, seedTheme, geometryClaimsFor, geometryAudit },
 };
 await runCheck(config);
 ```
 
 Routes are what the harness visits; themes are what it visits them in; the
-adapter teaches the harness how your app boots and when it is ready;
+page adapter teaches the harness how your app boots and when it is ready;
 `geometryClaimsFor` hands each route the layout assertions only your app can
 state. Results compare against the committed baseline, so a theme change that
 moves what the page measures shows up as a diff.
+
+Studio runs the harness twice: the modal layout at 1280x800, then the drawer
+layout at 480x900 with `?mode=drawer` on every route. Each layout keeps its
+own baseline (`baseline.json`, `baseline-drawer.json`), both committed, while
+the captures beside them (`out/`, `out-drawer/`) are gitignored regenerations.
 
 <!-- USER COPY SLOT: check-close — CI wiring (which routes, which gates block merge). -->

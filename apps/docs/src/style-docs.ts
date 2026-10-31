@@ -13,14 +13,7 @@
  * and the first group added to the contract would leave the site describing a
  * method that no longer exists.
  */
-import { renderSkill } from "@spinjs/theme/skill";
-import template from "../../../packages/spin/skill/SKILL.md?raw";
-import darkTech from "../../../packages/spin/skill/dark-tech-cinematic.md?raw";
-import editorial from "../../../packages/spin/skill/editorial-minimalism.md?raw";
-import agency from "../../../packages/spin/skill/high-end-agency.md?raw";
-import brutalism from "../../../packages/spin/skill/industrial-brutalism.md?raw";
-import morph from "../../../packages/spin/skill/morphism.md?raw";
-import soft from "../../../packages/spin/skill/warm-soft-saas.md?raw";
+import { SKILL_TEXT, styleOrder, styleSources } from "@spinjs/spin/kit/skill";
 
 /** Where the skill is served from, so an agent can install it. */
 export const SKILL_DIR = "/skill/spin-theme";
@@ -35,17 +28,12 @@ export const SKILL_PATH = `${SKILL_DIR}/SKILL.md`;
  * group list, so the checklist in the file is the contract's list and not a
  * copy of it that can fall behind.
  */
-export const SKILL_TEXT: string = renderSkill(template);
+export { SKILL_TEXT };
 
 /** The style references, in the order the skill lists them. */
-const SOURCES: readonly (readonly [string, string])[] = [
-  ["dark-tech-cinematic", darkTech],
-  ["editorial-minimalism", editorial],
-  ["high-end-agency", agency],
-  ["industrial-brutalism", brutalism],
-  ["morphism", morph],
-  ["warm-soft-saas", soft],
-];
+const SOURCES: readonly (readonly [string, string])[] = styleOrder().map(
+  (slug) => [slug, styleSources()[slug] ?? ""] as const,
+);
 
 /** One style reference: what it is, and the whole of it. */
 export interface StyleReference {
@@ -108,32 +96,13 @@ function slugOf(title: string): string {
 }
 
 /**
- * The order the skill lists the styles in.
- *
- * The skill's own table is the order, because the skill is what an agent
- * reads: a reference that is listed there and nowhere else would be a
- * reference nobody finds.
- */
-function declaredOrder(): readonly string[] {
-  const at = SKILL_TEXT.indexOf("The style references travel with the skill");
-  if (at === -1) return [];
-  const table = SKILL_TEXT.slice(at).split("\n## ")[0] ?? "";
-  const order: string[] = [];
-  for (const match of table.matchAll(/\|\s*`([a-z0-9-]+)`\s*\|/g)) {
-    order.push(match[1]);
-  }
-  return order;
-}
-
-/**
  * Every style reference, in the order the skill lists them.
  *
  * A file the skill does not list still appears, at the end: the list is an
  * order, not a filter.
  */
 export function styleReferences(): readonly StyleReference[] {
-  const order = declaredOrder();
-  const read = SOURCES.map(([file, text]) => {
+  return SOURCES.map(([file, text]) => {
     const { data, body } = frontMatter(text);
     const slug = data["slug"] ?? file;
     return {
@@ -146,11 +115,6 @@ export function styleReferences(): readonly StyleReference[] {
       href: `${SKILL_DIR}/${file}.md`,
     } satisfies StyleReference;
   });
-  const known = new Set(order);
-  return [
-    ...order.flatMap((slug) => read.filter((style) => style.slug === slug)),
-    ...read.filter((style) => !known.has(style.slug)),
-  ];
 }
 
 /**

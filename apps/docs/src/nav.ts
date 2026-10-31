@@ -33,19 +33,9 @@ export const TOP_SECTIONS: readonly (NavLink & {
   {
     title: "Docs",
     href: "/guide/install",
-    active: ["/why", "/guide"],
+    active: ["/why", "/guide", "/themes", "/tokens", "/utilities", "/tooling"],
   },
   { title: "Components", href: "/components", active: ["/components"] },
-  {
-    title: "Themes",
-    href: "/themes",
-    active: ["/themes", "/tokens", "/utilities"],
-  },
-  {
-    title: "Tooling",
-    href: "/tooling/lints",
-    active: ["/tooling"],
-  },
 ];
 
 /** The Docs world's left rail. */

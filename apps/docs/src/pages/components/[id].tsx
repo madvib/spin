@@ -12,15 +12,19 @@ import {
   type PrimitiveContract,
   primitiveContracts,
 } from "@spinjs/preset";
+import { exampleSources } from "@spinjs/components/examples";
+import "@spinjs/components/examples";
 import { A, useParams } from "@solidjs/router";
 import { EXAMPLE_ONLOAD, Specimen } from "@spinjs/kit";
 import { COMPONENT_GROUPS } from "../../nav.ts";
 import { Chip, Section } from "../../bits.tsx";
 import { ExampleRow } from "../../example-row.tsx";
 
-/** The component ids in rail order, for the prev/next footer. */
+/** The primitive ids in rail order, for the prev/next footer. */
 const RAIL_ORDER: readonly string[] = COMPONENT_GROUPS.flatMap((group) =>
-  group.items.map((item) => item.name)
+  group.items
+    .filter((item) => !item.href.includes("/machine-"))
+    .map((item) => item.name)
 );
 
 export default function ComponentPage(): JSX.Element {
@@ -53,45 +57,87 @@ export default function ComponentPage(): JSX.Element {
         when={machineId() === null}
         fallback={<MachineDetail name={machineId() ?? ""} />}
       >
-        <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+        <main class="px-6 py-6">
           <Show when={category()}>
             <p class="overline text-text-muted">{category()}</p>
           </Show>
-          <h1>{params.id}</h1>
+          <h1 class="mt-0">{params.id}</h1>
           <Show when={examples()}>
             {(ex) => <p class="max-w-screen-md text-text-muted">{ex().note}</p>}
           </Show>
 
-          <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
-                tags
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <For each={contract()!.tags}>
-                  {(tag) => <Chip>{tag}</Chip>}
-                </For>
-                <Show when={contract()!.tags.length === 0}>
-                  <span class="text-sm text-text-muted">
-                    none — a utility family
-                  </span>
-                </Show>
+          <Show
+            when={(examples()?.classes ?? []).length > 0}
+            fallback={
+              <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                    tags
+                  </p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <For each={contract()!.tags}>
+                      {(tag) => <Chip>{tag}</Chip>}
+                    </For>
+                    <Show when={contract()!.tags.length === 0}>
+                      <span class="text-sm text-text-muted">
+                        none — a utility family
+                      </span>
+                    </Show>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                    variants
+                  </p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <For each={contract()!.variants}>
+                      {(variant) => <Chip>{variant}</Chip>}
+                    </For>
+                    <Show when={contract()!.variants.length === 0}>
+                      <span class="text-sm text-text-muted">none</span>
+                    </Show>
+                  </div>
+                </div>
               </div>
+            }
+          >
+            <div class="mt-4 overflow-x-auto rounded-md border border-border bg-surface">
+              <table class="m-0 w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr class="border-b border-border bg-surface-raised text-text-muted">
+                    <th class="px-3 py-2 font-mono text-xs font-medium">
+                      Class / Tag
+                    </th>
+                    <th class="px-3 py-2 font-mono text-xs font-medium">
+                      Type
+                    </th>
+                    <th class="px-3 py-2 text-xs font-medium">
+                      Description
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={examples()?.classes ?? []}>
+                    {(item) => (
+                      <tr class="border-b border-border last:border-b-0">
+                        <td class="whitespace-nowrap px-3 py-1 font-mono text-xs font-medium text-primary">
+                          <code>{item.name}</code>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-1 font-mono text-xs text-text-muted">
+                          <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 font-mono text-xs">
+                            {item.kind}
+                          </span>
+                        </td>
+                        <td class="px-3 py-1 text-xs text-text-muted">
+                          {item.description}
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
             </div>
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
-                variants
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <For each={contract()!.variants}>
-                  {(variant) => <Chip>{variant}</Chip>}
-                </For>
-                <Show when={contract()!.variants.length === 0}>
-                  <span class="text-sm text-text-muted">none</span>
-                </Show>
-              </div>
-            </div>
-          </div>
+          </Show>
 
           <div class="mt-8">
             <For each={examples()?.rows}>
@@ -138,14 +184,6 @@ export default function ComponentPage(): JSX.Element {
             </Section>
           </Show>
 
-          <Section title="What it spends">
-            <div class="mt-3 flex flex-wrap gap-2">
-              <For each={contract()!.reads}>
-                {(read) => <Chip>{read}</Chip>}
-              </For>
-            </div>
-          </Section>
-
           <Show when={contract()!.component.length > 0}>
             <Section title="Component tokens — what the theme decides">
               <div class="mt-4 overflow-x-auto">
@@ -181,7 +219,7 @@ export default function ComponentPage(): JSX.Element {
             </Section>
           </Show>
 
-          <hr class="mt-16" />
+          <hr />
           <nav
             class="flex items-center justify-between gap-4 pt-6"
             aria-label="more components"
@@ -219,37 +257,21 @@ export default function ComponentPage(): JSX.Element {
   );
 }
 function MachineDetail(props: { name: string }): JSX.Element {
-  const sources = import.meta.glob(
-    "../../../../../packages/components/src/*/examples/*.html",
-    { query: "?raw", import: "default", eager: true },
-  ) as Record<string, string>;
-  const rows = () =>
-    Object.entries(sources)
-      .filter(([path]) => path.split("/").at(-3) === props.name)
-      .map(([path, html]) => ({
-        name: path.split("/").at(-1)?.slice(0, -".html".length) ?? path,
-        html,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+  const rows = () => exampleSources().get(props.name) ?? [];
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
-      <p class="text-sm">
-        <A href="/components" class="text-text-muted hover:text-text">
-          ← components
-        </A>
-      </p>
-      <h1>{props.name}</h1>
+    <main class="px-4 py-6">
+      <h1 class="mt-0">{props.name}</h1>
       <p class="text-text-muted max-w-screen-md">
-        Interactive machine component. Requires the runtime (@spinjs/runtime):
-        markup drives a statechart.
+        <code class="font-mono text-sm">spin component copy {props.name} {"<example>"}</code>
       </p>
-      <div class="mt-8">
+      <div class="mt-4">
         <For each={rows()}>
           {(row) => (
             <ExampleRow
-              name={row.name}
-              html={`<${props.name}-${row.name}></${props.name}-${row.name}>`}
-              onLoad={EXAMPLE_ONLOAD[`${props.name}/${row.name}`]}
+              name={row.stem}
+              html={`<${props.name}-${row.stem} class="flex w-full min-w-0 flex-col items-center"></${props.name}-${row.stem}>`}
+              source={row.html}
+              onLoad={EXAMPLE_ONLOAD[`${props.name}/${row.stem}`]}
             />
           )}
         </For>

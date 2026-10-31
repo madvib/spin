@@ -133,7 +133,7 @@ export default function Tokens(): JSX.Element {
                     <For each={starterList}>
                       {(name) => (
                         <td
-                          class={`py-2 pr-4 font-mono text-xs break-all ${
+                          class={`font-mono text-xs break-all ${
                             theme() === name ? "text-text font-semibold" : ""
                           }`}
                         >

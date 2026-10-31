@@ -44,7 +44,7 @@ export default function Check(): JSX.Element {
             {(state) => (
               <button
                 type="button"
-                class={`px-3 py-2 text-sm ${
+                class={`bare px-3 py-2 text-sm ${
                   state === "disabled" ? "opacity-40" : ""
                 }`}
                 disabled={state === "disabled"}

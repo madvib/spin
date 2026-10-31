@@ -14,7 +14,9 @@
  */
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { COMPONENT_GROUPS, COMPONENT_ICONS } from "@spinjs/components";
+import { COMPONENT_ICONS, UNIFIED_COMPONENT_GROUPS } from "@spinjs/components";
+import { exampleSources } from "@spinjs/components/examples";
+import "@spinjs/components/examples";
 import {
   examplesFor,
   primitiveCategories,
@@ -24,11 +26,7 @@ import {
 } from "@spinjs/preset";
 import { A } from "@solidjs/router";
 
-const MACHINE_SOURCES = import.meta.glob(
-  "../../../../../packages/components/src/*/examples/*.html",
-  { query: "?raw", import: "default", eager: true },
-) as Record<string, string>;
-
+const MACHINE_SOURCES = exampleSources();
 
 const MACHINE_GROUPS: readonly {
   readonly id: string;
@@ -39,20 +37,14 @@ const MACHINE_GROUPS: readonly {
     readonly mountHtml: string;
     readonly manifest: { readonly commands: readonly string[] };
   }[];
-}[] = COMPONENT_GROUPS.map((group) => ({
+}[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
   id: group.id,
   label: group.label,
   rows: group.members
-    .filter((name) =>
-      Object.keys(MACHINE_SOURCES).some((path) =>
-        path.split("/").at(-3) === name
-      )
-    )
+    .map((member) => member.replace(/^component-/, ""))
+    .filter((name) => MACHINE_SOURCES.has(name))
     .map((name) => {
-      const first = Object.keys(MACHINE_SOURCES).find((path) =>
-        path.split("/").at(-3) === name
-      )
-        ?.split("/").at(-1)?.slice(0, -".html".length) ?? "basic";
+      const first = MACHINE_SOURCES.get(name)?.[0]?.stem ?? "basic";
       return {
         name,
         icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
