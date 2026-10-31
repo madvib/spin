@@ -10,6 +10,13 @@
           "display": "swap"
         },
         {
+          "family": "Bricolage Grotesque",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bricolage-grotesque:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "200 800",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
           "family": "Space Grotesk",
           "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
           "weight": "300 700",
@@ -138,6 +145,14 @@
       "$type": "color",
       "$value": "#1a1a1a"
     },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
+    },
     "on-semantic-success": {
       "$type": "color",
       "$value": "#ffffff"
@@ -169,7 +184,7 @@
     "on-danger": {
       "$type": "color",
       "$value": "{color.on-semantic-error}",
-      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` \u2014 the role the contract requires, the floor is measured on, and the danger button and the danger badge wear \u2014 so the two names can never disagree."
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
     },
     "on-semantic-info": {
       "$type": "color",
@@ -261,7 +276,7 @@
       "heading": {
         "$type": "fontFamily",
         "$value": "Archivo Black, ui-sans-serif, system-ui, sans-serif",
-        "$description": "Loud, blocky, unapologetic \u2014 the poster voice."
+        "$description": "Loud, blocky, unapologetic — the poster voice."
       },
       "body": {
         "$value": "{font.family.sans}",
@@ -277,8 +292,8 @@
       },
       "brand": {
         "$type": "fontFamily",
-        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The logotype face \u2014 one brand, every starter."
+        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -373,7 +388,7 @@
   },
   "opacity": {
     "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme \u2014 a fraction is a measurement, not a preference \u2014 but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
+    "$description": "How much of a thing is shown, as a fraction. The fractions are the same in every theme — a fraction is a measurement, not a preference — but this theme's flat, high-chroma fills lose their punch long before a muted one would, so the steps are named for what each is for over its own surfaces.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -565,7 +580,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "1rem"

@@ -1,0 +1,71 @@
+<script lang="ts">
+  import { combobox } from "../combobox.presentation.ts";
+
+  const machine = combobox({
+    placeholder: "Search directory...",
+    items: [
+      { value: "ada", label: "Ada Lovelace — Analytical Engine" },
+      { value: "grace", label: "Grace Hopper — Compiler Systems" },
+      { value: "margaret", label: "Margaret Hamilton — Flight Software" },
+      { value: "barbara", label: "Barbara Liskov — Distributed Systems" },
+      { value: "radia", label: "Radia Perlman — Network Routing" },
+    ],
+  });
+</script>
+
+<div class="relative w-64 max-w-full" {...machine.getRootProps()}>
+  <label
+    class={["block text-sm font-medium text-text transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
+    {...machine.getLabelProps()}
+  >Assignee</label>
+
+  <div class="relative" {...machine.getControlProps()}>
+    <input
+      class={["w-full pr-16 transition-colors duration-fast ease-decelerate placeholder:text-text-muted", { "opacity-60 cursor-not-allowed": machine.disabled, "border-border-strong": machine.invalid, "border-primary": machine.open }]}
+      placeholder="Search directory..."
+      {...machine.getInputProps()}
+    />
+
+    <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-1">
+      <button
+        class={["ghost icon s-sm"]}
+        {...machine.getClearTriggerProps()}
+      ><span aria-hidden="true"><span class="inline-block icon-sm i-lucide-x" aria-hidden="true"></span></span></button>
+      <button
+        class={["ghost icon s-sm", { "cursor-not-allowed": machine.disabled }]}
+        {...machine.getTriggerProps()}
+      ><span aria-hidden="true" class={["text-xs transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]} {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span></button>
+    </div>
+
+    <div
+      class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
+      {...machine.getPositionerProps()}
+    >
+      <div
+        class={["overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "opacity-60": machine.disabled }]}
+        {...machine.getContentProps()}
+      >
+        <div class={["max-h-[15rem] overflow-y-auto p-1 transition-opacity duration-fast ease-decelerate", { "hidden": machine.empty }]} {...machine.getListProps()}>
+          <template for={machine.getBlocks()} as={block} key={block.id}>
+            <div class="py-1" {...machine.getItemGroupProps(block)}>
+              <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <template for={machine.getRows(block)} as={row} key={row.value}>
+                <div
+                  class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate", { "bg-surface": machine.highlightedValue === row.value, "text-primary": machine.value.includes(row.value), "cursor-not-allowed opacity-50": machine.disabled }]}
+                  {...machine.getItemProps(row)}
+                >
+                  <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
+                  <span
+                    aria-hidden="true"
+                    class={["shrink-0 text-xs text-primary scale-50 opacity-0 transition-all duration-fast ease-decelerate", { "scale-100 opacity-100": machine.value.includes(row.value) }]}
+                    {...machine.getItemIndicatorProps(row)}
+                  ><span class="inline-block icon-sm i-lucide-check" aria-hidden="true"></span></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

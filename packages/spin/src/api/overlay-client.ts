@@ -43,7 +43,7 @@ export const OVERLAY_SCRIPT =
   );
   fab.setAttribute("aria-label", "Open the theme studio");
   fab.setAttribute("aria-expanded", "false");
-  fab.textContent = "Theme";
+  fab.textContent = "Studio";
 
   const dot = document.createElement("span");
   dot.setAttribute(
@@ -65,12 +65,57 @@ export const OVERLAY_SCRIPT =
       encodeURIComponent(location.origin) + "&mode=" + host.dataset.mode + '"></iframe>',
   ].join("");
 
-  let open = false;
+  // The drawer's live width: a grip on the inner edge, dragged to
+  // resize. Pointer events on the frame go dark mid-drag, so the move
+  // never drops into the studio when the pointer crosses it.
+  const grip = document.createElement("div");
+  grip.setAttribute("aria-hidden", "true");
+  grip.setAttribute(
+    "style",
+    "position:absolute;top:0;bottom:0;width:6px;cursor:col-resize;z-index:1;display:none;",
+  );
+  host.appendChild(grip);
+  let dragging = false;
+  grip.addEventListener("pointerdown", function (event) {
+    dragging = true;
+    grip.setPointerCapture(event.pointerId);
+    const frame = host.querySelector("[data-spin-studio]");
+    if (frame) frame.style.pointerEvents = "none";
+    event.preventDefault();
+  });
+  grip.addEventListener("pointermove", function (event) {
+    if (!dragging) return;
+    const rect = host.getBoundingClientRect();
+    const raw = side === "left" ? event.clientX - rect.left : rect.right - event.clientX;
+    const next = Math.min(window.innerWidth * 0.85, Math.max(360, raw));
+    host.style.width = next + "px";
+    try {
+      localStorage.setItem("spin-drawer-width", next + "px");
+    } catch {
+      // Private mode keeps the session width.
+    }
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    const frame = host.querySelector("[data-spin-studio]");
+    if (frame) frame.style.pointerEvents = "";
+  }
+  grip.addEventListener("pointerup", endDrag);
+  grip.addEventListener("pointercancel", endDrag);
+  function syncGrip(mode) {
+    const drawer = mode === "drawer";
+    grip.style.display = drawer && open ? "block" : "none";
+    grip.style.left = side === "left" ? "" : "0";
+    grip.style.right = side === "left" ? "0" : "";
+    if (!drawer) endDrag();
+  }
   function setOpen(next) {
     open = next;
     host.style.display = next ? "block" : "none";
     fab.style.display = next ? "none" : "flex";
     fab.setAttribute("aria-expanded", String(next));
+    syncGrip(host.dataset.mode);
   }
   let side = "right";
   try {
@@ -83,14 +128,21 @@ export const OVERLAY_SCRIPT =
     const edge = side === "left"
       ? "top:0;left:0;bottom:0;"
       : "top:0;right:0;bottom:0;";
+    let width = "38%";
+    try {
+      width = localStorage.getItem("spin-drawer-width") ?? "38%";
+    } catch {
+      // Private mode keeps the default.
+    }
     host.setAttribute(
       "style",
       mode === "drawer"
-        ? "position:fixed;" + edge + "z-index:50;width:38%;" +
-          "min-width:480px;display:" + (open ? "block" : "none") + ";overflow:hidden;"
+        ? "position:fixed;" + edge + "z-index:50;width:" + width + ";" +
+          "min-width:360px;max-width:85vw;display:" + (open ? "block" : "none") + ";overflow:hidden;"
         : "position:fixed;inset:8px;z-index:50;display:" + (open ? "block" : "none") +
           ";overflow:hidden;",
     );
+    syncGrip(mode);
     const frame = host.querySelector("[data-spin-studio]");
     if (frame) {
       frame.contentWindow?.postMessage(

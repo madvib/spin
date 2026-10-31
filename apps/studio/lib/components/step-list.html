@@ -1,0 +1,20 @@
+<script lang="ts">
+import { listbox } from "@spinjs/components/listbox";
+
+const machine = listbox({});
+</script>
+<div {...machine.getContentProps()}>
+  <template for={machine.getBlocks()} as={block} key={block.id}>
+    <template for={machine.getRows(block)} as={row} key={row.value}>
+      <div
+        class="flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken hover:text-text aria-[selected=true]:bg-surface-sunken aria-[selected=true]:text-text data-[highlighted]:bg-surface-sunken data-[highlighted]:text-text"
+        {...machine.getItemProps(row)}
+      >
+        <span class="truncate"
+          {...machine.getItemTextProps(row)}>{row.label}</span>
+        <span
+          class="ms-auto truncate text-xs text-text-muted">{row.value}</span>
+      </div>
+    </template>
+  </template>
+</div>

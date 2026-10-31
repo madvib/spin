@@ -1,379 +1,1013 @@
-/**
- * The brand mark, in two states: the hero and the corner.
- *
- * The HERO is the spinnaker. An orb web — nine spokes from a hub, four rings
- * of sagging capture silk — spins itself in; the silk pays out from the hub;
- * the spider descends with an overshoot. Then the physics take over: the silk
- * and the spider swing as ONE body pivoting at the hub, a damped pendulum the
- * faintest draft keeps alive. Hover wakes it — the sway picks up and the
- * spider climbs its own silk onto the web; leaving lets it climb back down.
- * Shortening string quickens the beat, because that is what a pendulum does.
- *
- * The animation lives in the asset: SMIL for the spin-in, one rAF loop for the
- * pendulum and the crawl (paused when the tab is hidden, and skipped whole
- * under prefers-reduced-motion).
- *
- * The CORNER is the same creature at the size a corner mark actually
- * appears: the spider reduced to a FILLED silhouette, one ink that inherits
- * `currentColor` so it wears whatever surface it lands on, with spin's
- * hourglass cut out of its abdomen. The linework that suits a hero does not
- * survive a corner: at 16px a hairline is a grey smudge, and a mark that
- * smudges is no mark at all. A filled shape holds its edge, and the
- * hourglass — a bright diamond cut out of the dark body — is the one detail
- * that still reads that small.
- */
+// Brand mark and wordmark: foreground interactive black-widow orb web and corner logo.
+import { animate } from "animejs";
 import type { JSX } from "solid-js";
-import { For, onCleanup, onMount } from "solid-js";
+import { createEffect, For, onCleanup, onMount } from "solid-js";
 import { Web } from "./web.tsx";
 
 const RAD = Math.PI / 180;
-const HUB = { x: 60, y: 13 };
-const SILK_BOTTOM = 71; // where the spider hangs, at rest
-const CLIMB = 44; // how far up it crawls on hover
-const GRAVITY = 473; // tuned for a ~2.2s beat at full length
+const HUB = { x: 268, y: 224 };
 
-/** The point r units out from the hub along a spoke angle. */
-const at = (r: number, deg: number): { x: number; y: number } => ({
-  x: HUB.x + r * Math.cos(deg * RAD),
-  y: HUB.y + r * Math.sin(deg * RAD),
+const SPOKE_ANGLES: readonly number[] = [
+  -82, -52, -22, 8, 38, 68, 98, 128, 158, 188, 218, 248,
+];
+const SPOKE_RADII: readonly number[] = [
+  208, 232, 240, 230, 218, 202, 200, 220, 238, 242, 224, 204,
+];
+const RINGS: readonly number[] = [34, 66, 102, 140, 182];
+
+export interface WebAnchorNode {
+  readonly id: string;
+  readonly spoke: number;
+  readonly ring: number;
+  readonly token: string;
+  readonly label: string;
+  readonly dx: number;
+  readonly dy: number;
+}
+
+export const WEB_ANCHOR_NODES: readonly WebAnchorNode[] = [
+  { id: "primary", spoke: 1, ring: 3, token: "--color-primary", label: "color.primary", dx: 12, dy: -8 },
+  { id: "spacing", spoke: 4, ring: 2, token: "--spacing-4", label: "spacing.4", dx: 12, dy: 14 },
+  { id: "radius", spoke: 7, ring: 3, token: "--radius-md", label: "radius.md", dx: -82, dy: 16 },
+  { id: "surface", spoke: 9, ring: 2, token: "--color-surface", label: "color.surface", dx: -92, dy: -10 },
+  { id: "motion", spoke: 11, ring: 3, token: "--motion-duration-fast", label: "motion.fast", dx: -78, dy: -12 },
+];
+
+const PLUCK_TOKENS: readonly string[] = [
+  "--color-primary",
+  "--color-on-primary",
+  "--color-surface-raised",
+  "--color-text",
+  "--color-border-strong",
+  "--spacing-4",
+  "--radius-md",
+  "--shadow-lg",
+  "--font-family-brand",
+  "--motion-duration-fast",
+  "--color-semantic-error",
+  "--color-accent",
+];
+
+function ptAt(r: number, deg: number): { x: number; y: number } {
+  return {
+    x: HUB.x + r * Math.cos(deg * RAD),
+    y: HUB.y + r * Math.sin(deg * RAD),
+  };
+}
+
+interface SilkSegment {
+  readonly ringIdx: number;
+  readonly spokeIdx: number;
+  readonly ax: number;
+  readonly ay: number;
+  readonly bx: number;
+  readonly by: number;
+  readonly baseCx: number;
+  readonly baseCy: number;
+  readonly nx: number;
+  readonly ny: number;
+}
+
+const SPOKE_TIPS: readonly { x: number; y: number }[] = SPOKE_ANGLES.map(
+  (deg, i) => ptAt(SPOKE_RADII[i] ?? 214, deg),
+);
+
+const SPOKE_PATHS: readonly string[] = SPOKE_TIPS.map(
+  (p) => `M${HUB.x} ${HUB.y} L${p.x.toFixed(1)} ${p.y.toFixed(1)}`,
+);
+
+const FRAME_PATHS: readonly string[] = SPOKE_TIPS.map((a, i) => {
+  const b = SPOKE_TIPS[(i + 1) % SPOKE_TIPS.length]!;
+  const midX = (a.x + b.x) * 0.5;
+  const midY = (a.y + b.y) * 0.5;
+  const cx = midX + (HUB.x - midX) * 0.09;
+  const cy = midY + (HUB.y - midY) * 0.09;
+  return `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
 });
 
-const SPOKES: readonly number[] = [...Array(9)].map((_, i) => 20 + i * 17.5);
-const RINGS: readonly number[] = [15, 26, 37, 47];
+const GUY_LINES: readonly string[] = [
+  `M0 12 L${SPOKE_TIPS[9]!.x.toFixed(1)} ${SPOKE_TIPS[9]!.y.toFixed(1)}`,
+  `M520 10 L${SPOKE_TIPS[1]!.x.toFixed(1)} ${SPOKE_TIPS[1]!.y.toFixed(1)}`,
+  `M520 462 L${SPOKE_TIPS[4]!.x.toFixed(1)} ${SPOKE_TIPS[4]!.y.toFixed(1)}`,
+  `M0 454 L${SPOKE_TIPS[7]!.x.toFixed(1)} ${SPOKE_TIPS[7]!.y.toFixed(1)}`,
+  `M${HUB.x} 0 L${HUB.x} ${HUB.y}`,
+];
 
-const SPOKE_PATHS: readonly string[] = SPOKES.map((deg) => {
-  const p = at(48, deg);
-  return `M${HUB.x} ${HUB.y} L${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
-});
-
-/** Capture silk: a sagging arc between each pair of spokes, per ring. */
-const RING_PATHS: readonly (readonly string[])[] = RINGS.map((r) =>
-  SPOKES.slice(0, -1).map((deg, i) => {
-    const a = at(r, deg);
-    const b = at(r, SPOKES[i + 1]);
-    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    const c = {
-      x: mid.x + (HUB.x - mid.x) * 0.16,
-      y: mid.y + (HUB.y - mid.y) * 0.16,
+const SILK_SEGMENTS: readonly SilkSegment[] = RINGS.flatMap((r, ringIdx) =>
+  SPOKE_ANGLES.map((deg, spokeIdx) => {
+    const nextDeg = SPOKE_ANGLES[(spokeIdx + 1) % SPOKE_ANGLES.length]!;
+    const a = ptAt(r, deg);
+    const b = ptAt(r, nextDeg);
+    const midX = (a.x + b.x) * 0.5;
+    const midY = (a.y + b.y) * 0.5;
+    const toHubX = HUB.x - midX;
+    const toHubY = HUB.y - midY;
+    const dist = Math.hypot(toHubX, toHubY) || 1;
+    const sag = 0.13;
+    return {
+      ringIdx,
+      spokeIdx,
+      ax: a.x,
+      ay: a.y,
+      bx: b.x,
+      by: b.y,
+      baseCx: midX + toHubX * sag,
+      baseCy: midY + toHubY * sag,
+      nx: toHubX / dist,
+      ny: toHubY / dist,
     };
-    return `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${c.x.toFixed(1)} ${
-      c.y.toFixed(1)
-    } ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
   })
 );
 
-const DRAW = (begin: string, dur: string): JSX.Element => (
-  <animate
-    attributeName="stroke-dashoffset"
-    values="1;0"
-    dur={dur}
-    begin={begin}
-    fill="freeze"
-  />
-);
+function segmentPath(seg: SilkSegment, offset = 0): string {
+  const cx = seg.baseCx + seg.nx * offset;
+  const cy = seg.baseCy + seg.ny * offset;
+  return `M${seg.ax.toFixed(1)} ${seg.ay.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${seg.bx.toFixed(1)} ${seg.by.toFixed(1)}`;
+}
 
-/**
- * The hero mark: the spinnaker, animated.
- *
- * The class decides the box; the ink is whatever the class inherits. Under
- * `prefers-reduced-motion` the drawing is complete and still: the spin-in is
- * skipped, the physics never run, and the spider hangs where it hangs.
- */
-export function Mark(props: { class?: string }) {
-  const reduced = globalThis.matchMedia?.(
-    "(prefers-reduced-motion: reduce)",
-  ).matches ?? false;
+/** 2-bone analytic Inverse Kinematics solver in spider-local coordinates. */
+function solveIK(
+  hx: number,
+  hy: number,
+  fx: number,
+  fy: number,
+  l1: number,
+  l2: number,
+  bendSign: number,
+): [number, number] {
+  const dx = fx - hx;
+  const dy = fy - hy;
+  let d = Math.hypot(dx, dy);
+  d = Math.max(Math.abs(l1 - l2) + 0.05, Math.min(l1 + l2 - 0.05, d));
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const mx = hx + a * (dx / d);
+  const my = hy + a * (dy / d);
+  const nx = (-dy / d) * bendSign;
+  const ny = (dx / d) * bendSign;
+  return [mx + h * nx, my + h * ny];
+}
 
-  let pendulum: SVGGElement | undefined;
-  let silk: SVGLineElement | undefined;
-  let climber: SVGGElement | undefined;
-  let legsA: SVGGElement | undefined;
-  let legsB: SVGGElement | undefined;
+interface LegRig {
+  readonly side: -1 | 1;
+  readonly pair: 0 | 1 | 2 | 3;
+  readonly hipX: number;
+  readonly hipY: number;
+  readonly restFootX: number;
+  readonly restFootY: number;
+  readonly l1: number;
+  readonly l2: number;
+  readonly bend: -1 | 1;
+  readonly archX: number;
+  readonly archY: number;
+}
 
-  // The loop and the pointer share these the direct way — no reactivity
-  // needed between an event and a frame.
-  let hovered = false;
-  let crawlTarget = 0;
-  let crawl = 0;
-  let kick = 0;
+// Long, spindly, razor-arched black-widow proportions (long front & rear reach)
+const LEG_RIGS: readonly LegRig[] = [
+  // Left 4 legs
+  { side: -1, pair: 0, hipX: -4.8, hipY: -10.5, restFootX: -36, restFootY: -54, l1: 28, l2: 38, bend: 1, archX: -6, archY: -8 },
+  { side: -1, pair: 1, hipX: -6.2, hipY: -7.0, restFootX: -54, restFootY: -18, l1: 27, l2: 35, bend: 1, archX: -8, archY: -4 },
+  { side: -1, pair: 2, hipX: -6.0, hipY: -3.2, restFootX: -50, restFootY: 18, l1: 24, l2: 31, bend: -1, archX: -7, archY: 4 },
+  { side: -1, pair: 3, hipX: -4.5, hipY: 0.5, restFootX: -34, restFootY: 56, l1: 29, l2: 39, bend: -1, archX: -5, archY: 9 },
+  // Right 4 legs
+  { side: 1, pair: 0, hipX: 4.8, hipY: -10.5, restFootX: 36, restFootY: -54, l1: 28, l2: 38, bend: -1, archX: 6, archY: -8 },
+  { side: 1, pair: 1, hipX: 6.2, hipY: -7.0, restFootX: 54, restFootY: -18, l1: 27, l2: 35, bend: -1, archX: 8, archY: -4 },
+  { side: 1, pair: 2, hipX: 6.0, hipY: -3.2, restFootX: 50, restFootY: 18, l1: 24, l2: 31, bend: 1, archX: 7, archY: 4 },
+  { side: 1, pair: 3, hipX: 4.5, hipY: 0.5, restFootX: 34, restFootY: 56, l1: 29, l2: 39, bend: 1, archX: 5, archY: 9 },
+];
 
-  const wake = () => {
-    hovered = true;
-    crawlTarget = 1;
-    kick += 0.7;
+export interface MarkPluckEvent {
+  readonly token: string;
+  readonly x: number;
+  readonly y: number;
+  readonly ring: number;
+  readonly spoke: number;
+}
+
+export function Mark(props: {
+  class?: string;
+  activeAnchor?: string;
+  reweaveKey?: number;
+  onPluck?: (event: MarkPluckEvent) => void;
+}): JSX.Element {
+  const reduced =
+    globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ??
+    false;
+
+  let svgEl: SVGSVGElement | undefined;
+  let spiderGroup: SVGGElement | undefined;
+  let draglineEl: SVGLineElement | undefined;
+  let trailPathEl: SVGPathElement | undefined;
+  let rippleEl: SVGCircleElement | undefined;
+  let rippleOuterEl: SVGCircleElement | undefined;
+  let rippleCoreEl: SVGCircleElement | undefined;
+  let fangLeftEl: SVGPathElement | undefined;
+  let fangRightEl: SVGPathElement | undefined;
+
+  const spokeEls: SVGPathElement[] = [];
+  const silkEls: SVGPathElement[] = [];
+  const nodeEls: SVGCircleElement[] = [];
+  const legFemurEls: SVGPathElement[] = [];
+  const legTibiaEls: SVGPathElement[] = [];
+  const legJointEls: SVGCircleElement[] = [];
+
+  const silkDisp = new Float32Array(SILK_SEGMENTS.length);
+  const silkVel = new Float32Array(SILK_SEGMENTS.length);
+
+  let spiderX = HUB.x;
+  let spiderY = HUB.y + 28;
+  let targetX = HUB.x;
+  let targetY = HUB.y + 28;
+  let spiderAngle = 0;
+  let targetAngle = 0;
+  let pointerInside = false;
+  let lastPointerX = HUB.x;
+  let lastPointerY = HUB.y;
+  let strikeImpulse = 0;
+
+  const trailPoints: { x: number; y: number }[] = [
+    { x: HUB.x, y: HUB.y },
+    { x: HUB.x, y: HUB.y + 28 },
+  ];
+
+  const toLocal = (
+    wx: number,
+    wy: number,
+    bx: number,
+    by: number,
+    deg: number,
+  ): [number, number] => {
+    const r = -deg * RAD;
+    const dx = wx - bx;
+    const dy = wy - by;
+    return [
+      dx * Math.cos(r) - dy * Math.sin(r),
+      dx * Math.sin(r) + dy * Math.cos(r),
+    ];
   };
-  const sleep = () => {
-    hovered = false;
-    crawlTarget = 0;
+
+  const toWorld = (
+    lx: number,
+    ly: number,
+    bx: number,
+    by: number,
+    deg: number,
+  ): [number, number] => {
+    const r = deg * RAD;
+    return [
+      bx + lx * Math.cos(r) - ly * Math.sin(r),
+      by + lx * Math.sin(r) + ly * Math.cos(r),
+    ];
   };
+
+  const footWorld = LEG_RIGS.map((rig) => {
+    const [wx, wy] = toWorld(rig.restFootX, rig.restFootY, spiderX, spiderY, 0);
+    return { x: wx, y: wy, fromX: wx, fromY: wy, toX: wx, toY: wy, stepT: 1 };
+  });
+
+  const renderLegs = (crouch = 0) => {
+    for (let i = 0; i < LEG_RIGS.length; i++) {
+      const rig = LEG_RIGS[i]!;
+      const foot = footWorld[i]!;
+      const [fxLocal, fyLocal] = toLocal(
+        foot.x,
+        foot.y,
+        spiderX,
+        spiderY,
+        spiderAngle,
+      );
+      const lift = foot.stepT < 1 ? Math.sin(foot.stepT * Math.PI) * 9.5 : 0;
+      const hx = rig.hipX;
+      const hy = rig.hipY + crouch * 0.4;
+      const tx = fxLocal + rig.side * lift * 0.45;
+      const ty = fyLocal - lift;
+      const [rawKx, rawKy] = solveIK(hx, hy, tx, ty, rig.l1, rig.l2, rig.bend);
+      const kx = rawKx + rig.archX * (1 + lift * 0.04);
+      const ky = rawKy + rig.archY;
+
+      // Tapered widow leg: thicker femur + needle-sharp arched tibia/tarsus
+      const midTx = (kx + tx) * 0.5 + rig.side * 3.2;
+      const midTy = (ky + ty) * 0.5 - 2.4;
+
+      legFemurEls[i]?.setAttribute(
+        "d",
+        `M${hx.toFixed(1)} ${hy.toFixed(1)} L${kx.toFixed(1)} ${ky.toFixed(1)}`,
+      );
+      legTibiaEls[i]?.setAttribute(
+        "d",
+        `M${kx.toFixed(1)} ${ky.toFixed(1)} Q${midTx.toFixed(1)} ${midTy.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`,
+      );
+      legJointEls[i]?.setAttribute("cx", kx.toFixed(1));
+      legJointEls[i]?.setAttribute("cy", ky.toFixed(1));
+    }
+  };
+
+  const pluckNear = (
+    px: number,
+    py: number,
+    impulse = 22,
+    emit = false,
+    forcedToken?: string,
+  ) => {
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < SILK_SEGMENTS.length; i++) {
+      const seg = SILK_SEGMENTS[i]!;
+      const d = Math.hypot(seg.baseCx - px, seg.baseCy - py);
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = i;
+      }
+      if (d < 108) {
+        const falloff = 1 - d / 108;
+        silkVel[i] =
+          (silkVel[i] ?? 0) +
+          impulse * falloff * (i % 2 === 0 ? 1 : -0.85);
+      }
+    }
+    if (emit) {
+      strikeImpulse = 1;
+      const hit = SILK_SEGMENTS[bestIdx]!;
+      const token =
+        forcedToken ??
+        PLUCK_TOKENS[(hit.spokeIdx + hit.ringIdx * 3) % PLUCK_TOKENS.length]!;
+      props.onPluck?.({
+        token,
+        x: Math.round(px),
+        y: Math.round(py),
+        ring: hit.ringIdx + 1,
+        spoke: hit.spokeIdx + 1,
+      });
+      if (!reduced && rippleEl && rippleOuterEl && rippleCoreEl) {
+        for (const el of [rippleEl, rippleOuterEl, rippleCoreEl]) {
+          el.setAttribute("cx", px.toFixed(1));
+          el.setAttribute("cy", py.toFixed(1));
+        }
+        animate(rippleEl, {
+          r: [3, 38],
+          opacity: [0.95, 0],
+          duration: 620,
+          ease: "outCubic",
+        });
+        animate(rippleOuterEl, {
+          r: [6, 64],
+          opacity: [0.55, 0],
+          duration: 820,
+          ease: "outCubic",
+        });
+        animate(rippleCoreEl, {
+          r: [2, 8, 3.5],
+          opacity: [1, 0.9, 0],
+          duration: 640,
+          ease: "outCubic",
+        });
+      }
+    }
+  };
+
+  const toSvgPoint = (e: PointerEvent): { x: number; y: number } | null => {
+    if (!svgEl) return null;
+    const rect = svgEl.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * 520,
+      y: ((e.clientY - rect.top) / rect.height) * 480,
+    };
+  };
+
+  const onPointerMove = (e: PointerEvent) => {
+    const pt = toSvgPoint(e);
+    if (!pt) return;
+    pointerInside = true;
+    const moveDist = Math.hypot(pt.x - lastPointerX, pt.y - lastPointerY);
+    lastPointerX = pt.x;
+    lastPointerY = pt.y;
+
+    const dx = pt.x - HUB.x;
+    const dy = pt.y - HUB.y;
+    const dist = Math.hypot(dx, dy);
+    const maxR = 158;
+    const clampedR = Math.min(maxR, dist * 0.78);
+    const angleRad = Math.atan2(dy, dx);
+    targetX = HUB.x + Math.cos(angleRad) * clampedR;
+    targetY = HUB.y + Math.sin(angleRad) * clampedR;
+    targetAngle = Math.atan2(pt.y - spiderY, pt.x - spiderX) / RAD + 90;
+
+    if (moveDist > 4) {
+      pluckNear(pt.x, pt.y, Math.min(18, moveDist * 0.55), false);
+    }
+  };
+
+  const onPointerDown = (e: PointerEvent) => {
+    const pt = toSvgPoint(e);
+    if (!pt) return;
+    pointerInside = true;
+    const dx = pt.x - HUB.x;
+    const dy = pt.y - HUB.y;
+    const dist = Math.hypot(dx, dy);
+    const maxR = 172;
+    const clampedR = Math.min(maxR, dist);
+    const angleRad = Math.atan2(dy, dx);
+    targetX = HUB.x + Math.cos(angleRad) * clampedR;
+    targetY = HUB.y + Math.sin(angleRad) * clampedR;
+    targetAngle = Math.atan2(targetY - spiderY, targetX - spiderX) / RAD + 90;
+
+    trailPoints.push({ x: targetX, y: targetY });
+    if (trailPoints.length > 7) trailPoints.shift();
+    if (trailPathEl) {
+      trailPathEl.setAttribute(
+        "d",
+        trailPoints
+          .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+          .join(" "),
+      );
+    }
+    pluckNear(pt.x, pt.y, 32, true);
+  };
+
+  const onPointerLeave = () => {
+    pointerInside = false;
+  };
+
+  const runSpinIntro = () => {
+    if (reduced) return;
+    if (spokeEls.length > 0) {
+      animate(spokeEls, {
+        strokeDashoffset: [1, 0],
+        opacity: [0, 0.75],
+        duration: 500,
+        delay: (_el, i = 0) => i * 26,
+        ease: "outQuart",
+      });
+    }
+    if (silkEls.length > 0) {
+      animate(silkEls, {
+        strokeDashoffset: [1, 0],
+        opacity: [0, 0.82],
+        duration: 440,
+        delay: (_el, i = 0) => 160 + i * 10,
+        ease: "outCubic",
+      });
+    }
+    if (nodeEls.length > 0) {
+      animate(nodeEls, {
+        scale: [0, 1],
+        opacity: [0, 1],
+        duration: 400,
+        delay: (_el, i = 0) => 340 + i * 45,
+        ease: "outBack",
+      });
+    }
+    spiderX = HUB.x;
+    spiderY = HUB.y - 135;
+    targetX = HUB.x;
+    targetY = HUB.y + 28;
+    spiderAngle = 0;
+    targetAngle = 0;
+  };
+
+  // Drive spider to a named anchor when controlled by an external interactive component
+  createEffect(() => {
+    const id = props.activeAnchor;
+    if (!id) return;
+    const anchor = WEB_ANCHOR_NODES.find((n) => n.id === id);
+    if (!anchor) return;
+    const dest = ptAt(
+      RINGS[anchor.ring] ?? 102,
+      SPOKE_ANGLES[anchor.spoke] ?? 0,
+    );
+    targetX = dest.x;
+    targetY = dest.y;
+    targetAngle = Math.atan2(dest.y - spiderY, dest.x - spiderX) / RAD + 90;
+    trailPoints.push({ x: dest.x, y: dest.y });
+    if (trailPoints.length > 7) trailPoints.shift();
+    trailPathEl?.setAttribute(
+      "d",
+      trailPoints
+        .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+        .join(" "),
+    );
+    pluckNear(dest.x, dest.y, 28, true, anchor.token);
+  });
+
+  createEffect(() => {
+    const key = props.reweaveKey;
+    if (key !== undefined && key > 0) {
+      runSpinIntro();
+    }
+  });
+
+  onMount(() => {
+    renderLegs(0);
+    spiderGroup?.setAttribute(
+      "transform",
+      `translate(${spiderX.toFixed(1)} ${spiderY.toFixed(1)}) rotate(${spiderAngle.toFixed(1)})`,
+    );
+    if (reduced) return;
+
+    runSpinIntro();
+
+    let raf = 0;
+    let last = performance.now();
+    let nextPatrol = last + 2200;
+    let visible = true;
+
+    const onVis = () => {
+      visible = !document.hidden;
+      last = performance.now();
+    };
+    document.addEventListener("visibilitychange", onVis);
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      if (!visible) return;
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+
+      // Predatory patrol bursts when idle
+      if (!pointerInside && now > nextPatrol) {
+        const pickSpoke =
+          SPOKE_ANGLES[Math.floor(Math.random() * SPOKE_ANGLES.length)]!;
+        const pickRing = RINGS[1 + Math.floor(Math.random() * 2)]!;
+        const dest = ptAt(pickRing, pickSpoke);
+        targetX = dest.x;
+        targetY = dest.y;
+        targetAngle =
+          Math.atan2(dest.y - spiderY, dest.x - spiderX) / RAD + 90;
+        pluckNear(dest.x, dest.y, 14, false);
+        nextPatrol = now + 2400 + Math.random() * 2200;
+      }
+
+      // Fast predatory lunge speed when striking, crisp tracking otherwise
+      strikeImpulse = Math.max(0, strikeImpulse - dt * 2.5);
+      const speed = strikeImpulse > 0.1 ? 14.5 : 9.2;
+      const followRate = Math.min(1, dt * speed);
+      spiderX += (targetX - spiderX) * followRate;
+      spiderY += (targetY - spiderY) * followRate;
+
+      const diffAngle = ((targetAngle - spiderAngle + 540) % 360) - 180;
+      spiderAngle += diffAngle * Math.min(1, dt * 11);
+
+      const [spinX, spinY] = toWorld(0, 19, spiderX, spiderY, spiderAngle);
+      if (draglineEl) {
+        draglineEl.setAttribute("x2", spinX.toFixed(1));
+        draglineEl.setAttribute("y2", spinY.toFixed(1));
+      }
+
+      // Fast alternating tetrapod gait
+      let group0Stepping = false;
+      let group1Stepping = false;
+      for (let i = 0; i < LEG_RIGS.length; i++) {
+        const f = footWorld[i]!;
+        if (f.stepT < 1) {
+          f.stepT = Math.min(1, f.stepT + dt * 13.5);
+          const ease = 0.5 - 0.5 * Math.cos(f.stepT * Math.PI);
+          f.x = f.fromX + (f.toX - f.fromX) * ease;
+          f.y = f.fromY + (f.toY - f.fromY) * ease;
+          if ((i + (i >= 4 ? 1 : 0)) % 2 === 0) group0Stepping = true;
+          else group1Stepping = true;
+        }
+      }
+
+      const velocity = Math.hypot(targetX - spiderX, targetY - spiderY);
+      const strideThreshold = velocity > 3 ? 9 : 14;
+
+      for (let i = 0; i < LEG_RIGS.length; i++) {
+        const f = footWorld[i]!;
+        if (f.stepT < 1) continue;
+        const tetrapodGroup = (i + (i >= 4 ? 1 : 0)) % 2;
+        if (tetrapodGroup === 0 && group1Stepping) continue;
+        if (tetrapodGroup === 1 && group0Stepping) continue;
+
+        const rig = LEG_RIGS[i]!;
+        const leadX = (targetX - spiderX) * 0.34;
+        const leadY = (targetY - spiderY) * 0.34;
+        const [idealX, idealY] = toWorld(
+          rig.restFootX,
+          rig.restFootY,
+          spiderX + leadX,
+          spiderY + leadY,
+          spiderAngle,
+        );
+        const drift = Math.hypot(idealX - f.x, idealY - f.y);
+        if (drift > strideThreshold) {
+          f.fromX = f.x;
+          f.fromY = f.y;
+          f.toX = idealX;
+          f.toY = idealY;
+          f.stepT = 0;
+          if (tetrapodGroup === 0) group0Stepping = true;
+          else group1Stepping = true;
+        }
+      }
+
+      const crouch = Math.sin(now * 0.004) * 1.2 - strikeImpulse * 3.5;
+      renderLegs(crouch);
+
+      // Menacing chelicerae / fang flare when stalking or striking
+      const fangSpread =
+        Math.sin(now * 0.008) * (pointerInside ? 9 : 3.5) +
+        strikeImpulse * 14;
+      fangLeftEl?.setAttribute(
+        "transform",
+        `rotate(${(-fangSpread).toFixed(1)} -2.8 -14)`,
+      );
+      fangRightEl?.setAttribute(
+        "transform",
+        `rotate(${fangSpread.toFixed(1)} 2.8 -14)`,
+      );
+
+      spiderGroup?.setAttribute(
+        "transform",
+        `translate(${spiderX.toFixed(1)} ${spiderY.toFixed(1)}) rotate(${spiderAngle.toFixed(1)})`,
+      );
+
+      // Damped harmonic vibration on plucked silk strands
+      for (let i = 0; i < SILK_SEGMENTS.length; i++) {
+        const disp = silkDisp[i] ?? 0;
+        const vel = silkVel[i] ?? 0;
+        if (Math.abs(disp) > 0.04 || Math.abs(vel) > 0.04) {
+          const nextVel = (vel - 310 * disp * dt) * Math.pow(0.05, dt);
+          const nextDisp = disp + nextVel * dt;
+          silkVel[i] = nextVel;
+          silkDisp[i] = nextDisp;
+          silkEls[i]?.setAttribute(
+            "d",
+            segmentPath(SILK_SEGMENTS[i]!, nextDisp),
+          );
+        } else if (disp !== 0) {
+          silkDisp[i] = 0;
+          silkVel[i] = 0;
+          silkEls[i]?.setAttribute("d", segmentPath(SILK_SEGMENTS[i]!, 0));
+        }
+      }
+    };
+
+    raf = requestAnimationFrame(tick);
+    onCleanup(() => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVis);
+    });
+  });
+
   return (
     <svg
-      viewBox="0 0 120 120"
+      ref={(el) => {
+        svgEl = el;
+      }}
+      viewBox="0 0 520 480"
       fill="none"
       class={props.class}
       role="img"
-      aria-label="spin — a spider climbing its web"
-      onPointerEnter={wake}
-      onPointerLeave={sleep}
+      aria-label="Interactive black-widow orb web — move cursor or click nodes to lure the spider"
+      onPointerMove={onPointerMove}
+      onPointerDown={onPointerDown}
+      onPointerLeave={onPointerLeave}
     >
-      {/* The spokes spin out from the hub. */}
+      {/* Subtle tension rings around the hub */}
+      <circle
+        cx={HUB.x}
+        cy={HUB.y}
+        r="196"
+        stroke="var(--color-primary)"
+        stroke-width="0.75"
+        stroke-dasharray="2 6"
+        opacity="0.22"
+      />
+      <circle
+        cx={HUB.x}
+        cy={HUB.y}
+        r="112"
+        fill="var(--color-primary)"
+        opacity="0.035"
+      />
+
+      {/* Structural guy-lines anchoring the web to the stage corners */}
       <g
         stroke="currentColor"
-        stroke-width="0.9"
-        stroke-linecap="round"
-        opacity="0.5"
-        stroke-dasharray="1"
-        stroke-dashoffset={reduced ? 0 : 1}
+        stroke-width="1"
+        stroke-dasharray="3 4"
+        opacity="0.3"
       >
-        <For each={SPOKE_PATHS}>
-          {(d) => <path pathLength="1" d={d} />}
-        </For>
-        {!reduced && DRAW("0.05s", "0.55s")}
+        <For each={GUY_LINES}>{(d) => <path d={d} />}</For>
       </g>
 
-      {/* Then the rings of capture silk, inner to outer. */}
-      {RING_PATHS.map((ring, i) => (
-        <g
-          stroke="currentColor"
-          stroke-width="0.9"
-          stroke-linecap="round"
-          opacity="0.55"
-          stroke-dasharray="1"
-          stroke-dashoffset={reduced ? 0 : 1}
-        >
-          <For each={ring}>{(d) => <path pathLength="1" d={d} />}</For>
-          {!reduced && DRAW(`${0.3 + i * 0.18}s`, "0.5s")}
-        </g>
-      ))}
+      {/* Outer perimeter frame silk */}
+      <g stroke="currentColor" stroke-width="1.2" opacity="0.42">
+        <For each={FRAME_PATHS}>{(d) => <path d={d} />}</For>
+      </g>
 
-      {/* The whole hanging assembly — silk and spider — swings here. */}
+      {/* 12 radial spokes radiating from the hub */}
+      <g stroke="currentColor" stroke-width="1.15" stroke-linecap="round">
+        <For each={SPOKE_PATHS}>
+          {(d, i) => (
+            <path
+              ref={(el) => {
+                spokeEls[i()] = el;
+              }}
+              pathLength="1"
+              stroke-dasharray="1"
+              stroke-dashoffset="0"
+              opacity="0.72"
+              d={d}
+            />
+          )}
+        </For>
+      </g>
+
+      {/* 5 concentric capture-silk rings with elastic pluck physics */}
+      <g stroke="currentColor" stroke-width="1.1" stroke-linecap="round">
+        <For each={SILK_SEGMENTS}>
+          {(seg, i) => (
+            <path
+              ref={(el) => {
+                silkEls[i()] = el;
+              }}
+              pathLength="1"
+              stroke-dasharray="1"
+              stroke-dashoffset="0"
+              opacity="0.78"
+              d={segmentPath(seg, 0)}
+            />
+          )}
+        </For>
+      </g>
+
+      {/* Crimson silk trail spun between visited intersections */}
+      <path
+        ref={(el) => {
+          trailPathEl = el;
+        }}
+        d={`M${HUB.x} ${HUB.y}`}
+        stroke="var(--color-primary)"
+        stroke-width="1.25"
+        stroke-dasharray="2 3"
+        stroke-linecap="round"
+        opacity="0.55"
+      />
+
+      {/* Interactive token prey nodes on the web */}
+      <g>
+        <For each={WEB_ANCHOR_NODES}>
+          {(anchor, i) => {
+            const pt = ptAt(
+              RINGS[anchor.ring] ?? 102,
+              SPOKE_ANGLES[anchor.spoke] ?? 0,
+            );
+            return (
+              <g>
+                <circle
+                  cx={pt.x}
+                  cy={pt.y}
+                  r="9"
+                  fill="var(--color-primary)"
+                  opacity={props.activeAnchor === anchor.id ? "0.22" : "0.08"}
+                />
+                <circle
+                  ref={(el) => {
+                    nodeEls[i()] = el;
+                  }}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={props.activeAnchor === anchor.id ? "5.2" : "3.8"}
+                  fill={
+                    props.activeAnchor === anchor.id
+                      ? "var(--color-primary)"
+                      : "var(--color-surface-raised)"
+                  }
+                  stroke="var(--color-primary)"
+                  stroke-width="2"
+                />
+                <text
+                  x={pt.x + anchor.dx}
+                  y={pt.y + anchor.dy}
+                  fill={
+                    props.activeAnchor === anchor.id
+                      ? "var(--color-primary)"
+                      : "var(--color-text-muted)"
+                  }
+                  font-family="var(--font-family-mono, monospace)"
+                  font-size="10.5"
+                  font-weight={props.activeAnchor === anchor.id ? "700" : "500"}
+                >
+                  {anchor.token}
+                </text>
+              </g>
+            );
+          }}
+        </For>
+      </g>
+
+      {/* Pluck shockwave rings */}
+      <circle
+        ref={(el) => {
+          rippleOuterEl = el;
+        }}
+        cx={HUB.x}
+        cy={HUB.y}
+        r="6"
+        stroke="var(--color-primary)"
+        stroke-width="1"
+        stroke-dasharray="3 3"
+        opacity="0"
+      />
+      <circle
+        ref={(el) => {
+          rippleEl = el;
+        }}
+        cx={HUB.x}
+        cy={HUB.y}
+        r="4"
+        stroke="var(--color-primary)"
+        stroke-width="2"
+        opacity="0"
+      />
+      <circle
+        ref={(el) => {
+          rippleCoreEl = el;
+        }}
+        cx={HUB.x}
+        cy={HUB.y}
+        r="2"
+        fill="var(--color-primary)"
+        opacity="0"
+      />
+
+      {/* Hub knot */}
+      <circle
+        cx={HUB.x}
+        cy={HUB.y}
+        r="4.5"
+        fill="var(--color-surface-raised)"
+        stroke="currentColor"
+        stroke-width="1.75"
+      />
+      <circle cx={HUB.x} cy={HUB.y} r="2" fill="var(--color-primary)" />
+
+      {/* Live crimson dragline from hub to spinnerets */}
+      <line
+        ref={(el) => {
+          draglineEl = el;
+        }}
+        x1={HUB.x}
+        y1={HUB.y}
+        x2={spiderX}
+        y2={spiderY + 19}
+        stroke="var(--color-primary)"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        opacity="0.9"
+      />
+
+      {/* The Black Widow — long razor-arched 2-bone IK legs + bulbous hourglass abdomen */}
       <g
         ref={(el) => {
-          pendulum = el;
+          spiderGroup = el;
         }}
+        transform={`translate(${spiderX} ${spiderY})`}
       >
-        <line
-          ref={(el) => {
-            silk = el;
-          }}
-          x1={HUB.x}
-          y1={HUB.y}
-          x2={HUB.x}
-          y2={SILK_BOTTOM}
-          stroke="currentColor"
-          stroke-width="1.4"
-          stroke-linecap="round"
-          stroke-dasharray="1"
-          stroke-dashoffset={reduced ? 0 : 1}
-        >
-          {!reduced && DRAW("0.85s", "0.55s")}
-        </line>
+        {/* Ominous cast shadow under carapace */}
+        <ellipse
+          cx="3"
+          cy="6"
+          rx="16"
+          ry="22"
+          fill="currentColor"
+          opacity="0.16"
+        />
 
-        {/* The climber: crawl offset × descent, composed. */}
+        {/* Upper femur segments (thick proximal armor) */}
         <g
-          ref={(el) => {
-            climber = el;
-          }}
+          stroke="currentColor"
+          stroke-width="2.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         >
-          <g opacity={reduced ? 1 : 0}>
-            {!reduced && (
-              <>
-                <animate
-                  attributeName="opacity"
-                  values="0;1"
-                  dur="0.35s"
-                  begin="1s"
-                  fill="freeze"
-                />
-                <animateTransform
-                  attributeName="transform"
-                  type="translate"
-                  values="0 -72;0 0;0 -7;0 0;0 -2;0 0"
-                  keyTimes="0;0.5;0.66;0.82;0.92;1"
-                  calcMode="spline"
-                  keySplines="0.3 0 0.4 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"
-                  dur="1.4s"
-                  begin="1s"
-                  fill="freeze"
-                />
-              </>
+          <For each={LEG_RIGS}>
+            {(_rig, i) => (
+              <path
+                ref={(el) => {
+                  legFemurEls[i()] = el;
+                }}
+                d="M0 0 L0 0"
+              />
             )}
-            {/* Legs in two gaits — they alternate only while climbing. */}
-            <g
-              ref={(el) => {
-                legsA = el;
-              }}
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-            >
-              <path d="M56.5 73.5 C50 68.5 45 67.5 40 70.5" />
-              <path d="M54 80 C46 78 41 79.5 37 85" />
-              <path d="M55.5 92 C50 95 46.5 99 45 104" />
-              <path d="M57.5 95.5 C55.5 99 55.5 102 57 105.5" />
-            </g>
-            <g
-              ref={(el) => {
-                legsB = el;
-              }}
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-            >
-              <path d="M63.5 73.5 C70 68.5 75 67.5 80 70.5" />
-              <path d="M66 80 C74 78 79 79.5 83 85" />
-              <path d="M64.5 92 C70 95 73.5 99 75 104" />
-              <path d="M62.5 95.5 C64.5 99 64.5 102 63 105.5" />
-            </g>
-            {/* Head and abdomen, hanging straight down the silk. */}
-            <circle
-              cx="60"
-              cy="74.5"
-              r="4.4"
-              fill="var(--color-surface, #fff)"
-              stroke="currentColor"
-              stroke-width="1.6"
-            />
-            <ellipse
-              cx="60"
-              cy="86.5"
-              rx="6.6"
-              ry="8.2"
-              transform="rotate(-14 60 86.5)"
-              fill="var(--color-surface, #fff)"
-              stroke="currentColor"
-              stroke-width="1.6"
-            />
-            {/* The mark itself: spin's hourglass, the one loud color. */}
-            <path
-              d="M60.2 82.5 L63.4 86.8 L60 92.2 L56.6 86.8 Z"
-              fill="var(--color-primary, #c8102e)"
-            />
-          </g>
+          </For>
         </g>
-      </g>
 
-      {!reduced && <Physics />}
+        {/* Distal tibia/tarsus segments (spindly curved stiletto tips) */}
+        <g
+          stroke="currentColor"
+          stroke-width="1.55"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <For each={LEG_RIGS}>
+            {(_rig, i) => (
+              <path
+                ref={(el) => {
+                  legTibiaEls[i()] = el;
+                }}
+                d="M0 0 L0 0"
+              />
+            )}
+          </For>
+        </g>
+
+        {/* Sharp patella knee joints */}
+        <g fill="var(--color-primary)" stroke="currentColor" stroke-width="1.2">
+          <For each={LEG_RIGS}>
+            {(_rig, i) => (
+              <circle
+                ref={(el) => {
+                  legJointEls[i()] = el;
+                }}
+                cx="0"
+                cy="0"
+                r="1.9"
+              />
+            )}
+          </For>
+        </g>
+
+        {/* Curved chelicerae / fangs & pedipalps */}
+        <path
+          ref={(el) => {
+            fangLeftEl = el;
+          }}
+          d="M-2.8 -14 L-6.8 -22 L-2.2 -26.5 M-4.2 -13.5 L-10.5 -19.5 L-8.5 -24.5"
+          stroke="currentColor"
+          stroke-width="1.65"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          ref={(el) => {
+            fangRightEl = el;
+          }}
+          d="M2.8 -14 L6.8 -22 L2.2 -26.5 M4.2 -13.5 L10.5 -19.5 L8.5 -24.5"
+          stroke="currentColor"
+          stroke-width="1.65"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+
+        {/* Narrow armored cephalothorax (prosoma) */}
+        <path
+          d="M0 -16.8 L5.8 -12.8 L6.6 -5.0 L3.2 -0.8 L-3.2 -0.8 L-6.6 -5.0 L-5.8 -12.8 Z"
+          fill="currentColor"
+          stroke="var(--color-surface-raised)"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+        />
+
+        {/* 8-eye arachnid cluster gleaming in primary ink */}
+        <circle cx="-1.9" cy="-13.8" r="1.2" fill="var(--color-primary)" />
+        <circle cx="1.9" cy="-13.8" r="1.2" fill="var(--color-primary)" />
+        <circle cx="-3.9" cy="-12.6" r="0.95" fill="var(--color-primary)" />
+        <circle cx="3.9" cy="-12.6" r="0.95" fill="var(--color-primary)" />
+        <circle cx="-1.4" cy="-11.4" r="0.7" fill="var(--color-surface-raised)" />
+        <circle cx="1.4" cy="-11.4" r="0.7" fill="var(--color-surface-raised)" />
+
+        {/* Bulbous Black Widow opisthosoma (abdomen) tapering to spinneret point */}
+        <path
+          d="M0 -1.2 C10.2 -1.2 14.8 6.2 13.6 14.5 C12.4 21.8 5.2 26.8 0 29.2 C-5.2 26.8 -12.4 21.8 -13.6 14.5 C-14.8 6.2 -10.2 -1.2 0 -1.2 Z"
+          fill="currentColor"
+          stroke="var(--color-surface-raised)"
+          stroke-width="1.5"
+        />
+        {/* Glossy chitin highlight */}
+        <path
+          d="M-6.8 4.5 C-9.2 9.5 -8.8 16.5 -4.8 21.5"
+          stroke="var(--color-surface-raised)"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          opacity="0.35"
+        />
+        {/* Iconic Black Widow crimson hourglass */}
+        <path
+          d="M-5.8 6.2 L5.8 6.2 L1.4 13.2 L6.2 20.6 L-6.2 20.6 L-1.4 13.2 Z"
+          fill="var(--color-primary)"
+        />
+      </g>
     </svg>
   );
-
-  /** The pendulum and the climb. Mounted inside the SVG so the refs
-   * resolve before it runs; one loop drives both. */
-  function Physics(): null {
-    onMount(() => {
-      let theta = 0.11; // radians off plumb — a visible hang, not a swing
-      let omega = 0;
-      let last = performance.now();
-      let nextDraft = last + 3200;
-      let raf = 0;
-      let onScreen = true;
-
-      const onVis = () => {
-        onScreen = !document.hidden;
-        last = performance.now();
-      };
-      document.addEventListener("visibilitychange", onVis);
-
-      const frame = (now: number) => {
-        raf = requestAnimationFrame(frame);
-        const dt = Math.min(0.032, (now - last) / 1000);
-        last = now;
-        if (!onScreen) return;
-
-        crawl += (crawlTarget - crawl) * Math.min(1, dt * 1.4);
-        const length = SILK_BOTTOM - HUB.y - CLIMB * crawl;
-
-        if (now > nextDraft) {
-          // The draft: a breath every few seconds, harder when woken.
-          omega += (hovered ? 0.5 : 0.12) * (Math.random() < 0.5 ? 1 : -1) *
-            (0.5 + Math.random() * 0.5);
-          nextDraft = now +
-            (hovered
-              ? 1600 + Math.random() * 1200
-              : 4200 + Math.random() * 3200);
-        }
-        omega += kick * 0.7;
-        kick = 0;
-
-        omega += (-((GRAVITY / length) * Math.sin(theta)) - 0.06 * omega) *
-          dt;
-        theta += omega * dt;
-
-        pendulum?.setAttribute(
-          "transform",
-          `rotate(${(theta * 57.2958).toFixed(2)} ${HUB.x} ${HUB.y})`,
-        );
-        silk?.setAttribute("y2", (SILK_BOTTOM - CLIMB * crawl).toFixed(1));
-        climber?.setAttribute(
-          "transform",
-          `translate(0 ${(-CLIMB * crawl).toFixed(1)})`,
-        );
-
-        if (crawl > 0.02) {
-          const step = Math.sin(now / 95);
-          legsA?.setAttribute(
-            "transform",
-            `rotate(${(6.5 * step).toFixed(2)} 60 78)`,
-          );
-          legsB?.setAttribute(
-            "transform",
-            `rotate(${(-6.5 * step).toFixed(2)} 60 78)`,
-          );
-        } else {
-          legsA?.removeAttribute("transform");
-          legsB?.removeAttribute("transform");
-        }
-      };
-      raf = requestAnimationFrame(frame);
-      onCleanup(() => {
-        cancelAnimationFrame(raf);
-        document.removeEventListener("visibilitychange", onVis);
-      });
-    });
-    return null;
-  }
 }
 
 // ── the corner mark ──────────────────────────────────────────────────────────
 
-/**
- * The corner mark's sizes: a rail, a header, a page.
- *
- * The sizes are the theme's own spacing steps — a fifth, an eighth and a
- * twelfth of a rem — so the mark sits on the same measure as the type
- * beside it.
- */
 export type LogoSize = "sm" | "md" | "lg";
 
-/** What the corner mark draws, and at what size. */
 export interface LogoSpec {
-  /** The box the mark is drawn in, in pixels. */
   readonly px: number;
-  /** The theme's own step for that box, as the utility that names it. */
   readonly box: string;
-  /** The geometry the mark is written in. */
   readonly viewBox: string;
-  /** The mark's shapes — filled, never stroked. */
   readonly shapes: readonly string[];
-  /** The ink the mark paints with: the colour it inherits. */
   readonly ink: string;
-  /**
-   * How the shapes are filled. Even-odd is what cuts the hourglass out of
-   * the abdomen instead of painting it on: the mark stays one colour, and
-   * the hourglass shows whatever surface the mark sits on.
-   */
   readonly fillRule: "evenodd" | "nonzero" | "inherit";
 }
 
-/**
- * The mark's own drawing: the spider from above, one ink, hourglass cut out.
- *
- * The legs are filled tapers rather than strokes, so the silhouette holds its
- * edge at sixteen pixels; the hourglass is cut out of the abdomen rather than
- * painted on it, so the mark stays one colour and reads on any surface.
- */
 const LOGO_SHAPES: readonly string[] = [
-  // four legs a side, tapering to their tips
   "M10.9 7.4 Q8.8 4.6 5.6 3.6 L5.2 4.4 Q8.4 5.8 9.9 8.6 Z",
   "M14.1 8.6 Q15.6 5.8 18.8 4.4 L18.4 3.6 Q15.2 4.6 13.1 7.4 Z",
   "M9.7 10.5 Q7.5 8.8 4.9 8.6 L4.7 9.4 Q7.3 10.0 9.1 11.9 Z",
@@ -382,39 +1016,28 @@ const LOGO_SHAPES: readonly string[] = [
   "M14.7 15.8 Q16.7 15.8 19.3 16.0 L19.5 15.2 Q16.9 14.6 14.9 14.2 Z",
   "M9.2 17.8 Q7.9 20.1 6.2 21.4 L6.6 22.2 Q8.5 21.1 10.4 19.0 Z",
   "M13.6 19.0 Q15.5 21.1 17.4 22.2 L17.8 21.4 Q16.1 20.1 14.8 17.8 Z",
-  // the head
   "M9.6 8.2 A2.4 2.4 0 1 1 14.4 8.2 A2.4 2.4 0 1 1 9.6 8.2 Z",
-  // the abdomen, with the hourglass cut out of it
   "M12.0 9.8 C17.1 11.9 17.1 17.9 12.0 20.6 C6.9 17.9 6.9 11.9 12.0 9.8 Z M12 11.8 L14.4 15.2 L12 18.6 L9.6 15.2 Z",
 ];
-
-/** The mark's tilt: the spider leans, the way it hangs. */
 
 const LOGO_BOX: Record<
   LogoSize,
   { readonly px: number; readonly box: string }
 > = {
-  sm: { px: 20, box: "h-5 w-5" },
-  md: { px: 32, box: "h-8 w-8" },
-  lg: { px: 48, box: "h-12 w-12" },
+  sm: { px: 16, box: "h-4 w-4" },
+  md: { px: 20, box: "h-5 w-5" },
+  lg: { px: 28, box: "h-7 w-7" },
 };
 
-/** The wordmark beside the mark, in the brand face, at the size that reads. */
 const LOGO_WORD: Record<
   LogoSize,
   { readonly text: string; readonly gap: string }
 > = {
-  sm: { text: "text-sm", gap: "gap-1" },
-  md: { text: "text-lg", gap: "gap-2" },
+  sm: { text: "text-md", gap: "gap-2" },
+  md: { text: "text-xl", gap: "gap-2" },
   lg: { text: "text-2xl", gap: "gap-3" },
 };
 
-/**
- * What the corner mark draws at a size.
- *
- * The drawing is the same at every size: one silhouette, scaled. A corner
- * mark that is redrawn per size is two marks to keep true.
- */
 export function logoSpec(size: LogoSize): LogoSpec {
   const box = LOGO_BOX[size];
   return {
@@ -427,13 +1050,6 @@ export function logoSpec(size: LogoSize): LogoSpec {
   };
 }
 
-/**
- * The corner logo: the mark, and the name it belongs to.
- *
- * The wordmark is type — the theme's brand face — because a wordmark drawn as
- * thread is a wordmark that turns to mush at the size a corner mark appears.
- * The mark carries the picture; the word carries the name.
- */
 export function Logo(
   props: { size?: LogoSize; class?: string },
 ): JSX.Element {
@@ -442,12 +1058,12 @@ export function Logo(
   const word = () => LOGO_WORD[size()];
   return (
     <span
-      class={`inline-flex items-center font-brand font-semibold tracking-tighter ${word().gap} ${
+      class={`inline-flex items-center font-brand font-bold tracking-tight leading-none ${word().gap} ${
         props.class ?? ""
       }`}
     >
-      <Web size={spec().px} class={`${spec().box} shrink-0`} />
-      <span class={word().text}>spin</span>
+      <Web size={spec().px} class={`${spec().box} shrink-0 text-primary`} />
+      <span class={`${word().text} leading-none`}>spin</span>
     </span>
   );
 }

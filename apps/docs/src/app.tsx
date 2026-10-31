@@ -13,16 +13,20 @@
 import { A, Navigate, Router, useLocation, useNavigate } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { createMemo, createSignal, For, lazy, Show } from "solid-js";
-import { BrandFavicon, Logo, ModeToggle, theme, ThemePicker } from "@spinjs/kit";
+import { createEffect, createMemo, createSignal, For, lazy, Show } from "solid-js";
+import { BrandFavicon, Logo, theme, ThemePicker } from "@spinjs/kit";
 import { starterThemes } from "@spinjs/theme/themes";
+import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/theme";
 import {
   COMPONENT_GROUPS,
   DOCS_GROUPS,
-  MACHINE_GROUPS,
   TOP_SECTIONS,
 } from "./nav.ts";
 import { SearchDialog } from "./search.tsx";
+// The kit's theme controls are compiled elements: registering the two they
+// render, so the tags upgrade wherever the chrome puts them.
+import "@spinjs/components/mode-picker/examples/basic.html";
+import "@spinjs/components/theme-picker/examples/basic.html";
 /** The path a pages file stands for: `index` is nothing, `[id]` is a
  * param, `[...all]` is the catch-all, and a folder joins the segments. */
 function routeFromFile(file: string): string {
@@ -135,17 +139,17 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
       location.pathname.startsWith(`${prefix}/`)
     );
   return (
-    <header class="sticky top-0 flex h-[3.5rem] items-center justify-between gap-4 border-b border-border bg-surface px-4 md:px-6">
+    <header class="sticky top-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b border-border bg-surface px-4 md:px-6">
       <div class="flex min-w-0 items-center gap-4">
-        <A href="/" end class="no-underline" aria-label="spin home">
-          <Logo size="sm" class="text-primary" />
+        <A href="/" end class="shrink-0 no-underline" aria-label="spin home">
+          <Logo size="md" class="text-text" />
         </A>
         <nav class="flex items-center gap-1" aria-label="sections">
           <For each={TOP_SECTIONS}>
             {(section) => (
               <A
                 href={section.href}
-                class={`block rounded-sm px-3 py-1.5 text-sm no-underline transition-colors duration-fast ${
+                class={`block rounded-sm px-3 py-1 text-sm no-underline transition-colors duration-fast ${
                   current(section.active)
                     ? "bg-surface-raised text-text font-semibold"
                     : "text-text-muted hover:text-text"
@@ -168,7 +172,6 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
             ⌘K
           </kbd>
         </button>
-        <ModeToggle />
         <ThemePicker />
       </div>
     </header>
@@ -206,26 +209,47 @@ function DocsRail(): JSX.Element {
 }
 
 /**
- * The Components world's rail: the taxonomy, filterable, with the
- * current element raised. The groups come from the preset, so the rail
- * cannot file an element where another surface files it elsewhere.
+ * The Components world's rail: the unified taxonomy, filterable by kind and
+ * name, with the current element raised. The groups are the shared table
+ * the studio's rail reads, so the rail cannot file an element where another
+ * surface files it elsewhere.
  */
-function ComponentsRail(props: { filter: string }): JSX.Element {
+export type ComponentKindFilter = "all" | "primitive" | "machine";
+function kindOfHref(href: string): "primitive" | "machine" {
+  return href.includes("/machine-") ? "machine" : "primitive";
+}
+function ComponentsRail(props: {
+  filter: string;
+  kind: ComponentKindFilter;
+  onKind: (kind: ComponentKindFilter) => void;
+}): JSX.Element {
   const groups = createMemo(() => {
-    const all = [...COMPONENT_GROUPS, ...MACHINE_GROUPS];
     const query = props.filter.trim().toLowerCase();
-    if (query === "") return all;
-    return all
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) =>
-          item.name.toLowerCase().includes(query)
-        ),
-      }))
-      .filter((group) => group.items.length > 0);
+    return COMPONENT_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          (props.kind === "all" || kindOfHref(item.href) === props.kind) &&
+          (query === "" || item.name.toLowerCase().includes(query)),
+      ),
+    })).filter((group) => group.items.length > 0);
   });
   return (
     <div class="grid gap-1">
+      <div role="group" aria-label="Component kind" class="flex gap-1">
+        <For each={(["all", "primitive", "machine"] as const)}>
+          {(kind) => (
+            <button
+              type="button"
+              aria-pressed={props.kind === kind}
+              onClick={() => props.onKind(kind)}
+              class="bare rounded-sm px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+            >
+              {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+            </button>
+          )}
+        </For>
+      </div>
       <A
         href="/components"
         end
@@ -277,10 +301,11 @@ function DocsShell(props: { children: JSX.Element }): JSX.Element {
 /** The components world: the taxonomy rail with a filter, the page beside it. */
 function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
   const [query, setQuery] = createSignal("");
+  const [kind, setKind] = createSignal<ComponentKindFilter>("all");
   return (
     <div class="flex min-h-[calc(100dvh-3.5rem)] items-start bg-surface text-text font-sans text-md">
       <nav
-        class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
+        class="sticky top-0 flex h-screen w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
         aria-label="components"
       >
         <label class="flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs">
@@ -297,7 +322,7 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
             class="w-full border-transparent bg-transparent"
           />
         </label>
-        <ComponentsRail filter={query()} />
+        <ComponentsRail filter={query()} kind={kind()} onKind={setKind} />
       </nav>
       <div class="min-w-0 flex-1">{props.children}</div>
     </div>
@@ -309,10 +334,54 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
  * rail; every other page gets the guide rail. Reactive on the pathname —
  * navigating back to `/` swaps the shell.
  */
+
+/** Resolved token value for a theme, references followed. */
+function tokenValue(tree: unknown, mode: string, path: string): string | undefined {
+  const effective = valuesInMode(tree as never, mode);
+  const seen = new Set<string>();
+  let cursor = path;
+  for (;;) {
+    if (seen.has(cursor)) return undefined;
+    seen.add(cursor);
+    const raw = effective.get(cursor);
+    if (raw === undefined) return undefined;
+    const value =
+      typeof raw === "string" || typeof raw === "number"
+        ? String(raw)
+        : JSON.stringify(raw);
+    const target = aliasTarget(value);
+    if (target === null) return value;
+    cursor = target;
+  }
+}
+
 function Layout(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = createSignal(false);
+  createEffect(() => {
+    let style = document.getElementById("docs-theme-swatches");
+    if (style === null) {
+      style = document.createElement("style");
+      style.id = "docs-theme-swatches";
+      document.head.appendChild(style);
+    }
+    const rules: string[] = [];
+    for (const [name, doc] of Object.entries(starterThemes)) {
+      const { tree } = validateTheme(JSON.stringify(doc));
+      if (tree === undefined) continue;
+      const modes = themeModes(doc as never);
+      const mode = modes[0] ?? "light";
+      const decl = (path: string, prop: string): string => {
+        const value = tokenValue(tree, mode, path);
+        return value === undefined ? "" : `${prop}: ${value};`;
+      };
+      rules.push(
+        `[data-swatch-theme="${name}"] { ${decl("color.surface", "--color-surface")} ${decl("color.primary", "--color-primary")} ${decl("color.on-primary", "--color-on-primary")} ${decl("color.text", "--color-text")} ${decl("color.border", "--color-border")} }`,
+      );
+    }
+    style.textContent = rules.join("\n");
+  });
   const onNavigate = (href: string) => {
     setSearchOpen(false);
     navigate(href);
@@ -325,18 +394,16 @@ function Layout(props: RouteSectionProps): JSX.Element {
         onClose={() => setSearchOpen(false)}
         onNavigate={onNavigate}
       />
+      <TopNav onOpenSearch={() => setSearchOpen(true)} />
       <Show
         when={location.pathname === "/"}
         fallback={
-          <>
-            <TopNav onOpenSearch={() => setSearchOpen(true)} />
-            <Show
-              when={location.pathname.startsWith("/components")}
-              fallback={<DocsShell>{props.children}</DocsShell>}
-            >
-              <ComponentsShell>{props.children}</ComponentsShell>
-            </Show>
-          </>
+          <Show
+            when={location.pathname.startsWith("/components")}
+            fallback={<DocsShell>{props.children}</DocsShell>}
+          >
+            <ComponentsShell>{props.children}</ComponentsShell>
+          </Show>
         }
       >
         {props.children}

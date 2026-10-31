@@ -10,6 +10,7 @@
   },
   "sideEffects": false,
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "types": "./src/preset/index.ts",
       "default": "./src/preset/index.ts"
@@ -21,6 +22,10 @@
     "./eslint": {
       "types": "./src/diagnostics/eslint.ts",
       "default": "./src/diagnostics/eslint.ts"
+    },
+    "./oxlint": {
+      "types": "./src/diagnostics/index.ts",
+      "default": "./src/diagnostics/index.ts"
     },
     "./cli": {
       "types": "./src/diagnostics/cli.ts",
@@ -61,9 +66,9 @@
       "types": "./src/preset/config.ts",
       "default": "./src/preset/config.ts"
     },
-    "./preset/elements": {
-      "types": "./src/preset/elements.ts",
-      "default": "./src/preset/elements.ts"
+    "./preset/components-compiler": {
+      "types": "./src/preset/components-compiler.ts",
+      "default": "./src/preset/components-compiler.ts"
     },
     "./preset/compile": {
       "types": "./src/preset/compile.ts",
@@ -112,6 +117,24 @@
     "./animation": {
       "types": "./src/animation/index.ts",
       "default": "./src/animation/index.ts"
+    },
+    "./kit": {
+      "types": "./src/kit/index.ts",
+      "default": "./src/kit/index.ts"
+    },
+    "./kit/skill": {
+      "types": "./src/kit/skill.ts",
+      "default": "./src/kit/skill.ts"
+    },
+    "./kit/solid": {
+      "types": "./src/kit/solid-server.d.ts"
+    },
+    "./skill": {
+      "types": "./src/theme/skill/index.ts",
+      "default": "./src/theme/skill/index.ts"
+    },
+    "./preset/solid": {
+      "types": "./src/preset/solid.d.ts"
     }
   },
   "files": [
@@ -138,6 +161,7 @@
     "@unocss/preset-wind4": "66.10.5",
     "@unocss/transformer-directives": "66.10.5",
     "@unocss/transformer-variant-group": "66.10.5",
+    "animejs": "4.5.0",
     "hono": "^4.13.13",
     "unplugin": "^3.4.0",
     "valibot": "^1.0.0",
@@ -145,7 +169,8 @@
   },
   "peerDependencies": {
     "@spinjs/components": "workspace:*",
-    "@spinjs/runtime": "workspace:*"
+    "@spinjs/runtime": "workspace:*",
+    "solid-js": "^1.9.3"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",
@@ -163,6 +188,9 @@
     "access": "public",
     "provenance": true,
     "exports": {
+      "./package.json": {
+        "default": "./package.json"
+      },
       ".": {
         "types": "./dist/preset/index.d.ts",
         "default": "./dist/preset/index.js"
@@ -174,6 +202,10 @@
       "./eslint": {
         "types": "./dist/diagnostics/eslint.d.ts",
         "default": "./dist/diagnostics/eslint.js"
+      },
+      "./oxlint": {
+        "types": "./dist/diagnostics/index.d.ts",
+        "default": "./dist/diagnostics/index.js"
       },
       "./cli": {
         "types": "./dist/diagnostics/cli.d.ts",
@@ -214,9 +246,9 @@
         "types": "./dist/preset/config.d.ts",
         "default": "./dist/preset/config.js"
       },
-      "./preset/elements": {
-        "types": "./dist/preset/elements.d.ts",
-        "default": "./dist/preset/elements.js"
+      "./preset/components-compiler": {
+        "types": "./dist/preset/components-compiler.d.ts",
+        "default": "./dist/preset/components-compiler.js"
       },
       "./preset/compile": {
         "types": "./dist/preset/compile.d.ts",
@@ -265,6 +297,24 @@
       "./animation": {
         "types": "./dist/animation/index.d.ts",
         "default": "./dist/animation/index.js"
+      },
+      "./kit": {
+        "types": "./dist/kit/index.d.ts",
+        "default": "./dist/kit/index.js"
+      },
+      "./kit/skill": {
+        "types": "./dist/kit/skill.d.ts",
+        "default": "./dist/kit/skill.js"
+      },
+      "./kit/solid": {
+        "types": "./dist/kit/solid-server.d.ts"
+      },
+      "./skill": {
+        "types": "./dist/theme/skill/index.d.ts",
+        "default": "./dist/theme/skill/index.js"
+      },
+      "./preset/solid": {
+        "types": "./dist/preset/solid.d.ts"
       }
     }
   },

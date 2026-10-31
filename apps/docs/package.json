@@ -5,8 +5,9 @@
   "type": "module",
   "dependencies": {
     "@solidjs/router": "^1.0.0",
-    "solid-js": "^1.9.3",
-    "@spinjs/spin": "workspace:*"
+    "@spinjs/spin": "workspace:*",
+    "animejs": "4.5.0",
+    "solid-js": "^1.9.3"
   },
   "scripts": {
     "dev": "vite dev",

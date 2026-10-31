@@ -10,9 +10,9 @@
           "display": "swap"
         },
         {
-          "family": "Bodoni Moda",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bodoni-moda:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "400 900",
+          "family": "Bricolage Grotesque",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bricolage-grotesque:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "200 800",
           "style": "normal",
           "display": "swap"
         },
@@ -41,11 +41,11 @@
       "$value": "#c8102e",
       "$description": "The brand's red. An ordinary action wears the brand, and the destructive action wears a hotter vermilion, so the two never read as one intent.",
       "$modes": {
-        "dark": "#c8102e"
+        "dark": "#ff5a63"
       }
     },
     "secondary": {
-      "$value": "#f4f1ec",
+      "$value": "#efeae1",
       "$description": "The quiet fill: paper one step off the page, for a control that is present but not asking for attention.",
       "$modes": {
         "dark": "#252320"
@@ -60,19 +60,19 @@
     },
     "neutral": {
       "50": {
-        "$value": "#fbfaf8",
+        "$value": "#f7f4ee",
         "$modes": {
           "dark": "#141312"
         }
       },
       "100": {
-        "$value": "#f4f1ec",
+        "$value": "#efeae1",
         "$modes": {
           "dark": "#1b1a18"
         }
       },
       "200": {
-        "$value": "#e7e1d7",
+        "$value": "#ded6c8",
         "$modes": {
           "dark": "#252320"
         }
@@ -160,7 +160,7 @@
       }
     },
     "surface-sunken": {
-      "$value": "#f4f1ec",
+      "$value": "#efeae1",
       "$description": "A surface that sits below the page: table stripes, inset wells, the trough a field is carved into.",
       "$modes": {
         "dark": "#252320"
@@ -184,11 +184,11 @@
       "$value": "{color.neutral.600}",
       "$description": "The second voice: captions, helper copy, the small print that still has to be read.",
       "$modes": {
-        "dark": "{color.neutral.600}"
+        "dark": "{color.neutral.700}"
       }
     },
     "border": {
-      "$value": "#e7e1d7",
+      "$value": "#ded6c8",
       "$description": "The hairline. Spin draws in thread: a one-pixel rule is what separates one thing from the next, so there are fewer boxes here than in a theme that leans on shadow.",
       "$modes": {
         "dark": "#332f2b"
@@ -204,9 +204,9 @@
     "on-primary": {
       "$value": "#ffffff",
       "$type": "color",
-      "$description": "The ink on the brand red: paper in the day, and the same paper after dark, because the brand's red does not change when the page does.",
+      "$description": "The ink on the brand red: paper in the day, and the red's own near-black on the night press.",
       "$modes": {
-        "dark": "#ffffff"
+        "dark": "#141312"
       }
     },
     "focus-ring": {
@@ -238,6 +238,14 @@
       "$modes": {
         "dark": "#1a0e10"
       }
+    },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
     },
     "on-semantic-success": {
       "$type": "color",
@@ -385,8 +393,8 @@
         "$description": "The working voice: quiet, even, and everywhere a tool has to be read."
       },
       "heading": {
-        "$value": "Bodoni Moda, Didot, \"Bodoni 72\", serif",
-        "$description": "The display voice. A didone — hairline serifs, strong stems, all poise and a little menace — and the serif's one job in this theme is to speak."
+        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The display voice: an expressive, ink-trapped technical grotesque with architectural poise."
       },
       "body": {
         "$value": "{font.family.sans}",
@@ -402,7 +410,7 @@
       },
       "brand": {
         "$type": "fontFamily",
-        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
         "$description": "The logotype face — one brand, every starter."
       }
     },
@@ -497,13 +505,13 @@
       "$value": "0"
     },
     "sm": {
-      "$value": "0.0625rem"
+      "$value": "0.25rem"
     },
     "md": {
-      "$value": "0.125rem"
+      "$value": "0.375rem"
     },
     "lg": {
-      "$value": "0.1875rem"
+      "$value": "0.5rem"
     },
     "full": {
       "$value": "9999px"

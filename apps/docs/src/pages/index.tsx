@@ -1,486 +1,776 @@
-/**
- * The landing: the product at full volume.
- *
- * No rail here — the first screen is the mark, the pitch, and the switch.
- * Every specimen below runs on the same plugin and the same starters a
- * consumer gets; flipping a starter re-declares `data-theme` on the
- * document and the page re-resolves in its own CSS.
- */
-import { createSignal, For, onMount } from "solid-js";
+// Docs landing page: foreground interactive black-widow stage and live product workbenches.
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { setTheme, starterList, theme } from "@spinjs/kit";
-import { Logo, Mark } from "@spinjs/kit";
-import { Chip, Code, Reveal, Section } from "../bits.tsx";
+import {
+  Logo,
+  Mark,
+  mode,
+  theme,
+  WEB_ANCHOR_NODES,
+} from "@spinjs/kit";
+import type { MarkPluckEvent } from "@spinjs/kit";
+import { COMPONENT_GROUPS } from "../nav.ts";
+import { Code, Reveal } from "../bits.tsx";
 
-const PAGES = [
+interface OracleFinding {
+  readonly id: string;
+  readonly rule: string;
+  readonly badToken: string;
+  readonly goodToken: string;
+  readonly reason: string;
+}
+
+const ORACLE_FINDINGS: readonly OracleFinding[] = [
   {
-    href: "/guide/install",
-    title: "Install & Wiring",
-    body: "Packages, the Vite plugin, and the bundler recipes.",
+    id: "hex",
+    rule: "spin/no-hardcoded-color",
+    badToken: "bg-[#c8102e]",
+    goodToken: "bg-primary",
+    reason: "Raw hex bypasses dark mode restatements.",
   },
   {
-    href: "/guide/css",
-    title: "CSS & Edges",
-    body: "Closed vocabulary, layers, wind4, and the sharp edges.",
+    id: "scale",
+    rule: "spin/unknown-class",
+    badToken: "p-13",
+    goodToken: "p-4",
+    reason: "Step 13 is not in the spacing scale; emits zero CSS.",
   },
   {
-    href: "/themes",
-    title: "Themes",
-    body: "The DTCG contract, modes, and the Studio that edits them.",
-  },
-  {
-    href: "/themes/studio",
-    title: "Studio",
-    body: "The live theme editor beside your running app.",
-  },
-  {
-    href: "/components",
-    title: "Elements",
-    body: "Every element, with live specimens you can copy.",
-  },
-  {
-    href: "/utilities",
-    title: "Utilities",
-    body: "Every utility the active starter spends, grouped by intent.",
-  },
-  {
-    href: "/tooling/lints",
-    title: "Lints",
-    body: "Six theme-aware rules over your source.",
+    id: "pair",
+    rule: "spin/unpaired-ink",
+    badToken: "bg-primary text-text",
+    goodToken: "bg-primary text-on-primary",
+    reason: "text-text on primary drops to 1.8:1 in dark mode.",
   },
 ];
 
-/** The landing's below-the-fold argument: one section, four layers,
- * progressive disclosure — the platform's own disclosure does the work. */
-
-const TOKEN_JSON = `{
-  "color": {
-    "primary": {
-      "$value": "#c8102e",
-      "$modes": { "dark": "#f4646e" }
-    }
-  },
-  "radius": { "md": { "$value": "0.25rem" } },
-  "spacing": { "4": { "$value": "1rem" } }
-}`;
-
-const CARD_CODE =
-  `<article class="flex flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
-  <div class="flex items-baseline justify-between gap-3">
-    <h3 class="m-0 text-lg font-semibold">Ethiopia Guji</h3>
-    <span class="text-sm text-text-muted">$19</span>
-  </div>
-  <p class="m-0 text-sm text-text-muted">Apricot, jasmine, black tea</p>
-  <div class="flex flex-wrap items-center gap-2">
-    <button type="button" class="s-sm">Add to box</button>
-  </div>
-</article>`;
-
-const DIALOG_CODE = `<button type="button">Add to box</button>
-<button type="button" class="secondary">Cancel</button>
-<button type="button" class="danger">Roll back</button>`;
-/** The card in the utilities panel keeps a real count: the button is a JS
- * action, which is what `type="button"` is for. */
-const [inBox, setInBox] = createSignal(0);
-
-const SWATCHES: readonly (readonly [string, string])[] = [
-  ["--color-primary", "bg-primary"],
-  ["--color-surface", "bg-surface"],
-  ["--color-text", "bg-text"],
-  ["--radius-md", "rounded-md"],
-];
-
-const layers = (): readonly { label: string; panel: JSX.Element }[] => [
+const ANCHOR_META: Record<
+  string,
   {
-    label: "0 · design tokens",
-    panel: (
-      <div class="grid gap-6 md:grid-cols-2">
-        <div>
-          <p>
-            One JSON file per theme: your colors, spacing, type, radii, shadows,
-            and durations — light and dark side by side. The build emits it as
-            CSS custom properties (the swatches here are four of them), and
-            everything above this layer spends those names. Replace the file and
-            you have a different product.
-          </p>
-          <Code class="mt-4 text-xs" code={TOKEN_JSON} lang="json" />
-        </div>
-        <div class="flex flex-col justify-center gap-4">
-          <For each={SWATCHES}>
-            {([name, paint]) => (
-              <span class="flex items-center gap-3">
-                <span
-                  class={`h-8 w-16 shrink-0 border border-border-strong ${paint}`}
-                />
-                <code>{name}</code>
-              </span>
-            )}
-          </For>
-        </div>
-      </div>
-    ),
+    readonly title: string;
+    readonly role: string;
+    readonly snippet: string;
+  }
+> = {
+  primary: {
+    title: "Spot & action ink",
+    role: "Paired with --color-on-primary across every mode.",
+    snippet: `<button type="button">Deploy build</button>\n<badge variant="primary">verified</badge>`,
   },
-  {
-    label: "1 · utilities",
-    panel: (
-      <div class="grid gap-6 md:grid-cols-2">
-        <div>
-          <p>
-            Utility classes replace CSS files. Every name is generated from the
-            theme: <code>bg-primary</code> is your primary, <code>p-4</code>
-            {" "}
-            is a step on your spacing scale, and hover and focus states come
-            from the same scale. The default theme alone generates every utility
-            it can, across color, spacing, type, layout, borders, shadows, and
-            motion — and the ones you never use are never generated.
-          </p>
-          <Code class="mt-4 text-xs" code={CARD_CODE} lang="html" />
-        </div>
-        <div class="flex items-center justify-center">
-          <article class="flex w-full max-w-[20rem] flex-col gap-3 rounded-md border border-border bg-surface-raised p-4 shadow-sm">
-            <div class="flex items-baseline justify-between gap-3">
-              <h3>Ethiopia Guji</h3>
-              <span class="text-sm text-text-muted">$19</span>
-            </div>
-            <p class="text-sm text-text-muted">
-              Apricot, jasmine, black tea
-            </p>
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                class="s-sm"
-                onClick={() => setInBox((n) => n + 1)}
-              >
-                Add to box
-              </button>
-              {inBox() > 0 && <badge variant="success">{inBox()} in box</badge>}
-            </div>
-          </article>
-        </div>
-      </div>
-    ),
+  spacing: {
+    title: "Closed spacing scale",
+    role: "20 steps from 0 to 64. Unlisted steps compile to nothing.",
+    snippet: `<card class="flex flex-col gap-4 p-4">\n  <h3>Release v2.4</h3>\n</card>`,
   },
-  {
-    label: "2 · primitives",
-    panel: (
-      <div class="grid gap-6 md:grid-cols-2">
-        <div>
-          <p>
-            The element library, for the parts of an interface that have
-            behavior: dialog, switch, checkbox, radio, select, range, rating,
-            popover, table, progress, meter, disclosure, avatar, alert, badge,
-            card, breadcrumbs, kbd — styled HTML, not widgets built from divs. A
-            switch is a checkbox wearing{" "}
-            <code>role="switch"</code>; a dialog is a{" "}
-            <code>&lt;dialog&gt;</code>, so focus trapping, Escape, and the
-            backdrop come from the browser. No example opens one here: a modal
-            on a marketing page is a page that interrupts its reader.
-          </p>
-          <Code class="mt-4 text-xs" code={DIALOG_CODE} lang="html" />
-        </div>
-        <div class="flex flex-col justify-center gap-5">
-          <label>
-            <input type="checkbox" role="switch" checked />{" "}
-            Notify me of restocks
-          </label>
-          <div class="flex flex-wrap items-center gap-2">
-            <badge variant="success">in stock</badge>
-            <badge variant="accent">roaster's pick</badge>
-            <badge variant="neutral">decaf</badge>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <button type="button">Add to box</button>
-            <button type="button" class="secondary">Cancel</button>
-            <button type="button" class="danger">Roll back</button>
-          </div>
-        </div>
-      </div>
-    ),
+  radius: {
+    title: "Structural corner radius",
+    role: "Shared across cards, fields, panels, and buttons.",
+    snippet: `<input type="text" placeholder="Filter routes..." />`,
   },
-  {
-    label: "3 · component runtime",
-    panel: (
-      <div class="grid gap-6 md:grid-cols-2">
-        <div>
-          <p>
-            The runtime turns these elements into custom elements —
-            <code>&lt;ui-button&gt;</code>, <code>&lt;ui-dialog&gt;</code>{" "}
-            — branded components that carry the theme with them. The theme is
-            CSS custom properties, and custom elements are native platform: drop
-            the same component into React, Svelte, Vue, or a page with no
-            framework at all, and it arrives already painted in your brand. One
-            component, every framework, no runtime to ship for it — which is
-            also where the speed comes from.
-          </p>
-          <p class="text-sm text-text-muted">
-            Building it now. The primitives above are the same components, and
-            the theme document you write today is the one they will wear.
-          </p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 self-center">
-          <Chip>react</Chip>
-          <Chip>svelte</Chip>
-          <Chip>vue</Chip>
-          <Chip>solid</Chip>
-          <Chip>plain html</Chip>
-        </div>
-      </div>
-    ),
+  surface: {
+    title: "Layered paper & charcoal",
+    role: "surface, surface-sunken, and surface-raised hold 4.5:1 text floors.",
+    snippet: `<panel>\n  <panel-list>...</panel-list>\n</panel>`,
   },
-];
-
-const STUDIO_FEATURES: readonly string[] = [
-  "Every theme, palette and all — click one and the app re-themes",
-  "Editors for color, type, icons, motion, spacing, radius, and shadows, each with live specimens",
-  "Light and dark per theme, flipped while the app repaints",
-  "New theme from a copy of one you have, or scaffolded from the required roles",
-  "An issues list: values that fail validation, linked to the editor that fixes them",
-  "Undo, redo, save — it writes spin/*.json in your repo, the file your build reads",
-];
-
-const CTA = "no-underline";
-const GHOST = "ghost no-underline";
+  motion: {
+    title: "Bounded motion tokens",
+    role: "fast, base, slow, and loop durations governed by the theme.",
+    snippet: `<div class="transition-colors duration-fast ease-standard">...</div>`,
+  },
+};
 
 export default function Home(): JSX.Element {
-  /*
-   * The studio's mechanism, live: writing `--color-primary` on the document
-   * is exactly what editing the token does — the page spends it everywhere.
-   */
-  let colorInput: HTMLInputElement | undefined;
-  const [brand, setBrand] = createSignal("");
-  const syncBrand = () => {
-    const hex = getComputedStyle(document.documentElement).getPropertyValue(
-      "--color-primary",
-    ).trim();
-    setBrand(hex);
-    if (colorInput) colorInput.value = hex;
+  const [activeAnchor, setActiveAnchor] = createSignal<string>("primary");
+  const [reweaveKey, setReweaveKey] = createSignal(0);
+  const [pluckedToken, setPluckedToken] = createSignal("--color-primary");
+  const [pluckedValue, setPluckedValue] = createSignal("#c8102e");
+  const [pluckCoords, setPluckCoords] = createSignal("ring 4 · spoke 2");
+  const [copiedInstall, setCopiedInstall] = createSignal(false);
+
+  // Interactive Specimen state connected to the foreground web
+  const [specimenCount, setSpecimenCount] = createSignal(3);
+  const [strictGate, setStrictGate] = createSignal(true);
+  const [specimenLoad, setSpecimenLoad] = createSignal(76);
+
+  // Interactive Oracle Workbench state (which of the 3 agent bugs are fixed)
+  const [fixedIds, setFixedIds] = createSignal<Record<string, boolean>>({
+    hex: false,
+    scale: false,
+    pair: false,
+  });
+
+  // Interactive Component Taxonomy preview state
+  const [activeGroupIdx, setActiveGroupIdx] = createSignal(0);
+
+  const readCssVar = (varName: string): string => {
+    if (typeof document === "undefined") return "";
+    const val = getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+    return val || "—";
   };
-  onMount(syncBrand);
-  const paintBrand = (hex: string) => {
-    document.documentElement.style.setProperty("--color-primary", hex);
-    setBrand(hex);
+
+  const syncTokenReadout = (varName: string) => {
+    requestAnimationFrame(() => {
+      setPluckedValue(readCssVar(varName));
+    });
   };
-  const unpaintBrand = () => {
-    document.documentElement.style.removeProperty("--color-primary");
-    syncBrand();
+
+  onMount(() => {
+    syncTokenReadout(pluckedToken());
+  });
+
+  createEffect(() => {
+    theme();
+    mode();
+    syncTokenReadout(pluckedToken());
+  });
+
+  const handlePluck = (event: MarkPluckEvent) => {
+    setPluckedToken(event.token);
+    setPluckCoords(`ring ${event.ring} · spoke ${event.spoke}`);
+    syncTokenReadout(event.token);
+    const matched = WEB_ANCHOR_NODES.find((n) => n.token === event.token);
+    if (matched) setActiveAnchor(matched.id);
   };
+
+  const selectAnchor = (id: string) => {
+    const node = WEB_ANCHOR_NODES.find((n) => n.id === id);
+    if (!node) return;
+    setActiveAnchor(id);
+    setPluckedToken(node.token);
+    setPluckCoords(`ring ${node.ring + 1} · spoke ${node.spoke + 1}`);
+    syncTokenReadout(node.token);
+  };
+
+  const toggleFix = (id: string) => {
+    setFixedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const allFixed = () =>
+    ORACLE_FINDINGS.every((f) => fixedIds()[f.id] === true);
+
+  const setAllFixed = (val: boolean) => {
+    setFixedIds({ hex: val, scale: val, pair: val });
+  };
+
+  const remainingBugs = () =>
+    ORACLE_FINDINGS.filter((f) => !fixedIds()[f.id]).length;
+
+  const oracleCode = () => {
+    const f = fixedIds();
+    const cardPad = f.scale ? "p-4" : "p-13";
+    const badgeFill = f.hex ? "bg-primary" : "bg-[#c8102e]";
+    const btnClasses = f.pair
+      ? "bg-primary text-on-primary"
+      : "bg-primary text-text";
+    return `<article class="rounded-lg border border-border bg-surface-raised ${cardPad}">
+  <div class="flex items-center justify-between gap-3">
+    <span class="font-semibold text-text">pr-418 · checkout-flow</span>
+    <span class="rounded-sm px-2 py-1 text-xs ${badgeFill} text-on-primary">
+      canary
+    </span>
+  </div>
+  <p class="mt-2 text-sm text-text-muted">
+    32 routes probed in 410ms · contrast & geometry verified
+  </p>
+  <button type="button" class="bare mt-4 rounded-md px-3 py-2 text-xs font-semibold ${btnClasses}">
+    Promote release
+  </button>
+</article>`;
+  };
+
+  const openStudioOverlay = () => {
+    const fab = document.querySelector<HTMLButtonElement>(
+      'button[aria-label="Open the theme studio"]',
+    );
+    if (fab) {
+      fab.click();
+    }
+  };
+
+  const copyInstall = () => {
+    navigator.clipboard?.writeText("bun add @spinjs/spin @spinjs/components");
+    setCopiedInstall(true);
+    setTimeout(() => setCopiedInstall(false), 1800);
+  };
+
   return (
     <main class="min-h-dvh bg-surface text-text font-sans text-md">
-      {/* The first screen: mark, pitch, switch. */}
-      <section class="relative grid min-h-dvh overflow-hidden md:grid-cols-2">
-        <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-6 py-5 md:px-12">
-          <Logo size="lg" class="text-text" />
-          <div class="flex items-center gap-3">
-            <span class="hidden text-xs font-semibold text-text-muted sm:block">
-              theme
-            </span>
-            <div class="flex flex-wrap items-center gap-2">
-              <For each={starterList}>
-                {(name) => (
+      {/* First screen: Split Hero — Pitch & Theme Switch Left, Foreground Interactive Black Widow Stage Right */}
+      <section class="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-screen-xl items-center gap-8 px-4 py-8 md:grid-cols-2 md:px-8 md:py-12">
+        {/* Left Column: Direct Pitch + Live Starter Strip + Interactive Token Workbench */}
+        <div class="flex flex-col justify-center gap-6">
+          <div class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1 text-xs font-medium text-text-muted">
+            <span class="h-2 w-2 rounded-full bg-primary" />
+            <span>Closed-vocabulary UI · Built for humans &amp; agents</span>
+          </div>
+
+          <div>
+            <h1 class="m-0 font-heading text-display font-bold tracking-tight text-text">
+              Spin your own web.
+            </h1>
+            <p class="mt-4 max-w-[54ch] text-lg text-text-muted">
+              Give agents and engineers one design contract. Spin locks colors,
+              spacing, and typography to a validated theme JSON, ships 59 native
+              primitives and state-machine components, and catches visual drift
+              mechanically.
+            </p>
+          </div>
+
+          {/* Primary CTAs + One-click install */}
+          <div class="flex flex-wrap items-center gap-3">
+            <A href="/guide/install" role="button" class="no-underline">
+              Get started
+            </A>
+            <A
+              href="/components"
+              role="button"
+              class="secondary no-underline"
+            >
+              Explore 59 components
+            </A>
+            <button
+              type="button"
+              onClick={copyInstall}
+              class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface-sunken px-3 py-2 font-mono text-xs text-text transition-colors duration-fast hover:border-border-strong"
+              title="Copy install command"
+            >
+              <span class="text-primary">$</span>
+              <span>bun add @spinjs/spin</span>
+              <span
+                class={
+                  copiedInstall()
+                    ? "i-lucide-check icon-sm text-semantic-success"
+                    : "i-lucide-copy icon-sm text-text-muted"
+                }
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          {/* Interactive Workbench coupled to the Foreground Spider Web */}
+          <div class="rounded-lg border border-border bg-surface-raised p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-semibold text-primary">
+                  LIVE WEB TELEMETRY
+                </span>
+                <span class="text-xs text-text-muted">· {pluckCoords()}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReweaveKey((k) => k + 1)}
+                class="bare inline-flex items-center gap-1 rounded-sm border border-border bg-surface px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:border-border-strong hover:text-text"
+              >
+                <span class="i-lucide-rotate-ccw icon-sm" aria-hidden="true" />
+                <span>Re-spin web</span>
+              </button>
+            </div>
+
+            {/* Clickable token nodes that lure the spider across the foreground web */}
+            <div class="mt-3">
+              <p class="m-0 text-xs text-text-muted">
+                Click a token node (or pluck the web) to send the widow to that
+                strand and inspect the live contract:
+              </p>
+              <div
+                class="mt-2 flex flex-wrap gap-1"
+                role="group"
+                aria-label="Web token anchors"
+              >
+                <For each={WEB_ANCHOR_NODES}>
+                  {(node) => (
+                    <button
+                      type="button"
+                      aria-pressed={activeAnchor() === node.id}
+                      onClick={() => selectAnchor(node.id)}
+                      class={`bare rounded-sm px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                        activeAnchor() === node.id
+                          ? "bg-primary text-on-primary font-semibold"
+                          : "border border-border bg-surface text-text-muted hover:text-text"
+                      }`}
+                    >
+                      {node.label}
+                    </button>
+                  )}
+                </For>
+              </div>
+            </div>
+
+            {/* Live resolved token readout + interactive mini-component driven by that token */}
+            <div class="mt-3 grid gap-3 rounded-md border border-border bg-surface p-3 sm:grid-cols-2">
+              <div class="flex flex-col justify-between gap-2">
+                <div>
+                  <div class="flex items-center justify-between gap-2">
+                    <code class="text-xs font-semibold text-primary">
+                      {pluckedToken()}
+                    </code>
+                    <code class="rounded-sm bg-surface-sunken px-2 py-1 text-xs text-text">
+                      {pluckedValue()}
+                    </code>
+                  </div>
+                  <p class="mt-1 mb-0 text-xs font-semibold text-text">
+                    {ANCHOR_META[activeAnchor()]?.title ?? "Active token"}
+                  </p>
+                  <p class="mt-1 mb-0 text-xs text-text-muted">
+                    {ANCHOR_META[activeAnchor()]?.role ??
+                      "Resolved from the active theme document."}
+                  </p>
+                </div>
+                <div class="flex items-center justify-between gap-2 border-t border-border pt-2 font-mono text-xs text-text-muted">
+                  <span>data-theme="{theme()}"</span>
+                  <span>data-mode="{mode()}"</span>
+                </div>
+              </div>
+
+              {/* Interactive live component specimen responding to user clicks */}
+              <div class="flex flex-col justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
+                <div class="flex items-center justify-between gap-2">
+                  <label class="flex items-center gap-2 text-xs font-medium">
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={strictGate()}
+                      onChange={(e) => {
+                        setStrictGate(e.currentTarget.checked);
+                        selectAnchor("primary");
+                      }}
+                    />
+                    <span>Strict gate</span>
+                  </label>
+                  <badge variant={strictGate() ? "primary" : "neutral"}>
+                    {strictGate() ? "enforced" : "advisory"}
+                  </badge>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-text-muted">Silk tension</span>
+                    <span class="font-mono font-semibold text-text">
+                      {specimenLoad()}%
+                    </span>
+                  </div>
+                  <progress
+                    value={specimenLoad()}
+                    max={100}
+                    class="mt-1"
+                  />
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
                   <button
                     type="button"
+                    class="s-sm"
                     onClick={() => {
-                      document.documentElement.style.removeProperty(
-                        "--color-primary",
+                      setSpecimenCount((n) => n + 1);
+                      setSpecimenLoad((v) => (v >= 95 ? 45 : v + 10));
+                      selectAnchor(
+                        WEB_ANCHOR_NODES[
+                          specimenCount() % WEB_ANCHOR_NODES.length
+                        ]!.id,
                       );
-                      setTheme(name);
-                      requestAnimationFrame(syncBrand);
                     }}
-                    aria-pressed={theme() === name}
-                    title={`Switch to the ${name} theme`}
-                    class={`px-3 py-2 text-sm rounded-sm transition-colors duration-fast ${
-                      theme() === name
-                        ? "bg-primary text-on-primary"
-                        : "border border-border bg-surface-raised text-text hover:border-border-strong"
+                  >
+                    Pluck strand ({specimenCount()})
+                  </button>
+                  <span class="font-mono text-xs text-text-muted">
+                    {theme()}/{mode()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Foreground Interactive Black Widow Stage */}
+        <div class="relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface-raised shadow-sm">
+          <div class="flex items-center justify-between border-b border-border bg-surface px-4 py-2 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-primary" />
+              <span class="font-mono font-semibold text-text">
+                orb-weaver.svg
+              </span>
+              <span class="text-text-muted">
+                · 8-leg 2-bone IK · elastic catenary silk
+              </span>
+            </div>
+            <span class="font-mono text-xs text-text-muted">
+              move or click web
+            </span>
+          </div>
+
+          <div class="relative flex aspect-square max-h-[32rem] w-full items-center justify-center p-2">
+            <Mark
+              class="h-full w-full cursor-crosshair text-text select-none"
+              activeAnchor={activeAnchor()}
+              reweaveKey={reweaveKey()}
+              onPluck={handlePluck}
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface px-4 py-2 text-xs text-text-muted">
+            <span>
+              Plucked:{" "}
+              <code class="text-primary">{pluckedToken()}</code> ={" "}
+              <code class="text-text">{pluckedValue()}</code>
+            </span>
+            <span>Hover to stalk · Click any intersection to strike</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Below the fold: Show, Don't Tell Interactive Workbenches */}
+      <div class="mx-auto max-w-screen-xl px-4 py-12 md:px-8 md:py-16">
+        {/* Workbench 01: Mechanical Verification (Interactive Agent Bug Fixer) */}
+        <Reveal>
+          <section class="rounded-lg border border-border bg-surface-raised p-6 md:p-8">
+            <div class="flex flex-wrap items-baseline justify-between gap-4">
+              <div>
+                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                  01 / Mechanical Verification
+                </p>
+                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
+                  What code review misses, Spin catches.
+                </h2>
+                <p class="mt-2 max-w-[62ch] text-sm text-text-muted">
+                  An agent writes a clean-looking component and slips in three
+                  one-word bugs: a raw hex color, a made-up spacing step, and an
+                  illegible dark-mode ink pair. Click each diagnostic below to
+                  watch Spin repair the source and the rendered output.
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <badge variant={allFixed() ? "success" : "danger"}>
+                  {allFixed()
+                    ? "0 issues · 6.5:1 PASS"
+                    : `${remainingBugs()} issues · 1.8:1 FAIL`}
+                </badge>
+                <button
+                  type="button"
+                  class={allFixed() ? "secondary s-sm" : "s-sm"}
+                  onClick={() => setAllFixed(!allFixed())}
+                >
+                  {allFixed() ? "Reset agent bugs" : "Fix all 3 with Spin"}
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-2">
+              {/* Left: Clickable Diagnostics + Live Markup */}
+              <div class="flex flex-col gap-3">
+                <For each={ORACLE_FINDINGS}>
+                  {(item) => {
+                    const isFixed = () => fixedIds()[item.id] === true;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => toggleFix(item.id)}
+                        class={`bare flex w-full items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors duration-fast ${
+                          isFixed()
+                            ? "border-border bg-surface"
+                            : "border-primary bg-surface"
+                        }`}
+                      >
+                        <div class="min-w-0 flex-1">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span
+                              class={
+                                isFixed()
+                                  ? "i-lucide-check-circle-2 icon-sm text-semantic-success"
+                                  : "i-lucide-alert-triangle icon-sm text-primary"
+                              }
+                              aria-hidden="true"
+                            />
+                            <code class="text-xs font-semibold text-text">
+                              {item.rule}
+                            </code>
+                            <code class="rounded-sm bg-surface-sunken px-2 py-1 text-xs text-text-muted">
+                              {isFixed() ? item.goodToken : item.badToken}
+                            </code>
+                          </div>
+                          <p class="mt-1 mb-0 text-xs text-text-muted">
+                            {item.reason}
+                          </p>
+                        </div>
+                        <span class="shrink-0 rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text">
+                          {isFixed() ? "Fixed ✓" : "Apply fix"}
+                        </span>
+                      </button>
+                    );
+                  }}
+                </For>
+
+                <Code class="text-xs" code={oracleCode()} lang="html" />
+              </div>
+
+              {/* Right: Live Rendered Preview (showing the actual bug vs fixed result) */}
+              <div class="flex flex-col justify-between rounded-lg border border-border bg-surface p-6">
+                <div class="flex items-center justify-between text-xs text-text-muted">
+                  <span class="font-mono">LIVE RENDERED SURFACE</span>
+                  <span class="font-mono">
+                    {allFixed()
+                      ? "contrast: 6.49:1 · vocabulary: valid"
+                      : "contrast: 1.82:1 · padding: collapsed"}
+                  </span>
+                </div>
+
+                <div class="my-6 flex items-center justify-center">
+                  <article
+                    class={`w-full max-w-md rounded-lg border border-border bg-surface-raised shadow-sm transition-all duration-fast ${
+                      fixedIds().scale ? "p-4" : "p-0"
                     }`}
                   >
-                    {name}
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="font-semibold text-text">
+                        pr-418 · checkout-flow
+                      </span>
+                      <badge
+                        variant={fixedIds().hex ? "primary" : "danger"}
+                      >
+                        {fixedIds().hex ? "canary (token)" : "#c8102e (raw hex)"}
+                      </badge>
+                    </div>
+                    <p class="mt-2 text-sm text-text-muted">
+                      32 routes probed in 410ms · contrast &amp; geometry
+                      verified across light and dark modes.
+                    </p>
+                    <div class="mt-4 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleFix("pair")}
+                        class={`bare rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast ${
+                          fixedIds().pair
+                            ? "bg-primary text-on-primary"
+                            : "bg-primary text-surface"
+                        }`}
+                      >
+                        Promote release
+                      </button>
+                      <span class="font-mono text-xs text-text-muted">
+                        {fixedIds().scale ? "padding: 1rem (p-4)" : "padding: 0px (p-13 dead)"}
+                      </span>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-text-muted">
+                  <span>
+                    Runs in <code>oxlint</code>, <code>eslint</code>,{" "}
+                    <code>spin lint</code>, and MCP.
+                  </span>
+                  <A href="/tooling/lints" class="font-semibold no-underline">
+                    Explore the 6 lint gates →
+                  </A>
+                </div>
+              </div>
+            </div>
+          </section>
+        </Reveal>
+
+        {/* Workbench 02: 59 Native Primitives & Interactive State Machines */}
+        <Reveal>
+          <section class="mt-12 rounded-lg border border-border bg-surface-raised p-6 md:p-8">
+            <div class="flex flex-wrap items-baseline justify-between gap-4">
+              <div>
+                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                  02 / 59 Components · One Taxonomy
+                </p>
+                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
+                  Native HTML where possible. State machines where required.
+                </h2>
+                <p class="mt-2 max-w-[62ch] text-sm text-text-muted">
+                  A button is <code>&lt;button&gt;</code>, a dialog is{" "}
+                  <code>&lt;dialog&gt;</code>, and a switch is a checkbox wearing{" "}
+                  <code>role="switch"</code>. When an interface outgrows native
+                  HTML — cascade selects, date pickers, tree views, signature
+                  pads — Spin pairs accessible state machines with the exact
+                  same token contract.
+                </p>
+              </div>
+              <A href="/components" role="button" class="secondary s-sm no-underline">
+                Browse all 59 components →
+              </A>
+            </div>
+
+            {/* Category switcher tabs */}
+            <div
+              class="mt-6 flex flex-wrap gap-2"
+              role="tablist"
+              aria-label="Component categories"
+            >
+              <For each={COMPONENT_GROUPS}>
+                {(group, idx) => (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeGroupIdx() === idx()}
+                    onClick={() => setActiveGroupIdx(idx())}
+                    class={`bare inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast ${
+                      activeGroupIdx() === idx()
+                        ? "bg-primary text-on-primary"
+                        : "border border-border bg-surface text-text-muted hover:text-text"
+                    }`}
+                  >
+                    <span>{group.label}</span>
+                    <span class="rounded-sm bg-surface-sunken px-1 font-mono text-xs text-text">
+                      {group.items.length}
+                    </span>
                   </button>
                 )}
               </For>
             </div>
-          </div>
-        </header>
 
-        <div class="relative flex flex-col justify-center px-6 py-5 md:px-12 md:py-10">
-          <div class="max-w-screen-md py-12">
-            <h1>
-              Spin your own web.
-            </h1>
-            <p class="text-md text-text-muted">
-              Spin is a design system and portable UI framework. Built on
-              familiar concepts like design tokens, utility classes, and web
-              components, Spin can be adopted incrementally and works with any
-              rendering framework. Agents are first class authors and are given
-              tooling to create consistent and beautiful interfaces, fast.
-            </p>
-            <div class="mt-8 flex flex-wrap items-center gap-3">
-              <A href="/guide" role="button" class={CTA}>get started</A>
-              <A href="/components" role="button" class={GHOST}>
-                browse elements
-              </A>
-            </div>
-          </div>
-        </div>
-
-        {
-          /* The rule between the pitch and the mark: the theme's own element
-          * for a rule, and the vertical edge is the cell's own on a wide
-          * screen, where the columns sit side by side. */
-        }
-        <hr class="md:hidden" />
-        <div
-          class="pointer-events-none absolute inset-0 overflow-hidden"
-          aria-hidden="true"
-        >
-          <Mark class="h-full w-full text-text opacity-20" />
-        </div>
-      </section>
-
-      {/* Below the fold: the layers, the studio, the tooling, then where to go. */}
-      <div class="mx-auto max-w-screen-xl px-4 py-16 md:px-8">
-        <Reveal>
-          <div class="mt-16">
-            <Section title="The layers">
-              <p class="max-w-[65ch] text-text-muted">
-                Four layers, each one optional. Tokens describe the look;
-                utilities spend it; elements carry behavior; the runtime carries
-                the same branded components into every framework.
-              </p>
-              <For each={layers()}>
-                {(layer, i) => (
-                  <details open={i() === 0}>
-                    <summary>{layer.label}</summary>
-                    <div>{layer.panel}</div>
-                  </details>
+            {/* Direct links into the selected category's components */}
+            <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <For
+                each={
+                  COMPONENT_GROUPS[activeGroupIdx()]?.items ??
+                  COMPONENT_GROUPS[0]?.items ??
+                  []
+                }
+              >
+                {(item) => (
+                  <A
+                    href={item.href}
+                    class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface p-3 no-underline transition-colors duration-fast hover:border-border-strong"
+                  >
+                    <div class="flex min-w-0 items-center gap-2">
+                      <span
+                        class={`${item.icon} icon-sm shrink-0 text-primary`}
+                        aria-hidden="true"
+                      />
+                      <span class="truncate text-sm font-medium text-text">
+                        {item.name}
+                      </span>
+                    </div>
+                    <span class="font-mono text-xs text-text-muted">
+                      {item.href.includes("/machine-") ? "machine" : "primitive"}
+                    </span>
+                  </A>
                 )}
               </For>
-            </Section>
-          </div>
+            </div>
+          </section>
         </Reveal>
 
+        {/* Workbench 03: Live Studio & Theme Contract */}
         <Reveal>
-          <div class="mt-16">
-            <Section title="The studio">
-              <div class="grid gap-6 md:grid-cols-2">
-                <p class="max-w-[65ch]">
-                  The studio is the theme editor, mounted into the app it is
-                  editing — this site included. It docks to either side of that
-                  app or takes the whole screen, and every change repaints the
-                  app beside it: themes, palettes, type, motion, spacing, the
-                  components. The <strong>Theme</strong>{" "}
-                  button in the corner of this page opens it on this page.
+          <section class="mt-12 grid gap-6 rounded-lg border border-border bg-surface-raised p-6 md:grid-cols-2 md:p-8">
+            <div class="flex flex-col justify-between gap-4">
+              <div>
+                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                  03 / Live Theme Studio &amp; MCP
                 </p>
-                <div class="flex flex-col justify-center gap-2 md:max-w-[20rem]">
-                  <For each={STUDIO_FEATURES}>
-                    {(line) => (
-                      <span class="flex gap-2 text-sm">
-                        <span class="shrink-0 font-semibold text-primary">
-                          —
-                        </span>
-                        <span class="text-text-muted">{line}</span>
-                      </span>
-                    )}
-                  </For>
-                </div>
+                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
+                  Edit tokens beside your running app.
+                </h2>
+                <p class="mt-2 text-sm text-text-muted">
+                  The Spin daemon mounts the Theme Studio on the same origin as
+                  your dev server and exposes an MCP server for coding agents.
+                  Every token edit is checked against legibility and scale
+                  floors before it writes <code>spin/*.json</code> back to disk.
+                </p>
               </div>
-              <div class="mt-6 grid gap-6 md:grid-cols-2">
-                <p>Update your theme live in the studio.</p>
-                <div class="border border-border bg-surface-raised rounded-md p-4">
-                  <div class="flex items-center justify-between gap-3">
-                    <span class="font-mono text-sm">color.primary</span>
-                    <code>{brand()}</code>
-                  </div>
-                  <div class="mt-3 flex items-center gap-3">
-                    <input
-                      ref={colorInput}
-                      type="color"
-                      aria-label="color.primary"
-                      onInput={(e) => paintBrand(e.currentTarget.value)}
-                      class="h-[2.25rem] w-12 cursor-pointer bg-transparent"
-                    />
-                    <button type="button" class="ghost" onClick={unpaintBrand}>
-                      reset
-                    </button>
-                  </div>
-                  <div class="mt-4 flex flex-wrap items-center gap-3">
-                    <button type="button">Add to box</button>
-                    <badge variant="success">shipped</badge>
-                    {
-                      /* The brand colour, worn by the element the theme
-                      * gives that fill: the badge's primary tone. */
-                    }
-                    <badge variant="primary">primary</badge>
-                  </div>
-                </div>
-              </div>
-            </Section>
-          </div>
-        </Reveal>
 
-        <Reveal>
-          <div class="mt-16">
-            <Section title="Tooling for agents">
-              <div class="grid gap-4 md:grid-cols-3">
-                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="font-semibold text-text">
-                    An MCP client reads the project.
-                  </p>
-                  <p class="text-sm">
-                    Claude, Cursor, or any MCP client connects to the running
-                    dev server and reads what is actually there: the token
-                    document, the utilities the preset generates, the elements
-                    it ships. Code it writes uses those names instead of
-                    inventing parallel ones.
-                  </p>
-                </div>
-                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="font-semibold text-text">
-                    Lint errors name the fix.
-                  </p>
-                  <p class="text-sm">
-                    <code>@spinjs/diagnostics</code> runs in oxlint: a hardcoded
-                    {" "}
-                    <code>#c8102e</code>{" "}
-                    fails with the token to use instead; a class the preset will
-                    not generate fails as one that does not exist; a utility
-                    parked on an element that styles itself fails with where it
-                    belongs.
-                  </p>
-                </div>
-                <div class="border-solid border-l-4 border-primary bg-surface-raised rounded-md p-4">
-                  <p class="font-semibold text-text">
-                    Every theme opens in a browser.
-                  </p>
-                  <p class="text-sm">
-                    The gates render each starter in both modes and check
-                    contrast, layout, overflow, and stacking — failures that
-                    never show up in a code review, only on the page.
-                  </p>
-                </div>
-              </div>
-            </Section>
-          </div>
-        </Reveal>
-
-        <Reveal>
-          <div class="mt-4 grid gap-4 md:grid-cols-3">
-            <For each={PAGES}>
-              {(page) => (
+              <div class="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={openStudioOverlay}>
+                  Open Studio on this page
+                </button>
                 <A
-                  href={page.href}
-                  class="block border border-border bg-surface-raised rounded-md p-4 no-underline hover:border-border-strong transition-colors duration-fast"
+                  href="/themes"
+                  role="button"
+                  class="secondary no-underline"
                 >
-                  <p class="font-heading text-lg">
-                    {page.title}
-                  </p>
-                  <p class="text-sm text-text-muted">{page.body}</p>
+                  Read the theme contract
                 </A>
-              )}
-            </For>
-          </div>
+              </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <A
+                href="/why"
+                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
+              >
+                <div>
+                  <p class="m-0 font-heading text-lg font-bold text-text">
+                    Why Spin
+                  </p>
+                  <p class="mt-1 mb-0 text-xs text-text-muted">
+                    Why code review misses one-word UI bugs, and how a closed
+                    contract eliminates the class of failure.
+                  </p>
+                </div>
+                <span class="mt-4 font-mono text-xs text-primary">
+                  /why →
+                </span>
+              </A>
+
+              <A
+                href="/guide/install"
+                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
+              >
+                <div>
+                  <p class="m-0 font-heading text-lg font-bold text-text">
+                    Install &amp; Wiring
+                  </p>
+                  <p class="mt-1 mb-0 text-xs text-text-muted">
+                    Add the Vite plugin, pick a starter theme, and drop
+                    primitives or machines into Solid, React, or HTML.
+                  </p>
+                </div>
+                <span class="mt-4 font-mono text-xs text-primary">
+                  /guide/install →
+                </span>
+              </A>
+
+              <A
+                href="/utilities"
+                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
+              >
+                <div>
+                  <p class="m-0 font-heading text-lg font-bold text-text">
+                    Tokens &amp; Utilities
+                  </p>
+                  <p class="mt-1 mb-0 text-xs text-text-muted">
+                    Inspect every CSS variable and utility class emitted by the
+                    active starter in light and dark modes.
+                  </p>
+                </div>
+                <span class="mt-4 font-mono text-xs text-primary">
+                  /utilities →
+                </span>
+              </A>
+
+              <A
+                href="/tooling/mcp"
+                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
+              >
+                <div>
+                  <p class="m-0 font-heading text-lg font-bold text-text">
+                    MCP &amp; Agent Skill
+                  </p>
+                  <p class="mt-1 mb-0 text-xs text-text-muted">
+                    Connect Claude or Cursor to the live project daemon so
+                    agents query real tokens instead of guessing.
+                  </p>
+                </div>
+                <span class="mt-4 font-mono text-xs text-primary">
+                  /tooling/mcp →
+                </span>
+              </A>
+            </div>
+          </section>
         </Reveal>
+
+        <footer class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-text-muted">
+          <Logo size="sm" class="text-text" />
+          <span>
+            Closed vocabulary · 5 starter themes · 59 components · mechanical
+            verification
+          </span>
+        </footer>
       </div>
     </main>
   );

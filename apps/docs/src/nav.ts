@@ -2,13 +2,16 @@
  * The docs' single navigation source: the top sections and both sidebars.
  *
  * The top bar switches worlds — Docs vs Components — and the left rail is
- * contextual to the world the reader is in. The component tree is derived
- * from the preset's own taxonomy, so a primitive added to the rules appears
+ * contextual to the world the reader is in. The component tree is filed by
+ * the shared unified taxonomy, so a component added to the library appears
  * in the rail on the next build with no list to maintain.
  */
-import { COMPONENT_ICONS } from "@spinjs/components";
 import {
-  primitiveCategories,
+  COMPONENT_ICONS,
+  UNIFIED_COMPONENT_GROUPS,
+} from "@spinjs/components";
+import { exampleMachines } from "@spinjs/components/examples";
+import {
   primitiveContracts,
   primitiveElements,
 } from "@spinjs/preset";
@@ -30,9 +33,19 @@ export const TOP_SECTIONS: readonly (NavLink & {
   {
     title: "Docs",
     href: "/guide/install",
-    active: ["/why", "/guide", "/themes", "/tokens"],
+    active: ["/why", "/guide"],
   },
   { title: "Components", href: "/components", active: ["/components"] },
+  {
+    title: "Themes",
+    href: "/themes",
+    active: ["/themes", "/tokens", "/utilities"],
+  },
+  {
+    title: "Tooling",
+    href: "/tooling/lints",
+    active: ["/tooling"],
+  },
 ];
 
 /** The Docs world's left rail. */
@@ -73,57 +86,35 @@ export interface ComponentNavGroup {
 }
 
 /**
- * The Components world's left rail, read off the preset's taxonomy.
- *
- * Every element the manifest knows, filed where the manifest files it — the
- * same taxonomy the studio's rail and the reference app's rail read — so a
- * filing cannot disagree between surfaces. A category the manifest empties
- * is dropped rather than drawn as a heading over nothing.
+ * The Components world's left rail, filed by the shared unified taxonomy —
+ * the same table the studio's rail reads — so a filing cannot disagree
+ * between surfaces. Primitives link to their page; machines link to their
+ * machine page. A group the library empties is dropped rather than drawn
+ * as a heading over nothing.
  */
+const MACHINES = new Set(exampleMachines());
+function unifiedHref(member: string): string {
+  const bare = member.replace(/^component-/, "");
+  return MACHINES.has(bare) ? `/components/machine-${bare}` : `/components/${bare}`;
+}
+function unifiedIcon(member: string): string {
+  const bare = member.replace(/^component-/, "");
+  if (MACHINES.has(bare)) return COMPONENT_ICONS[bare] ?? "i-lucide-box";
+  return primitiveElements.find((element) => element.name === bare)?.icon ?? "i-lucide-box";
+}
+function unifiedKnown(member: string): boolean {
+  const bare = member.replace(/^component-/, "");
+  return MACHINES.has(bare) || bare in primitiveContracts;
+}
 export const COMPONENT_GROUPS: readonly ComponentNavGroup[] =
-  primitiveCategories
-    .map((category) => ({
-      id: category.id,
-      label: category.label,
-      items: primitiveElements
-        .filter(
-          (element) =>
-            element.category === category.id &&
-            element.name in primitiveContracts,
-        )
-        .map((element) => ({
-          name: element.name,
-          icon: element.icon,
-          href: `/components/${element.name}`,
-        })),
-    }));
-
-/**
- * The machines' rail group, read off the example directories the gallery
- * renders — the same directories search reads, so a machine with examples
- * to show is listed and one without them is not. One group: machines are
- * one tier, and regrouping the gallery is not asked.
- */
-export const MACHINE_GROUPS: readonly ComponentNavGroup[] = [
-  {
-    id: "machines",
-    label: "Machines",
-    items: [
-      ...new Set(
-        Object.keys(
-          import.meta.glob(
-            "../../../packages/components/src/*/examples/*.html",
-            { query: "?raw", import: "default", eager: true },
-          ),
-        ).map((path) => path.split("/").at(-3) ?? ""),
-      ),
-    ]
-      .filter((name) => name !== "")
-      .sort()
-      .map((name) => ({
-        name,
-        icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
-        href: `/components/machine-${name}`,
+  UNIFIED_COMPONENT_GROUPS.map((group) => ({
+    id: group.id,
+    label: group.label,
+    items: group.members
+      .filter(unifiedKnown)
+      .map((member) => ({
+        name: member.replace(/^component-/, ""),
+        icon: unifiedIcon(member),
+        href: unifiedHref(member),
       })),
-  },
-].filter((group) => group.items.length > 0);
+  })).filter((group) => group.items.length > 0);

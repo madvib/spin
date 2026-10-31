@@ -10,6 +10,13 @@
           "display": "swap"
         },
         {
+          "family": "Bricolage Grotesque",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bricolage-grotesque:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "200 800",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
           "family": "Space Grotesk",
           "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
           "weight": "300 700",
@@ -216,6 +223,14 @@
         "dark": "#111923"
       }
     },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
+    },
     "on-semantic-success": {
       "$type": "color",
       "$value": "#ffffff",
@@ -257,7 +272,7 @@
     "on-danger": {
       "$type": "color",
       "$value": "{color.on-semantic-error}",
-      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` \u2014 the role the contract requires, the floor is measured on, and the danger button and the danger badge wear \u2014 so the two names can never disagree."
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree."
     },
     "on-semantic-info": {
       "$type": "color",
@@ -373,8 +388,8 @@
       },
       "brand": {
         "$type": "fontFamily",
-        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The logotype face \u2014 one brand, every starter."
+        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face — one brand, every starter."
       }
     },
     "size": {
@@ -421,7 +436,7 @@
     },
     "letter-spacing": {
       "$type": "dimension",
-      "$description": "How far the letters sit from each other. A theme has a real opinion here \u2014 the open end is what separates a plain label from a shouted one \u2014 so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
         "$value": "-0.05em",
         "$description": "Display type only. Enough to pull a large headline back to the measure of the body it leads."
@@ -575,7 +590,7 @@
       },
       "loop": {
         "$value": "1.2s",
-        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A loop is watched rather than reacted to, so it is slower than any transition \u2014 and never faster than the floor below which it reads as a strobe."
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A loop is watched rather than reacted to, so it is slower than any transition — and never faster than the floor below which it reads as a strobe."
       }
     },
     "easing": {
@@ -635,7 +650,7 @@
     },
     "width-4": {
       "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose \u2014 a stroke this thick is a statement, not a divider."
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
     },
     "width-8": {
       "$value": "8px",
@@ -660,7 +675,7 @@
     }
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in \u2014 a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
     "sm": {
       "$type": "dimension",
       "$value": "0.875rem"

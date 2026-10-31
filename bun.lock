@@ -37,6 +37,7 @@
       "dependencies": {
         "@solidjs/router": "^1.0.0",
         "@spinjs/spin": "workspace:*",
+        "animejs": "4.5.0",
         "solid-js": "^1.9.3",
       },
     },
@@ -44,6 +45,7 @@
       "name": "@spinjs/reference",
       "version": "0.1.0",
       "dependencies": {
+        "@spin/check": "workspace:*",
         "@spinjs/spin": "workspace:*",
         "solid-js": "^1.9.3",
       },
@@ -54,6 +56,7 @@
       "dependencies": {
         "@solidjs/meta": "^0.28.0",
         "@solidjs/router": "^1.0.0",
+        "@spin/check": "workspace:*",
         "@spinjs/spin": "workspace:*",
         "playwright-core": "^1.63.0",
         "solid-js": "^1.9.3",
@@ -62,6 +65,10 @@
     "internal/check": {
       "name": "@spin/check",
       "version": "0.1.0",
+      "dependencies": {
+        "@spinjs/spin": "workspace:*",
+        "playwright-core": "^1.63.0",
+      },
     },
     "packages/components": {
       "name": "@spinjs/components",
@@ -110,6 +117,7 @@
         "@unocss/preset-wind4": "66.10.5",
         "@unocss/transformer-directives": "66.10.5",
         "@unocss/transformer-variant-group": "66.10.5",
+        "animejs": "4.5.0",
         "hono": "^4.13.13",
         "unplugin": "^3.4.0",
         "valibot": "^1.0.0",
@@ -130,6 +138,7 @@
       "peerDependencies": {
         "@spinjs/components": "workspace:*",
         "@spinjs/runtime": "workspace:*",
+        "solid-js": "^1.9.3",
       },
     },
   },
@@ -401,6 +410,8 @@
     "ajv": ["ajv@6.15.0", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, "sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw=="],
 
     "alien-signals": ["alien-signals@3.2.1", "", {}, "sha512-I8FjmltrfnDFoZedi5CG8DghVYNhzb/Ijluz7tCSJH0xpd0484Kowhbb1XDYOxfJpU1p5wnM2X54dA+IfGyD1g=="],
+
+    "animejs": ["animejs@4.5.0", "", { "peerDependencies": { "@types/three": ">=0.150.0", "three": ">=0.150.0" }, "optionalPeers": ["@types/three", "three"] }, "sha512-NQimYX+lz8WaXonGS9zVVoviCIAjONeJayxacUditaivYLqyXgGjFKjuyl0aUUhFKm5MriX9ty1TGovNzoJQWA=="],
 
     "ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg=="],
 
