@@ -125,6 +125,7 @@ export {
 } from "./pipeline/generate.ts";
 
 // The uno theme: names derived from paths, values as references.
+export { resolveTheme, type ResolvedTheme } from "./resolve-theme.ts";
 export { themeKey, themeRef } from "./uno-ref.ts";
 export type { ThemeRef } from "./uno-ref.ts";
 
