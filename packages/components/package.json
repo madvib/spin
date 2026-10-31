@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/components",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "The machine components: headless statecharts with typed bridges, framework adapters, and vendored examples.",
   "type": "module",
   "license": "MIT",
@@ -8,7 +8,10 @@
     "type": "git",
     "url": "git+https://github.com/madvib/spin.git"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/examples.ts",
+    "*.html"
+  ],
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -169,6 +172,14 @@
     "./solid": {
       "types": "./src/solid/solid.ts",
       "default": "./src/solid/solid.ts"
+    },
+    "./mode-picker": {
+      "types": "./src/mode-picker/mode-picker.presentation.ts",
+      "default": "./src/mode-picker/mode-picker.presentation.ts"
+    },
+    "./theme-picker": {
+      "types": "./src/theme-picker/theme-picker.presentation.ts",
+      "default": "./src/theme-picker/theme-picker.presentation.ts"
     }
   },
   "files": [
@@ -352,6 +363,14 @@
       "./solid": {
         "types": "./dist/solid/solid.d.ts",
         "default": "./dist/solid/solid.js"
+      },
+      "./mode-picker": {
+        "types": "./dist/mode-picker/mode-picker.presentation.d.ts",
+        "default": "./dist/mode-picker/mode-picker.presentation.js"
+      },
+      "./theme-picker": {
+        "types": "./dist/theme-picker/theme-picker.presentation.d.ts",
+        "default": "./dist/theme-picker/theme-picker.presentation.js"
       }
     }
   },
