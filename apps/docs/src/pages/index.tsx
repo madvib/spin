@@ -580,7 +580,7 @@ export default function Home(): JSX.Element {
                     const value = event.currentTarget.value;
                     if (isPackageManager(value)) setPackageManager(value);
                   }}
-                  class="s-sm w-fit"
+                  class="min-h-0 w-fit px-2 py-1 text-xs"
                 >
                   <For each={PACKAGE_MANAGERS}>
                     {(manager) => (
