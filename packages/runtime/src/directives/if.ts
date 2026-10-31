@@ -1,5 +1,4 @@
-import { effect, machineTick, own, untrack } from "../core/signal.ts";
-import { scope } from "../core/signal.ts";
+import { effect, own, scope, untrack } from "../core/signal.ts";
 
 export interface BranchRender {
   nodes: Node[];
@@ -33,11 +32,7 @@ export function bindIf(opts: BindIfOptions): () => void {
     nodes = [];
   };
 
-  // The tick is the invalidation bus: a test that reads machine state
-  // through plain getters subscribes to nothing else, so without this a
-  // show={machine-expr} block renders its seed branch and never moves.
   effect(() => {
-    machineTick();
     const v = test();
     if (v === last) return;
     last = v;

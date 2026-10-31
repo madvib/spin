@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
-import { effect, machineTick, signal } from "../core/signal.ts";
+import { effect, signal } from "../core/signal.ts";
 import { bindFor } from "./for.ts";
 
 const { document } = parseHTML("<!doctype html><html><body></body></html>");
@@ -96,13 +96,10 @@ test("the for re-syncs on the machine-move signal", () => {
   document.body.appendChild(host);
   const anchor = document.createComment("for");
   host.appendChild(anchor);
-  const ctx = { rows: ["a"] as readonly string[] };
+  const rows = signal<readonly string[]>(["a"]);
   bindFor<string>({
     anchor,
-    items: () => {
-      machineTick();
-      return ctx.rows;
-    },
+    items: () => rows(),
     key: (item) => item,
     render: (row) => {
       const el = document.createElement("div");
@@ -116,9 +113,7 @@ test("the for re-syncs on the machine-move signal", () => {
     "the seeded row renders",
   );
 
-  // A machine move: the context object mutates, and the move signal flips.
-  ctx.rows = ["a", "b"];
-  machineTick(machineTick() + 1);
+  rows(["a", "b"]);
   deepStrictEqual(
     host.querySelectorAll("div").length,
     2,

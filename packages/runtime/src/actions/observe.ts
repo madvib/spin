@@ -21,7 +21,7 @@ export interface ObserveParam {
   /** Attributes on the node itself to watch. */
   attributes?: readonly string[];
   /** An attribute in `attributes` changed. */
-  onAttributes?: () => void;
+  onAttributes?: (node: Element) => void;
   /** An element child was removed from the node. */
   onRemove?: (removed: Element) => void;
   /** Observation started; the node's current state is readable now. */
@@ -36,7 +36,7 @@ export const observe: ElementAction<ObserveParam | undefined> = createAction((no
   const observer = new MutationObserver((records) => {
     for (const record of records) {
       if (record.type === "attributes") {
-        param?.onAttributes?.();
+        param?.onAttributes?.(node);
         continue;
       }
       for (const removed of record.removedNodes) {

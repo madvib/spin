@@ -64,10 +64,11 @@ export interface BuildContext {
   /** The scope for this connection. Pass it to `createMachine`. */
   readonly scope: OwnerScope;
   /** Resolve a handle to its instance, walking up the scope chain. */
-  /** Resolve a handle to its instance, walking up the scope chain. */
   resolve<T>(handle: Handle): T | undefined;
   /** Instantiate (on first call) and register a handle in this scope. */
-  watch<T>(handle: Handle, factory: Factory<T>): T;
+  watch<T>(handle: Handle, factory: Factory<T>, commands?: readonly string[], name?: string): T;
+  /** Consume a handle from the nearest ancestor that provides it. */
+  consume<T>(handle: Handle): T | undefined;
   /**
    * Whether a prop was written by the host (property or attribute) as
    * opposed to left at its coerced default. Machines use it to tell a
@@ -99,11 +100,26 @@ const authoredProps = new WeakMap<HTMLElement, Set<string>>();
 /** Each element's connection scope, so work that runs later — a binding
  * re-applying after the element left the build — still enters it. */
 const elementScopes = new WeakMap<HTMLElement, OwnerScope>();
+/** Per-element prop writers, registered at construction. `writeProp` reaches
+ * the element's own store even for names no accessor was declared for. */
+const writers = new WeakMap<object, (name: string, next: unknown) => void>();
+
+/**
+ * Write a prop through the element's store, marking it authored. Returns
+ * false when `el` is not a Spin element (or predates its upgrade), so the
+ * caller falls back to a plain property write the constructor picks up.
+ */
+export function writeProp(el: Element, name: string, value: unknown): boolean {
+  const write = writers.get(el);
+  if (write === undefined) return false;
+  write(name, value);
+  return true;
+}
 
 /** The scope of the element that owns `node`: a recipe's markup renders
  * inside its custom element, so a bag spread on an inner node belongs to that
  * element's scope. */
-function scopeOf(node: Element): OwnerScope | undefined {
+export function scopeOf(node: Element): OwnerScope | undefined {
   for (
     let current: Element | null = node;
     current !== null;
@@ -163,6 +179,19 @@ export function define(tag: string, spec: ElementSpec): void {
     return store;
   }
 
+  // Declared props are materialized at build: the bridge spreads `props`
+  // inside its sync effect, and a spread only subscribes to keys that exist
+  // when it runs. A prop written after first spread would land in the store
+  // but never invalidate the effect, so host-written `items` would never
+  // reach the machine. Seeding every declared prop (as `undefined`) makes
+  // the keys exist before the first spread subscribes.
+  function seedProps(el: HTMLElement): void {
+    const store = storeFor(el);
+    for (const name of propNames) {
+      if (!store.has(name)) store.set(name, signal<unknown>(undefined));
+    }
+  }
+
   function propFor(el: HTMLElement, name: string): Signal {
     const store = storeFor(el);
     let value = store.get(name);
@@ -174,8 +203,27 @@ export function define(tag: string, spec: ElementSpec): void {
     return new Proxy({} as Record<string, unknown>, {
       get: (_target, key) =>
         typeof key === "string" ? propFor(el, key)() : undefined,
-      has: (_target, key) => typeof key === "string" && storeFor(el).has(key),
-      ownKeys: () => [...storeFor(el).keys()],
+      // Only keys with a value set — by the host, or by the constructor's
+      // pre-upgrade pickup — enumerate. The script's own seed
+      // (`splitter({...})` in the recipe) spreads first, so a seeded
+      // `undefined` here would shadow it and the machine would construct
+      // with no panels. Unset keys stay readable (`get` materializes
+      // them) but do not spread; the bridge subscribes to set keys plus
+      // whatever the host writes later.
+      has: (_target, key) =>
+        typeof key === "string" && storeFor(el).has(key),
+      ownKeys: () => {
+        const store = storeFor(el);
+        const out: string[] = [];
+        for (const name of propNames) {
+          const sig = store.get(name);
+          if (sig !== undefined && sig() !== undefined) out.push(name);
+        }
+        for (const name of store.keys()) {
+          if (!propNames.includes(name)) out.push(name);
+        }
+        return out;
+      },
       getOwnPropertyDescriptor: () => ({
         configurable: true,
         enumerable: true,
@@ -202,36 +250,69 @@ export function define(tag: string, spec: ElementSpec): void {
         delete (this as unknown as Record<string, unknown>)[name];
         propFor(this, name)(value);
       }
+      writers.set(this, (name, next) => {
+        authoredFor(this).add(name);
+        propFor(this, name)(coerceWrite(name, next));
+      });
     }
 
     connectedCallback(): void {
-      // Custom elements are inline by default; content children sized in %
-      // (slider tracks, carousel slides) would shrink-wrap. Block layout is
-      // element semantics, not theme — set once here, not per component.
-      if (this.style.display === "") this.style.display = "block";
-      // A reconnect opens a fresh scope. The previous one is already disposed,
-      // and `dispose` is idempotent, so ordering here is not load-bearing.
-      const owner = scope();
+      // A move disconnects then reconnects the same node: rebuilding
+      // would duplicate the element's own output beside itself, and the
+      // projection that moved it already placed its light DOM. A live
+      // scope means this is that move, not a first mount.
+      if (this.#scope !== undefined) return;
+      // A host with no display of its own renders inline and collapses
+      // around its output, so the upgrade defaults it to block — but only
+      // when the cascade has not already placed it. A class like `flex`
+      // on the tag is the author's layout; stomping it with an inline
+      // `block` would unwind it, so the computed display decides. A DOM
+      // without computed style (happy-dom) keeps the plain default.
+      if (this.style.display === "") {
+        const view = this.ownerDocument.defaultView;
+        const placed = typeof view?.getComputedStyle === "function"
+          ? view.getComputedStyle(this).display
+          : "inline";
+        if (placed === "inline") this.style.display = "block";
+      }
+      const parentScope = this.parentElement !== null
+        ? scopeOf(this.parentElement)
+        : undefined;
+      const owner = scope(parentScope);
       this.#scope = owner;
       elementScopes.set(this, owner);
-      const table = createScopeTable(owner);
+      const table = createScopeTable(owner, this);
       this.#table = table;
       owner.run(() => {
+        seedProps(this);
         spec.build({
           el: this,
           props: propsFor(this),
           scope: owner,
           resolve: (handle) => table.resolve(handle),
-          watch: (handle, factory) => table.watch(handle, factory),
+          watch: (handle, factory, commands, name) => {
+            const peers = (table as unknown as { namesOf(handle: object): readonly string[] }).namesOf(handle);
+            if ((name ?? "") === "" && peers.length > 0 && !peers.includes("")) {
+              throw new Error(`[spin] ${tag}: two bindings share one machine; pass a binding name`);
+            }
+            return table.watch(handle, factory, commands, name);
+          },
+          consume: (handle) => table.consume(handle),
           authored: (name) => authoredFor(this).has(name),
         });
       });
     }
 
     disconnectedCallback(): void {
-      this.#scope?.dispose();
-      this.#scope = undefined;
-      this.#table = undefined;
+      // A move's disconnect is followed by its reconnect before anything
+      // else runs: disposing synchronously would kill a scope that is
+      // about to be reused. Dispose only once still detached.
+      queueMicrotask(() => {
+        if (this.isConnected) return;
+        this.#scope?.dispose();
+        this.#scope = undefined;
+        this.#table = undefined;
+      });
     }
 
     attributeChangedCallback(

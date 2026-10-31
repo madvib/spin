@@ -12,7 +12,7 @@ import { test } from "bun:test";
 
 import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
-import type { PartScope } from "./component/define.ts";
+import type { PartView } from "./component/define.ts";
 import { bindSpread } from "./directives/spread.ts";
 import {
   ariaAutocomplete,
@@ -42,7 +42,7 @@ import {
 const { document } = parseHTML("<html><body></body></html>");
 
 /** A scope that mints ids the way the runtime does. */
-function scopeOf(): PartScope {
+function scopeOf(): PartView {
   return {
     props: {},
     context: {},

@@ -35,14 +35,13 @@
  *    studio's visualizer, test derivation, and agent authoring. Assigns are
  *    pure context transforms, so naming them keeps the whole config
  *    serializable with a lookup table of reviewed pure functions beside it.
- * 2. **Signals instead of subscribers.** Upstream's `subscribe` is dropped:
- *    `send` bumps `machineTick`, and consumers read through a `computed`,
- *    matching every other reactive path in this runtime.
+ * 2. **Per-field signals.** `interpret` backs `state.value` and each field of
+ *    `state.context` with an `alien-signals` signal updated inside `batch()`.
  * 3. **No status enum beyond stopped.** Scope disposal owns teardown;
  *    `stop()` is what `dispose()` calls.
  */
 
-import { machineTick } from "../../core/signal.ts";
+import { batch, signal, type Signal, untrack } from "../../core/signal.ts";
 
 /** Any event object: a discriminant type plus any payload. */
 export type EventObject = { type: string } & Record<string, unknown>;
@@ -277,20 +276,32 @@ function isEvent<
  * the event. After the guard, `event.type` is the one name, and the lookup
  * returns that name's transitions.
  */
-function candidatesFor<
-  TContext extends object,
-  TEventMap extends EventMap,
-  TName extends EventNames<TEventMap>,
-  TState extends string = string,
->(
-  on: Transitions<TContext, TEventMap, TState> | undefined,
-  event: EventUnion<TEventMap>,
-  name: TName,
-): readonly Transition<TContext, EventOf<TEventMap, TName>, TState>[] {
-  if (!isEvent(event, name)) return [];
-  const found = on?.[event.type];
-  if (found === undefined) return [];
-  return toList(found);
+interface Candidate<C extends object, E, S extends string = string> {
+  readonly target: S | undefined;
+  readonly cond: ((context: C, event: E) => boolean) | undefined;
+  readonly assign: Assign<C, E> | readonly Assign<C, E>[] | undefined;
+}
+
+const EMPTY: readonly never[] = [];
+
+function normalize<C extends object, E, S extends string = string>(
+  entry: Transition<C, E, S> | readonly Transition<C, E, S>[] | undefined,
+): readonly Candidate<C, E, S>[] {
+  if (entry === undefined) return EMPTY as readonly Candidate<C, E, S>[];
+  const list = isList(entry) ? entry : [entry];
+  return list.map((candidate) =>
+    typeof candidate === "string"
+      ? { target: candidate, cond: undefined, assign: undefined }
+      : { target: candidate.target, cond: candidate.cond, assign: candidate.assign }
+  );
+}
+
+function isMatch<C extends object, E>(
+  candidate: Candidate<C, E>,
+  ctx: C,
+  event: E,
+): boolean {
+  return candidate.cond === undefined || candidate.cond(ctx, event);
 }
 
 /**
@@ -377,6 +388,14 @@ export function createMachine<
 >(
   spec: MachineSpec<TContext, TEventMap, TState>,
 ): Machine<TContext, TEventMap, TState> {
+  type Table = Map<string, readonly Candidate<TContext, EventUnion<TEventMap>, TState>[]>;
+  const compile = (on: Transitions<TContext, TEventMap, TState> | undefined): Table => {
+    const table: Table = new Map();
+    for (const [name, entry] of Object.entries(on ?? {})) {
+      table.set(name, normalize(entry as Transition<TContext, EventUnion<TEventMap>, TState> | readonly Transition<TContext, EventUnion<TEventMap>, TState>[]));
+    }
+    return table;
+  };
   const config: Config<TContext, TEventMap, TState> = {
     ...(spec.id === undefined ? {} : { id: spec.id }),
     initial: spec.initial,
@@ -384,6 +403,11 @@ export function createMachine<
     ...(spec.on === undefined ? {} : { on: spec.on }),
     states: spec.states,
   };
+  const rootTable = compile(spec.on);
+  const stateTables = new Map<string, Table>();
+  for (const [stateName, stateDef] of Object.entries(spec.states) as [string, { readonly on?: Transitions<TContext, TEventMap, TState> }][]) {
+    stateTables.set(stateName, compile(stateDef.on));
+  }
   const initial = fold(
     config.states[config.initial]?.entry,
     config.context ?? ({} as TContext),
@@ -406,55 +430,44 @@ export function createMachine<
       const current = from.value;
       const ctx = from.context;
       const stateDef = config.states[current];
-      // No early return on a missing `on`: a state that declares nothing
-      // still inherits the root tier. `stateDef` itself stays optional —
-      // root handlers must work even for a state absent from the map.
-      const name = event.type as EventName<TEventMap>;
-      const candidates = [
-        ...candidatesFor(stateDef?.on, event, name),
-        // Root handlers are the fallback tier: a state-level handler for the
-        // same event shadows them by ordering. One place states "this event
-        // works everywhere" instead of a copy in every state.
-        ...candidatesFor(config.on, event, name),
-      ];
-      if (candidates.length === 0) return stateOf(current, ctx);
-      for (const candidate of candidates) {
-        const { target, cond, assign } = typeof candidate === "string"
-          ? { target: candidate, cond: undefined, assign: undefined }
-          : candidate;
-        if (cond !== undefined && !cond(ctx, event)) continue;
-
-        // Internal transition (no target): only this transition's writes
-        // run — no exit, no entry, no state change.
-        if (target === undefined) {
+      // States absent from the map still inherit the root tier.
+      const name = event.type;
+      const first = stateTables.get(current)?.get(name) ?? (EMPTY as readonly Candidate<TContext, EventUnion<TEventMap>, TState>[]);
+      const second = rootTable.get(name) ?? (EMPTY as readonly Candidate<TContext, EventUnion<TEventMap>, TState>[]);
+      for (let tier = 0; tier < 2; tier++) {
+        const list = tier === 0 ? first : second;
+        for (let i = 0; i < list.length; i++) {
+          const candidate = list[i] as Candidate<TContext, EventUnion<TEventMap>, TState>;
+          const { target, assign } = candidate;
+          if (!isMatch(candidate, ctx, event)) continue;
+          if (target === undefined) {
+            return {
+              value: current,
+              context: fold(
+                assign === undefined
+                  ? undefined
+                  : (isList(assign) ? assign : [assign]),
+                ctx,
+                event as EventOf<TEventMap, EventName<TEventMap>>,
+              ),
+              matches: (v) => v === current,
+            };
+          }
+          const nextDef = config.states[target];
+          const context = fold(stateDef?.exit, ctx, event);
+          const written = fold(
+            assign === undefined
+              ? undefined
+              : (isList(assign) ? assign : [assign]),
+            context,
+            event as EventOf<TEventMap, EventName<TEventMap>>,
+          );
           return {
-            value: current,
-            context: fold(
-              assign === undefined
-                ? undefined
-                : (isList(assign) ? assign : [assign]),
-              ctx,
-              event as EventOf<TEventMap, typeof name>,
-            ),
-            matches: (v) => v === current,
+            value: target,
+            context: fold(nextDef?.entry, written, event),
+            matches: (v) => v === target,
           };
         }
-        const nextDef = config.states[target];
-        // The chain: the state's exit, the transition's writes, the next
-        // state's entry — in that order, each seeing what the last left.
-        const context = fold(stateDef?.exit, ctx, event);
-        const written = fold(
-          assign === undefined
-            ? undefined
-            : (isList(assign) ? assign : [assign]),
-          context,
-          event as EventOf<TEventMap, typeof name>,
-        );
-        return {
-          value: target,
-          context: fold(nextDef?.entry, written, event),
-          matches: (v) => v === target,
-        };
       }
       return stateOf(current, ctx);
     },
@@ -468,20 +481,84 @@ export function interpret<
 >(
   machine: Machine<TContext, TEventMap, TState>,
 ): Service<TContext, TEventMap, TState> {
-  let current = machine.initialState;
+  let rawState: TState = machine.initialState.value;
+  let rawContext: TContext = { ...machine.initialState.context };
   let stopped = false;
+
+  const stateSig = signal<TState>(rawState);
+  const fieldSignals = new Map<string, Signal<unknown>>();
+  const reactiveContext = {} as TContext;
+
+  const ensureField = (key: string, initialValue: unknown): Signal<unknown> => {
+    let sig = fieldSignals.get(key);
+    if (sig !== undefined) return sig;
+    sig = signal<unknown>(initialValue);
+    fieldSignals.set(key, sig);
+    Object.defineProperty(reactiveContext, key, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        return sig!();
+      },
+      set(next: unknown) {
+        const rec = rawContext as Record<string, unknown>;
+        if (!Object.is(rec[key], next)) {
+          rec[key] = next;
+          sig!(next);
+        }
+      },
+    });
+    return sig;
+  };
+
+  for (const [key, val] of Object.entries(rawContext as Record<string, unknown>)) {
+    ensureField(key, val);
+  }
+
+  const commitState = (nextValue: TState, nextContext: TContext): void => {
+    batch(() => {
+      if (nextValue !== rawState) {
+        rawState = nextValue;
+        stateSig(nextValue);
+      }
+      const prevRec = rawContext as Record<string, unknown>;
+      const nextRec = nextContext as Record<string, unknown>;
+      rawContext = { ...nextContext };
+      for (const key of Object.keys(nextRec)) {
+        const val = nextRec[key];
+        const sig = fieldSignals.get(key);
+        if (sig === undefined) {
+          ensureField(key, val);
+        } else if (!Object.is(prevRec[key], val)) {
+          sig(val);
+        }
+      }
+    });
+  };
+
+  const stateView: State<TContext, TState> = {
+    get value(): TState {
+      return stateSig();
+    },
+    get context(): TContext {
+      return reactiveContext;
+    },
+    matches: (v: string): boolean => stateSig() === v,
+  };
 
   const service: Service<TContext, TEventMap, TState> = {
     setContext(patch) {
-      current = { ...current, context: { ...current.context, ...patch } };
-      machineTick(machineTick() + 1);
+      commitState(rawState, { ...rawContext, ...patch });
     },
     send(event) {
       if (stopped) return;
-      current = machine.transition(current, event);
-      // The reactivity seam: consumers read this service through a
-      // `computed` that subscribes to the tick, as every binding does.
-      machineTick(machineTick() + 1);
+      const next = untrack(() =>
+        machine.transition(
+          { value: rawState, context: rawContext, matches: (v) => v === rawState },
+          event,
+        )
+      );
+      commitState(next.value, next.context);
     },
     start(next) {
       stopped = false;
@@ -490,17 +567,14 @@ export function interpret<
         const context = typeof next === "string"
           ? machine.initialState.context
           : next.context;
-        current = {
-          value,
-          context: fold(
-            machine.config.states[value]?.entry,
-            context,
-            INIT as unknown as EventUnion<TEventMap>,
-          ),
-          matches: (v) => v === value,
-        };
+        const seeded = fold(
+          machine.config.states[value]?.entry,
+          context,
+          INIT as unknown as EventUnion<TEventMap>,
+        );
+        commitState(value, seeded);
       } else {
-        current = machine.initialState;
+        commitState(machine.initialState.value, machine.initialState.context);
       }
       return service;
     },
@@ -509,7 +583,7 @@ export function interpret<
       return service;
     },
     get state() {
-      return current;
+      return stateView;
     },
     get stopped() {
       return stopped;

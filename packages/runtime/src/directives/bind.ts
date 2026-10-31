@@ -1,13 +1,9 @@
-import { effect, machineTick, own, scope } from "../core/signal.ts";
+import { effect, own, scope } from "../core/signal.ts";
 export type Signal<T> = { (): T; (value: T): void };
 
-// Binding effects subscribe to the machine tick the way spreads do: bag
-// reads are raw (no per-field signals), so the tick is the invalidation
-// bus. Without it a binding renders its seed value and never moves again.
 export function bindText(node: Text, get: () => unknown): void {
   let last: unknown;
   effect(() => {
-    machineTick();
     const v = get();
     if (v !== last) {
       last = v;
@@ -59,7 +55,6 @@ export function classOf(classes: unknown): string {
 export function bindAttr(el: Element, name: string, get: () => unknown): void {
   let last: unknown = Symbol("init");
   effect(() => {
-    machineTick();
     const v = get();
     if (Object.is(v, last)) return;
     last = v;
@@ -204,15 +199,37 @@ export function bindChecked(
  * selector in the system assumes it. Shadow would isolate correctly and
  * break everything else.
  */
+// A reconnect rebuilds: `disconnectedCallback` disposes the scope once the
+// element stays detached past a microtask (a `<Suspense>` tearing its route
+// tree down on refetch), and `connectedCallback` runs `build` again. The
+// first build already moved the light-DOM children into the placed output,
+// so a naive second projection would regroup the element's own rendered DOM
+// as slots. The first projection is cached per element; a reconnect clears
+// the stale output and replays the cached groups.
+const projectedSlots = new WeakMap<HTMLElement, Map<string, Node[]>>();
 export function projectSlots(el: HTMLElement): Map<string, Node[]> {
+  const cached = projectedSlots.get(el);
+  if (cached !== undefined) {
+    for (const node of [...el.childNodes]) {
+      if (node.nodeType === 8) continue;
+      el.removeChild(node);
+    }
+    return cached;
+  }
   const groups = new Map<string, Node[]>();
   for (const node of [...el.childNodes]) {
+    // Comments stay: a host framework parks its block markers as comments
+    // among the light DOM, and moving one breaks the reconciliation the
+    // host runs on its next update. Comments never render, so leaving them
+    // changes nothing the reader sees.
+    if (node.nodeType === 8) continue;
     const name = node instanceof Element ? node.getAttribute("slot") ?? "" : "";
     const group = groups.get(name);
     if (group !== undefined) group.push(node);
     else groups.set(name, [node]);
     el.removeChild(node);
   }
+  projectedSlots.set(el, groups);
   return groups;
 }
 

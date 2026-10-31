@@ -53,7 +53,7 @@ export const hoverDelay: ElementAction<HoverDelayParam | undefined> = createActi
     // host already opened stays opened without re-firing.
     clearClose();
     if (openTimer !== undefined || param?.onOpen === undefined) return;
-    const delay = param?.openDelay ?? 400;
+    const delay = param?.openDelay ?? 150;
     if (delay <= 0) {
       param?.onOpen?.();
       return;
@@ -67,7 +67,7 @@ export const hoverDelay: ElementAction<HoverDelayParam | undefined> = createActi
   const leave = (): void => {
     clearOpen();
     if (closeTimer !== undefined || param?.onClose === undefined) return;
-    const delay = param?.closeDelay ?? 150;
+    const delay = param?.closeDelay ?? 100;
     if (delay <= 0) {
       param?.onClose?.();
       return;

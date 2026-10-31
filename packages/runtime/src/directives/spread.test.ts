@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
-import { machineTick } from "../core/signal.ts";
+import { signal } from "../core/signal.ts";
 import { bindSpread } from "./spread.ts";
 
 // linkedom, not happy-dom: it needs no `--allow-env`, so the package's own
@@ -24,15 +24,14 @@ test("a re-run with a new handler identity fires exactly once per dispatch", () 
     secondCalls++;
   };
 
-  let current: Record<string, unknown> = { onClick: first, "data-x": "1" };
-  bindSpread(el, () => current);
+  const current = signal<Record<string, unknown>>({ onClick: first, "data-x": "1" });
+  bindSpread(el, () => current());
 
   el.dispatchEvent(new window.Event("click"));
   deepStrictEqual(firstCalls, 1);
   deepStrictEqual(secondCalls, 0);
 
-  current = { onClick: second, "data-x": "1" };
-  machineTick(machineTick() + 1);
+  current({ onClick: second, "data-x": "1" });
 
   el.dispatchEvent(new window.Event("click"));
   // The old listener is gone and the new one fires once: a duplicated
@@ -50,11 +49,10 @@ test("re-running with the same handler identity keeps a single listener", () => 
     calls++;
   };
 
-  let current: Record<string, unknown> = { onClick: handler };
-  bindSpread(el, () => current);
+  const current = signal<Record<string, unknown>>({ onClick: handler });
+  bindSpread(el, () => current());
 
-  current = { onClick: handler };
-  machineTick(machineTick() + 1);
+  current({ onClick: handler });
 
   el.dispatchEvent(new window.Event("click"));
   deepStrictEqual(calls, 1);
@@ -64,14 +62,13 @@ test("attributes the reader drops are removed from the element", () => {
   const el = document.createElement("div");
   document.body.appendChild(el);
 
-  let current: Record<string, unknown> = { "data-x": "1", "data-y": "2" };
-  bindSpread(el, () => current);
+  const current = signal<Record<string, unknown>>({ "data-x": "1", "data-y": "2" });
+  bindSpread(el, () => current());
 
   deepStrictEqual(el.getAttribute("data-x"), "1");
   deepStrictEqual(el.getAttribute("data-y"), "2");
 
-  current = { "data-x": "1" };
-  machineTick(machineTick() + 1);
+  current({ "data-x": "1" });
 
   deepStrictEqual(el.getAttribute("data-x"), "1");
   deepStrictEqual(el.getAttribute("data-y"), null);
@@ -82,18 +79,17 @@ test("a listener the reader drops stops firing", () => {
   document.body.appendChild(el);
 
   let calls = 0;
-  let current: Record<string, unknown> = {
+  const current = signal<Record<string, unknown>>({
     onClick: () => {
       calls++;
     },
-  };
-  bindSpread(el, () => current);
+  });
+  bindSpread(el, () => current());
 
   el.dispatchEvent(new window.Event("click"));
   deepStrictEqual(calls, 1);
 
-  current = {};
-  machineTick(machineTick() + 1);
+  current({});
 
   el.dispatchEvent(new window.Event("click"));
   deepStrictEqual(calls, 1);
@@ -118,17 +114,16 @@ test("aria booleans render as true/false strings, never empty or absent", () => 
   const el = document.createElement("div");
   document.body.appendChild(el);
 
-  let current: Record<string, unknown> = {
+  const current = signal<Record<string, unknown>>({
     "aria-selected": false,
     hidden: false,
-  };
-  bindSpread(el, () => current);
+  });
+  bindSpread(el, () => current());
   // false on an aria state is explicit, not absent; on a plain boolean it removes.
   deepStrictEqual(el.getAttribute("aria-selected"), "false");
   deepStrictEqual(el.hasAttribute("hidden"), false);
 
-  current = { "aria-selected": true, hidden: true };
-  machineTick(machineTick() + 1);
+  current({ "aria-selected": true, hidden: true });
   // true on an aria state is "true", not the empty string (which AT reads as unset).
   deepStrictEqual(el.getAttribute("aria-selected"), "true");
   deepStrictEqual(el.getAttribute("hidden"), "");
@@ -141,11 +136,11 @@ test("a bag-carried use: directive is consumed, never written as an attribute", 
   // A name the registry does not hold: the assertion is the attribute
   // writer's behaviour, which must never fall through for any `use:` key.
   // The attach pass owns the entry, so an unregistered name skips it.
-  let bag: Record<string, unknown> = {
+  const bag = signal<Record<string, unknown>>({
     "data-x": "1",
     "use:unregistered-directive": { onDisabledChange: () => {} },
-  };
-  bindSpread(el, () => bag);
+  });
+  bindSpread(el, () => bag());
 
   // The attach pass owns `use:name` entries: the attribute writer must not
   // leak the stringified param into the DOM.
@@ -153,8 +148,7 @@ test("a bag-carried use: directive is consumed, never written as an attribute", 
   deepStrictEqual(el.hasAttribute("use:unregistered-directive"), false);
 
   // Dropping the directive writes nothing either — no attribute to remove.
-  bag = { "data-x": "1" };
-  machineTick(machineTick() + 1);
+  bag({ "data-x": "1" });
 
   deepStrictEqual(el.getAttribute("data-x"), "1");
   deepStrictEqual(el.hasAttribute("use:unregistered-directive"), false);

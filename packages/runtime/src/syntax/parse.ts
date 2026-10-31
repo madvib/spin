@@ -1,6 +1,5 @@
-import { ParseError, type ComponentIr, type Diagnostic, type Node, type ObjectField, type PropDecl, type ScopeBlock } from "./ir.ts";
+import { ParseError, type ComponentIr, type Diagnostic, type Node } from "./ir.ts";
 import { matchBrace } from "./braces.ts";
-import { isValidJsonDefault } from "../props.ts";
 
 const VOID = new Set([
   "area",
@@ -22,7 +21,6 @@ interface Parser {
   src: string;
   pos: number;
   errors: Diagnostic[];
-  scope?: ScopeBlock;
 }
 
 const span = (start: number, end: number) => ({ start, end });
@@ -354,247 +352,6 @@ function parseTemplate(
   return { kind: "for", source, binding, key, body, span: span(start, p.pos) };
 }
 
-function peekTagName(p: Parser): string {
-  let i = p.pos + 1;
-  if (i < p.src.length && p.src[i] === "/") i++;
-  const start = i;
-  while (i < p.src.length && /[A-Za-z0-9\-\._:]/.test(p.src[i]!)) i++;
-  return p.src.slice(start, i);
-}
-
-function findScopeStart(src: string): number {
-  let idx = src.indexOf("<scope");
-  while (idx !== -1) {
-    const after = src[idx + 6];
-    if (after === undefined || /\s|>/.test(after)) return idx;
-    idx = src.indexOf("<scope", idx + 6);
-  }
-  return -1;
-}
-
-function parseScopeElement(p: Parser, start: number): ScopeBlock {
-  p.pos++;
-  readTagName(p);
-  for (;;) {
-    skipWs(p);
-    if (p.pos >= p.src.length) {
-      fail(p, "unclosed", "<scope> is never closed", start, p.pos);
-      return { props: [], consume: [] };
-    }
-    if (p.src[p.pos] === ">") {
-      p.pos++;
-      break;
-    }
-    p.pos++;
-  }
-  const bodyStart = p.pos;
-  const closeIdx = p.src.indexOf("</scope", p.pos);
-  if (closeIdx === -1) {
-    fail(p, "unclosed", "<scope> is never closed", start, p.src.length);
-    p.pos = p.src.length;
-    return { props: [], consume: [] };
-  }
-  const body = p.src.slice(bodyStart, closeIdx);
-  p.pos = closeIdx + "</scope".length;
-  skipWs(p);
-  if (p.src[p.pos] === ">") p.pos++;
-  return parseScopeBody(p, body, bodyStart);
-}
-
-function parseScopeBody(p: Parser, body: string, bodyStart: number): ScopeBlock {
-  const props: PropDecl[] = [];
-  const consume: string[] = [];
-
-  let i = 0;
-  while (i < body.length && /\s/.test(body[i]!)) i++;
-  if (i >= body.length) return { props, consume };
-
-  // Reject flat form: "props:" not followed by "={"
-  if (/^props\s*:/.test(body.slice(i))) {
-    fail(p, "scope-props", "flat 'props:' form is no longer supported; use 'props={ name: type = default, ... }' instead", bodyStart + i, bodyStart + body.length);
-    return { props, consume };
-  }
-
-  // New form: props={...}
-  const propsMatch = /^props\s*=\s*\{/.exec(body.slice(i));
-  if (!propsMatch) {
-    fail(p, "scope-props", "<scope> body must start with 'props={...}'", bodyStart + i, bodyStart + body.length);
-    return { props, consume };
-  }
-
-  const braceStart = i + propsMatch[0].length - 1;
-  const closeIdx = matchBrace(body, braceStart, body.length);
-  if (closeIdx >= body.length) {
-    fail(p, "scope-props", "'props={' is never closed", bodyStart + braceStart, bodyStart + body.length);
-    return { props, consume };
-  }
-
-  const inner = body.slice(braceStart + 1, closeIdx);
-  const innerAbsStart = bodyStart + braceStart + 1;
-  for (const part of splitTopLevel(inner, ",")) {
-    const entry = part.text.trim();
-    if (entry.length === 0) continue;
-    parseScopeEntry(p, entry, innerAbsStart + part.start, innerAbsStart + part.end, props);
-  }
-
-  // After props brace: optional consume={...}. A trailing comma between the
-  // two blocks is tolerated (authors write `}, consume={` naturally).
-  let j = closeIdx + 1;
-  while (j < body.length && /\s/.test(body[j]!)) j++;
-  if (body[j] === ",") j++;
-  while (j < body.length && /\s/.test(body[j]!)) j++;
-  if (j < body.length) {
-    const rest = body.slice(j);
-    const consumeMatch = /^consume\s*=\s*\{/.exec(rest);
-    if (!consumeMatch) {
-      fail(p, "scope-consume", `unexpected content after props: '${rest.trim()}'`, bodyStart + j, bodyStart + body.length);
-    } else {
-      const cBraceStart = j + consumeMatch[0].length - 1;
-      const cCloseIdx = matchBrace(body, cBraceStart, body.length);
-      if (cCloseIdx >= body.length) {
-        fail(p, "scope-consume", "'consume={' is never closed", bodyStart + cBraceStart, bodyStart + body.length);
-      } else {
-        const cInner = body.slice(cBraceStart + 1, cCloseIdx);
-        const cInnerAbsStart = bodyStart + cBraceStart + 1;
-        for (const part of splitTopLevel(cInner, ",")) {
-          const name = part.text.trim();
-          if (name.length === 0) continue;
-          if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) {
-            fail(p, "scope-name", `invalid consume name '${name}'`, cInnerAbsStart + part.start, cInnerAbsStart + part.end);
-            continue;
-          }
-          consume.push(name);
-        }
-        let k = cCloseIdx + 1;
-        while (k < body.length && /\s/.test(body[k]!)) k++;
-        if (k < body.length) {
-          fail(p, "scope-consume", `unexpected content after consume: '${body.slice(k).trim()}'`, bodyStart + k, bodyStart + body.length);
-        }
-      }
-    }
-  }
-
-  return { props, consume };
-}
-
-function splitTopLevel(s: string, sep: string): { text: string; start: number; end: number }[] {
-  const parts: { text: string; start: number; end: number }[] = [];
-  let depth = 0;
-  let segStart = 0;
-  let i = 0;
-  while (i < s.length) {
-    const c = s[i]!;
-    if (c === '"' || c === "'" || c === "`") {
-      i = skipQuoted(s, i);
-      continue;
-    }
-    if (c === "{" || c === "[") depth++;
-    else if (c === "}" || c === "]") depth--;
-    else if (c === sep && depth === 0) {
-      parts.push({ text: s.slice(segStart, i), start: segStart, end: i });
-      segStart = i + 1;
-    }
-    i++;
-  }
-  parts.push({ text: s.slice(segStart), start: segStart, end: s.length });
-  return parts;
-}
-
-function skipQuoted(s: string, i: number): number {
-  const q = s[i]!;
-  let j = i + 1;
-  while (j < s.length) {
-    if (s[j] === "\\") { j += 2; continue; }
-    if (s[j] === q) return j + 1;
-    j++;
-  }
-  return s.length;
-}
-
-function parseScopeEntry(p: Parser, entry: string, start: number, end: number, props: PropDecl[]): void {
-  if (entry.length === 0) return;
-  const colon = entry.indexOf(":");
-  if (colon === -1) {
-    fail(p, "scope-entry", `malformed scope entry '${entry}' (expected 'name: type = default')`, start, end);
-    return;
-  }
-  const name = entry.slice(0, colon).trim();
-  let typeStr = entry.slice(colon + 1).trim();
-  let def: string | undefined;
-  const eq = typeStr.indexOf("=");
-  if (eq !== -1) {
-    def = typeStr.slice(eq + 1).trim();
-    typeStr = typeStr.slice(0, eq).trim();
-  }
-  // A string default is source text, quotes included (`= "horizontal"` parses
-  // as `"horizontal"` with the quotes). Attribute values arrive unquoted from
-  // the DOM, so this strips only here: stripping in coerceByType would eat a
-  // live value's literal quotes. bool/int defaults are bare by construction.
-  if ((typeStr === "string" || typeStr === "string[]") && def !== undefined) {
-    const q = def[0];
-    if (def.length >= 2 && (q === '"' || q === "'" || q === "`") && def[def.length - 1] === q) {
-      def = def.slice(1, -1);
-    }
-  }
-  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) {
-    fail(p, "scope-name", `invalid scope prop name '${name}'`, start, end);
-    return;
-  }
-
-  // Object-array type: { field: type, ... }[] — strip "{" and "}[]".
-  if (typeStr.startsWith("{") && typeStr.endsWith("}[]")) {
-    const fields = parseObjectFields(typeStr.slice(1, -3).trim(), start, end, p);
-    if (!fields) return;
-    if (def !== undefined && !isValidJsonDefault(def)) {
-      fail(p, "scope-default", `invalid JSON default for object-array '${name}'`, start, end);
-      return;
-    }
-    props.push({ name, type: "object-array", fields, ...(def !== undefined ? { default: def } : {}) });
-    return;
-  }
-
-  if (typeStr !== "bool" && typeStr !== "string" && typeStr !== "string[]" && typeStr !== "int") {
-    fail(p, "scope-type", `invalid scope prop type '${typeStr}' for '${name}' (expected bool|string|string[]|int|{ fields }[])`, start, end);
-    return;
-  }
-  props.push({ name, type: typeStr, ...(def !== undefined ? { default: def } : {}) });
-}
-
-function parseObjectFields(inner: string, start: number, end: number, p: Parser): ObjectField[] | null {
-  const fields: ObjectField[] = [];
-  if (inner.length === 0) {
-    fail(p, "scope-type", "object-array type must declare at least one field", start, end);
-    return null;
-  }
-  for (const part of splitTopLevel(inner, ",")) {
-    const text = part.text.trim();
-    if (text.length === 0) continue;
-    const colon = text.indexOf(":");
-    if (colon === -1) {
-      fail(p, "scope-entry", `malformed object field '${text}' (expected 'name: type')`, start, end);
-      return null;
-    }
-    const fname = text.slice(0, colon).trim();
-    const ftype = text.slice(colon + 1).trim();
-    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(fname)) {
-      fail(p, "scope-name", `invalid object field name '${fname}'`, start, end);
-      return null;
-    }
-    if (ftype !== "string" && ftype !== "int" && ftype !== "bool") {
-      fail(p, "scope-type", `invalid object field type '${ftype}' for '${fname}' (expected string|int|bool)`, start, end);
-      return null;
-    }
-    fields.push({ name: fname, type: ftype });
-  }
-  if (fields.length === 0) {
-    fail(p, "scope-type", "object-array type must declare at least one field", start, end);
-    return null;
-  }
-  return fields;
-}
-
-export { coerceProps } from "../props.ts";
-
 export function parse(source: string): ComponentIr {
   const p: Parser = { src: source, pos: 0, errors: [] };
   const nodes: Node[] = [];
@@ -602,10 +359,6 @@ export function parse(source: string): ComponentIr {
     skipWs(p);
     if (p.pos >= p.src.length) break;
     if (p.src[p.pos] === "<") {
-      if (peekTagName(p) === "scope") {
-        p.scope = parseScopeElement(p, p.pos);
-        continue;
-      }
       const n = parseElement(p);
       if (n.kind === "text" && n.parts.length === 0) continue;
       nodes.push(n);
@@ -615,16 +368,5 @@ export function parse(source: string): ComponentIr {
     }
   }
   if (p.errors.length > 0) throw new ParseError(p.errors);
-  const ir: ComponentIr = { nodes, ...(p.scope !== undefined ? { scope: p.scope } : {}) };
-  return ir;
-}
-
-export function parseScope(source: string): ScopeBlock {
-  const p: Parser = { src: source, pos: 0, errors: [] };
-  const idx = findScopeStart(source);
-  if (idx === -1) return { props: [], consume: [] };
-  p.pos = idx;
-  const block = parseScopeElement(p, idx);
-  if (p.errors.length > 0) throw new ParseError(p.errors);
-  return block;
+  return { nodes };
 }

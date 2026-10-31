@@ -6,6 +6,7 @@ import { parseHTML } from "@spinjs/runtime/testing";
 // package, is what keeps linkedom's `Window` out of the shared program.
 import { attrParsers, define } from "./element.ts";
 import { effect, signal } from "../core/signal.ts";
+import { controllerOf } from "./table.ts";
 
 /**
  * The element's tests are about lifetime, not rendering.
@@ -130,7 +131,7 @@ test("a primitive attribute reaches the component as a parsed value", () => {
   deepStrictEqual(el.getAttribute("seen"), "false:3");
 });
 
-test("twenty connect and disconnect cycles leave nothing live", () => {
+test("twenty connect and disconnect cycles leave nothing live", async () => {
   const source = signal(0);
   let runs = 0;
 
@@ -147,6 +148,9 @@ test("twenty connect and disconnect cycles leave nothing live", () => {
     const el = document.createElement("spin-twenty");
     document.body.appendChild(el);
     document.body.removeChild(el);
+    // The disconnect's disposal lands on a microtask: flush it before
+    // the next cycle so each iteration starts clean.
+    await Promise.resolve();
   }
 
   deepStrictEqual(runs, 20);
@@ -158,7 +162,7 @@ test("twenty connect and disconnect cycles leave nothing live", () => {
   deepStrictEqual(runs, 20);
 });
 
-test("reconnecting an element rebuilds it and leaves the first build dead", () => {
+test("moving an element keeps its build and its scope", () => {
   const source = signal(0);
   let runs = 0;
 
@@ -176,15 +180,15 @@ test("reconnecting an element rebuilds it and leaves the first build dead", () =
   document.body.removeChild(el);
   document.body.appendChild(el);
 
-  deepStrictEqual(runs, 2);
+  deepStrictEqual(runs, 1);
 
-  // Two live connections would make this three.
+  // The same live connection answers: a move is not a remount.
   source(1);
-  deepStrictEqual(runs, 3);
+  deepStrictEqual(runs, 2);
   deepStrictEqual(el.textContent, "1");
 });
 
-test("each connection gets its own scope", () => {
+test("a removed element disposes its scope once detached", async () => {
   const scopes: object[] = [];
 
   define("spin-scope", {
@@ -196,6 +200,14 @@ test("each connection gets its own scope", () => {
   const el = document.createElement("spin-scope");
   document.body.appendChild(el);
   document.body.removeChild(el);
+  // A synchronous re-append is a move and keeps the scope: only a
+  // detachment that survives the microtask disposes.
+  document.body.appendChild(el);
+
+  deepStrictEqual(scopes.length, 1);
+
+  document.body.removeChild(el);
+  await Promise.resolve();
   document.body.appendChild(el);
 
   deepStrictEqual(scopes.length, 2);
@@ -272,4 +284,122 @@ test("a host-written JSON string property arrives parsed at the channel", () => 
   document.body.appendChild(el);
 
   deepStrictEqual(el.getAttribute("seen"), JSON.stringify([{ value: "a" }]));
+});
+
+test("a nested element consumes its ancestor's watched handle and disposes cleanly", async () => {
+  const count = signal(0);
+  const counter = {
+    get count() {
+      return count();
+    },
+    increment() {
+      count(count() + 1);
+    },
+  };
+  define("test-provider", {
+    build({ watch }) {
+      watch(counter, () => ({
+        api: counter,
+        dispose: undefined,
+      }));
+    },
+  });
+  define("test-consumer", {
+    build({ el, consume }) {
+      const shared = consume<typeof counter>(counter);
+      effect(() => {
+        el.textContent = `count:${shared?.count ?? -1}`;
+      });
+    },
+  });
+
+  const provider = document.createElement("test-provider");
+  const wrapper = document.createElement("div");
+  const consumer = document.createElement("test-consumer");
+  wrapper.appendChild(consumer);
+  provider.appendChild(wrapper);
+  document.body.appendChild(provider);
+
+  deepStrictEqual(consumer.textContent, "count:0");
+
+  counter.increment();
+  deepStrictEqual(consumer.textContent, "count:1");
+
+  document.body.removeChild(provider);
+  // Disposal lands on a microtask: the write in between still reaches
+  // the live scope, the one after does not.
+  await Promise.resolve();
+  counter.increment();
+  deepStrictEqual(consumer.textContent, "count:1");
+});
+
+test("projected slots survive a detach past a microtask and a reconnect", async () => {
+  const { projectSlots, placeSlot } = await import("../directives/bind.ts");
+  define("test-slots", {
+    build({ el }) {
+      const groups = projectSlots(el as HTMLElement);
+      const primary = document.createElement("section");
+      primary.setAttribute("data-part", "primary");
+      const secondary = document.createElement("section");
+      secondary.setAttribute("data-part", "secondary");
+      el.appendChild(primary);
+      el.appendChild(secondary);
+      const anchorA = document.createComment("slot:primary");
+      const anchorB = document.createComment("slot:secondary");
+      const anchorC = document.createComment("slot:default");
+      primary.appendChild(anchorA);
+      secondary.appendChild(anchorB);
+      el.appendChild(anchorC);
+      placeSlot(primary, anchorA, groups.get("primary"), []);
+      placeSlot(secondary, anchorB, groups.get("secondary"), []);
+      placeSlot(el, anchorC, groups.get(""), []);
+    },
+  });
+
+  const host = document.createElement("test-slots");
+  const first = document.createElement("div");
+  first.setAttribute("slot", "primary");
+  first.textContent = "alpha";
+  const second = document.createElement("div");
+  second.setAttribute("slot", "secondary");
+  second.textContent = "beta";
+  const rest = document.createElement("p");
+  rest.textContent = "gamma";
+  host.appendChild(first);
+  host.appendChild(second);
+  host.appendChild(rest);
+  document.body.appendChild(host);
+
+  const section = (part: string): Element | null =>
+    host.querySelector(`[data-part="${part}"]`);
+  deepStrictEqual(section("primary")?.textContent, "alpha");
+  deepStrictEqual(section("secondary")?.textContent, "beta");
+
+  document.body.removeChild(host);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  document.body.appendChild(host);
+
+  deepStrictEqual(section("primary")?.textContent, "alpha");
+  deepStrictEqual(section("secondary")?.textContent, "beta");
+  deepStrictEqual(
+    [...host.childNodes].filter((node) => node.nodeType !== 8).length,
+    3,
+  );
+});
+
+test("a watched handle's declared commands reach the element's controller", () => {
+  const handle = {};
+  let fired = false;
+  define("test-command-bridge", {
+    build({ watch }) {
+      watch(handle, () => ({ fire() { fired = true; } }), ["fire"]);
+    },
+  });
+  const el = document.createElement("test-command-bridge");
+  document.body.appendChild(el);
+  const found = controllerOf(el, handle);
+  deepStrictEqual(typeof found?.commands.fire, "function");
+  (found?.commands.fire as () => void)();
+  deepStrictEqual(fired, true);
+  document.body.removeChild(el);
 });

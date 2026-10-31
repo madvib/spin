@@ -133,3 +133,25 @@ test("root handlers reach states that declare no on", () => {
   svc.send({ type: "BUMP" });
   deepStrictEqual(svc.state.context.n, 2);
 });
+
+test("interpret backs context fields with independent signals", async () => {
+  const { effect } = await import("../../core/signal.ts");
+  const svc = interpret(machine).start();
+  let countRuns = 0;
+  let labelRuns = 0;
+  effect(() => {
+    void svc.state.context.count;
+    countRuns++;
+  });
+  effect(() => {
+    void svc.state.context.label;
+    labelRuns++;
+  });
+  deepStrictEqual(countRuns, 1);
+  deepStrictEqual(labelRuns, 1);
+
+  svc.send({ type: "BUMP", by: 1 });
+  deepStrictEqual(countRuns, 2);
+  deepStrictEqual(labelRuns, 1);
+  svc.stop();
+});

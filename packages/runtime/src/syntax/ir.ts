@@ -79,31 +79,6 @@ export interface ForNode {
 
 export type Node = ElementNode | TextNode | ForNode;
 
-export type ScopePropType =
-  | "bool"
-  | "string"
-  | "string[]"
-  | "int"
-  | "object-array";
-
-export interface ObjectField {
-  readonly name: string;
-  readonly type: "string" | "int" | "bool";
-}
-
-export interface PropDecl {
-  readonly name: string;
-  readonly type: ScopePropType;
-  readonly default?: string;
-  readonly fields?: readonly ObjectField[];
-}
-
-export interface ScopeBlock {
-  readonly props: readonly PropDecl[];
-  readonly consume: readonly string[];
-}
-
 export interface ComponentIr {
   readonly nodes: readonly Node[];
-  readonly scope?: ScopeBlock;
 }

@@ -30,7 +30,7 @@
  * `comboboxInput` completes what is typed into it.
  */
 
-import type { PartScope } from "./component/define.ts";
+import type { PartView } from "./component/define.ts";
 
 /** The values an ARIA attribute may carry. */
 export type AriaValue = string | number | boolean | undefined;
@@ -91,7 +91,7 @@ export type AriaTarget =
 
 /** The id an ARIA relation points at. */
 function targetId<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   target: AriaTarget | undefined,
 ): string | undefined {
   if (target === undefined) return undefined;
@@ -198,7 +198,7 @@ export function ariaReadOnly(state: AriaState | undefined): AriaFragment {
 
 /** The element that describes a part. */
 export function ariaDescribedBy<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   target: AriaTarget | undefined,
 ): AriaFragment {
   return { "aria-describedby": targetId(scope, target) };
@@ -206,7 +206,7 @@ export function ariaDescribedBy<C extends object>(
 
 /** The element that names a part. */
 export function ariaLabelledBy<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   target: AriaTarget | undefined,
 ): AriaFragment {
   return { "aria-labelledby": targetId(scope, target) };
@@ -214,7 +214,7 @@ export function ariaLabelledBy<C extends object>(
 
 /** The region a part controls. */
 export function ariaControls<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   target: AriaTarget | undefined,
 ): AriaFragment {
   return { "aria-controls": targetId(scope, target) };
@@ -222,7 +222,7 @@ export function ariaControls<C extends object>(
 
 /** The elements a part owns. */
 export function ariaOwns<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   target: AriaTarget | undefined,
 ): AriaFragment {
   return { "aria-owns": targetId(scope, target) };
@@ -260,7 +260,7 @@ export function liveRegion(
  * neither.
  */
 export function disclosureTrigger<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   init: {
     /** Whether the region the trigger opens is open. */
     readonly expanded?: AriaState | undefined;
@@ -286,7 +286,7 @@ export function disclosureTrigger<C extends object>(
  * the selection states it carries.
  */
 export function listSurface<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   init: {
     /** The element that names the surface. */
     readonly labelledBy?: AriaTarget | undefined;
@@ -322,7 +322,7 @@ export function listSurface<C extends object>(
  * region is open, and which row it is on.
  */
 export function comboboxInput<C extends object>(
-  scope: PartScope<unknown, C>,
+  scope: PartView<unknown, C>,
   init: {
     /** How the field completes what is typed into it. */
     readonly autocomplete?: AriaAutocomplete | undefined;

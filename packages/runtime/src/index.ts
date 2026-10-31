@@ -11,8 +11,7 @@ export {
   type Signal,
 } from "./core/signal.ts";
 
-export { attrParsers, define, uniqueId, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
-export { dataAttr, isComposing, keyed, memo, type BagBuilder, type BagMemo } from "./component/bags.ts";
+export { attrParsers, define, scopeOf, uniqueId, writeProp, type AttributeParser, type BuildContext, type ElementSpec } from "./scope/element.ts";
 export { focuser, ids, measurer, type IdFn } from "./component/ids.ts";
 export {
   coerceBool,
@@ -22,11 +21,8 @@ export {
   coerceObjectArrayItems,
   coerceString,
   isRecord,
-  type CoerceObjectField,
-  type CoercePropDecl,
-  type PropCoerceType,
 } from "./props.ts";
-export { defineComponent } from "./component/synthesize.ts";
+export { authoredProps, defineComponent, pickCallback, textProp, type DefinedComponent } from "./component/synthesize.ts";
 export {
   clampValue,
   closestIndex,
@@ -40,28 +36,21 @@ export {
   snapValueToStep,
 } from "./math/index.ts";
 export {
+  dataAttr,
+  isComposing,
   type AnyEvent,
   type ApiOf,
   type CommandDef,
   type ComponentDef,
   type EventDef,
   type PartDef,
-  type PartScope,
+  type PartView,
   type PropParser,
-  type ScopeFor,
   type SlotDef,
-  type SlotScope,
-  type SlotScopeFor,
+  type SlotView,
+  type SlotViewFor,
+  type ViewFor,
 } from "./component/define.ts";
-export {
-  authoredProps,
-  defineBridge,
-  pickCallback,
-  textProp,
-  type BridgeService,
-  type BridgeHooks,
-  type BridgeSpec,
-} from "./component/bridge.ts";
 /**
  * The machine-def contract: what a `<name>.machine-def.ts` module provides.
  *
@@ -131,15 +120,31 @@ export interface ControllerDef {
   readonly events?: Readonly<Record<string, MachineEventContract>>;
 }
 
-/** What a consume name resolves to: a machine def, or a platform adapter. */
-export type ConsumedDef = MachineDef | ControllerDef;
-export { createScopeTable, type Handle, type ScopeTable } from "./scope/table.ts";
+/**
+ * Build a platform-tier controller def that is also callable in `<script>`:
+ * the call typechecks the markup's binding (`const ctl = popover()`), while
+ * the compiler wires the live element through `attach(el)`.
+ */
+export function defineController<Api extends object>(
+  def: ControllerDef & { attach(el: Element): Api },
+): ControllerDef & { attach(el: Element): Api } & (() => Api) {
+  const callable = (): Api => {
+    throw new Error(
+      "[spin] controller() is a <script> binding compiled by spin-components; the element wires attach(el)",
+    );
+  };
+  return Object.assign(callable, def);
+}
 export {
+  consume,
   controllerOf,
   controllerView,
+  createScopeTable,
   provideController,
+  type Handle,
+  type ScopeTable,
   type SpinController,
-} from "./scope/controller.ts";
+} from "./scope/table.ts";
 
 
 export { createAction, runAction, type ElementAction, type SlotLookup } from "./directives/use.ts";
@@ -207,7 +212,6 @@ export {
 
 export { load, type LoaderActions, type LoaderScope } from "./directives/load.ts";
 export { bindActionProps, bindSpread } from "./directives/spread.ts";
-export { machineTick } from "./core/signal.ts";
 
 /**
  * The machine API: one function, one object.

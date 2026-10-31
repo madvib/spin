@@ -25,15 +25,13 @@ export type PropParser = (raw: unknown, host?: ParseHost) => unknown;
  * and memoizes on the returned signature. */
 export type AnyEvent = { readonly type: string } & Record<string, unknown>;
 
-export interface PartScope<
+export interface PartView<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
   Ev = AnyEvent,
   S extends string = string,
 > {
-  /** The component's props, typed. The host sets them; the machine never
-   * sees them. */
   readonly props: P;
   readonly context: C;
   readonly state: S;
@@ -45,13 +43,12 @@ export interface PartScope<
   readonly slot: R;
 }
 
-export type ScopeFor<
+export type ViewFor<
   C extends object,
   E extends EventMap = Record<string, Record<string, unknown>>,
   S extends string = string,
   P = Record<string, unknown>,
-> = PartScope<unknown, C, P, EventUnion<E>, S>;
-
+> = PartView<unknown, C, P, EventUnion<E>, S>;
 export interface PartDef<
   R = unknown,
   C extends object = Record<string, unknown>,
@@ -70,29 +67,28 @@ export interface PartDef<
    * recorded, so a dependency is never named by hand. Optional when the
    * part carries only its auto-stamped `id`, `data-scope`, and `data-part`. */
   attrs?(
-    scope: PartScope<R, C, P, Ev, S>,
+    view: PartView<R, C, P, Ev, S>,
     arg?: unknown,
   ): Record<string, unknown>;
 }
 
-/** What a slotted bag reads: the part scope plus the slot. Slots are
+/** What a slotted bag reads: the part view plus the slot. Slots are
  * stable identities (a thumb index, a row key). */
-export interface SlotScope<
+export interface SlotView<
   R = unknown,
   C extends object = Record<string, unknown>,
   P = Record<string, unknown>,
   Ev = AnyEvent,
   S extends string = string,
-> extends PartScope<R, C, P, Ev, S> {}
+> extends PartView<R, C, P, Ev, S> {}
 
-export type SlotScopeFor<
+export type SlotViewFor<
   R,
   C extends object,
   E extends EventMap = Record<string, Record<string, unknown>>,
   S extends string = string,
   P = Record<string, unknown>,
-> = SlotScope<R, C, P, EventUnion<E>, S>;
-
+> = SlotView<R, C, P, EventUnion<E>, S>;
 export interface SlotDef<
   R = unknown,
   C extends object = Record<string, unknown>,
@@ -113,7 +109,7 @@ export interface SlotDef<
     props: Record<string, unknown>,
   ) => readonly unknown[];
   attrs(
-    scope: SlotScope<R, C, P, Ev, S>,
+    view: SlotView<R, C, P, Ev, S>,
     arg?: unknown,
   ): Record<string, unknown>;
 }
@@ -134,20 +130,6 @@ export interface ReaderDef<
     root?: () => Element,
   ): R;
 }
-
-/**
- * How a consumer initializes the machine it consumes.
- *
- * - `undefined` — the machine's own defaults stand.
- * - a context patch — a literal the consumer chose.
- * - a function — the consumer reads the host's props and decides.
- */
-export type InitSpec<C extends object, _E extends EventMap> =
-  | Partial<C>
-  | ((
-    props: Readonly<Record<string, unknown>>,
-    authored: (name: string) => boolean,
-  ) => Partial<C>);
 
 /**
  * The machine a component consumes: a factory over the machine's OWN
@@ -263,11 +245,6 @@ export interface ComponentDef<
     props: Record<string, unknown>,
     authored: (name: string) => boolean,
   ) => readonly ({ type: string } & Record<string, unknown>)[];
-  /** The machine's starting context, from the props. */
-  readonly seed?: (
-    props: Record<string, unknown>,
-    authored: (name: string) => boolean,
-  ) => Record<string, unknown>;
   /** Derived context sync inside the owned effect. Runs as `refresh` → `applyContract` → `reconcile` → `settled`: live functions that must stay fresh sync through `scalarsOf`, and post-mount unauthored prop writes never reach context (author config at mount). */
   readonly reconcile?: (args: {
     readonly context: C;
@@ -310,7 +287,6 @@ export interface ComponentDef<
   ) => Record<string, unknown>;
   /** Names the commit-kind sends: those report `commit` events, all others report `move`. */
   readonly commitEvents?: readonly (EventUnion<E>["type"] | (string & {}))[];
-  readonly init?: InitSpec<C, E>;
   readonly machine?: MachineFactory<C, E, A, S>;
   readonly args?: (props: P) => A;
   readonly parts: Record<string, PartDef<unknown, C, P, EventUnion<E>, S>>;
@@ -355,11 +331,10 @@ export type CommandFn<T> = T extends
     : () => void
   : never;
 
-/** A slot entry's `getXProps` surface: infers the slot parameter type `R`
- * from `attrs(scope: SlotScope<R, ...>)`. */
+/** A slot entry's `getXProps` surface: infers the slot parameter type `R`. */
 export type SlotPropsFn<T> = T extends {
   attrs: (
-    scope: SlotScope<infer R, never, never, never, never>,
+    view: SlotView<infer R, never, never, never, never>,
     ...args: never[]
   ) => unknown;
 } ? (slot: R) => Record<string, unknown>
@@ -428,3 +403,13 @@ export type ApiOf<
     /** The machine's mode, live: the framework's own reader. */
     readonly state: StateOf<D>;
   };
+
+/** Present (`""`) when the condition holds and absent (`undefined`) otherwise. */
+export function dataAttr(value: boolean): string | undefined {
+  return value ? "" : undefined;
+}
+
+/** True when a keystroke is part of an active IME composition session. */
+export function isComposing(event: KeyboardEvent): boolean {
+  return event.isComposing === true || event.keyCode === 229;
+}

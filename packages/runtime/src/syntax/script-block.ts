@@ -25,6 +25,11 @@ export interface ScriptCall {
   readonly args: string;
 }
 
+export interface ScriptConsume {
+  readonly name: string;
+  readonly handle: string;
+}
+
 export interface StrippedScript {
   /** The module text the checker sees. */
   readonly module: string;
@@ -32,6 +37,8 @@ export interface StrippedScript {
   readonly bindings: readonly string[];
   /** The parsed machine-factory calls, including multi-line args. */
   readonly calls: readonly ScriptCall[];
+  /** `consume(handle)` ancestor lookups the template may reference. */
+  readonly consumes: readonly ScriptConsume[];
   /** What was stripped, for diagnostics. */
   readonly stripped: readonly string[];
 }
@@ -116,6 +123,7 @@ export function stripScript(body: string): StrippedScript {
   const kept: string[] = [];
   const bindings: string[] = [];
   const calls: ScriptCall[] = [];
+  const consumes: ScriptConsume[] = [];
   const stripped: string[] = [];
   const len = body.length;
   let pos = 0;
@@ -169,13 +177,22 @@ export function stripScript(body: string): StrippedScript {
         const lineEnd = nl < 0 ? len : nl;
         const tail = body.slice(closeParen + 1, lineEnd).trim();
         if (tail === "" || tail === ";" || tail.startsWith("//")) {
-          kept.push(body.slice(lineStart, lineEnd));
-          bindings.push(name);
-          calls.push({
-            name,
-            factory,
-            args: body.slice(openParen + 1, closeParen).trim(),
-          });
+          if (factory === "consume") {
+            kept.push(body.slice(lineStart, lineEnd));
+            bindings.push(name);
+            consumes.push({
+              name,
+              handle: body.slice(openParen + 1, closeParen).trim(),
+            });
+          } else {
+            kept.push(body.slice(lineStart, lineEnd));
+            bindings.push(name);
+            calls.push({
+              name,
+              factory,
+              args: body.slice(openParen + 1, closeParen).trim(),
+            });
+          }
           pos = nl < 0 ? len : nl + 1;
           continue;
         }
@@ -187,7 +204,7 @@ export function stripScript(body: string): StrippedScript {
     pos = nl < 0 ? len : nl + 1;
   }
 
-  return { module: kept.join("\n"), bindings, calls, stripped };
+  return { module: kept.join("\n"), bindings, calls, consumes, stripped };
 }
 
 /** Extract the script block from markup source, if it has one. */

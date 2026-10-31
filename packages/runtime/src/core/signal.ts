@@ -25,11 +25,6 @@ export type Signal<T> = {
   (value: T): void;
 };
 
-/** Bumped after every processed machine event. Bindings that read machine
- * state through paths that do not themselves track (plain-mutated context,
- * snapshot getters) subscribe to this instead. */
-export const machineTick = signal(0);
-
 /**
  * Run `fn` with writes deferred, then flush once.
  *
@@ -84,8 +79,7 @@ let activeScope: OwnerScope | undefined;
  * go before `own`ed teardown — a binding's last run should not be able to
  * write into a node the teardown has already removed.
  */
-export function scope(): OwnerScope {
-  const parent = activeScope;
+export function scope(parent: OwnerScope | undefined = activeScope): OwnerScope {
   const groups: Array<() => void> = [];
   const teardowns: Array<() => void> = [];
   let disposed = false;

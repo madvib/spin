@@ -18,6 +18,7 @@ export { classAttrOf, classTokens, classTokensOf } from "./classes.ts";
 export {
   extractScript,
   type ScriptCall,
+  type ScriptConsume,
   type StrippedScript,
   stripScript,
 } from "./script-block.ts";
@@ -31,12 +32,8 @@ export type {
   EventBinding,
   ForNode,
   Node,
-  ObjectField,
-  PropDecl,
-  ScopeBlock,
-  ScopePropType,
   SpreadUse,
   TextNode,
 } from "./ir.ts";
-export { coerceProps, parse, parseScope } from "./parse.ts";
+export { parse } from "./parse.ts";
 export { ParseError } from "./ir.ts";

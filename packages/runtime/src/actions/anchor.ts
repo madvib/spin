@@ -1,5 +1,4 @@
 import { createAction } from "./action.ts";
-import { machineTick } from "../core/signal.ts";
 import type { ElementAction } from "./action.ts";
 
 /**
@@ -84,9 +83,10 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
     const hostBottom = hostRect?.bottom ?? globalThis.innerHeight ?? 0;
     const panelHeight = node.offsetHeight;
     const panelWidth = node.offsetWidth;
+    const viewportBottom = Number.isFinite(globalThis.innerHeight) ? (globalThis.innerHeight as number) : hostBottom;
+    const roomBelow = Math.max(hostBottom - anchorRect.bottom - gap, viewportBottom - anchorRect.bottom - gap);
+    const roomAbove = Math.max(anchorRect.top - hostTop - gap, anchorRect.top - gap);
     const hostRight = hostRect?.right ?? globalThis.innerWidth ?? 0;
-    const roomBelow = hostBottom - anchorRect.bottom - gap;
-    const roomAbove = anchorRect.top - hostTop - gap;
     const roomRight = hostRight - anchorRect.right - gap;
     const hostLeftEdge = hostRect?.left ?? 0;
     const roomLeft = anchorRect.left - hostLeftEdge - gap;
@@ -100,6 +100,16 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
       : (want === "bottom"
         ? (roomBelow < panelHeight && roomAbove > roomBelow ? "top" : "bottom")
         : (roomAbove < panelHeight && roomBelow > roomAbove ? "bottom" : "top"));
+    const viewportWidth = globalThis.innerWidth;
+    const shiftX = (x: number): number => {
+      if (!Number.isFinite(viewportWidth) || !Number.isFinite(panelWidth)) return x;
+      const viewX = hostLeft + x;
+      const overflowRight = viewX + panelWidth + gap - (viewportWidth as number);
+      if (overflowRight > 0) return Math.max(-hostLeft + gap, x - overflowRight);
+      const overflowLeft = gap - viewX;
+      if (overflowLeft > 0) return x + overflowLeft;
+      return x;
+    };
     const geometry: AnchorGeometry = horizontal
       ? {
         x: placement === "right"
@@ -111,7 +121,7 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
         placement,
       }
       : {
-        x: anchorRect.left - hostLeft,
+        x: shiftX(anchorRect.left - hostLeft),
         y: placement === "bottom"
           ? anchorRect.bottom - hostTop + gap
           : anchorRect.top - hostTop - panelHeight - gap,
@@ -123,16 +133,19 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
     if (key === last) return;
     last = key;
     // Action owns positioning end-to-end: write literals directly, no
-    // render cycle, no vars.
+    // render cycle, no vars. The literals only land on a positioned node,
+    // so an unpositioned one takes its positioning from the layer it is
+    // measured against — absolute in an offset parent, fixed on the top
+    // layer — while a recipe that placed itself keeps its own.
     if (node instanceof HTMLElement) {
+      if (node.style.position === "") {
+        node.style.position = topLayer ? "fixed" : "absolute";
+      }
       node.style.left = `${geometry.x}px`;
       node.style.top = `${geometry.y}px`;
       node.style.minWidth = `${geometry.w}px`;
     }
     current?.onGeometry?.(geometry);
-    // A geometry change is a view move: consumers reading placement
-    // refresh the same way a machine move refreshes them.
-    machineTick(machineTick() + 1);
   };
   // The observer is a re-measure trigger, not the measure itself: without
   // one (a layout-less DOM) scroll, resize, and param changes still report.
@@ -142,8 +155,48 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
   const onScroll = (): void => measure();
   const onResize = (): void => measure();
   const view = scrollRoot.defaultView;
+  scrollRoot.addEventListener("scroll", onScroll, { capture: true, passive: true });
   view?.addEventListener("resize", onResize);
   measure();
+  // A panel that starts hidden measures nothing: `offsetWidth` is 0 behind
+  // `hidden`, so the shift that would hold it in the viewport computes
+  // against no width and the open lands where the closed measure put it.
+  // The resize observer fires when the open changes the node's own box,
+  // but a show that also moves an ancestor (or a DOM without an observer)
+  // needs a second trigger: watch the hidden state itself and re-measure
+  // the frame the panel paints.
+  const visibly = (): boolean => {
+    if (!(node instanceof HTMLElement)) return false;
+    if (node.hasAttribute("hidden")) return false;
+    try {
+      if (node.closest("[hidden]") !== null) return false;
+    } catch {
+      return false;
+    }
+    return true;
+  };
+  let shown = visibly();
+  // The constructor lives on the node's own view: the bare global is
+  // absent in layout-less DOMs (and in the test harness), while the
+  // document's view carries it.
+  const viewOf = (node.ownerDocument as Document | undefined)?.defaultView;
+  const Mutation = viewOf?.MutationObserver ??
+    (typeof MutationObserver === "function" ? MutationObserver : undefined);
+  const watcher = Mutation !== undefined
+    ? new Mutation(() => {
+      const now = visibly();
+      if (now && !shown) measure();
+      shown = now;
+    })
+    : undefined;
+  if (watcher !== undefined && node instanceof HTMLElement) {
+    watcher.observe(node, { attributes: true, attributeFilter: ["hidden"] });
+    watcher.observe(node.parentElement ?? node.ownerDocument.documentElement, {
+      attributes: true,
+      attributeFilter: ["hidden"],
+      subtree: true,
+    });
+  }
 
   return {
     update: (next) => {
@@ -152,6 +205,7 @@ export const anchor: ElementAction<AnchorParam | undefined> = createAction((node
     },
     destroy: () => {
       ro?.disconnect();
+      watcher?.disconnect();
       scrollRoot.removeEventListener("scroll", onScroll, true);
       view?.removeEventListener("resize", onResize);
     },

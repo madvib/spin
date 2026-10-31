@@ -10,27 +10,6 @@
  * depend on it without a cycle back.
  */
 
-/** The scope prop types this grammar coerces. */
-export type PropCoerceType =
-  | "bool"
-  | "string"
-  | "int"
-  | "string[]"
-  | "object-array";
-
-/** A field of an object-array prop. */
-export interface CoerceObjectField {
-  readonly name: string;
-  readonly type: "string" | "int" | "bool";
-}
-
-/** A declared prop, as the parser hands it to the grammar. */
-export interface CoercePropDecl {
-  readonly name: string;
-  readonly type: PropCoerceType;
-  readonly default?: string;
-  readonly fields?: readonly CoerceObjectField[];
-}
 
 /**
  * bool: presence (`""`, `"true"`, absent) is true, `"false"` is false,
@@ -150,7 +129,7 @@ export function coerceJsonArray(
 export function coerceObjectArrayItems(
   value: unknown,
   fallback: unknown[],
-  fields?: readonly CoerceObjectField[],
+  fields?: readonly { readonly name: string; readonly type: string }[],
 ): Record<string, unknown>[] {
   if (!Array.isArray(value)) return fallback as Record<string, unknown>[];
   const out: Record<string, unknown>[] = [];
@@ -175,76 +154,3 @@ export function coerceObjectArrayItems(
   return out;
 }
 
-/** Coerce one raw prop text by its declared type. */
-export function coerceByType(
-  type: PropCoerceType,
-  raw: string,
-  def?: unknown,
-  fields?: readonly CoerceObjectField[],
-): unknown {
-  switch (type) {
-    case "bool":
-      return coerceBool(raw, def as boolean | undefined);
-    case "int":
-      return coerceInt(raw, def as number | undefined);
-    case "string[]":
-      return coerceList(raw);
-    case "string":
-      return coerceString(raw);
-    case "object-array": {
-      const fallback = (def as unknown[] | undefined) ?? [];
-      return coerceObjectArrayItems(
-        coerceJsonArray(raw, fallback),
-        fallback,
-        fields,
-      );
-    }
-  }
-}
-
-/** Coerce one declared prop, honouring an already-parsed (property-write) value. */
-export function coerceValue(
-  decl: CoercePropDecl,
-  raw: string | null | undefined | object,
-): unknown {
-  const def = decl.default !== undefined
-    ? coerceByType(decl.type, decl.default, undefined, decl.fields)
-    : undefined;
-  if (raw === undefined || raw === null) return def;
-  if (decl.type === "object-array" && typeof raw !== "string") {
-    return coerceObjectArrayItems(
-      raw,
-      (def as unknown[] | undefined) ?? [],
-      decl.fields,
-    );
-  }
-  return coerceByType(decl.type, raw as string, def, decl.fields);
-}
-
-/** Coerce every declared prop, keyed by both its camelCase and dashed name. */
-export function coerceProps(
-  decls: readonly CoercePropDecl[],
-  attrs: Record<string, string | null | undefined | object>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const decl of decls) {
-    const dashed = decl.name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-    const raw = attrs[dashed] ?? attrs[decl.name];
-    const value = coerceValue(decl, raw);
-    if (value !== undefined) {
-      out[decl.name] = value;
-      out[dashed] = value;
-    }
-  }
-  return out;
-}
-
-/** True when `raw` is valid JSON — the object-array default gate. */
-export function isValidJsonDefault(raw: string): boolean {
-  try {
-    JSON.parse(raw);
-    return true;
-  } catch {
-    return false;
-  }
-}

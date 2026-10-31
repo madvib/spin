@@ -1,4 +1,4 @@
-import { effect, machineTick, signal, untrack } from "../core/signal.ts";
+import { effect, signal, untrack } from "../core/signal.ts";
 import { ACTIONS, runAction } from "../actions/index.ts";
 import { runInElement } from "../scope/element.ts";
 import { toStyleString } from "../core/style.ts";
@@ -29,8 +29,8 @@ const hasAccessor = (el: Element, name: string): boolean => {
  * Reactive prop application from a live reader.
  *
  * Loader-owned effect: called from emitted code in build scope. The reader
- * is re-invoked on every machine move (via machineTick) and on insertion.
- * Handlers (on*) are skipped — actions own those.
+ * re-runs when a signal it reads moves, plus on insertion. Handlers (on*)
+ * are skipped — actions own those.
  */
 export function bindActionProps(
   el: Element,
@@ -38,9 +38,6 @@ export function bindActionProps(
 ): void {
   let last: Record<string, unknown> = {};
   effect(() => {
-    // The signal the reads touch is what re-runs this — machineTick for a
-    // machine move, a scope read for a host write.
-    machineTick();
     const props = read();
     for (const name of Object.keys(last)) {
       if (!(name in props) && !name.startsWith("on")) el.removeAttribute(name);
@@ -78,7 +75,7 @@ export function bindActionProps(
 /**
  * Reactive spread application from a live reader.
  *
- * Same lifecycle as bindActionProps (machineTick-driven), but `on*`
+ * Same lifecycle as bindActionProps (signal-driven), but `on*`
  * function values attach as event listeners instead of being skipped —
  * the bag owns its handlers. Listener names are the lowercased slice(2)
  * of the key; a camelCase name (`onFocus`) is already the DOM spelling.
@@ -94,9 +91,6 @@ export function bindSpread(
   const latest = signal<Record<string, unknown>>({});
   const attachedActions = new Set<string>();
   effect(() => {
-    // The signal the reads touch is what re-runs this — machineTick for a
-    // machine move, a scope read for a host write.
-    machineTick();
     const props = read();
     for (const name of Object.keys(last)) {
       // `use:name` entries are directives the attach pass below owns, so this

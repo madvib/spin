@@ -124,3 +124,109 @@ test("Given no room below / When attached / Then the written styles place the fl
   anchor(panel, { placement: "bottom", offset: 8 });
   deepStrictEqual((panel as HTMLElement).style.top, "392px", "top is the anchor's top minus panel height and gap");
 });
+
+test("Given a panel wider than the room right / When attached / Then x shifts the panel into the viewport", () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  trigger.getBoundingClientRect = () => rect(700, 100, 32, 132);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(0, 0, 800, 600) });
+  Object.defineProperty(panel, "offsetHeight", { value: 100 });
+  Object.defineProperty(panel, "offsetWidth", { value: 152 });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+  const prior = globalThis.innerWidth;
+  globalThis.innerWidth = 800;
+  try {
+    const seen: AnchorGeometry[] = [];
+    anchor(panel, { placement: "bottom", offset: 8, onGeometry: (g) => seen.push(g) });
+    deepStrictEqual(seen[0]?.x, 640, "x is viewport width minus panel width minus gap");
+    deepStrictEqual((panel as HTMLElement).style.left, "640px", "the written left matches the shift");
+  } finally {
+    globalThis.innerWidth = prior;
+  }
+});
+
+test("Given a host with no room below but viewport room / When attached / Then the panel stays below", () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  trigger.getBoundingClientRect = () => rect(1021, 15, 154, 41);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(1021, 15, 154, 26) });
+  Object.defineProperty(panel, "offsetHeight", { value: 155 });
+  Object.defineProperty(panel, "offsetWidth", { value: 174 });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+  const priorH = globalThis.innerHeight;
+  globalThis.innerHeight = 800;
+  try {
+    const seen: AnchorGeometry[] = [];
+    anchor(panel, { placement: "bottom", offset: 8, onGeometry: (g) => seen.push(g) });
+    deepStrictEqual(seen[0]?.placement, "bottom", "viewport room wins over the host's veto");
+    deepStrictEqual(seen[0]?.y, 34, "y is the anchor's bottom edge plus the gap against the host");
+  } finally {
+    globalThis.innerHeight = priorH;
+  }
+});
+test("Given a settled measure / When the document scrolls / Then the panel re-measures", () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  let anchorTop = 100;
+  trigger.getBoundingClientRect = () => rect(40, anchorTop, 120, anchorTop + 20);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(0, 0, 800, 600) });
+  Object.defineProperty(panel, "offsetHeight", { value: 100 });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+
+  const seen: AnchorGeometry[] = [];
+  const result = anchor(panel, { placement: "bottom", offset: 8, onGeometry: (g) => seen.push(g) });
+  deepStrictEqual(seen.length, 1, "one report for the initial measure");
+  anchorTop = 200;
+  const WindowEvent = (win["window"] as Record<string, unknown>)["Event"] as new (type: string) => Event;
+  document.dispatchEvent(new WindowEvent("scroll"));
+  deepStrictEqual(seen.length, 2, "the scroll re-measures");
+  deepStrictEqual(seen[1]?.y, 228, "y follows the anchor's new bottom edge plus the gap");
+  result?.destroy?.();
+  document.dispatchEvent(new WindowEvent("scroll"));
+  deepStrictEqual(seen.length, 2, "destroy stops the re-measure");
+});
+
+test("Given a panel shown after attach / When hidden lifts / Then x re-shifts into the viewport", async () => {
+  const host = document.createElement("div");
+  const trigger = document.createElement("button");
+  const panel = document.createElement("div");
+  host.appendChild(trigger);
+  host.appendChild(panel);
+  document.body.appendChild(host);
+  trigger.getBoundingClientRect = () => rect(700, 100, 32, 132);
+  Object.defineProperty(host, "getBoundingClientRect", { value: () => rect(0, 0, 800, 600) });
+  Object.defineProperty(panel, "offsetParent", { value: host });
+  let width = 0;
+  Object.defineProperty(panel, "offsetWidth", { get: () => width });
+  Object.defineProperty(panel, "offsetHeight", { value: 100 });
+  panel.setAttribute("hidden", "");
+  const prior = globalThis.innerWidth;
+  globalThis.innerWidth = 800;
+  try {
+    const seen: AnchorGeometry[] = [];
+    const result = anchor(panel, { placement: "bottom", offset: 8, onGeometry: (g) => seen.push(g) });
+    deepStrictEqual(seen.length, 1, "one report for the closed measure");
+    deepStrictEqual(seen[0]?.x, 700, "the closed measure cannot shift against no width");
+    width = 152;
+    panel.removeAttribute("hidden");
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    deepStrictEqual(seen.length, 2, "lifting hidden re-measures against the painted width");
+    deepStrictEqual(seen[1]?.x, 640, "x shifts the open panel into the viewport");
+    result?.destroy?.();
+  } finally {
+    globalThis.innerWidth = prior;
+  }
+});
