@@ -161,6 +161,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
       "switch",
       "meter",
       "label",
+      "field",
       "component-angle-slider",
       "component-color-picker",
       "component-date-input",
@@ -192,6 +193,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
     members: [
       "dialog",
       "details",
+      "tooltip",
       "component-floating-panel",
       "component-hover-card",
       "component-popover",
@@ -203,7 +205,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
   {
     id: "containers-layout",
     label: "Containers & Layout",
-    members: ["card", "fieldset", "hr", "component-splitter"],
+    members: ["card", "fieldset", "hr", "panel", "component-splitter"],
   },
   {
     id: "display-media",
@@ -215,6 +217,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
       "badge",
       "progress",
       "skeleton",
+      "swatch",
       "component-async-list",
       "component-avatar",
       "component-carousel",
