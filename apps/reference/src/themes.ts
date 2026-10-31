@@ -14,7 +14,7 @@
  * the montage shows whatever the project serves under them.
  */
 
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
 
 /**
  * The project's own theme documents, read at build time.
@@ -27,10 +27,20 @@ import { starterThemes, themeModes } from "@spinjs/theme/themes";
  * follows when it reads the same directory for the stylesheet. A half-written
  * theme in an editor must not cost the app the rest of its themes.
  */
-const PROJECT_SOURCES = import.meta.glob<string>(
-  "../spin/*.json",
-  { eager: true, query: "?raw", import: "default" },
-);
+function readProjectSources(): Record<string, string> {
+  try {
+    return import.meta.glob<string>(
+      "../spin/*.json",
+      { eager: true, query: "?raw", import: "default" },
+    );
+  } catch {
+    // Outside vite `import.meta.glob` is not a function: the app serves the
+    // starters alone, which is what the tests assert against.
+    return {};
+  }
+}
+
+const PROJECT_SOURCES = readProjectSources();
 
 /** The project's own themes, by name. */
 const PROJECT_THEMES: Record<string, Record<string, unknown>> = Object

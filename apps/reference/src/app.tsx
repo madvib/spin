@@ -17,13 +17,9 @@ import {
   Web,
 } from "@spinjs/kit";
 import { MontagePage } from "./montage.tsx";
+import { COMPONENT_ICONS, UNIFIED_COMPONENT_GROUPS } from "@spinjs/components";
 import { PRIMITIVES } from "./primitives.ts";
-import {
-  COMPONENT_GROUPS,
-  COMPONENT_ICONS,
-  componentRequirement,
-  COMPONENTS,
-} from "./components.ts";
+import { componentRequirement, COMPONENTS } from "./components.ts";
 import { MONTAGE_ROUTE } from "./routes.ts";
 import { themeDocuments, THEMES } from "./themes.ts";
 import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
@@ -445,6 +441,7 @@ function Rail(props: {
   catalog: Accessor<readonly CatalogSection[]>;
   state: ThemeState;
 }) {
+  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">("all");
   const needle = createMemo(() => props.query().trim().toLowerCase());
   const utilities = () => props.route().startsWith("/utilities");
   // The montage is a page of the app, not a surface of components: it holds
@@ -493,32 +490,24 @@ function Rail(props: {
         // that go nowhere.
         rows: [],
       }))
-      : [
-        ...primitiveCategories.map((cat) => ({
-          label: cat.label,
-          rows: primitiveElements
-            .filter((element) => element.category === cat.id)
-            .map((element) => byId().get(element.name))
-            .filter((page) => page !== undefined)
-            .map((page) => ({
-              id: page.id,
-              title: page.title,
-              icon: ICONS[page.id],
-            })),
-        })),
-        ...COMPONENT_GROUPS.map((group) => ({
+      : UNIFIED_COMPONENT_GROUPS.map((group) => ({
           label: group.label,
           rows: group.members
-            .map((id) => byId().get(`component-${id}`))
-            .filter((page) => page !== undefined)
-            .map((page) => ({
-              id: page.id,
-              title: page.title,
-              icon: ICONS[page.id],
-            })),
-        })),
-      ]
-        .filter((group) => group.rows.length > 0)
+            .filter((member) => {
+              const isMachine = member.startsWith("component-");
+              const kind = isMachine ? "machine" : "primitive";
+              if (kindFilter() !== "all" && kind !== kindFilter()) return false;
+              return byId().get(member) !== undefined;
+            })
+            .map((member) => {
+              const page = byId().get(member)!;
+              return {
+                id: page.id,
+                title: page.title,
+                icon: ICONS[page.id],
+              };
+            }),
+        })).filter((group) => group.rows.length > 0)
   );
 
   return (
@@ -562,6 +551,22 @@ function Rail(props: {
               class={SEARCH_INPUT}
             />
           </label>
+        <Show when={!utilities()}>
+          <div role="group" aria-label="Component kind" class="flex gap-1">
+            <For each={(["all", "primitive", "machine"] as const)}>
+              {(kind) => (
+                <button
+                  type="button"
+                  aria-pressed={kindFilter() === kind}
+                  onClick={() => setKindFilter(kind)}
+                  class="bare rounded-sm px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+                >
+                  {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
         </Show>
       </div>
       <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">

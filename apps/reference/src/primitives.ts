@@ -1,4 +1,4 @@
-import { componentExamples } from "@spinjs/preset";
+import { componentExamples } from "@spinjs/spin/preset";
 
 export interface PrimitiveExample {
   readonly name: string;
@@ -17,7 +17,6 @@ export interface PrimitivePage {
 
 const TITLES: Readonly<Record<string, string>> = {
   alert: "Alert",
-  "avatar-group": "Avatar group",
   badge: "Badge",
   breadcrumbs: "Breadcrumbs",
   button: "Button",
@@ -27,14 +26,12 @@ const TITLES: Readonly<Record<string, string>> = {
   dialog: "Dialog",
   hr: "Divider",
   fieldset: "Fieldset & legend",
-  group: "Group",
   icon: "Icon",
   input: "Input",
   join: "Join",
   kbd: "Keycap",
   label: "Label",
   meter: "Meter",
-  mode: "Mode switch",
   progress: "Progress",
   prose: "Prose",
   radio: "Radio",

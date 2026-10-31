@@ -15,4 +15,9 @@
  * file, so the finding is declared and dismissed where it is correct.
  */
 // oxlint-disable-next-line typescript/triple-slash-reference
-/// <reference path="../../../packages/spin/src/preset/solid.d.ts" />
+/// <reference types="@spinjs/spin/preset/solid" />
+
+declare module "@spinjs/components/examples" {
+  const tags: readonly string[];
+  export default tags;
+}

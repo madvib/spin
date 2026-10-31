@@ -5,12 +5,14 @@
   "type": "module",
   "dependencies": {
     "solid-js": "^1.9.3",
-    "@spinjs/spin": "workspace:*"
+    "@spinjs/spin": "workspace:*",
+    "@spin/check": "workspace:*"
   },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "bun test src/",
     "visual": "bun run ./visual/check.ts"
   }
 }

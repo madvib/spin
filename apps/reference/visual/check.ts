@@ -12,28 +12,66 @@
  */
 
 import { readdir, readFile } from "node:fs/promises";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import {
   type CheckConfig,
   type Route,
   runCheck,
-} from "../../../internal/check/harness.ts";
-import { SECTIONS } from "../../../packages/spin/src/preset/organization.ts";
+} from "@spin/check";
+import { SECTIONS } from "@spinjs/spin/preset";
 import {
   starterThemes,
   themeModes,
-} from "../../../packages/spin/src/theme/themes/index.ts";
+} from "@spinjs/spin/theme/themes";
 import { PRIMITIVES } from "../src/primitives.ts";
 import { APP_ROUTES } from "../src/routes.ts";
 import { geometryAudit, geometryClaimsFor } from "./geometry.ts";
 import { pageState, renderReady, seedTheme } from "./pages.ts";
-
 const BASE = new URL(".", import.meta.url).pathname;
 
 /**
- * Routes come from the app rather than from a list kept beside it: a primitive
- * added to the registry is a route the next run checks, and one removed stops
- * being checked.
+ * Routes come from the app rather than from a list kept beside it: a
+ * primitive or machine added to its registry is a route the next run
+ * checks, and one removed stops being checked. Machine routes are read off
+ * the components package's `examples/` directories — the same listing the
+ * gallery's glob walks — because importing the gallery (and its vite-only
+ * `?raw` glob) is not something a bun runner can do.
  */
+function machineRoutes(): readonly { id: string; title: string }[] {
+  const out: { id: string; title: string }[] = [];
+  const dir = new URL(
+    "../../../packages/components/src/",
+    import.meta.url,
+  ).pathname;
+  const titleOf = (stem: string): string =>
+    stem.split("-").map((word) =>
+      word.length === 0 ? word : word[0]!.toUpperCase() + word.slice(1)
+    ).join(" ");
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+  } catch {
+    return [];
+  }
+  for (const entry of entries) {
+    if (entry.includes(".")) continue;
+    let stems: string[] = [];
+    try {
+      stems = readdirSync(join(dir, entry, "examples"))
+        .filter((file) => file.endsWith(".html"));
+    } catch {
+      continue;
+    }
+    if (stems.length === 0) continue;
+    const machine = entry.startsWith("spin-") ? entry.slice(5) : entry;
+    out.push({ id: `component-${machine}`, title: titleOf(machine) });
+  }
+  return out;
+}
+
 function routes(): readonly Route[] {
   return [
     // The app's own routes — the section indexes and the montage — so a page
@@ -45,6 +83,10 @@ function routes(): readonly Route[] {
     ...PRIMITIVES.map((primitive) => ({
       hash: `/components/${primitive.id}`,
       expectHeading: primitive.title,
+    })),
+    ...machineRoutes().map((component) => ({
+      hash: `/components/${component.id}`,
+      expectHeading: component.title,
     })),
     ...SECTIONS.map((section) => ({
       hash: `/utilities/${section.id}`,

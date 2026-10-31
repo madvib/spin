@@ -1,0 +1,42 @@
+<script lang="ts">
+import { angleSlider } from "@spinjs/components";
+
+const machine = angleSlider({ value: "45", ariaLabel: "Angle" });
+</script>
+
+<div class="mx-auto flex w-full max-w-[20rem] items-center justify-center"
+  {...machine.getRootProps()}>
+  <div
+    class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border border-solid border-border bg-surface-raised"
+    {...machine.getControlProps()}
+  >
+    <span
+      class="pointer-events-none absolute inset-y-0 left-1/2 w-[2px]"
+      {...machine.getThumbProps({ needle: true })}
+    >
+      <span
+        class="absolute inset-x-0 top-0 block h-[17%] rounded-full bg-primary"
+        aria-hidden="true"></span>
+    </span>
+    <div class="pointer-events-none absolute inset-[1px]"
+      {...machine.getMarkerGroupProps()}>
+      <template for={machine.getMarkers()} as={row} key={row}>
+        <span
+          class="absolute inset-y-0 left-1/2 w-[2px]"
+          {...machine.getMarkerProps({ value: row, diameter: true })}
+        >
+          <span
+            class={["absolute inset-x-0 top-[6%] block h-[11%] rounded-full", { "bg-border-strong": machine.getMarkerState(row) !== "at-value", "bg-primary": machine.getMarkerState(row) === "at-value" }]}
+            aria-hidden="true"></span>
+        </span>
+      </template>
+    </div>
+    <span class="flex flex-col items-center"
+      {...machine.getValueTextProps()}>
+      <span
+        class="stat-value tabular-nums">{machine.value}°</span>
+      <span class="text-sm font-medium text-text-muted">degrees</span>
+    </span>
+  </div>
+  <input {...machine.getHiddenInputProps()} />
+</div>

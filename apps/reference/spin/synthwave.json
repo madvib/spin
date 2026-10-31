@@ -31,7 +31,6 @@
     "$type": "color",
     "$description": "One hue family for the surfaces and one signal for everything that speaks. The ramp is an indigo ink — never a warm charcoal, because a warm dark stops reading as a screen — and the lit colours are the only saturated things on the panel. Every step below is restated for the daylit face; a step means the same thing in both lights.",
     "neutral": {
-      "$description": "Ten steps of the same indigo ink, restated for the other light. The meaning of each step does not change — 50 is always the page, 900 is always the ink — so a mode is a change of light, not a change of system.",
       "50": {
         "$value": "oklch(15% 0.035 285)",
         "$description": "The page: the panel itself. The ink the console is built out of, and the floor every other surface is measured against.",
@@ -101,7 +100,8 @@
         "$modes": {
           "light": "oklch(22% 0.05 300)"
         }
-      }
+      },
+      "$description": "Ten steps of the same indigo ink, restated for the other light. The meaning of each step does not change — 50 is always the page, 900 is always the ink — so a mode is a change of light, not a change of system."
     },
     "primary": {
       "$value": "oklch(81% 0.15 195)",
@@ -304,8 +304,6 @@
     }
   },
   "spacing": {
-    "$type": "dimension",
-    "$description": "A tight scale for a dense instrument: the small steps are the inside of a control, the middle steps carry a card, and one roomy step is reserved for the gap between two sections of a page.",
     "0": {
       "$value": "0"
     },
@@ -349,6 +347,9 @@
       "$value": "3.5rem",
       "$description": "The space a page gives a section it means."
     },
+    "14": {
+      "$value": "3.5rem"
+    },
     "16": {
       "$value": "4.75rem",
       "$description": "The gap between two sections of a page."
@@ -364,7 +365,24 @@
     "32": {
       "$value": "10rem",
       "$description": "The empty space a poster would need. A control room never gets there."
-    }
+    },
+    "36": {
+      "$value": "9rem"
+    },
+    "40": {
+      "$value": "10rem"
+    },
+    "56": {
+      "$value": "14rem"
+    },
+    "60": {
+      "$value": "15rem"
+    },
+    "64": {
+      "$value": "16rem"
+    },
+    "$type": "dimension",
+    "$description": "A tight scale for a dense instrument: the small steps are the inside of a control, the middle steps carry a card, and one roomy step is reserved for the gap between two sections of a page."
   },
   "font": {
     "$description": "Three voices, each with a job: a geometric sans carries the prose, an angular technical display speaks only where a heading may speak, and a mono carries every value that is measured rather than read.",
@@ -517,8 +535,6 @@
     }
   },
   "opacity": {
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. A short ladder, because the same fraction reads differently over glass than over paper.",
     "0": {
       "$value": 0,
       "$description": "Gone, not merely faint."
@@ -542,7 +558,9 @@
     "100": {
       "$value": 1,
       "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
-    }
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A short ladder, because the same fraction reads differently over glass than over paper."
   },
   "shadow": {
     "$type": "shadow",

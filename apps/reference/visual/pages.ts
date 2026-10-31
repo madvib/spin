@@ -9,7 +9,7 @@
  * itself", and "how is a theme stored".
  */
 
-import type { FrameState } from "../../../internal/check/harness.ts";
+import type { FrameState } from "@spin/check";
 
 /** What the rendered page looks like to someone reading it. */
 export function pageState(): FrameState {

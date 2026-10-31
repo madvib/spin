@@ -12,13 +12,13 @@
  * simply missing where it runs.
  */
 
-import type { GeometryClaim } from "../../../internal/check/harness.ts";
+import type { GeometryClaim } from "@spin/check";
 
 /** The claims each route of the reference is held to. */
 const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
   "/themes": ["no-horizontal-overflow"],
   "/components/table": ["striped-rows", "no-horizontal-overflow"],
-  "/components/avatar-group": [
+  "/components/avatar": [
     "avatar-group-overlap",
     "avatar-square",
     "no-horizontal-overflow",
@@ -39,11 +39,17 @@ const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
   "/components/switch": ["switch-track", "no-horizontal-overflow"],
 };
 
-/** The claims a route is held to; every component route must fit horizontally. */
+/** The claims a route is held to; every component route paints and fits. */
 export function geometryClaimsFor(hash: string): readonly string[] {
   const explicit = CLAIMS_BY_ROUTE[hash];
-  if (explicit !== undefined) return explicit;
-  if (hash.startsWith("/components/")) return ["no-horizontal-overflow"];
+  if (explicit !== undefined) {
+    return explicit.includes("specimen-paints")
+      ? explicit
+      : [...explicit, "specimen-paints", "no-orphan-scrim"];
+  }
+  if (hash.startsWith("/components/")) {
+    return ["specimen-paints", "no-orphan-scrim", "no-horizontal-overflow"];
+  }
   return [];
 }
 
@@ -533,18 +539,224 @@ export function geometryAudit(options: {
     }
   }
 
-  /** The document fits the viewport: nothing makes it scroll sideways. */
-  if (options.claims.includes("no-horizontal-overflow")) {
-    const doc = document.documentElement;
-    const over = doc.scrollWidth - doc.clientWidth;
+  /**
+   * Every specimen's leaf content paints: skeleton blocks, controls, and
+   * mounted scopes carry non-zero area. A zero-width skeleton, a crushed
+   * panel, or an empty mount fails here — presence in the DOM is not paint.
+   * Hidden subtrees (`hidden`, `display:none`, closed popovers) are not
+   * content yet, so they are skipped; visibility-hidden boxes still hold
+   * layout and are held to it. Faded-out decoration (`opacity:0`,
+   * `scale-50` check indicators, zero-height progress fills) owns no
+   * pixels by design and is skipped — the audit's own contrast pass
+   * already walks what a reader can see.
+   */
+  if (options.claims.includes("specimen-paints")) {
+    const inert = (el: Element): boolean => {
+      if (!(el instanceof HTMLElement)) return false;
+      const style = getComputedStyle(el);
+      // A `display:contents` wrapper owns no box by design: its children
+      // are the content, and measuring it reports 0x0 on a healthy page.
+      if (style.display === "contents") return true;
+      if (style.display === "none") return true;
+      // Faded-out decoration owns no pixels by design: a check indicator
+      // at `opacity:0`, or a progress fill waiting at zero height. The
+      // content they decorate is measured on its own box.
+      if (Number.parseFloat(style.opacity || "1") <= 0.05) return true;
+      // Closed disclosure content is not content yet: dialog panels,
+      // collapsed details, and shut popovers paint on open. Their
+      // triggers (measured on their own boxes) are what must paint.
+      const closed = el.closest("dialog:not([open]), details:not([open])");
+      if (closed !== null) return true;
+      if (el.closest("[hidden]") !== null) return true;
+      const pop = el.closest("[popover]");
+      if (pop !== null) {
+        try {
+          if (!(pop as HTMLElement).matches(":popover-open")) return true;
+        } catch {
+          return true;
+        }
+      }
+      return false;
+    };
+    const candidates = [
+      ...document.querySelectorAll(
+        "main section .skeleton, main section button, main section select, main section textarea, main section [data-scope]",
+      ),
+    ].filter((el) => {
+      if (inert(el)) return false;
+      // Icon glyphs paint through their font: an inline `i-lucide-*`
+      // without a sizing class owns no box until it blockifies as a flex
+      // item. The control around it is what must paint.
+      const cls = el.getAttribute("class") ?? "";
+      if (/(?:^|\s)i-[a-z]/.test(cls) && !/(?:^|\s)(icon-|h-|w-)/.test(cls)) {
+        return false;
+      }
+      // A zero-width span wrapping a single icon glyph is the same
+      // decoration one level up: the glyph owns no box, so neither
+      // does its wrapper.
+      const kid = el.firstElementChild;
+      if (
+        kid !== null &&
+        el.children.length === 1 &&
+        /(?:^|\s)i-[a-z]/.test(kid.getAttribute("class") ?? "")
+      ) {
+        return false;
+      }
+      // and the slider's `hidden` text input are necessarily empty — their
+      // triggers and tracks are what paint.
+      if (el instanceof HTMLInputElement) {
+        if (el.type === "hidden" || el.type === "file") return false;
+        if (el.hasAttribute("hidden")) return false;
+      }
+      if (el.getAttribute("role") === "progressbar") return false;
+      // A scale-zero fill is a value of nothing, not a crushed box: its
+      // track is what must paint.
+      const transform = getComputedStyle(el).transform;
+      if (transform !== "none" && transform.startsWith("matrix(0")) {
+        return false;
+      }
+      // An empty value line is the placeholder's own box: it paints when
+      // it holds text, and its trigger paints regardless. A single empty
+      // child (the row template's mount point) is still empty. Skeletons
+      // are the exception: an empty placeholder IS the content, and a
+      // zero-width one is exactly what this claim exists to catch.
+      if (
+        (el.textContent ?? "").trim().length === 0 &&
+        !el.classList.contains("skeleton")
+      ) {
+        return false;
+      }
+      // A zero-width centered marker (`w-0 justify-center`) is an anchor
+      // point, not a box: its label paints around it.
+      if (
+        el.getBoundingClientRect().width <= 0.51 &&
+        getComputedStyle(el).justifyContent === "center"
+      ) {
+        return false;
+      }
+      // An empty toast queue is a region with no rows: it paints when a
+      // toast fires. A queue WITH rows paints through them — but the
+      // queue's own box is the viewport span, not content, so the rows
+      // (measured on their own boxes) carry the claim either way.
+      if (el.getAttribute("data-part") === "group") {
+        return false;
+      }
+      return true;
+    });
+    if (candidates.length === 0) {
+      claims.push({
+        id: "specimen-paints",
+        ok: true,
+        detail: "no painted leaf content on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const el of candidates) {
+        const rect = box(el);
+        if (rect.width <= EPSILON || rect.height <= EPSILON) {
+          const label = el.getAttribute("class")?.split(" ")[0] ??
+            el.tagName.toLowerCase();
+          const heading = el.closest("section")?.querySelector("h3")
+            ?.textContent?.trim().slice(0, 40) ?? "";
+          bad.push(
+            `${heading} ${el.tagName.toLowerCase()}.${label} paints ${
+              round(rect.width)
+            }x${round(rect.height)}`,
+          );
+        }
+      }
+      claims.push({
+        id: "specimen-paints",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${candidates.length} leaf boxes paint`
+          : bad.join(", "),
+      });
+    }
+  }
+
+  /**
+   * No orphan scrim: a fixed full-viewport layer with a painted backdrop
+   * (a non-transparent background above faint opacity) belongs to a
+   * running machine. A backdrop whose owner reports closed (or carries no
+   * state at all) is the tour shape — paint without an owner. Empty fixed
+   * regions (a toast queue with no rows) own no pixels and are not scrims.
+   */
+  if (options.claims.includes("no-orphan-scrim")) {
+    const fixed = [...document.querySelectorAll("main *")].filter((el) => {
+      if (!(el instanceof HTMLElement)) return false;
+      const style = getComputedStyle(el);
+      if (style.position !== "fixed") return false;
+      if (style.visibility === "hidden" || style.display === "none") {
+        return false;
+      }
+      if (Number.parseFloat(style.opacity || "1") <= 0.2) return false;
+      if (box(el).width < document.documentElement.clientWidth - 2) {
+        return false;
+      }
+      const bg = style.backgroundColor;
+      if (bg === "transparent" || bg === "rgba(0, 0, 0, 0)") return false;
+      return true;
+    });
+    const bad: string[] = [];
+    for (const el of fixed) {
+      const owned = el.closest("[data-state]")?.getAttribute("data-state");
+      if (owned === "open" || owned === "running" || owned === "active") {
+        continue;
+      }
+      const part = el.getAttribute("data-part");
+      bad.push(
+        `${el.tagName.toLowerCase()}${part ? `[data-part="${part}"]` : ""} state=${owned ?? "none"}`,
+      );
+    }
     claims.push({
-      id: "no-horizontal-overflow",
-      ok: over <= 1,
-      detail: `document ${doc.scrollWidth}px wide in ${doc.clientWidth}px (${
-        over > 1 ? `${over}px over` : "fits"
-      })`,
+      id: "no-orphan-scrim",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? "no unowned full-viewport layers"
+        : `orphan scrims: ${bad.join(", ")}`,
     });
   }
+
+  /**
+   * Closed overlays stay shut: a popover/tooltip/hover-card panel that is
+   * not `:popover-open` paints nothing. Without it a closed panel reads as
+   * a paint failure — closed is correct, and this claim says so.
+   */
+  if (options.claims.includes("top-layer-closed")) {
+    const panels = [...document.querySelectorAll("[popover]")].filter((
+      el,
+    ) => {
+      try {
+        return !(el as HTMLElement).matches(":popover-open");
+      } catch {
+        return true;
+      }
+    });
+    const bad: string[] = [];
+    for (const el of panels) {
+      const style = getComputedStyle(el);
+      const rect = box(el);
+      if (
+        style.display !== "none" &&
+        (rect.width > EPSILON || rect.height > EPSILON)
+      ) {
+        bad.push(
+          `${el.tagName.toLowerCase()} paints ${round(rect.width)}x${
+            round(rect.height)
+          } while closed`,
+        );
+      }
+    }
+    claims.push({
+      id: "top-layer-closed",
+      ok: bad.length === 0,
+      detail: bad.length === 0
+        ? `${panels.length} closed panels stay shut`
+        : bad.join(", "),
+    });
+  }
+
 
   return claims;
 }

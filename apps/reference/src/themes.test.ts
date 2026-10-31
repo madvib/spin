@@ -1,30 +1,14 @@
 import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
 /**
  * The theme mapping the montage is built on.
  *
  * The montage's honesty rests on one thing: a column shows the theme it is
  * named after, in the renderings that theme actually serves. These are the
  * rules that decide which renderings those are.
- *
- * The assertions are written out rather than imported: the reference app
- * carries no assertion dependency, and a test that cannot run is worse than
- * no test. The workspace's suite reaches `packages/` and `apps/studio/src/`
- * only, so this file runs with `deno test apps/reference/src/themes.test.ts`
- * until the suite is told to look here.
  */
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
 import { renderingsFor } from "./themes.ts";
-
-/** Equal, or the test says what was different. */
-function deepStrictEqual<T>(actual: T, expected: T, what: string): void {
-  const same = JSON.stringify(actual) === JSON.stringify(expected);
-  if (same) return;
-  throw new Error(
-    `${what}: expected ${JSON.stringify(expected)}, got ${
-      JSON.stringify(actual)
-    }`,
-  );
-}
 
 test("a theme renders its own face, and its dark restatement when it has one", () => {
   for (const name of Object.keys(starterThemes)) {
@@ -34,7 +18,11 @@ test("a theme renders its own face, and its dark restatement when it has one", (
     const both = serves.includes("light") && serves.includes("dark");
     const renderings = renderingsFor(name);
     deepStrictEqual(renderings.length, both ? 2 : 1, `${name} rendering count`);
-    deepStrictEqual(renderings[0]?.mode, "light", `${name} light rendering`);
+    deepStrictEqual(
+      renderings[0]?.mode,
+      serves.includes("light") ? "light" : serves[0] ?? "base",
+      `${name} first rendering`,
+    );
     if (both) {
       deepStrictEqual(renderings[1]?.mode, "dark", `${name} dark rendering`);
     }

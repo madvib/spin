@@ -1,17 +1,391 @@
 {
-  "url": "http://localhost:9214",
-  "themes": [
-    "silk",
-    "neobrut",
-    "console",
-    "spin",
-    "synthwave"
-  ],
-  "modes": [
-    "base",
-    "dark"
-  ],
-  "routes": 405,
-  "findings": [],
-  "counts": {}
+ "url": "http://localhost:5199",
+ "themes": [
+  "silk",
+  "neobrut",
+  "console",
+  "synthwave",
+  "spin"
+ ],
+ "modes": [
+  "light",
+  "dark"
+ ],
+ "routes": 608,
+ "findings": [
+  {
+   "route": "/components",
+   "theme": "silk",
+   "mode": "light",
+   "check": "console-error",
+   "subject": "[JavaScript Error: \"downloadable font: download failed (font-family: \"Inter\" style:normal weight:100..900 stretch:100 src index:0): status=2152398850 source: https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2\"]",
+   "detail": "reached the console",
+   "state": "rest"
+  },
+  {
+   "route": "/components",
+   "theme": "silk",
+   "mode": "light",
+   "check": "console-error",
+   "subject": "[JavaScript Error: \"downloadable font: download failed (font-family: \"Space Grotesk\" style:normal weight:300..700 stretch:100 src index:0): status=2152398850 source: https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2\"]",
+   "detail": "reached the console",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "silk",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.15:1 — rgb(82, 92, 106) on rgb(228, 232, 239)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "silk",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.15:1 — rgb(82, 92, 106) on rgb(228, 232, 239)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "silk",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.60:1 — rgb(153, 159, 167) on rgb(29, 36, 47)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "silk",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.60:1 — rgb(153, 159, 167) on rgb(29, 36, 47)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components",
+   "theme": "neobrut",
+   "mode": "light",
+   "check": "console-error",
+   "subject": "NetworkError when attempting to fetch resource.",
+   "detail": "reached the console",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "neobrut",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.21:1 — rgb(82, 82, 82) on rgb(229, 229, 229)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "neobrut",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.21:1 — rgb(82, 82, 82) on rgb(229, 229, 229)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "console",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.21:1 — oklch(0.62 0.05 145) on oklch(0.22 0.012 220)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "console",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.21:1 — oklch(0.62 0.05 145) on oklch(0.22 0.012 220)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "synthwave",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.26:1 — oklch(0.44 0.045 300) on oklch(0.93 0.022 320)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "synthwave",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.26:1 — oklch(0.44 0.045 300) on oklch(0.93 0.022 320)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "synthwave",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.74:1 — oklch(0.72 0.045 300) on oklch(0.22 0.04 285)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "synthwave",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.74:1 — oklch(0.72 0.045 300) on oklch(0.22 0.04 285)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "spin",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.24:1 — rgb(88, 82, 74) on rgb(231, 225, 215)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "spin",
+   "mode": "light",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.24:1 — rgb(88, 82, 74) on rgb(231, 225, 215)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-file-upload",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div > div:nth-of-type(1) > span \"Add files\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-file-upload",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(5) > div:nth-of-type(2) > div > file-upload-files > div > div:nth-of-type(1) \"Add files\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-file-upload",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(5) > div:nth-of-type(2) > div > file-upload-files > div > div:nth-of-type(1) \"Add files\"",
+   "detail": "2.96:1 — rgb(200, 16, 46) on rgb(27, 26, 24)",
+   "state": "focus-visible"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"Elevation\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(2) > div > span \"Pacific\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"Featured Release\"",
+   "detail": "2.66:1 — rgb(200, 16, 46) on rgb(37, 35, 32)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div:nth-of-type(1) > div > span \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(1) > div:nth-of-type(2) > div > carousel-autoplay > div > div:nth-of-type(1) > div:nth-of-type(1) > div \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(2) > div:nth-of-type(2) > div > carousel-basic > div > div:nth-of-type(1) > div:nth-of-type(1) > div \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(3) > div:nth-of-type(2) > div > carousel-cards > div > div:nth-of-type(1) > div:nth-of-type(1) > div \"Elevation\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(3) > div:nth-of-type(2) > div > carousel-cards > div > div:nth-of-type(1) > div:nth-of-type(2) > div \"Pacific\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(4) > div:nth-of-type(2) > div > carousel-hero > div > div:nth-of-type(1) > div:nth-of-type(1) > div > span \"Featured Release\"",
+   "detail": "2.66:1 — rgb(200, 16, 46) on rgb(37, 35, 32)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(8) > div:nth-of-type(2) > div > carousel-thumbnails > div > div:nth-of-type(1) > div:nth-of-type(1) > div \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-carousel",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > carousel-vertical > div > div:nth-of-type(1) > div:nth-of-type(1) > div \"01 · Peak\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-pin-input",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "div > div:nth-of-type(3) > button \"Resend code\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-pin-input",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(6) > div:nth-of-type(2) > div > pin-input-verification > div > div:nth-of-type(3) > button \"Resend code\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  },
+  {
+   "route": "/components/component-pin-input",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(6) > div:nth-of-type(2) > div > pin-input-verification > div > div:nth-of-type(3) > button \"Resend code\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "focus-visible"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(9) > div:nth-of-type(2) > div > steps-progress > div > div:nth-of-type(3) > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.19:1 — rgb(141, 134, 123) on rgb(27, 26, 24)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-steps",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(13) > div:nth-of-type(2) > div > steps-verticalnavigation > div > div > button:nth-of-type(1) \"Prev step\"",
+   "detail": "2.19:1 — rgb(141, 134, 123) on rgb(27, 26, 24)",
+   "state": "disabled"
+  },
+  {
+   "route": "/components/component-hover-card",
+   "theme": "spin",
+   "mode": "dark",
+   "state": "rest",
+   "check": "contrast",
+   "subject": "p > span > span:nth-of-type(1) \"building modern web applications\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)"
+  },
+  {
+   "route": "/components/component-hover-card",
+   "theme": "spin",
+   "mode": "dark",
+   "check": "state-contrast",
+   "subject": "main > section:nth-of-type(4) > div:nth-of-type(2) \"building modern web applications\"",
+   "detail": "3.15:1 — rgb(200, 16, 46) on rgb(20, 19, 18)",
+   "state": "rest"
+  }
+ ],
+ "counts": {
+  "console-error": 3,
+  "state-contrast": 28,
+  "contrast": 10
+ }
 }

@@ -1,40 +1,22 @@
 import { COMPONENT_GROUPS, COMPONENT_ICONS, CONTROLLERS } from "@spinjs/components";
-import { EXAMPLE_ONLOAD } from "@spinjs/kit";
+import { exampleSources, mountTag } from "@spinjs/components/examples";
+import "@spinjs/components/examples";
+import { EXAMPLE_ONLOAD } from "@spinjs/spin/kit";
 
 import type { PrimitivePage } from "./primitives.ts";
 
 export { COMPONENT_GROUPS, COMPONENT_ICONS };
 
 /**
- * The machine components, beside the primitives. Examples are the files
- * each machine ships under `examples/` — the glob below IS the manifest
- * (stem = name, title derived), the same convention the RPC serves.
- * A machine with no examples yet renders its recipe as the single example.
+ * The machine components, beside the primitives. The gallery module IS the
+ * manifest (machine → stems, title derived), the same convention the RPC
+ * serves. A machine with no examples yet renders its recipe as the single
+ * example.
  */
-const exampleSources = import.meta.glob(
-  "../../../packages/components/src/*/examples/*.html",
-  { query: "?raw", import: "default", eager: true },
-) as Record<string, string>;
-
-// Compiled: each example is its own element, registered by the element
-// transform as a side effect. Same glob, no ?raw.
-import.meta.glob(
-  "../../../packages/components/src/*/examples/*.html",
-  { eager: true },
-);
-
 const titleOf = (stem: string): string =>
   stem.split("-").map((word) =>
     word.length === 0 ? word : word[0]!.toUpperCase() + word.slice(1)
   ).join(" ");
-
-const stripSpin = (dir: string): string =>
-  dir.startsWith("spin-") ? dir.slice("spin-".length) : dir;
-
-// `.../spin-tree-view/examples/basic.html` → `tree-view`: the examples
-// dir sits between the machine dir and the file.
-const exampleMachineOf = (path: string): string =>
-  stripSpin(path.split("/").at(-3) ?? "");
 
 const grouped = new Map<
   string,
@@ -42,19 +24,19 @@ const grouped = new Map<
     examples: { name: string; html: string; source: string; onLoad?: string }[];
   }
 >();
-for (const [path, html] of Object.entries(exampleSources)) {
-  const machine = exampleMachineOf(path);
-  const stem = path.split("/").at(-1)?.slice(0, -".html".length) ?? path;
+for (const [machine, sources] of exampleSources()) {
   const group = grouped.get(machine) ?? { examples: [] };
-  // Machine-qualified, always: a dashed stem (`media-player`) is not a
-  // usable bare tag — the compiled element registers machine-stem, and
-  // the mount must name the same element.
-  const tag = `${machine}-${stem}`;
-  group.examples.push({
-    name: `${machine} — ${titleOf(stem)}`,
-    html: `<${tag}></${tag}>`,
-    source: html,
-  });
+  for (const { stem, html } of sources) {
+    const tag = mountTag(machine, stem);
+    const key = `${machine}/${stem}`;
+    const onLoad = EXAMPLE_ONLOAD[key];
+    group.examples.push({
+      name: titleOf(stem),
+      html: `<${tag} class="flex w-full min-w-0 flex-col items-center"></${tag}>`,
+      source: html,
+      ...(onLoad !== undefined ? { onLoad } : {}),
+    });
+  }
   grouped.set(machine, group);
 }
 /** Mount glue a static file cannot carry: property functions. Keyed by
@@ -94,13 +76,6 @@ export const COMPONENTS: readonly PrimitivePage[] = [...grouped.entries()]
     title: titleOf(id),
     kind: "machine",
     note: "",
-    examples: [...group.examples].sort((a, b) => a.name.localeCompare(b.name))
-      .map((e) => {
-        const key = `${id}/${
-          e.name.split(" — ")[1]?.toLowerCase().replace(/ /g, "-") ?? ""
-        }`;
-        const onLoad = EXAMPLE_ONLOAD[key];
-        return onLoad !== undefined ? { ...e, onLoad } : e;
-      }),
+    examples: [...group.examples].sort((a, b) => a.name.localeCompare(b.name)),
   }))
   .sort((a, b) => a.title.localeCompare(b.title));

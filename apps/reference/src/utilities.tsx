@@ -10,11 +10,11 @@ import {
   type Section,
   SECTIONS,
   utilitiesFor,
-} from "@spinjs/preset";
-import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
-import type { TokenTree } from "@spinjs/theme";
-import { inkTokens, LOOP_STEP } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+} from "@spinjs/spin/preset";
+import { indexTree, parseTokens, resolveAliases } from "@spinjs/spin/theme";
+import type { TokenTree } from "@spinjs/spin/theme";
+import { inkTokens, LOOP_STEP } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.
@@ -1644,7 +1644,7 @@ function VariantsBench() {
         </div>
         <button
           type="button"
-          class={`${CHIP} px-4 py-2 transition hover:bg-primary hover:text-on-primary focus:bg-accent focus:text-on-accent active:scale-95`}
+          class={`bare ${CHIP} transition hover:border-primary focus:border-accent hover:text-text active:scale-95`}
         >
           hover, focus and press me
         </button>
