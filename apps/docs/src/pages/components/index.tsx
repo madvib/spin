@@ -1,113 +1,104 @@
 /**
  * The components gallery — the elements themselves, live, as the imagery.
  *
- * Each card is a stage holding the primitive's own first example, painted
- * by whatever theme the rail has set. Contract details live on the page
- * behind the card; the gallery earns its place by showing, not telling.
- *
- * The gallery is GROUPED, in the taxonomy's order, and every card wears the
- * glyph its element is known by. The groups are the ones the studio's rail
- * and the reference app's rail draw — one taxonomy, read three times — so
- * none of them can file an element where another files it elsewhere, and a
- * reader looking for a control finds it among the other controls of its
- * kind rather than in a wall of thirty names.
+ * One taxonomy, one list: each purpose group holds its elements and its
+ * machines together, and the kind filter narrows the same list instead of
+ * printing a second gallery under duplicate headings. The groups are the
+ * ones the docs rail, the studio rail, and the reference rail draw.
  */
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { A, useSearchParams } from "@solidjs/router";
 import { COMPONENT_ICONS, UNIFIED_COMPONENT_GROUPS } from "@spinjs/components";
 import { exampleSources } from "@spinjs/components/examples";
 import "@spinjs/components/examples";
 import {
   examplesFor,
-  primitiveCategories,
-  type PrimitiveContract,
   primitiveContracts,
   primitiveElements,
 } from "@spinjs/preset";
-import { A } from "@solidjs/router";
 
 const MACHINE_SOURCES = exampleSources();
+const ELEMENT_ICONS = new Map(
+  primitiveElements.map((element) => [element.name, element.icon]),
+);
 
-const MACHINE_GROUPS: readonly {
-  readonly id: string;
-  readonly label: string;
-  readonly rows: readonly {
-    readonly name: string;
-    readonly icon: string;
-    readonly mountHtml: string;
-    readonly manifest: { readonly commands: readonly string[] };
-  }[];
-}[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
-  id: group.id,
-  label: group.label,
-  rows: group.members
-    .map((member) => member.replace(/^component-/, ""))
-    .filter((name) => MACHINE_SOURCES.has(name))
-    .map((name) => {
-      const first = MACHINE_SOURCES.get(name)?.[0]?.stem ?? "basic";
-      return {
-        name,
-        icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
-        mountHtml: `<${name}-${first}></${name}-${first}>`,
-        manifest: { commands: [] as string[] },
-      };
-    }),
-})).filter((group) => group.rows.length > 0);
+type Kind = "element" | "machine";
 
-/** One card's row: the element, the glyph it wears, the contract behind it. */
 interface Row {
   readonly name: string;
   readonly icon: string;
-  readonly contract: PrimitiveContract;
+  readonly href: string;
+  readonly mountHtml: string;
+  readonly meta: string;
+  readonly kind: Kind;
 }
 
-/**
- * The groups, in the taxonomy's order, with the cards each one shows.
- *
- * The taxonomy files every element the library ships, and the manifest is
- * what a detail page reads — so an element the manifest does not know has
- * no page behind its card, and a card that links nowhere is a dead end in a
- * gallery of things to open. The rows are therefore the elements the
- * manifest knows, and a group the manifest empties is dropped rather than
- * drawn as a heading over nothing.
- */
-const GROUPS = primitiveCategories
-  .map((category) => ({
-    id: category.id,
-    label: category.label,
-    rows: primitiveElements
-      .filter((element) => element.category === category.id)
-      .map((element): Row | undefined => {
-        const contract: PrimitiveContract | undefined = primitiveContracts[
-          element.name
-        ];
-        if (contract === undefined) return undefined;
-        return { name: element.name, icon: element.icon, contract };
-      })
-      .filter((row): row is Row => row !== undefined),
-  }))
-  .filter((group) => group.rows.length > 0);
+interface Group {
+  readonly id: string;
+  readonly label: string;
+  readonly rows: readonly Row[];
+}
 
-/**
- * The groups, as links.
- *
- * Grouping is what makes the gallery readable — a reader looking for a
- * control knows the kind they want — but it is also what puts a name under
- * a heading, so the headings get to be reached in one click rather than by
- * scrolling for them.
- */
-function GroupNav(): JSX.Element {
+const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
+  id: group.id,
+  label: group.label,
+  rows: group.members.flatMap((member): Row[] => {
+    if (member.startsWith("component-")) {
+      const name = member.slice("component-".length);
+      const stems = MACHINE_SOURCES.get(name);
+      if (stems === undefined) return [];
+      const first = stems[0]?.stem ?? "basic";
+      return [{
+        name,
+        icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
+        href: `/components/machine-${name}`,
+        mountHtml: `<${name}-${first}></${name}-${first}>`,
+        meta: "state machine",
+        kind: "machine",
+      }];
+    }
+    const contract = primitiveContracts[member];
+    if (contract === undefined) return [];
+    const example = examplesFor(member);
+    const variants = contract.variants.length;
+    return [{
+      name: member,
+      icon: ELEMENT_ICONS.get(member) ?? COMPONENT_ICONS[member] ?? "i-lucide-box",
+      href: `/components/${member}`,
+      mountHtml: example?.rows[0]?.html ?? "",
+      meta: variants > 0
+        ? `${variants} ${variants === 1 ? "variant" : "variants"}`
+        : "pure CSS",
+      kind: "element",
+    }];
+  }),
+})).filter((group) => group.rows.length > 0);
+
+const KINDS: readonly { readonly id: "all" | Kind; readonly label: string; readonly href: string }[] = [
+  { id: "all", label: "All", href: "/components" },
+  { id: "element", label: "Elements", href: "/components?kind=elements" },
+  { id: "machine", label: "Machines", href: "/components?kind=machines" },
+];
+
+/** The groups the current filter keeps, in the taxonomy's order. */
+function groupsFor(kind: "all" | Kind): readonly Group[] {
+  if (kind === "all") return GROUPS;
+  return GROUPS.map((group) => ({
+    ...group,
+    rows: group.rows.filter((row) => row.kind === kind),
+  })).filter((group) => group.rows.length > 0);
+}
+
+function GroupNav(props: { groups: readonly Group[] }): JSX.Element {
   return (
     <nav
       class="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm"
       aria-label="component groups"
     >
-      <For each={GROUPS}>
+      <For each={props.groups}>
         {(group) => (
-          <a
-            href={`#${group.id}`}
-            class="hover:text-text"
-          >
+          <a href={`#${group.id}`} class="hover:text-text">
             {group.label}
           </a>
         )}
@@ -117,6 +108,20 @@ function GroupNav(): JSX.Element {
 }
 
 export default function ComponentsIndex(): JSX.Element {
+  const [params] = useSearchParams();
+  const kind = (): "all" | Kind => {
+    const value = params["kind"];
+    return value === "elements" ? "element" : value === "machines" ? "machine" : "all";
+  };
+  const groups = () => groupsFor(kind());
+  const countOf = (id: "all" | Kind): number =>
+    GROUPS.reduce(
+      (total, group) =>
+        total +
+        group.rows.filter((row) => id === "all" || row.kind === id).length,
+      0,
+    );
+
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Components</h1>
@@ -125,25 +130,57 @@ export default function ComponentsIndex(): JSX.Element {
         one to copy the markup, see the classes it answers to, and check what it
         reads from the theme.
       </p>
-      <GroupNav />
 
-      <For each={MACHINE_GROUPS}>
+      <nav
+        class="mt-4 flex flex-wrap items-center gap-1"
+        aria-label="component kind"
+      >
+        <For each={KINDS}>
+          {(entry) => (
+            <A
+              href={entry.href}
+              class={`rounded-md px-3 py-1 text-sm no-underline transition-colors duration-fast ${
+                kind() === entry.id
+                  ? "bg-primary font-semibold text-on-primary"
+                  : "text-text-muted hover:bg-surface hover:text-text"
+              }`}
+            >
+              {entry.label}{" "}
+              <span class="text-xs opacity-70">{countOf(entry.id)}</span>
+            </A>
+          )}
+        </For>
+      </nav>
+
+      <GroupNav groups={groups()} />
+
+      <For each={groups()}>
         {(group) => (
-          <section class="mt-10 scroll-mt-20" id={`machine-${group.id}`}>
+          <section class="mt-10 scroll-mt-20" id={group.id}>
             <h2 class="text-text">
-              {group.label}{" "}
-              <span class="text-xs text-text-muted">· interactive</span>
+              {group.label}
             </h2>
-            <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
               <For each={group.rows}>
                 {(row) => (
                   <A
-                    href={`/components/machine-${row.name}`}
+                    href={row.href}
                     class="block border border-border bg-surface-raised rounded-md overflow-hidden no-underline hover:border-border-strong transition-colors duration-fast"
                   >
-                    <div class="flex h-20 items-center justify-center overflow-hidden border-b border-border bg-surface px-4">
-                      <div innerHTML={row.mountHtml} />
-                    </div>
+                    <Show
+                      when={row.mountHtml !== ""}
+                      fallback={
+                        <div class="flex min-h-24 max-h-64 items-center justify-center border-b border-border bg-surface p-3">
+                          <span class="text-xs text-text-muted">
+                            utility family
+                          </span>
+                        </div>
+                      }
+                    >
+                      <div class="flex min-h-24 max-h-64 items-center justify-center overflow-hidden border-b border-border bg-surface p-3">
+                        <div class="block w-full min-w-0 [&>*]:mx-auto" innerHTML={row.mountHtml} />
+                      </div>
+                    </Show>
                     <div class="flex items-center justify-between gap-2 px-4 py-3">
                       <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
                         <i
@@ -153,66 +190,11 @@ export default function ComponentsIndex(): JSX.Element {
                         <span class="truncate">{row.name}</span>
                       </span>
                       <span class="shrink-0 text-xs text-text-muted">
-                        {row.manifest.commands.length} commands
+                        {row.meta}
                       </span>
                     </div>
                   </A>
                 )}
-              </For>
-            </div>
-          </section>
-        )}
-      </For>
-      <For each={GROUPS}>
-        {(group) => (
-          <section class="mt-10 scroll-mt-20" id={group.id}>
-            <h2 class="text-text">
-              {group.label}
-            </h2>
-            <div class="mt-4 grid gap-4 md:grid-cols-3">
-              <For each={group.rows}>
-                {(row) => {
-                  const examples = examplesFor(row.name);
-                  return (
-                    <A
-                      href={`/components/${row.name}`}
-                      class="block border border-border bg-surface-raised rounded-md overflow-hidden no-underline hover:border-border-strong transition-colors duration-fast"
-                    >
-                      <Show
-                        when={examples}
-                        fallback={
-                          <div class="flex h-20 items-center justify-center border-b border-border bg-surface px-4">
-                            <span class="text-xs text-text-muted">
-                              utility family
-                            </span>
-                          </div>
-                        }
-                      >
-                        <div class="flex h-20 items-center justify-center overflow-hidden border-b border-border bg-surface px-4">
-                          <div innerHTML={examples!.rows[0].html} />
-                        </div>
-                      </Show>
-                      <div class="flex items-center justify-between gap-2 px-4 py-3">
-                        <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
-                          <i
-                            class={`${row.icon} icon-md shrink-0 text-text-muted`}
-                            aria-hidden="true"
-                          />
-                          <span class="truncate">{row.name}</span>
-                        </span>
-                        <span class="shrink-0 text-xs text-text-muted">
-                          {row.contract.variants.length > 0
-                            ? `${row.contract.variants.length} ${
-                              row.contract.variants.length === 1
-                                ? "variant"
-                                : "variants"
-                            }`
-                            : "no classes"}
-                        </span>
-                      </div>
-                    </A>
-                  );
-                }}
               </For>
             </div>
           </section>

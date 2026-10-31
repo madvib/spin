@@ -5,12 +5,12 @@
 One package. One plugin. One stylesheet import.
 
 ```bash
-npm install @spin/preset
+npm install @spinjs/spin
 ```
 
 ```ts
 // vite.config.ts
-import { spin } from "@spin/preset/plugin";
+import { spin } from "@spinjs/spin/vite";
 import myTheme from "./theme.json" with { type: "json" };
 
 export default {
@@ -37,19 +37,19 @@ Studio can swap in place. It replaces the Uno plugin — there is no
 
 ```ts
 // rollup.config.ts
-import { spin } from "@spin/preset/plugin";
+import { spin } from "@spinjs/spin/vite";
 export default { plugins: [spin.rollup()] };
 ```
 
 ```ts
 // rspack.config.ts
-import { spin } from "@spin/preset/plugin";
+import { spin } from "@spinjs/spin/vite";
 export default { plugins: [spin.rspack()] };
 ```
 
 ```js
 // webpack.config.js
-const { spin } = require("@spin/preset/plugin");
+const { spin } = require("@spinjs/spin/vite");
 module.exports = { plugins: [spin.webpack()] };
 ```
 

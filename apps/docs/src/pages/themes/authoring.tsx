@@ -141,7 +141,7 @@ done`;
         they cannot. The contract it satisfies is on{" "}
         <A href="/themes">Theme Contract & Modes</A>; the editor beside it is on
         {" "}
-        <A href="/themes/studio">Using the Studio</A>.
+        <A href="/studio">Using the Studio</A>.
       </p>
       <Section id="brief" title="The shape of the brief">
         <p>

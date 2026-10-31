@@ -14,14 +14,16 @@ import { A, useNavigate } from "@solidjs/router";
 import { COMPONENT_ICONS } from "@spinjs/components";
 import { exampleSources } from "@spinjs/components/examples";
 import "@spinjs/components/examples";
-import { examplesFor, primitiveContracts } from "@spinjs/preset";
+import {
+  examplesFor,
+  primitiveContracts,
+  primitiveElements,
+} from "@spinjs/preset";
 import {
   Mark,
   type MarkPluckEvent,
   mode,
-  setMode,
-  setTheme,
-  starterList,
+  ThemePicker,
   theme,
 } from "@spinjs/kit";
 
@@ -30,6 +32,24 @@ const WHEEL_THRESHOLD = 62;
 const STEP_COOLDOWN_MS = 650;
 
 const MACHINE_SOURCES = exampleSources();
+const MACHINE_COUNT = MACHINE_SOURCES.size;
+const ELEMENT_COUNT = primitiveElements.filter(
+  (element) => primitiveContracts[element.name] !== undefined,
+).length;
+
+const PACKAGE_MANAGERS = [
+  { id: "bun", command: "bun add @spinjs/spin" },
+  { id: "npm", command: "npm install @spinjs/spin" },
+  { id: "pnpm", command: "pnpm add @spinjs/spin" },
+  { id: "yarn", command: "yarn add @spinjs/spin" },
+  { id: "deno", command: "deno add npm:@spinjs/spin" },
+] as const;
+
+type PackageManager = (typeof PACKAGE_MANAGERS)[number]["id"];
+
+function isPackageManager(value: string): value is PackageManager {
+  return PACKAGE_MANAGERS.some((manager) => manager.id === value);
+}
 
 interface HoverTileSpec {
   readonly name: string;
@@ -48,7 +68,7 @@ function buildTileSpec(name: string, isMachine: boolean): HoverTileSpec {
       href: `/components/machine-${name}`,
       icon,
       mountHtml: `<${name}-${first}></${name}-${first}>`,
-      meta: "interactive",
+      meta: "state machine",
     };
   }
   const ex = examplesFor(name);
@@ -82,8 +102,8 @@ interface DtcgTokenSample {
   readonly path: string;
   readonly type: string;
   readonly role: string;
-  readonly lightValue: string;
-  readonly darkValue: string;
+  readonly sample: "color" | "font" | "radius";
+  readonly sampleClass: string;
   readonly pairing: string;
 }
 
@@ -92,32 +112,32 @@ const DTCG_SAMPLES: readonly DtcgTokenSample[] = [
     path: "color.primary",
     type: "color",
     role: "Brand action fill & focus accent",
-    lightValue: "#c8102e",
-    darkValue: "#ff6369",
+    sample: "color",
+    sampleClass: "bg-primary",
     pairing: "Paired with color.on-primary (≥ 4.5:1 AA)",
   },
   {
     path: "color.surface-raised",
     type: "color",
     role: "Elevated cards, panels & overlays",
-    lightValue: "#ffffff",
-    darkValue: "#1b1a18",
+    sample: "color",
+    sampleClass: "bg-surface-raised",
     pairing: "Paired with color.text & color.text-muted",
   },
   {
     path: "font.family.heading",
     type: "fontFamily",
     role: "Display & section headings",
-    lightValue: "Bricolage Grotesque",
-    darkValue: "Bricolage Grotesque",
+    sample: "font",
+    sampleClass: "font-heading",
     pairing: "Paired with font.family.sans body copy",
   },
   {
     path: "radius.lg",
     type: "dimension",
     role: "Container & panel corner geometry",
-    lightValue: "0.5rem",
-    darkValue: "0.5rem",
+    sample: "radius",
+    sampleClass: "rounded-lg",
     pairing: "Scales across button, card, dialog & panel",
   },
 ] as const;
@@ -161,6 +181,22 @@ export default function Home(): JSX.Element {
 
   // Section 0: copy command state
   const [copiedCmd, setCopiedCmd] = createSignal(false);
+  const [packageManager, setPackageManager] = createSignal<PackageManager>("bun");
+  const installCommand = (): string =>
+    PACKAGE_MANAGERS.find((manager) => manager.id === packageManager())
+      ?.command ?? PACKAGE_MANAGERS[0].command;
+
+  /** The custom property a token path resolves to. */
+  const cssVarOf = (path: string): string => `--${path.replaceAll(".", "-")}`;
+  /** The value the active theme and mode paint, read from the document. */
+  const liveTokenValue = (path: string): string => {
+    theme();
+    mode();
+    if (typeof document === "undefined") return "";
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVarOf(path))
+      .trim();
+  };
 
   // Section 1 (Themes / DTCG): selected token path
   const [selectedDtcgIdx, setSelectedDtcgIdx] = createSignal(0);
@@ -295,7 +331,7 @@ export default function Home(): JSX.Element {
 
   const copyInstall = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
-      void navigator.clipboard.writeText("bun add @spinjs/spin");
+      void navigator.clipboard.writeText(installCommand());
     }
     setCopiedCmd(true);
     window.setTimeout(() => setCopiedCmd(false), 1400);
@@ -306,8 +342,8 @@ export default function Home(): JSX.Element {
     window.clearTimeout(hoverOpenTimer);
     hoverOpenTimer = window.setTimeout(() => {
       const r = triggerEl.getBoundingClientRect();
-      const cardW = 310;
-      const cardH = 175;
+      const cardW = 490;
+      const cardH = 220;
       const left = Math.max(
         16,
         Math.min(window.innerWidth - cardW - 16, r.left),
@@ -345,17 +381,6 @@ export default function Home(): JSX.Element {
   const remainingFindings = () =>
     ORACLE_FINDINGS.filter((item) => !fixedIds()[item.id]).length;
 
-  const openStudioOverlay = () => {
-    const toggle = document.querySelector<HTMLButtonElement>(
-      "#spin-studio-pill button",
-    );
-    if (toggle) {
-      toggle.click();
-    } else {
-      navigate("/guide/studio");
-    }
-  };
-
   const currentDtcg = () => DTCG_SAMPLES[selectedDtcgIdx()] ?? DTCG_SAMPLES[0]!;
 
   return (
@@ -384,15 +409,15 @@ export default function Home(): JSX.Element {
               position: "fixed",
               top: `${hoverCardPos().top}px`,
               left: `${hoverCardPos().left}px`,
-              width: "19rem",
+              width: "30rem",
             }}
             class="z-modal"
             onPointerEnter={keepTileHoverCardOpen}
             onPointerLeave={scheduleCloseTileHoverCard}
           >
             <div class="overflow-hidden rounded-md border border-border-strong bg-surface-raised shadow-lg">
-              <div class="flex min-h-[6rem] items-center justify-center overflow-visible border-b border-border bg-surface p-4">
-                <div innerHTML={tile().mountHtml} />
+              <div class="flex min-h-[8rem] items-center justify-center overflow-visible border-b border-border bg-surface p-4">
+                <div class="block w-full min-w-0 [&>*]:mx-auto" innerHTML={tile().mountHtml} />
               </div>
               <div class="flex items-center justify-between gap-2 px-4 py-2">
                 <span class="flex min-w-0 items-center gap-2 font-brand text-md text-text">
@@ -520,7 +545,7 @@ export default function Home(): JSX.Element {
             >
               <span class="inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
                 <span class="h-2 w-2 rounded-full bg-primary" />
-                <span>W3C DTCG · Pure CSS Primitives · State Machines</span>
+                <span>Framework-agnostic · W3C DTCG · Pure CSS</span>
               </span>
 
               <h1 class="m-0 font-brand text-3xl font-bold tracking-tight text-text">
@@ -528,9 +553,11 @@ export default function Home(): JSX.Element {
               </h1>
 
               <p class="m-0 text-sm text-text-muted">
-                Spin gives humans and coding agents a closed design vocabulary,
-                semantic HTML primitives, headless state machines, and
-                mechanical oracles that verify the result.
+                Spin gives humans and coding agents a closed design vocabulary:
+                theme tokens, semantic HTML primitives, headless state machines,
+                and mechanical oracles that verify the result. Adopt it in
+                layers — use Spin to create a single source of truth for
+                themes, styles, and components across all your apps.
               </p>
 
               <div class="flex w-fit flex-wrap items-center gap-2">
@@ -540,13 +567,34 @@ export default function Home(): JSX.Element {
                 <A href="/components" role="button" class="secondary no-underline">
                   Components
                 </A>
+              </div>
+
+              <div class="inline-flex w-fit flex-wrap items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
+                <label class="sr-only" for="install-pm">
+                  Package manager
+                </label>
+                <select
+                  id="install-pm"
+                  value={packageManager()}
+                  onChange={(event) => {
+                    const value = event.currentTarget.value;
+                    if (isPackageManager(value)) setPackageManager(value);
+                  }}
+                  class="s-sm w-fit"
+                >
+                  <For each={PACKAGE_MANAGERS}>
+                    {(manager) => (
+                      <option value={manager.id}>{manager.id}</option>
+                    )}
+                  </For>
+                </select>
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex w-fit items-center gap-2 rounded-md border border-border-strong bg-surface-raised px-3 py-2 font-mono text-xs text-text shadow-sm hover:border-primary"
+                  class="bare inline-flex w-fit items-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
                   <span class="text-text-muted">$</span>
-                  <span>bun add @spinjs/spin</span>
+                  <span>{installCommand()}</span>
                   <span
                     class={
                       copiedCmd()
@@ -558,40 +606,7 @@ export default function Home(): JSX.Element {
                 </button>
               </div>
 
-              <div class="flex w-fit flex-wrap items-center gap-1 rounded-lg border border-border bg-surface-raised p-1 shadow-sm">
-                <For each={starterList}>
-                  {(id) => (
-                    <button
-                      type="button"
-                      aria-pressed={theme() === id}
-                      onClick={() => setTheme(id)}
-                      class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
-                        theme() === id
-                          ? "bg-primary font-semibold text-on-primary"
-                          : "text-text-muted hover:bg-surface hover:text-text"
-                      }`}
-                    >
-                      {id}
-                    </button>
-                  )}
-                </For>
-                <span class="px-1 text-border-strong">|</span>
-                <button
-                  type="button"
-                  onClick={() => setMode(mode() === "dark" ? "light" : "dark")}
-                  class="bare inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
-                >
-                  <span
-                    class={
-                      mode() === "dark"
-                        ? "inline-block h-4 w-4 i-lucide-moon text-primary"
-                        : "inline-block h-4 w-4 i-lucide-sun text-primary"
-                    }
-                    aria-hidden="true"
-                  />
-                  <span>{mode()}</span>
-                </button>
-              </div>
+              <ThemePicker id="hero-theme-picker" />
             </section>
           </Match>
 
@@ -611,9 +626,10 @@ export default function Home(): JSX.Element {
                 One theme document owns every visual decision.
               </h2>
               <p class="m-0 text-sm text-text-muted">
-                Colors, typography, spacing, and radii live in a W3C DTCG JSON
-                contract — authored visually in Studio, with light and dark
-                contrast pairs verified up front.
+                Colors, typography, spacing, and radii live in one W3C DTCG
+                document. Every sample below reads its value from that
+                document, so switching themes or modes rewrites the page — and
+                light/dark contrast pairs are checked before you ship.
               </p>
 
               {/* Compact w-fit DTCG token selector pills */}
@@ -647,14 +663,29 @@ export default function Home(): JSX.Element {
                   <badge class="badge-neutral">$type: {currentDtcg().type}</badge>
                 </div>
 
-                <div class="flex w-fit items-center gap-2 font-mono text-xs">
-                  <div class="rounded-md border border-border bg-surface px-3 py-1">
-                    <span class="text-text-muted">light: </span>
-                    <strong class="text-text">{currentDtcg().lightValue}</strong>
-                  </div>
-                  <div class="rounded-md border border-border bg-surface px-3 py-1">
-                    <span class="text-text-muted">dark: </span>
-                    <strong class="text-text">{currentDtcg().darkValue}</strong>
+                <div class="flex w-fit items-center gap-3">
+                  <Show
+                    when={currentDtcg().sample === "color"}
+                    fallback={
+                      <span
+                        class={`flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-surface text-text ${currentDtcg().sampleClass}`}
+                      >
+                        {currentDtcg().sample === "font" ? "Aa" : ""}
+                      </span>
+                    }
+                  >
+                    <span
+                      class={`h-8 w-8 shrink-0 rounded-md border border-border ${currentDtcg().sampleClass}`}
+                      aria-hidden="true"
+                    />
+                  </Show>
+                  <div class="flex flex-col gap-1 font-mono text-xs">
+                    <span class="text-text-muted">
+                      {cssVarOf(currentDtcg().path)}
+                    </span>
+                    <strong class="text-text">
+                      {liveTokenValue(currentDtcg().path) || "—"}
+                    </strong>
                   </div>
                 </div>
 
@@ -798,13 +829,19 @@ export default function Home(): JSX.Element {
               <p class="m-0 text-sm text-text-muted">
                 A button is <code>&lt;button&gt;</code>, a switch is{" "}
                 <code>role="switch"</code>, and a menu surface is{" "}
-                <code>&lt;panel&gt;</code> — styled directly in pure CSS.
+                <code>&lt;panel&gt;</code> — styled in CSS, no wrapper class.
+                Elements are classless by default: <code>classless: false</code>{" "}
+                makes primitives ask to be named, and{" "}
+                <code>primitives: [...]</code> trims the set. Prose is
+                theme-bound too — <code>p</code>, <code>h1</code>–<code>h6</code>,{" "}
+                <code>a</code>, <code>li</code>, <code>blockquote</code>,{" "}
+                <code>pre</code>, and <code>code</code> spend the same scale.
               </p>
 
-              {/* Tight w-fit native HTML specimens (zero wasted blank space!) */}
-              <div class="flex max-w-[28rem] flex-wrap items-start gap-2">
-                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <div class="flex w-fit items-center gap-2">
+              {/* One card size; each specimen fills the same cell */}
+              <div class="grid w-[19rem] max-w-full auto-rows-fr grid-cols-2 gap-2">
+                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex flex-wrap items-center gap-1">
                     <button type="button" class="s-sm">
                       Save
                     </button>
@@ -817,7 +854,7 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
                   <label class="inline-flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-text">
                     <input
                       type="checkbox"
@@ -834,9 +871,9 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <div class="flex w-fit items-center gap-2">
-                    <progress value={progressVal()} max={100} class="w-24" />
+                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex flex-wrap items-center gap-1">
+                    <progress value={progressVal()} max={100} class="w-16" />
                     <button
                       type="button"
                       onClick={() =>
@@ -852,8 +889,8 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <div class="flex w-fit items-center gap-1">
+                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex flex-wrap items-center gap-1">
                     <badge class="badge-success">AA</badge>
                     <badge class="badge-warning">DTCG</badge>
                     <badge class="badge-neutral">CSS</badge>
@@ -862,13 +899,26 @@ export default function Home(): JSX.Element {
                     &lt;badge&gt;
                   </code>
                 </div>
+
+                <div class="col-span-2 flex min-h-20 flex-col justify-center gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <p class="m-0 font-heading text-sm font-semibold text-text">
+                    Theme-bound prose
+                  </p>
+                  <p class="m-0 text-xs text-text-muted">
+                    Headings, paragraphs, lists, and{" "}
+                    <a href="/guide/markup">links</a> spend the same type scale.
+                  </p>
+                  <code class="font-mono text-xs text-text-muted">
+                    &lt;p&gt; · &lt;h2&gt; · &lt;a&gt;
+                  </code>
+                </div>
               </div>
 
               <A
-                href="/components"
+                href="/components?kind=elements"
                 class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
               >
-                Explore all 41 CSS primitives →
+                Explore all {ELEMENT_COUNT} CSS elements →
               </A>
             </section>
           </Match>
@@ -890,8 +940,11 @@ export default function Home(): JSX.Element {
               </h2>
               <p class="m-0 text-sm text-text-muted">
                 Pure CSS covers native tags; <code>@spinjs/components</code>{" "}
-                drives multi-part widgets with deterministic state machines.{" "}
-                <strong>Hover any tile</strong> to preview the live component.
+                drives multi-part widgets with deterministic state machines.
+                They ship as framework-agnostic custom elements — use the
+                markup anywhere, or drive them from the React and Solid
+                adapters. <strong>Hover any tile</strong> to preview the live
+                component.
               </p>
 
               {/* Compact w-fit Component Tile Grid with Live Specimen HoverCards */}
@@ -925,10 +978,10 @@ export default function Home(): JSX.Element {
               </div>
 
               <A
-                href="/components"
+                href="/components?kind=machines"
                 class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
               >
-                Open full 59-component gallery →
+                Browse all {MACHINE_COUNT} machines →
               </A>
             </section>
           </Match>
@@ -1031,48 +1084,66 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto flex w-fit flex-col items-start gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                06 · Workbench · Spin Studio
-              </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
-                Shape tokens visually. Ship recipes in one click.
-              </h2>
-              <p class="m-0 text-sm text-text-muted">
-                Spin Studio mounts inside your Vite dev server to edit DTCG
-                palettes, verify WCAG contrast gates across modes, and copy
-                component recipes into your repo.
-              </p>
+              <div class="flex w-[27rem] max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-lg">
+                <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                  06 · Workbench · Spin Studio
+                </span>
+                <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                  Shape tokens visually. Ship recipes in one click.
+                </h2>
+                <p class="m-0 text-sm text-text-muted">
+                  Spin Studio runs beside your Vite dev server: edit DTCG
+                  palettes and type, verify WCAG contrast across modes, vendor
+                  icons, tune motion, and copy component recipes into your repo.
+                </p>
 
-              <div class="flex w-fit flex-wrap gap-2">
-                <div class="inline-flex w-fit flex-col gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <span class="font-mono text-xs font-semibold text-primary">
-                    DTCG Palette
-                  </span>
-                  <span class="text-xs text-text-muted">
-                    Visual light & dark token editor
-                  </span>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                    <span class="font-mono text-xs font-semibold text-primary">
+                      Theme & Type
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      Palettes, scales, and faces
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                    <span class="font-mono text-xs font-semibold text-primary">
+                      Contrast Gate
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      Live AA / AAA legibility matrix
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                    <span class="font-mono text-xs font-semibold text-primary">
+                      Icons & Motion
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      Vendor glyphs; tune easing
+                    </span>
+                  </div>
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                    <span class="font-mono text-xs font-semibold text-primary">
+                      Recipes
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      Copy markup into your repo
+                    </span>
+                  </div>
                 </div>
-                <div class="inline-flex w-fit flex-col gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <span class="font-mono text-xs font-semibold text-primary">
-                    Contrast Gate
-                  </span>
-                  <span class="text-xs text-text-muted">
-                    Live AA / AAA legibility matrix
-                  </span>
-                </div>
-              </div>
 
-              <div class="flex w-fit flex-wrap items-center gap-2 pt-1">
-                <button type="button" onClick={openStudioOverlay}>
-                  Open Studio Drawer
-                </button>
-                <A
-                  href="/guide/studio"
-                  role="button"
-                  class="secondary no-underline"
-                >
-                  Studio guide →
-                </A>
+                <div class="flex w-fit flex-wrap items-center gap-2 pt-1">
+                  <A href="/studio" role="button" class="no-underline">
+                    Explore Studio →
+                  </A>
+                  <A
+                    href="/guide/install"
+                    role="button"
+                    class="secondary no-underline"
+                  >
+                    Install →
+                  </A>
+                </div>
               </div>
             </section>
           </Match>

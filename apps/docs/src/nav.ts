@@ -35,6 +35,7 @@ export const TOP_SECTIONS: readonly (NavLink & {
     href: "/guide/install",
     active: ["/why", "/guide", "/themes", "/tokens", "/utilities", "/tooling"],
   },
+  { title: "Studio", href: "/studio", active: ["/studio"] },
   { title: "Components", href: "/components", active: ["/components"] },
 ];
 

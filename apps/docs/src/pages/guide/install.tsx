@@ -5,20 +5,16 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { Code, Section } from "../../bits.tsx";
 
-const ADD = `{
-  // deno.json / package.json — the packages
-  "@spinjs/theme":    "npm:@spinjs/theme",
-  "@spinjs/preset":   "npm:@spinjs/preset"
-}`;
+const ADD = `npm install @spinjs/spin`;
 
-const WIRE = `import { spin } from "@spinjs/preset/plugin";
+const WIRE = `import { spin } from "@spinjs/spin/vite";
 
 export default {
   plugins: [spin.vite()],
 }`;
 
-const WIRE_THEMES = `import { spin } from "@spinjs/preset/plugin";
-import { starterThemes } from "@spinjs/theme/themes";
+const WIRE_THEMES = `import { spin } from "@spinjs/spin/vite";
+import { starterThemes } from "@spinjs/spin/theme";
 import myTheme from "./theme.json" with { type: "json" };
 
 export default {
@@ -31,8 +27,8 @@ export default {
 };`;
 
 const WIRE_STUDIO = `import { resolve } from "node:path";
-import { spin } from "@spinjs/preset/plugin";
-import { mountSpinApp } from "@spinjs/api";
+import { spin } from "@spinjs/spin/vite";
+import { mountSpinApp } from "@spinjs/spin/api";
 
 export default {
   plugins: [spin.vite({
@@ -54,34 +50,38 @@ import "uno.css";`;
 const DECLARE_CSS = `// uno.d.ts — for TypeScript, the virtual module's shape.
 declare module "uno.css";`;
 
-const ROLLUP = `import { spin } from "@spinjs/preset/plugin";
+const ROLLUP = `import { spin } from "@spinjs/spin/vite";
 
 export default {
   plugins: [spin.rollup()],
 };`;
 
-const RSPACK = `import { spin } from "@spinjs/preset/plugin";
+const RSPACK = `import { spin } from "@spinjs/spin/vite";
 
 export default {
   plugins: [spin.rspack()],
 };`;
 
-const WEBPACK = `const { spin } = require("@spinjs/preset/plugin");
+const WEBPACK = `const { spin } = require("@spinjs/spin/vite");
 
 module.exports = {
   plugins: [spin.webpack()],
 };`;
 
 const GET = [
-  ["@spinjs/preset", "the Uno preset — theme utilities + primitive classes"],
   [
-    "@spinjs/theme/themes",
-    "the starter themes — imports that carry validated documents",
+    "@spinjs/spin",
+    "the toolchain — the Uno preset, the plugin, the CLI, the MCP server, and the Studio in dev",
   ],
-  ["@spinjs/api", "mountSpinApp() — the theme studio, served in dev"],
   [
-    "@spinjs/diagnostics",
-    "the oxlint plugin — authored markup checked, in CI",
+    "@spinjs/spin/theme",
+    "the starter themes and their contract — validated documents",
+  ],
+  ["@spinjs/spin/api", "mountSpinApp() — the Studio's server, mounted in dev"],
+  ["@spinjs/spin/eslint", "the lint rules — authored markup checked, in CI"],
+  [
+    "@spinjs/components",
+    "the machine components — framework-agnostic markup with React and Solid adapters",
   ],
 ];
 
@@ -128,12 +128,11 @@ export default function Install(): JSX.Element {
     <>
       <Section id="install" title="Install">
         <p>
-          v0.1 is source-first: the npm distributions are built, not yet
-          published, so today you take the packages from their source — exactly
-          as this site does. Add them to <code>deno.json</code> /
-          <code>package.json</code> and map the subpaths you'll import.
+          One package, one plugin, one stylesheet import. The package carries
+          the toolchain; its runtime and components peers install with it.
+          Bun, pnpm, and Yarn resolve the same tarball.
         </p>
-        <Code code={ADD} lang="json" />
+        <Code code={ADD} lang="bash" />
         <p>
           It replaces your Uno plugin and turns your theme documents into the
           stylesheet.

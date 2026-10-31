@@ -43,7 +43,7 @@ declare module "solid-js" {
  * two-mode themes, disabled on single-mode ones.
  */
 export function ModeToggle(
-  props: { state?: ThemeState; class?: string } = {},
+  props: { state?: ThemeState; class?: string; id?: string } = {},
 ): JSX.Element {
   const state = props.state ?? defaultThemeState;
   const [element, setElement] = createSignal<HTMLElement>();
@@ -67,7 +67,7 @@ export function ModeToggle(
   return (
     <mode-picker-basic
       ref={(el: HTMLElement) => setElement(el)}
-      id="kit-mode-toggle"
+      id={props.id ?? "kit-mode-toggle"}
       class={props.class ?? ""}
       prop:value={state.want() === "dark" ? "dark" : state.want() === "system" ? "system" : "light"}
       prop:modes={[...state.modes()]}
@@ -80,6 +80,8 @@ export interface ThemePickerProps {
   readonly state?: ThemeState;
   /** Extra classes on the control's wrapper. */
   readonly class?: string;
+  /** Element id base, so two pickers on one page stay addressable. */
+  readonly id?: string;
 }
 
 export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
@@ -106,11 +108,14 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
     <div class={`flex items-center gap-1 ${props.class ?? ""}`}>
       <theme-picker-basic
         ref={(el: HTMLElement) => setElement(el)}
-        id="kit-theme-picker"
+        id={props.id ?? "kit-theme-picker"}
         prop:value={state.theme()}
         prop:themes={[...state.names]}
       />
-      <ModeToggle state={state} />
+      <ModeToggle
+        state={state}
+        id={props.id === undefined ? undefined : `${props.id}-mode`}
+      />
     </div>
   );
 }

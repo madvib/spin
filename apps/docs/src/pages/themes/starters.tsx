@@ -29,7 +29,7 @@ export default function Starters(): JSX.Element {
         documents, so it cannot drift from them. A project forks one by writing
         a file of the same name into its own <code>spin/</code>{" "}
         directory. Fork yours in{" "}
-        <A href="/themes/studio">the Studio</A>, or by hand following{" "}
+        <A href="/studio">the Studio</A>, or by hand following{" "}
         <A href="/themes/authoring">Authoring a theme</A>.
       </p>
       <div class="mt-8">

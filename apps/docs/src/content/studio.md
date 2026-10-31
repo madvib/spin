@@ -1,6 +1,6 @@
 <!-- USER COPY SLOT: studio-intro — your own Studio framing, or the default below. -->
 
-# Using the Studio
+## Using the Studio
 
 The Studio is the theme editor that runs beside your app. One origin serves
 both: your pages and the editor, so every edit repaints the live app before it
@@ -45,8 +45,8 @@ place when the list re-renders.
 | Overview (`/`)                                                                   | Palette swatches per mode, surface ladder, typography specimens, spacing steps, element previews                                                                                                                                                |
 | Colors (`/colors`)                                                               | Brand, neutral-by-role, and status families; flip a role between a literal hex (**set**) and a token reference (`{color.neutral.100}`, **computed**); edit base values vs dark restatements with live contrast ratios and one-click floor fixes |
 | Typography (`/type`), Spacing (`/spacing`), Style (`/style`), Motion (`/motion`) | Linked lockstep scale sliders (`LinkToggle`), per-element typography overrides with reset-to-ladder, composite editors (typography, border, shadow, transition, gradient, interactive cubic-bezier curve editor)                                |
-| Components (`/components`, `/components/[name]`)                                 | Live specimens of all 32 primitives in the active theme and mode, the exact tokens each primitive reads, and inline editors for component tokens                                                                                                |
-| Icons (`/icons`)                                                                 | The 5 installed Iconify collections (`lucide`, `material-symbols`, `tabler`, `carbon`, `ph`); save with attribution to `spin/icons/*.svg`                                                                                                       |
+| Components (`/components`, `/components/[name]`)                                 | Live specimens of every primitive in the active theme and mode, the exact tokens each primitive reads, and inline editors for component tokens                                                                                                  |
+| Icons (`/icons`)                                                                 | The installed Iconify collections; save with attribution to `spin/icons/*.json`                                                                                                                                                                 |
 | Findings (`/findings`)                                                           | Source lint diagnostics grouped by rule, auto-fixes applied to files on disk, class-order fixes, promoting repeated utility strings into named shortcuts                                                                                        |
 
 <!-- USER COPY SLOT: studio-close — team workflow notes or review guidance. -->
