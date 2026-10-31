@@ -13,8 +13,10 @@ import type { JSX } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
 import {
   COMPONENT_ICONS,
+  select,
   UNIFIED_COMPONENT_GROUPS,
 } from "@spinjs/components";
+import { createSpinComponent } from "@spinjs/components/solid";
 // Only the specimens the hover cards mount: the full example registry is a
 // gallery concern, not a first-load one.
 import "@spinjs/components/mode-picker/examples/basic.html";
@@ -195,6 +197,27 @@ export default function Home(): JSX.Element {
   // Section 0: copy command state
   const [copiedCmd, setCopiedCmd] = createSignal(false);
   const [packageManager, setPackageManager] = createSignal<PackageManager>("bun");
+  const [selectEl, setSelectEl] = createSignal<HTMLElement>();
+  const selectCtl = createSpinComponent(selectEl, select);
+  // Items are the app's, not the component's: the vendored select is generic.
+  createEffect(() =>
+    selectCtl.bind(
+      {
+        items: PACKAGE_MANAGERS.map((manager) => ({
+          value: manager.id,
+          label: manager.id,
+        })),
+      },
+      {
+        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+          const [value] = event.detail.value;
+          if (value !== undefined && isPackageManager(value)) {
+            setPackageManager(value);
+          }
+        },
+      },
+    ),
+  );
   const installCommand = (): string =>
     PACKAGE_MANAGERS.find((manager) => manager.id === packageManager())
       ?.command ?? PACKAGE_MANAGERS[0].command;
@@ -584,24 +607,7 @@ export default function Home(): JSX.Element {
               </div>
 
               <div class="inline-flex w-fit flex-wrap items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
-                <label class="sr-only" for="install-pm">
-                  Package manager
-                </label>
-                <select
-                  id="install-pm"
-                  value={packageManager()}
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
-                    if (isPackageManager(value)) setPackageManager(value);
-                  }}
-                  class="s-sm w-fit"
-                >
-                  <For each={PACKAGE_MANAGERS}>
-                    {(manager) => (
-                      <option value={manager.id}>{manager.id}</option>
-                    )}
-                  </For>
-                </select>
+                <docs-select ref={setSelectEl} id="install-pm" />
                 <button
                   type="button"
                   onClick={copyInstall}
