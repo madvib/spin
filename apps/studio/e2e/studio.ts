@@ -196,9 +196,9 @@ export class StudioPage {
 
   async clearOverlay(base: string): Promise<void> {
     await this.eval(
-      `fetch(${
+      `(async () => { await fetch(${
         JSON.stringify(new URL("/__spin/rpc/overlay/clear", base).toString())
-      }, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })`,
+      }, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }); })()`,
     );
   }
 
@@ -229,7 +229,7 @@ export class StudioPage {
     return await this.eval<string>(
       `(async () => {
         const input = document.querySelector(${
-        JSON.stringify(`input[type="range"][aria-label="${label}"]`)
+        JSON.stringify(`input[type="range"][aria-label="${label}"], input[aria-label="${label} value"]`)
       });
         if (input === null) return "no-track";
         input.value = ${JSON.stringify(value)};
@@ -276,12 +276,12 @@ export class StudioPage {
   }
 
   /**
-   * Choose a mode from the mode menu.
+   * Choose a mode with the single cycle button.
    *
-   * The mode lives in a menu that hangs off the top bar, so the menu is
-   * opened and the item is chosen from it. A text match on a hidden item
-   * would fire the handler without proving the menu opens — and the menu
-   * opening is the thing worth proving.
+   * The mode lives on one button that cycles light → dark → system, so
+   * choosing is pressing until the preview wears the mode — at most three
+   * presses. A single-mode theme disables the button instead, and the
+   * helper says so rather than pressing a dead control.
    */
   async chooseMode(mode: "light" | "dark" | "system"): Promise<string> {
     const chosen = await this.eval<string>(
@@ -289,14 +289,15 @@ export class StudioPage {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
         const button = document.querySelector('[data-testid="mode-button"]');
         if (!button) return "absent";
-        button.click();
-        await wait(300);
-        const item = document.querySelector('[role="menuitem"][data-mode="${mode}"]');
-        if (!item) return "no-item";
-        if (item.disabled) return "disabled";
-        item.click();
-        await wait(600);
-        return "pressed";
+        if (button.disabled) return "disabled";
+        const worn = () => document.querySelector(".spin-preview")?.getAttribute("data-mode");
+        for (let press = 0; press < 3; press++) {
+          if (worn() === "${mode}") return "pressed";
+          button.click();
+          await wait(400);
+          if (button.disabled) return "disabled";
+        }
+        return worn() === "${mode}" ? "pressed" : "unreached";
       })()`,
     );
     await this.settle(600);
@@ -319,7 +320,11 @@ export class StudioPage {
         if (!button) return "absent";
         button.click();
         await wait(300);
-        const selector = '[role="option"][data-theme=' + ${
+        const selector = '[role="option"][data-theme-option=' + ${
+        JSON.stringify(name)
+      } + '], [role="option"][data-value=' + ${
+        JSON.stringify(name)
+      } + '], [role="option"][data-theme=' + ${
         JSON.stringify(name)
       } + ']';
         const deadline = Date.now() + 15000;
@@ -365,7 +370,14 @@ export class StudioPage {
         JSON.stringify(route)
       } || h.startsWith(${
         JSON.stringify(route)
-      } + "?"); }); if (a) a.click(); return "followed"; })()`,
+      } + "?"); }); if (a) a.click(); })()`,
+    );
+    // The arrival, not any heading: a client-side navigation leaves the
+    // old page's h1 on screen while the route's chunk compiles, and a
+    // readiness check that matches any h1 passes on the page being left.
+    await this.#waitFor(
+      `location.pathname === ${JSON.stringify(route)} ? location.pathname : null`,
+      20_000,
     );
     await this.#waitFor(
       `document.querySelector("#app h1")?.textContent ?? null`,
@@ -437,7 +449,7 @@ export async function routeTargets(
   await page.goto(`${studio}/`);
   const subject = await page.eval<string>(
     `(async () => {
-      const body = await fetch("/__spin/rpc/primitives/list", {
+      const body = await fetch("/__spin/rpc/components/list", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ json: {} }),

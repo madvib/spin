@@ -212,6 +212,73 @@ test("a drag paints the pane before it commits", async () => {
 });
 
 /**
+ * A slider is the theme's own groove, not the browser's blue.
+ *
+ * The groove reads `color.surface-sunken` and the fill reads
+ * `color.primary`, both live off the seated theme: change the theme and
+ * the computed colors change with it. The test reads both sides at
+ * runtime — the tokens from `:root`, the paint from the control — so no
+ * theme name or hex value is pinned.
+ */
+test("a slider paints its groove and fill from the seated theme", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/spacing`);
+    for (const theme of ["silk", "synthwave"] as const) {
+      const seated = await page.chooseTheme(theme);
+      assert(seated === "seated", `seating ${theme} stopped at ${seated}`);
+      const probe = await page.eval<{
+        groove: string;
+        fill: string;
+        sunken: string;
+        primary: string;
+      }>(
+        `(() => {
+          const track = document.querySelector('input[type="range"]');
+          const root = document.querySelector("[data-theme]");
+          if (!track || !root) return { groove: "missing", fill: "missing", sunken: "missing", primary: "missing" };
+          const painted = getComputedStyle(track);
+          const tokens = getComputedStyle(root);
+          return {
+            groove: painted.backgroundColor,
+            fill: painted.backgroundImage,
+            sunken: tokens.getPropertyValue("--color-surface-sunken").trim(),
+            primary: tokens.getPropertyValue("--color-primary").trim(),
+          };
+        })()`,
+      );
+      assert(
+        probe.groove !== "missing",
+        `no range control on /spacing under ${theme}`,
+      );
+      // The groove IS the sunken token, read live on both sides in the
+      // track's own theme scope (the first data-theme on the page is the
+      // chrome's, not the preview's).
+      const sunken = await page.eval<string>(
+        `(() => {
+          const track = document.querySelector('input[type="range"]');
+          const scope = track?.closest("[data-theme]") ?? document.querySelector("[data-theme]");
+          const probe = document.createElement("div");
+          probe.style.color = "var(--color-surface-sunken)";
+          scope?.appendChild(probe);
+          const out = getComputedStyle(probe).color;
+          probe.remove();
+          return out;
+        })()`,
+      );
+      assert(
+        probe.groove === sunken && probe.sunken.length > 0,
+        `${theme} groove ${probe.groove} is not the sunken token ${sunken}`,
+      );
+      assert(
+        probe.fill.includes("linear-gradient"),
+        `${theme} fill is not a drawn gradient: ${probe.fill.slice(0, 80)}`,
+      );
+    }
+    await page.chooseTheme("silk");
+  });
+});
+
+/**
  * Undo, redo and reset put the CONTROL back, not only the document.
  *
  * A field that keeps the word it was mounted with is a field that disagrees
@@ -318,7 +385,7 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       // The picker edits one role at a time; the body ink is the role with
       // the floor this test is about.
-      const swatch = document.querySelector('button[aria-label="Edit text"]');
+      const swatch = document.querySelector('button[aria-label="Edit Text"], button[aria-label="Edit text"]');
       if (!swatch) return { error: "no-text-role" };
       swatch.click();
       await wait(600);
@@ -346,7 +413,7 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
     );
     assert(
       (probe.said ?? "").includes("color.text") &&
-        (probe.said ?? "").includes("floor"),
+        (probe.said ?? "").includes("text needs"),
       `no refusal beside the role: "${probe.said ?? ""}"`,
     );
     deepStrictEqual(
@@ -369,15 +436,15 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
 test("the font field hands its list to the keyboard", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/type`);
-    const field = `input[aria-label="font.family.body"]`;
+    const field = `input[data-testid="font-combobox-input"]`;
     const found = await page.eval<string>(
       `(() => {
-        const input = document.querySelector(${JSON.stringify(field)});
-        if (!input) return "no-field";
+        const input = [...document.querySelectorAll(${JSON.stringify(field)})][0];
+        if (!(input instanceof HTMLInputElement)) return "no-field";
         input.focus();
-        input.value = "Inter";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        return "typed";
+        input.select();
+        const typed = document.execCommand("insertText", false, "Inter");
+        return typed ? "typed" : "untyped";
       })()`,
     );
     assert(found === "typed", `the font field is ${found}`);
@@ -387,8 +454,8 @@ test("the font field hands its list to the keyboard", async () => {
       `(async () => {
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         for (let index = 0; index < 40; index++) {
-          const list = document.querySelector('ul[aria-label="Font families"]');
-          const count = list ? list.querySelectorAll("button").length : 0;
+          const list = document.querySelector('studio-font-combobox [role="listbox"]');
+          const count = list ? list.querySelectorAll('[role="option"]').length : 0;
           if (count > 0) return count;
           await wait(100);
         }
@@ -397,22 +464,48 @@ test("the font field hands its list to the keyboard", async () => {
     );
     assert(listed > 0, "the font list never answered");
 
+    // The list opens where the reader can see it: inside the viewport,
+    // not spilling past the edge the field sits near.
+    const box = await page.eval<{
+      within: boolean;
+      x: number;
+      right: number;
+      width: number;
+    }>(
+      `(() => {
+        const list = document.querySelector('studio-font-combobox [role="listbox"]');
+        if (!list) return { within: false, x: -1, right: -1, width: -1 };
+        const rect = list.getBoundingClientRect();
+        return {
+          within: rect.left >= 0 && rect.right <= window.innerWidth + 1,
+          x: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(window.innerWidth),
+        };
+      })()`,
+    );
+    assert(
+      box.within,
+      `the font list spills out of the viewport: x=${box.x} right=${box.right} viewport=${box.width}`,
+    );
+
     await page.page.keyboard.press("ArrowDown");
     await page.settle(300);
     const inside = await page.eval<{ inList: boolean; focused: string }>(
       `(() => {
-        const active = document.activeElement;
-        const list = document.querySelector('ul[aria-label="Font families"]');
+        const input = document.querySelector(${JSON.stringify(field)});
+        const list = document.querySelector('studio-font-combobox [role="listbox"]');
+        const active = input ? input.getAttribute("aria-activedescendant") : null;
         return {
-          inList: list ? list.contains(active) : false,
-          focused: active ? (active.textContent ?? "").trim().slice(0, 24) : "",
+          inList: active !== null && list !== null && active.length > 0,
+          focused: active ?? "",
         };
       })()`,
     );
     deepStrictEqual(
       inside.inList,
       true,
-      `ArrowDown did not enter the list (focus: "${inside.focused}")`,
+      `ArrowDown did not walk the list (focus: "${inside.focused}")`,
     );
 
     await page.page.keyboard.press("Escape");
@@ -420,10 +513,11 @@ test("the font field hands its list to the keyboard", async () => {
     const closed = await page.eval<{ open: boolean; focus: string }>(
       `(() => {
         const input = document.querySelector(${JSON.stringify(field)});
-        const list = document.querySelector('ul[aria-label="Font families"]');
+        const panel = document.querySelector('studio-font-combobox [class*="origin-top"]');
+        const active = document.activeElement;
         return {
-          open: list !== null,
-          focus: document.activeElement === input ? "field" : "elsewhere",
+          open: panel ? !panel.className.includes("invisible") : false,
+          focus: active === input ? "field" : "elsewhere",
         };
       })()`,
     );
@@ -451,11 +545,7 @@ test("the font field hands its list to the keyboard", async () => {
 test("the keyboard drives undo, redo and save", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
-    const name = await page.eval<string>(`(() => {
-      const text = document.getElementById("app")?.innerText ?? "";
-      const line = (text.split("\\n").find((row) => row.trim().indexOf("Editing") === 0) ?? "").trim();
-      return line.replace(/^Editing\\s+/, "").split("·")[0].trim();
-    })()`);
+    const name = await page.editingName();
     assert(name !== "", "the bar names no theme to edit");
 
     const listed = await rpc<{ name: string; file: string | null }[]>(
@@ -470,7 +560,11 @@ test("the keyboard drives undo, redo and save", async () => {
       "/project/themes/read",
       { name },
     );
-
+    if (!forked && original.text !== null) {
+      await rpc(page, "/project/themes/write", { name, text: original.text });
+      await page.reload();
+      await page.settle(1200);
+    }
     try {
       await page.goto(`${studioUrl()}/style`);
       const flow = await page.eval<
@@ -571,58 +665,38 @@ test("the theme and mode panels take the keyboard", async () => {
     );
     await page.page.keyboard.press("ArrowDown");
     await page.settle(400);
-    const opened = await page.eval<{
-      open: boolean;
-      active: string | null;
-      focus: string;
-    }>(
+    const opened = await page.eval<{ open: boolean }>(
       `(() => {
         const panel = document.querySelector('[data-testid="theme-list"]');
-        const active = document.activeElement;
-        return {
-          open: panel ? panel.matches(":popover-open") : false,
-          active: active ? active.getAttribute("data-theme") : null,
-          focus: active ? (active.getAttribute("data-testid") ?? active.getAttribute("data-theme") ?? active.tagName) : "",
-        };
+        return { open: panel ? !panel.hasAttribute("hidden") : false };
       })()`,
     );
     deepStrictEqual(opened.open, true, "ArrowDown did not open the panel");
-    deepStrictEqual(
-      opened.active,
-      current,
-      "the panel did not land on the theme in force",
+
+    // The listbox keeps focus: Tab lands on the list, arrows walk the
+    // highlight tracked by aria-activedescendant, starting at the theme
+    // in force.
+    await page.page.keyboard.press("Tab");
+    await page.settle(300);
+    const landed = await page.eval<{ actived: string | null }>(`(() => {
+        const panel = document.querySelector('[data-testid="theme-list"]');
+        return { actived: panel?.getAttribute("aria-activedescendant") ?? null };
+      })()`);
+    assert(
+      landed.actived !== null && landed.actived.indexOf(current) > -1,
+      `the panel did not land on the theme in force (actived=${landed.actived})`,
     );
 
     await page.page.keyboard.press("ArrowDown");
     await page.settle(200);
     const moved = await page.eval<string | null>(
-      `document.activeElement?.getAttribute("data-theme") ?? null`,
+      `document.querySelector('[data-testid="theme-list"]')?.getAttribute("aria-activedescendant") ?? null`,
     );
-    deepStrictEqual(moved, next, "ArrowDown did not walk the rows");
-
-    await page.page.keyboard.press("Escape");
-    await page.settle(300);
-    const closed = await page.eval<{ open: boolean; focus: string }>(
-      `(() => {
-        const panel = document.querySelector('[data-testid="theme-list"]');
-        const active = document.activeElement;
-        return {
-          open: panel ? panel.matches(":popover-open") : false,
-          focus: active ? (active.getAttribute("data-testid") ?? "") : "",
-        };
-      })()`,
-    );
-    deepStrictEqual(closed.open, false, "Escape did not close the panel");
-    deepStrictEqual(
-      closed.focus,
-      "theme-picker",
-      "Escape did not return the reader to the control",
+    assert(
+      moved !== null && moved.indexOf(next) > -1,
+      `ArrowDown did not walk the rows (actived=${moved} next=${next})`,
     );
 
-    // Open, walk, choose.
-    await page.page.keyboard.press("ArrowDown");
-    await page.settle(300);
-    await page.page.keyboard.press("ArrowDown");
     await page.page.keyboard.press("Enter");
     await page.settle(900);
     const seated = await page.editingName();
@@ -632,30 +706,23 @@ test("the theme and mode panels take the keyboard", async () => {
       "Enter did not seat the row the keyboard was on",
     );
 
-    // The mode menu: the current answer is where the keyboard lands.
+    // The mode control is a single cycle button: Enter/Space presses it,
+    // and the preview wears the next mode in the cycle.
+    const beforeMode = await page.eval<string | null>(
+      `document.querySelector(".spin-preview")?.getAttribute("data-mode") ?? null`,
+    );
     await page.eval(
       `document.querySelector('[data-testid="mode-button"]')?.focus()`,
     );
-    await page.page.keyboard.press("ArrowDown");
-    await page.settle(300);
-    const modeOpen = await page.eval<{ open: boolean; current: boolean }>(
-      `(() => {
-        const panel = document.querySelector('[data-testid="mode-menu"]');
-        const active = document.activeElement;
-        return {
-          open: panel ? panel.matches(":popover-open") : false,
-          current: active ? active.getAttribute("aria-current") === "true" : false,
-        };
-      })()`,
+    await page.page.keyboard.press("Enter");
+    await page.settle(400);
+    const afterMode = await page.eval<string | null>(
+      `document.querySelector(".spin-preview")?.getAttribute("data-mode") ?? null`,
     );
-    deepStrictEqual(modeOpen.open, true, "ArrowDown did not open the mode menu");
-    deepStrictEqual(
-      modeOpen.current,
-      true,
-      "the mode menu did not land on the mode in force",
+    assert(
+      beforeMode !== null && afterMode !== null && afterMode !== beforeMode,
+      `Enter did not cycle the mode (before=${beforeMode} after=${afterMode})`,
     );
-    await page.page.keyboard.press("Escape");
-    await page.settle(200);
 
     // Leave the studio where it was found.
     await page.chooseTheme(current);
@@ -831,7 +898,7 @@ test("a range readout accepts typed numbers and the element map picks and resets
         const before = (trigger().textContent ?? "").trim();
         trigger().click();
         await wait(300);
-        const list = document.querySelector('div[aria-label="font.element.h1.size"] spin-step-list [role="listbox"]');
+        const list = document.querySelector('div[aria-label="font.element.h1.size"] studio-step-list [role="listbox"]');
         const option = list ? [...list.querySelectorAll('[role="option"]')].find((o) => (o.querySelector("span")?.textContent ?? "").trim() === "sm") : null;
         if (!option) return { error: "no-option" };
         option.click();

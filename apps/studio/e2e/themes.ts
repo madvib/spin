@@ -130,8 +130,13 @@ export async function seatTheme(
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const button = document.querySelector('[data-testid="theme-picker"]');
-      if (!button) return "no-picker";
+      const openBy = Date.now() + 15000;
+      let button = document.querySelector('[data-testid="theme-picker"]');
+      while (!(button instanceof HTMLElement)) {
+        if (Date.now() > openBy) return "no-picker";
+        await wait(100);
+        button = document.querySelector('[data-testid="theme-picker"]');
+      }
       button.click();
       await wait(300);
       const selector = '[role="option"][data-theme=' + ${
@@ -186,37 +191,46 @@ export async function createTheme(
       await wait(500);
       const dialog = document.querySelector('dialog[aria-label="New theme"]');
       if (!dialog) return { accepted: false, problem: "no-dialog" };
+      const target = ${
+      options.scaffold === true
+        ? JSON.stringify("Blank")
+        : JSON.stringify(options.source ?? "silk")
+    };
+      let choice = null;
+      for (let i = 0; i < 50; i++) {
+        const group = dialog.querySelector('[role="group"][aria-label="Template"]');
+        const buttons = group ? [...group.querySelectorAll("button")] : [];
+        choice = buttons.find((b) =>
+          (b.querySelector("span")?.textContent ?? "").trim() === target
+        ) ?? null;
+        if (choice) break;
+        await wait(100);
+      }
+      if (!choice) {
+        return {
+          accepted: false,
+          problem: ${
+      options.scaffold === true
+        ? JSON.stringify("no-scaffold-choice")
+        : JSON.stringify("no-source-choice")
+    },
+        };
+      }
+      choice.click();
+      await wait(150);
+      for (let step = 0; step < 3; step++) {
+        const next = [...dialog.querySelectorAll("button")].find((b) =>
+          b.textContent.trim() === "Next"
+        );
+        if (!next) return { accepted: false, problem: "no-next-button" };
+        next.click();
+        await wait(150);
+      }
       const field = dialog.querySelector('input[type="text"]');
       if (!field) return { accepted: false, problem: "no-field" };
       field.value = ${JSON.stringify(name)};
       field.dispatchEvent(new Event("input", { bubbles: true }));
-      ${
-      options.scaffold === true
-        ? `const radios = [...dialog.querySelectorAll('input[type="radio"]')];
-      const scaffold = radios.find((r) =>
-        (r.parentElement?.innerText ?? "").indexOf("Scaffold") > -1
-      );
-      if (!scaffold) return { accepted: false, problem: "no-scaffold-choice" };
-      scaffold.click();
-      await wait(200);`
-        : `// The source is a radio per theme: a native select is drawn by the
-      // browser, and the studio does not wear the browser's idea of a
-      // control. The rows arrive with the registry's answer.
-      const source = ${JSON.stringify(options.source ?? "")};
-      let radio = null;
-      for (let i = 0; i < 50; i++) {
-        const rows = [...dialog.querySelectorAll(
-          'input[name="new-theme-source-theme"]',
-        )];
-        if (rows.length === 0) return { accepted: false, problem: "no-source-chooser" };
-        radio = rows.find((row) => row.value === source) ?? null;
-        if (radio) break;
-        await wait(100);
-      }
-      if (!radio) return { accepted: false, problem: "no-source-choice" };
-      radio.click();
-      await wait(200);`
-    }
+      await wait(100);
       const create = [...dialog.querySelectorAll("button")].find((b) =>
         b.textContent.trim() === "Create"
       );

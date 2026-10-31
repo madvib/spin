@@ -1,0 +1,17 @@
+{
+ "url": "http://localhost:5173",
+ "themes": [
+  "console",
+  "neobrut",
+  "silk",
+  "spin",
+  "synthwave"
+ ],
+ "modes": [
+  "dark",
+  "light"
+ ],
+ "routes": 88,
+ "findings": [],
+ "counts": {}
+}

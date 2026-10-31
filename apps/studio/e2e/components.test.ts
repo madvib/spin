@@ -11,6 +11,7 @@
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import type { Page } from "playwright-core";
+import { AUDIT_GLOBAL, auditInstallScript, type AuditResult } from "@spin/check";
 import { test, withPage } from "./harness.ts";
 import { studioUrl } from "./studio.ts";
 
@@ -195,7 +196,10 @@ test("the component view is as tall as its specimen", async () => {
         const specimen = section.querySelector(".spin-preview")!;
         const panel = specimen.parentElement!;
         const title = section.querySelector("h3")!;
-        const header = title.parentElement!;
+        // The header row, not the title group: the switch sits beside the
+        // title in the same row, and the row's own margin is the designed
+        // rhythm the gap is measured against.
+        const header = title.parentElement!.parentElement!;
         const panelStyle = getComputedStyle(panel);
         const headerStyle = getComputedStyle(header);
         return {
@@ -352,3 +356,170 @@ test("the copy belongs to the code it copies", async () => {
     );
   }, { permissions: CLIPBOARD });
 });
+
+test("every component renders legible non-empty upgraded specimens", async () => {
+  await withPage(async ({ page }) => {
+    await page.addInitScript({ content: auditInstallScript() });
+    await open(page, "/components/button");
+    const routes = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href^="/components/"]')];
+      const seen = new Set<string>();
+      for (const link of links) {
+        const href = link.getAttribute("href") ?? "";
+        if (href !== "/components" && href.startsWith("/components/")) seen.add(href.slice("/components/".length));
+      }
+      return [...seen].sort();
+    });
+    assert(routes.length >= 60, `the rail lists ${routes.length} components, expected 60+`);
+    for (const route of routes) {
+      await open(page, `/components/${route}`);
+      const stages = await page.evaluate(() => {
+        const previews = [...document.querySelectorAll("#app section .spin-preview")];
+        return previews.map((preview) => {
+          const first = preview.firstElementChild;
+          const rect = preview.getBoundingClientRect();
+          return {
+            children: first === null ? -1 : first.children.length,
+            text: (first?.textContent ?? "").trim().length,
+            width: rect.width,
+            height: rect.height,
+            upgraded: first === null
+              ? false
+              : first.tagName.includes("-") && customElements.get(first.tagName.toLowerCase()) !== undefined,
+          };
+        });
+      });
+      assert(stages.length > 0, `${route} renders no specimen stages`);
+      for (const [index, stage] of stages.entries()) {
+        assert(
+          stage.children > 0 || stage.text > 0,
+          `${route} stage ${index} is an empty white box (${stage.children} children)`,
+        );
+        assert(
+          stage.width >= 24,
+          `${route} stage ${index} is ${stage.width}px wide`,
+        );
+        assert(
+          stage.height >= 3,
+          `${route} stage ${index} is ${stage.height}px tall`,
+        );
+        if (route.startsWith("component-")) {
+          assert(
+            stage.upgraded,
+            `${route} stage ${index} mounts an un-upgraded custom element`,
+          );
+        }
+      }
+      await page.evaluate(async () => {
+        for (const preview of document.querySelectorAll("#app section .spin-preview")) {
+          preview.scrollIntoView({ block: "nearest" });
+        }
+        const pending = [...document.querySelectorAll("#app section .spin-preview img")]
+          .filter((img) => !(img as HTMLImageElement).complete)
+          .map((img) => new Promise((resolve) => {
+            const el = img as HTMLImageElement;
+            el.addEventListener("load", resolve, { once: true });
+            el.addEventListener("error", resolve, { once: true });
+            setTimeout(resolve, 3000);
+          }));
+        await Promise.all(pending);
+      });
+      const broken = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const img of document.querySelectorAll("#app section .spin-preview img")) {
+          const el = img as HTMLImageElement;
+          if (el.getClientRects().length === 0) continue;
+          if (!(el.complete && el.naturalWidth > 0)) out.push(el.getAttribute("src")?.slice(0, 60) ?? "(no src)");
+        }
+        return out;
+      });
+      assert(broken.length === 0, `${route} has broken images: ${broken.join(", ")}`);
+      const fonts = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const preview of document.querySelectorAll("#app section .spin-preview")) {
+          const family = getComputedStyle(preview).fontFamily;
+          if (family.includes("Times New Roman")) out.push(family);
+        }
+        return out;
+      });
+      assert(fonts.length === 0, `${route} inherits the browser default font: ${fonts[0] ?? ""}`);
+      const leaking = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const el of document.querySelectorAll("#app section .spin-preview [popover]:not(:popover-open), #app section .spin-preview [role='tooltip']")) {
+          const html = el as HTMLElement;
+          if (html.getClientRects().length === 0) continue;
+          const style = getComputedStyle(html);
+          if (style.visibility === "hidden" || Number(style.opacity) < 0.05) continue;
+          out.push(html.tagName.toLowerCase());
+        }
+        return out;
+      });
+      assert(leaking.length === 0, `${route} leaks closed popovers: ${leaking.join(", ")}`);
+      await page.evaluate(() => {
+        const triggers = [...document.querySelectorAll("#app section .spin-preview [aria-expanded='false'], #app section .spin-preview [data-part='trigger']")];
+        for (const trigger of triggers.slice(0, 3)) (trigger as HTMLElement).click();
+      });
+      await page.waitForTimeout(400);
+      const fails = await page.evaluate((global) => {
+        const audit = (globalThis as unknown as Record<string, (options: { minContrast: number; strobeMs: number }) => AuditResult>)[global]!;
+        const result = audit({ minContrast: 4.5, strobeMs: 250 });
+        return result.findings
+          .filter((finding) => finding.kind === "contrast")
+          .map((finding) => finding.kind === "contrast" ? `${finding.ratio} (need ${finding.need}) "${finding.text.slice(0, 40)}"` : "");
+      }, AUDIT_GLOBAL);
+      assert(fails.length === 0, `${route}: ${fails.length} contrast failures — ${fails.slice(0, 3).join("  |  ")}`);
+    }
+  });
+}, 600_000);
+
+/**
+ * An opened picker stays in the viewport.
+ *
+ * The theme picker's panel positions against its trigger and shifts into
+ * the viewport when the trigger sits near the right edge. The shift reads
+ * the panel's painted width — which is zero while the panel is hidden —
+ * so the open must re-measure after the show, not rest on the closed
+ * measure. The probe opens the theme-picker specimen on its own route and
+ * reads the panel's rect against the viewport: any pixel past the edge is
+ * the off-screen open this test exists to catch.
+ */
+test("an opened picker panel stays inside the viewport", async () => {
+  await withPage(async ({ page }) => {
+    await open(page, "/components/component-theme-picker");
+    const triggers = await page.evaluate(() =>
+      [...document.querySelectorAll("#app section .spin-preview [data-part='trigger'][aria-haspopup='listbox']")]
+        .map((trigger) => {
+          const rect = trigger.getBoundingClientRect();
+          return { x: rect.x, width: rect.width };
+        })
+    );
+    assert(triggers.length > 0, "the theme-picker route mounts no picker triggers");
+    for (const [index, trigger] of triggers.entries()) {
+      await page.evaluate((at) => {
+        const triggers = [...document.querySelectorAll("#app section .spin-preview [data-part='trigger'][aria-haspopup='listbox']")];
+        (triggers[at] as HTMLElement).click();
+      }, index);
+      await page.waitForTimeout(500);
+      const panel = await page.evaluate(() => {
+        const panels = [...document.querySelectorAll("[data-part='positioner']:not([hidden]) [role='listbox']")];
+        return panels.map((list) => {
+          const rect = (list.closest("[data-part='positioner']") ?? list).getBoundingClientRect();
+          return {
+            right: rect.right,
+            width: rect.width,
+            viewport: window.innerWidth,
+          };
+        });
+      });
+      assert(panel.length > 0, `trigger ${index} at x=${Math.round(trigger.x)} opens no panel`);
+      for (const rect of panel) {
+        assert(
+          rect.right <= rect.viewport + 1,
+          `trigger ${index} at x=${Math.round(trigger.x)} opens ${Math.round(rect.width)}px wide at right=${Math.round(rect.right)} in ${rect.viewport}px`,
+        );
+      }
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(300);
+    }
+  });
+}, 300_000);

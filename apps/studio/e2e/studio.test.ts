@@ -27,19 +27,38 @@ test("every route renders", async (t) => {
   await withPage(async (page) => {
     const routes = await routeTargets(page, studioUrl());
     assert(routes.length > 0, "the studio lists no routes");
+    const noisy: string[] = [];
+    page.page.on("console", (message) => {
+      if (message.type() === "error") {
+        noisy.push(`console: ${message.text().slice(0, 200)}`);
+      }
+    });
+    page.page.on("response", (response) => {
+      if (response.url().includes("__spin/rpc") && response.status() >= 400) {
+        noisy.push(`rpc ${response.status()} ${response.url().slice(-80)}`);
+      }
+    });
     for (const route of routes) {
       await t.step(route, async () => {
+        const errors = noisy.length;
         const heading = await page.goto(`${studioUrl()}${route}`);
         const probe = await page.eval<{ text: number; buildError: boolean }>(
           `(() => { const el = document.getElementById("app"); const t = el ? el.innerText : ""; return { text: t.trim().length, buildError: t.indexOf("does not build") > -1 }; })()`,
         );
+        const fresh = noisy.slice(errors);
         // The shell is furniture: an unrouted path renders it and no words.
+        // The error log rides along as diagnostic context — a route that
+        // renders while logging errors still names them.
         assert(
           heading !== undefined && heading.trim() !== "" && probe.text > 50 &&
             !probe.buildError,
           `route ${route} renders: h1=${
             heading ?? "none"
-          } text=${probe.text} buildError=${probe.buildError}`,
+          } text=${probe.text} buildError=${probe.buildError} errors=[${fresh.join(" | ")}]`,
+        );
+        assert(
+          fresh.length === 0,
+          `route ${route} logged errors: ${fresh.join(" | ")}`,
         );
       });
     }
@@ -312,8 +331,19 @@ test("save clears the dirty set", async () => {
     const theme = await page.editingName();
     assert(theme !== "", "no status line names the theme a save would write");
     await page.eval(
-      `fetch("/__spin/rpc/overlay/clear", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })`,
+      `(async () => {
+        const rpc = (proc, input) => fetch("/__spin/rpc" + proc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ json: input }) }).then((x) => x.json()).then((b) => b.json);
+        await rpc("/overlay/clear", {});
+        const listed = await rpc("/project/themes/list", {});
+        const forked = listed.some((t) => t.name === ${JSON.stringify(theme)} && t.file !== null);
+        if (!forked) {
+          const orig = (await rpc("/project/themes/read", { name: ${JSON.stringify(theme)} })).text;
+          await rpc("/project/themes/write", { name: ${JSON.stringify(theme)}, text: orig });
+        }
+      })()`,
     );
+    await page.reload();
+    await page.settle(1200);
     await page.goto(`${studioUrl()}/colors`);
 
     const flow = await page.eval<{
@@ -326,12 +356,9 @@ test("save clears the dirty set", async () => {
       `(async () => {
         const rpc = (proc, input) => fetch("/__spin/rpc" + proc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ json: input }) }).then((x) => x.json()).then((b) => b.json);
         const theme = ${JSON.stringify(theme)};
-        const listed = await rpc("/project/themes/list", {});
         const original = (await rpc("/project/themes/read", { name: theme })).text;
-        const forked = listed.some((t) => t.name === theme && t.file !== null);
         const restore = async () => {
-          if (forked) await rpc("/project/themes/write", { name: theme, text: original });
-          else await rpc("/project/themes/remove", { name: theme });
+          await rpc("/project/themes/remove", { name: theme });
           await rpc("/overlay/clear", {});
         };
         const saveButton = () => document.querySelector('[data-testid="save"]');
@@ -589,6 +616,38 @@ test("every editor writes the token it names, and the app renders it", async (t)
 });
 
 /**
+ * A motion commit keeps the page standing.
+ *
+ * The stage projects its rows out of the rail's own For, so a commit that
+ * mints fresh lane objects used to read as all-new rows: replacing nodes
+ * the projection had already moved broke the reconciliation the next
+ * render depended on, and navigating away crashed the page. Rows are
+ * keyed by token path now, so a commit updates bindings in place.
+ */
+test("a motion commit survives navigation", async () => {
+  await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/motion`);
+    const committed = await page.eval<string>(
+      `(async () => {
+        const track = document.querySelector('input[type="range"][aria-label="motion.duration.fast"]');
+        if (!track) return "no-track";
+        track.value = "100";
+        track.dispatchEvent(new Event("input", { bubbles: true }));
+        track.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1200));
+        return document.querySelector("#app h1")?.textContent === "Motion" ? "held" : "crashed";
+      })()`,
+    );
+    assert(committed === "held", `the commit left the page ${committed}`);
+    await page.followRail("/style");
+    const heading = await page.eval<string | null>(
+      `document.querySelector("#app h1")?.textContent ?? null`,
+    );
+    assert(heading === "Style", `after a motion commit the rail lands on ${heading}`);
+  });
+});
+
+/**
  * The mode a write lands in.
  *
  * The colours page draws both slots at once, and each writes where it sits:
@@ -652,7 +711,7 @@ test("the dark slot writes $modes.dark and the app renders it", async () => {
  * the failure this pins is a dark chrome over a theme with no dark values
  * to show. Console (dark only) proves the clamp is not "always light".
  */
-test("a theme that declares one mode disables the other", async () => {
+test("a theme that declares one mode hides the cycle button", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
     const probe = await page.eval<{
@@ -661,10 +720,12 @@ test("a theme that declares one mode disables the other", async () => {
       clamped: boolean;
       held: boolean;
       disabled: boolean;
-      explained: boolean;
+      hidden: boolean;
+      cycled: boolean;
       onAnotherRoute: boolean;
       darkOnlyClamped: boolean;
-      lightDisabled: boolean;
+      darkOnlyDisabled: boolean;
+      darkOnlyHidden: boolean;
       restored: boolean;
     }>(
       `(async () => {
@@ -674,21 +735,20 @@ test("a theme that declares one mode disables the other", async () => {
           if (!button) return "no-picker";
           button.click();
           await wait(300);
-          const row = document.querySelector('[role="option"][data-theme="' + name + '"]');
+          const row = document.querySelector('[role="option"][data-theme-option="' + name + '"], [role="option"][data-value="' + name + '"], [role="option"][data-theme="' + name + '"]');
           if (!row) return "not-offered";
           row.click();
           await wait(900);
           return "seated";
         };
-        const openMenu = async () => {
+        const cycle = async () => {
           const button = document.querySelector('[data-testid="mode-button"]');
-          if (!button) return false;
+          if (!button) return "no-button";
+          if (button.disabled) return "disabled";
           button.click();
-          await wait(300);
-          return true;
+          await wait(400);
+          return "pressed";
         };
-        const modeItem = (mode) =>
-          document.querySelector('[role="menuitem"][data-mode="' + mode + '"]');
         // The panel's rows carry the theme's name too, so the pane is named
         // by its own class: a row is not the preview.
         const paneMode = (name) => {
@@ -700,21 +760,25 @@ test("a theme that declares one mode disables the other", async () => {
 
         // Work in dark, on a theme that has one.
         await seat("silk");
-        await openMenu();
-        const first = modeItem("dark");
-        if (first && first.getAttribute("aria-current") !== "true") { first.click(); await wait(500); }
+        await pageCycleTo("dark");
         const dark = paneMode("silk") === "dark";
 
         // Seat the light-only theme while working in dark.
         const seatedLightOnly = (await seat("neobrut")) === "seated";
-        await wait(400);
+        // The hide flows through a Solid effect into the bridge: poll for
+        // the settled state rather than sleeping a fixed span. The trigger
+        // mirrors data-single-mode on itself, so closest() would stop at
+        // the button: name the root part explicitly.
+        const rootOf = () => document.querySelector('[data-testid="mode-button"]')?.closest('[data-part="root"]') ?? null;
+        for (let i = 0; i < 150 && (rootOf() === null || !rootOf().hasAttribute("hidden")); i++) await wait(100);
         const clamped = paneMode("neobrut") === "light";
-        await openMenu();
-        const darkButton = modeItem("dark");
-        const disabled = darkButton ? darkButton.disabled === true : false;
-        const explained = darkButton ? (darkButton.getAttribute("title") ?? "").indexOf("no dark mode") > -1 : false;
-        if (darkButton) { darkButton.click(); await wait(400); }
-        const held = paneMode("neobrut") === "light";
+        const button = document.querySelector('[data-testid="mode-button"]');
+        const disabled = button ? button.disabled === true : false;
+        const hostHidden = rootOf()?.hasAttribute("hidden") ?? false;
+        const before = paneMode("neobrut");
+        if (button) { button.click(); await wait(400); }
+        const held = paneMode("neobrut") === "light" && paneMode("neobrut") === before;
+        const cycled = button ? button.getAttribute("data-choice") === "light" || button.disabled === true : false;
 
         // Off the overview, the pane still wears the theme's own mode.
         const link = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").indexOf("/colors") === 0);
@@ -729,31 +793,37 @@ test("a theme that declares one mode disables the other", async () => {
 
         // The dark-only theme clamps the other way.
         await seat("console");
-        await wait(400);
+        for (let i = 0; i < 150 && (rootOf() === null || !rootOf().hasAttribute("hidden")); i++) await wait(100);
         const darkOnlyClamped = paneMode("console") === "dark";
-        await openMenu();
-        const lightButton = modeItem("light");
-        const lightDisabled = lightButton ? lightButton.disabled === true : false;
+        const darkButton = document.querySelector('[data-testid="mode-button"]');
+        const darkOnlyDisabled = darkButton ? darkButton.disabled === true : false;
+        const darkOnlyHidden = rootOf()?.hasAttribute("hidden") ?? false;
 
         // Leave the studio where it was found.
         await seat("silk");
-        await openMenu();
-        const back = modeItem("light");
-        if (back && back.getAttribute("aria-current") !== "true") { back.click(); await wait(400); }
+        await pageCycleTo("light");
         const restored = paneMode("silk") === "light";
 
-        return { dark, seatedLightOnly, clamped, held, disabled, explained, onAnotherRoute, darkOnlyClamped, lightDisabled, restored };
+        async function pageCycleTo(want) {
+          for (let press = 0; press < 3; press++) {
+            const worn = document.querySelector(".spin-preview")?.getAttribute("data-mode");
+            if (worn === want) return;
+            await cycle();
+          }
+        }
+
+        return { dark, seatedLightOnly, clamped, held, disabled, hidden: hostHidden, cycled, onAnotherRoute, darkOnlyClamped, darkOnlyDisabled, darkOnlyHidden, restored };
       })()`,
     );
 
     assert(
       probe.dark && probe.seatedLightOnly && probe.clamped && probe.held &&
-        probe.disabled && probe.explained && probe.onAnotherRoute &&
-        probe.darkOnlyClamped && probe.lightDisabled && probe.restored,
+        probe.disabled && probe.hidden && probe.cycled && probe.onAnotherRoute &&
+        probe.darkOnlyClamped && probe.darkOnlyDisabled && probe.darkOnlyHidden && probe.restored,
       `dark=${probe.dark} seated=${probe.seatedLightOnly} clamp=${probe.clamped} ` +
-        `held=${probe.held} disabled=${probe.disabled} why=${probe.explained} ` +
+        `held=${probe.held} disabled=${probe.disabled} hidden=${probe.hidden} cycle=${probe.cycled} ` +
         `route=${probe.onAnotherRoute} dark-only=${probe.darkOnlyClamped} ` +
-        `light-off=${probe.lightDisabled} restored=${probe.restored}`,
+        `dark-off=${probe.darkOnlyDisabled} dark-hidden=${probe.darkOnlyHidden} restored=${probe.restored}`,
     );
   });
 });

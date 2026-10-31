@@ -649,3 +649,65 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
     }
   });
 });
+
+test("saving an un-forked starter opens Save as project theme instead of overwriting starter", async () => {
+  await withPage(async (page) => {
+    const copyName = "e2e-silk-saved";
+    const root = await openProject(page);
+    const copyFile = themeFile(root, copyName);
+    const silkFile = themeFile(root, "silk");
+    await take(copyFile);
+    await take(silkFile);
+    try {
+      const seated = await seatTheme(page, "silk");
+      assert(seated === "seated", `failed to seat silk: ${seated}`);
+      await page.followRail("/colors");
+      await page.settle(1500);
+      assert(
+        (await writeToken(page, PRIMARY, "#b91c1c")) === "written",
+        "failed to edit silk primary color",
+      );
+      await page.settle(800);
+      await page.eval<void>(
+        `document.querySelector('[data-testid="save"]')?.click()`,
+      );
+      await page.settle(400);
+      const dialogOpen = await page.eval<boolean>(
+        `document.querySelector('dialog[aria-label="Save as project theme"]') !== null`,
+      );
+      assert(dialogOpen, "Save on starter did not open Save as project theme dialog");
+      assert(
+        !(await there(silkFile)),
+        "Save on starter wrote spin/silk.json before confirmation",
+      );
+      await page.eval<void>(
+        `(() => {
+          const dialog = document.querySelector('dialog[aria-label="Save as project theme"]');
+          const input = dialog?.querySelector('input[aria-label="Theme name"]');
+          if (!input) return;
+          input.value = ${JSON.stringify(copyName)};
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          const btn = [...(dialog?.querySelectorAll("button") ?? [])].find((b) => (b.textContent ?? "").trim() === "Save copy");
+          btn?.click();
+        })()`,
+      );
+      await page.settle(1800);
+      assert(
+        await there(copyFile),
+        "Save copy did not write spin/e2e-silk-saved.json",
+      );
+      assert(
+        !(await there(silkFile)),
+        "Save copy unexpectedly created spin/silk.json",
+      );
+      const line = await waitForEditing(page, copyName);
+      assert(
+        line.startsWith(`Editing ${copyName}`),
+        `expected active theme ${copyName}, got "${line}"`,
+      );
+    } finally {
+      await take(copyFile);
+      await take(silkFile);
+    }
+  });
+});

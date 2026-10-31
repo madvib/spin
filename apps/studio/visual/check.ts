@@ -1,50 +1,198 @@
-import { homedir } from "node:os";
-import { join } from "node:path";
-import { strict as assert } from "node:assert";
-import { chromium } from "playwright-core";
+/**
+ * The studio's visual check: the harness config, and nothing else.
+ *
+ * The studio lends the harness the app facts — its path-routed pages, the
+ * starter themes, the rail chrome to hover, the page conventions it boots
+ * with. Everything mechanical lives in `internal/check`:
+ *
+ *   bun run visual                                     # both layouts
+ *   bun run visual -- --route /colors                  # one route
+ *   bun run visual -- --write-baseline                 # refresh both baselines
+ */
 
-const SHELL =
-  `${homedir()}/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell`;
+import { readdir, readFile } from "node:fs/promises";
+import {
+  type CheckConfig,
+  type Route,
+  runCheck,
+} from "@spin/check";
+import {
+  starterThemes,
+  themeModes,
+} from "@spinjs/spin/theme/themes";
+import {
+  geometryAudit,
+  geometryClaimsFor,
+  pageState,
+  renderReady,
+  seedTheme,
+} from "./pages.ts";
+const BASE = new URL(".", import.meta.url).pathname;
 
-const browser = await chromium.launch({
-  executablePath: SHELL,
-  args: ["--no-sandbox", "--disable-dev-shm-usage"],
+/**
+ * The studio's routes, as paths. `hash` equals the path so finding keys,
+ * screenshot names, and `--route` filters behave the way hash-routed apps
+ * expect; `path` is what the harness loads.
+ *
+ * The child representative is the always-present `button` specimen rather
+ * than a name resolved from RPC: the config has to stay synchronous and
+ * dependency-free.
+ */
+function routes(query?: string): readonly Route[] {
+  const entries: ReadonlyArray<readonly [string, string]> = [
+    ["/", "Themes"],
+    ["/colors", "Colors"],
+    ["/type", "Type"],
+    ["/icons", "Icons"],
+    ["/motion", "Motion"],
+    ["/spacing", "Spacing"],
+    ["/style", "Style"],
+    ["/components", "Components"],
+    // The detail capitalizes by CSS, not by text: the check reads text.
+    ["/components/button", "button"],
+    ["/findings", "Findings"],
+    ["/preferences", "Preferences"],
+  ];
+  return entries.map(([path, expectHeading]) => ({
+    hash: path,
+    path,
+    ...(query === undefined ? {} : { query }),
+    expectHeading,
+  }));
+}
+
+const THEMES = starterThemes as unknown as Record<
+  string,
+  Parameters<typeof themeModes>[0]
+>;
+
+/**
+ * The mounted project's own themes: the files in the reference's `spin/`,
+ * read from disk.
+ *
+ * The studio edits the app it mounts — `../reference` in dev — so the matrix
+ * has to carry the same themes the preview can seat. A file that does not
+ * parse is skipped rather than thrown on: a half-written theme in an editor
+ * must not cost the run the rest of the matrix.
+ */
+async function projectThemes(): Promise<
+  Record<string, Parameters<typeof themeModes>[0]>
+> {
+  const out: Record<string, Parameters<typeof themeModes>[0]> = {};
+  const directory = `${BASE}../../reference/spin`;
+  try {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+      try {
+        out[entry.name.replace(/\.json$/, "")] = JSON.parse(
+          await readFile(`${directory}/${entry.name}`, "utf8"),
+        ) as Parameters<typeof themeModes>[0];
+      } catch {
+        // Skipped: see above.
+      }
+    }
+  } catch {
+    // No project directory: the studio seats the starters alone.
+  }
+  return out;
+}
+
+/** Every theme the preview renders: the starters, and the project's own. */
+const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
+  ...THEMES,
+  ...(await projectThemes()),
+};
+
+const THEME_NAMES = ["console", "neobrut", "silk", "spin", "synthwave"];
+
+function modesFor(theme: string): readonly string[] {
+  const served = themeModes(SERVED[theme]!).filter((mode) =>
+    mode === "light" || mode === "dark"
+  );
+  return served.length > 0 ? served : ["light"];
+}
+
+function makeConfig(options: {
+  readonly routes: readonly Route[];
+  readonly outDir: string;
+  readonly baseline: string;
+}): CheckConfig {
+  return {
+    baseDir: BASE,
+    defaultUrl: "http://localhost:5173",
+    routes: () => options.routes,
+    themes: THEME_NAMES,
+    modesFor,
+    hoverSelector: "#app nav a[href]",
+    stateScope: "main",
+    outDir: options.outDir,
+    baseline: options.baseline,
+    errorText: [
+      "The studio hit an error",
+      "There is no project here",
+      "No component named",
+    ],
+    page: {
+      renderReady,
+      pageState,
+      seedTheme,
+      geometryClaimsFor,
+      geometryAudit,
+    },
+  };
+}
+
+export const modalConfig: CheckConfig = makeConfig({
+  routes: routes(),
+  outDir: `${BASE}out`,
+  baseline: `${BASE}baseline.json`,
 });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-page.on("pageerror", (error) => console.log(`pageerror: ${error}`));
 
-await page.goto("http://127.0.0.1:5173/components", {
-  waitUntil: "networkidle",
+export const drawerConfig: CheckConfig = makeConfig({
+  routes: routes("?mode=drawer"),
+  outDir: `${BASE}out-drawer`,
+  baseline: `${BASE}baseline-drawer.json`,
 });
-const primary = page.getByRole("button", { name: "primary", exact: true });
-const lightBg = await primary.evaluate(
-  (element) => getComputedStyle(element).backgroundColor,
-);
-assert.equal(lightBg, "rgb(37, 99, 235)");
-console.log("light primary button resolves to the primary token");
 
-const header = page.getByRole("heading", { name: "Button" });
-const lightText = await header.evaluate(
-  (element) => getComputedStyle(element).color,
-);
-assert.equal(lightText, "rgb(15, 23, 42)");
-console.log("light heading resolves to the text token");
+const argv = process.argv.slice(2);
 
-await page.getByTitle("Manage themes").click();
-const activateButtons = page.getByRole("button", { name: "Activate" });
-assert.equal(await activateButtons.count(), 3);
-await activateButtons.nth(1).click();
-await page.getByRole("button", { name: "Close" }).click();
-await page.waitForTimeout(500);
+// `--write-baseline` refreshes both baselines in one command: the flag is
+// stripped here and re-appended per layout with its own path, last-wins,
+// because the harness resolves one write path per run.
+const refreshing = argv.includes("--write-baseline");
+const forwarded = argv.filter((arg) => arg !== "--write-baseline");
+if (refreshing) {
+  const at = argv.indexOf("--write-baseline");
+  const next = argv[at + 1];
+  if (next !== undefined && !next.startsWith("--")) {
+    console.error(
+      "--write-baseline takes no value here: both baselines refresh in one command",
+    );
+    process.exit(2);
+  }
+}
 
-const consoleBg = await primary.evaluate(
-  (element) => getComputedStyle(element).backgroundColor,
-);
-assert.notEqual(consoleBg, lightBg);
-assert.notEqual(consoleBg, "rgba(0, 0, 0, 0)");
-console.log(`console primary button resolves to ${consoleBg}`);
-await page.screenshot({
-  path: join(import.meta.dirname as string, "shots", "components-console.png"),
-});
-console.log("components verified on light and console");
-await browser.close();
+const modalArgv = [
+  ...forwarded,
+  "--viewport",
+  "1280x800",
+  "--out",
+  "out",
+  "--baseline",
+  "baseline.json",
+  ...(refreshing ? ["--write-baseline", "baseline.json"] : []),
+];
+const drawerArgv = [
+  ...forwarded,
+  "--viewport",
+  "480x900",
+  "--out",
+  "out-drawer",
+  "--baseline",
+  "baseline-drawer.json",
+  ...(refreshing ? ["--write-baseline", "baseline-drawer.json"] : []),
+];
+
+const modalCode = await runCheck(modalConfig, modalArgv);
+if (modalCode !== 0) process.exit(modalCode);
+process.exit(await runCheck(drawerConfig, drawerArgv));

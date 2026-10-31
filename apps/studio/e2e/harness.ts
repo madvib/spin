@@ -7,7 +7,6 @@
  * test that forgot to clean up.
  */
 
-import assert from "node:assert/strict";
 import type { Browser } from "playwright-core";
 import { launchBrowser, StudioPage } from "./studio.ts";
 
@@ -15,12 +14,21 @@ import { beforeAll, afterAll, test as bunTest } from "bun:test";
 
 let browser: Browser | undefined;
 
+async function ensureBrowser(): Promise<Browser> {
+  if (browser === undefined || !browser.isConnected()) {
+    if (browser !== undefined) await browser.close().catch(() => {});
+    browser = await launchBrowser();
+  }
+  return browser;
+}
+
 beforeAll(async () => {
-  browser = await launchBrowser();
+  await ensureBrowser();
 });
 
 afterAll(async () => {
-  await browser?.close();
+  await browser?.close().catch(() => {});
+  browser = undefined;
 });
 
 
@@ -33,9 +41,14 @@ afterAll(async () => {
  */
 export function test(
   name: string,
-  fn: (t?: any) => Promise<void>,
+  fn: (t: { step: (label: string, run: () => Promise<void>) => Promise<void> }) => Promise<void>,
+  timeoutMs = 120_000,
 ): void {
-  bunTest(name, fn);
+  // bun:test has no t.step; the runner stays shared by naming each route in
+  // the failure it joins, not by nesting test contexts it cannot open. A
+  // sweep visits every route in one test, so the timeout spans the whole
+  // walk rather than the 5s default a single navigation would fit.
+  bunTest(name, () => fn({ step: async (_label, run) => { await run(); } }), timeoutMs);
 }
 
 /**
@@ -50,8 +63,7 @@ export async function withPage<T>(
   fn: (page: StudioPage) => Promise<T>,
   options: { permissions?: readonly string[] } = {},
 ): Promise<T> {
-  const launched = browser;
-  assert(launched !== undefined, "the browser did not launch");
+  const launched = await ensureBrowser();
   const context = await launched.newContext({
     viewport: { width: 1280, height: 800 },
   });
@@ -69,8 +81,7 @@ export async function withPage<T>(
 export async function withWatcher<T>(
   fn: (driver: StudioPage, watcher: StudioPage) => Promise<T>,
 ): Promise<T> {
-  const launched = browser;
-  assert(launched !== undefined, "the browser did not launch");
+  const launched = await ensureBrowser();
   const driver = await launched.newPage({
     viewport: { width: 1280, height: 800 },
   });

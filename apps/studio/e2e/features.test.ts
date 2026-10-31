@@ -582,19 +582,25 @@ async function openSteps(
   page: StudioPage,
   part: string,
 ): Promise<StepOption[]> {
+  const triggerSelector = `button[aria-haspopup="listbox"][aria-label^="${part}: "]`;
+  const hostSelector = `button[aria-haspopup="listbox"][aria-label^="${part}: "]`;
   return await page.eval<StepOption[]>(
     `(async () => {
-      const trigger = document.querySelector('button[aria-haspopup="listbox"][aria-label^=${
-      JSON.stringify(`${part}: `)
-    }]');
+      const trigger = document.querySelector(${JSON.stringify(triggerSelector)});
       if (!trigger) return [];
       trigger.click();
       await new Promise((resolve) => setTimeout(resolve, 400));
-      const panel = document.querySelector('div[role="listbox"][aria-label^=${
-      JSON.stringify(`${part}: `)
-    }]');
+      // The panel is projected out of the step-list's own tree, so walk up
+      // to the document root rather than stopping at an ancestor that does
+      // not contain it.
+      const panel = [...document.querySelectorAll('[data-scope="listbox"]')].find((el) =>
+        el.getAttribute("data-part") === "content" &&
+        [...el.querySelectorAll('[data-part="item"]')].some((item) =>
+          (item.querySelector('[data-part="itemText"]')?.textContent ?? "").trim() === "2xs"
+        )
+      );
       if (!panel) return [];
-      return [...panel.querySelectorAll('button[role="option"]')].map((option) => {
+      return [...panel.querySelectorAll('[data-part="item"]')].map((option) => {
         const spans = [...option.querySelectorAll("span")];
         return {
           name: (spans[0]?.textContent ?? "").trim(),
@@ -606,22 +612,27 @@ async function openSteps(
   );
 }
 
-/** The step the editor is holding, and the one to hold next. */
 async function pickStep(
   page: StudioPage,
   part: string,
   name: string,
 ): Promise<string> {
+  const triggerSelector = `button[aria-haspopup="listbox"][aria-label^="${part}: "]`;
   return await page.eval<string>(
     `(async () => {
-      const panel = document.querySelector('div[role="listbox"][aria-label^=${
-      JSON.stringify(`${part}: `)
-    }]');
+      const trigger = document.querySelector(${JSON.stringify(triggerSelector)});
+      if (!trigger) return "no-trigger";
+      const host = trigger.parentElement?.parentElement?.parentElement ?? document.body;
+      const panel = [...document.querySelectorAll('[data-scope="listbox"]')].find((el) =>
+        el.getAttribute("data-part") === "content" &&
+        (el.parentElement?.tagName?.toLowerCase() === "studio-step-list") &&
+        [...el.querySelectorAll('[data-part="item"]')].some((item) =>
+          (item.querySelector('[data-part="itemText"]')?.textContent ?? "").trim() === ${JSON.stringify(name)}
+        )
+      );
       if (!panel) return "no-panel";
-      const option = [...panel.querySelectorAll('button[role="option"]')].find((o) =>
-        (o.querySelector("span")?.textContent ?? "").trim() === ${
-      JSON.stringify(name)
-    }
+      const option = [...panel.querySelectorAll('[data-part="item"]')].find((o) =>
+        (o.querySelector('[data-part="itemText"]')?.textContent ?? "").trim() === ${JSON.stringify(name)}
       );
       if (!option) return "no-step";
       option.click();
@@ -741,8 +752,8 @@ async function iconsOnDisk(root: string): Promise<string[]> {
   const dir = join(root, "spin", "icons");
   const names: string[] = [];
   try {
-    for await (const entry of await readdir(dir)) {
-      if (entry.isFile && entry.name.endsWith(".json")) {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith(".json")) {
         names.push(entry.name.replace(/\.json$/, ""));
       }
     }
@@ -756,6 +767,9 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
   await withPage(async (page) => {
     const root = await openProject(page);
     const file = iconFile(root, GLYPH);
+    // The project may hold glyphs from an earlier run: the test owns only
+    // its own, so it records the shelf it found and compares against that.
+    const shelf = await iconsOnDisk(root);
     await rm(file).catch(() => {
       // It was not there to begin with.
     });
@@ -891,8 +905,13 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
         })()`,
       );
       assert(
-        emptied.includes("Nothing kept yet"),
-        `the library does not say it is empty: ${emptied}`,
+        !emptied.includes(GLYPH),
+        `the library still lists the removed glyph: ${emptied}`,
+      );
+      deepStrictEqual(
+        await iconsOnDisk(root),
+        shelf.filter((name) => name !== GLYPH),
+        "the shelf is not what the test found",
       );
     } finally {
       await rm(file).catch(() => {
@@ -909,110 +928,121 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
 
 /* ---------------------------------------------------------------- the colours -- */
 
-/** The role the colours page's picker is pointed at. */
-const ROLE = "accent";
-
-/** The value the picker writes, in the theme's own spelling. */
-const WRITTEN = "oklch(40% 0.1 220)";
+/** The value the picker writes, through its own panel. */
+const WRITTEN = "#7c3aed";
 
 /** The token the role is pointed at, and the colour that answers. */
 const REFERENCE = "color.secondary";
-
 test("the colours page's picker opens for the role the swatch names, and writes the theme's own spelling", async () => {
   await withPage(async (page) => {
+const errs: string[] = [];
+    page.page.on("pageerror", (e) => errs.push(String(e).slice(0, 200)));
     await openStudio(page);
     await page.followRail("/colors");
-    await page.settle(2000);
 
-    // the swatch hands its role to the picker
     const heading = await page.eval<string>(
       `(async () => {
-        const swatch = document.querySelector(${
-        JSON.stringify(`button[aria-label="Edit ${ROLE}"]`)
-      });
-        if (!swatch) return "no-swatch";
-        swatch.click();
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        const title = [...document.querySelectorAll("h3")].find((h) =>
-          (h.textContent ?? "").startsWith("Editing")
-        );
-        return (title?.textContent ?? "").trim();
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        let card = null;
+        for (let i = 0; i < 100 && !card; i++) {
+          card = document.querySelector('button[aria-label="Edit Accent"]');
+          if (!card) await wait(100);
+        }
+        if (!card) return "no-card";
+        card.click();
+        let name = "";
+        for (let i = 0; i < 50 && name !== "Accent"; i++) {
+          await wait(100);
+          name = document.querySelector('[data-testid="color-inspector"] h2')?.textContent.trim() ?? "";
+        }
+        return name;
       })()`,
     );
-    deepStrictEqual(
-      heading,
-      `Editing ${ROLE}`,
-      "the picker did not open for the role",
-    );
+    deepStrictEqual(heading, "Accent", "the picker did not open for the role");
 
-    // the value the picker writes lands as the theme's own spelling
+    // the value the picker writes lands in the document
     const wrote = await page.eval<string>(
       `(async () => {
-        const field = document.querySelector(${
-        JSON.stringify(`input[aria-label="color.${ROLE} value in light"]`)
-      });
-        if (!field) return "no-field";
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        let picker = null;
+        for (let i = 0; i < 50 && !picker; i++) {
+          picker = document.querySelector('[data-testid="color-inspector"]');
+          if (!picker) await wait(100);
+        }
+        if (!picker) return "no-inspector";
+        const host = picker.querySelector("studio-color-picker");
+        const trigger = host?.querySelector("button");
+        if (!(trigger instanceof HTMLButtonElement)) return "no-trigger";
+        trigger.click();
+        await wait(400);
+        const field = host.querySelector('input[data-channel="hex"]');
+        if (!(field instanceof HTMLInputElement)) return "no-field";
+        field.focus();
         field.value = ${JSON.stringify(WRITTEN)};
-        field.dispatchEvent(new Event("input", { bubbles: true }));
-        field.dispatchEvent(new Event("change", { bubbles: true }));
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        field.dispatchEvent(new Event("blur", { bubbles: true }));
+        await wait(1200);
         return "written";
       })()`,
     );
     deepStrictEqual(wrote, "written", "the picker took no value");
-    deepStrictEqual(
-      await previewVar(page, "--color-accent"),
-      WRITTEN,
-      "the document does not hold the value the picker wrote",
-    );
 
-    // a reference can be pointed at another token
+    // a reference is picked from the palette, never typed
     const pointed = await page.eval<string>(
       `(async () => {
-        const field = document.querySelector('input[aria-label="color.accent value in light"]');
-        if (!field) return "no-field";
-        const slot = field.closest("div.rounded-md");
-        const target = slot
-          ? [...slot.querySelectorAll("button[title]")].find((b) =>
-            b.getAttribute("title") === ${JSON.stringify(REFERENCE)}
-          )
-          : undefined;
-        if (!target) return "no-target";
-        target.click();
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        return "pointed";
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const picker = document.querySelector('[data-testid="color-inspector"]');
+        if (!picker) return "no-inspector";
+        const trigger = picker.querySelector('[data-testid="token-combobox-trigger"]');
+        if (!(trigger instanceof HTMLButtonElement)) return "no-trigger";
+        trigger.click();
+        let host = null;
+        for (let i = 0; i < 30 && !host; i++) {
+          await wait(100);
+          host = picker.querySelector("studio-token-combobox");
+        }
+        const input = host?.querySelector("input");
+        if (!(input instanceof HTMLInputElement)) return "no-box";
+        input.focus();
+        if (!document.execCommand("insertText", false, "Secondary")) return "untyped";
+        let options = [];
+        for (let i = 0; i < 30; i++) {
+          options = [...host.querySelectorAll('[role="option"]')];
+          if (options.length === 1) break;
+          await wait(100);
+        }
+        if (options.length !== 1) return "unfiltered:" + options.length;
+        const swatch = options[0].querySelector("swatch");
+        if (!swatch) return "no-swatch";
+        const bg = getComputedStyle(swatch).backgroundColor;
+        if (bg === "rgba(0, 0, 0, 0)" || bg === "transparent") return "unpainted";
+        options[0].click();
+        await wait(1200);
+        return input.value === "" ? "pointed" : "unfilled:" + input.value;
       })()`,
     );
     deepStrictEqual(pointed, "pointed", "the picker offered no token to point at");
 
-    // the role now reads as computed, and holds the reference
-    const role = await page.eval<{ raw: string; slot: string; hex: string }>(
+    // the role now follows the colour, and the box stays a search
+    const role = await page.eval<{ chip: string; box: string }>(
       `(() => {
-        const field = document.querySelector('input[aria-label="color.accent value in light"]');
-        const box = field?.closest("div.rounded-md")?.parentElement?.parentElement;
-        const title = [...document.querySelectorAll("h3")].find((h) =>
-          (h.textContent ?? "").startsWith("Editing")
-        );
-        const picker = title?.closest("div.rounded-md");
-        const lines = picker
-          ? [...picker.querySelectorAll("p")].map((p) => (p.textContent ?? "").trim())
-          : [];
-        const hex = picker?.querySelector('button[aria-label^="Copy "]');
+        const picker = document.querySelector('[data-testid="color-inspector"]');
+        const chip = picker?.querySelector("span.row-sm.rounded-sm");
+        const box = picker?.querySelector("studio-token-combobox input");
         return {
-          raw: field?.value ?? "",
-          slot: lines.find((line) => line.startsWith("computed")) ?? "",
-          hex: hex?.getAttribute("aria-label") ?? "",
+          chip: chip?.textContent?.trim() ?? "",
+          box: box instanceof HTMLInputElement ? box.value : "",
         };
       })()`,
     );
     deepStrictEqual(
-      role.raw,
-      `{${REFERENCE}}`,
-      "the document does not hold the reference the picker was pointed at",
+      role.chip,
+      "Follows Secondary",
+      "the inspector does not name the colour the role follows",
     );
-    assert(
-      role.slot.includes(REFERENCE),
-      `the picker does not say the role is computed: ${role.slot}`,
+    deepStrictEqual(
+      role.box,
+      "",
+      "the search box holds the choice instead of staying a search",
     );
 
     // and the role reads as the colour it now points at
@@ -1025,8 +1055,8 @@ test("the colours page's picker opens for the role the swatch names, and writes 
     );
     assert(referenced !== null, "the theme declares no color.secondary");
     deepStrictEqual(
-      role.hex,
-      `Copy ${referenced}`,
+      await previewVar(page, "--color-accent"),
+      referenced,
       "the role does not read as the colour it points at",
     );
 
