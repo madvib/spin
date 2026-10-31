@@ -313,3 +313,140 @@ test("the check command names the app and its configuration", () => {
   deepStrictEqual(command.url, "http://localhost:5173");
   deepStrictEqual(command.config, "./visual/check.ts");
 });
+
+test("the init command seeds its defaults", () => {
+  const command = parseArgs(["init"]);
+  deepStrictEqual(command.kind, "init");
+  if (command.kind !== "init") return;
+  deepStrictEqual(command.name, "default");
+  deepStrictEqual(command.starter, "spin");
+  deepStrictEqual(command.bundler, undefined);
+  deepStrictEqual(command.yes, false);
+});
+
+test("the init command carries its flags", () => {
+  const command = parseArgs([
+    "init",
+    "--name",
+    "brand",
+    "--starter",
+    "nordic",
+    "--bundler",
+    "rspack",
+    "--root",
+    "/tmp/x",
+    "--yes",
+  ]);
+  deepStrictEqual(command.kind, "init");
+  if (command.kind !== "init") return;
+  deepStrictEqual(command.name, "brand");
+  deepStrictEqual(command.starter, "nordic");
+  deepStrictEqual(command.bundler, "rspack");
+  deepStrictEqual(command.root, "/tmp/x");
+  deepStrictEqual(command.yes, true);
+});
+
+test("the serve command defaults to the current directory", () => {
+  const command = parseArgs(["serve"]);
+  deepStrictEqual(command.kind, "serve");
+  if (command.kind !== "serve") return;
+  deepStrictEqual(command.port, undefined);
+  deepStrictEqual(command.host, undefined);
+});
+
+test("the serve command carries its port and host", () => {
+  const command = parseArgs([
+    "serve",
+    "--root",
+    "/tmp/x",
+    "--port",
+    "8080",
+    "--host",
+    "0.0.0.0",
+  ]);
+  deepStrictEqual(command.kind, "serve");
+  if (command.kind !== "serve") return;
+  deepStrictEqual(command.root, "/tmp/x");
+  deepStrictEqual(command.port, 8080);
+  deepStrictEqual(command.host, "0.0.0.0");
+});
+
+test("the serve command refuses a port that is not a port", () => {
+  let thrown: unknown;
+  try {
+    parseArgs(["serve", "--port", "http"]);
+  } catch (error) {
+    thrown = error;
+  }
+  deepStrictEqual(thrown instanceof CliUsageError, true);
+});
+
+test("the theme command reads its action and name", () => {
+  const command = parseArgs(["theme", "analyze", "brand"]);
+  deepStrictEqual(command.kind, "theme");
+  if (command.kind !== "theme") return;
+  deepStrictEqual(command.action, "analyze");
+  deepStrictEqual(command.name, "brand");
+});
+
+test("the theme command needs an action it knows", () => {
+  let thrown: unknown;
+  try {
+    parseArgs(["theme", "rename", "brand"]);
+  } catch (error) {
+    thrown = error;
+  }
+  deepStrictEqual(thrown instanceof CliUsageError, true);
+});
+
+test("the component command reads its action, name, and example", () => {
+  const command = parseArgs(["component", "copy", "tree-view", "basic"]);
+  deepStrictEqual(command.kind, "component");
+  if (command.kind !== "component") return;
+  deepStrictEqual(command.action, "copy");
+  deepStrictEqual(command.name, "tree-view");
+  deepStrictEqual(command.example, "basic");
+});
+
+test("the component list needs no name", () => {
+  const command = parseArgs(["component", "list"]);
+  deepStrictEqual(command.kind, "component");
+  if (command.kind !== "component") return;
+  deepStrictEqual(command.action, "list");
+  deepStrictEqual(command.name, undefined);
+});
+
+test("init writes a theme and a bundler config into a fresh root", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "spin-cli-init-"));
+  try {
+    const lines: string[] = [];
+    const code = await run(
+      ["init", "--root", dir, "--name", "brand", "--starter", "nordic", "--bundler", "rspack", "--yes"],
+      (line) => lines.push(line),
+      () => {},
+    );
+    deepStrictEqual(code, 0);
+    deepStrictEqual(lines, ["Initialized spin/brand.json (nordic, rspack)"]);
+    const written = JSON.parse(
+      await readFile(join(dir, "spin", "brand.json"), "utf8"),
+    ) as Record<string, unknown>;
+    deepStrictEqual(typeof written.color, "object");
+    const config = await readFile(join(dir, "rspack.config.ts"), "utf8");
+    deepStrictEqual(config.includes("spin.rspack()"), true);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("help answers as a command and as a flag", async () => {
+  for (const argv of [["help"], ["--help"], ["-h"]]) {
+    const lines: string[] = [];
+    const code = await run(
+      argv,
+      (line) => lines.push(line),
+      () => {},
+    );
+    deepStrictEqual(code, 0);
+    deepStrictEqual(lines[0]?.startsWith("spin — "), true);
+  }
+});

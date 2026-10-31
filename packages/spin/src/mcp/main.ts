@@ -1,21 +1,25 @@
 /**
  * The stdio entry point: what an MCP client launches.
  *
- * The daemon's address comes from `--daemon <url>` or `SPIN_DAEMON_URL`, and
- * absent both, the daemon's own default. Not discovery: the daemon binds a
- * fixed address at config time, and a client that runs it does too.
+ * The daemon's address comes from `--url <url>`, `--root <dir>`,
+ * `SPIN_URL` / `SPIN_DAEMON_URL`, and absent all four, the local project
+ * root in-process. No background server required: the CLI and the agent
+ * host call the same router the daemon serves.
  *
- *   bun run src/main.ts --daemon http://127.0.0.1:7463/rpc
+ *   bun run src/main.ts --root /path/to/project
  */
 
-import { createSpinClient } from "../api/index.ts";
+import { resolveSpinClient } from "../api/index.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { buildSpinMcpServer } from "./server.ts";
 
-const flag = process.argv.indexOf("--daemon");
-const url = (flag >= 0 ? process.argv[flag + 1] : undefined) ??
-  process.env["SPIN_DAEMON_URL"] ??
-  "http://127.0.0.1:7463/rpc";
+const args = process.argv.slice(2);
+const flagValue = (name: string): string | undefined => {
+  const at = args.indexOf(name);
+  return at >= 0 ? args[at + 1] : undefined;
+};
 
-const server = buildSpinMcpServer(createSpinClient(url));
+const server = buildSpinMcpServer(
+  resolveSpinClient({ url: flagValue("--url"), root: flagValue("--root") }),
+);
 await server.connect(new StdioServerTransport());

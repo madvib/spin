@@ -193,7 +193,9 @@ function scopePreview(css: string): string {
       const selectors = splitSelectors(text.slice(0, cut));
       if (selectors.length > 0) {
         const scoped = selectors.map((selector) =>
-          `${PREVIEW_SCOPE} ${selector}`
+          selector === "body" || selector === ":is(body)"
+            ? `${PREVIEW_SCOPE}[data-theme]`
+            : `${PREVIEW_SCOPE} ${selector}`
         ).join(", ");
         out.push(`${indent}${scoped}${text.slice(cut)}`);
         continue;

@@ -10,12 +10,15 @@
  * single router. Transport, not definition.
  */
 
+import { RPCLink } from "@orpc/client/fetch";
+import { createORPCClient } from "@orpc/client";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
+import { createSpinClient, type SpinClient } from "./client.ts";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
 import { themeRouter } from "../theme/index.ts";
-import { overlayRouter, presetRouter, primitivesRouter } from "../preset/index.ts";
+import { overlayRouter, presetRouter } from "../preset/index.ts";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
@@ -36,8 +39,6 @@ export {
   overlayRouter,
   presetContract,
   presetRouter,
-  primitivesContract,
-  primitivesRouter,
 } from "../preset/index.ts";
 export { componentsRouter } from "./components-procedures.ts";
 export { componentsContract } from "./components-contract.ts";
@@ -46,10 +47,41 @@ export { iconsContract, iconsRouter } from "./icons-procedures.ts";
 export { findingsContract, findingsRouter } from "./findings-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 
+/**
+ * A client that calls the procedures in-process, against a project root.
+ *
+ * The CLI and `spin mcp` run beside the project they act on: no daemon, no
+ * port, no second process. The router handles the call through the same
+ * handler the daemon serves, with the project root set for this call.
+ */
+export function createInProcessSpinClient(root?: string): SpinClient {
+  if (root !== undefined) setProjectRoot(root);
+  const link = new RPCLink({
+    url: "http://localhost/rpc",
+    fetch: async (req: Request, init: RequestInit) =>
+      (await handleApiRequest(new Request(req, init), { prefix: "/rpc" }))
+        .response,
+  });
+  return createORPCClient(link);
+}
+
+/**
+ * The client the CLI dials: a daemon URL when one is named, in-process
+ * otherwise. `--url` wins, then `SPIN_URL` / `SPIN_DAEMON_URL`, then the
+ * local project root — so a bare `spin lint` never needs a server.
+ */
+export function resolveSpinClient(
+  options?: { url?: string; root?: string },
+): SpinClient {
+  const url = options?.url ?? process.env["SPIN_URL"] ??
+    process.env["SPIN_DAEMON_URL"];
+  if (url !== undefined) return createSpinClient(url);
+  return createInProcessSpinClient(options?.root ?? process.cwd());
+}
+
 /** The daemon's router: every module's procedures, mounted by name. */
 export const router = {
   ...themeRouter,
-  ...primitivesRouter,
   ...presetRouter,
   ...projectRouter,
   ...componentsRouter,
@@ -148,7 +180,11 @@ export function mountSpinApp(
           res.setHeader(name, value)
         );
         res.end(new Uint8Array(await response.arrayBuffer()));
-      })().catch(() => {
+      })().catch((error: unknown) => {
+        // The mount swallows what the app throws: name the procedure path
+        // and the message server-side, so a 500 in the browser has a cause
+        // in the dev log instead of a silent empty body.
+        console.error(`[spin] ${url} failed:`, error instanceof Error ? error.message : error);
         res.statusCode = 500;
         res.end();
       });
@@ -163,10 +199,58 @@ export interface SpinAppOptions {
   /** Where the procedures live. `/__spin/rpc` in dev, `/rpc` standalone. */
   readonly base?: `/${string}`;
   /**
-   * The studio's built bundle, served beside the procedures. Absent in
-   * development, where the studio runs on its own server.
+   * The studio's built bundle, served beside the procedures. Defaults to
+   * the shipped bundle — `packages/spin/dist/studio` in a published
+   * install, `apps/studio/dist` in this checkout — and absent when neither
+   * is built, where the mount skips it rather than failing the server.
    */
   readonly studioDir?: string;
+}
+
+/**
+ * The studio's built bundle, when one is present.
+ *
+ * A published install carries it beside the procedures
+ * (`packages/spin/dist/studio`); this checkout builds it at
+ * `apps/studio/dist`. Either path with an `index.html` wins — an explicit
+ * `studioDir` still overrides both.
+ */
+export function defaultStudioDir(): string | undefined {
+  // Sync on purpose: `createSpinApp` builds the Hono app inline, and the
+  // probe is two existence checks on paths that are usually absent. An
+  // async default would push asynchrony into every dev-server mount.
+  const { existsSync } = process.getBuiltinModule("node:fs");
+  const { dirname, join } = process.getBuiltinModule("node:path");
+  const { fileURLToPath } = process.getBuiltinModule("node:url");
+  const { createRequire } = process.getBuiltinModule("node:module");
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates: string[] = [
+    // A published install carries the bundle beside the procedures.
+    join(here, "..", "studio"),
+  ];
+  // This checkout builds the studio beside the packages, not inside them.
+  // The workspace root is the first ancestor whose manifest declares
+  // workspaces — found by walking package boundaries, not by counting
+  // directory levels.
+  try {
+    let dir = dirname(createRequire(import.meta.url).resolve("@spinjs/spin/package.json"));
+    for (let depth = 0; depth < 6; depth++) {
+      candidates.push(join(dir, "apps/studio/dist"));
+      const parent = dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  } catch {
+    // No workspace root found: the published bundle stands alone.
+  }
+  for (const candidate of candidates) {
+    try {
+      if (existsSync(join(candidate, "index.html"))) return candidate;
+    } catch {
+      // Missing bundle: try the next candidate.
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -232,10 +316,13 @@ export function createSpinApp(options: SpinAppOptions): Hono {
     `${sideRoot}/overlay.js`,
     (c) => c.body(OVERLAY_SCRIPT, 200, { "content-type": "text/javascript" }),
   );
-  // The studio bundle, if one was built. Served beside the procedures so
-  // the tool and the API it talks to are one origin by construction.
-  if (options.studioDir !== undefined) {
-    const dir = options.studioDir;
+  // The studio bundle, when one is built. Served beside the procedures so
+  // the tool and the API it talks to are one origin by construction. An
+  // explicit `studioDir` wins; otherwise the shipped bundle (or this
+  // checkout's) serves when present, and the mount skips it when absent.
+  const studioDir = options.studioDir ?? defaultStudioDir();
+  if (studioDir !== undefined) {
+    const dir = studioDir;
     const prefix = `${sideRoot}/studio`;
     outer.use(`${prefix}/*`, async (c, next) => {
       // Directories fall through to the index fallback below: hono's

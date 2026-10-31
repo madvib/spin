@@ -145,17 +145,16 @@ describe("the theme surface over RPC, against the fixture app", () => {
     const reported = await analyze(edited);
     deepStrictEqual(
       reported.issues.some((issue) =>
-        /4\.00:1, below the 4\.5:1 floor/.test(issue.message)
+        /4\.00:1 — text needs 4\.5:1/.test(issue.message)
       ),
       true,
       "the floor is reported against the exact pair it fails on",
     );
     // And the generation of the same document is refused, with the same
     // message: the analysis is the early courtesy, the generator is the
-    // authority, and they agree because they are the same rule.
     const generated = await preview(edited, "starter");
     deepStrictEqual(
-      generated.error?.includes("4.00:1, below the 4.5:1 floor"),
+      generated.error?.includes("4.00:1 — text needs 4.5:1"),
       true,
       "the preview refuses on the same pair the analysis reported",
     );

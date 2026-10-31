@@ -7,7 +7,8 @@
  * are asks this package; it does not keep its own copy of the answer.
  */
 
-import { scaffoldTheme, treeToJson } from "../theme/index.ts";
+import { parseTokens, scaffoldTheme, treeToJson } from "../theme/index.ts";
+import { starterThemes } from "../theme/themes/index.ts";
 import { configScaffoldText } from "../preset/config.ts";
 
 /**
@@ -20,6 +21,17 @@ import { configScaffoldText } from "../preset/config.ts";
  * that are not projects.
  */
 export const PROJECT_DIR = "spin";
+
+export const COMPONENTS_DIR = "lib/components";
+
+export function defaultPrefix(packageName?: string): string {
+  let base = packageName ?? "";
+  const slash = base.lastIndexOf("/");
+  if (slash >= 0) base = base.slice(slash + 1);
+  let out = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (out === "" || out === "workspace") out = "app";
+  return out;
+}
 
 /**
  * The directory a project's saved icons live in, under its own.
@@ -56,6 +68,11 @@ export const CONFIG_FILES: readonly string[] = [
   "vite.config.ts",
   "vite.config.js",
   "vite.config.mjs",
+  "rspack.config.ts",
+  "rspack.config.js",
+  "webpack.config.js",
+  "rollup.config.js",
+  "rolldown.config.ts",
   "spin.config.ts",
   "spin.config.js",
   "spin.config.mjs",
@@ -66,12 +83,14 @@ export const CONFIG_FILES: readonly string[] = [
  *
  * Two entry points wire spin, and both count: the encapsulated form
  * (`@spinjs/config`, `spin()`) that `spin init` writes, and the raw form
- * (`@spinjs/preset`, `spinPreset()`) that the escape hatch uses. A detector
- * that knew only one would report a correctly wired project as unwired —
- * which is how this bug shipped, caught by the init test.
+ * (`@spinjs/preset`, `spinPreset()`) that the escape hatch uses.
+ * A detector that knew only one would report a correctly wired project
+ * as unwired — which is how this bug shipped, caught by the init test.
  */
 export function isWired(text: string): boolean {
-  return /@spinjs\/config|spin\s*\(|@spinjs\/preset|spinPreset/.test(text);
+  return /@spinjs\/spin|@spinjs\/config|spin\s*\(|spin\.(?:vite|rspack|webpack|rollup|rolldown|esbuild|bun)\s*\(|@spinjs\/preset|spinPreset/.test(
+    text,
+  );
 }
 
 /**
@@ -83,10 +102,30 @@ export function isWired(text: string): boolean {
  * theme package learning what a project is.
  */
 export function initFiles(
-  options: { readonly name: string; readonly starter: string },
+  options: {
+    readonly name: string;
+    readonly starter: string;
+    readonly bundler?: string;
+  },
 ): Record<string, string> {
+  const config = configScaffoldText(options.bundler ?? "vite");
   return {
-    [`${options.name}.json`]: treeToJson(scaffoldTheme()),
-    [CONFIG_FILENAME]: configScaffoldText(),
+    [`${options.name}.json`]: themeText(options.starter),
+    [config.filename]: config.text,
   };
+}
+
+/**
+ * A starter theme as the text written for it.
+ *
+ * A known starter resolves against the shipped registry; anything else —
+ * `"scaffold"` or unknown — falls back to the scaffold, so `init` never
+ * fails on a name it does not know.
+ */
+function themeText(starter: string): string {
+  const document = (starterThemes as Record<string, unknown>)[starter];
+  if (document === undefined) return treeToJson(scaffoldTheme());
+  const parsed = parseTokens(document as Parameters<typeof parseTokens>[0]);
+  if (!parsed.ok) return treeToJson(scaffoldTheme());
+  return treeToJson(parsed.tree);
 }

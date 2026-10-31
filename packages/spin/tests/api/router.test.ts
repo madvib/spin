@@ -1,9 +1,11 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseTokens, setToken, treeToJson } from "../../src/theme/index.ts";
+import { BASE_ROLES, parseTokens, scaffoldTheme, setToken, treeToJson } from "../../src/theme/index.ts";
 import { scaffold } from "../../src/preset/index.ts";
 import {
   createSpinClient,
+  componentsContract,
+  componentsRouter,
   findingsContract,
   findingsRouter,
   iconsContract,
@@ -12,8 +14,6 @@ import {
   presetRouter,
   previewContract,
   previewRouter,
-  primitivesContract,
-  primitivesRouter,
   projectContract,
   projectRouter,
   router,
@@ -84,14 +84,17 @@ const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
     projectRouter,
   ],
   [
-    "primitives",
+    "components",
     [
-      "primitives.contract",
-      "primitives.list",
-      "primitives.tokens",
+      "components.contract",
+      "components.copy",
+      "components.examples",
+      "components.list",
+      "components.reads",
+      "components.tokens",
     ],
-    primitivesContract,
-    primitivesRouter,
+    componentsContract,
+    componentsRouter,
   ],
   [
     "preset",
@@ -223,10 +226,11 @@ test("analyze reports broken JSON as an error", async () => {
 test("the catalog reflects the theme it is given", async () => {
   const { server, client } = serve();
   try {
-    // The scaffold is roles without scales, so a scale-driven family has
-    // nothing to resolve and reports empty. That is the contract: the catalog
+    // Roles without scales, so a scale-driven family has nothing to
+    // resolve and reports empty. That is the contract: the catalog
     // describes the theme in hand, not the vocabulary in general.
-    const bare = await client.preset.catalog({ text: treeToJson(scaffold()) });
+    const bareTree = scaffoldTheme(BASE_ROLES.map((role) => role.path));
+    const bare = await client.preset.catalog({ text: treeToJson(bareTree) });
     deepStrictEqual(bare.error, null);
     const bareIds = bare.sections.map((section) => section.id);
     assert(
@@ -242,7 +246,7 @@ test("the catalog reflects the theme it is given", async () => {
 
     // One spacing step is all it takes for the family to populate. The
     // catalog reads the document it is handed, so the step has to be in it.
-    const base = JSON.parse(treeToJson(scaffold())) as Record<string, unknown>;
+    const base = JSON.parse(treeToJson(bareTree)) as Record<string, unknown>;
     const withScale = await client.preset.catalog({
       text: JSON.stringify({
         ...base,

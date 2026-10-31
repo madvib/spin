@@ -157,8 +157,20 @@ export function tierInPlace(
   element: ReadonlyMap<string, string>,
 ): Tier {
   if (tier !== "layout") return tier;
-  const typed = [...element.keys()].some((property) => isSpacing(property));
-  if (!typed) return tier;
-  const spacing = properties.some((property) => isSpacing(property));
-  return spacing ? "spacing" : tier;
+  // The family has to correspond: a padding the theme states makes a padding
+  // a decision, not a margin — the theme typing the element's inside says
+  // nothing about its outside. `mb-2` on a `<button>` that claims padding
+  // stays layout, the author's own.
+  const elementPads = [...element.keys()].some((property) =>
+    property.startsWith("padding")
+  );
+  const elementMargins = [...element.keys()].some((property) =>
+    property.startsWith("margin")
+  );
+  const pads = properties.some((property) => property.startsWith("padding"));
+  const margins = properties.some((property) =>
+    property.startsWith("margin")
+  );
+  if ((pads && elementPads) || (margins && elementMargins)) return "spacing";
+  return tier;
 }

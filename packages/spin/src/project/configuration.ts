@@ -50,13 +50,41 @@ export function configurationIn(
   text: string,
   file: string | null,
 ): ProjectConfiguration {
+  const source = withoutComments(text);
   const shortcuts = shortcutsIn(text);
   const content = contentIn(text);
+  const themesDirValue = propertyValue(source, "themesDir");
+  const componentsDirValue = propertyValue(source, "componentsDir");
+  const prefixValue = propertyValue(source, "prefix");
+  const themesDirRaw = themesDirValue?.text.trim();
+  const themesDir = themesDirValue === undefined || themesDirRaw === undefined
+    ? "spin"
+    : (themesDirRaw.startsWith('"') && themesDirRaw.endsWith('"')) ||
+        (themesDirRaw.startsWith("'") && themesDirRaw.endsWith("'"))
+      ? themesDirRaw.slice(1, -1)
+      : "spin";
+  const componentsDirRaw = componentsDirValue?.text.trim();
+  const componentsDir = componentsDirValue === undefined || componentsDirRaw === undefined
+    ? "lib/components"
+    : (componentsDirRaw.startsWith('"') && componentsDirRaw.endsWith('"')) ||
+        (componentsDirRaw.startsWith("'") && componentsDirRaw.endsWith("'"))
+      ? componentsDirRaw.slice(1, -1)
+      : "lib/components";
+  let prefix: string | null = null;
+  if (prefixValue !== undefined) {
+    const prefixRaw = prefixValue.text.trim();
+    if (prefixRaw === "null") prefix = null;
+    else if (prefixRaw.startsWith('"') && prefixRaw.endsWith('"')) prefix = prefixRaw.slice(1, -1);
+    else if (prefixRaw.startsWith("'") && prefixRaw.endsWith("'")) prefix = prefixRaw.slice(1, -1);
+  }
   return {
     file,
     shortcuts: shortcuts.shortcuts,
     content: content.globs,
     mount: mountIn(text),
+    themesDir,
+    componentsDir,
+    prefix,
     unreadable: shortcuts.unreadable || content.unreadable,
   };
 }
@@ -371,20 +399,20 @@ function arrayEntries(array: string): string[] {
   while (i < array.length) {
     const ch = array[i] as string;
     if (ch === "]") break;
-    if (ch === ",") {
+    if (ch === "," || isSpace(ch)) {
       i += 1;
       continue;
     }
     if (ch === '"' || ch === "'" || ch === "`") {
       const end = stringEnd(array, i);
       out.push(array.slice(i, end));
-      i = end;
+      i = Math.max(end, i + 1);
       continue;
     }
     const end = expressionEnd(array, i, array.length);
     const text = array.slice(i, end).trim();
     if (text !== "") out.push(text);
-    i = end;
+    i = Math.max(end, i + 1);
   }
   return out;
 }

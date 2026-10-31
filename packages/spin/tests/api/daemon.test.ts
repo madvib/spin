@@ -165,16 +165,16 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(empty.spin, false, "a root without spin is not a project");
     deepStrictEqual(empty.themes, []);
 
-    writeFileSync(join(bare, "uno.config.ts"), "export default []");
+    writeFileSync(join(bare, "vite.config.ts"), "export default []");
     const noPlugin = await client.project.detect({ root: bare });
     deepStrictEqual(noPlugin.uno, true);
-    deepStrictEqual(noPlugin.wired, false, "an uno config without the preset");
+    deepStrictEqual(noPlugin.wired, false, "a build config without the preset");
     writeFileSync(
-      join(bare, "uno.config.ts"),
-      'import { spinPreset } from "../../src/preset/index.ts";',
+      join(bare, "vite.config.ts"),
+      'import { spin } from "@spinjs/spin";\nspin.vite();',
     );
     const wired = await client.project.detect({ root: bare });
-    deepStrictEqual(wired.wired, true, "an uno config naming the preset");
+    deepStrictEqual(wired.wired, true, "a build config naming the plugin");
     rmSync(bare, { recursive: true, force: true });
   });
 
@@ -237,18 +237,18 @@ describe("daemon project.themes over HTTP", () => {
     // And the build config, which is the other half of a project: the daemon
     // composes theme's document with the preset's config because it is the
     // only thing that knows a project needs both.
-    deepStrictEqual(detect.uno, true, "init wrote an uno config");
+    deepStrictEqual(detect.uno, true, "init wrote a build config");
     deepStrictEqual(detect.wired, true, "and that config wires the preset");
-    const config = readFileSync(join(fresh, "uno.config.ts"), "utf8");
+    const config = readFileSync(join(fresh, "vite.config.ts"), "utf8");
     deepStrictEqual(
-      config.includes('"@spinjs/config"'),
+      config.includes('"@spinjs/spin"'),
       true,
-      "it applies the encapsulated form",
+      "it applies the spin plugin",
     );
     deepStrictEqual(
-      config.includes("spin()"),
+      config.includes("spin.vite()"),
       true,
-      "with the spin config, not raw uno",
+      "with the vite stage, not raw uno",
     );
     const listed = await client.project.themes.list({ root: fresh });
     deepStrictEqual(

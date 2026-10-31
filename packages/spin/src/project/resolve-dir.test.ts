@@ -1,0 +1,72 @@
+import { test } from "bun:test";
+import { deepStrictEqual } from "node:assert/strict";
+import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { resolveProjectDir } from "./resolve-dir.ts";
+
+/**
+ * A project's directories, where they live.
+ *
+ * The configuration names a local path or a package specifier; what the
+ * readers need is a filesystem path. These are the rules that turn one
+ * into the other.
+ */
+
+/** A root with a fixture package beneath it. */
+async function fixture(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "spin-resolve-"));
+  await mkdir(join(root, "node_modules/@acme/kit/themes"), { recursive: true });
+  await writeFile(join(root, "package.json"), JSON.stringify({ name: "probe" }));
+  await writeFile(
+    join(root, "node_modules/@acme/kit/package.json"),
+    JSON.stringify({ name: "@acme/kit" }),
+  );
+  await writeFile(join(root, "node_modules/@acme/kit/themes/acme.json"), "{}");
+  await writeFile(join(root, "node_modules/@acme/kit/theme.json"), "{}");
+  return root;
+}
+
+test("a local path joins the root", async () => {
+  const root = await fixture();
+  deepStrictEqual(await resolveProjectDir(root, "spin", "themes"), {
+    path: join(root, "spin"),
+    file: false,
+  });
+  deepStrictEqual(
+    await resolveProjectDir(root, "lib/components", "components"),
+    { path: join(root, "lib/components"), file: false },
+  );
+});
+
+test("a specifier naming a directory resolves beneath the package", async () => {
+  const root = await fixture();
+  deepStrictEqual(
+    await resolveProjectDir(root, "@acme/kit/themes", "themes"),
+    { path: join(root, "node_modules/@acme/kit/themes"), file: false },
+  );
+});
+
+test("a specifier naming a file resolves to the file", async () => {
+  const root = await fixture();
+  deepStrictEqual(
+    await resolveProjectDir(root, "@acme/kit/theme.json", "themes"),
+    { path: join(root, "node_modules/@acme/kit/theme.json"), file: true },
+  );
+});
+
+test("an unresolvable specifier names kind, value, and root", async () => {
+  const root = await fixture();
+  let message = "";
+  try {
+    await resolveProjectDir(root, "@acme/missing/deep", "themes");
+  } catch (error) {
+    message = error instanceof Error ? error.message : "";
+  }
+  deepStrictEqual(
+    message.startsWith(
+      `[spin] cannot resolve themes '@acme/missing/deep' from ${root}: `,
+    ),
+    true,
+  );
+});

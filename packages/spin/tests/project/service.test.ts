@@ -19,6 +19,7 @@ import {
   initProject,
   isWired,
   listThemes,
+  readConfiguration,
   readTheme,
   removeTheme,
   writeTheme,
@@ -42,8 +43,8 @@ test("a root with themes and a wired config is a spin project", async () => {
   await mkdir(join(dir, "spin"));
   await writeFile(join(dir, "spin", "acme.json"), "{}", "utf8");
   await writeFile(
-    join(dir, "uno.config.ts"),
-    'import { spin } from "@spinjs/config";',
+    join(dir, "vite.config.ts"),
+    'import { spin } from "@spinjs/spin";\nspin.vite();',
     "utf8",
   );
 
@@ -67,8 +68,8 @@ test("a config that does not name spin is not wired", async () => {
   const dir = await root();
   await mkdir(join(dir, "spin"));
   await writeFile(
-    join(dir, "uno.config.ts"),
-    'import { defineConfig } from "unocss";',
+    join(dir, "vite.config.ts"),
+    'import { defineConfig } from "vite";',
     "utf8",
   );
 
@@ -95,8 +96,9 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
 
   // The config it wrote is one that applies spin — that is what "wired"
   // means, and the init test is where it is proven.
-  const config = await readFile(join(dir, "uno.config.ts"), "utf8");
+  const config = await readFile(join(dir, "vite.config.ts"), "utf8");
   deepStrictEqual(isWired(config), true);
+  deepStrictEqual(config.includes("spin.vite()"), true);
 });
 
 test("init refuses a root it cannot make a project in", async () => {
@@ -272,4 +274,69 @@ test("a root that is not there holds no themes of its own", async () => {
   );
   const report = await detectProject(dir);
   deepStrictEqual(report.spin, false);
+});
+
+test("init codemods an existing unwired vite.config.ts in place", async () => {
+  const dir = await root();
+  await writeFile(
+    join(dir, "vite.config.ts"),
+    'import { defineConfig } from "vite";\nimport solid from "vite-plugin-solid";\n\nexport default defineConfig({\n  plugins: [solid()],\n});\n',
+    "utf8",
+  );
+
+  const made = await initProject({
+    root: dir,
+    name: "acme",
+    starter: "silk",
+  });
+  deepStrictEqual(made.error, null);
+
+  const config = await readFile(join(dir, "vite.config.ts"), "utf8");
+  deepStrictEqual(isWired(config), true);
+  deepStrictEqual(config.includes("solid()"), true);
+  deepStrictEqual(config.includes("spin()"), true);
+});
+
+test("init codemods an existing vite.config.js without a plugins array in place", async () => {
+  const dir = await root();
+  await writeFile(
+    join(dir, "vite.config.js"),
+    'import { defineConfig } from "vite";\n\nexport default defineConfig({\n  server: { port: 3000 },\n});\n',
+    "utf8",
+  );
+
+  const made = await initProject({
+    root: dir,
+    name: "acme",
+    starter: "silk",
+  });
+  deepStrictEqual(made.error, null);
+
+  const config = await readFile(join(dir, "vite.config.js"), "utf8");
+  deepStrictEqual(isWired(config), true);
+  deepStrictEqual(config.includes("server: { port: 3000 }"), true);
+  deepStrictEqual((await detectProject(dir)).wired, true);
+});
+
+test("init and configuration respect custom themesDir, componentsDir, and prefix", async () => {
+  const dir = await root();
+
+  const made = await initProject({
+    root: dir,
+    name: "acme",
+    starter: "silk",
+    themesDir: "design/themes",
+    componentsDir: "src/ui",
+    prefix: "coffee",
+  });
+  deepStrictEqual(made.error, null);
+
+  const cfg = await readConfiguration(dir);
+  deepStrictEqual(cfg.themesDir, "design/themes");
+  deepStrictEqual(cfg.componentsDir, "src/ui");
+  deepStrictEqual(cfg.prefix, "coffee");
+
+  const report = await detectProject(dir);
+  deepStrictEqual(report.spin, true);
+  deepStrictEqual(report.themes, ["acme.json"]);
 });

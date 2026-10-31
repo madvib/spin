@@ -86,18 +86,11 @@ test("a variant that clears the fill leaves the ink to the author", () => {
   deepStrictEqual(override("button", "bare text-text-muted"), []);
 });
 
-test("the size a variant did not claim is still the theme's", () => {
-  // The bare button says nothing about its size, so the base's size stands
-  // and a class that changes it is a second opinion about the theme's.
-  const [finding] = override("button", "bare text-lg");
-  deepStrictEqual(finding?.messageId, "override");
-  deepStrictEqual(finding?.data, {
-    tag: "button",
-    cls: "text-lg",
-    family: "typography",
-    claim: "the theme sets the size of `<button>`",
-    remedy: "Use the theme's value.",
-  });
+test("the size on an opted-out element is the author's own", () => {
+  // The bare button opts out of the button's paint to style itself with
+  // utilities: a size there is the author's own decision, not a second
+  // opinion about the theme's. Dropping the class would change the page.
+  deepStrictEqual(override("button", "bare text-lg"), []);
 });
 
 test("a class the variant cleared is not dead weight", () => {

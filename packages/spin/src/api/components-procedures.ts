@@ -1,17 +1,72 @@
 /**
- * Implements {@link componentsContract}. Discovery is the filesystem:
- * each machine ships `examples/*.html` beside it (file stem = variant
- * name), so the directory listing IS the list — no index, no map.
+ * Implements {@link componentsContract}. Primitives are in-memory data from
+ * the manifest; machines are discovered on the filesystem — each ships
+ * `examples/*.html` beside it (file stem = variant name), so the directory
+ * listing IS the list.
  */
 
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 import { implement } from "@orpc/server";
-
+import {
+  primitiveComponents,
+  primitiveReadsByGroup,
+} from "../preset/rules/primitives/manifest.ts";
+import { componentExamples } from "../preset/rules/primitives/examples-index.ts";
+import { EXAMPLE_ONLOAD } from "../kit/mount-glue.ts";
 import { componentsContract } from "./components-contract.ts";
+import { prefixOf, readConfiguration } from "../project/index.ts";
+import { tagForProjectFile } from "../preset/components-compiler.ts";
+import { rootFor } from "./project-procedures.ts";
 import * as catalog from "@spinjs/components";
 
 export { componentsContract };
 
-const HERE = new URL("../../../components/src/", import.meta.url);
+/**
+ * Every primitive a reader can browse: the ones that ship examples.
+ *
+ * The manifest is not that set. It also holds `a11y`, a utility family, and
+ * `field`, the contract input/textarea share — neither is something a
+ * gallery card can open. And it misses the components whose examples are
+ * authored beside rules it does not name at all. The gallery is therefore
+ * driven by what has something to show, and the manifest's tags, variants and
+ * reads ride along wherever it models the same name.
+ */
+export function listedPrimitives(): {
+  name: string;
+  tags: string[];
+  variants: string[];
+  reads: string[];
+  examples?: {
+    onLoad?: string;
+    note: string;
+    classes?: { name: string; kind: string; description: string }[];
+    rows: { name: string; html: string }[];
+  };
+}[] {
+  return Object.values(componentExamples).map((examples) => {
+    const component = primitiveComponents[examples.id];
+    return {
+      name: examples.id,
+      tags: [...(component?.tags ?? [])],
+      variants: [...(component?.variants ?? [])],
+      reads: [...(component?.reads ?? [])],
+      examples: {
+        ...(examples.onLoad !== undefined ? { onLoad: examples.onLoad } : {}),
+        ...(examples.classes !== undefined
+          ? { classes: [...examples.classes] }
+          : {}),
+        note: examples.note,
+        rows: [...examples.rows],
+      },
+    };
+  });
+}
+
+const HERE = new URL(
+  ".",
+  pathToFileURL(createRequire(import.meta.url).resolve("@spinjs/components")),
+);
 
 /** `spin-tree-view` → `tree-view`: the directory prefix is packaging. */
 const machineOf = (dir: string): string =>
@@ -22,10 +77,13 @@ const titleOf = (stem: string): string =>
     word.length === 0 ? word : word[0]?.toUpperCase() + word.slice(1)
   ).join(" ");
 
-interface ExampleRow {
+interface MachineExampleRow {
   readonly name: string;
   readonly title: string;
   readonly html: string;
+  readonly mountHtml: string;
+  readonly stem: string;
+  readonly onLoad?: string;
 }
 
 const readDir = async (dir: URL): Promise<string[]> => {
@@ -60,23 +118,52 @@ const discover = async (): Promise<Map<string, string[]>> => {
   return found;
 };
 
-const readExample = async (
+const readExampleFile = async (
   machine: string,
   example: string,
-): Promise<ExampleRow | null> => {
+): Promise<{ name: string; title: string; html: string } | null> => {
   if (
     example.includes("/") || example.includes("\\") || machine.includes("/")
   ) return null;
   try {
     const { readFile } = await import("node:fs/promises");
-    const html = await readFile(
+    let html = await readFile(
       new URL(`./${machine}/examples/${example}.html`, HERE),
       "utf8",
     );
+    for (let pass = 0; pass < 8; pass += 1) {
+      const m = /<include\s+file="([^"]+)"\s*\/?>/.exec(html);
+      if (m === null) break;
+      const target = m[1]!.replace(/^\.\//, "");
+      if (target.includes("/") || target.includes("\\")) break;
+      const included = await readFile(
+        new URL(`./${machine}/examples/${target}`, HERE),
+        "utf8",
+      );
+      const body = included.replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/, "");
+      html = html.replace(m[0], body);
+    }
     return { name: example, title: titleOf(example), html };
   } catch {
     return null;
   }
+};
+
+const machineRow = async (
+  machine: string,
+  stem: string,
+): Promise<MachineExampleRow | null> => {
+  const row = await readExampleFile(machine, stem);
+  if (row === null) return null;
+  const onLoad = EXAMPLE_ONLOAD[`${machine}/${stem}`];
+  return {
+    name: row.title,
+    title: row.title,
+    html: row.html,
+    mountHtml: `<${machine}-${stem} class="flex w-full min-w-0 flex-col items-center"></${machine}-${stem}>`,
+    stem,
+    ...(onLoad !== undefined ? { onLoad } : {}),
+  };
 };
 
 const rewriteExampleImports = (html: string): string =>
@@ -143,65 +230,17 @@ const manifestOf = (name: string): ComponentManifest => {
   return EMPTY_MANIFEST;
 };
 
-const os = implement(componentsContract);
+const readsCache = new Map<string, string[]>();
 
-const list = os.components.list.handler(async () => {
+const machineReads = async (name: string): Promise<string[]> => {
+  const cached = readsCache.get(name);
+  if (cached !== undefined) return [...cached];
   const found = await discover();
-  return [...found.entries()].map(([name, examples]) => ({
-    name,
-    examples,
-    manifest: manifestOf(name),
-  }));
-});
-
-const examples = os.components.examples.handler(async ({ input }) => {
-  const found = await discover();
-  const stems = found.get(input.name) ?? [];
-  const rows: ExampleRow[] = [];
-  for (const stem of stems) {
-    const row = await readExample(input.name, stem);
-    if (row !== null) rows.push(row);
-  }
-  return { examples: rows };
-});
-
-const copy = os.components.copy.handler(async ({ input }) => {
-  const found = await readExample(input.name, input.example);
-  if (found === null) {
-    return {
-      file: null,
-      error: `Unknown example: ${input.name}/${input.example}`,
-    };
-  }
-  try {
-    const { mkdir, writeFile } = await import("node:fs/promises");
-    const { join } = await import("node:path");
-    // The caller's project, or the daemon's own — one process serves many
-    // projects, so the root rides the call the way project.* carries it.
-    const root = input.root ?? ".";
-    const file = join("spin", input.name, `${input.example}.html`);
-    await mkdir(join(root, "spin", input.name), { recursive: true });
-    await writeFile(
-      join(root, file),
-      rewriteExampleImports(found.html),
-      "utf8",
-    );
-    return { file, error: null };
-  } catch (err) {
-    return {
-      file: null,
-      error: err instanceof Error ? err.message : String(err),
-    };
-  }
-});
-
-const reads = os.components.reads.handler(async ({ input }) => {
-  const found = await discover();
-  const stems = found.get(input.name) ?? [];
+  const stems = found.get(name) ?? [];
   const classes = new Set<string>();
   const { classTokens, parse } = await import("@spinjs/runtime");
   for (const stem of stems) {
-    const row = await readExample(input.name, stem);
+    const row = await readExampleFile(name, stem);
     if (row === null) continue;
     // The script and scope blocks are machine wiring, not markup: the
     // classes the component spends are the markup's. Same strip the
@@ -209,10 +248,12 @@ const reads = os.components.reads.handler(async ({ input }) => {
     const stripped = row.html
       .replace(/<!--[\s\S]*?-->/g, "")
       .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
-      .replace(/<scope>[\s\S]*?<\/scope>\s*/g, "");
     for (const token of classTokens(parse(stripped))) classes.add(token);
   }
-  if (classes.size === 0) return { reads: [] };
+  if (classes.size === 0) {
+    readsCache.set(name, []);
+    return [];
+  }
   const { createGenerator } = await import("@unocss/core");
   const { spinPreset } = await import("../preset/index.ts");
   const { starterThemes } = await import("../theme/themes/index.ts");
@@ -224,12 +265,245 @@ const reads = os.components.reads.handler(async ({ input }) => {
   for (const match of css.matchAll(/var\(\s*(--[^,)]+)/g)) {
     vars.add(match[1]!);
   }
-  return { reads: [...vars].sort() };
+  const reads = [...vars].sort();
+  readsCache.set(name, reads);
+  return reads;
+};
+
+/** `component-` / `spin-` prefixes are caller shorthand, never storage. */
+const bareName = (name: string): string =>
+  name.replace(/^(?:component-|spin-)/, "");
+
+/**
+ * The moniker a machine's tag carries: the served project's own, or a
+ * wildcard when the call is about no project (or one that names nothing).
+ * A tag is where a component lands in a user's document, so it carries
+ * their moniker — never the catalog's.
+ */
+const tagMoniker = async (input: Record<string, unknown>): Promise<string> => {
+  try {
+    return (await prefixOf(rootFor(input))) ?? "*";
+  } catch {
+    return "*";
+  }
+};
+
+const os = implement(componentsContract);
+
+const list = os.components.list.handler(async ({ input }) => {
+  const moniker = await tagMoniker(input);
+  const primitives = listedPrimitives().map((entry) => ({
+    kind: "primitive" as const,
+    name: entry.name,
+    tags: entry.tags,
+    variants: entry.variants,
+    reads: entry.reads,
+    ...(entry.examples !== undefined ? { examples: entry.examples } : {}),
+  }));
+  const found = await discover();
+  const machines = await Promise.all(
+    [...found.entries()].map(async ([name, stems]) => {
+      const reads = await machineReads(name);
+      const rows: MachineExampleRow[] = [];
+      for (const stem of stems) {
+        const row = await machineRow(name, stem);
+        if (row !== null) rows.push(row);
+      }
+      return {
+        kind: "machine" as const,
+        name,
+        tags: [`${moniker}-${name}`],
+        variants: [...stems],
+        reads,
+        manifest: manifestOf(name),
+        examples: {
+          note:
+            "Interactive machine component. Requires the runtime (@spinjs/runtime).",
+          rows,
+        },
+      };
+    }),
+  );
+  return [...primitives, ...machines];
+});
+
+const contract = os.components.contract.handler(async ({ input }) => {
+  const name = bareName(input.name);
+  const primitive = primitiveComponents[name] ?? primitiveComponents[input.name];
+  if (primitive !== undefined) {
+    const examples = componentExamples[primitive.name];
+    return {
+      kind: "primitive" as const,
+      name: primitive.name,
+      tags: [...primitive.tags],
+      variants: [...primitive.variants],
+      reads: [...primitive.reads],
+      component: [...primitive.component],
+      ...(examples !== undefined
+        ? {
+          examples: {
+            ...(examples.onLoad !== undefined
+              ? { onLoad: examples.onLoad }
+              : {}),
+            ...(examples.classes !== undefined
+              ? { classes: [...examples.classes] }
+              : {}),
+            note: examples.note,
+            rows: [...examples.rows],
+          },
+        }
+        : {}),
+    };
+  }
+  const found = await discover();
+  const stems = found.get(name);
+  if (stems === undefined) return { error: `Unknown component: ${input.name}` };
+  const reads = await machineReads(name);
+  const moniker = await tagMoniker(input);
+  const rows: MachineExampleRow[] = [];
+  for (const stem of stems) {
+    const row = await machineRow(name, stem);
+    if (row !== null) rows.push(row);
+  }
+  return {
+    kind: "machine" as const,
+    name,
+    tags: [`${moniker}-${name}`],
+    variants: [...stems],
+    reads,
+    manifest: manifestOf(name),
+    examples: {
+      note:
+        "Interactive machine component. Requires the runtime (@spinjs/runtime).",
+      rows,
+    },
+  };
+});
+
+const tokens = os.components.tokens.handler(async ({ input }) => {
+  const all = primitiveReadsByGroup();
+  const merged: Record<string, Set<string>> = {};
+  for (const [group, names] of Object.entries(all)) {
+    merged[group] = new Set(names);
+  }
+  if (input.name === undefined) {
+    const found = await discover();
+    for (const name of found.keys()) {
+      for (const read of await machineReads(name)) {
+        const group = read.slice("--".length).split("-")[0] ?? read;
+        (merged[group] ??= new Set()).add(read);
+      }
+    }
+    return {
+      reads: Object.fromEntries(
+        Object.entries(merged).map(([group, names]) => [group, [...names]]),
+      ),
+    };
+  }
+  const name = bareName(input.name);
+  const primitive = primitiveComponents[name] ??
+    primitiveComponents[input.name];
+  if (primitive !== undefined) {
+    const wanted: ReadonlySet<string> = new Set(primitive.reads);
+    const filtered: Record<string, string[]> = {};
+    for (const [group, names] of Object.entries(all)) {
+      const matching = names.filter((token) => wanted.has(token));
+      if (matching.length > 0) filtered[group] = matching;
+    }
+    return { reads: filtered };
+  }
+  const reads = await machineReads(name);
+  const grouped: Record<string, string[]> = {};
+  for (const read of reads) {
+    const group = read.slice("--".length).split("-")[0] ?? read;
+    (grouped[group] ??= []).push(read);
+  }
+  return { reads: grouped };
+});
+
+const examples = os.components.examples.handler(async ({ input }) => {
+  const name = bareName(input.name);
+  const found = await discover();
+  const stems = found.get(name) ?? [];
+  const rows: MachineExampleRow[] = [];
+  for (const stem of stems) {
+    const row = await machineRow(name, stem);
+    if (row !== null) rows.push(row);
+  }
+  return { examples: rows };
+});
+
+const copy = os.components.copy.handler(async ({ input }) => {
+  const name = bareName(input.name);
+  const found = await readExampleFile(name, input.example);
+  if (found === null) {
+    return {
+      file: null,
+      tag: null,
+      error: `Unknown example: ${input.name}/${input.example}`,
+    };
+  }
+  try {
+    const { mkdir, writeFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const { resolveProjectDir } = await import("../project/resolve-dir.ts");
+    const { COMPONENTS_DIR } = await import("../project/facts.ts");
+    // The caller's project, or the daemon's own — one process serves many
+    // projects, so the root rides the call the way project.* carries it.
+    const root = rootFor(input);
+    const config = await readConfiguration(root);
+    // Copying writes the project's own tree, never a shared package's:
+    // when the components resolve to a specifier, the copy lands in the
+    // local default and the answer says where it went.
+    const resolved = await resolveProjectDir(
+      root,
+      config.componentsDir,
+      "components",
+    );
+    const shared = resolved.path !== join(root, config.componentsDir);
+    const componentsDir = shared ? COMPONENTS_DIR : config.componentsDir;
+    const file = join(componentsDir, name, `${input.example}.html`);
+    await mkdir(join(root, componentsDir, name), { recursive: true });
+    await writeFile(
+      join(root, file),
+      rewriteExampleImports(found.html),
+      "utf8",
+    );
+    const moniker = (await prefixOf(root)) ?? "*";
+    const tag = tagForProjectFile(
+      join(root, file),
+      componentsDir,
+      moniker,
+    );
+    return {
+      file,
+      tag,
+      error: null,
+      ...(shared
+        ? {
+          note: `components resolve to '${config.componentsDir}'; wrote the local '${file}' instead`,
+        }
+        : {}),
+    };
+  } catch (err) {
+    return {
+      file: null,
+      tag: null,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+});
+
+const reads = os.components.reads.handler(async ({ input }) => {
+  const name = bareName(input.name);
+  return { reads: await machineReads(name) };
 });
 
 export const componentsRouter = os.router({
   components: {
     list,
+    contract,
+    tokens,
     examples,
     copy,
     reads,

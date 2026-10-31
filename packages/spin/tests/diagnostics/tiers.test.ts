@@ -67,7 +67,17 @@ test("the spacing on a typed element is the theme's", () => {
     ["margin-bottom", "var(--spacing-2)"],
   ]);
   deepStrictEqual(tierInPlace("layout", ["margin-bottom"], typed), "spacing");
-  deepStrictEqual(tierInPlace("layout", ["padding-left"], typed), "spacing");
+});
+
+test("a spacing family the theme did not state stays layout", () => {
+  // The theme typing the element's outside (margin) says nothing about its
+  // inside (padding): `px-4` on a `<button>` that claims padding is the
+  // author's own, and a spacing tier there would force every padded control
+  // to justify its padding against the theme.
+  const typed = new Map<string, string>([
+    ["margin-bottom", "var(--spacing-2)"],
+  ]);
+  deepStrictEqual(tierInPlace("layout", ["padding-left"], typed), "layout");
 });
 
 test("a tier that is not layout does not change where it is used", () => {

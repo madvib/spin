@@ -19,26 +19,34 @@
  */
 
 export {
+  COMPONENTS_DIR,
   CONFIG_FILENAME,
   CONFIG_FILES,
   ICONS_DIR,
   initFiles,
   isWired,
   PROJECT_DIR,
+  defaultPrefix,
 } from "./facts.ts";
 
 export {
   copyTheme,
   currentProject,
+  detectBundler,
   detectProject,
+  findExistingConfigFile,
   initProject,
   listThemes,
   projectService,
+  prefixOf,
   readConfiguration,
   readTheme,
   removeTheme,
   writeTheme,
 } from "./service.ts";
+
+export { resolveProjectDir } from "./resolve-dir.ts";
+export type { ResolvedDir } from "./resolve-dir.ts";
 
 export { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
 
@@ -54,6 +62,7 @@ export type {
 } from "./configuration.ts";
 
 export type {
+  BundlerKind,
   IconAttribution,
   InitProjectOptions,
   ProjectConfiguration,

@@ -199,10 +199,16 @@ function keyText(key: unknown): string {
 
 /** The cooked text of a template literal's static parts. */
 function expressionTemplateText(node: ExpressionNode): string {
-  return (node.quasis ?? [])
-    .map((quasi) => {
+  const quasis = node.quasis ?? [];
+  return quasis
+    .map((quasi, index) => {
       const cooked = quasi.value?.cooked;
-      return typeof cooked === "string" ? cooked : "";
+      if (typeof cooked !== "string") return "";
+      // A non-tail quasi ending in `-` is a prefix awaiting its suffix:
+      // `` `bg-${tone}` `` names no class until the tone arrives, and the
+      // `bg-` it leaves behind is a fragment, not a utility. Drop it.
+      if (index < quasis.length - 1 && cooked.endsWith("-")) return "";
+      return cooked;
     })
     .join(" ");
 }
@@ -284,14 +290,181 @@ function expressionTokens(node: unknown, out: string[]): void {
  * in the literals it holds — so those are read too.
  */
 function expressionClasses(node: GateNode): string[] {
+  return expressionBranches(node).all;
+}
+
+/**
+ * The classes a class attribute names, split into resting and conditional.
+ *
+ * Top-level strings and array elements are resting; object keys (unless
+ * guarded by a literal `true`) and ternary arms are each their own branch.
+ * The closed-vocabulary check reads `all`; the semantic checks read resting
+ * (conditional states are the `focus:`-style prefixes' JSX analogue —
+ * mutually exclusive with resting, never colliding with it).
+ */
+function expressionBranches(
+  node: GateNode,
+): { resting: string[]; conditional: string[][]; all: string[] } {
   const direct = attributeValue(node);
-  if (direct !== undefined) return classTokens(direct);
+  if (direct !== undefined) {
+    const resting = classTokens(direct);
+    return { resting, conditional: [], all: [...resting] };
+  }
   const holder = node.value as ExpressionNode | undefined;
-  if (holder === undefined || holder === null) return [];
-  if (holder.type !== "JSXExpressionContainer") return [];
-  const out: string[] = [];
-  expressionTokens(holder.expression, out);
-  return out;
+  if (holder === undefined || holder === null) {
+    return { resting: [], conditional: [], all: [] };
+  }
+  if (holder.type !== "JSXExpressionContainer") {
+    return { resting: [], conditional: [], all: [] };
+  }
+  const resting: string[] = [];
+  const conditional: string[][] = [];
+  collectExpressionBranches(holder.expression, resting, conditional, true);
+  const seen = new Set<string>();
+  const all: string[] = [];
+  for (const cls of [...resting, ...conditional.flat()]) {
+    if (seen.has(cls)) continue;
+    seen.add(cls);
+    all.push(cls);
+  }
+  return { resting, conditional, all };
+}
+
+/**
+ * A `class={...}` expression's branches.
+ *
+ * Structural, the way `expressionTokens` reads: string positions name
+ * resting classes, object keys and ternary arms name branches. `top` only
+ * decides whether a bare `{...}` unwraps (an attribute holding an object
+ * directly) — nested objects are always branches.
+ */
+function collectExpressionBranches(
+  node: unknown,
+  resting: string[],
+  conditional: string[][],
+  top: boolean,
+): void {
+  if (typeof node !== "object" || node === null) return;
+  const value = node as ExpressionNode;
+  switch (value.type) {
+    case "Literal": {
+      if (typeof value.value === "string") {
+        for (const cls of classTokens(value.value)) resting.push(cls);
+      }
+      return;
+    }
+    case "TemplateLiteral": {
+      for (const cls of classTokens(expressionTemplateText(value))) {
+        resting.push(cls);
+      }
+      return;
+    }
+    case "ArrayExpression": {
+      for (const element of value.elements ?? []) {
+        collectExpressionBranches(element, resting, conditional, false);
+      }
+      return;
+    }
+    case "ObjectExpression": {
+      if (top) {
+        for (const property of value.properties ?? []) {
+          collectExpressionBranches(property, resting, conditional, false);
+        }
+        return;
+      }
+      for (const property of value.properties ?? []) {
+        if (typeof property !== "object" || property === null) continue;
+        const prop = property as ExpressionNode;
+        if (prop.type === "SpreadElement") continue;
+        const branch: string[] = [];
+        collectExpressionInto(prop.key, branch);
+        if (branch.length === 0) continue;
+        if (
+          typeof prop.value === "object" && prop.value !== null &&
+          (prop.value as ExpressionNode).type === "Literal" &&
+          (prop.value as ExpressionNode).value === true
+        ) {
+          resting.push(...branch);
+        } else {
+          conditional.push(branch);
+        }
+      }
+      return;
+    }
+    case "Property": {
+      if (top) {
+        collectExpressionBranches(value.value, resting, conditional, false);
+        return;
+      }
+      const branch: string[] = [];
+      collectExpressionInto(value.key, branch);
+      if (branch.length > 0) conditional.push(branch);
+      return;
+    }
+    case "ConditionalExpression": {
+      for (const arm of [value.consequent, value.alternate]) {
+        const branch: string[] = [];
+        collectExpressionInto(arm, branch);
+        if (branch.length > 0) conditional.push(branch);
+      }
+      return;
+    }
+    case "LogicalExpression": {
+      collectExpressionBranches(value.left, resting, conditional, top);
+      collectExpressionBranches(value.right, resting, conditional, top);
+      return;
+    }
+    default:
+      return;
+  }
+}
+
+/** The classes an arm or value position names, without branch splitting. */
+function collectExpressionInto(node: unknown, out: string[]): void {
+  if (typeof node !== "object" || node === null) return;
+  const value = node as ExpressionNode;
+  switch (value.type) {
+    case "Literal": {
+      if (typeof value.value === "string") {
+        for (const cls of classTokens(value.value)) out.push(cls);
+      }
+      return;
+    }
+    case "TemplateLiteral": {
+      for (const cls of classTokens(expressionTemplateText(value))) {
+        out.push(cls);
+      }
+      return;
+    }
+    case "ArrayExpression": {
+      for (const element of value.elements ?? []) {
+        collectExpressionInto(element, out);
+      }
+      return;
+    }
+    case "ObjectExpression": {
+      for (const property of value.properties ?? []) {
+        collectExpressionInto(property, out);
+      }
+      return;
+    }
+    case "Property": {
+      collectExpressionInto(value.key, out);
+      return;
+    }
+    case "ConditionalExpression": {
+      collectExpressionInto(value.consequent, out);
+      collectExpressionInto(value.alternate, out);
+      return;
+    }
+    case "LogicalExpression": {
+      collectExpressionInto(value.left, out);
+      collectExpressionInto(value.right, out);
+      return;
+    }
+    default:
+      return;
+  }
 }
 
 /**
@@ -376,10 +549,12 @@ function positionOf(node: GateNode) {
 /** The classes of an element, as the core reads them. */
 function classFacts(node: GateNode) {
   const literal = literalOf(node);
-  const classes = expressionClasses(node);
+  const branches = expressionBranches(node);
   return {
     tag: tagOf(node),
-    classes,
+    classes: branches.all,
+    resting: branches.resting,
+    conditional: branches.conditional,
     // Where each class sits, so a finding that drops one can say which text
     // to remove. A linter that does not give offsets gets the finding
     // without the edit.
@@ -392,6 +567,13 @@ function classFacts(node: GateNode) {
     ancestors: ancestorsOf(node),
     position: positionOf(node),
   };
+}
+
+type FactsNode = ReturnType<typeof classFacts>;
+
+/** The core's view of an element wearing only its resting classes. */
+function restingFacts(node: FactsNode): FactsNode {
+  return { ...node, classes: node.resting };
 }
 
 /**
@@ -681,7 +863,7 @@ const noRedundantClass: GateRule = {
           node,
           checkNoRedundantClass(
             factsForFile(context.filename ?? ""),
-            classFacts(node),
+            restingFacts(classFacts(node)),
             options,
           ),
         );
@@ -727,7 +909,7 @@ const preferThemeValue: GateRule = {
           node,
           checkPreferThemeValue(
             factsForFile(context.filename ?? ""),
-            classFacts(node),
+            restingFacts(classFacts(node)),
             options,
           ),
         );
@@ -772,7 +954,7 @@ const preferElement: GateRule = {
           node,
           checkPreferElement(
             factsForFile(context.filename ?? ""),
-            classFacts(node),
+            restingFacts(classFacts(node)),
             options,
           ),
         );
@@ -904,14 +1086,19 @@ const noUnpairedInk: GateRule = {
     return {
       JSXAttribute(node) {
         if (!carriesClasses(node)) return;
-        report(
-          context,
-          node,
-          checkNoUnpairedInk(
-            factsForFile(context.filename ?? ""),
-            classFacts(node),
-          ),
-        );
+        const facts = factsForFile(context.filename ?? "");
+        const seen = new Set<string>();
+        const base = classFacts(node);
+        const resting = restingFacts(base);
+        for (const branch of [resting.classes, ...base.conditional]) {
+          const probe = { ...resting, classes: branch };
+          for (const finding of checkNoUnpairedInk(facts, probe)) {
+            const key = `${finding.messageId}:${JSON.stringify(finding.data)}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            report(context, node, [finding]);
+          }
+        }
       },
     };
   },

@@ -162,6 +162,21 @@ export const initProject = oc
         v.string(),
         v.description("The starter to seed the theme from."),
       ),
+      bundler: v.optional(
+        v.picklist([
+          "vite",
+          "rspack",
+          "webpack",
+          "rollup",
+          "rolldown",
+          "esbuild",
+          "bun",
+          "unocss",
+        ]),
+      ),
+      themesDir: v.optional(v.string()),
+      componentsDir: v.optional(v.string()),
+      prefix: v.optional(v.string()),
     }),
   )
   .output(v.object({ error: v.nullable(v.string()) }))

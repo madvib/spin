@@ -17,6 +17,8 @@
  */
 
 import { ICONS_DIR, PROJECT_DIR } from "./facts.ts";
+import { CONFIG_FILES } from "./facts.ts";
+import { configurationIn } from "./configuration.ts";
 import type {
   IconAttribution,
   ProjectIcon,
@@ -36,8 +38,27 @@ const NAME = /^[a-z0-9][a-z0-9-]*$/i;
 
 /** The directory one project's icons live in. */
 async function dirOf(root: string): Promise<string> {
+  const { readFile } = await import("node:fs/promises");
+  const { existsSync } = await import("node:fs");
   const { join } = await import("node:path");
-  return join(root, PROJECT_DIR, ICONS_DIR);
+  const { resolveProjectDir } = await import("./resolve-dir.ts");
+  let themesDir = PROJECT_DIR;
+  const file = CONFIG_FILES.find((name) => existsSync(join(root, name)));
+  if (file !== undefined) {
+    try {
+      const text = await readFile(join(root, file), "utf8");
+      themesDir = configurationIn(text, file).themesDir || PROJECT_DIR;
+    } catch {
+      // Fall back to the default themes directory.
+    }
+  }
+  // Icons are always the project's own: a shared themes tree is read, not
+  // written beside — a specifier resolves for the read path, but the icons
+  // directory stays local either way.
+  const resolved = await resolveProjectDir(root, themesDir, "themes");
+  return resolved.file
+    ? join(root, PROJECT_DIR, ICONS_DIR)
+    : join(resolved.path, ICONS_DIR);
 }
 
 /** The file one icon is written to. */

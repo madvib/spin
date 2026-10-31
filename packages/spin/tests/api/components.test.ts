@@ -28,15 +28,52 @@ describe("daemon components over HTTP", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("lists machines with their example names and manifests", async () => {
+  it("lists machines with their variant names and manifests", async () => {
     const listed = await client.components.list({});
     const tree = listed.find((c) => c.name === "tree-view");
     assert(tree !== undefined, "tree-view is listed");
-    deepStrictEqual(tree.examples, ["basic", "loading"]);
+    assert(tree.kind === "machine", "tree-view is a machine");
+    if (tree.kind !== "machine") return;
+    deepStrictEqual(tree.variants, ["basic", "loading"]);
     assert(tree.manifest.parts.includes("root"), "the manifest names parts");
     assert(tree.manifest.slots.includes("item"), "and slots");
     assert(tree.manifest.readers.length > 0, "and readers");
     assert(tree.manifest.methods.length > 0, "and methods");
+  });
+
+  it("wildcards the tag when the served root names no moniker", async () => {
+    const listed = await client.components.list({});
+    const tree = listed.find((c) => c.name === "tree-view");
+    assert(tree !== undefined && tree.kind === "machine");
+    if (tree.kind !== "machine") return;
+    deepStrictEqual(
+      tree.tags,
+      ["*-tree-view"],
+      "a nameless root gets a wildcard, never an invented prefix",
+    );
+  });
+
+  it("carries the served project's moniker in the tag", async () => {
+    const { writeFileSync, rmSync } = await import("node:fs");
+    const manifest = join(dir, "package.json");
+    writeFileSync(
+      manifest,
+      JSON.stringify({ name: "@acme/shopfront" }),
+      "utf8",
+    );
+    try {
+      const listed = await client.components.list({});
+      const tree = listed.find((c) => c.name === "tree-view");
+      assert(tree !== undefined && tree.kind === "machine");
+      if (tree.kind !== "machine") return;
+      deepStrictEqual(
+        tree.tags,
+        ["shopfront-tree-view"],
+        "the tag carries the project's own moniker",
+      );
+    } finally {
+      rmSync(manifest, { force: true });
+    }
   });
 
   it("serves a machine's variants with copy-ready markup", async () => {
@@ -44,12 +81,27 @@ describe("daemon components over HTTP", () => {
       name: "tree-view",
     });
     deepStrictEqual(examples.length, 2);
-    const basic = examples.find((v) => v.name === "basic");
+    const basic = examples.find((v) => v.stem === "basic");
     assert(basic !== undefined);
     assert(
       basic.html.includes("getBranchControlProps"),
       "the markup names the element",
     );
+  });
+
+  it("serves a machine contract with its tag and reads", async () => {
+    const result = await client.components.contract({ name: "tree-view" });
+    assert(!("error" in result), "tree-view resolves");
+    if ("error" in result) return;
+    assert(result.kind === "machine", "tree-view is a machine");
+    if (result.kind !== "machine") return;
+    deepStrictEqual(
+      result.tags,
+      ["*-tree-view"],
+      "the contract carries the wildcard tag for a nameless root",
+    );
+    assert(result.reads.length > 0, "the contract names the custom properties");
+    deepStrictEqual(result.variants, ["basic", "loading"]);
   });
 
   it("copies a variant into the project at its known location", async () => {
@@ -59,8 +111,9 @@ describe("daemon components over HTTP", () => {
       root: dir,
     });
     deepStrictEqual(copied.error, null);
-    deepStrictEqual(copied.file, join("spin", "tree-view", "basic.html"));
-    const written = join(dir, "spin", "tree-view", "basic.html");
+    deepStrictEqual(copied.file, join("lib", "components", "tree-view", "basic.html"));
+    deepStrictEqual(copied.tag, "*-tree-view-basic", "the copy names its wildcard tag for a nameless root");
+    const written = join(dir, "lib", "components", "tree-view", "basic.html");
     assert(existsSync(written), "the file lands in the project");
     assert(
       readFileSync(written, "utf8").includes('from "@spinjs/components"'),

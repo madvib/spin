@@ -338,39 +338,32 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     },
     async ({ action, name, example, root }) => {
       if (action === "list") {
-        const primitives = await client.primitives.list({});
-        const machines = await client.components.list({});
-        return json([
-          ...primitives.map((entry) => ({
+        const listed = await client.components.list({});
+        return json(
+          listed.map((entry) => ({
             name: entry.name,
-            kind: "primitive" as const,
+            kind: entry.kind,
             tags: entry.tags,
             variants: entry.variants,
             reads: entry.reads,
+            ...(entry.kind === "machine"
+              ? { examples: entry.examples.rows.map((row) => row.stem), manifest: entry.manifest }
+              : {}),
           })),
-          ...machines.map((entry) => ({
-            name: entry.name,
-            kind: "machine" as const,
-            tags: [`spin-${entry.name}`],
-            variants: entry.examples,
-            reads: [] as string[],
-            examples: entry.examples,
-            manifest: entry.manifest,
-          })),
-        ]);
+        );
       }
       if (action === "examples") {
         if (name === undefined) {
           return failed("examples needs a component name");
         }
-        const bare = name.replace(/^spin-/, "");
+        const bare = name.replace(/^(?:component-|spin-)/, "");
         const ex = await client.components.examples({ name: bare });
         return json({ name: bare, examples: ex.examples });
       }
       if (action === "copy") {
         if (name === undefined) return failed("copy needs a component name");
         if (example === undefined) return failed("copy needs an example name");
-        const bare = name.replace(/^spin-/, "");
+        const bare = name.replace(/^(?:component-|spin-)/, "");
         const copied = await client.components.copy({
           name: bare,
           example,
@@ -380,28 +373,9 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         return json({ file: copied.file });
       }
       if (name === undefined) return failed("contract needs a component name");
-      const contract = await client.primitives.contract({ name });
-      if (!("error" in contract)) {
-        const summary = (await client.primitives.list({})).find(
-          (entry) => entry.name === name,
-        );
-        return json({
-          kind: "primitive" as const,
-          ...contract,
-          examples: summary?.examples ?? null,
-        });
-      }
-      const bare = name.replace(/^spin-/, "");
-      const listed = await client.components.list({});
-      const found = listed.find((entry) => entry.name === bare);
-      if (found === undefined) return failed(contract.error);
-      const ex = await client.components.examples({ name: bare });
-      return json({
-        kind: "machine" as const,
-        name: bare,
-        manifest: found.manifest,
-        examples: { rows: ex.examples },
-      });
+      const resolved = await client.components.contract({ name });
+      if ("error" in resolved) return failed(resolved.error);
+      return json(resolved);
     },
   );
 

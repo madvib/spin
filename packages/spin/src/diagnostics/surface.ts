@@ -550,7 +550,10 @@ export function surfacesFor(
   ): ReadonlyMap<string, string> => {
     const out = new Map<string, string>();
     for (const item of paint(rules, contextFor(cls), cls)) {
-      if (!appliesTo(item.selector, tag, ancestors)) continue;
+      if (
+        !appliesTo(item.selector, tag, ancestors) &&
+        !namesWornClass(item.selector, cls)
+      ) continue;
       for (const [property, value] of item.declarations) {
         out.set(property, value);
       }
@@ -621,6 +624,23 @@ function namesElement(selector: string, tag: string): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Whether a yield's selector is the worn class itself.
+ *
+ * A variant's reset may live one selector lighter than the variant — `.bare`
+ * beside `:is(button, …).bare` — so utilities can still speak over it. That
+ * yield names no element, but the element wears the class, so the yield
+ * paints the element by construction.
+ */
+function namesWornClass(selector: string, cls: string): boolean {
+  const escaped = cls.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const bare = new RegExp(`^\\.${escaped}$`);
+  const attr = new RegExp(`^\\[variant~="${escaped}"\\]$`);
+  return splitTop(selector).some((alternative) =>
+    bare.test(alternative.trim()) || attr.test(alternative.trim())
+  );
 }
 
 /**

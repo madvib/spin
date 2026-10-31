@@ -122,7 +122,6 @@ function classesIn(path: string): string[] {
       const stripped = text
         .replace(/<!--[\s\S]*?-->/g, "")
         .replace(/<script(\s[^>]*)?>[\s\S]*?<\/script>\s*/g, "")
-        .replace(/<scope>[\s\S]*?<\/scope>\s*/g, "");
       return classTokens(parse(stripped));
     } catch {
       // Not a component: fall through to the regex scan below.

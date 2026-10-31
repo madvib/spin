@@ -95,6 +95,10 @@ export interface RenderedHarness {
 export interface CheckRoute {
   /** The hash the app routes on, without the leading '#'. */
   readonly hash: string;
+  /** Absolute path the app routes on, e.g. "/colors". When set, loads `${url}${path}${query ?? ""}` instead of `${url}#${hash}`. */
+  readonly path?: string;
+  /** Query string appended after path or hash, e.g. "?mode=drawer". */
+  readonly query?: string;
   /** The heading the route has to render, when it has one to render. */
   readonly expectHeading: string | null;
 }
@@ -130,7 +134,7 @@ export interface PageAdapter {
   /** Seeds the theme and mode the way the app itself stores them. */
   readonly seedTheme: (
     seed: { readonly theme: string; readonly mode: string },
-  ) => void;
+  ) => void | Promise<void>;
   /** The geometry claims a route is held to; routes with none carry none. */
   readonly geometryClaimsFor: (hash: string) => readonly string[];
   /** The claims, measured where they render. */

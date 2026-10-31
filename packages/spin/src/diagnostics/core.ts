@@ -422,6 +422,12 @@ function readings(
   );
   const out: Reading[] = [];
   for (const cls of node.classes) {
+    // An element wearing `bare` has opted out of its primitive's paint,
+    // typography, and padding to style itself with utilities: a utility
+    // there is the author's own decision, not a fight with the theme.
+    if (cls === "bare" || coreName(cls, facts.prefixes) === "bare") {
+      return [];
+    }
     if (facts.variants.has(cls)) continue;
     const core = coreName(cls, facts.prefixes);
     if (facts.variants.has(core)) continue;
@@ -844,6 +850,11 @@ export function checkPreferElement(
     // accounted for here and is not another element's to carry.
     if (claimed.has(decision)) continue;
     if (owners.some((owner) => owner.owns.includes(decision))) continue;
+    // The ink of the fill the element wears is the fill's own pairing, not
+    // a reach for another element: `text-on-primary` on `bg-primary` is
+    // what the palette pairs there, and the pairing rule — not this one —
+    // says when it is wrong.
+    if (decision === "ink" && wearsPairedFill(facts, node, reading)) continue;
     const element = ownerOf(facts, decision, reading);
     if (element === undefined) continue;
     out.push({
@@ -859,6 +870,25 @@ export function checkPreferElement(
     });
   }
   return out;
+}
+
+/**
+ * Whether the element wears the fill an ink is paired with.
+ *
+ * `text-on-primary` pairs `bg-primary`: the ink names its fill after the
+ * `on-` prefix, in whatever state the ink is in. A state-prefixed ink pairs
+ * the state-prefixed fill, the same way the pairing rule reads them.
+ */
+function wearsPairedFill(
+  facts: Facts,
+  node: ClassFacts,
+  reading: Reading,
+): boolean {
+  const core = coreName(reading.cls, facts.prefixes);
+  if (!core.startsWith("text-on-")) return false;
+  const state = reading.cls.slice(0, reading.cls.length - core.length);
+  const fill = `${state}bg-${core.slice("text-on-".length)}`;
+  return node.classes.includes(fill);
 }
 
 /**
@@ -879,6 +909,22 @@ function ownerOf(
   decision: Decision,
   reading: Reading,
 ): string | undefined {
+  // A generic fill on a layout box is a box fill, not a claim to be a
+  // control: `bg-surface-sunken` on a `<div>` is a panel, not a `<dialog>`,
+  // and `bg-primary` on a `<span>` is an avatar, not a `<button>`. The same
+  // holds for the shape, the shadow, and the edge: `rounded-full` on a badge
+  // dot is a dot, not a `<progress>`; `shadow-lg` on a floating panel is a
+  // panel, not a `<dialog>`; and a `border-t` on a composer bar or an arrow
+  // tip is a hairline, not a `<hr>`. Only the typographic decisions and the
+  // ink can name an owner — the scale, the face, and the line are what
+  // elements are typed by.
+  if (
+    decision === "background" || decision === "corner" ||
+    decision === "elevation" || decision === "edge"
+  ) return undefined;
+  // A weight step alone is not a badge: `font-medium` on text is emphasis,
+  // not a claim to be `<badge>`. The scale owns the decision, not the chip.
+  if (decision === "weight") return undefined;
   const found = new Set<string>();
   for (const scope of facts.scopes) {
     if (!scope.owns.includes(decision)) continue;

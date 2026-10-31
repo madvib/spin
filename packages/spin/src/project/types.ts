@@ -121,6 +121,12 @@ export interface ProjectConfiguration {
    * computed, and a computed path cannot be read without running the module.
    */
   readonly mount: string | null;
+  /** The directory the project's themes live in. */
+  readonly themesDir: string;
+  /** The directory the project's components live in. */
+  readonly componentsDir: string;
+  /** The component prefix, or null when unset. */
+  readonly prefix: string | null;
   /**
    * Whether the configuration declares something this could not read.
    *
@@ -128,6 +134,17 @@ export interface ProjectConfiguration {
    */
   readonly unreadable: boolean;
 }
+
+/** The bundler a fresh project builds with. */
+export type BundlerKind =
+  | "vite"
+  | "rspack"
+  | "webpack"
+  | "rollup"
+  | "rolldown"
+  | "esbuild"
+  | "bun"
+  | "unocss";
 
 /** What `init` writes. */
 export interface InitProjectOptions {
@@ -137,4 +154,12 @@ export interface InitProjectOptions {
   readonly name: string;
   /** The starter to seed the theme from. */
   readonly starter: string;
+  /** The bundler the generated build config wires. Defaults to `"vite"`. */
+  readonly bundler?: BundlerKind;
+  /** The themes directory. Defaults to `"spin"`. */
+  readonly themesDir?: string;
+  /** The components directory. Defaults to `"lib/components"`. */
+  readonly componentsDir?: string;
+  /** The component prefix. */
+  readonly prefix?: string;
 }
