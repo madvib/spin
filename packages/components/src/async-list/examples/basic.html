@@ -6,9 +6,19 @@ const machine = asyncList({
     "value": "grace",
     "label": "Grace Hopper",
   }, { "value": "margaret", "label": "Margaret Hamilton" }],
+  sortFn: ({ items, descriptor }) => {
+    const label = (item) => String(item.label);
+    const sorted = [...items].sort((a, b) =>
+      label(a).localeCompare(label(b))
+    );
+    if (descriptor !== undefined && descriptor.direction === "descending") {
+      sorted.reverse();
+    }
+    return { items: sorted };
+  },
 });
 </script>
-<div class="w-full" {...machine.getRootProps()}>
+<div class="w-64 max-w-full" {...machine.getRootProps()}>
   <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
     <div class="flex items-center gap-1">
       <button

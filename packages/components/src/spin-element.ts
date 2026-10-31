@@ -19,6 +19,8 @@
  * The three surface shapes stay identical across adapters on purpose: the
  * day a framework needs something new, the change is one file.
  */
+import { writeProp as writePropOf } from "@spinjs/runtime";
+
 
 /** A spin element as hosts see it: props down, events up, commands in. */
 export interface SpinElement {
@@ -42,6 +44,7 @@ export function bindSpinElement<TProps extends object>(
   { props, on }: SpinHookOptions<TProps>,
 ): () => void {
   for (const [name, value] of Object.entries(props ?? {})) {
+    if (writePropOf(el, name, value)) continue;
     (el as unknown as Record<string, unknown>)[name] = value;
   }
   const entries = Object.entries(on ?? {});

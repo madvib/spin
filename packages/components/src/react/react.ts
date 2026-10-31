@@ -1,5 +1,10 @@
 import type { RefObject } from "react";
-import { type SpinComponentCtl, spinComponentCtl } from "../controller.ts";
+import type { DefinedComponent } from "@spinjs/runtime";
+import {
+  type CtlFor,
+  type ElementTarget,
+  spinComponentCtl,
+} from "../controller.ts";
 
 /**
  * React adapter: `useSpinComponent(el)` is the app controller's instrument.
@@ -10,31 +15,42 @@ import { type SpinComponentCtl, spinComponentCtl } from "../controller.ts";
  * consumes. A machine-owned and a platform-owned component present the same
  * surface; the host cannot tell which it holds.
  *
- * The ctl is synchronous: React has no tracking scope, so `state` is read at
- * render time — the reads are live, and the host re-renders on the
- * component's events, which `bind` subscribes. No synthetic event system, no
- * portal, no wrapper. `bind` works from the first render, so a React host
- * that wants to seed a component writes the prop before it connects.
+ * The ctl is never nullish and synchronous: React has no tracking scope, so
+ * `state` is read at render time — the reads are live, and the host
+ * re-renders on the component's events, which `bind` subscribes. `bind`
+ * works from the first render, so a React host that wants to seed a
+ * component writes the prop before it connects.
  *
  * ```tsx
  * const el = useRef<HTMLElement>(null);
  * const popover = useSpinComponent<PopoverCommands>(el);
- * useEffect(() => popover?.bind({ label: "Open" }, { "open-change": (e) => setOpen(e.detail.open) }), [open]);
+ * useEffect(() => popover.bind({ label: "Open" }, { "open-change": (e) => setOpen(e.detail.open) }), [open]);
  * return <spin-popover ref={el} />;
- * popover?.commands.show();
+ * popover.commands.show();
  * ```
  */
 
-export function useSpinComponent<TCommands extends object = object>(
-  el: Element | RefObject<Element | null> | null | undefined,
-): SpinComponentCtl<TCommands> | undefined {
-  const node = (): Element | null | undefined => {
-    if (el === null || el === undefined) return undefined;
-    if (el instanceof Element) return el;
-    return el.current;
-  };
-  const current = node();
-  return current === null || current === undefined
-    ? undefined
-    : spinComponentCtl<TCommands>(current);
+export function useSpinComponent<D extends DefinedComponent<any, any>>(
+  def: D,
+): CtlFor<D>;
+export function useSpinComponent<D extends DefinedComponent<any, any>>(
+  target: ElementTarget,
+  def: D,
+): CtlFor<D>;
+export function useSpinComponent<
+  TCommands extends object = object,
+  TState extends object = Record<string, () => unknown>,
+  TProps extends object = Record<string, unknown>,
+>(
+  el: ElementTarget,
+  handle?: object,
+): ReturnType<typeof spinComponentCtl<TCommands, TState, TProps>>;
+export function useSpinComponent(
+  target: ElementTarget | DefinedComponent<any, any>,
+  handleOrDef?: object,
+): unknown {
+  return spinComponentCtl(
+    target as unknown as RefObject<Element | null>,
+    handleOrDef as object,
+  );
 }

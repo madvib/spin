@@ -845,3 +845,23 @@ test("Given a load / When it is parked / Then its signal is live", () => {
   deepStrictEqual(signal.aborted, true, "an abort fires it");
   h.dispose();
 });
+
+test("Given initial items and a sort function but no loader / When a sort runs / Then the sort completes without a fetch", async () => {
+  const h = mount({
+    initialItems: MANIFEST,
+    load: undefined,
+    sortFn: (details: SortDetails) => ({ items: [...details.items].reverse() }),
+  });
+  deepStrictEqual(labels(h.api), ["Deno", "Bun", "Node"], "the seed items show");
+  h.api.sort({ column: "name", direction: "descending" });
+  deepStrictEqual(state(h.api), "sorting", "a loaderless sort still sorts");
+  await h.resolveSort(0, [...MANIFEST].reverse());
+  deepStrictEqual(state(h.api), "idle", "and returns to idle");
+  deepStrictEqual(
+    labels(h.api),
+    ["Node", "Bun", "Deno"],
+    "the host's sort replaced the list",
+  );
+  deepStrictEqual(h.loadCalls.length, 0, "no fetch ran");
+  h.dispose();
+});

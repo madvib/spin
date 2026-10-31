@@ -15,8 +15,8 @@
  */
 
 export { asyncList } from "./async-list/async-list.presentation.ts";
-export { carousel } from "./carousel/carousel.presentation.ts";
-export { cascade } from "./cascade-select/cascade.presentation.ts";
+export { modePicker } from "./mode-picker/mode-picker.presentation.ts";
+export { themePicker } from "./theme-picker/theme-picker.presentation.ts";
 export { combobox } from "./combobox/combobox.presentation.ts";
 export { listbox } from "./listbox/listbox.presentation.ts";
 export { colorPicker } from "./color-picker/color-picker.presentation.ts";
@@ -51,6 +51,7 @@ export {
 export { select } from "./select/select.presentation.ts";
 export { tags } from "./tags-input/tags.presentation.ts";
 export { timer } from "./timer/timer.presentation.ts";
+export { tabs } from "./tabs/tabs.presentation.ts";
 export { toast } from "./toast/toast.presentation.ts";
 export { tooltip } from "./tooltip/tooltip.controller-def.ts";
 export { tooltipManifest } from "./tooltip/tooltip.controller-def.ts";
@@ -100,6 +101,11 @@ export const COMPONENT_GROUPS: readonly ComponentCategory[] = [
     ],
   },
   {
+    id: "navigation",
+    label: "Navigation",
+    members: ["mode-picker", "theme-picker"],
+  },
+  {
     id: "display",
     label: "Display",
     members: [
@@ -121,7 +127,110 @@ export const COMPONENT_GROUPS: readonly ComponentCategory[] = [
   { id: "layout", label: "Layout", members: ["splitter"] },
   { id: "media", label: "Media", members: ["image-cropper", "signature-pad"] },
 ];
+/** A purpose group filing both tiers side by side: primitives beside the
+ * machines that serve the same purpose, in the order a reader arrives in.
+ * Anything the taxonomy does not name lands in "Other" rather than
+ * vanishing: a rail that drops a component it was given is a rail lying
+ * about the library. */
+export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
+  {
+    id: "actions-navigation",
+    label: "Actions & Navigation",
+    members: [
+      "button",
+      "breadcrumbs",
+      "join",
+      "kbd",
+      "component-mode-picker",
+      "component-theme-picker",
+      "component-navigation-menu",
+      "component-menu",
+      "component-pagination",
+      "component-steps",
+      "component-tabs",
+    ],
+  },
+  {
+    id: "inputs",
+    label: "Inputs",
+    members: [
+      "input",
+      "textarea",
+      "checkbox",
+      "radio",
+      "switch",
+      "meter",
+      "label",
+      "component-angle-slider",
+      "component-color-picker",
+      "component-date-input",
+      "component-date-picker",
+      "component-editable",
+      "component-file-upload",
+      "component-number-input",
+      "component-pin-input",
+      "component-rating-group",
+      "component-slider",
+      "component-tags-input",
+      "component-toggle-group",
+    ],
+  },
+  {
+    id: "selection",
+    label: "Selection",
+    members: [
+      "component-cascade-select",
+      "component-combobox",
+      "component-listbox",
+      "component-select",
+      "component-tree-view",
+    ],
+  },
+  {
+    id: "overlays",
+    label: "Overlays",
+    members: [
+      "dialog",
+      "details",
+      "component-floating-panel",
+      "component-hover-card",
+      "component-popover",
+      "component-toast",
+      "component-tooltip",
+      "component-tour",
+    ],
+  },
+  {
+    id: "containers-layout",
+    label: "Containers & Layout",
+    members: ["card", "fieldset", "hr", "component-splitter"],
+  },
+  {
+    id: "display-media",
+    label: "Display & Media",
+    members: [
+      "table",
+      "stat",
+      "alert",
+      "badge",
+      "progress",
+      "skeleton",
+      "component-async-list",
+      "component-avatar",
+      "component-carousel",
+      "component-timer",
+      "component-image-cropper",
+      "component-signature-pad",
+    ],
+  },
+  {
+    id: "typography-icons",
+    label: "Typography & Icons",
+    members: ["prose", "typography", "icon"],
+  },
+];
 
+ /**
 /**
  * One glyph per machine, beside the groups that list them. Controllers
  * (tooltip, popover, hover-card) share the mapping — the rail looks
@@ -146,6 +255,8 @@ export const COMPONENT_ICONS: Readonly<Record<string, string>> = {
   menu: "i-lucide-menu",
   "navigation-menu": "i-lucide-navigation",
   "number-input": "i-lucide-hash",
+  "mode-picker": "i-lucide-sun-moon",
+  "theme-picker": "i-lucide-palette",
   pagination: "i-lucide-chevrons-left-right",
   "pin-input": "i-lucide-key-round",
   popover: "i-lucide-message-circle",

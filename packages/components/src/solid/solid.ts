@@ -1,5 +1,10 @@
-import { type Accessor } from "solid-js";
-import { type SpinComponentCtl, spinComponentCtl } from "../controller.ts";
+import type { DefinedComponent } from "@spinjs/runtime";
+import {
+  type CtlFor,
+  type ElementTarget,
+  type SpinComponentCtl,
+  spinComponentCtl,
+} from "../controller.ts";
 
 export { spinComponentCtl };
 
@@ -13,40 +18,55 @@ export { spinComponentCtl };
  * machine or the platform owns the component's state is invisible here: the
  * surface is the same.
  *
- * The ctl is available the moment the host holds the element — `bind` writes
- * props and subscribes events without waiting for anything, which is what
- * lets a seed land before the component's build reads it. `commands` and
- * `state` resolve through the component's registered controller once it has
- * connected; the accessor re-derives when the element changes.
+ * The ctl is never nullish: it resolves the element on every access, so the
+ * host holds one handle and `bind` inside a `createEffect` subscribes to the
+ * element signal and runs when the element mounts. It stays callable for
+ * hosts that prefer `ctl()` reads.
  *
  * State reads are the component's own signals, so reading
- * `ctl.state().<field>()` inside a tracking scope subscribes to that
+ * `ctl.state.<field>()` inside a tracking scope subscribes to that
  * component's moves — no polling, no synthetic events.
  *
  * ```tsx
  * const [drawerEl, setDrawerEl] = createSignal<HTMLElement>();
  * const drawer = createSpinComponent(drawerEl);
  * // Props bind at ref time, so seeds land before the build reads them.
- * createEffect(() => drawer()?.bind({ open: open() }, { "open-change": (e) => setOpen(e.detail.open) }));
- * <spin-drawer ref={setDrawerEl} />
- * drawer()?.commands.show();
+ * createEffect(() => drawer.bind({ open: open() }, { "open-change": (e) => setOpen(e.detail.open) }));
+ * <spin-drawer ref={drawer.ref} />
+ * drawer.commands.show();
  * ```
  */
 
-export type SpinComponentCtlAccessor<TCommands extends object = object> =
-  Accessor<SpinComponentCtl<TCommands> | undefined>;
+export type SpinComponentCtlAccessor<
+  TCommands extends object = object,
+  TState extends object = Record<string, () => unknown>,
+  TProps extends object = Record<string, unknown>,
+> = (() => SpinComponentCtl<TCommands, TState, TProps>) &
+  SpinComponentCtl<TCommands, TState, TProps>;
 
-export function createSpinComponent<TCommands extends object = object>(
-  el: () => Element | null | undefined,
-): SpinComponentCtlAccessor<TCommands> {
-  // A memo caches its first evaluation: read once while the element was
-  // still undefined, and every later read returns that stale undefined.
-  // The accessor reads the element on every call instead, so the host
-  // sees the element the moment the ref fires.
-  return (): SpinComponentCtl<TCommands> | undefined => {
-    const node = el();
-    return node === null || node === undefined
-      ? undefined
-      : spinComponentCtl<TCommands>(node);
-  };
+export function createSpinComponent<D extends DefinedComponent<any, any>>(
+  def: D,
+): (() => CtlFor<D>) & CtlFor<D>;
+export function createSpinComponent<D extends DefinedComponent<any, any>>(
+  target: ElementTarget,
+  def: D,
+): (() => CtlFor<D>) & CtlFor<D>;
+export function createSpinComponent<
+  TCommands extends object = object,
+  TState extends object = Record<string, () => unknown>,
+  TProps extends object = Record<string, unknown>,
+>(
+  el: ElementTarget,
+  handle?: object,
+): SpinComponentCtlAccessor<TCommands, TState, TProps>;
+export function createSpinComponent(
+  target: ElementTarget | DefinedComponent<any, any>,
+  handleOrDef?: object,
+): unknown {
+  const ctl = spinComponentCtl(
+    target as ElementTarget,
+    handleOrDef as object,
+  ) as SpinComponentCtl<object, Record<string, () => unknown>, Record<string, unknown>>;
+  const accessor = (() => ctl) as (() => typeof ctl) & typeof ctl;
+  return Object.assign(accessor, ctl);
 }

@@ -7,9 +7,8 @@ import {
   dataAttr,
   defineComponent,
   isRecord,
-  machineTick,
-  type ScopeFor,
-  type SlotScopeFor,
+  type ViewFor,
+  type SlotViewFor,
 } from "@spinjs/runtime";
 import { asyncList as asyncListMachine } from "./async-list.machine.ts";
 import type {
@@ -131,8 +130,8 @@ const toRow = (item: unknown, index: number): AsyncListRow => {
 
 type Ctx = AsyncListContext;
 
-type ScopeLike = ScopeFor<AsyncListContext, AsyncListEvents, AsyncListState>;
-type SlotLike<R> = SlotScopeFor<
+type ScopeLike = ViewFor<AsyncListContext, AsyncListEvents, AsyncListState>;
+type SlotLike<R> = SlotViewFor<
   R,
   AsyncListContext,
   AsyncListEvents,
@@ -272,7 +271,6 @@ const def = {
   settled: ({ event, before, after, root, send }) => {
     const view = viewOf(root());
     const load: unknown = after.context.load;
-    if (!isLoadFn(load)) return;
     const beforeState = before.state;
     const afterCtx = after.context;
     const afterState = after.state;
@@ -287,6 +285,7 @@ const def = {
       startSort(view, send, sort, event, afterCtx);
       return;
     }
+    if (!isLoadFn(load)) return;
     if (afterState === "loading") {
       startFetch(view, send, load, event, afterCtx);
     }
@@ -507,8 +506,6 @@ const def = {
     getRows: {
       call: (context) => {
         // The `for` effect re-runs only on the signals its source reads:
-        // the tick is the subscription that re-reads the rows after a load.
-        machineTick();
         return rowsFor(context.items);
       },
     },
