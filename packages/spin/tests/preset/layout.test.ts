@@ -281,6 +281,30 @@ test("a field and a button share one control height", async () => {
   );
 });
 
+test("a small field lands on the small button height", async () => {
+  // The size ladder is shared: s-sm on a field and on a button is one
+  // height, and the md control remains the default.
+  const css = await sheetFor(
+    '<input class="s-sm"><button class="s-sm">Go</button>',
+  );
+  const field = declarationsFor(css, ":is(input, select).s-sm");
+  const button = declarationsFor(
+    css,
+    ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-sm',
+  );
+  assert(field["height"] !== undefined, "the small field states its height");
+  deepStrictEqual(
+    field["height"],
+    button["min-height"],
+    "the small field and the small button derive the same height",
+  );
+  const md = declarationsFor(css, CONTROL_FIELDS)["height"];
+  assert(
+    md !== undefined && md !== field["height"],
+    "the default field step is still md",
+  );
+});
+
 test("a single-line field sets its own leading", async () => {
   // A text field's line box is the control's, not the document's: inherited
   // leading made an input taller than every button beside it. A textarea
