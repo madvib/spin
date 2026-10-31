@@ -186,6 +186,12 @@ export function generateCss(tree: TokenTree, opts: CssOptions = {}): string {
     `${selector}[data-mode="dark"]`,
     `${selector}[data-mode="light"]`,
   );
+  const base = blocks[0];
+  if (base !== undefined) {
+    const dark = blocks[2];
+    const modes = dark !== undefined && dark.declarations.length > 0 ? "light dark" : "light";
+    base.declarations.unshift(["--spin-modes", modes]);
+  }
   const tokenCss = blocks
     .filter((block) => block.declarations.length > 0)
     .map((block) => renderBlock(block, indent))
@@ -218,6 +224,8 @@ export function generateThemeCss(
   // the root theme as a default, the rule holds for every theme: a mode a
   // theme serves but does not override falls back to that theme's own base.
   if (opts.rootTheme !== undefined && themes[opts.rootTheme] !== undefined) {
+    const names = Object.keys(themes).join(" ");
+    chunks.push(`:where(:root) {\n${indent}--spin-themes: ${names};\n}`);
     for (
       const block of collectBlocks(
         themes[opts.rootTheme] as TokenTree,
@@ -242,6 +250,17 @@ export function generateThemeCss(
       `${selector}[data-mode="dark"]`,
       `${selector}[data-mode="light"]`,
     );
+    const base = blocks[0];
+    const dark = blocks[2];
+    if (base !== undefined) {
+      const declared = opts.modes?.[name]?.join(" ");
+      const modes = declared !== undefined && declared.length > 0
+        ? declared
+        : dark !== undefined && dark.declarations.length > 0
+        ? "light dark"
+        : "light";
+      base.declarations.unshift(["--spin-modes", modes]);
+    }
     for (const block of blocks) {
       if (block.declarations.length === 0) continue;
       chunks.push(renderBlock(block, indent));

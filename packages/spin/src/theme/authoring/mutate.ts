@@ -145,8 +145,17 @@ function resolveParentForWrite(
 
 function repath(nodes: TokenNode[], prefix: string[]): void {
   for (const node of nodes) {
-    node.path = [...prefix, node.name];
-    if (node.kind === "group") repath(node.children, node.path);
+    if (node.kind === "group") {
+      node.path = [...prefix, node.name];
+      repath(node.children, node.path);
+    } else if (prefix.length > 0) {
+      // Leaves sit flat under their root group while their paths nest:
+      // `neutral.50` lives in `color` with path `[color, neutral, 50]`.
+      // Only the root follows the parent; the rest is the leaf's own.
+      node.path = [prefix[0] as string, ...node.path.slice(1)];
+    } else {
+      node.path = [node.name];
+    }
   }
 }
 
@@ -325,16 +334,45 @@ function insertNode(doc: Record<string, unknown>, node: TokenNode): void {
   // A tree can hold two groups with the same name — merging a theme onto a
   // scaffold produces `color` twice. Assigning would discard the first, so
   // groups merge and only tokens are replaced. Last token wins, which is the
-  // order the caller listed them in.
+  // order the caller listed them in. The merge is deep: a second `color`
+  // carrying one neutral step must not discard the nine the first one wrote.
   if (
     node.kind === "group" &&
     typeof existing === "object" && existing !== null &&
     !Array.isArray(existing)
   ) {
-    Object.assign(existing as Record<string, unknown>, nodeToJson(node));
+    deepMerge(existing as Record<string, unknown>, nodeToJson(node));
     return;
   }
   level[node.name] = nodeToJson(node);
+}
+
+/**
+ * Merge serialized groups: plain objects recurse, tokens replace.
+ *
+ * A serialized token carries `$value`; anything without one is a group the
+ * walk created, and groups from two trees combine. Last token wins, so an
+ * override lands over the scaffold's placeholder without taking the steps
+ * beside it.
+ */
+function deepMerge(
+  into: Record<string, unknown>,
+  from: unknown,
+): void {
+  if (typeof from !== "object" || from === null || Array.isArray(from)) return;
+  for (const [key, value] of Object.entries(from as Record<string, unknown>)) {
+    const current = into[key];
+    if (
+      typeof current === "object" && current !== null &&
+      !Array.isArray(current) &&
+      typeof value === "object" && value !== null && !Array.isArray(value) &&
+      (value as Record<string, unknown>)["$value"] === undefined
+    ) {
+      deepMerge(current as Record<string, unknown>, value);
+    } else {
+      into[key] = value;
+    }
+  }
 }
 
 function nodeToJson(node: TokenNode): unknown {

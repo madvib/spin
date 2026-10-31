@@ -11,9 +11,11 @@
 
 import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
+import { parseTokens } from "../pipeline/parse.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
 import { ELEMENT_TYPE_ROLES } from "./typography.ts";
 import type { ElementTypeDeclaration } from "./typography.ts";
+import baseline from "../themes/silk.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
 export interface LegibilityFloor {
@@ -219,6 +221,19 @@ const DECLARED_ROLES: readonly Omit<RoleDeclaration, "floor">[] = [
     doc: "Text on an accent fill.",
   },
   {
+    path: "color.selected",
+    type: "color",
+    value: "#111111",
+    doc: "Selected state fill.",
+    floors: [inkFloor("on-selected", "selected")],
+  },
+  {
+    path: "color.on-selected",
+    type: "color",
+    value: "#ffffff",
+    doc: "Text on a selected fill.",
+  },
+  {
     // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
     // second `on-danger` for the same red made two answers to one question
     // while the starters disagreed on which was right. The danger button and
@@ -340,7 +355,88 @@ export const BASE_ROLES: readonly RoleDeclaration[] = DECLARED_ROLES.map(
 );
 /** The paths every theme must declare. */
 export function requiredPaths(): readonly string[] {
-  return BASE_ROLES.map((role) => role.path);
+  const paths = new Set(BASE_ROLES.map((role) => role.path));
+  for (const path of baselineScalePaths()) paths.add(path);
+  return [...paths];
+}
+
+/**
+ * Every scale step the baseline states, as dotted paths.
+ *
+ * The baseline is the vocabulary: a token it states is spendable by any
+ * utility or primitive, so a theme that omits one breaks whatever spends
+ * it — silently, in that theme only. A missing step is incomplete, not
+ * minimal. Per-element groups are excluded: each carries a global fallback,
+ * and the contract says a theme may declare none of them. The opacity
+ * ladder is excluded: its utilities carry the conventional fraction as a
+ * `var()` fallback, so a missing step degrades to the same value instead
+ * of breaking. The heading and body faces are excluded: the display face
+ * falls back to the heading family and the heading to the body, so a theme
+ * that names neither still has a face for its headings.
+ */
+function baselineScalePaths(): readonly string[] {
+  return baselineScales().map((entry) => entry.path);
+}
+
+/** One baseline scale step: the path, the type, and the baseline's value. */
+export interface BaselineScale {
+  readonly path: string;
+  readonly type: TokenType;
+  readonly value: unknown;
+  readonly doc: string;
+}
+
+/**
+ * The baseline's scale steps, with type and value.
+ *
+ * The scaffold writes them: the shared ruler arrives ready, and the palette
+ * arrives as placeholders. Same exclusions as the required paths — a step
+ * excluded there is excluded here, so the two cannot disagree about what a
+ * theme owes.
+ */
+export function baselineScales(): readonly BaselineScale[] {
+  const parsed = parseTokens(baseline);
+  if (!parsed.ok) {
+    throw new Error(
+      `contract: baseline theme does not parse: ${parsed.error}`,
+    );
+  }
+  const optionalRoots = new Set(ELEMENT_ROLES.map((role) => role.group));
+  const out: BaselineScale[] = [];
+  const walk = (nodes: readonly unknown[]): void => {
+    for (const node of nodes) {
+      const n = node as {
+        kind: string;
+        name: string;
+        path: readonly string[];
+        type: TokenType;
+        value: unknown;
+        description?: string;
+        children?: readonly unknown[];
+      };
+      const dotted = n.path.join(".");
+      if (
+        n.path.length > 0 &&
+        (optionalRoots.has(n.path[0] as string) ||
+          dotted.startsWith("font.element.") ||
+          n.path[0] === "opacity" ||
+          dotted === "font.family.heading" ||
+          dotted === "font.family.body")
+      ) continue;
+      if (n.kind === "token") {
+        out.push({
+          path: dotted,
+          type: n.type,
+          value: n.value,
+          doc: n.description ?? dotted,
+        });
+      } else if (n.children !== undefined) {
+        walk(n.children);
+      }
+    }
+  };
+  walk(parsed.tree as readonly unknown[]);
+  return out;
 }
 
 /**
@@ -440,6 +536,13 @@ export function themeSchema(): Record<string, unknown> {
   for (const role of BASE_ROLES) {
     gather(role.path.split(".")[0] as string, role.path, true);
   }
+  // The baseline's scales are required for the same reason the roles are:
+  // a step the baseline states is spendable by any utility, so a theme
+  // that omits one breaks whatever spends it. Same exclusions as the
+  // required paths — the builder reads them, so the two cannot disagree.
+  for (const scale of baselineScales()) {
+    gather(scale.path.split(".")[0] as string, scale.path, true);
+  }
   // The per-element groups are known to the contract, so the schema says what
   // they hold — but they are OPTIONAL: a theme that declares none of them is
   // complete, and the rules fall back to the shared scales. What the schema
@@ -518,6 +621,7 @@ function groupSchema(
   const byType = new Map<string, ElementTypeDeclaration>(
     ELEMENT_TYPE_ROLES.map((role) => [role.path, role]),
   );
+  const byScale = new Map(baselineScales().map((scale) => [scale.path, scale]));
   // Which groups hold a required role: a group a theme must declare is the
   // one with something required under it.
   const holds = new Map<string, boolean>();
@@ -550,7 +654,7 @@ function groupSchema(
     const role = byRole.get(path);
     const element = byElement.get(path);
     const type = byType.get(path);
-    const doc = role?.doc ?? element?.doc ?? type?.doc;
+    const doc = role?.doc ?? element?.doc ?? type?.doc ?? byScale.get(path)?.doc;
     if (doc === undefined) continue;
     level[segments[segments.length - 1] as string] = {
       kind: "leaf",

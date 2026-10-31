@@ -879,7 +879,7 @@ test("the battery catches a project theme's unreadable badge", () => {
   assert(
     legibility?.issues.some((issue) =>
       issue.path === "color.on-semantic-warning" &&
-      issue.message.includes("4.5:1 floor")
+      issue.message.includes("4.5:1")
     ),
     `the unreadable badge is not reported: ${JSON.stringify(report.issues)}`,
   );
@@ -926,8 +926,8 @@ test("the battery catches text that cannot be read on a raised sheet", () => {
   assert(
     legibility?.issues.some((issue) =>
       issue.path === "color.text" &&
-      issue.message.includes("color.surface-raised") &&
-      issue.message.includes("4.5:1 floor")
+      issue.message.includes("surface-raised") &&
+      issue.message.includes("4.5:1")
     ),
     `the unreadable sheet is not reported: ${JSON.stringify(report.issues)}`,
   );
@@ -941,7 +941,7 @@ test("the battery catches a fill with no ink of its own", () => {
   assert(
     legibility?.issues.some((issue) =>
       issue.path === "color.on-secondary" &&
-      issue.message.includes("4.5:1 floor")
+      issue.message.includes("4.5:1")
     ),
     `the fill with no ink is not reported: ${JSON.stringify(report.issues)}`,
   );
@@ -955,7 +955,7 @@ test("the battery catches a status colour nobody can read", () => {
   assert(
     legibility?.issues.some((issue) =>
       issue.path === "color.semantic.success" &&
-      issue.message.includes("4.5:1 floor")
+      issue.message.includes("4.5:1")
     ),
     `the unreadable status colour is not reported: ${
       JSON.stringify(report.issues)

@@ -6,13 +6,15 @@
  * it. A single function rather than three copies, so they cannot disagree
  * about what "minimal but valid" means.
  *
- * Every value is a neutral placeholder an author must replace — the scaffold
- * validates, but it is deliberately ugly. A theme that looks finished was not
- * scaffolded; it was authored.
+ * The palette arrives as neutral placeholders an author must replace — the
+ * scaffold validates, but it is deliberately ugly. The scales arrive at
+ * baseline values: the shared ruler is not the author's decision, and a
+ * placeholder step is a collapsed specimen. A theme that looks finished was
+ * not scaffolded; it was authored.
  */
 
 import { ELEMENT_ROLES } from "../contract/elements.ts";
-import { BASE_ROLES } from "../contract/roles.ts";
+import { BASE_ROLES, baselineScales } from "../contract/roles.ts";
 import type { TokenLeaf, TokenTree, TokenType } from "../pipeline/types.ts";
 
 /** A declaration a scaffold can write: the path, the type, the value. */
@@ -28,9 +30,25 @@ function declarations(): readonly Scaffoldable[] {
 }
 
 /**
- * A token tree with every role in `roles` and nothing else: no scales, no
- * ramps, no dark axis. Enough to validate and render; everything an author
- * adds from here is a decision, not backfill.
+ * The shared ruler, written at baseline values.
+ *
+ * Scales are not the author's decisions — the palette is — so they arrive
+ * ready rather than as placeholders. A scaffold without them validates
+ * under roles but breaks every utility that spends a step, which is the
+ * failure the required paths exist to prevent.
+ */
+function scaleDeclarations(): readonly Scaffoldable[] {
+  return baselineScales().map((entry) => ({
+    path: entry.path,
+    type: entry.type,
+    value: entry.value as string | number | boolean,
+  }));
+}
+
+/**
+ * A token tree with every role in `roles` and nothing else: no dark axis.
+ * Enough to validate and render; everything an author adds from here is a
+ * decision, not backfill.
  *
  * With no `roles`, the scaffold carries the whole surface the contract
  * knows: the base roles a theme must declare, and the per-element tokens the
@@ -45,7 +63,11 @@ function declarations(): readonly Scaffoldable[] {
  * cannot invent a role it does not know.
  */
 export function scaffoldTheme(roles?: readonly string[]): TokenTree {
-  const known = declarations();
+  const declared = new Set(declarations().map((role) => role.path));
+  const known = [
+    ...declarations(),
+    ...scaleDeclarations().filter((scale) => !declared.has(scale.path)),
+  ];
   const wanted = roles ?? known.map((role) => role.path);
   const byRoot = new Map<string, TokenLeaf[]>();
   for (const path of wanted) {

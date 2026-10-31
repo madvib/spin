@@ -101,6 +101,16 @@ test("a theme missing a role it owes is reported at that role", () => {
   deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.text").message.includes("color.text"));
 });
+test("a theme missing a scale step the baseline states is reported at that step", () => {
+  // A step the baseline states is spendable by any utility: `h-60` with no
+  // `spacing.60` emits no rule, and the specimen collapses — in that theme
+  // only, with nothing saying why. The missing step is incomplete, not
+  // minimal, and the judgement names it.
+  const report = validateTheme(without(complete(), "spacing.60"));
+
+  deepStrictEqual(report.valid, false);
+  assert(issueAt(report, "spacing.60").message.includes("spacing.60"));
+});
 
 test("a theme with a value a browser will not take is reported at that token", () => {
   // The value is judged where it sits: a colour that is not a colour is a
@@ -134,7 +144,7 @@ test("the floors are measured in the mode the theme is judged in", () => {
   deepStrictEqual(dark.valid, false);
   assert(
     issueAt(dark, "color.on-primary").message.includes(
-      "below the 4.5:1 floor",
+      "text needs 4.5:1",
     ),
   );
 

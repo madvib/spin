@@ -142,8 +142,9 @@ test("generateCss puts every token of the tree into the base block", () => {
   const root = blockWithSelector(css, ":root");
   const names = Object.keys(root.declarations).sort();
 
-  deepStrictEqual(names, ["--color-accent", "--color-brand", "--space-sm"]);
+  deepStrictEqual(names, ["--color-accent", "--color-brand", "--space-sm", "--spin-modes"]);
 });
+
 
 test("a token's per-mode values emit the same CSS as a dark group", () => {
   // The migration's whole contract: a token that carries its dark value in
@@ -355,21 +356,23 @@ test("generateCss emits an alias token as a reference to its target variable", (
   deepStrictEqual(root.declarations["--color-action"], "var(--color-primary)");
 });
 
-test("generateThemeCss emits one block per theme", () => {
+test("generateThemeCss emits one value block per theme", () => {
   const themes: Record<string, TokenTree> = {
     daylight: LIGHT,
     midnight: DARK,
   };
   const css = generateThemeCss(themes);
 
-  deepStrictEqual(
-    blockMentioning(css, "daylight").declarations["--color-brand"],
-    "#ff0000",
-  );
-  deepStrictEqual(
-    blockMentioning(css, "midnight").declarations["--color-brand"],
-    "#101820",
-  );
+  const valueBlock = (needle: string): CssBlock => {
+    const found = blocks(css).find((block) =>
+      block.selector.includes(needle) &&
+      block.declarations["--color-brand"] !== undefined
+    );
+    if (found === undefined) throw new Error(`no value block for "${needle}"`);
+    return found;
+  };
+  deepStrictEqual(valueBlock("daylight").declarations["--color-brand"], "#ff0000");
+  deepStrictEqual(valueBlock("midnight").declarations["--color-brand"], "#101820");
 });
 
 test("generateThemeCss scopes each theme to its own selector", () => {
@@ -378,10 +381,11 @@ test("generateThemeCss scopes each theme to its own selector", () => {
 
   for (const theme of ["daylight", "midnight"]) {
     const scoped = selectors.filter((selector) => selector.includes(theme));
-    deepStrictEqual(
-      scoped.length,
-      1,
-      `expected exactly one block scoping "${theme}"`,
+    // The base plus the runtime mode metadata the pickers read from CSS.
+    assert(scoped.length >= 1, `expected a block scoping "${theme}"`);
+    assert(
+      scoped.every((selector) => selector.startsWith(`[data-theme="${theme}"]`)),
+      `every "${theme}" block scopes to its own selector: ${scoped}`,
     );
   }
 });
@@ -442,6 +446,9 @@ test("generateTypes declares exactly the custom properties generateCss emits", (
 
   for (const block of blocks(generateCss(tree))) {
     for (const property of Object.keys(block.declarations)) {
+      // Runtime metadata, not tokens: the pickers read it from CSS, and
+      // no typed token map declares it.
+      if (property.startsWith("--spin-")) continue;
       emitted.add(property);
     }
   }
@@ -509,5 +516,24 @@ test("a theme in force beats the root theme's dark block", () => {
     css.includes('[data-theme="project"] {') &&
       css.indexOf('[data-theme="project"] {') > css.indexOf(":where(:root) {"),
     "a theme in force is written after the defaults",
+  );
+});
+
+test("generateThemeCss writes each theme's declared modes, not a structural guess", () => {
+  const css = generateThemeCss(
+    { console: DARK },
+    { modes: { console: ["dark"] } },
+  );
+  deepStrictEqual(
+    blockWithSelector(css, '[data-theme="console"]').declarations["--spin-modes"],
+    "dark",
+  );
+});
+
+test("generateThemeCss without declarations keeps the structural derivation", () => {
+  const css = generateThemeCss({ daylight: LIGHT });
+  deepStrictEqual(
+    blockWithSelector(css, '[data-theme="daylight"]').declarations["--spin-modes"],
+    "light",
   );
 });

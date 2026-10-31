@@ -29,11 +29,13 @@ export function validateLegibility(tree: TokenTree): ValidationIssue[] {
       continue;
     }
     if (ratio < min) {
+      const fgShort = fg.startsWith("color.") ? fg.slice("color.".length) : fg;
+      const bgShort = bg.startsWith("color.") ? bg.slice("color.".length) : bg;
       issues.push({
         path: fg,
-        message: `${fg} on ${bg} is ${
+        message: `${fgShort} on ${bgShort} is ${
           ratio.toFixed(2)
-        }:1, below the ${min}:1 floor`,
+        }:1 — text needs ${min}:1`,
       });
     }
   }

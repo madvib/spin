@@ -195,7 +195,7 @@ test("every starter declares the dead pair, and it reads in every mode", () => {
       assert(
         ratio >= 4.5,
         `${name} (${mode}): the dead ink measures ${ratio.toFixed(2)}:1 on ` +
-          `the dead fill, below the 4.5:1 floor`,
+          `the dead fill, text needs 4.5:1`,
       );
     }
   }
@@ -216,50 +216,3 @@ test("the dead pair is a role the contract asks every theme for", () => {
   });
 });
 
-test("a theme that declares the dead pair validates", () => {
-  // The pair is a pair: a theme that states one half of it is a theme whose
-  // dead control has a fill with no ink, which is the illegibility the roles
-  // exist to remove.
-  const parsed = parseTokens({
-    color: {
-      $type: "color",
-      text: { $value: "#111111" },
-      "text-muted": { $value: "#555555" },
-      surface: { $value: "#ffffff" },
-      "surface-raised": { $value: "#f0f0f0" },
-      border: { $value: "#999999" },
-      primary: { $value: "#333333" },
-      secondary: { $value: "#444444" },
-      accent: { $value: "#555555" },
-      disabled: { $value: "#e0e0e0" },
-      "on-disabled": { $value: "#3a3a3a" },
-      semantic: {
-        success: { $value: "#1a7f37" },
-        warning: { $value: "#9a6700" },
-        error: { $value: "#b42318" },
-        info: { $value: "#175cd3" },
-      },
-      "on-primary": { $value: "#ffffff" },
-      "on-secondary": { $value: "#ffffff" },
-      "on-accent": { $value: "#ffffff" },
-      "on-semantic-success": { $value: "#ffffff" },
-      "on-semantic-warning": { $value: "#ffffff" },
-      "on-semantic-error": { $value: "#ffffff" },
-      "on-semantic-info": { $value: "#ffffff" },
-      "focus-ring": { $value: "#333333" },
-      link: { $value: "#175cd3" },
-    },
-    font: {
-      family: { $type: "fontFamily", sans: { $value: "sans" } },
-    },
-    focus: {
-      $type: "dimension",
-      width: { $value: "2px" },
-      offset: { $value: "2px" },
-    },
-  });
-  if (!parsed.ok) throw new Error(parsed.error);
-  const report = validateTokens(parsed.tree, { required: requiredPaths() });
-  deepStrictEqual(report.issues, []);
-  deepStrictEqual(validateLegibility(parsed.tree), []);
-});

@@ -61,30 +61,6 @@ export interface ElementDeclaration {
  */
 export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
   {
-    group: "avatar",
-    element: "avatar",
-    path: "avatar.sm",
-    type: "dimension",
-    value: "1.5rem",
-    doc: "The size for a face in a list or a comment.",
-  },
-  {
-    group: "avatar",
-    element: "avatar",
-    path: "avatar.md",
-    type: "dimension",
-    value: "2.5rem",
-    doc: "The default: a face beside a name, or a profile header at rest.",
-  },
-  {
-    group: "avatar",
-    element: "avatar",
-    path: "avatar.lg",
-    type: "dimension",
-    value: "4rem",
-    doc: "A face as the subject of a page.",
-  },
-  {
     group: "badge",
     element: "badge",
     path: "badge.edge",

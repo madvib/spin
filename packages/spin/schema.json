@@ -7,7 +7,15 @@
   "required": [
     "color",
     "font",
-    "focus"
+    "focus",
+    "spacing",
+    "radius",
+    "shadow",
+    "breakpoint",
+    "z-index",
+    "motion",
+    "border",
+    "avatar"
   ],
   "properties": {
     "color": {
@@ -26,6 +34,8 @@
         "on-primary",
         "on-secondary",
         "on-accent",
+        "selected",
+        "on-selected",
         "on-semantic-error",
         "on-semantic-success",
         "on-semantic-warning",
@@ -33,7 +43,13 @@
         "disabled",
         "on-disabled",
         "focus-ring",
-        "link"
+        "link",
+        "neutral",
+        "surface-sunken",
+        "scrim",
+        "field",
+        "border-strong",
+        "on-danger"
       ],
       "properties": {
         "text": {
@@ -558,6 +574,74 @@
             }
           }
         },
+        "selected": {
+          "type": "object",
+          "description": "Selected state fill.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-selected": {
+          "type": "object",
+          "description": "Text on a selected fill.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
         "on-semantic-error": {
           "type": "object",
           "description": "Text on an error fill.",
@@ -829,6 +913,534 @@
               "type": "string"
             }
           }
+        },
+        "neutral": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "50",
+            "100",
+            "200",
+            "300",
+            "400",
+            "500",
+            "600",
+            "700",
+            "800",
+            "900"
+          ],
+          "properties": {
+            "50": {
+              "type": "object",
+              "description": "color.neutral.50",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "100": {
+              "type": "object",
+              "description": "color.neutral.100",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "200": {
+              "type": "object",
+              "description": "color.neutral.200",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "300": {
+              "type": "object",
+              "description": "color.neutral.300",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "400": {
+              "type": "object",
+              "description": "color.neutral.400",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "500": {
+              "type": "object",
+              "description": "color.neutral.500",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "600": {
+              "type": "object",
+              "description": "color.neutral.600",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "700": {
+              "type": "object",
+              "description": "color.neutral.700",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "800": {
+              "type": "object",
+              "description": "color.neutral.800",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "900": {
+              "type": "object",
+              "description": "color.neutral.900",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "surface-sunken": {
+          "type": "object",
+          "description": "Background of elements that sit below the page: table stripes, inset wells.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "scrim": {
+          "type": "object",
+          "description": "What dims the page behind a modal. A theme closes its dialogs over its own ink, not a neutral black.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "field": {
+          "type": "object",
+          "description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "border-strong": {
+          "type": "object",
+          "description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "on-danger": {
+          "type": "object",
+          "description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -836,19 +1448,781 @@
       "type": "object",
       "additionalProperties": true,
       "required": [
-        "family"
+        "family",
+        "size",
+        "weight",
+        "letter-spacing"
       ],
       "properties": {
         "family": {
           "type": "object",
           "additionalProperties": true,
           "required": [
-            "sans"
+            "sans",
+            "serif",
+            "mono",
+            "brand"
           ],
           "properties": {
             "sans": {
               "type": "object",
               "description": "Body and UI text.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "serif": {
+              "type": "object",
+              "description": "Long-form editorial text.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "mono": {
+              "type": "object",
+              "description": "Code, identifiers, tabular figures.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "brand": {
+              "type": "object",
+              "description": "The logotype face — one brand, every starter.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "size": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl"
+          ],
+          "properties": {
+            "2xs": {
+              "type": "object",
+              "description": "font.size.2xs",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "xs": {
+              "type": "object",
+              "description": "font.size.xs",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "sm": {
+              "type": "object",
+              "description": "font.size.sm",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "md": {
+              "type": "object",
+              "description": "font.size.md",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "lg": {
+              "type": "object",
+              "description": "font.size.lg",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "xl": {
+              "type": "object",
+              "description": "font.size.xl",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "2xl": {
+              "type": "object",
+              "description": "font.size.2xl",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "3xl": {
+              "type": "object",
+              "description": "font.size.3xl",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "weight": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "regular",
+            "medium",
+            "semibold",
+            "bold"
+          ],
+          "properties": {
+            "regular": {
+              "type": "object",
+              "description": "font.weight.regular",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "medium": {
+              "type": "object",
+              "description": "font.weight.medium",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "semibold": {
+              "type": "object",
+              "description": "font.weight.semibold",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "bold": {
+              "type": "object",
+              "description": "font.weight.bold",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "letter-spacing": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "tighter",
+            "tight",
+            "normal",
+            "wide",
+            "wider",
+            "widest"
+          ],
+          "properties": {
+            "tighter": {
+              "type": "object",
+              "description": "Display type only. Enough to pull a large headline back to the measure of the body it leads.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "tight": {
+              "type": "object",
+              "description": "A heading at reading size, where the face's own sidebearings already crowd the word.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "normal": {
+              "type": "object",
+              "description": "Body copy and anything unlabelled. The ramp's middle is a decision, not its absence.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "wide": {
+              "type": "object",
+              "description": "The small uppercase label that reads as a clump of strokes at text size.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "wider": {
+              "type": "object",
+              "description": "An eyebrow or category mark set above the copy it introduces.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "widest": {
+              "type": "object",
+              "description": "A single word carrying a whole section. Past this the word stops being a word.",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2372,13 +3746,1772 @@
         }
       }
     },
-    "avatar": {
+    "spacing": {
       "type": "object",
       "additionalProperties": true,
+      "required": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "10",
+        "12",
+        "14",
+        "16",
+        "20",
+        "24",
+        "36",
+        "40",
+        "56",
+        "60",
+        "64"
+      ],
+      "properties": {
+        "0": {
+          "type": "object",
+          "description": "spacing.0",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "description": "spacing.1",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "description": "spacing.2",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "3": {
+          "type": "object",
+          "description": "spacing.3",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "4": {
+          "type": "object",
+          "description": "spacing.4",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "5": {
+          "type": "object",
+          "description": "spacing.5",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "6": {
+          "type": "object",
+          "description": "spacing.6",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "7": {
+          "type": "object",
+          "description": "spacing.7",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "8": {
+          "type": "object",
+          "description": "spacing.8",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "10": {
+          "type": "object",
+          "description": "spacing.10",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "12": {
+          "type": "object",
+          "description": "spacing.12",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "14": {
+          "type": "object",
+          "description": "spacing.14",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "16": {
+          "type": "object",
+          "description": "spacing.16",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "20": {
+          "type": "object",
+          "description": "spacing.20",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "24": {
+          "type": "object",
+          "description": "spacing.24",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "36": {
+          "type": "object",
+          "description": "spacing.36",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "40": {
+          "type": "object",
+          "description": "spacing.40",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "56": {
+          "type": "object",
+          "description": "spacing.56",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "60": {
+          "type": "object",
+          "description": "spacing.60",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "64": {
+          "type": "object",
+          "description": "spacing.64",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "none",
+        "sm",
+        "md",
+        "lg",
+        "full"
+      ],
+      "properties": {
+        "none": {
+          "type": "object",
+          "description": "radius.none",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "sm": {
+          "type": "object",
+          "description": "radius.sm",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "type": "object",
+          "description": "radius.md",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "type": "object",
+          "description": "radius.lg",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "full": {
+          "type": "object",
+          "description": "radius.full",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "sm",
+        "md",
+        "lg"
+      ],
       "properties": {
         "sm": {
           "type": "object",
-          "description": "The size for a face in a list or a comment.",
+          "description": "shadow.sm",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "type": "object",
+          "description": "shadow.md",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "type": "object",
+          "description": "shadow.lg",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "breakpoint": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "properties": {
+        "sm": {
+          "type": "object",
+          "description": "breakpoint.sm",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "type": "object",
+          "description": "breakpoint.md",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "type": "object",
+          "description": "breakpoint.lg",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "xl": {
+          "type": "object",
+          "description": "breakpoint.xl",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "z-index": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "base",
+        "dropdown",
+        "modal",
+        "toast"
+      ],
+      "properties": {
+        "base": {
+          "type": "object",
+          "description": "z-index.base",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "dropdown": {
+          "type": "object",
+          "description": "z-index.dropdown",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "modal": {
+          "type": "object",
+          "description": "z-index.modal",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "toast": {
+          "type": "object",
+          "description": "z-index.toast",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "duration",
+        "easing"
+      ],
+      "properties": {
+        "duration": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "fast",
+            "base",
+            "slow",
+            "loop"
+          ],
+          "properties": {
+            "fast": {
+              "type": "object",
+              "description": "motion.duration.fast",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "base": {
+              "type": "object",
+              "description": "motion.duration.base",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "slow": {
+              "type": "object",
+              "description": "motion.duration.slow",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "loop": {
+              "type": "object",
+              "description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A loop is watched rather than reacted to, so it is slower than any transition — and never faster than the floor below which it reads as a strobe.",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "easing": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "linear",
+            "standard",
+            "decelerate",
+            "accelerate"
+          ],
+          "properties": {
+            "linear": {
+              "type": "object",
+              "description": "motion.easing.linear",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "standard": {
+              "type": "object",
+              "description": "motion.easing.standard",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "decelerate": {
+              "type": "object",
+              "description": "motion.easing.decelerate",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "accelerate": {
+              "type": "object",
+              "description": "motion.easing.accelerate",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "border": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "width",
+        "width-2",
+        "width-4",
+        "width-8"
+      ],
+      "properties": {
+        "width": {
+          "type": "object",
+          "description": "The hairline every control and surface draws with.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "width-2": {
+          "type": "object",
+          "description": "The emphasis edge: a control that must read as selected rather than merely bordered.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "width-4": {
+          "type": "object",
+          "description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "width-8": {
+          "type": "object",
+          "description": "The frame. A block drawn rather than outlined.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "avatar": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "properties": {
+        "sm": {
+          "type": "object",
+          "description": "The size for a face in a list or a comment: it reads beside its label without leading the row.",
           "additionalProperties": true,
           "required": [
             "$value"
@@ -2446,7 +5579,7 @@
         },
         "lg": {
           "type": "object",
-          "description": "A face as the subject of a page.",
+          "description": "A face as the subject of a page: a profile header at the top of a long column.",
           "additionalProperties": true,
           "required": [
             "$value"

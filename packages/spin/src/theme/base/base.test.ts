@@ -83,6 +83,13 @@ test("document defaults spend theme tokens and nothing else", () => {
   // A default that hardcoded a value would be a house style, not an identity.
   assert(!/#[0-9a-f]{3,6}/i.test(css), `no literals in: ${css}`);
 });
+test("the base reset removes list markers from bare ul/ol", () => {
+  const css = documentDefaults();
+  assert(/ul[\s\S]*?\{[^}]*list-style[^}]*none/i.test(css), css);
+  assert(/ul[\s\S]*?\{[^}]*padding[^}]*0/i.test(css), css);
+  const scoped = css.match(/^[^{]*\{[^}]*list-style[^}]*none[^}]*\}/m)?.[0] ?? "";
+  assert(!/body|h1|blockquote/.test(scoped), `list reset stays on lists: ${scoped}`);
+});
 
 test("the theme contributes document layers below the components", () => {
   const providers = basePreflights({

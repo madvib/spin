@@ -94,16 +94,19 @@ const themeCss = os.theme.css.handler(({ input }) => {
 
 const themesCss = os.themes.css.handler(({ input }) => {
   const trees: Record<string, TokenTree> = {};
+  const modes: Record<string, readonly ("light" | "dark")[]> = {};
   for (const [name, text] of Object.entries(input.themes)) {
-    const parsed = parseTokens(text);
+    const parsed = parseDocument(text);
     if (!parsed.ok) return { error: `${name}: ${parsed.error}`, css: "" };
     trees[name] = parsed.tree;
+    if (parsed.modes !== undefined) modes[name] = parsed.modes;
   }
   return {
     error: null,
     css: generateThemeCss(trees, {
       ...(input.selector !== undefined ? { selector: input.selector } : {}),
       ...(input.prefix !== undefined ? { prefix: input.prefix } : {}),
+      modes,
     }),
   };
 });

@@ -152,6 +152,14 @@ export interface CssOptions {
    * that would collide on shared names.
    */
   rootTheme?: string;
+  /**
+   * The modes each theme serves, as its root `modes` field declares them.
+   *
+   * `--spin-modes` carries the declaration, never a structural guess: a
+   * dark-only theme whose base is already dark serves `dark` with no dark
+   * block to detect. A theme absent from the map keeps the old derivation.
+   */
+  modes?: Record<string, readonly ("light" | "dark")[]>;
 }
 
 /**
