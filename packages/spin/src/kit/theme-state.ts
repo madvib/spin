@@ -39,9 +39,9 @@ export const modesFor = (name: string): readonly string[] => {
 export interface ThemeStateOptions {
   /** The theme documents this app serves. Defaults to the starters. */
   readonly documents?: ThemeDocuments;
-  /** The theme a first visit starts on. Defaults to the first name. */
+  /** The theme a first visit starts on. Defaults to `spin` when served. */
   readonly initialTheme?: string;
-  /** The mode a first visit starts on. Defaults to light. */
+  /** The mode a first visit starts on. Defaults to `system`. */
   readonly initialMode?: string;
   /** Where the choice is remembered. */
   readonly storage?: { readonly theme: string; readonly mode: string };
@@ -116,16 +116,17 @@ export function createThemeState(
     { theme: "spin:theme", mode: "spin:mode" };
 
   const storedTheme = read(storage.theme);
+  const fallbackTheme = "spin" in documents ? "spin" : (names[0] ?? "spin");
   const initialTheme = storedTheme !== null && storedTheme in documents
     ? storedTheme
-    : (options.initialTheme ?? names[0] ?? "spin");
+    : (options.initialTheme ?? fallbackTheme);
   const [themeName, setThemeName] = createSignal(initialTheme);
 
   const [system, setSystem] = createSignal<"light" | "dark">(
     systemPreference(),
   );
   const [want, setWant] = createSignal(
-    read(storage.mode) ?? options.initialMode ?? "light",
+    read(storage.mode) ?? options.initialMode ?? "system",
   );
 
   // The platform preference is live: a reader on `system` whose OS flips must
