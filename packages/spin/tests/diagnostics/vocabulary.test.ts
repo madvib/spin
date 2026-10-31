@@ -90,14 +90,14 @@ test("a scale step the starters declare is part of the vocabulary", () => {
 });
 
 test("the product's own compositions are vocabulary without a project declaration", () => {
-  // `stack`, `row`, `split`, `panel` and `overline` ship with the preset, so a
+  // `stack`, `row`, `split` and `overline` ship with the preset, so a
   // project writes them without declaring them. A lint that called them
   // unknown would flag the product's own pages.
   const facts = factsFor(Object.values(starterThemes));
   deepStrictEqual(
     reported(
       facts,
-      "stack stack-sm stack-lg row row-sm split panel overline cluster",
+      "stack stack-sm stack-lg row row-sm split overline cluster",
     ),
     [],
   );

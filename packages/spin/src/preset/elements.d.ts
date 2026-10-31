@@ -22,23 +22,22 @@ interface SpinElementAttributes {
 declare global {
   interface HTMLElementTagNameMap {
     "alert": HTMLElement & SpinElementAttributes;
-    "avatar": HTMLElement & SpinElementAttributes;
-    "avatar-group": HTMLElement & SpinElementAttributes;
     "badge": HTMLElement & SpinElementAttributes;
     "breadcrumbs": HTMLElement & SpinElementAttributes;
     "card": HTMLElement & SpinElementAttributes;
     "checkbox": HTMLElement & SpinElementAttributes;
     "field": HTMLElement & SpinElementAttributes;
-    "group": HTMLElement & SpinElementAttributes;
     "icon": HTMLElement & SpinElementAttributes;
     "join": HTMLElement & SpinElementAttributes;
-    "mode": HTMLElement & SpinElementAttributes;
-    "popover": HTMLElement & SpinElementAttributes;
+    "panel": HTMLElement & SpinElementAttributes;
     "prose": HTMLElement & SpinElementAttributes;
     "radio": HTMLElement & SpinElementAttributes;
+    "range": HTMLElement & SpinElementAttributes;
     "skeleton": HTMLElement & SpinElementAttributes;
     "stat": HTMLElement & SpinElementAttributes;
+    "swatch": HTMLElement & SpinElementAttributes;
     "switch": HTMLElement & SpinElementAttributes;
+    "tooltip": HTMLElement & SpinElementAttributes;
   }
 }
 
@@ -46,23 +45,22 @@ declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
     "alert": HTMLElement & SpinElementAttributes;
-    "avatar": HTMLElement & SpinElementAttributes;
-    "avatar-group": HTMLElement & SpinElementAttributes;
     "badge": HTMLElement & SpinElementAttributes;
     "breadcrumbs": HTMLElement & SpinElementAttributes;
     "card": HTMLElement & SpinElementAttributes;
     "checkbox": HTMLElement & SpinElementAttributes;
     "field": HTMLElement & SpinElementAttributes;
-    "group": HTMLElement & SpinElementAttributes;
     "icon": HTMLElement & SpinElementAttributes;
     "join": HTMLElement & SpinElementAttributes;
-    "mode": HTMLElement & SpinElementAttributes;
-    "popover": HTMLElement & SpinElementAttributes;
+    "panel": HTMLElement & SpinElementAttributes;
     "prose": HTMLElement & SpinElementAttributes;
     "radio": HTMLElement & SpinElementAttributes;
+    "range": HTMLElement & SpinElementAttributes;
     "skeleton": HTMLElement & SpinElementAttributes;
     "stat": HTMLElement & SpinElementAttributes;
+    "swatch": HTMLElement & SpinElementAttributes;
     "switch": HTMLElement & SpinElementAttributes;
+    "tooltip": HTMLElement & SpinElementAttributes;
     }
   }
 }

@@ -153,59 +153,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "alert.edge", type: "color", value: "#e5e5e5" },
     ],
   },
-  avatar: {
-    tags: ["img"],
-    variants: [
-      "avatar",
-      "avatar-circle",
-      "avatar-lg",
-      "avatar-md",
-      "avatar-ring",
-      "avatar-sm",
-      "avatar-status",
-    ],
-    reads: [
-      "--avatar-lg",
-      "--avatar-md",
-      "--avatar-sm",
-      "--border-width-2",
-      "--color-border-strong",
-      "--color-semantic-success",
-      "--radius-full",
-      "--radius-md",
-      "--spacing-10",
-      "--spacing-16",
-      "--spacing-6",
-    ],
-    scope: {
-      self: "avatar",
-      paints: [
-        { tag: "img", where: "descendant", owns: [] },
-      ],
-    },
-    // The ladder is the avatar's whole palette: a face has no palette of its
-    // own, and the sizes are the one set of decisions the theme owns for it.
-    // Scaffolds carry the shipped defaults so a theme that never decided a
-    // size gets the one the reference renders.
-    component: [
-      { path: "avatar.sm", type: "dimension", value: "1.5rem" },
-      { path: "avatar.md", type: "dimension", value: "2.5rem" },
-      { path: "avatar.lg", type: "dimension", value: "4rem" },
-    ],
-  },
-  "avatar-group": {
-    tags: [],
-    variants: ["avatar-group"],
-    reads: ["--avatar-md", "--border-width", "--color-surface", "--spacing-10"],
-    scope: {
-      self: "avatar-group",
-      paints: [
-      ],
-    },
-    category: "display",
-    icon: "i-lucide-users",
-    component: [],
-  },
   badge: {
     tags: ["badge"],
     variants: [
@@ -511,8 +458,9 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       self: "details",
       paints: [
         { tag: "details", where: "global", owns: ["background", "corner", "edge"] },
+        { tag: "details", where: "descendant", owns: [] },
         { tag: "summary", where: "global", owns: ["background", "corner", "edge", "ink", "weight"] },
-        { tag: "summary", where: "descendant", owns: [] },
+        { tag: "summary", where: "descendant", owns: ["edge"] },
       ],
     },
     category: "containers",
@@ -551,7 +499,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
   field: {
-    tags: ["input", "textarea"],
+    tags: ["input", "select", "textarea"],
     variants: ["bare"],
     reads: [
       "--border-width",
@@ -575,23 +523,19 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--motion-duration-fast",
       "--motion-easing-standard",
       "--radius-md",
-      "--spacing-16",
       "--spacing-2",
-      "--spacing-4",
     ],
     scope: {
       self: "field",
       paints: [
         { tag: "input", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
+        { tag: "select", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
         { tag: "textarea", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
       ],
     },
     category: "inputs",
     icon: "i-lucide-form",
-    component: [
-      { path: "field.radius", type: "dimension", value: "0.5rem" },
-      { path: "field.border", type: "color", value: "#999999" },
-    ],
+    component: [],
   },
   fieldset: {
     tags: ["fieldset", "legend"],
@@ -614,23 +558,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     },
     category: "containers",
     icon: "i-lucide-boxes",
-    component: [],
-  },
-  group: {
-    tags: ["badge", "button", "input", "textarea"],
-    variants: [],
-    reads: ["--border-width", "--radius-md"],
-    scope: {
-      self: "group",
-      paints: [
-        { tag: "badge", where: "descendant", owns: ["corner", "edge"] },
-        { tag: "button", where: "descendant", owns: ["corner", "edge"] },
-        { tag: "input", where: "descendant", owns: ["corner", "edge"] },
-        { tag: "textarea", where: "descendant", owns: ["corner", "edge"] },
-      ],
-    },
-    category: "containers",
-    icon: "i-lucide-group",
     component: [],
   },
   hr: {
@@ -766,25 +693,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     scope: {
       self: "kbd",
       paints: [
-        { tag: "kbd", where: "global", owns: ["background", "corner", "edge", "face", "ink", "size"] },
+        { tag: "kbd", where: "global", owns: ["background", "corner", "edge", "elevation", "face", "ink", "size"] },
       ],
     },
     category: "actions",
     icon: "i-lucide-keyboard",
-    component: [],
-  },
-  label: {
-    tags: ["label"],
-    variants: [],
-    reads: ["--font-family-sans", "--spacing-2"],
-    scope: {
-      self: "label",
-      paints: [
-        { tag: "label", where: "global", owns: ["face"] },
-      ],
-    },
-    category: "inputs",
-    icon: "i-lucide-tag",
     component: [],
   },
   meter: {
@@ -801,11 +714,12 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--font-size-sm",
       "--opacity-50",
       "--radius-sm",
+      "--spacing-2",
     ],
     scope: {
       self: "meter",
       paints: [
-        { tag: "meter", where: "global", owns: ["face", "opacity", "size"] },
+        { tag: "meter", where: "global", owns: ["background", "corner", "edge", "face", "opacity", "size"] },
       ],
     },
     category: "inputs",
@@ -813,7 +727,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
   panel: {
-    tags: ["panel", "panel-list"],
+    tags: ["hr", "panel", "panel-list"],
     variants: [],
     reads: [
       "--border-width",
@@ -833,58 +747,11 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       paints: [
         { tag: "panel", where: "global", owns: ["background", "corner", "edge", "elevation", "ink"] },
         { tag: "panel-list", where: "global", owns: [] },
+        { tag: "hr", where: "descendant", owns: [] },
       ],
     },
     category: "containers",
     icon: "i-lucide-panel-top",
-    component: [],
-  },
-  mode: {
-    tags: [],
-    variants: ["button", "mode"],
-    reads: [
-      "--color-disabled",
-      "--color-on-disabled",
-      "--icon-md",
-      "--spacing-2",
-    ],
-    scope: {
-      self: "mode",
-      paints: [
-      ],
-    },
-    category: "actions",
-    icon: "i-lucide-sun-moon",
-    component: [],
-  },
-  popover: {
-    tags: ["popover", "tooltip"],
-    variants: [],
-    reads: [
-      "--border-width",
-      "--color-border",
-      "--color-surface-raised",
-      "--color-text",
-      "--font-size-xs",
-      "--motion-duration-base",
-      "--motion-easing-standard",
-      "--radius-lg",
-      "--radius-sm",
-      "--shadow-lg",
-      "--shadow-sm",
-      "--spacing-1",
-      "--spacing-2",
-      "--spacing-4",
-      "--z-index-dropdown",
-    ],
-    scope: {
-      self: "popover",
-      paints: [
-        { tag: "popover", where: "global", owns: ["background", "corner", "edge", "elevation", "ink", "opacity"] },
-        { tag: "tooltip", where: "global", owns: ["background", "corner", "edge", "elevation", "ink", "opacity", "size"] },
-        { tag: "tooltip", where: "descendant", owns: [] },
-      ],
-    },
     component: [],
   },
   progress: {
@@ -1067,12 +934,39 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     icon: "i-lucide-circle-dot",
     component: [],
   },
+  range: {
+    tags: ["input"],
+    variants: [],
+    reads: [
+      "--border-width",
+      "--color-border",
+      "--color-disabled",
+      "--color-focus-ring",
+      "--color-on-disabled",
+      "--color-primary",
+      "--color-surface",
+      "--color-surface-sunken",
+      "--focus-offset",
+      "--focus-width",
+      "--radius-full",
+      "--spacing-1",
+      "--spacing-4",
+    ],
+    scope: {
+      self: "range",
+      paints: [
+        { tag: "input", where: "global", owns: ["background", "corner", "edge", "ink"] },
+      ],
+    },
+    component: [],
+  },
   skeleton: {
     tags: [],
     variants: ["skeleton", "skeleton-circle", "skeleton-text"],
     reads: [
       "--avatar-md",
-      "--color-field",
+      "--color-surface-sunken",
+      "--color-text-muted",
       "--font-size-sm",
       "--motion-duration-loop",
       "--motion-duration-slow",
@@ -1118,6 +1012,20 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "stat.value-size", type: "dimension", value: "1.5rem" },
       { path: "stat.value-weight", type: "fontWeight", value: "600" },
     ],
+  },
+  swatch: {
+    tags: ["swatch"],
+    variants: ["s-lg", "s-md", "s-sm"],
+    reads: ["--border-width", "--color-border", "--radius-sm"],
+    scope: {
+      self: "swatch",
+      paints: [
+        { tag: "swatch", where: "global", owns: ["corner", "edge"] },
+      ],
+    },
+    category: "display",
+    icon: "i-lucide-palette",
+    component: [],
   },
   switch: {
     tags: ["input"],
@@ -1193,7 +1101,33 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       { path: "table.zebra", type: "color", value: "#f0f0f0" },
     ],
   },
+  tooltip: {
+    tags: ["tooltip"],
+    variants: [],
+    reads: [
+      "--border-width",
+      "--color-border",
+      "--color-surface-raised",
+      "--color-text",
+      "--font-size-xs",
+      "--radius-sm",
+      "--spacing-1",
+      "--spacing-2",
+      "--z-index-dropdown",
+    ],
+    scope: {
+      self: "tooltip",
+      paints: [
+        { tag: "tooltip", where: "global", owns: ["background", "corner", "edge", "ink", "size"] },
+      ],
+    },
+    category: "feedback",
+    icon: "i-lucide-message-circle",
+    component: [],
+  },
 };
+
+
 
 
 
@@ -1310,7 +1244,6 @@ export const primitiveElements: readonly PrimitiveElement[] = [
   { name: "breadcrumbs", category: "actions", icon: "i-lucide-chevron-right" },
   { name: "join", category: "actions", icon: "i-lucide-rows-3" },
   { name: "kbd", category: "actions", icon: "i-lucide-keyboard" },
-  { name: "mode", category: "actions", icon: "i-lucide-sun-moon" },
   { name: "checkbox", category: "inputs", icon: "i-lucide-square-check" },
   { name: "radio", category: "inputs", icon: "i-lucide-circle-dot" },
   { name: "switch", category: "inputs", icon: "i-lucide-toggle-right" },
@@ -1322,16 +1255,17 @@ export const primitiveElements: readonly PrimitiveElement[] = [
   { name: "card", category: "containers", icon: "i-lucide-square" },
   { name: "dialog", category: "containers", icon: "i-lucide-message-square" },
   { name: "details", category: "containers", icon: "i-lucide-list" },
-  { name: "group", category: "containers", icon: "i-lucide-group" },
   { name: "fieldset", category: "containers", icon: "i-lucide-boxes" },
   { name: "hr", category: "containers", icon: "i-lucide-minus" },
+  { name: "panel", category: "containers", icon: "i-lucide-panel-top" },
   { name: "table", category: "display", icon: "i-lucide-table-2" },
   { name: "stat", category: "display", icon: "i-lucide-sigma" },
-  { name: "avatar-group", category: "display", icon: "i-lucide-users" },
   { name: "alert", category: "feedback", icon: "i-lucide-triangle-alert" },
   { name: "badge", category: "feedback", icon: "i-lucide-badge-check" },
+  { name: "swatch", category: "display", icon: "i-lucide-palette" },
   { name: "progress", category: "feedback", icon: "i-lucide-loader" },
   { name: "skeleton", category: "feedback", icon: "i-lucide-square-dashed" },
+  { name: "tooltip", category: "feedback", icon: "i-lucide-message-circle" },
   { name: "prose", category: "typography", icon: "i-lucide-whole-word" },
   { name: "typography", category: "typography", icon: "i-lucide-type" },
   { name: "icon", category: "typography", icon: "i-lucide-image" },

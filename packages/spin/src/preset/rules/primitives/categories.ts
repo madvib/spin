@@ -87,6 +87,7 @@ export const PRIMITIVE_ELEMENTS: readonly PrimitiveElement[] = [
   { name: "panel", category: "containers", icon: "i-lucide-panel-top" },
   { name: "table", category: "display", icon: "i-lucide-table-2" },
   { name: "stat", category: "display", icon: "i-lucide-sigma" },
+  { name: "alert", category: "feedback", icon: "i-lucide-triangle-alert" },
   { name: "badge", category: "feedback", icon: "i-lucide-badge-check" },
   { name: "swatch", category: "display", icon: "i-lucide-palette" },
   { name: "progress", category: "feedback", icon: "i-lucide-loader" },

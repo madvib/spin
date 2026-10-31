@@ -87,9 +87,15 @@ function declarationsFor(
   selector: string,
 ): Record<string, string> {
   const wanted = selector.replace(/\s+/g, "");
+  // Uno merges adjacent rules that declare the same things into one rule
+  // with a selector list, so a selector is read as one entry of that list.
+  const at = new RegExp(
+    "(?:^|,)" + wanted.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:,|$)",
+  );
   const found: Record<string, string> = {};
   for (const rule of rulesOf(css)) {
-    if (rule.selector.replace(/\s+/g, "") === wanted) {
+    const parts = rule.selector.replace(/\s+/g, "");
+    if (at.test(parts)) {
       Object.assign(found, rule.declarations);
     }
   }

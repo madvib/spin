@@ -167,6 +167,14 @@
         "dark": "#0b1120"
       }
     },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
+    },
     "on-danger": {
       "$value": "#ffffff",
       "$type": "color",

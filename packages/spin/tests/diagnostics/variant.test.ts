@@ -134,13 +134,14 @@ test("the remedy names only the variants that carry the decision", () => {
     "`<button>` sets its own fill; `bg-surface-raised` fights it. " +
       "Use a variant (`bare`, `contrast`, …) or the theme's value.",
   );
-  // No button variant carries the corner, so the theme's radius is the way
-  // out — and the message says so.
+  // `bare` carries the corner — it zeroes the radius — so it is offered
+  // beside the theme's own value; a variant that said nothing about the
+  // decision would not be.
   const [corner] = override("button", "rounded-full");
   deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, corner!),
     "`<button>` sets its own fill; `rounded-full` fights it. " +
-      "Use the theme's value.",
+      "Use a variant (`bare`) or the theme's value.",
   );
 });
 

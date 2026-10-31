@@ -104,6 +104,7 @@ export const primitiveClaims: Record<string, Claim> = {
     self: "field",
     paints: [
       { tag: "input", where: "global" },
+      { tag: "select", where: "global" },
       { tag: "textarea", where: "global" },
     ],
   },
@@ -119,11 +120,13 @@ export const primitiveClaims: Record<string, Claim> = {
   join: { self: "join", paints: [] },
   kbd: { self: "kbd", paints: [{ tag: "kbd", where: "global" }] },
   label: { self: "label", paints: [{ tag: "label", where: "global" }] },
+  meter: { self: "meter", paints: [{ tag: "meter", where: "global" }] },
   panel: {
     self: "panel",
     paints: [
       { tag: "panel", where: "global" },
       { tag: "panel-list", where: "global" },
+      { tag: "hr", where: "descendant" },
     ],
   },
   progress: {

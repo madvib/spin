@@ -43,6 +43,7 @@ import { iconRules } from "./icon.ts";
 import { joinRules } from "./join.ts";
 import { meterRules } from "./meter.ts";
 import { panelRules } from "./panel.ts";
+import { progressRules } from "./progress.ts";
 import { proseRules } from "./prose.ts";
 import { radioRules } from "./radio.ts";
 import { rangeRules } from "./range.ts";
@@ -574,6 +575,7 @@ const RULE_SOURCES: Record<string, () => Rule[]> = {
   swatch: () => swatchRules(["swatch"], { classless: true }),
   tooltip: () => tooltipRules(["tooltip"], { classless: true }),
   fieldset: () => fieldsetRules(["fieldset"], { classless: true }),
+  field: () => [fieldBox()],
 };
 
 /** The custom properties the baseline theme actually declares. */

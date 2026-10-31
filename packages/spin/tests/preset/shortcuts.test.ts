@@ -98,16 +98,11 @@ test("a project without shortcuts composes nothing of its own", async () => {
 test("the standard compositions ship with the preset", async () => {
   const css = await sheet(
     { themes: { light: theme } },
-    '<div class="stack-sm split panel overline"></div>',
+    '<div class="stack-sm split overline"></div>',
   );
   assert(declarationsOf(css, ".stack-sm").includes("gap:var(--spacing-2)"));
   assert(
     declarationsOf(css, ".split").includes("justify-content:space-between"),
-  );
-  assert(
-    declarationsOf(css, ".panel").includes(
-      "background-color:var(--color-surface-raised)",
-    ),
   );
   assert(declarationsOf(css, ".overline").includes("text-transform:uppercase"));
 });
