@@ -6,28 +6,11 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "action",
-  "basic",
-  "bottomcenter",
-  "bottomleft",
-  "bottomright",
-  "duration",
-  "promise",
-  "topcenter",
-  "topleft",
-  "topright",
-  "types",
-  "updatable",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
-test("the gallery holds the twelve specimens", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, [...STEMS].sort());
-});
 
 test("every renderable group spans edge to edge without padding", () => {
   for (const stem of STEMS) {

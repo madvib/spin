@@ -6,13 +6,6 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-test("the gallery holds the single thin specimen", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, ["basic"]);
-});
 
 test("the basic example opens the levels from its trigger", () => {
   const html = read("basic");

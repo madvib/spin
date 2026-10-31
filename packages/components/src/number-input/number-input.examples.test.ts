@@ -1,20 +1,14 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "basic",
-  "currency",
-  "decimal",
-  "limits",
-  "percentage",
-  "quantity",
-  "scrubber",
-  "wheel",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
 test("every example wires the spinbutton behind its label", () => {
   for (const stem of STEMS) {

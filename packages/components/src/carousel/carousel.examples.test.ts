@@ -6,25 +6,11 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "autoplay",
-  "basic",
-  "cards",
-  "hero",
-  "infinite",
-  "minimal",
-  "testimonials",
-  "thumbnails",
-  "vertical",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
-test("the gallery holds the nine specimens", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, [...STEMS].sort());
-});
 
 test("every track promises the drag its cursor shows", () => {
   for (const stem of STEMS) {

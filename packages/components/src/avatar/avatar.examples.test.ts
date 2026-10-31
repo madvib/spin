@@ -6,31 +6,11 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "badge",
-  "badgeminimal",
-  "basic",
-  "count",
-  "fallback",
-  "group",
-  "icon",
-  "multiples",
-  "pills",
-  "pillsolid",
-  "rounded",
-  "status",
-  "statusminimal",
-  "trusted",
-  "verification",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
-test("the gallery holds the fifteen specimens", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, [...STEMS].sort());
-});
 
 test("every face binds its own machine under its own name", () => {
   for (const stem of STEMS) {

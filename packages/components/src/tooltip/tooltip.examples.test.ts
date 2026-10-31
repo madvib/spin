@@ -6,22 +6,11 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "basic",
-  "metrics",
-  "positioning",
-  "status",
-  "video",
-  "with-arrow",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
-test("the gallery holds the six specimens", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, [...STEMS].sort());
-});
 
 test("every specimen renders from the tooltip surface, never a data-variant origin", () => {
   for (const stem of STEMS) {

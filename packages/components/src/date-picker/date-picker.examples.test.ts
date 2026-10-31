@@ -1,20 +1,18 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "basic",
-  "multiple",
-  "pricing",
-  "range",
-  "unavailable",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
 test("every example mounts the shared calendar", () => {
-  for (const stem of STEMS) {
+  // `appointment` is the shared calendar itself, not a consumer of it.
+  for (const stem of STEMS.filter((stem) => stem !== "appointment")) {
     assert.ok(
       read(stem).includes('<include file="./appointment.html" />'),
       `${stem} must include the shared calendar so one fix heals all grids`,

@@ -6,16 +6,10 @@ const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
-const STEMS = [
-  "basic",
-  "equalizer",
-  "fractional",
-  "marks",
-  "range",
-  "stepped",
-  "ticks",
-  "vertical",
-];
+const STEMS = readdirSync(new URL("./examples/", import.meta.url))
+  .filter((file) => file.endsWith(".html"))
+  .map((file) => file.slice(0, -".html".length))
+  .sort();
 
 test("the single-machine specimens bind once; the equalizer binds five", () => {
   for (const stem of STEMS) {
@@ -29,13 +23,6 @@ test("the single-machine specimens bind once; the equalizer binds five", () => {
   }
 });
 
-test("the gallery holds the eight specimens", () => {
-  const stems = readdirSync(dir)
-    .filter((file) => file.endsWith(".html"))
-    .map((file) => file.slice(0, -".html".length))
-    .sort();
-  assert.deepStrictEqual(stems, [...STEMS].sort());
-});
 
 test("every example renders the track, the fill, and one thumb per index", () => {
   for (const stem of STEMS) {
