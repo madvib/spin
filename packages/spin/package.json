@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/spin",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
   "type": "module",
   "license": "MIT",
