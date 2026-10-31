@@ -138,8 +138,15 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
       location.pathname === prefix ||
       location.pathname.startsWith(`${prefix}/`)
     );
+  const isHome = () => location.pathname === "/";
   return (
-    <header class="sticky top-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b border-border bg-surface px-4 md:px-6">
+    <header
+      class={`sticky top-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b px-4 md:px-6 ${
+        isHome()
+          ? "border-transparent bg-transparent"
+          : "border-border bg-surface"
+      }`}
+    >
       <div class="flex min-w-0 items-center gap-4">
         <A href="/" end class="shrink-0 no-underline" aria-label="spin home">
           <Logo size="md" class="text-text" />

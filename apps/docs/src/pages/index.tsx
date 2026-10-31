@@ -1,776 +1,1082 @@
-// Docs landing page: foreground interactive black-widow stage and live product workbenches.
-import { createEffect, createSignal, For, onMount } from "solid-js";
-import type { JSX } from "solid-js";
-import { A } from "@solidjs/router";
+// Docs landing page: full-bleed orb-weaver canvas with single-stage threshold-scroll carousel, compact w-fit specimens, live component preview HoverCards, and tiny FAB.
 import {
-  Logo,
+  createEffect,
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from "solid-js";
+import type { JSX } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { COMPONENT_ICONS } from "@spinjs/components";
+import { exampleSources } from "@spinjs/components/examples";
+import "@spinjs/components/examples";
+import { examplesFor, primitiveContracts } from "@spinjs/preset";
+import {
   Mark,
+  type MarkPluckEvent,
   mode,
+  setMode,
+  setTheme,
+  starterList,
   theme,
-  WEB_ANCHOR_NODES,
 } from "@spinjs/kit";
-import type { MarkPluckEvent } from "@spinjs/kit";
-import { COMPONENT_GROUPS } from "../nav.ts";
-import { Code, Reveal } from "../bits.tsx";
+
+const STAGE_COUNT = 7;
+const WHEEL_THRESHOLD = 62;
+const STEP_COOLDOWN_MS = 650;
+
+const MACHINE_SOURCES = exampleSources();
+
+interface HoverTileSpec {
+  readonly name: string;
+  readonly href: string;
+  readonly icon: string;
+  readonly mountHtml: string;
+  readonly meta: string;
+}
+
+function buildTileSpec(name: string, isMachine: boolean): HoverTileSpec {
+  const icon = COMPONENT_ICONS[name] ?? "i-lucide-box";
+  if (isMachine) {
+    const first = MACHINE_SOURCES.get(name)?.[0]?.stem ?? "basic";
+    return {
+      name,
+      href: `/components/machine-${name}`,
+      icon,
+      mountHtml: `<${name}-${first}></${name}-${first}>`,
+      meta: "interactive",
+    };
+  }
+  const ex = examplesFor(name);
+  const contract = primitiveContracts[name];
+  const vCount = contract?.variants.length ?? 0;
+  return {
+    name,
+    href: `/components/${name}`,
+    icon,
+    mountHtml: ex?.rows[0]?.html ?? `<${name}>${name}</${name}>`,
+    meta: vCount > 0 ? `${vCount} variants` : "pure css",
+  };
+}
+
+const HOVER_TILES: readonly HoverTileSpec[] = [
+  buildTileSpec("button", false),
+  buildTileSpec("breadcrumbs", false),
+  buildTileSpec("join", false),
+  buildTileSpec("kbd", false),
+  buildTileSpec("mode-picker", true),
+  buildTileSpec("theme-picker", true),
+  buildTileSpec("tabs", true),
+  buildTileSpec("menu", true),
+  buildTileSpec("pagination", true),
+  buildTileSpec("steps", true),
+  buildTileSpec("angle-slider", true),
+  buildTileSpec("date-input", true),
+];
+
+interface DtcgTokenSample {
+  readonly path: string;
+  readonly type: string;
+  readonly role: string;
+  readonly lightValue: string;
+  readonly darkValue: string;
+  readonly pairing: string;
+}
+
+const DTCG_SAMPLES: readonly DtcgTokenSample[] = [
+  {
+    path: "color.primary",
+    type: "color",
+    role: "Brand action fill & focus accent",
+    lightValue: "#c8102e",
+    darkValue: "#ff6369",
+    pairing: "Paired with color.on-primary (≥ 4.5:1 AA)",
+  },
+  {
+    path: "color.surface-raised",
+    type: "color",
+    role: "Elevated cards, panels & overlays",
+    lightValue: "#ffffff",
+    darkValue: "#1b1a18",
+    pairing: "Paired with color.text & color.text-muted",
+  },
+  {
+    path: "font.family.heading",
+    type: "fontFamily",
+    role: "Display & section headings",
+    lightValue: "Bricolage Grotesque",
+    darkValue: "Bricolage Grotesque",
+    pairing: "Paired with font.family.sans body copy",
+  },
+  {
+    path: "radius.lg",
+    type: "dimension",
+    role: "Container & panel corner geometry",
+    lightValue: "0.5rem",
+    darkValue: "0.5rem",
+    pairing: "Scales across button, card, dialog & panel",
+  },
+] as const;
 
 interface OracleFinding {
   readonly id: string;
   readonly rule: string;
-  readonly badToken: string;
-  readonly goodToken: string;
-  readonly reason: string;
+  readonly badCode: string;
+  readonly fixedCode: string;
 }
 
 const ORACLE_FINDINGS: readonly OracleFinding[] = [
   {
     id: "hex",
     rule: "spin/no-hardcoded-color",
-    badToken: "bg-[#c8102e]",
-    goodToken: "bg-primary",
-    reason: "Raw hex bypasses dark mode restatements.",
+    badCode: 'class="bg-[#c8102e] text-white"',
+    fixedCode: 'class="bg-primary text-on-primary"',
   },
   {
     id: "scale",
     rule: "spin/unknown-class",
-    badToken: "p-13",
-    goodToken: "p-4",
-    reason: "Step 13 is not in the spacing scale; emits zero CSS.",
+    badCode: 'class="p-13 rounded-[7px]"',
+    fixedCode: 'class="p-6 rounded-md"',
   },
   {
-    id: "pair",
+    id: "ink",
     rule: "spin/unpaired-ink",
-    badToken: "bg-primary text-text",
-    goodToken: "bg-primary text-on-primary",
-    reason: "text-text on primary drops to 1.8:1 in dark mode.",
+    badCode: 'class="bg-primary text-text"',
+    fixedCode: 'class="bg-primary text-on-primary"',
   },
-];
-
-const ANCHOR_META: Record<
-  string,
-  {
-    readonly title: string;
-    readonly role: string;
-    readonly snippet: string;
-  }
-> = {
-  primary: {
-    title: "Spot & action ink",
-    role: "Paired with --color-on-primary across every mode.",
-    snippet: `<button type="button">Deploy build</button>\n<badge variant="primary">verified</badge>`,
-  },
-  spacing: {
-    title: "Closed spacing scale",
-    role: "20 steps from 0 to 64. Unlisted steps compile to nothing.",
-    snippet: `<card class="flex flex-col gap-4 p-4">\n  <h3>Release v2.4</h3>\n</card>`,
-  },
-  radius: {
-    title: "Structural corner radius",
-    role: "Shared across cards, fields, panels, and buttons.",
-    snippet: `<input type="text" placeholder="Filter routes..." />`,
-  },
-  surface: {
-    title: "Layered paper & charcoal",
-    role: "surface, surface-sunken, and surface-raised hold 4.5:1 text floors.",
-    snippet: `<panel>\n  <panel-list>...</panel-list>\n</panel>`,
-  },
-  motion: {
-    title: "Bounded motion tokens",
-    role: "fast, base, slow, and loop durations governed by the theme.",
-    snippet: `<div class="transition-colors duration-fast ease-standard">...</div>`,
-  },
-};
+] as const;
 
 export default function Home(): JSX.Element {
-  const [activeAnchor, setActiveAnchor] = createSignal<string>("primary");
+  const navigate = useNavigate();
+
+  const [stage, setStage] = createSignal(0);
   const [reweaveKey, setReweaveKey] = createSignal(0);
-  const [pluckedToken, setPluckedToken] = createSignal("--color-primary");
-  const [pluckedValue, setPluckedValue] = createSignal("#c8102e");
-  const [pluckCoords, setPluckCoords] = createSignal("ring 4 · spoke 2");
-  const [copiedInstall, setCopiedInstall] = createSignal(false);
+  const [autoPlay, setAutoPlay] = createSignal(false);
+  const [controlsUnlocked, setControlsUnlocked] = createSignal(false);
+  const [pluckedToken, setPluckedToken] = createSignal("color.primary");
 
-  // Interactive Specimen state connected to the foreground web
-  const [specimenCount, setSpecimenCount] = createSignal(3);
-  const [strictGate, setStrictGate] = createSignal(true);
-  const [specimenLoad, setSpecimenLoad] = createSignal(76);
+  // Section 0: copy command state
+  const [copiedCmd, setCopiedCmd] = createSignal(false);
 
-  // Interactive Oracle Workbench state (which of the 3 agent bugs are fixed)
+  // Section 1 (Themes / DTCG): selected token path
+  const [selectedDtcgIdx, setSelectedDtcgIdx] = createSignal(0);
+
+  // Section 2 (Utilities): live utility toggles
+  const [utilPad, setUtilPad] = createSignal<"p-3" | "p-5">("p-3");
+  const [utilRadius, setUtilRadius] = createSignal<"rounded-sm" | "rounded-lg">("rounded-lg");
+  const [utilSurface, setUtilSurface] = createSignal<"bg-surface" | "bg-surface-raised">("bg-surface-raised");
+  const [utilTryInvalid, setUtilTryInvalid] = createSignal(false);
+
+  // Section 3 (Primitives): interactive native controls
+  const [switchChecked, setSwitchChecked] = createSignal(true);
+  const [progressVal, setProgressVal] = createSignal(72);
+
+  // Section 4 (Components): HoverCard with live component specimen preview (like /components)
+  const [hoveredTile, setHoveredTile] = createSignal<HoverTileSpec | null>(null);
+  const [hoverCardPos, setHoverCardPos] = createSignal<{ top: number; left: number }>({
+    top: 180,
+    left: 180,
+  });
+  let hoverOpenTimer: number | undefined;
+  let hoverCloseTimer: number | undefined;
+
+  // Section 5 (Tooling): interactive lint autofix state
   const [fixedIds, setFixedIds] = createSignal<Record<string, boolean>>({
     hex: false,
     scale: false,
-    pair: false,
+    ink: false,
   });
 
-  // Interactive Component Taxonomy preview state
-  const [activeGroupIdx, setActiveGroupIdx] = createSignal(0);
+  let wheelAccum = 0;
+  let lastStepAt = 0;
+  let touchStartY: number | null = null;
 
-  const readCssVar = (varName: string): string => {
-    if (typeof document === "undefined") return "";
-    const val = getComputedStyle(document.documentElement)
-      .getPropertyValue(varName)
-      .trim();
-    return val || "—";
+  const selectStage = (nextStage: number) => {
+    const clamped = Math.max(0, Math.min(STAGE_COUNT - 1, nextStage));
+    if (clamped > 0) setControlsUnlocked(true);
+    setHoveredTile(null);
+    wheelAccum = 0;
+    lastStepAt = performance.now();
+    setStage(clamped);
   };
 
-  const syncTokenReadout = (varName: string) => {
-    requestAnimationFrame(() => {
-      setPluckedValue(readCssVar(varName));
-    });
+  const stepStage = (delta: 1 | -1) => {
+    const now = performance.now();
+    if (now - lastStepAt < STEP_COOLDOWN_MS) return;
+    const next = stage() + delta;
+    if (next < 0 || next >= STAGE_COUNT) {
+      wheelAccum = 0;
+      return;
+    }
+    selectStage(next);
   };
+
+  // Auto-play timer: steps smoothly through carousel stages
+  createEffect(() => {
+    if (!autoPlay()) return;
+    const id = window.setInterval(() => {
+      const next = (stage() + 1) % STAGE_COUNT;
+      selectStage(next);
+    }, 10500);
+    onCleanup(() => window.clearInterval(id));
+  });
 
   onMount(() => {
-    syncTokenReadout(pluckedToken());
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 2) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now - lastStepAt < STEP_COOLDOWN_MS) {
+        wheelAccum = 0;
+        return;
+      }
+      if (
+        (e.deltaY > 0 && wheelAccum < 0) ||
+        (e.deltaY < 0 && wheelAccum > 0)
+      ) {
+        wheelAccum = 0;
+      }
+      wheelAccum += e.deltaY;
+      if (wheelAccum >= WHEEL_THRESHOLD) {
+        stepStage(1);
+      } else if (wheelAccum <= -WHEEL_THRESHOLD) {
+        stepStage(-1);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
+        e.preventDefault();
+        stepStage(1);
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        stepStage(-1);
+      }
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0]?.clientY ?? null;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartY === null) return;
+      const endY = e.changedTouches[0]?.clientY ?? touchStartY;
+      const dy = touchStartY - endY;
+      touchStartY = null;
+      if (Math.abs(dy) >= 44) {
+        stepStage(dy > 0 ? 1 : -1);
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    onCleanup(() => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.clearTimeout(hoverOpenTimer);
+      window.clearTimeout(hoverCloseTimer);
+    });
   });
 
-  createEffect(() => {
-    theme();
-    mode();
-    syncTokenReadout(pluckedToken());
-  });
-
-  const handlePluck = (event: MarkPluckEvent) => {
-    setPluckedToken(event.token);
-    setPluckCoords(`ring ${event.ring} · spoke ${event.spoke}`);
-    syncTokenReadout(event.token);
-    const matched = WEB_ANCHOR_NODES.find((n) => n.token === event.token);
-    if (matched) setActiveAnchor(matched.id);
+  const handlePluck = (ev: MarkPluckEvent) => {
+    setPluckedToken(ev.token);
   };
 
-  const selectAnchor = (id: string) => {
-    const node = WEB_ANCHOR_NODES.find((n) => n.id === id);
-    if (!node) return;
-    setActiveAnchor(id);
-    setPluckedToken(node.token);
-    setPluckCoords(`ring ${node.ring + 1} · spoke ${node.spoke + 1}`);
-    syncTokenReadout(node.token);
+  const copyInstall = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText("bun add @spinjs/spin");
+    }
+    setCopiedCmd(true);
+    window.setTimeout(() => setCopiedCmd(false), 1400);
+  };
+
+  const openTileHoverCard = (tile: HoverTileSpec, triggerEl: HTMLElement) => {
+    window.clearTimeout(hoverCloseTimer);
+    window.clearTimeout(hoverOpenTimer);
+    hoverOpenTimer = window.setTimeout(() => {
+      const r = triggerEl.getBoundingClientRect();
+      const cardW = 310;
+      const cardH = 175;
+      const left = Math.max(
+        16,
+        Math.min(window.innerWidth - cardW - 16, r.left),
+      );
+      const preferTop = r.top - cardH - 10;
+      const top =
+        preferTop > 64
+          ? preferTop
+          : Math.min(window.innerHeight - cardH - 16, r.bottom + 10);
+      setHoverCardPos({ top: Math.round(top), left: Math.round(left) });
+      setHoveredTile(tile);
+    }, 90);
+  };
+
+  const scheduleCloseTileHoverCard = () => {
+    window.clearTimeout(hoverOpenTimer);
+    window.clearTimeout(hoverCloseTimer);
+    hoverCloseTimer = window.setTimeout(() => {
+      setHoveredTile(null);
+    }, 150);
+  };
+
+  const keepTileHoverCardOpen = () => {
+    window.clearTimeout(hoverCloseTimer);
   };
 
   const toggleFix = (id: string) => {
     setFixedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const allFixed = () =>
-    ORACLE_FINDINGS.every((f) => fixedIds()[f.id] === true);
-
-  const setAllFixed = (val: boolean) => {
-    setFixedIds({ hex: val, scale: val, pair: val });
+  const fixAllFindings = () => {
+    setFixedIds({ hex: true, scale: true, ink: true });
   };
 
-  const remainingBugs = () =>
-    ORACLE_FINDINGS.filter((f) => !fixedIds()[f.id]).length;
-
-  const oracleCode = () => {
-    const f = fixedIds();
-    const cardPad = f.scale ? "p-4" : "p-13";
-    const badgeFill = f.hex ? "bg-primary" : "bg-[#c8102e]";
-    const btnClasses = f.pair
-      ? "bg-primary text-on-primary"
-      : "bg-primary text-text";
-    return `<article class="rounded-lg border border-border bg-surface-raised ${cardPad}">
-  <div class="flex items-center justify-between gap-3">
-    <span class="font-semibold text-text">pr-418 · checkout-flow</span>
-    <span class="rounded-sm px-2 py-1 text-xs ${badgeFill} text-on-primary">
-      canary
-    </span>
-  </div>
-  <p class="mt-2 text-sm text-text-muted">
-    32 routes probed in 410ms · contrast & geometry verified
-  </p>
-  <button type="button" class="bare mt-4 rounded-md px-3 py-2 text-xs font-semibold ${btnClasses}">
-    Promote release
-  </button>
-</article>`;
-  };
+  const remainingFindings = () =>
+    ORACLE_FINDINGS.filter((item) => !fixedIds()[item.id]).length;
 
   const openStudioOverlay = () => {
-    const fab = document.querySelector<HTMLButtonElement>(
-      'button[aria-label="Open the theme studio"]',
+    const toggle = document.querySelector<HTMLButtonElement>(
+      "#spin-studio-pill button",
     );
-    if (fab) {
-      fab.click();
+    if (toggle) {
+      toggle.click();
+    } else {
+      navigate("/guide/studio");
     }
   };
 
-  const copyInstall = () => {
-    navigator.clipboard?.writeText("bun add @spinjs/spin @spinjs/components");
-    setCopiedInstall(true);
-    setTimeout(() => setCopiedInstall(false), 1800);
-  };
+  const currentDtcg = () => DTCG_SAMPLES[selectedDtcgIdx()] ?? DTCG_SAMPLES[0]!;
 
   return (
-    <main class="min-h-dvh bg-surface text-text font-sans text-md">
-      {/* First screen: Split Hero — Pitch & Theme Switch Left, Foreground Interactive Black Widow Stage Right */}
-      <section class="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-screen-xl items-center gap-8 px-4 py-8 md:grid-cols-2 md:px-8 md:py-12">
-        {/* Left Column: Direct Pitch + Live Starter Strip + Interactive Token Workbench */}
-        <div class="flex flex-col justify-center gap-6">
-          <div class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1 text-xs font-medium text-text-muted">
-            <span class="h-2 w-2 rounded-full bg-primary" />
-            <span>Closed-vocabulary UI · Built for humans &amp; agents</span>
-          </div>
+    <main
+      style={{ height: "calc(100dvh - 3.5rem)" }}
+      class="relative w-full overflow-hidden text-text font-sans text-md"
+    >
+      {/* FULL-PAGE ORB-WEAVER CANVAS (Spans the entire 1440x900 window including behind TopNav) */}
+      <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <Mark
+          class="h-full w-full text-text select-none"
+          stage={stage()}
+          reweaveKey={reweaveKey()}
+          activeToken={pluckedToken()}
+          onPluck={handlePluck}
+          onSelectStage={(next: number) => selectStage(next)}
+          onNavigateLayer={(href: string) => navigate(href)}
+        />
+      </div>
 
-          <div>
-            <h1 class="m-0 font-heading text-display font-bold tracking-tight text-text">
-              Spin your own web.
-            </h1>
-            <p class="mt-4 max-w-[54ch] text-lg text-text-muted">
-              Give agents and engineers one design contract. Spin locks colors,
-              spacing, and typography to a validated theme JSON, ships 59 native
-              primitives and state-machine components, and catches visual drift
-              mechanically.
-            </p>
+      {/* LIVE COMPONENT SPECIMEN HOVER-CARD (Matches /components gallery cards) */}
+      <Show when={hoveredTile()}>
+        {(tile) => (
+          <div
+            style={{
+              position: "fixed",
+              top: `${hoverCardPos().top}px`,
+              left: `${hoverCardPos().left}px`,
+              width: "19rem",
+            }}
+            class="z-modal"
+            onPointerEnter={keepTileHoverCardOpen}
+            onPointerLeave={scheduleCloseTileHoverCard}
+          >
+            <div class="overflow-hidden rounded-md border border-border-strong bg-surface-raised shadow-lg">
+              <div class="flex min-h-[6rem] items-center justify-center overflow-visible border-b border-border bg-surface p-4">
+                <div innerHTML={tile().mountHtml} />
+              </div>
+              <div class="flex items-center justify-between gap-2 px-4 py-2">
+                <span class="flex min-w-0 items-center gap-2 font-brand text-md text-text">
+                  <span
+                    class={`inline-block h-4 w-4 ${tile().icon} shrink-0 text-text-muted`}
+                    aria-hidden="true"
+                  />
+                  <span class="truncate">{tile().name}</span>
+                </span>
+                <span class="shrink-0 font-mono text-xs text-text-muted">
+                  {tile().meta}
+                </span>
+              </div>
+            </div>
           </div>
+        )}
+      </Show>
 
-          {/* Primary CTAs + One-click install */}
-          <div class="flex flex-wrap items-center gap-3">
-            <A href="/guide/install" role="button" class="no-underline">
-              Get started
-            </A>
-            <A
-              href="/components"
-              role="button"
-              class="secondary no-underline"
-            >
-              Explore 59 components
-            </A>
+      {/* TINY FLOATING CONTROL PANEL FAB (Init = Scroll cue; Active = compact dots + prev/next/auto/replay, NO section names) */}
+      <div class="pointer-events-none fixed inset-x-0 bottom-4 z-dropdown flex justify-center">
+        <Show
+          when={stage() > 0 || controlsUnlocked()}
+          fallback={
             <button
               type="button"
-              onClick={copyInstall}
-              class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface-sunken px-3 py-2 font-mono text-xs text-text transition-colors duration-fast hover:border-border-strong"
-              title="Copy install command"
+              onClick={() => selectStage(1)}
+              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text shadow-md transition-colors duration-fast hover:border-primary"
             >
-              <span class="text-primary">$</span>
-              <span>bun add @spinjs/spin</span>
-              <span
-                class={
-                  copiedInstall()
-                    ? "i-lucide-check icon-sm text-semantic-success"
-                    : "i-lucide-copy icon-sm text-text-muted"
-                }
-                aria-hidden="true"
-              />
+              <span class="h-2 w-2 rounded-full bg-primary" />
+              <span>Scroll</span>
+              <span aria-hidden="true" class="text-primary">↓</span>
             </button>
-          </div>
+          }
+        >
+          <div
+            class="pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-2 py-1 shadow-md"
+            role="group"
+            aria-label="Stage controls"
+          >
+            <button
+              type="button"
+              disabled={stage() === 0}
+              onClick={() => selectStage(stage() - 1)}
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text hover:bg-surface disabled:opacity-40"
+              title="Previous stage"
+              aria-label="Previous stage"
+            >
+              ‹
+            </button>
 
-          {/* Interactive Workbench coupled to the Foreground Spider Web */}
-          <div class="rounded-lg border border-border bg-surface-raised p-4 shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
-              <div class="flex items-center gap-2">
-                <span class="font-mono text-xs font-semibold text-primary">
-                  LIVE WEB TELEMETRY
-                </span>
-                <span class="text-xs text-text-muted">· {pluckCoords()}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setReweaveKey((k) => k + 1)}
-                class="bare inline-flex items-center gap-1 rounded-sm border border-border bg-surface px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:border-border-strong hover:text-text"
-              >
-                <span class="i-lucide-rotate-ccw icon-sm" aria-hidden="true" />
-                <span>Re-spin web</span>
-              </button>
-            </div>
-
-            {/* Clickable token nodes that lure the spider across the foreground web */}
-            <div class="mt-3">
-              <p class="m-0 text-xs text-text-muted">
-                Click a token node (or pluck the web) to send the widow to that
-                strand and inspect the live contract:
-              </p>
-              <div
-                class="mt-2 flex flex-wrap gap-1"
-                role="group"
-                aria-label="Web token anchors"
-              >
-                <For each={WEB_ANCHOR_NODES}>
-                  {(node) => (
+            <div class="flex items-center gap-1" role="tablist" aria-label="Stages">
+              <For each={[0, 1, 2, 3, 4, 5, 6]}>
+                {(idx) => {
+                  const active = () => stage() === idx;
+                  return (
                     <button
                       type="button"
-                      aria-pressed={activeAnchor() === node.id}
-                      onClick={() => selectAnchor(node.id)}
-                      class={`bare rounded-sm px-2 py-1 font-mono text-xs transition-colors duration-fast ${
-                        activeAnchor() === node.id
-                          ? "bg-primary text-on-primary font-semibold"
-                          : "border border-border bg-surface text-text-muted hover:text-text"
+                      role="tab"
+                      aria-selected={active()}
+                      aria-label={`Stage ${idx + 1}`}
+                      onClick={() => selectStage(idx)}
+                      class={`bare h-2 rounded-full p-0 transition-all duration-fast ${
+                        active()
+                          ? "w-4 bg-primary"
+                          : "w-2 bg-border-strong hover:bg-text-muted"
+                      }`}
+                    />
+                  );
+                }}
+              </For>
+            </div>
+
+            <button
+              type="button"
+              disabled={stage() === STAGE_COUNT - 1}
+              onClick={() => selectStage(stage() + 1)}
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text hover:bg-surface disabled:opacity-40"
+              title="Next stage"
+              aria-label="Next stage"
+            >
+              ›
+            </button>
+
+            <span class="text-border-strong">·</span>
+
+            <button
+              type="button"
+              aria-pressed={autoPlay()}
+              onClick={() => setAutoPlay((v) => !v)}
+              class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs transition-colors duration-fast ${
+                autoPlay()
+                  ? "bg-primary text-on-primary"
+                  : "text-text-muted hover:bg-surface hover:text-text"
+              }`}
+              title={autoPlay() ? "Pause auto-play" : "Auto-play stages"}
+              aria-label="Toggle auto-play"
+            >
+              {autoPlay() ? "⏸" : "▷"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setReweaveKey((k) => k + 1)}
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text-muted hover:bg-surface hover:text-primary"
+              title="Replay current ring weave"
+              aria-label="Replay current ring weave"
+            >
+              ↻
+            </button>
+          </div>
+        </Show>
+      </div>
+
+      {/* SINGLE ACTIVE CAROUSEL STAGE (Never 2+ sections on screen at once; tight w-fit content) */}
+      <div class="pointer-events-none relative z-10 mx-auto flex h-full max-w-screen-xl items-center px-6 md:px-10">
+        <Switch>
+          {/* ===============================================================
+              STAGE 0 · HERO
+             =============================================================== */}
+          <Match when={stage() === 0}>
+            <section
+              id="sec-hero"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-4"
+            >
+              <span class="inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
+                <span class="h-2 w-2 rounded-full bg-primary" />
+                <span>W3C DTCG · Pure CSS Primitives · State Machines</span>
+              </span>
+
+              <h1 class="m-0 font-brand text-3xl font-bold tracking-tight text-text">
+                UI that holds together.
+              </h1>
+
+              <p class="m-0 text-sm text-text-muted">
+                Spin gives humans and coding agents a closed design vocabulary,
+                semantic HTML primitives, headless state machines, and
+                mechanical oracles that verify the result.
+              </p>
+
+              <div class="flex w-fit flex-wrap items-center gap-2">
+                <A href="/guide/install" role="button" class="no-underline">
+                  Get started →
+                </A>
+                <A href="/components" role="button" class="secondary no-underline">
+                  Components
+                </A>
+                <button
+                  type="button"
+                  onClick={copyInstall}
+                  class="bare inline-flex w-fit items-center gap-2 rounded-md border border-border-strong bg-surface-raised px-3 py-2 font-mono text-xs text-text shadow-sm hover:border-primary"
+                >
+                  <span class="text-text-muted">$</span>
+                  <span>bun add @spinjs/spin</span>
+                  <span
+                    class={
+                      copiedCmd()
+                        ? "inline-block h-4 w-4 i-lucide-check text-semantic-success"
+                        : "inline-block h-4 w-4 i-lucide-copy text-text-muted"
+                    }
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+
+              <div class="flex w-fit flex-wrap items-center gap-1 rounded-lg border border-border bg-surface-raised p-1 shadow-sm">
+                <For each={starterList}>
+                  {(id) => (
+                    <button
+                      type="button"
+                      aria-pressed={theme() === id}
+                      onClick={() => setTheme(id)}
+                      class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                        theme() === id
+                          ? "bg-primary font-semibold text-on-primary"
+                          : "text-text-muted hover:bg-surface hover:text-text"
                       }`}
                     >
-                      {node.label}
+                      {id}
                     </button>
                   )}
                 </For>
-              </div>
-            </div>
-
-            {/* Live resolved token readout + interactive mini-component driven by that token */}
-            <div class="mt-3 grid gap-3 rounded-md border border-border bg-surface p-3 sm:grid-cols-2">
-              <div class="flex flex-col justify-between gap-2">
-                <div>
-                  <div class="flex items-center justify-between gap-2">
-                    <code class="text-xs font-semibold text-primary">
-                      {pluckedToken()}
-                    </code>
-                    <code class="rounded-sm bg-surface-sunken px-2 py-1 text-xs text-text">
-                      {pluckedValue()}
-                    </code>
-                  </div>
-                  <p class="mt-1 mb-0 text-xs font-semibold text-text">
-                    {ANCHOR_META[activeAnchor()]?.title ?? "Active token"}
-                  </p>
-                  <p class="mt-1 mb-0 text-xs text-text-muted">
-                    {ANCHOR_META[activeAnchor()]?.role ??
-                      "Resolved from the active theme document."}
-                  </p>
-                </div>
-                <div class="flex items-center justify-between gap-2 border-t border-border pt-2 font-mono text-xs text-text-muted">
-                  <span>data-theme="{theme()}"</span>
-                  <span>data-mode="{mode()}"</span>
-                </div>
-              </div>
-
-              {/* Interactive live component specimen responding to user clicks */}
-              <div class="flex flex-col justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
-                <div class="flex items-center justify-between gap-2">
-                  <label class="flex items-center gap-2 text-xs font-medium">
-                    <input
-                      type="checkbox"
-                      role="switch"
-                      checked={strictGate()}
-                      onChange={(e) => {
-                        setStrictGate(e.currentTarget.checked);
-                        selectAnchor("primary");
-                      }}
-                    />
-                    <span>Strict gate</span>
-                  </label>
-                  <badge variant={strictGate() ? "primary" : "neutral"}>
-                    {strictGate() ? "enforced" : "advisory"}
-                  </badge>
-                </div>
-
-                <div>
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-text-muted">Silk tension</span>
-                    <span class="font-mono font-semibold text-text">
-                      {specimenLoad()}%
-                    </span>
-                  </div>
-                  <progress
-                    value={specimenLoad()}
-                    max={100}
-                    class="mt-1"
-                  />
-                </div>
-
-                <div class="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    class="s-sm"
-                    onClick={() => {
-                      setSpecimenCount((n) => n + 1);
-                      setSpecimenLoad((v) => (v >= 95 ? 45 : v + 10));
-                      selectAnchor(
-                        WEB_ANCHOR_NODES[
-                          specimenCount() % WEB_ANCHOR_NODES.length
-                        ]!.id,
-                      );
-                    }}
-                  >
-                    Pluck strand ({specimenCount()})
-                  </button>
-                  <span class="font-mono text-xs text-text-muted">
-                    {theme()}/{mode()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Foreground Interactive Black Widow Stage */}
-        <div class="relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface-raised shadow-sm">
-          <div class="flex items-center justify-between border-b border-border bg-surface px-4 py-2 text-xs">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-primary" />
-              <span class="font-mono font-semibold text-text">
-                orb-weaver.svg
-              </span>
-              <span class="text-text-muted">
-                · 8-leg 2-bone IK · elastic catenary silk
-              </span>
-            </div>
-            <span class="font-mono text-xs text-text-muted">
-              move or click web
-            </span>
-          </div>
-
-          <div class="relative flex aspect-square max-h-[32rem] w-full items-center justify-center p-2">
-            <Mark
-              class="h-full w-full cursor-crosshair text-text select-none"
-              activeAnchor={activeAnchor()}
-              reweaveKey={reweaveKey()}
-              onPluck={handlePluck}
-            />
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface px-4 py-2 text-xs text-text-muted">
-            <span>
-              Plucked:{" "}
-              <code class="text-primary">{pluckedToken()}</code> ={" "}
-              <code class="text-text">{pluckedValue()}</code>
-            </span>
-            <span>Hover to stalk · Click any intersection to strike</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Below the fold: Show, Don't Tell Interactive Workbenches */}
-      <div class="mx-auto max-w-screen-xl px-4 py-12 md:px-8 md:py-16">
-        {/* Workbench 01: Mechanical Verification (Interactive Agent Bug Fixer) */}
-        <Reveal>
-          <section class="rounded-lg border border-border bg-surface-raised p-6 md:p-8">
-            <div class="flex flex-wrap items-baseline justify-between gap-4">
-              <div>
-                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                  01 / Mechanical Verification
-                </p>
-                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
-                  What code review misses, Spin catches.
-                </h2>
-                <p class="mt-2 max-w-[62ch] text-sm text-text-muted">
-                  An agent writes a clean-looking component and slips in three
-                  one-word bugs: a raw hex color, a made-up spacing step, and an
-                  illegible dark-mode ink pair. Click each diagnostic below to
-                  watch Spin repair the source and the rendered output.
-                </p>
-              </div>
-              <div class="flex items-center gap-2">
-                <badge variant={allFixed() ? "success" : "danger"}>
-                  {allFixed()
-                    ? "0 issues · 6.5:1 PASS"
-                    : `${remainingBugs()} issues · 1.8:1 FAIL`}
-                </badge>
+                <span class="px-1 text-border-strong">|</span>
                 <button
                   type="button"
-                  class={allFixed() ? "secondary s-sm" : "s-sm"}
-                  onClick={() => setAllFixed(!allFixed())}
+                  onClick={() => setMode(mode() === "dark" ? "light" : "dark")}
+                  class="bare inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
-                  {allFixed() ? "Reset agent bugs" : "Fix all 3 with Spin"}
+                  <span
+                    class={
+                      mode() === "dark"
+                        ? "inline-block h-4 w-4 i-lucide-moon text-primary"
+                        : "inline-block h-4 w-4 i-lucide-sun text-primary"
+                    }
+                    aria-hidden="true"
+                  />
+                  <span>{mode()}</span>
                 </button>
               </div>
-            </div>
+            </section>
+          </Match>
 
-            <div class="mt-6 grid gap-6 lg:grid-cols-2">
-              {/* Left: Clickable Diagnostics + Live Markup */}
-              <div class="flex flex-col gap-3">
-                <For each={ORACLE_FINDINGS}>
-                  {(item) => {
-                    const isFixed = () => fixedIds()[item.id] === true;
+          {/* ===============================================================
+              STAGE 1 · THEMES (W3C DTCG Foundation)
+             =============================================================== */}
+          <Match when={stage() === 1}>
+            <section
+              id="sec-themes"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+            >
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                01 · Foundation · W3C DTCG
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                One theme document owns every visual decision.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                Colors, typography, spacing, and radii live in a W3C DTCG JSON
+                contract — authored visually in Studio, with light and dark
+                contrast pairs verified up front.
+              </p>
+
+              {/* Compact w-fit DTCG token selector pills */}
+              <div class="flex w-fit flex-wrap gap-2">
+                <For each={DTCG_SAMPLES}>
+                  {(sample, idx) => {
+                    const active = () => selectedDtcgIdx() === idx();
                     return (
                       <button
                         type="button"
-                        onClick={() => toggleFix(item.id)}
-                        class={`bare flex w-full items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors duration-fast ${
-                          isFixed()
-                            ? "border-border bg-surface"
-                            : "border-primary bg-surface"
+                        onClick={() => setSelectedDtcgIdx(idx())}
+                        class={`bare rounded-md border px-3 py-1 font-mono text-xs transition-colors duration-fast ${
+                          active()
+                            ? "border-primary bg-primary font-semibold text-on-primary"
+                            : "border-border bg-surface-raised text-text hover:border-border-strong"
                         }`}
                       >
-                        <div class="min-w-0 flex-1">
-                          <div class="flex flex-wrap items-center gap-2">
-                            <span
-                              class={
-                                isFixed()
-                                  ? "i-lucide-check-circle-2 icon-sm text-semantic-success"
-                                  : "i-lucide-alert-triangle icon-sm text-primary"
-                              }
-                              aria-hidden="true"
-                            />
-                            <code class="text-xs font-semibold text-text">
-                              {item.rule}
-                            </code>
-                            <code class="rounded-sm bg-surface-sunken px-2 py-1 text-xs text-text-muted">
-                              {isFixed() ? item.goodToken : item.badToken}
-                            </code>
-                          </div>
-                          <p class="mt-1 mb-0 text-xs text-text-muted">
-                            {item.reason}
-                          </p>
-                        </div>
-                        <span class="shrink-0 rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text">
-                          {isFixed() ? "Fixed ✓" : "Apply fix"}
-                        </span>
+                        {sample.path}
                       </button>
                     );
                   }}
                 </For>
-
-                <Code class="text-xs" code={oracleCode()} lang="html" />
               </div>
 
-              {/* Right: Live Rendered Preview (showing the actual bug vs fixed result) */}
-              <div class="flex flex-col justify-between rounded-lg border border-border bg-surface p-6">
-                <div class="flex items-center justify-between text-xs text-text-muted">
-                  <span class="font-mono">LIVE RENDERED SURFACE</span>
-                  <span class="font-mono">
-                    {allFixed()
-                      ? "contrast: 6.49:1 · vocabulary: valid"
-                      : "contrast: 1.82:1 · padding: collapsed"}
+              {/* Compact w-fit DTCG card (zero wasted horizontal space) */}
+              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex items-center gap-4 border-b border-border pb-2">
+                  <span class="font-mono text-xs font-semibold text-primary">
+                    {currentDtcg().path}
                   </span>
+                  <badge class="badge-neutral">$type: {currentDtcg().type}</badge>
                 </div>
 
-                <div class="my-6 flex items-center justify-center">
-                  <article
-                    class={`w-full max-w-md rounded-lg border border-border bg-surface-raised shadow-sm transition-all duration-fast ${
-                      fixedIds().scale ? "p-4" : "p-0"
-                    }`}
+                <div class="flex w-fit items-center gap-2 font-mono text-xs">
+                  <div class="rounded-md border border-border bg-surface px-3 py-1">
+                    <span class="text-text-muted">light: </span>
+                    <strong class="text-text">{currentDtcg().lightValue}</strong>
+                  </div>
+                  <div class="rounded-md border border-border bg-surface px-3 py-1">
+                    <span class="text-text-muted">dark: </span>
+                    <strong class="text-text">{currentDtcg().darkValue}</strong>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 text-xs">
+                  <span class="text-text-muted">{currentDtcg().pairing}</span>
+                  <A
+                    href="/themes"
+                    class="shrink-0 font-semibold text-primary no-underline hover:underline"
                   >
-                    <div class="flex items-center justify-between gap-3">
-                      <span class="font-semibold text-text">
-                        pr-418 · checkout-flow
-                      </span>
-                      <badge
-                        variant={fixedIds().hex ? "primary" : "danger"}
-                      >
-                        {fixedIds().hex ? "canary (token)" : "#c8102e (raw hex)"}
-                      </badge>
-                    </div>
-                    <p class="mt-2 text-sm text-text-muted">
-                      32 routes probed in 410ms · contrast &amp; geometry
-                      verified across light and dark modes.
-                    </p>
-                    <div class="mt-4 flex items-center justify-between gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleFix("pair")}
-                        class={`bare rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast ${
-                          fixedIds().pair
-                            ? "bg-primary text-on-primary"
-                            : "bg-primary text-surface"
-                        }`}
-                      >
-                        Promote release
-                      </button>
-                      <span class="font-mono text-xs text-text-muted">
-                        {fixedIds().scale ? "padding: 1rem (p-4)" : "padding: 0px (p-13 dead)"}
-                      </span>
-                    </div>
-                  </article>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-text-muted">
-                  <span>
-                    Runs in <code>oxlint</code>, <code>eslint</code>,{" "}
-                    <code>spin lint</code>, and MCP.
-                  </span>
-                  <A href="/tooling/lints" class="font-semibold no-underline">
-                    Explore the 6 lint gates →
+                    Themes →
                   </A>
                 </div>
               </div>
-            </div>
-          </section>
-        </Reveal>
+            </section>
+          </Match>
 
-        {/* Workbench 02: 59 Native Primitives & Interactive State Machines */}
-        <Reveal>
-          <section class="mt-12 rounded-lg border border-border bg-surface-raised p-6 md:p-8">
-            <div class="flex flex-wrap items-baseline justify-between gap-4">
-              <div>
-                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                  02 / 59 Components · One Taxonomy
-                </p>
-                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
-                  Native HTML where possible. State machines where required.
-                </h2>
-                <p class="mt-2 max-w-[62ch] text-sm text-text-muted">
-                  A button is <code>&lt;button&gt;</code>, a dialog is{" "}
-                  <code>&lt;dialog&gt;</code>, and a switch is a checkbox wearing{" "}
-                  <code>role="switch"</code>. When an interface outgrows native
-                  HTML — cascade selects, date pickers, tree views, signature
-                  pads — Spin pairs accessible state machines with the exact
-                  same token contract.
-                </p>
-              </div>
-              <A href="/components" role="button" class="secondary s-sm no-underline">
-                Browse all 59 components →
-              </A>
-            </div>
-
-            {/* Category switcher tabs */}
-            <div
-              class="mt-6 flex flex-wrap gap-2"
-              role="tablist"
-              aria-label="Component categories"
+          {/* ===============================================================
+              STAGE 2 · UTILITIES (Familiar Tailwind syntax, custom to your brand)
+             =============================================================== */}
+          <Match when={stage() === 2}>
+            <section
+              id="sec-utilities"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
             >
-              <For each={COMPONENT_GROUPS}>
-                {(group, idx) => (
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                02 · Styling · Theme-Bound Utilities
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                Familiar Tailwind syntax, custom to your brand.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                Write the utility classes you already know — <code>p-4</code>,{" "}
+                <code>bg-surface-raised</code>, <code>rounded-lg</code> — backed
+                strictly by your theme's token scale.
+              </p>
+
+              {/* Compact w-fit Utility Composer */}
+              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex w-fit flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    role="tab"
-                    aria-selected={activeGroupIdx() === idx()}
-                    onClick={() => setActiveGroupIdx(idx())}
-                    class={`bare inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast ${
-                      activeGroupIdx() === idx()
-                        ? "bg-primary text-on-primary"
-                        : "border border-border bg-surface text-text-muted hover:text-text"
+                    onClick={() =>
+                      setUtilPad((p) => (p === "p-3" ? "p-5" : "p-3"))
+                    }
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                  >
+                    {utilPad()}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setUtilRadius((r) =>
+                        r === "rounded-lg" ? "rounded-sm" : "rounded-lg",
+                      )
+                    }
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                  >
+                    {utilRadius()}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setUtilSurface((s) =>
+                        s === "bg-surface-raised"
+                          ? "bg-surface"
+                          : "bg-surface-raised",
+                      )
+                    }
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                  >
+                    {utilSurface()}
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={utilTryInvalid()}
+                    onClick={() => setUtilTryInvalid((v) => !v)}
+                    class={`bare rounded-md border px-2 py-1 font-mono text-xs ${
+                      utilTryInvalid()
+                        ? "border-primary bg-primary text-on-primary"
+                        : "border-border bg-surface text-text-muted hover:text-text"
                     }`}
                   >
-                    <span>{group.label}</span>
-                    <span class="rounded-sm bg-surface-sunken px-1 font-mono text-xs text-text">
-                      {group.items.length}
-                    </span>
+                    + p-13
                   </button>
-                )}
-              </For>
-            </div>
+                </div>
 
-            {/* Direct links into the selected category's components */}
-            <div class="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              <For
-                each={
-                  COMPONENT_GROUPS[activeGroupIdx()]?.items ??
-                  COMPONENT_GROUPS[0]?.items ??
-                  []
-                }
-              >
-                {(item) => (
+                {/* Tight w-fit specimen */}
+                <div
+                  class={`inline-flex w-fit flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
+                >
+                  <div class="flex w-fit items-center gap-3">
+                    <strong class="font-brand text-sm text-text">
+                      Brand-true surface
+                    </strong>
+                    <badge
+                      class={
+                        utilTryInvalid() ? "badge-warning" : "badge-success"
+                      }
+                    >
+                      {utilTryInvalid() ? "unknown: p-13" : "Verified"}
+                    </badge>
+                  </div>
+                  <code class="font-mono text-xs text-text-muted">
+                    {utilTryInvalid()
+                      ? "Rejected: step 13 is not in spacing scale"
+                      : `class="${utilSurface()} ${utilPad()} ${utilRadius()}"`}
+                  </code>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 text-xs">
+                  <span class="font-mono text-text-muted">
+                    Closed token scale
+                  </span>
                   <A
-                    href={item.href}
-                    class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface p-3 no-underline transition-colors duration-fast hover:border-border-strong"
+                    href="/utilities"
+                    class="font-semibold text-primary no-underline hover:underline"
                   >
-                    <div class="flex min-w-0 items-center gap-2">
-                      <span
-                        class={`${item.icon} icon-sm shrink-0 text-primary`}
-                        aria-hidden="true"
-                      />
-                      <span class="truncate text-sm font-medium text-text">
-                        {item.name}
-                      </span>
-                    </div>
-                    <span class="font-mono text-xs text-text-muted">
-                      {item.href.includes("/machine-") ? "machine" : "primitive"}
-                    </span>
+                    Utilities →
                   </A>
-                )}
-              </For>
-            </div>
-          </section>
-        </Reveal>
+                </div>
+              </div>
+            </section>
+          </Match>
 
-        {/* Workbench 03: Live Studio & Theme Contract */}
-        <Reveal>
-          <section class="mt-12 grid gap-6 rounded-lg border border-border bg-surface-raised p-6 md:grid-cols-2 md:p-8">
-            <div class="flex flex-col justify-between gap-4">
-              <div>
-                <p class="m-0 font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                  03 / Live Theme Studio &amp; MCP
-                </p>
-                <h2 class="mt-1 mb-0 font-heading text-2xl font-bold text-text">
-                  Edit tokens beside your running app.
-                </h2>
-                <p class="mt-2 text-sm text-text-muted">
-                  The Spin daemon mounts the Theme Studio on the same origin as
-                  your dev server and exposes an MCP server for coding agents.
-                  Every token edit is checked against legibility and scale
-                  floors before it writes <code>spin/*.json</code> back to disk.
-                </p>
+          {/* ===============================================================
+              STAGE 3 · PRIMITIVES (Semantic HTML defaults, pure CSS, compact w-fit pills)
+             =============================================================== */}
+          <Match when={stage() === 3}>
+            <section
+              id="sec-primitives"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+            >
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                03 · Elements · Pure CSS Primitives
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                Semantic HTML defaults. Zero wrapper soup.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                A button is <code>&lt;button&gt;</code>, a switch is{" "}
+                <code>role="switch"</code>, and a menu surface is{" "}
+                <code>&lt;panel&gt;</code> — styled directly in pure CSS.
+              </p>
+
+              {/* Tight w-fit native HTML specimens (zero wasted blank space!) */}
+              <div class="flex max-w-[28rem] flex-wrap items-start gap-2">
+                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex w-fit items-center gap-2">
+                    <button type="button" class="s-sm">
+                      Save
+                    </button>
+                    <button type="button" class="secondary s-sm">
+                      Cancel
+                    </button>
+                  </div>
+                  <code class="font-mono text-xs text-text-muted">
+                    &lt;button&gt;
+                  </code>
+                </div>
+
+                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <label class="inline-flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-text">
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={switchChecked()}
+                      onChange={(e) =>
+                        setSwitchChecked(e.currentTarget.checked)
+                      }
+                    />
+                    <span>Token gate</span>
+                  </label>
+                  <code class="font-mono text-xs text-text-muted">
+                    role="switch"
+                  </code>
+                </div>
+
+                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex w-fit items-center gap-2">
+                    <progress value={progressVal()} max={100} class="w-24" />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProgressVal((v) => (v >= 100 ? 35 : v + 20))
+                      }
+                      class="bare font-mono text-xs text-primary hover:underline"
+                    >
+                      {progressVal()}%
+                    </button>
+                  </div>
+                  <code class="font-mono text-xs text-text-muted">
+                    &lt;progress&gt;
+                  </code>
+                </div>
+
+                <div class="inline-flex w-fit flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <div class="flex w-fit items-center gap-1">
+                    <badge class="badge-success">AA</badge>
+                    <badge class="badge-warning">DTCG</badge>
+                    <badge class="badge-neutral">CSS</badge>
+                  </div>
+                  <code class="font-mono text-xs text-text-muted">
+                    &lt;badge&gt;
+                  </code>
+                </div>
               </div>
 
-              <div class="flex flex-wrap items-center gap-3">
+              <A
+                href="/components"
+                class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
+              >
+                Explore all 41 CSS primitives →
+              </A>
+            </section>
+          </Match>
+
+          {/* ===============================================================
+              STAGE 4 · RUNTIME COMPONENTS (Live Specimen HoverCard Tiles)
+             =============================================================== */}
+          <Match when={stage() === 4}>
+            <section
+              id="sec-components"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+            >
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                04 · Interactive · Headless Machines & Primitives
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                Stateful machines when native HTML isn't enough.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                Pure CSS covers native tags; <code>@spinjs/components</code>{" "}
+                drives multi-part widgets with deterministic state machines.{" "}
+                <strong>Hover any tile</strong> to preview the live component.
+              </p>
+
+              {/* Compact w-fit Component Tile Grid with Live Specimen HoverCards */}
+              <div class="flex max-w-[28rem] flex-wrap gap-2">
+                <For each={HOVER_TILES}>
+                  {(tile) => (
+                    <A
+                      href={tile.href}
+                      onPointerEnter={(e) =>
+                        openTileHoverCard(tile, e.currentTarget)
+                      }
+                      onPointerLeave={scheduleCloseTileHoverCard}
+                      onFocus={(e) => openTileHoverCard(tile, e.currentTarget)}
+                      onBlur={scheduleCloseTileHoverCard}
+                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 text-xs text-text no-underline shadow-sm transition-colors duration-fast hover:border-primary"
+                    >
+                      <span
+                        class={`inline-block h-4 w-4 ${tile.icon} text-primary`}
+                        aria-hidden="true"
+                      />
+                      <span class="font-mono font-semibold text-text">
+                        {tile.name}
+                      </span>
+                      <span
+                        class="inline-block h-3 w-3 i-lucide-arrow-up-right text-text-muted"
+                        aria-hidden="true"
+                      />
+                    </A>
+                  )}
+                </For>
+              </div>
+
+              <A
+                href="/components"
+                class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
+              >
+                Open full 59-component gallery →
+              </A>
+            </section>
+          </Match>
+
+          {/* ===============================================================
+              STAGE 5 · TOOLING (Lints, CLI & MCP Oracles)
+             =============================================================== */}
+          <Match when={stage() === 5}>
+            <section
+              id="sec-tooling"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+            >
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                05 · Verification · Lints, CLI & MCP
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                Mechanical verification for humans and agents.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                Spin's ESLint/Oxlint rules, CLI, and MCP server check every
+                class and contrast pair against your theme contract.
+              </p>
+
+              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-4 border-b border-border pb-2">
+                  <badge
+                    class={
+                      remainingFindings() === 0
+                        ? "badge-success"
+                        : "badge-warning"
+                    }
+                  >
+                    {remainingFindings() === 0
+                      ? "0 errors · PASS"
+                      : `${remainingFindings()} errors`}
+                  </badge>
+                  <button
+                    type="button"
+                    onClick={fixAllFindings}
+                    class="s-sm"
+                  >
+                    Autofix all
+                  </button>
+                </div>
+
+                <div class="flex w-fit flex-col gap-2">
+                  <For each={ORACLE_FINDINGS}>
+                    {(item) => {
+                      const isFixed = () => fixedIds()[item.id] === true;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => toggleFix(item.id)}
+                          class={`bare flex w-fit items-center gap-3 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
+                            isFixed()
+                              ? "border-border bg-surface"
+                              : "border-primary bg-surface"
+                          }`}
+                        >
+                          <span class="font-mono text-xs font-semibold text-primary">
+                            {item.rule}
+                          </span>
+                          <code class="font-mono text-xs text-text">
+                            {isFixed() ? item.fixedCode : item.badCode}
+                          </code>
+                          <span class="font-mono text-xs text-text-muted">
+                            {isFixed() ? "✓" : "Fix →"}
+                          </span>
+                        </button>
+                      );
+                    }}
+                  </For>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 text-xs">
+                  <A
+                    href="/tooling/lints"
+                    class="font-semibold text-primary no-underline hover:underline"
+                  >
+                    Lint rules →
+                  </A>
+                  <A
+                    href="/tooling/mcp"
+                    class="font-semibold text-primary no-underline hover:underline"
+                  >
+                    MCP server →
+                  </A>
+                </div>
+              </div>
+            </section>
+          </Match>
+
+          {/* ===============================================================
+              STAGE 6 · STUDIO (Visual Token & Component Workbench)
+             =============================================================== */}
+          <Match when={stage() === 6}>
+            <section
+              id="sec-studio"
+              style={{ "max-width": "29rem" }}
+              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+            >
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                06 · Workbench · Spin Studio
+              </span>
+              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                Shape tokens visually. Ship recipes in one click.
+              </h2>
+              <p class="m-0 text-sm text-text-muted">
+                Spin Studio mounts inside your Vite dev server to edit DTCG
+                palettes, verify WCAG contrast gates across modes, and copy
+                component recipes into your repo.
+              </p>
+
+              <div class="flex w-fit flex-wrap gap-2">
+                <div class="inline-flex w-fit flex-col gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <span class="font-mono text-xs font-semibold text-primary">
+                    DTCG Palette
+                  </span>
+                  <span class="text-xs text-text-muted">
+                    Visual light & dark token editor
+                  </span>
+                </div>
+                <div class="inline-flex w-fit flex-col gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                  <span class="font-mono text-xs font-semibold text-primary">
+                    Contrast Gate
+                  </span>
+                  <span class="text-xs text-text-muted">
+                    Live AA / AAA legibility matrix
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex w-fit flex-wrap items-center gap-2 pt-1">
                 <button type="button" onClick={openStudioOverlay}>
-                  Open Studio on this page
+                  Open Studio Drawer
                 </button>
                 <A
-                  href="/themes"
+                  href="/guide/studio"
                   role="button"
                   class="secondary no-underline"
                 >
-                  Read the theme contract
+                  Studio guide →
                 </A>
               </div>
-            </div>
-
-            <div class="grid gap-3 sm:grid-cols-2">
-              <A
-                href="/why"
-                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
-              >
-                <div>
-                  <p class="m-0 font-heading text-lg font-bold text-text">
-                    Why Spin
-                  </p>
-                  <p class="mt-1 mb-0 text-xs text-text-muted">
-                    Why code review misses one-word UI bugs, and how a closed
-                    contract eliminates the class of failure.
-                  </p>
-                </div>
-                <span class="mt-4 font-mono text-xs text-primary">
-                  /why →
-                </span>
-              </A>
-
-              <A
-                href="/guide/install"
-                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
-              >
-                <div>
-                  <p class="m-0 font-heading text-lg font-bold text-text">
-                    Install &amp; Wiring
-                  </p>
-                  <p class="mt-1 mb-0 text-xs text-text-muted">
-                    Add the Vite plugin, pick a starter theme, and drop
-                    primitives or machines into Solid, React, or HTML.
-                  </p>
-                </div>
-                <span class="mt-4 font-mono text-xs text-primary">
-                  /guide/install →
-                </span>
-              </A>
-
-              <A
-                href="/utilities"
-                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
-              >
-                <div>
-                  <p class="m-0 font-heading text-lg font-bold text-text">
-                    Tokens &amp; Utilities
-                  </p>
-                  <p class="mt-1 mb-0 text-xs text-text-muted">
-                    Inspect every CSS variable and utility class emitted by the
-                    active starter in light and dark modes.
-                  </p>
-                </div>
-                <span class="mt-4 font-mono text-xs text-primary">
-                  /utilities →
-                </span>
-              </A>
-
-              <A
-                href="/tooling/mcp"
-                class="flex flex-col justify-between rounded-md border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
-              >
-                <div>
-                  <p class="m-0 font-heading text-lg font-bold text-text">
-                    MCP &amp; Agent Skill
-                  </p>
-                  <p class="mt-1 mb-0 text-xs text-text-muted">
-                    Connect Claude or Cursor to the live project daemon so
-                    agents query real tokens instead of guessing.
-                  </p>
-                </div>
-                <span class="mt-4 font-mono text-xs text-primary">
-                  /tooling/mcp →
-                </span>
-              </A>
-            </div>
-          </section>
-        </Reveal>
-
-        <footer class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-text-muted">
-          <Logo size="sm" class="text-text" />
-          <span>
-            Closed vocabulary · 5 starter themes · 59 components · mechanical
-            verification
-          </span>
-        </footer>
+            </section>
+          </Match>
+        </Switch>
       </div>
     </main>
   );
