@@ -12,7 +12,7 @@
  * writer — the CLI's, the editor's — is the caller's.
  */
 
-import { parseForESLint } from "@typescript-eslint/parser";
+import { parse as parseSource, type ParserPlugin } from "@babel/parser";
 import {
   type AttrValue,
   classTokensOf,
@@ -98,9 +98,58 @@ export interface RuleRun {
  * same ESTree shape ESLint's own parser produces — which is why the
  * findings land on the same lines and columns a linter's do.
  */
+/**
+ * The parser is Babel's, not a TypeScript-API parser.
+ *
+ * A linter's parser is the one dependency that binds the engine to a
+ * TypeScript version: `@typescript-eslint/parser` refuses to load on TS 7,
+ * which takes the CLI, the lint plugins' CLI half, and the MCP findings
+ * tool down in a consumer's workspace. Babel parses the same TS/JSX syntax
+ * without loading the project's TypeScript. Its node names differ only in
+ * the places the rules read, so the tree is normalized to the ESTree names
+ * the rules are written against.
+ */
+const LITERAL_TYPES = new Set([
+  "StringLiteral",
+  "NumericLiteral",
+  "BooleanLiteral",
+  "NullLiteral",
+  "RegExpLiteral",
+]);
+
+function normalize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    for (const item of value) normalize(item);
+    return value;
+  }
+  if (typeof value !== "object" || value === null) return value;
+  const node = value as Record<string, unknown>;
+  const type = node["type"];
+  if (typeof type === "string") {
+    if (LITERAL_TYPES.has(type)) node["type"] = "Literal";
+    else if (type === "ObjectProperty") node["type"] = "Property";
+  }
+  for (const key of Object.keys(node)) {
+    if (key === "loc" || key === "extra" || key === "errors") continue;
+    normalize(node[key]);
+  }
+  return value;
+}
+
 export function parseFile(code: string, filename: string): WalkNode {
-  const parsed = parseForESLint(code, { filePath: filename });
-  return parsed.ast as unknown as WalkNode;
+  const plugins: ParserPlugin[] = ["typescript", "decorators-legacy"];
+  if (filename.endsWith(".tsx") || filename.endsWith(".jsx")) {
+    plugins.push("jsx");
+  }
+  const file = parseSource(code, {
+    sourceType: "module",
+    sourceFilename: filename,
+    plugins,
+    attachComment: false,
+    errorRecovery: false,
+    ranges: true,
+  });
+  return normalize(file.program) as WalkNode;
 }
 
 /**

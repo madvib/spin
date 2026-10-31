@@ -147,6 +147,7 @@
     "spin": "./dist/diagnostics/cli.js"
   },
   "dependencies": {
+    "@babel/parser": "^8.0.10",
     "@iconify-json/carbon": "^1.2.28",
     "@iconify-json/lucide": "^1.2.0",
     "@iconify-json/material-symbols": "^1.2.95",
@@ -156,7 +157,6 @@
     "@orpc/client": "^1.0.0",
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
-    "@typescript-eslint/parser": "8.71.0",
     "@unocss/core": "66.10.5",
     "@unocss/preset-wind4": "66.10.5",
     "@unocss/transformer-directives": "66.10.5",
