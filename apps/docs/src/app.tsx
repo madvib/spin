@@ -153,23 +153,7 @@ function TopNav(props: {
           : "border-border bg-surface"
       }`}
     >
-      <div class="flex min-w-0 items-center gap-2 md:gap-4">
-        <button
-          type="button"
-          onClick={props.onToggleMobileNav}
-          aria-expanded={props.mobileNavOpen}
-          aria-label="Toggle navigation menu"
-          class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 text-text transition-colors hover:bg-surface-raised md:hidden"
-        >
-          <span
-            class={
-              props.mobileNavOpen
-                ? "i-lucide-x icon-sm"
-                : "i-lucide-menu icon-sm"
-            }
-            aria-hidden="true"
-          />
-        </button>
+      <div class="flex min-w-0 items-center gap-4">
         <A href="/" end class="shrink-0 no-underline" aria-label="spin home">
           <Logo size="md" class="text-text" />
         </A>
@@ -190,21 +174,36 @@ function TopNav(props: {
           </For>
         </nav>
       </div>
-      <div class="flex shrink-0 items-center gap-2">
+      <div class="hidden shrink-0 items-center gap-2 md:flex">
         <button
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
           class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
         >
-          <span class="i-lucide-search icon-sm sm:hidden" aria-hidden="true" />
-          <span class="hidden sm:inline-block">Search...</span>
-          <kbd class="hidden sm:inline-block">
+          <span>Search...</span>
+          <kbd>
             ⌘K
           </kbd>
         </button>
         <ThemePicker />
       </div>
+      <button
+        type="button"
+        onClick={props.onToggleMobileNav}
+        aria-expanded={props.mobileNavOpen}
+        aria-label="Toggle navigation menu"
+        class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 text-text transition-colors hover:bg-surface-raised md:hidden"
+      >
+        <span
+          class={
+            props.mobileNavOpen
+              ? "i-lucide-x icon-sm"
+              : "i-lucide-menu icon-sm"
+          }
+          aria-hidden="true"
+        />
+      </button>
     </header>
   );
 }
@@ -459,8 +458,22 @@ function Layout(props: RouteSectionProps): JSX.Element {
         <Show when={mobileNavOpen()}>
           <nav
             aria-label="Mobile navigation"
-            class="absolute inset-0 z-modal flex flex-col gap-5 overflow-y-auto bg-surface px-4 py-4 md:hidden"
+            class="absolute inset-0 z-modal flex flex-col gap-4 overflow-y-auto bg-surface px-4 py-4 md:hidden"
           >
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  setSearchOpen(true);
+                }}
+                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+              >
+                <span class="i-lucide-search icon-sm" aria-hidden="true" />
+                <span>Search...</span>
+              </button>
+              <ThemePicker />
+            </div>
             <div class="flex flex-wrap gap-1 border-b border-border pb-3">
               <For each={TOP_SECTIONS}>
                 {(section) => (

@@ -115,20 +115,12 @@ const DTCG_SAMPLES: readonly DtcgTokenSample[] = [
     pairing: "Paired with color.on-primary (≥ 4.5:1 AA)",
   },
   {
-    path: "color.surface-raised",
-    type: "color",
-    role: "Elevated cards, panels & overlays",
-    sample: "color",
-    sampleClass: "bg-surface-raised",
-    pairing: "Paired with color.text & color.text-muted",
-  },
-  {
-    path: "font.family.heading",
-    type: "fontFamily",
-    role: "Display & section headings",
+    path: "font.size.lg",
+    type: "dimension",
+    role: "Subheading & lead type scale",
     sample: "font",
     sampleClass: "font-heading",
-    pairing: "Paired with font.family.sans body copy",
+    pairing: "Scales from font.size.xs to font.size.3xl",
   },
   {
     path: "radius.lg",
@@ -550,7 +542,7 @@ export default function Home(): JSX.Element {
       </div>
 
       {/* SINGLE ACTIVE CAROUSEL STAGE (Never 2+ sections on screen at once; responsive on mobile, capped on desktop) */}
-      <div class="pointer-events-none relative z-10 mx-auto flex h-full max-w-screen-xl items-center px-4 sm:px-6 md:px-10">
+      <div class="relative z-10 mx-auto flex h-full max-w-screen-xl overflow-y-auto px-4 pt-2 pb-16 sm:px-6 md:py-0 md:px-10">
         <Switch>
           {/* ===============================================================
               STAGE 0 · HERO
@@ -559,7 +551,7 @@ export default function Home(): JSX.Element {
             <section
               id="sec-hero"
               style={{ "max-width": "42rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-4"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-4"
             >
               <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
                 <span class="h-2 w-2 shrink-0 rounded-full bg-primary" />
@@ -568,7 +560,7 @@ export default function Home(): JSX.Element {
                 </span>
               </span>
 
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h1 class="text-text">
                   UI that holds together.
                 </h1>
@@ -577,8 +569,8 @@ export default function Home(): JSX.Element {
                   Define your colors, type, and spacing once. Spin compiles your
                   theme into styled HTML elements, Tailwind-compatible utilities,
                   and {MACHINE_COUNT} interactive components for React, Solid,
-                  Vue, Svelte, or plain HTML — with lints and an MCP server that
-                  keep humans and coding agents on-brand.
+                  Vue, Svelte, or HTML — with lints and an MCP server that keep
+                  humans and coding agents on-brand.
                 </p>
               </div>
 
@@ -589,7 +581,11 @@ export default function Home(): JSX.Element {
                 <A href="/components" role="button" class="secondary no-underline">
                   Components
                 </A>
-                <A href="/studio" role="button" class="secondary no-underline">
+                <A
+                  href="/studio"
+                  role="button"
+                  class="secondary hidden no-underline sm:inline-flex"
+                >
                   Live Studio
                 </A>
               </div>
@@ -616,7 +612,7 @@ export default function Home(): JSX.Element {
                 </button>
               </div>
 
-              <div class="flex max-w-full flex-wrap items-center gap-1">
+              <div class="hidden max-w-full flex-wrap items-center gap-1 sm:flex">
                 <span class="pr-1 font-mono text-xs text-text-muted">
                   Theme:
                 </span>
@@ -646,52 +642,42 @@ export default function Home(): JSX.Element {
             <section
               id="sec-themes"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 01 · Themes · Multi-Brand &amp; Dark Mode
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
-                  Restyle your entire app without touching markup.
+                  Restyle your app without touching markup.
                 </h2>
                 <p class="text-sm text-text-muted">
-                  Swap palettes, typefaces, corner radii, or shadows in one
-                  place and every element, utility, and component follows.
-                  Start with five built-in themes or fork your own — light and
-                  dark contrast pairs are verified at build time.
+                  Swap palettes, typefaces, radii, or shadows in one place and
+                  every element, utility, and component follows — with light
+                  and dark contrast verified at build time.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-wrap gap-2">
-                <For each={DTCG_SAMPLES}>
-                  {(sample, idx) => {
-                    const active = () => selectedDtcgIdx() === idx();
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedDtcgIdx(idx())}
-                        class={`bare rounded-md border px-3 py-1 font-mono text-xs transition-colors duration-fast ${
-                          active()
-                            ? "border-primary bg-primary font-semibold text-on-primary"
-                            : "border-border bg-surface-raised text-text hover:border-border-strong"
-                        }`}
-                      >
-                        {sample.path}
-                      </button>
-                    );
-                  }}
-                </For>
-              </div>
-
-              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-2">
-                  <span class="font-mono text-xs font-semibold text-primary">
-                    {currentDtcg().path}
-                  </span>
-                  <span class="truncate text-xs text-text-muted">
-                    {currentDtcg().role}
-                  </span>
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
+                <div class="flex flex-wrap items-center gap-2 border-b border-border pb-2">
+                  <For each={DTCG_SAMPLES}>
+                    {(sample, idx) => {
+                      const active = () => selectedDtcgIdx() === idx();
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDtcgIdx(idx())}
+                          class={`bare rounded-md border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                            active()
+                              ? "border-primary bg-primary font-semibold text-on-primary"
+                              : "border-border bg-surface text-text hover:border-border-strong"
+                          }`}
+                        >
+                          {sample.path}
+                        </button>
+                      );
+                    }}
+                  </For>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -742,24 +728,24 @@ export default function Home(): JSX.Element {
             <section
               id="sec-utilities"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 02 · Styling · Token-Bound Utilities
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
-                  Tailwind syntax, locked to your design system.
+                  Tailwind syntax, locked to your tokens.
                 </h2>
                 <p class="text-sm text-text-muted">
                   Write the classes you already know — <code>p-4</code>,{" "}
                   <code>bg-surface-raised</code>, <code>rounded-lg</code> —
-                  wired directly to your theme tokens. Off-scale values and raw
-                  hex codes generate no CSS, so layouts never drift.
+                  wired to your theme. Off-scale values and raw hex codes
+                  generate no CSS.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -852,26 +838,26 @@ export default function Home(): JSX.Element {
             <section
               id="sec-primitives"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 03 · Elements · Styled HTML
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
-                  Write standard HTML. Skip the utility soup.
+                  Write standard HTML. Skip the class soup.
                 </h2>
                 <p class="text-sm text-text-muted">
                   Native tags like <code>&lt;button&gt;</code>,{" "}
                   <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>, and{" "}
-                  <code>&lt;table&gt;</code> arrive styled by your theme out of
-                  the box — clean markup with zero wrapper classes.
+                  <code>&lt;table&gt;</code> arrive styled by your theme —
+                  clean markup with zero wrapper classes.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
-                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
-                  <div class="flex items-center gap-2">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:p-4">
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                  <div class="flex shrink-0 items-center gap-2">
                     <button type="button" class="s-sm">
                       Save
                     </button>
@@ -879,11 +865,11 @@ export default function Home(): JSX.Element {
                       Cancel
                     </button>
                   </div>
-                  <code class="shrink-0">&lt;button&gt;Save&lt;/button&gt;</code>
+                  <code class="shrink-0">&lt;button&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-2">
-                  <label class="whitespace-nowrap">
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                  <label class="shrink-0 whitespace-nowrap">
                     <input
                       type="checkbox"
                       role="switch"
@@ -894,12 +880,12 @@ export default function Home(): JSX.Element {
                     />
                     Auto-deploy
                   </label>
-                  <code class="shrink-0">&lt;input role="switch"&gt;</code>
+                  <code class="shrink-0">role="switch"</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
-                  <div class="flex items-center gap-2">
-                    <progress value={progressVal()} max={100} class="w-20" />
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                  <div class="flex shrink-0 items-center gap-2">
+                    <progress value={progressVal()} max={100} class="w-16 sm:w-20" />
                     <button
                       type="button"
                       onClick={() =>
@@ -910,11 +896,11 @@ export default function Home(): JSX.Element {
                       {progressVal()}%
                     </button>
                   </div>
-                  <code class="shrink-0">&lt;progress value="{progressVal()}"&gt;</code>
+                  <code class="shrink-0">&lt;progress&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
-                  <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                  <div class="flex shrink-0 items-center gap-2">
                     <badge class="badge-success">Ready</badge>
                     <badge class="badge-neutral">CSS</badge>
                     <kbd>⌘K</kbd>
@@ -944,19 +930,19 @@ export default function Home(): JSX.Element {
             <section
               id="sec-components"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 04 · Components · {MACHINE_COUNT} Interactive Widgets
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
-                  Complex UI components, ready for any framework.
+                  Interactive components for any framework.
                 </h2>
                 <p class="text-sm text-text-muted">
                   Selects, comboboxes, dialogs, menus, tabs, and date pickers —
-                  driven by statecharts, styled by your theme, and mounted as
-                  custom elements in React, Solid, Vue, Svelte, or HTML.
+                  driven by statecharts, styled by your theme, and mounted in
+                  React, Solid, Vue, Svelte, or HTML.
                 </p>
               </div>
 
@@ -1005,23 +991,23 @@ export default function Home(): JSX.Element {
             <section
               id="sec-tooling"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 05 · Verification · Lints, CLI &amp; MCP
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
                   Guardrails for humans and coding agents.
                 </h2>
                 <p class="text-sm text-text-muted">
-                  AI agents love inventing hex codes and off-scale spacing.
                   Spin's linter, browser checks, and MCP server catch invalid
-                  classes, hardcoded colors, and broken contrast automatically.
+                  classes, hardcoded hex colors, and broken contrast
+                  automatically.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="flex items-center justify-between gap-4 border-b border-border pb-2">
                   <badge
                     class={
@@ -1094,54 +1080,54 @@ export default function Home(): JSX.Element {
             <section
               id="sec-studio"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
+              class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 06 · Workbench · Spin Studio
               </span>
-              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+              <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2 class="text-text">
-                  Edit your theme live against the running app.
+                  Edit your theme against the live app.
                 </h2>
                 <p class="text-sm text-text-muted">
                   Spin Studio mounts beside your dev server: tweak palettes,
-                  typography, icons, or spacing and watch your real pages
-                  repaint before saving to <code>spin/</code>.
+                  type, icons, or spacing and watch real pages repaint before
+                  saving to <code>spin/</code>.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="grid grid-cols-2 gap-2">
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
                       Theme &amp; Type
                     </span>
                     <span class="text-xs text-text-muted">
-                      Palettes, scales, and faces
+                      Palettes &amp; scales
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
                       Contrast Gate
                     </span>
                     <span class="text-xs text-text-muted">
-                      Live AA / AAA matrix
+                      AA / AAA matrix
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
                       Icons &amp; Motion
                     </span>
                     <span class="text-xs text-text-muted">
-                      Vendor glyphs &amp; easing
+                      Glyphs &amp; easing
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
                       Recipes
                     </span>
                     <span class="text-xs text-text-muted">
-                      Copy markup into your repo
+                      Copyable markup
                     </span>
                   </div>
                 </div>
