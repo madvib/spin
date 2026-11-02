@@ -705,6 +705,11 @@
       "$value": "0.12em",
       "$description": "The label's own tracking: a machine's caption is tracked open, so a control reads as a stamped plate rather than as a sentence. It is the one place the tracking scale's widest ordinary step is spent."
     },
+    "edge": {
+      "$type": "color",
+      "$description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
+      "$value": "{color.border}"
+    },
     "shadow": {
       "$type": "shadow",
       "$value": "none",

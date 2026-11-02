@@ -120,6 +120,15 @@ export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
     doc: "The elevation a button lifts to when it is touched.",
   },
   {
+    group: "button",
+    element: "button",
+    path: "button.edge",
+    type: "color",
+    value: "#e5e5e5",
+    doc: "The ink a button frames itself in; both variants share it.",
+    fallback: "color.border",
+  },
+  {
     group: "checkbox",
     element: "checkbox",
     path: "checkbox.depth",

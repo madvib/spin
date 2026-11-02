@@ -72,6 +72,7 @@ const COMPONENT_PROPERTY: Record<string, string> = {
   tracking: "letter-spacing",
   shadow: "box-shadow",
   "shadow-hover": "box-shadow",
+  edge: "border-color",
 };
 
 /**
@@ -97,7 +98,8 @@ type ComponentStep =
   | "case"
   | "tracking"
   | "shadow"
-  | "shadow-hover";
+  | "shadow-hover"
+  | "edge";
 
 const COMPONENT_STEPS: readonly ComponentStep[] = [
   "weight",
@@ -105,6 +107,7 @@ const COMPONENT_STEPS: readonly ComponentStep[] = [
   "tracking",
   "shadow",
   "shadow-hover",
+  "edge",
 ];
 
 /** The component step the base rule spends — all but the hover shadow. */
@@ -133,6 +136,7 @@ const SHADOW_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
  */
 const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
   weight: "font.weight.semibold",
+  edge: "color.border",
 };
 
 /**
@@ -231,11 +235,9 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: true,
     body: (ctx) => ({
       "background-color": token(ctx, "color.surface-raised"),
+      // The divider edge, matching the base: both controls frame in the
+      // same ink, so the pair reads as one size with one shadow.
       "border-color": token(ctx, "color.border"),
-      // No shadow of its own: the base's resting elevation is the pair's
-      // shared posture, and a secondary that floats differently from its
-      // primary reads as a different kind of control rather than the quiet
-      // half of one pair. The theme states the elevation once, for both.
       color: token(ctx, "color.text"),
     }),
   },
@@ -486,8 +488,13 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               ...BASE_COMPONENT_STEPS,
             ),
           ),
-          ...(borderWidth !== undefined && primary !== undefined
-            ? ([["border", `${borderWidth} solid ${primary}`]] as Entry[])
+          // The edge's width is the theme's stroke; its ink is the `edge`
+          // step (falling back to the shared divider), spent by the base's
+          // component tokens above. The fill never frames itself: a primary
+          // whose edge is its own fill wears an invisible border, and the
+          // secondary beside it cannot match a border that isn't there.
+          ...(borderWidth !== undefined
+            ? ([["border-width", borderWidth], ["border-style", "solid"]] as Entry[])
             : []),
           ["background-color", primary],
           ["color", onPrimary],

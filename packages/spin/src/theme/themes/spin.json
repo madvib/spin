@@ -679,6 +679,11 @@
       "$description": "Label tracking. Open tracking is for a wall of capitals; a sentence in a sans wants its letters left alone.",
       "$value": "0em"
     },
+    "edge": {
+      "$type": "color",
+      "$description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
+      "$value": "{color.border}"
+    },
     "shadow": {
       "$type": "shadow",
       "$description": "Nothing at rest. The block is printed on the page; a shadow would make it a photograph of a block.",

@@ -530,6 +530,11 @@
       "$description": "Label tracking. Slightly tight, because a 600-weight label in a small control needs the width back.",
       "$value": "0.02em"
     },
+    "edge": {
+      "$type": "color",
+      "$description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
+      "$value": "{color.border}"
+    },
     "shadow": {
       "$type": "shadow",
       "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
