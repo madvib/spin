@@ -714,6 +714,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--font-size-sm",
       "--font-weight-medium",
       "--spacing-1",
+      "--spacing-2",
     ],
     scope: {
       self: "label",
@@ -1151,6 +1152,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
+
 
 
 

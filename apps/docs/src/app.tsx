@@ -133,27 +133,47 @@ function activePrimary(): string {
  * The sticky top bar: the brand and the world switch on the left, the
  * search trigger, mode, and theme on the right.
  */
-function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
+function TopNav(props: {
+  onOpenSearch: () => void;
+  mobileNavOpen: boolean;
+  onToggleMobileNav: () => void;
+}): JSX.Element {
   const location = useLocation();
   const current = (prefixes: readonly string[]): boolean =>
     prefixes.some((prefix) =>
       location.pathname === prefix ||
       location.pathname.startsWith(`${prefix}/`)
     );
-  const isHome = () => location.pathname === "/";
+  const isHome = () => location.pathname === "/" && !props.mobileNavOpen;
   return (
     <header
-      class={`shrink-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b px-4 md:px-6 ${
+      class={`shrink-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-2 border-b px-4 md:gap-4 md:px-6 ${
         isHome()
           ? "border-transparent bg-transparent"
           : "border-border bg-surface"
       }`}
     >
-      <div class="flex min-w-0 items-center gap-4">
+      <div class="flex min-w-0 items-center gap-2 md:gap-4">
+        <button
+          type="button"
+          onClick={props.onToggleMobileNav}
+          aria-expanded={props.mobileNavOpen}
+          aria-label="Toggle navigation menu"
+          class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 text-text transition-colors hover:bg-surface-raised md:hidden"
+        >
+          <span
+            class={
+              props.mobileNavOpen
+                ? "i-lucide-x icon-sm"
+                : "i-lucide-menu icon-sm"
+            }
+            aria-hidden="true"
+          />
+        </button>
         <A href="/" end class="shrink-0 no-underline" aria-label="spin home">
           <Logo size="md" class="text-text" />
         </A>
-        <nav class="flex items-center gap-1" aria-label="sections">
+        <nav class="hidden items-center gap-1 md:flex" aria-label="sections">
           <For each={TOP_SECTIONS}>
             {(section) => (
               <A
@@ -174,10 +194,12 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
         <button
           type="button"
           onClick={props.onOpenSearch}
+          aria-label="Search documentation"
           class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
         >
-          <span>Search...</span>
-          <kbd>
+          <span class="i-lucide-search icon-sm sm:hidden" aria-hidden="true" />
+          <span class="hidden sm:inline-block">Search...</span>
+          <kbd class="hidden sm:inline-block">
             ⌘K
           </kbd>
         </button>
@@ -191,7 +213,7 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
 function DocsRail(): JSX.Element {
   return (
     <nav
-      class="sticky top-0 flex h-full w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
+      class="sticky top-0 hidden h-full w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6 md:flex"
       aria-label="docs"
     >
       <For each={DOCS_GROUPS}>
@@ -324,7 +346,7 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
   return (
     <div class="flex h-full min-h-0 items-start overflow-y-auto bg-surface text-text font-sans text-md">
       <nav
-        class="sticky top-0 flex h-full w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
+        class="sticky top-0 hidden h-full w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6 md:flex"
         aria-label="components"
       >
         <input
@@ -372,11 +394,21 @@ function Layout(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = createSignal(false);
+  const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
+  const [mobileCompQuery, setMobileCompQuery] = createSignal("");
+  const [mobileCompKind, setMobileCompKind] =
+    createSignal<ComponentKindFilter>("all");
+  createEffect(() => {
+    location.pathname;
+    setMobileNavOpen(false);
+  });
   createEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setSearchOpen((prev) => !prev);
+      } else if (event.key === "Escape" && mobileNavOpen()) {
+        setMobileNavOpen(false);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -407,6 +439,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
   });
   const onNavigate = (href: string) => {
     setSearchOpen(false);
+    setMobileNavOpen(false);
     navigate(href);
   };
   return (
@@ -417,8 +450,78 @@ function Layout(props: RouteSectionProps): JSX.Element {
         onClose={() => setSearchOpen(false)}
         onNavigate={onNavigate}
       />
-      <TopNav onOpenSearch={() => setSearchOpen(true)} />
-      <div class="min-h-0 flex-1">
+      <TopNav
+        onOpenSearch={() => setSearchOpen(true)}
+        mobileNavOpen={mobileNavOpen()}
+        onToggleMobileNav={() => setMobileNavOpen((prev) => !prev)}
+      />
+      <div class="relative min-h-0 flex-1">
+        <Show when={mobileNavOpen()}>
+          <nav
+            aria-label="Mobile navigation"
+            class="absolute inset-0 z-modal flex flex-col gap-5 overflow-y-auto bg-surface px-4 py-4 md:hidden"
+          >
+            <div class="flex flex-wrap gap-1 border-b border-border pb-3">
+              <For each={TOP_SECTIONS}>
+                {(section) => (
+                  <A
+                    href={section.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    class="block rounded-sm bg-surface-raised px-3 py-1 text-sm font-semibold text-text no-underline"
+                  >
+                    {section.title}
+                  </A>
+                )}
+              </For>
+            </div>
+            <Show
+              when={location.pathname.startsWith("/components")}
+              fallback={
+                <For each={DOCS_GROUPS}>
+                  {(group) => (
+                    <div class="grid gap-1">
+                      <p class="text-xs font-semibold text-text-muted">
+                        {group.label}
+                      </p>
+                      <For each={group.items}>
+                        {(item) => (
+                          <A
+                            href={item.href}
+                            end
+                            onClick={() => setMobileNavOpen(false)}
+                            class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+                            activeClass="bg-surface-raised text-text font-semibold"
+                            inactiveClass="text-text-muted hover:text-text"
+                          >
+                            {item.title}
+                          </A>
+                        )}
+                      </For>
+                    </div>
+                  )}
+                </For>
+              }
+            >
+              <div class="flex flex-col gap-3">
+                <input
+                  type="search"
+                  placeholder="Filter components..."
+                  value={mobileCompQuery()}
+                  onInput={(event) =>
+                    setMobileCompQuery(event.currentTarget.value)
+                  }
+                  aria-label="filter components"
+                  class="s-sm w-full"
+                />
+                <ComponentsRail
+                  filter={mobileCompQuery()}
+                  kind={mobileCompKind()}
+                  onKind={setMobileCompKind}
+                />
+              </div>
+            </Show>
+          </nav>
+        </Show>
         <Show
           when={location.pathname === "/"}
           fallback={

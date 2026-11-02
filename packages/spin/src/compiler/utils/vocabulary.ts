@@ -305,6 +305,7 @@ export const VISIBILITY: Record<string, string> = {
 
 export const BACKDROP_BLUR: Record<string, string> = {
   "backdrop-blur-none": "none",
+  "backdrop-blur-xs": "blur(2px)",
   "backdrop-blur-sm": "blur(4px)",
   "backdrop-blur": "blur(8px)",
   "backdrop-blur-md": "blur(12px)",

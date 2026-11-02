@@ -28,7 +28,6 @@ import "@spinjs/components/steps/examples/basic.html";
 import "@spinjs/components/angle-slider/examples/basic.html";
 import "@spinjs/components/date-input/examples/basic.html";
 import {
-  examplesFor,
   primitiveContracts,
   primitiveElements,
 } from "@spinjs/preset";
@@ -36,10 +35,10 @@ import {
   Mark,
   type MarkPluckEvent,
   mode,
-  ThemePicker,
+  setTheme,
+  starterList,
   theme,
 } from "@spinjs/kit";
-
 const STAGE_COUNT = 7;
 const WHEEL_THRESHOLD = 62;
 const STEP_COOLDOWN_MS = 650;
@@ -75,18 +74,6 @@ interface HoverTileSpec {
   readonly meta: string;
 }
 
-function primitiveTile(name: string): HoverTileSpec {
-  const example = examplesFor(name);
-  const variants = primitiveContracts[name]?.variants.length ?? 0;
-  return {
-    name,
-    href: `/components/${name}`,
-    icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
-    mountHtml: example?.rows[0]?.html ?? `<${name}>${name}</${name}>`,
-    meta: variants > 0 ? `${variants} variants` : "pure CSS",
-  };
-}
-
 const MACHINE_TILES = [
   { name: "mode-picker", stem: "basic" },
   { name: "theme-picker", stem: "basic" },
@@ -108,11 +95,7 @@ function machineTile(tile: (typeof MACHINE_TILES)[number]): HoverTileSpec {
   };
 }
 
-const HOVER_TILES: readonly HoverTileSpec[] = [
-  ...["button", "breadcrumbs", "join", "kbd"].map(primitiveTile),
-  ...MACHINE_TILES.map(machineTile),
-];
-
+const HOVER_TILES: readonly HoverTileSpec[] = MACHINE_TILES.map(machineTile);
 interface DtcgTokenSample {
   readonly path: string;
   readonly type: string;
@@ -245,9 +228,7 @@ export default function Home(): JSX.Element {
 
   // Section 3 (Primitives): interactive native controls
   const [switchChecked, setSwitchChecked] = createSignal(true);
-  const [classless, setClassless] = createSignal(true);
   const [progressVal, setProgressVal] = createSignal(72);
-
   // Section 4 (Components): HoverCard with live component specimen preview (like /components)
   const [hoveredTile, setHoveredTile] = createSignal<HoverTileSpec | null>(null);
   const [hoverCardPos, setHoverCardPos] = createSignal<{ top: number; left: number }>({
@@ -474,7 +455,7 @@ export default function Home(): JSX.Element {
       </Show>
 
       {/* TINY FLOATING CONTROL PANEL FAB (Init = Scroll cue; Active = compact dots + prev/next/auto/replay, NO section names) */}
-      <div class="pointer-events-none fixed inset-x-0 bottom-4 z-dropdown flex justify-center">
+      <div class="pointer-events-none fixed inset-x-0 bottom-4 z-dropdown flex justify-start px-4 sm:justify-center">
         <Show
           when={stage() > 0 || controlsUnlocked()}
           fallback={
@@ -490,7 +471,7 @@ export default function Home(): JSX.Element {
           }
         >
           <div
-            class="pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-2 py-1 shadow-md"
+            class="pointer-events-auto inline-flex w-fit items-center gap-1 rounded-full border border-border-strong bg-surface-raised px-2 py-1 shadow-md sm:gap-2"
             role="group"
             aria-label="Stage controls"
           >
@@ -568,8 +549,8 @@ export default function Home(): JSX.Element {
         </Show>
       </div>
 
-      {/* SINGLE ACTIVE CAROUSEL STAGE (Never 2+ sections on screen at once; tight w-fit content) */}
-      <div class="pointer-events-none relative z-10 mx-auto flex h-full max-w-screen-xl items-center px-6 md:px-10">
+      {/* SINGLE ACTIVE CAROUSEL STAGE (Never 2+ sections on screen at once; responsive on mobile, capped on desktop) */}
+      <div class="pointer-events-none relative z-10 mx-auto flex h-full max-w-screen-xl items-center px-4 sm:px-6 md:px-10">
         <Switch>
           {/* ===============================================================
               STAGE 0 · HERO
@@ -577,83 +558,112 @@ export default function Home(): JSX.Element {
           <Match when={stage() === 0}>
             <section
               id="sec-hero"
-              style={{ "max-width": "38rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-4"
+              style={{ "max-width": "42rem" }}
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-4"
             >
-              <span class="inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
-                <span class="h-2 w-2 rounded-full bg-primary" />
-                <span>Framework-agnostic · W3C DTCG · Pure CSS</span>
+              <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
+                <span class="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span class="truncate">
+                  Themes · Styled HTML · {MACHINE_COUNT} Components · Any Stack
+                </span>
               </span>
 
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h1 class="text-text">
-                UI that holds together.
-              </h1>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h1 class="text-text">
+                  UI that holds together.
+                </h1>
 
-              <p class="text-sm text-text-muted">
-                Spin gives humans and coding agents a closed design vocabulary:
-                theme tokens, semantic HTML primitives, headless state machines,
-                and mechanical oracles that verify the result. Adopt it in
-                layers — use Spin to create a single source of truth for
-                themes, styles, and components across all your apps.
-              </p></span>
+                <p class="text-sm text-text-muted">
+                  Define your colors, type, and spacing once. Spin compiles your
+                  theme into styled HTML elements, Tailwind-compatible utilities,
+                  and {MACHINE_COUNT} interactive components for React, Solid,
+                  Vue, Svelte, or plain HTML — with lints and an MCP server that
+                  keep humans and coding agents on-brand.
+                </p>
+              </div>
 
-              <div class="flex w-fit flex-wrap items-center gap-2">
-                <A href="/guide/install" role="button" class="no-underline">
-                  Get started →
+              <div class="flex w-fit max-w-full flex-wrap items-center gap-2">
+                <A href="/start/quickstart" role="button" class="no-underline">
+                  Quickstart →
                 </A>
                 <A href="/components" role="button" class="secondary no-underline">
                   Components
                 </A>
+                <A href="/studio" role="button" class="secondary no-underline">
+                  Live Studio
+                </A>
               </div>
 
-              <div class="flex w-full max-w-full flex-wrap items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
+              <div class="flex w-full max-w-full items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
                 <docs-select ref={setSelectEl} id="install-pm" />
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex w-fit min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
+                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
-                  <span class="text-text-muted">$</span>
-                  <span class="min-w-0 flex-1 break-all">{installCommand()}</span>
+                  <span class="shrink-0 text-text-muted">$</span>
+                  <span class="min-w-0 flex-1 truncate text-left">
+                    {installCommand()}
+                  </span>
                   <span
                     class={
                       copiedCmd()
-                        ? "inline-block h-4 w-4 i-lucide-check text-semantic-success"
-                        : "inline-block h-4 w-4 i-lucide-copy text-text-muted"
+                        ? "inline-block h-4 w-4 shrink-0 i-lucide-check text-semantic-success"
+                        : "inline-block h-4 w-4 shrink-0 i-lucide-copy text-text-muted"
                     }
                     aria-hidden="true"
                   />
                 </button>
               </div>
 
-              <ThemePicker id="hero-theme-picker" />
+              <div class="flex max-w-full flex-wrap items-center gap-1">
+                <span class="pr-1 font-mono text-xs text-text-muted">
+                  Theme:
+                </span>
+                <For each={starterList}>
+                  {(name) => (
+                    <button
+                      type="button"
+                      onClick={() => setTheme(name)}
+                      class={`bare rounded-full border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                        theme() === name
+                          ? "border-primary bg-primary font-semibold text-on-primary"
+                          : "border-border bg-surface-raised text-text-muted hover:border-border-strong hover:text-text"
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  )}
+                </For>
+              </div>
             </section>
           </Match>
 
           {/* ===============================================================
-              STAGE 1 · THEMES (W3C DTCG Foundation)
+              STAGE 1 · THEMES
              =============================================================== */}
           <Match when={stage() === 1}>
             <section
               id="sec-themes"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                01 · Foundation · W3C DTCG
+                01 · Themes · Multi-Brand &amp; Dark Mode
               </span>
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
-                One theme document owns every visual decision.
-              </h2>
-              <p class="text-sm text-text-muted">
-                Colors, typography, spacing, and radii live in one W3C DTCG
-                document. Every sample below reads its value from that
-                document, so switching themes or modes rewrites the page — and
-                light/dark contrast pairs are checked before you ship.
-              </p></span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h2 class="text-text">
+                  Restyle your entire app without touching markup.
+                </h2>
+                <p class="text-sm text-text-muted">
+                  Swap palettes, typefaces, corner radii, or shadows in one
+                  place and every element, utility, and component follows.
+                  Start with five built-in themes or fork your own — light and
+                  dark contrast pairs are verified at build time.
+                </p>
+              </div>
 
-              {/* Compact w-fit DTCG token selector pills */}
-              <div class="flex w-fit flex-wrap gap-2">
+              <div class="flex w-full max-w-full flex-wrap gap-2">
                 <For each={DTCG_SAMPLES}>
                   {(sample, idx) => {
                     const active = () => selectedDtcgIdx() === idx();
@@ -674,16 +684,17 @@ export default function Home(): JSX.Element {
                 </For>
               </div>
 
-              {/* Compact w-fit DTCG card (zero wasted horizontal space) */}
-              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
-                <div class="flex items-center gap-4 border-b border-border pb-2">
+              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-2">
                   <span class="font-mono text-xs font-semibold text-primary">
                     {currentDtcg().path}
                   </span>
-                  <badge class="badge-neutral">$type: {currentDtcg().type}</badge>
+                  <span class="truncate text-xs text-text-muted">
+                    {currentDtcg().role}
+                  </span>
                 </div>
 
-                <div class="flex w-fit items-center gap-3">
+                <div class="flex items-center gap-3">
                   <Show
                     when={currentDtcg().sample === "color"}
                     fallback={
@@ -699,18 +710,20 @@ export default function Home(): JSX.Element {
                       aria-hidden="true"
                     />
                   </Show>
-                  <div class="flex flex-col gap-1 font-mono text-xs">
+                  <div class="flex min-w-0 flex-col gap-1 font-mono text-xs">
                     <span class="text-text-muted">
                       {cssVarOf(currentDtcg().path)}
                     </span>
-                    <strong class="text-text">
+                    <strong class="truncate text-text">
                       {liveTokenValue(currentDtcg().path) || "—"}
                     </strong>
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 text-xs">
-                  <span class="text-text-muted">{currentDtcg().pairing}</span>
+                <div class="flex items-center justify-between gap-4 border-t border-border pt-2 text-xs">
+                  <span class="truncate text-text-muted">
+                    {currentDtcg().pairing}
+                  </span>
                   <A
                     href="/themes"
                     class="shrink-0 font-semibold text-primary no-underline hover:underline"
@@ -723,29 +736,31 @@ export default function Home(): JSX.Element {
           </Match>
 
           {/* ===============================================================
-              STAGE 2 · UTILITIES (Familiar Tailwind syntax, custom to your brand)
+              STAGE 2 · UTILITIES
              =============================================================== */}
           <Match when={stage() === 2}>
             <section
               id="sec-utilities"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                02 · Styling · Theme-Bound Utilities
+                02 · Styling · Token-Bound Utilities
               </span>
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
-                Familiar Tailwind syntax, custom to your brand.
-              </h2>
-              <p class="text-sm text-text-muted">
-                Write the utility classes you already know — <code>p-4</code>,{" "}
-                <code>bg-surface-raised</code>, <code>rounded-lg</code> — backed
-                strictly by your theme's token scale.
-              </p></span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h2 class="text-text">
+                  Tailwind syntax, locked to your design system.
+                </h2>
+                <p class="text-sm text-text-muted">
+                  Write the classes you already know — <code>p-4</code>,{" "}
+                  <code>bg-surface-raised</code>, <code>rounded-lg</code> —
+                  wired directly to your theme tokens. Off-scale values and raw
+                  hex codes generate no CSS, so layouts never drift.
+                </p>
+              </div>
 
-              {/* Compact w-fit Utility Composer */}
-              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
-                <div class="flex w-fit flex-wrap items-center gap-2">
+              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() =>
@@ -793,11 +808,10 @@ export default function Home(): JSX.Element {
                   </button>
                 </div>
 
-                {/* Tight w-fit specimen */}
                 <div
-                  class={`inline-flex w-fit flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
+                  class={`flex max-w-full flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
                 >
-                  <div class="flex w-fit items-center gap-3">
+                  <div class="flex items-center justify-between gap-3">
                     <strong class="font-brand text-sm text-text">
                       Brand-true surface
                     </strong>
@@ -809,7 +823,7 @@ export default function Home(): JSX.Element {
                       {utilTryInvalid() ? "unknown: p-13" : "Verified"}
                     </badge>
                   </div>
-                  <code>
+                  <code class="truncate">
                     {utilTryInvalid()
                       ? "Rejected: step 13 is not in spacing scale"
                       : `class="${utilSurface()} ${utilPad()} ${utilRadius()}"`}
@@ -832,30 +846,32 @@ export default function Home(): JSX.Element {
           </Match>
 
           {/* ===============================================================
-              STAGE 3 · PRIMITIVES (Semantic HTML defaults, pure CSS, compact w-fit pills)
+              STAGE 3 · ELEMENTS (Standard HTML, styled out of the box)
              =============================================================== */}
           <Match when={stage() === 3}>
             <section
               id="sec-primitives"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                03 · Elements · Pure CSS Primitives
+                03 · Elements · Styled HTML
               </span>
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
-                Semantic HTML defaults. Zero wrapper soup.
-              </h2>
-              <p class="text-sm text-text-muted">
-                A button is <code>&lt;button&gt;</code>, a switch is{" "}
-                <code>role="switch"</code> — styled in CSS, no wrapper class.
-                Flip the toggle and watch the markup change.
-              </p></span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h2 class="text-text">
+                  Write standard HTML. Skip the utility soup.
+                </h2>
+                <p class="text-sm text-text-muted">
+                  Native tags like <code>&lt;button&gt;</code>,{" "}
+                  <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>, and{" "}
+                  <code>&lt;table&gt;</code> arrive styled by your theme out of
+                  the box — clean markup with zero wrapper classes.
+                </p>
+              </div>
 
-              {/* Compact rows: specimen left, label right, no stacked caption */}
-              <div class="grid w-[19rem] max-w-full grid-cols-2 gap-2">
-                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
+                  <div class="flex items-center gap-2">
                     <button type="button" class="s-sm">
                       Save
                     </button>
@@ -863,13 +879,11 @@ export default function Home(): JSX.Element {
                       Cancel
                     </button>
                   </div>
-                  <code class="shrink-0">
-                    &lt;button&gt;
-                  </code>
+                  <code class="shrink-0">&lt;button&gt;Save&lt;/button&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <label class="inline-flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                <div class="flex items-center justify-between gap-2 border-b border-border pb-2">
+                  <label class="whitespace-nowrap">
                     <input
                       type="checkbox"
                       role="switch"
@@ -878,16 +892,14 @@ export default function Home(): JSX.Element {
                         setSwitchChecked(e.currentTarget.checked)
                       }
                     />
-                    <span class="truncate">Token gate</span>
+                    Auto-deploy
                   </label>
-                  <code class="shrink-0">
-                    switch
-                  </code>
+                  <code class="shrink-0">&lt;input role="switch"&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
-                    <progress value={progressVal()} max={100} class="w-16" />
+                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
+                  <div class="flex items-center gap-2">
+                    <progress value={progressVal()} max={100} class="w-20" />
                     <button
                       type="button"
                       onClick={() =>
@@ -898,96 +910,57 @@ export default function Home(): JSX.Element {
                       {progressVal()}%
                     </button>
                   </div>
-                  <code class="shrink-0">
-                    &lt;progress&gt;
-                  </code>
+                  <code class="shrink-0">&lt;progress value="{progressVal()}"&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
-                    <badge class="badge-success">AA</badge>
-                    <badge class="badge-warning">DTCG</badge>
+                <div class="flex items-center justify-between gap-3 border-b border-border pb-2">
+                  <div class="flex items-center gap-2">
+                    <badge class="badge-success">Ready</badge>
                     <badge class="badge-neutral">CSS</badge>
+                    <kbd>⌘K</kbd>
                   </div>
-                  <code class="shrink-0">
-                    &lt;badge&gt;
-                  </code>
+                  <code class="shrink-0">&lt;badge&gt; · &lt;kbd&gt;</code>
                 </div>
 
-                <div class="col-span-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <p class="min-w-0 flex-1 text-xs text-text-muted">
-                    <span class="font-heading text-sm font-semibold text-text">
-                      Theme-bound prose
-                    </span>{" "}
-                    — headings, <a href="/guide/markup">links</a> share one scale.
-                  </p>
-                  <code class="shrink-0">
-                    &lt;p&gt;
-                  </code>
+                <div class="flex items-center justify-between gap-4 text-xs">
+                  <span class="font-mono text-text-muted">
+                    {ELEMENT_COUNT} styled elements
+                  </span>
+                  <A
+                    href="/components?kind=elements"
+                    class="font-semibold text-primary no-underline hover:underline"
+                  >
+                    Explore elements →
+                  </A>
                 </div>
               </div>
-
-              <div class="flex w-[19rem] max-w-full flex-col gap-2">
-                <label class="inline-flex w-fit cursor-pointer items-center gap-2">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={classless()}
-                    onChange={(e) => setClassless(e.currentTarget.checked)}
-                  />
-                  <span>classless</span>
-                </label>
-                <Show
-                  when={classless()}
-                  fallback={
-                    <button type="button" class="button s-sm">
-                      Save
-                    </button>
-                  }
-                >
-                  <button type="button" class="s-sm">
-                    Save
-                  </button>
-                </Show>
-                <code>
-                  {classless()
-                    ? "<button>Save</button>"
-                    : '<button class="button">Save</button>'}
-                </code>
-              </div>
-
-              <A
-                href="/components?kind=elements"
-                class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
-              >
-                Explore all {ELEMENT_COUNT} CSS elements →
-              </A>
             </section>
           </Match>
 
           {/* ===============================================================
-              STAGE 4 · RUNTIME COMPONENTS (Live Specimen HoverCard Tiles)
+              STAGE 4 · INTERACTIVE COMPONENTS
              =============================================================== */}
           <Match when={stage() === 4}>
             <section
               id="sec-components"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                04 · Interactive · Headless Machines
+                04 · Components · {MACHINE_COUNT} Interactive Widgets
               </span>
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
-                Stateful machines when native HTML isn't enough.
-              </h2>
-              <p class="text-sm text-text-muted">
-                Multi-part widgets driven by deterministic state machines,
-                shipped as custom elements for any framework.{" "}
-                <strong>Hover any tile</strong> to preview the live component.
-              </p></span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h2 class="text-text">
+                  Complex UI components, ready for any framework.
+                </h2>
+                <p class="text-sm text-text-muted">
+                  Selects, comboboxes, dialogs, menus, tabs, and date pickers —
+                  driven by statecharts, styled by your theme, and mounted as
+                  custom elements in React, Solid, Vue, Svelte, or HTML.
+                </p>
+              </div>
 
-              {/* Compact w-fit Component Tile Grid with Live Specimen HoverCards */}
-              <div class="flex max-w-[28rem] flex-wrap gap-2">
+              <div class="flex max-w-full flex-wrap gap-2">
                 <For each={HOVER_TILES}>
                   {(tile) => (
                     <A
@@ -1020,32 +993,35 @@ export default function Home(): JSX.Element {
                 href="/components?kind=machines"
                 class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
               >
-                Browse all {MACHINE_COUNT} machines →
+                Browse all {MACHINE_COUNT} components →
               </A>
             </section>
           </Match>
 
           {/* ===============================================================
-              STAGE 5 · TOOLING (Lints, CLI & MCP Oracles)
+              STAGE 5 · TOOLING (Lints, CLI & MCP)
              =============================================================== */}
           <Match when={stage() === 5}>
             <section
               id="sec-tooling"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                05 · Verification · Lints, CLI & MCP
+                05 · Verification · Lints, CLI &amp; MCP
               </span>
-              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
-                Mechanical verification for humans and agents.
-              </h2>
-              <p class="text-sm text-text-muted">
-                Spin's lint rules, CLI, and MCP server check every class and
-                contrast pair against your theme contract.
-              </p></span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
+                <h2 class="text-text">
+                  Guardrails for humans and coding agents.
+                </h2>
+                <p class="text-sm text-text-muted">
+                  AI agents love inventing hex codes and off-scale spacing.
+                  Spin's linter, browser checks, and MCP server catch invalid
+                  classes, hardcoded colors, and broken contrast automatically.
+                </p>
+              </div>
 
-              <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
+              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
                 <div class="flex items-center justify-between gap-4 border-b border-border pb-2">
                   <badge
                     class={
@@ -1067,7 +1043,7 @@ export default function Home(): JSX.Element {
                   </button>
                 </div>
 
-                <div class="flex w-fit flex-col gap-2">
+                <div class="flex w-full flex-col gap-2">
                   <For each={ORACLE_FINDINGS}>
                     {(item) => {
                       const isFixed = () => fixedIds()[item.id] === true;
@@ -1075,20 +1051,17 @@ export default function Home(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => toggleFix(item.id)}
-                          class={`bare flex w-fit items-center gap-3 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
+                          class={`bare flex w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
                             isFixed()
                               ? "border-border bg-surface"
                               : "border-primary bg-surface"
                           }`}
                         >
-                          <span class="font-mono text-xs font-semibold text-primary">
-                            {item.rule}
-                          </span>
-                          <code>
+                          <code class="min-w-0 truncate">
                             {isFixed() ? item.fixedCode : item.badCode}
                           </code>
-                          <span class="font-mono text-xs text-text-muted">
-                            {isFixed() ? "✓" : "Fix →"}
+                          <span class="shrink-0 font-mono text-xs text-primary">
+                            {isFixed() ? "✓ Fixed" : "Fix →"}
                           </span>
                         </button>
                       );
@@ -1121,27 +1094,27 @@ export default function Home(): JSX.Element {
             <section
               id="sec-studio"
               style={{ "max-width": "29rem" }}
-              class="pointer-events-auto flex w-fit flex-col items-start gap-3"
+              class="pointer-events-auto flex w-full min-w-0 max-w-full flex-col items-start gap-3"
             >
-              <div class="flex w-[27rem] max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-lg">
-                <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                  06 · Workbench · Spin Studio
-                </span>
+              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+                06 · Workbench · Spin Studio
+              </span>
+              <div class="flex max-w-full flex-col gap-2 rounded-md bg-surface/40 py-1 backdrop-blur-xs">
                 <h2 class="text-text">
-                  Edit the theme against the live app.
+                  Edit your theme live against the running app.
                 </h2>
                 <p class="text-sm text-text-muted">
-                  Spin Studio runs beside your app in development, or
-                  standalone with <code>spin studio</code>: change a color and
-                  the running page repaints before anything is saved. Palettes,
-                  type, icons, motion, geometry — then save, and the document
-                  lands in <code>spin/</code>.
+                  Spin Studio mounts beside your dev server: tweak palettes,
+                  typography, icons, or spacing and watch your real pages
+                  repaint before saving to <code>spin/</code>.
                 </p>
+              </div>
 
+              <div class="flex w-full max-w-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
                 <div class="grid grid-cols-2 gap-2">
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
-                      Theme & Type
+                      Theme &amp; Type
                     </span>
                     <span class="text-xs text-text-muted">
                       Palettes, scales, and faces
@@ -1152,15 +1125,15 @@ export default function Home(): JSX.Element {
                       Contrast Gate
                     </span>
                     <span class="text-xs text-text-muted">
-                      Live AA / AAA legibility matrix
+                      Live AA / AAA matrix
                     </span>
                   </div>
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
                     <span class="font-mono text-xs font-semibold text-primary">
-                      Icons & Motion
+                      Icons &amp; Motion
                     </span>
                     <span class="text-xs text-text-muted">
-                      Vendor glyphs; tune easing
+                      Vendor glyphs &amp; easing
                     </span>
                   </div>
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-3">
@@ -1173,16 +1146,16 @@ export default function Home(): JSX.Element {
                   </div>
                 </div>
 
-                <div class="flex w-fit flex-wrap items-center gap-2 pt-1">
-                  <A href="/studio" role="button" class="no-underline">
-                    Explore Studio →
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                  <A href="/studio" role="button" class="s-sm no-underline">
+                    Open Live Studio →
                   </A>
                   <A
-                    href="/guide/install"
+                    href="/start/quickstart"
                     role="button"
-                    class="secondary no-underline"
+                    class="secondary s-sm no-underline"
                   >
-                    Install →
+                    Quickstart →
                   </A>
                 </div>
               </div>

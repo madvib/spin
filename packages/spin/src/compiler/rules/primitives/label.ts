@@ -42,6 +42,17 @@ function labelRule(mode: Mode): Rule {
           ? { color: token(ctx, "color.text") }
           : {}),
       };
+      yield {
+        [ctx.symbols.selector]: () =>
+          `${label}:has(> input:is([type="checkbox"], [type="radio"]))`,
+        "flex-direction": "row",
+        "align-items": "center",
+        width: "fit-content",
+        cursor: "pointer",
+        ...(token(ctx, "spacing.2") !== undefined
+          ? { gap: token(ctx, "spacing.2") }
+          : {}),
+      };
     },
     { layer: "primitives", autocomplete: "label" },
   ];
