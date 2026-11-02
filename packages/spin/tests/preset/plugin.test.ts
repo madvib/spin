@@ -52,7 +52,9 @@ test("prefix entries own subpaths and return the matcher's tail", async () => {
     (entry) => entry.find instanceof RegExp && entry.replacement.includes("$1"),
   );
   assert(prefixes.length > 0, "at least one prefix entry exists");
-  const spinPrefix = prefixes[0]!;
+  const spinPrefix = prefixes.find((entry) =>
+    (entry.find as RegExp).test("@spinjs/spin/theme/themes")
+  )!;
   assert(
     (spinPrefix.find as RegExp).test("@spinjs/spin/theme/themes"),
     "the spin prefix matches subpaths",
