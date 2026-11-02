@@ -14,7 +14,7 @@ const layerItems = (): readonly PropEntry[] => [
       <>
         Owns every visual value: palette, typography scale, spacing steps,
         radii, shadows, and motion curves. Verified at build time by the six
-        contract gates in <A href="/docs/themes/overview">Themes &amp; Modes</A>.
+        contract gates in <A href="/docs/themes/validation">Validation</A>.
       </>
     ),
   },

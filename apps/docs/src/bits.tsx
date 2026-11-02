@@ -4,7 +4,7 @@
  */
 import type { JSX } from "solid-js";
 import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { starterThemes } from "@spinjs/spin/theme";
 import { mode, Section as SharedSection, theme } from "@spinjs/kit";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { tabs } from "@spinjs/components/tabs";

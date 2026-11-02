@@ -57,7 +57,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Getting Started",
     items: [
       {
-        title: "What is Spin?",
+        title: "Overview",
         href: "/docs/getting-started/overview",
         summary: "How themes, classless HTML elements, utilities, and state machines fit together.",
       },
@@ -67,17 +67,17 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Install the packages, wire your bundler, and open the Studio in two minutes.",
       },
       {
-        title: "Install & Bundlers",
+        title: "Installation",
         href: "/docs/getting-started/install",
         summary: "Project layout, spin init flags, and configurations for all seven bundlers.",
       },
       {
-        title: "Ways to Use Spin",
+        title: "Entry Points",
         href: "/docs/getting-started/paths",
         summary: "Full bundler plugin, UnoCSS preset-only, or standalone Studio daemon.",
       },
       {
-        title: "Architecture & Layers",
+        title: "Architecture",
         href: "/docs/getting-started/architecture",
         summary: "Which layer owns each visual or behavioral change, and the checks that verify it.",
       },
@@ -85,51 +85,51 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
   },
   {
     id: "themes",
-    label: "Themes & Tokens",
+    label: "Themes",
     items: [
       {
-        title: "Themes & Modes",
+        title: "Overview",
         href: "/docs/themes/overview",
-        summary: "DTCG JSON structure, token groups, light/dark modes, and programmatic reads.",
+        summary: "Designing themes in the Studio, previewing starters, and configuring spin/*.json and shared brands.",
       },
       {
-        title: "Authoring & Gates",
-        href: "/docs/themes/authoring",
-        summary: "Authoring a theme from scratch and passing the six build-time validation gates.",
+        title: "Modes",
+        href: "/docs/themes/modes",
+        summary: "Light and dark mode resolution, subtree scoping with data-mode, and runtime theme pickers.",
       },
       {
-        title: "Token Schema",
-        href: "/docs/themes/schema",
-        summary: "Every token group, required color role, contrast pair, and scale step.",
+        title: "Customization",
+        href: "/docs/themes/customization",
+        summary: "Customizing palette roles, web fonts, spatial scales, and per-element tokens.",
       },
       {
-        title: "Starter Themes",
-        href: "/docs/themes/starters",
-        summary: "The five shipped starter palettes and how to fork or seat them.",
+        title: "Validation",
+        href: "/docs/themes/validation",
+        summary: "Running the six build-time validation gates, contrast floors, and reading tokens in JavaScript.",
       },
       {
-        title: "Style References",
-        href: "/docs/themes/styles",
-        summary: "House skill and historical design references for agent-authored themes.",
+        title: "Token Reference",
+        href: "/docs/themes/reference",
+        summary: "Complete reference of DTCG token groups, required roles, contrast pairs, and per-element tokens.",
       },
     ],
   },
   {
     id: "styling",
-    label: "Styling & Markup",
+    label: "Styling",
     items: [
       {
-        title: "Classless Elements",
+        title: "Elements",
         href: "/docs/styling/elements",
         summary: "Native HTML tags and Spin custom elements styled automatically by your theme.",
       },
       {
-        title: "Utilities & Animations",
+        title: "Utilities",
         href: "/docs/styling/utilities",
         summary: "Closed-scale utility classes, cascade layers, layout shortcuts, and motion.",
       },
       {
-        title: "Tokens & Catalog",
+        title: "Catalog",
         href: "/docs/styling/catalog",
         summary: "Live interactive catalog of every utility class and token in the active theme.",
       },
@@ -140,12 +140,12 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Components & Runtime",
     items: [
       {
-        title: "Components & Controllers",
+        title: "Components",
         href: "/docs/authoring/components",
         summary: "HTML component compiler and framework controllers for React, Solid, Vue, and Svelte.",
       },
       {
-        title: "Machines & Signals",
+        title: "Machines",
         href: "/docs/authoring/machines",
         summary: "Authoring headless statecharts, reactive signals, and DOM directives.",
       },
@@ -153,15 +153,15 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
   },
   {
     id: "tooling",
-    label: "Tooling & Agents",
+    label: "Tooling",
     items: [
       {
-        title: "Lints & Verification",
+        title: "Lints",
         href: "/docs/tooling/lints",
         summary: "Every spin/* lint rule, strictness dial, and autofix behavior.",
       },
       {
-        title: "CLI & Plugin Options",
+        title: "CLI Reference",
         href: "/docs/tooling/cli",
         summary: "Complete reference for spin CLI subcommands, flags, and SpinPluginOptions.",
       },
@@ -225,10 +225,14 @@ export const LEGACY_DOCS_REDIRECTS: Readonly<Record<string, string>> = {
   "/start/model": "/docs/getting-started/architecture",
   "/why": "/docs/getting-started/overview",
   "/themes": "/docs/themes/overview",
-  "/themes/authoring": "/docs/themes/authoring",
-  "/themes/schema": "/docs/themes/schema",
-  "/themes/starters": "/docs/themes/starters",
-  "/themes/styles": "/docs/themes/styles",
+  "/themes/authoring": "/docs/themes/validation",
+  "/themes/schema": "/docs/themes/reference",
+  "/themes/starters": "/docs/themes/overview",
+  "/themes/styles": "/docs/themes/customization",
+  "/docs/themes/authoring": "/docs/themes/validation",
+  "/docs/themes/schema": "/docs/themes/reference",
+  "/docs/themes/starters": "/docs/themes/overview",
+  "/docs/themes/styles": "/docs/themes/customization",
   "/guide": "/docs/styling/elements",
   "/guide/markup": "/docs/styling/elements",
   "/guide/css": "/docs/styling/utilities",

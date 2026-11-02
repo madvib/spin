@@ -342,6 +342,6 @@
     "codegen": "bun run src/compiler/rules/primitives/derive.ts && biome format --write . src/compiler/rules/primitives/manifest.ts && bun run codegen-animation.ts",
     "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/theme/skill/index.ts'; const rendered = renderSkill(await readFile('./skill/SKILL.md', 'utf8')); await writeFile('./skill/SKILL.md', rendered); console.log('wrote skill/SKILL.md');\"",
     "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/theme/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n'); console.log('wrote schema.json');\"",
-    "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes } from './src/theme/index.ts'; import { spinTheme } from './src/theme/themes/index.ts'; const parsed = parseTokens(spinTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme/theme-types.d.ts');\""
+    "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, silkTheme } from './src/theme/index.ts'; const parsed = parseTokens(silkTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme/theme-types.d.ts');\""
   }
 }

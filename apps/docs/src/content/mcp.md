@@ -1,9 +1,8 @@
 <!-- USER COPY SLOT: mcp-intro — your own agent-workflow framing, or the default below. -->
 
 An agent that writes markup blind invents names. The MCP server connects the
-agent to your project before it writes a word: eight tools over the daemon RPC,
-two resources for read-only documents, and the house skill that teaches the
-theme language.
+agent to your project before it writes a word: eight tools over the daemon RPC
+and two resources for read-only documents.
 
 `spin mcp` starts the stdio server and reads the project's themes and
 components. Add `--url http://127.0.0.1:7463/rpc` to dial a running daemon
@@ -28,21 +27,5 @@ beside the connection config.
 — for any client that renders before acting. `spin://themes/{name}` answers one
 theme as DTCG JSON text, the same bytes the Studio edits and the sheet spends.
 
-## The house skill
-
-The file is served at `/skill/spin-theme/SKILL.md` beside this page. Fetch it
-from the origin you are reading the docs on — the dev server below is `:5174`:
-
-```bash
-curl -fsSL http://localhost:5174/skill/spin-theme/SKILL.md -o ~/.claude/skills/spin-theme/SKILL.md
-```
-
-Or copy it from the installed package — the same bytes the site serves, since
-both are assembled from the theme module's own contract:
-
-```bash
-cp node_modules/@spinjs/spin/skill/SKILL.md ~/.claude/skills/spin-theme/SKILL.md
-cp node_modules/@spinjs/spin/skill/*.md ~/.claude/skills/spin-theme/
-```
 
 <!-- USER COPY SLOT: mcp-close — your own agent policy (which tools are read-only, who may write). -->

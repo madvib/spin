@@ -98,7 +98,7 @@ function buildIndex(): readonly SearchEntry[] {
     out.push({
       title: role.path,
       subtitle: role.doc,
-      href: "/docs/themes/schema",
+      href: "/docs/themes/reference",
       category: "Token",
     });
   }

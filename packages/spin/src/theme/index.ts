@@ -156,3 +156,15 @@ export {
   valuesInMode,
 } from "./modes.ts";
 export type { Mode } from "./modes.ts";
+
+// Shipped starter themes.
+export {
+  consoleTheme,
+  neobrutTheme,
+  silkTheme,
+  spinTheme,
+  starterGroups,
+  starterThemes,
+  synthwaveTheme,
+} from "./themes/index.ts";
+export type { StarterThemeName } from "./themes/index.ts";

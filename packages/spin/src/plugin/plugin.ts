@@ -655,15 +655,22 @@ export function projectThemes(
  */
 interface IconCollection {
   readonly prefix: string;
-  readonly icons: Record<string, { readonly body: string }>;
+  readonly width?: number;
+  readonly height?: number;
+  readonly icons: Record<
+    string,
+    { readonly body: string; readonly width?: number; readonly height?: number }
+  >;
 }
 /**
  * Validate a parsed `icons.json` just far enough to hand it on.
  *
  * `JSON.parse` answers `unknown`, and the collections ship as data — a
  * corrupt install should fail loudly rather than smuggle an `as` through.
- * The `icons` table is what the loader reads (each entry's `body` is the
- * SVG fragment); everything else rides along untouched.
+ * The `icons` table and the root `width`/`height` grid dimensions (`24x24`
+ * for Lucide/Tabler, `32x32` for Carbon, `256x256` for Phosphor) are kept
+ * so `@unocss/preset-icons` emits the right `viewBox` instead of cropping to
+ * its `16x16` fallback.
  */
 function parseIconCollection(value: unknown): IconCollection {
   if (typeof value !== "object" || value === null || !("prefix" in value) || !("icons" in value)) {
@@ -675,14 +682,34 @@ function parseIconCollection(value: unknown): IconCollection {
   if (typeof value.icons !== "object" || value.icons === null) {
     throw new Error("[spin] invalid icon collection: missing icons table");
   }
-  const table: Record<string, { readonly body: string }> = {};
+  const rootWidth =
+    "width" in value && typeof value.width === "number" ? value.width : undefined;
+  const rootHeight =
+    "height" in value && typeof value.height === "number" ? value.height : undefined;
+  const table: Record<
+    string,
+    { readonly body: string; readonly width?: number; readonly height?: number }
+  > = {};
   for (const [iconName, entry] of Object.entries(value.icons)) {
     if (typeof entry !== "object" || entry === null || !("body" in entry) || typeof entry.body !== "string") {
       throw new Error("[spin] invalid icon collection: every icon needs a string body");
     }
-    table[iconName] = { body: entry.body };
+    const entryWidth =
+      "width" in entry && typeof entry.width === "number" ? entry.width : undefined;
+    const entryHeight =
+      "height" in entry && typeof entry.height === "number" ? entry.height : undefined;
+    table[iconName] = {
+      body: entry.body,
+      ...(entryWidth === undefined ? {} : { width: entryWidth }),
+      ...(entryHeight === undefined ? {} : { height: entryHeight }),
+    };
   }
-  return { prefix: value.prefix, icons: table };
+  return {
+    prefix: value.prefix,
+    ...(rootWidth === undefined ? {} : { width: rootWidth }),
+    ...(rootHeight === undefined ? {} : { height: rootHeight }),
+    icons: table,
+  };
 }
 
 

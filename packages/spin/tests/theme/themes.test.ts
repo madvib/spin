@@ -1045,3 +1045,15 @@ test("the ink on the secondary and the accent fill is a role the contract asks f
     "the scaffold writes the ink on the accent fill",
   );
 });
+
+test("@spinjs/spin/theme re-exports starterThemes and individual starters", async () => {
+  const rootExports = await import("../../src/theme/index.ts");
+  const subpathExports = await import("../../src/theme/themes/index.ts");
+  assert.strictEqual(rootExports.starterThemes, subpathExports.starterThemes);
+  assert.strictEqual(rootExports.starterGroups, subpathExports.starterGroups);
+  assert.strictEqual(rootExports.spinTheme, subpathExports.spinTheme);
+  assert.strictEqual(rootExports.silkTheme, subpathExports.silkTheme);
+  assert.strictEqual(rootExports.neobrutTheme, subpathExports.neobrutTheme);
+  assert.strictEqual(rootExports.consoleTheme, subpathExports.consoleTheme);
+  assert.strictEqual(rootExports.synthwaveTheme, subpathExports.synthwaveTheme);
+});

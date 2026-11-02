@@ -1,0 +1,173 @@
+/**
+ * Themes Modes: light and dark mode resolution, subtree scoping, mode invariance, and runtime pickers.
+ */
+import { A } from "@solidjs/router";
+import type { JSX } from "solid-js";
+import { mode, theme } from "@spinjs/kit";
+import { Code, Section } from "../../../bits.tsx";
+import {
+  PageHeader,
+  PropList,
+  SplitExample,
+  type PropEntry,
+} from "../../../ui/index.ts";
+import { THEMES_SNIPPETS } from "./themes.snippets.ts";
+
+const MODE_RULES: readonly PropEntry[] = [
+  {
+    name: "modes: [\"light\", \"dark\"]",
+    badge: "Root declaration",
+    description:
+      "Declares which modes the theme supports. Omit modes and Spin defaults to [\"light\", \"dark\"] when any token has $modes.dark, or [\"light\"] otherwise. A dark-first terminal theme can declare [\"dark\"].",
+  },
+  {
+    name: "$modes.dark / $modes.light",
+    badge: "Token override",
+    description:
+      "Overrides a token's $value in that mode. Tokens that do not need to change in dark mode omit $modes and inherit their base $value.",
+  },
+  {
+    name: "{path} alias resolution",
+    badge: "Per-mode",
+    description:
+      "Aliases resolve within the active mode. If color.surface points to {color.neutral.50} and color.neutral.50 defines $modes.dark, color.surface automatically picks up the dark neutral.",
+  },
+  {
+    name: "--spin-modes",
+    badge: "CSS metadata",
+    description:
+      "Emitted on each [data-theme] block so <ModePicker /> knows whether a theme supports both light and dark or is single-mode.",
+  },
+];
+
+export default function ThemesModes(): JSX.Element {
+  const oppositeMode = () => (mode() === "dark" ? "light" : "dark");
+  const demoTheme = () =>
+    theme() === "console" || theme() === "synthwave" ? "silk" : theme();
+  return (
+    <main class="flex flex-col">
+      <PageHeader
+        title="Modes"
+        lede="Light and dark are modes on a single theme, not separate themes and not dark: utility classes on every element. A token declares its mode override in $modes, and Spin emits [data-mode] selector blocks that work on <html> or any nested DOM subtree."
+      />
+
+      <Section id="modes" title="How modes work">
+        <p class="max-w-prose">
+          In Spin, you write your markup once using semantic roles (
+          <code>bg-surface</code>, <code>text-text</code>,{" "}
+          <code>border-border</code>). You never write{" "}
+          <code>dark:bg-slate-900 dark:text-slate-100</code> in templates.
+          When <code>data-mode="dark"</code> is set on{" "}
+          <code>&lt;html&gt;</code> — or on a specific container — the CSS
+          custom properties update in place and every element inside that
+          subtree repaints automatically.
+        </p>
+
+        <div class="my-4">
+          <SplitExample
+            title={`Live subtree scoping — page is ${mode()}, inner card is ${oppositeMode()}`}
+            code={THEMES_SNIPPETS.subtreeMode}
+            lang="html"
+            playgroundExample="themes-dual-mode"
+          >
+            <div class="grid w-full gap-3 sm:grid-cols-2">
+              <div
+                data-theme={demoTheme()}
+                data-mode={mode()}
+                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4 text-text"
+              >
+                <span class="font-mono text-xs text-text-muted">
+                  data-mode="{mode()}" (page)
+                </span>
+                <p class="text-sm text-text">
+                  Inherits the page's current mode.
+                </p>
+                <div class="flex items-center gap-2 pt-1">
+                  <button type="button">Primary</button>
+                  <span class="badge">Badge</span>
+                </div>
+              </div>
+              <div
+                data-theme={demoTheme()}
+                data-mode={oppositeMode()}
+                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4 text-text"
+              >
+                <span class="font-mono text-xs text-text-muted">
+                  data-mode="{oppositeMode()}" (subtree)
+                </span>
+                <p class="text-sm text-text">
+                  Scoped to the opposite mode on this container.
+                </p>
+                <div class="flex items-center gap-2 pt-1">
+                  <button type="button">Primary</button>
+                  <span class="badge">Badge</span>
+                </div>
+              </div>
+            </div>
+          </SplitExample>
+        </div>
+      </Section>
+
+      <Section id="overrides" title="Token overrides and alias resolution">
+        <p class="max-w-prose">
+          At the root of your theme JSON, <code>modes</code> lists the modes
+          the theme serves (<code>["light", "dark"]</code>,{" "}
+          <code>["light"]</code>, or <code>["dark"]</code>). Individual tokens
+          carry their mode-specific values in <code>$modes</code>:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.modeToken}
+            lang="json"
+            title="spin/editorial.json"
+          />
+        </div>
+        <PropList items={MODE_RULES} />
+      </Section>
+
+      <Section id="invariance" title="Mode invariance">
+        <p class="max-w-prose">
+          Toggling between light and dark mode must never cause layout shift
+          or text reflow. Spin enforces <strong>mode invariance</strong> in
+          its validation battery:
+        </p>
+        <ul class="max-w-prose">
+          <li>
+            <strong>Allowed to vary by mode:</strong>{" "}
+            <code>color.*</code>, <code>shadow.*</code>, per-element color or
+            shadow tokens (such as <code>button.edge</code> or{" "}
+            <code>card.shadow</code>), and focus ring geometry (
+            <code>focus.width</code>, <code>focus.offset</code>).
+          </li>
+          <li>
+            <strong>Mode-invariant (must stay constant):</strong>{" "}
+            <code>spacing.*</code>, <code>font.*</code>, <code>radius.*</code>,{" "}
+            <code>border.*</code>, <code>motion.*</code>,{" "}
+            <code>breakpoint.*</code>, <code>icon.*</code>, and{" "}
+            <code>z-index.*</code>. Placing <code>$modes</code> on a spacing
+            or typography token is rejected by the{" "}
+            <A href="/docs/themes/validation#gates">invariance gate</A>.
+          </li>
+        </ul>
+      </Section>
+
+      <Section id="switching" title="Switching themes and modes in your UI">
+        <p class="max-w-prose">
+          <code>@spinjs/spin/kit</code> provides ready-made{" "}
+          <code>&lt;ThemePicker /&gt;</code> and{" "}
+          <code>&lt;ModePicker /&gt;</code> components that read{" "}
+          <code>--spin-themes</code> and <code>--spin-modes</code> directly
+          from the generated stylesheet, along with reactive signals for custom
+          controls:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.pickers}
+            lang="ts"
+            title="Switching themes and modes"
+          />
+        </div>
+      </Section>
+    </main>
+  );
+}

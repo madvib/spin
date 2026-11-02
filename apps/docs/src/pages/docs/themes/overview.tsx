@@ -1,360 +1,268 @@
 /**
- * Themes & Modes: what a theme is in Spin, DTCG JSON shape, modes, seating,
- * starters, and runtime reads.
+ * Themes Overview: Studio workflow, interactive starter preview, project files, and shared brands.
  */
-import { For } from "solid-js";
-import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { Chip, Code, Probe, Section } from "../../../bits.tsx";
+import { createMemo, createSignal, For, Show } from "solid-js";
+import type { JSX } from "solid-js";
+import { setTheme, theme } from "@spinjs/kit";
+import { Chip, Code, Section } from "../../../bits.tsx";
 import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
-import { TYPES } from "../../../theme-docs.ts";
-import { GETTING_STARTED_SNIPPETS } from "../getting-started/getting-started.snippets.ts";
+import { themeSummaries, type ThemeSummary } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
-const PIPELINE: readonly PropEntry[] = [
+const STUDIO_STEPS: readonly PropEntry[] = [
   {
-    name: "1. parse",
-    badge: "parseTokens / parseDocument",
+    name: "1. Launch the Studio",
+    badge: "/__spin/studio/",
     description:
-      "Turns DTCG JSON into a typed TokenTree without throwing.",
+      "With spin.vite() running, click the Studio pill in the bottom-right corner of your app (or run npx spin studio for any other bundler).",
   },
   {
-    name: "2. resolve",
-    badge: "treeInMode + resolveAliases",
+    name: "2. Fork a starter or create a theme",
+    badge: "New theme",
     description:
-      "Selects the active mode's values and follows {path} references to their terminal leaf.",
+      "Pick one of the five starter palettes (spin, silk, neobrut, console, synthwave) or start from a clean scaffold, then tune colors, typefaces, spacing, and radii against your live page.",
   },
   {
-    name: "3. validate",
-    badge: "themeGates",
+    name: "3. Check live contrast & scale gates",
+    badge: "6 gates",
     description:
-      "Runs the six-gate contract battery across every served mode.",
+      "Every fill-and-ink pair displays its live WCAG contrast ratio and offers a one-click fix whenever a token drops below its legibility floor.",
   },
   {
-    name: "4. read",
-    badge: "resolveTheme / indexTree",
+    name: "4. Save to spin/<name>.json",
+    badge: "git-diffable",
     description:
-      "Exposes flat dotted paths and resolved token leaves at build time or runtime.",
+      "Changes preview in memory first. Pressing Save writes spin/<name>.json and updates spin/config.json in your repository.",
   },
 ];
 
-const SEAT_CHAIN: readonly (readonly [string, string])[] = [
-  [
-    "1. Configured activeTheme",
-    "spin/config.json's activeTheme wins first when it names a theme the project currently serves. A configured name the project does not serve is ignored.",
-  ],
-  [
-    "2. Remembered seat",
-    "If activeTheme is absent or unserved, the Studio keeps the previously seated theme when that name is in the served set.",
-  ],
-  [
-    "3. First listed theme",
-    "Otherwise the first theme in the ordered list (listed[0].name) is seated. After the first seat, config changes never move the author's seat again.",
-  ],
+const SEATING_ITEMS: readonly PropEntry[] = [
+  {
+    name: "1. activeTheme in spin/config.json",
+    badge: "Project default",
+    description:
+      "When spin/config.json names an activeTheme that exists in the resolved theme set, that theme is seated as the root default.",
+  },
+  {
+    name: "2. Remembered Studio selection",
+    badge: "Dev session",
+    description:
+      "During local development, the theme last selected in the Studio stays active across reloads.",
+  },
+  {
+    name: "3. First theme in themeOrder",
+    badge: "Fallback",
+    description:
+      "If no activeTheme is set, Spin seats the first theme in themeOrder (or the first alphabetical file in spin/*.json).",
+  },
 ];
 
-const TASTE: readonly (readonly [string, string])[] = [
-  [
-    "Distinctness",
-    "A theme has to be recognisable at a glance. If it could be any other theme with a different hex, it is not a theme, it is a default.",
-  ],
-  [
-    "Completeness",
-    "Every token decided. A token the document leaves out is a decision handed to the consumer, and the consumer will make it differently in every place they spend it.",
-  ],
-  [
-    "Legibility in every state",
-    "Rest, hover, focus, active, selected, disabled, and in every mode the document serves. A fill always has an ink, and the floors are where that is written down.",
-  ],
-  [
-    "Restraint with effects",
-    "Shadow, blur, lift, glow. Each one asks for attention. A theme that spends all of them spends none of them, and the elements stop being able to say anything.",
-  ],
-  [
-    "Dark mode designed, not inverted",
-    "A dark mode is a second palette with its own ink, not the light one with the lightness taken out. The surface goes dark first, and then every color is asked whether it still means what it meant.",
-  ],
+const SWATCH_ROLES: readonly {
+  readonly label: string;
+  readonly bgClass: string;
+  readonly path: string;
+}[] = [
+  { label: "surface", bgClass: "bg-surface", path: "color.surface" },
+  {
+    label: "raised",
+    bgClass: "bg-surface-raised",
+    path: "color.surface-raised",
+  },
+  { label: "text", bgClass: "bg-text", path: "color.text" },
+  { label: "primary", bgClass: "bg-primary", path: "color.primary" },
+  { label: "secondary", bgClass: "bg-secondary", path: "color.secondary" },
+  { label: "accent", bgClass: "bg-accent", path: "color.accent" },
 ];
 
 export default function ThemesOverview(): JSX.Element {
+  const starters = themeSummaries();
+  const [selectedName, setSelectedName] = createSignal<string>(
+    starters[0]?.name ?? "spin",
+  );
+  const selected = createMemo<ThemeSummary>(
+    () =>
+      starters.find((item) => item.name === selectedName()) ?? starters[0]!,
+  );
+
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Themes & Modes"
-        lede={
-          <>
-            A theme is one DTCG JSON document declaring palette, typography,
-            spatial scales, elevation, motion, and mode variants. See{" "}
-            <A href="/docs/themes/schema">Token Schema</A> for every group,{" "}
-            <A href="/docs/themes/starters">Starter Themes</A> for the five
-            shipped palettes, and{" "}
-            <A href="/docs/themes/authoring">Authoring &amp; Gates</A> for the
-            six-gate validation battery.
-          </>
-        }
-        playgroundExample="themes-dual-mode"
+        title="Overview"
+        lede="A Spin theme defines your application's palette, typography, spacing, radii, shadows, and motion. Design and validate themes visually in the Studio, commit the generated JSON to spin/, and switch themes or modes at runtime with zero rebuild."
       />
 
-      <Section id="document" title="The theme document">
+      <Section id="studio" title="Designing in the Studio">
         <p class="max-w-prose">
-          A theme document is a plain JSON object whose keys are token groups
-          (such as <code>color</code>, <code>font</code>, and{" "}
-          <code>spacing</code>) plus optional root metadata (
-          <code>$description</code>, <code>$extensions</code>, and{" "}
-          <code>modes</code>). Inside a group, every object with a{" "}
-          <code>$value</code> is a token leaf, and every other object is a
-          nested group. A node cannot carry both <code>$value</code> and child
-          tokens, and an empty group is a parse error.
+          You do not write theme JSON by hand. Spin ships with a live visual
+          editor — the <A href="/studio">Studio</A> — that mounts directly
+          beside your app during development. Any adjustment to a color role,
+          font family, spacing step, or corner radius repaints your running
+          application immediately before touching disk.
         </p>
+        <PropList items={STUDIO_STEPS} />
         <p class="max-w-prose">
-          DTCG reserves six keys at any level: <code>$value</code>,{" "}
-          <code>$type</code>, <code>$description</code>,{" "}
-          <code>$extensions</code>, <code>$deprecated</code>, and{" "}
-          <code>$modes</code>. Every other key names a child token or subgroup.
+          Try the live editor on the <A href="/studio">Studio page</A>, or
+          connect a coding agent via the{" "}
+          <A href="/docs/tooling/mcp">MCP Server</A> so it can read and mutate
+          tokens through the same validation pipeline.
         </p>
-        <div class="my-3">
-          <Code
-            code={THEMES_SNIPPETS.minimalTheme}
-            lang="json"
-            title="spin/minimal.json"
-          />
-        </div>
-        <p class="max-w-prose">
-          A shape illustration, not a valid theme: it omits most of the
-          contract's required roles, so <code>themeGates</code> reports it.
-          Start from <code>scaffoldTheme()</code> below when a document must
-          validate.
-        </p>
-        <p class="max-w-prose">
-          Every token has a resolved <code>$type</code> from a closed
-          vocabulary. Declare <code>$type</code> on a group once (for example{" "}
-          <code>"$type": "color"</code> on <code>color</code>) and every token
-          in its subtree inherits that type unless a child group or leaf
-          declares its own. An unknown <code>$type</code> or a leaf with no
-          resolved type fails parsing immediately:
-        </p>
-        <div class="my-3 flex flex-wrap gap-2">
-          <For each={TYPES}>{(type) => <Chip>{type}</Chip>}</For>
-        </div>
-        <p class="max-w-prose">
-          An alias references another token by its dotted path in curly braces:{" "}
-          <code>{"\"{color.neutral.50}\""}</code>. Aliases may chain across
-          tokens; the resolver follows the chain to its terminal value, flags
-          cycles, and reports any target path that does not exist. What each
-          top-level token group controls is catalogued in{" "}
-          <A href="/docs/themes/schema#groups">Token Schema — The groups</A>,
-          and every required role and contrast floor is listed in{" "}
-          <A href="/docs/themes/schema#roles">The required roles</A>.
-        </p>
-        <p class="max-w-prose">
-          The theme pipeline processes a document in {PIPELINE.length} stages,
-          each callable on its own from <code>@spinjs/spin/theme</code>:
-        </p>
-        <div class="mt-3">
-          <PropList items={PIPELINE} />
-        </div>
       </Section>
 
-      <Section id="modes" title="How modes work">
+      <Section id="starters" title="Starter palettes">
         <p class="max-w-prose">
-          A mode is a variant of a token, not a second theme. A document
-          declares which modes it serves in a root <code>modes</code> array —{" "}
-          <code>["light", "dark"]</code>, <code>["light"]</code>, or{" "}
-          <code>["dark"]</code> — and a token that changes between modes
-          carries a <code>$modes</code> map beside its base <code>$value</code>:
+          Spin includes five starter themes in{" "}
+          <code>@spinjs/spin/theme</code>. Select a starter below to inspect
+          its palette and signature tokens, or apply it to this documentation
+          site.
         </p>
-        <div class="my-3">
-          <Code
-            lang="json"
-            title="Mode override on a token leaf"
-            code={`"primary": {
-  "$value": "#c8102e",
-  "$modes": { "dark": "#ff5a63" }
-}`}
-          />
+
+        <div class="my-4 flex flex-col gap-4 rounded-lg border border-border bg-surface-raised p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <For each={starters}>
+                {(item) => {
+                  const isSelected = () => selected().name === item.name;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedName(item.name)}
+                      class={`bare cursor-pointer rounded-md border px-3 py-1 font-mono text-xs transition-colors duration-fast ${
+                        isSelected()
+                          ? "border-primary bg-primary text-on-primary font-semibold"
+                          : "border-border bg-surface text-text-muted hover:border-border-strong hover:text-text"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  );
+                }}
+              </For>
+            </div>
+            <button
+              type="button"
+              class="secondary"
+              onClick={() => setTheme(selected().name)}
+            >
+              {theme() === selected().name
+                ? `Active on site (${selected().name})`
+                : `Apply ${selected().name} to site`}
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <span class="font-mono text-sm font-semibold text-text">
+                {selected().name}
+              </span>
+              <div class="flex flex-wrap items-center gap-1">
+                <For each={selected().modes}>
+                  {(m) => <Chip>{m}</Chip>}
+                </For>
+              </div>
+            </div>
+            <Show when={selected().thesis}>
+              <p class="max-w-prose text-sm text-text-muted">
+                {selected().thesis}
+              </p>
+            </Show>
+
+            <div
+              data-theme={selected().name}
+              data-mode={selected().modes[0] ?? "light"}
+              class="grid grid-cols-2 gap-2 rounded-md border border-border bg-surface p-3 sm:grid-cols-3 md:grid-cols-6"
+            >
+              <For each={SWATCH_ROLES}>
+                {(role) => {
+                  const swatch = () =>
+                    selected().palette.find((s) => s.path === role.path);
+                  return (
+                    <div class="flex flex-col gap-1">
+                      <div
+                        class={`h-8 w-full rounded-sm border border-border ${role.bgClass}`}
+                      />
+                      <span class="font-mono text-xs font-semibold text-text">
+                        {role.label}
+                      </span>
+                      <span class="truncate font-mono text-xs text-text-muted">
+                        {swatch()?.value ?? "—"}
+                      </span>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <For each={selected().signature.slice(0, 4)}>
+                {(entry) => (
+                  <div class="flex flex-col gap-1 rounded-sm border border-border bg-surface p-2">
+                    <span class="font-mono text-xs text-text-muted">
+                      {entry.path}
+                    </span>
+                    <span class="truncate font-mono text-xs font-semibold text-text">
+                      {entry.value}
+                    </span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
         </div>
-        <p class="max-w-prose">
-          Mode resolution uses a single-mode fallback rule: in a given mode, a
-          token's value is <code>leaf.modes?.[mode] ?? leaf.value</code>. Any
-          token that omits <code>$modes.&lt;mode&gt;</code> keeps its base{" "}
-          <code>$value</code> in every mode. When an alias is resolved in a
-          mode, it follows the target token's value in that same mode —
-          restating <code>color.neutral.50</code> for <code>dark</code>{" "}
-          automatically updates every role aliased to{" "}
-          <code>{"\"{color.neutral.50}\""}</code>.
+
+        <p class="max-w-prose text-sm text-text-muted">
+          Starters are templates: when your project has its own{" "}
+          <code>spin/*.json</code> files, Spin serves only your project's
+          themes unless you explicitly include starters via{" "}
+          <code>extends</code>. When you fork a starter in the Studio and hit{" "}
+          <strong>Save</strong>, it writes a copy into{" "}
+          <code>spin/&lt;name&gt;.json</code> that your project owns.
         </p>
-        <p class="max-w-prose">
-          Root <code>modes</code> is never inferred from token overrides. A
-          single-mode dark palette such as <code>console</code> declares{" "}
-          <code>"modes": ["dark"]</code> and restates nothing under{" "}
-          <code>$modes</code>, because its base values are already dark. By
-          contrast, declaring <code>"dark"</code> on a light base without any{" "}
-          <code>$modes.dark</code> overrides, or writing a{" "}
-          <code>$modes.dark</code> value when <code>"dark"</code> is not in
-          root <code>modes</code>, fails validation.
-        </p>
-        <p class="max-w-prose">
-          Modes only change ink (<code>color</code> and <code>shadow</code>{" "}
-          tokens) and the <code>focus</code> ring (<code>focus.width</code>,{" "}
-          <code>focus.offset</code>). Spacing, typography, radius, and motion
-          stay mode-invariant across the document. The probe below renders the
-          active theme in the opposite mode side by side:
-        </p>
-        <div class="mt-3">
-          <Probe>
-            <p class="font-semibold text-text">Opposite mode preview</p>
-            <p class="text-sm text-text-muted">
-              Same tokens and markup, resolved with the other mode's ink and
-              surface values.
-            </p>
-          </Probe>
-        </div>
       </Section>
 
-      <Section id="project" title="Where themes live and which one is active">
+      <Section id="project" title="Project files and seating order">
         <p class="max-w-prose">
-          Project themes live on disk as <code>spin/&lt;name&gt;.json</code>,
-          where the file stem is the theme's name (for example{" "}
-          <code>spin/acme.json</code>). Project-level theme configuration lives
-          beside them in <code>spin/config.json</code>.
+          A Spin project stores its themes in the <code>spin/</code> directory
+          at the project root. Each <code>spin/&lt;name&gt;.json</code> file
+          defines one named theme (<code>spin/acme.json</code> registers{" "}
+          <code>data-theme="acme"</code>), and <code>spin/config.json</code>{" "}
+          controls which theme is seated by default and the order themes appear
+          in pickers:
         </p>
         <div class="my-3">
           <Code
+            code={THEMES_SNIPPETS.studioConfig}
             lang="json"
             title="spin/config.json"
-            code={`{
-  "activeTheme": "acme",
-  "themeOrder": ["acme", "silk", "console"]
-}`}
           />
         </div>
-        <p class="max-w-prose">
-          <code>spin/config.json</code> accepts two optional keys:{" "}
-          <code>activeTheme</code> (the theme the Studio seats on first load
-          when it names a served theme) and <code>themeOrder</code> (the
-          display order for the theme list; unknown or duplicate names are
-          ignored, and served themes not listed in <code>themeOrder</code>{" "}
-          follow alphabetically). Unknown keys are ignored, and a missing or
-          unparsable <code>spin/config.json</code> is treated as empty so a
-          half-written config never hides the project's themes.
-        </p>
-        <p class="max-w-prose">
-          When the Studio loads, the active theme is chosen once by a
-          three-step seating chain:
-        </p>
-        <div class="mt-4 grid gap-3 md:grid-cols-3">
-          <For each={SEAT_CHAIN}>
-            {([step, detail]) => (
-              <div class="rounded-md border border-border bg-surface-raised p-4">
-                <p class="font-semibold text-text">{step}</p>
-                <p class="text-sm">{detail}</p>
-              </div>
-            )}
-          </For>
-        </div>
+        <PropList items={SEATING_ITEMS} />
       </Section>
 
-      <Section id="starters" title="Starters and forking">
+      <Section id="extends" title="Sharing a brand across apps">
         <p class="max-w-prose">
-          Five starter themes ship in <code>@spinjs/spin/theme/themes</code>:{" "}
-          <code>silk</code>, <code>neobrut</code>, <code>console</code>,{" "}
-          <code>synthwave</code>, and <code>spin</code>. Starters are
-          creation-only templates — they are not auto-served into a project's{" "}
-          <code>spin/</code> directory unless you pass them in your bundler
-          config or fork one into the project.
+          Multi-app teams can publish a shared brand package exporting{" "}
+          <code>{"{ themes: { ... } }"}</code> and pass it to{" "}
+          <code>spin.vite({"{ extends: acmeBrand }"})</code>. Local files in{" "}
+          <code>spin/*.json</code> layer on top of <code>extends</code>: a
+          local theme with the same name overrides the shared one, and saving
+          a shared theme in the Studio forks it into <code>spin/</code>.
         </p>
         <div class="my-3">
           <Code
+            code={THEMES_SNIPPETS.viteSharedBrand}
             lang="ts"
             title="vite.config.ts"
-            code={GETTING_STARTED_SNIPPETS.viteThemes}
           />
         </div>
         <p class="max-w-prose">
-          An unforked theme served from the package or a <code>themes</code>{" "}
-          map has a project path of <code>null</code>. Writing or saving{" "}
-          <code>spin/&lt;name&gt;.json</code> (for example{" "}
-          <code>spin/silk.json</code>) forks that theme into the project: the
-          project's file replaces the shipped starter of the same name for that
-          project alone. Browse all five palettes on{" "}
-          <A href="/docs/themes/starters">Starter Themes</A>.
+          Next, see <A href="/docs/themes/modes">Modes</A> for light and dark
+          mode scoping, <A href="/docs/themes/customization">Customization</A>{" "}
+          for fonts and element overrides,{" "}
+          <A href="/docs/themes/validation">Validation</A> for the six build
+          gates, or <A href="/docs/themes/reference">Token Reference</A> for
+          every token group and role.
         </p>
-      </Section>
-
-      <Section id="scaffold" title="Writing one from the scaffold">
-        <p class="max-w-prose">
-          <code>scaffoldTheme()</code> in <code>@spinjs/spin/theme</code>{" "}
-          builds the smallest valid starting document: the required base roles (
-          <code>color.*</code>, <code>font.family.sans</code>,{" "}
-          <code>focus.width</code>, <code>focus.offset</code>) with neutral
-          placeholder colors that pass every contrast floor, the baseline scale
-          steps (<code>spacing</code>, <code>radius</code>, <code>shadow</code>,{" "}
-          <code>font</code> scales, <code>motion</code>, <code>border</code>,{" "}
-          <code>breakpoint</code>, <code>z-index</code>, <code>icon</code>),
-          and the optional per-element token groups, with no dark mode
-          overrides.
-        </p>
-        <p class="max-w-prose">
-          Start from the scaffold when the product's visual direction is being
-          designed from scratch; start from a fork of one of the{" "}
-          <A href="/docs/themes/starters">starter themes</A> when a shipped
-          palette is already close.{" "}
-          <A href="/docs/themes/authoring">Authoring &amp; Gates</A> walks the
-          full process and the <code>themeGates</code> contract battery.
-        </p>
-      </Section>
-
-      <Section id="runtime" title="Reading theme values at runtime">
-        <p class="max-w-prose">
-          Import <code>resolveTheme</code> from <code>@spinjs/spin/theme</code>{" "}
-          to read a theme's resolved token values at runtime for a single mode:
-        </p>
-        <div class="my-3">
-          <Code
-            lang="ts"
-            title="Read resolved token values"
-            code={THEMES_SNIPPETS.resolveTheme}
-          />
-        </div>
-        <p class="max-w-prose">
-          <code>resolveTheme(document, mode = "light")</code> accepts a{" "}
-          <code>ThemeDocument</code> object or raw JSON string and returns a{" "}
-          <code>ResolvedTheme</code> with three fields: <code>mode</code> (the
-          mode name), <code>values</code> (a flat{" "}
-          <code>Readonly&lt;Record&lt;string, unknown&gt;&gt;</code> keyed by
-          dotted path such as <code>"color.primary"</code>), and{" "}
-          <code>unresolved</code> (any alias paths whose target did not exist).
-          It throws an <code>Error</code> if the document is malformed so a
-          caller is never handed a silent partial map, while broken aliases are
-          reported in <code>unresolved</code> rather than thrown.
-        </p>
-        <p class="max-w-prose">
-          When you need a non-throwing parse or full token metadata (
-          <code>type</code>, <code>description</code>, raw <code>modes</code>{" "}
-          map, or <code>$extensions</code>), call{" "}
-          <code>parseTokens(input)</code> or <code>parseDocument(input)</code>{" "}
-          and pass the resulting <code>TokenTree</code> through{" "}
-          <code>treeInMode</code>, <code>resolveAliases</code>, and{" "}
-          <code>indexTree</code> to inspect <code>index.leaves[path]</code>.
-        </p>
-      </Section>
-
-      <Section id="taste" title="What good means">
-        <p class="max-w-prose">
-          The machine checks completeness, contrast floors, scale order, loop
-          duration, mode coverage, and mode invariance. The rest is design
-          judgement:
-        </p>
-        <div class="mt-4 grid gap-3 md:grid-cols-2">
-          <For each={TASTE}>
-            {([name, why]) => (
-              <div class="rounded-md border border-border bg-surface-raised p-4">
-                <p class="font-semibold text-text">{name}</p>
-                <p class="text-sm">{why}</p>
-              </div>
-            )}
-          </For>
-        </div>
       </Section>
     </main>
   );

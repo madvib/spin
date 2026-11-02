@@ -1,5 +1,5 @@
 /**
- * MCP Server: the eight tools, two resources, and house skill for coding agents.
+ * MCP Server: the eight tools and two resources for coding agents.
  */
 import type { JSX } from "solid-js";
 import { Code, Section } from "../../../bits.tsx";

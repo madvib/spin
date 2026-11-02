@@ -1,25 +1,26 @@
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/spin/theme/themes";
-import { renderSkill } from "@spinjs/spin/skill";
+import { starterThemes } from "@spinjs/spin/theme";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { ALL_DOCS_PAGES, DOCS_GROUPS } from "./src/nav.ts";
+import {
+  elementGroups,
+  elementTokens,
+  FLOORS,
+  ROLES,
+  schemaFacts,
+  themeSummaries,
+  TYPES,
+} from "./src/theme-docs.ts";
+import { THEMES_SNIPPETS } from "./src/pages/docs/themes/themes.snippets.ts";
 
 const here = import.meta.dirname!;
-const SKILL_URL = "/skill/spin-theme/SKILL.md";
-const SKILL_TEMPLATE = resolve(
-  dirname(createRequire(import.meta.url).resolve("@spinjs/spin/package.json")),
-  "skill/SKILL.md",
-);
-const SKILL_DIR = dirname(SKILL_TEMPLATE);
-const STYLES_URL = "/skill/spin-theme";
 const STUDIO_ROOT = resolve(here, "../studio/dist");
 
 function jibeIsolation(): Plugin {
@@ -104,50 +105,6 @@ function jibeStudio(): Plugin {
   };
 }
 
-function houseSkill(): Plugin {
-  const text = (): string => renderSkill(readFileSync(SKILL_TEMPLATE, "utf8"));
-  const styles = (): { file: string; source: string }[] =>
-    readdirSync(SKILL_DIR)
-      .filter((name) => name.endsWith(".md") && name !== "SKILL.md")
-      .sort()
-      .map((name) => ({
-        file: `${name}`,
-        source: readFileSync(resolve(SKILL_DIR, name), "utf8"),
-      }));
-  return {
-    name: "spin:house-skill",
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const url = (req.url ?? "").split("?")[0] ?? "";
-        if (url === SKILL_URL) {
-          res.setHeader("content-type", "text/markdown; charset=utf-8");
-          res.end(text());
-          return;
-        }
-        if (!url.startsWith(`${STYLES_URL}/`)) return next();
-        const name = url.slice(STYLES_URL.length + 1);
-        const found = styles().find((style) => style.file === name);
-        if (found === undefined) return next();
-        res.setHeader("content-type", "text/markdown; charset=utf-8");
-        res.end(found.source);
-      });
-    },
-    generateBundle() {
-      this.emitFile({
-        type: "asset",
-        fileName: "skill/spin-theme/SKILL.md",
-        source: text(),
-      });
-      for (const style of styles()) {
-        this.emitFile({
-          type: "asset",
-          fileName: `skill/spin-theme/${style.file}`,
-          source: style.source,
-        });
-      }
-    },
-  };
-}
 
 const CONTENT_MD_FOR_ROUTE: Readonly<Record<string, string>> = {
   "/docs/getting-started/overview": "start.md",
@@ -180,13 +137,144 @@ function buildLlmsTxt(): string {
     }
     lines.push("");
   }
-  lines.push(
-    "## Skills & References",
-    "",
-    `- [Spin Theme Authoring Skill](${SKILL_URL}): Complete DTCG token contract and six-gate validation guide for agents.`,
-    "",
-  );
   return lines.join("\n");
+}
+
+function buildThemeMarkdown(routePath: string): string | undefined {
+  switch (routePath) {
+    case "/docs/themes/overview": {
+      const starters = themeSummaries()
+        .map(
+          (s) =>
+            `- **\`${s.name}\`** (${s.modes.join(", ")}): ${s.thesis ?? ""}`,
+        )
+        .join("\n");
+      return [
+        "## Designing in the Studio",
+        "",
+        "Open the Studio (`/__spin/studio/` on Vite or `npx spin studio`) to create, fork, and edit themes visually against your live application. Edits preview in memory and save to `spin/<name>.json` and `spin/config.json`.",
+        "",
+        "## Starter Palettes",
+        "",
+        starters,
+        "",
+        "## Project Files (`spin/config.json`)",
+        "",
+        "```json",
+        THEMES_SNIPPETS.studioConfig,
+        "```",
+        "",
+        "## Sharing a Brand Package (`extends`)",
+        "",
+        "```ts",
+        THEMES_SNIPPETS.viteSharedBrand,
+        "```",
+      ].join("\n");
+    }
+    case "/docs/themes/modes":
+      return [
+        "## Subtree Mode Scoping (`data-mode`)",
+        "",
+        "```html",
+        THEMES_SNIPPETS.subtreeMode,
+        "```",
+        "",
+        "## Token Overrides & Alias Resolution (`$modes`)",
+        "",
+        "```json",
+        THEMES_SNIPPETS.modeToken,
+        "```",
+        "",
+        "## Switching Themes & Modes in UI",
+        "",
+        "```ts",
+        THEMES_SNIPPETS.pickers,
+        "```",
+      ].join("\n");
+    case "/docs/themes/customization":
+      return [
+        "## Web Fonts (`$extensions.spin.fonts`)",
+        "",
+        "```json",
+        THEMES_SNIPPETS.webFonts,
+        "```",
+        "",
+        "## Per-Element Overrides",
+        "",
+        "```json",
+        THEMES_SNIPPETS.elementOverride,
+        "```",
+      ].join("\n");
+    case "/docs/themes/validation": {
+      const floors = FLOORS.map(
+        (f) => `- \`${f.fg}\` on \`${f.bg}\`: **≥ ${f.min}:1**`,
+      ).join("\n");
+      return [
+        "## CLI Theme Commands",
+        "",
+        "```bash",
+        THEMES_SNIPPETS.cliAnalyze,
+        "```",
+        "",
+        "## Enforced WCAG Contrast Floors",
+        "",
+        floors,
+        "",
+        "## Programmatic Validation (`themeGates`)",
+        "",
+        "```ts",
+        THEMES_SNIPPETS.themeGates,
+        "```",
+        "",
+        "## Reading Token Values in JavaScript (`resolveTheme`)",
+        "",
+        "```ts",
+        THEMES_SNIPPETS.resolveTheme,
+        "```",
+      ].join("\n");
+    }
+    case "/docs/themes/reference": {
+      const schema = schemaFacts();
+      const groups = schema.groups
+        .map(
+          (g) =>
+            `- **\`${g}\`** (${
+              schema.requiredGroups.includes(g) ? "required" : "optional"
+            })`,
+        )
+        .join("\n");
+      const roles = ROLES.map(
+        (r) => `- \`${r.path}\` (\`${r.type}\`): ${r.doc}`,
+      ).join("\n");
+      const elGroups = elementGroups()
+        .map(
+          (g) =>
+            `- **\`${g}\`**: ${elementTokens(g)
+              .map((t) => `\`${t.path}\` (${t.type})`)
+              .join(", ")}`,
+        )
+        .join("\n");
+      return [
+        "## Supported `$type` Values",
+        "",
+        TYPES.map((t) => `- \`${t}\``).join("\n"),
+        "",
+        "## Core Token Groups",
+        "",
+        groups,
+        "",
+        "## Required Roles",
+        "",
+        roles,
+        "",
+        "## Per-Element Token Overrides",
+        "",
+        elGroups,
+      ].join("\n");
+    }
+    default:
+      return undefined;
+  }
 }
 
 function buildMarkdownForRoute(routePath: string): string | undefined {
@@ -205,6 +293,11 @@ function buildMarkdownForRoute(routePath: string): string | undefined {
     `# ${page.title}`,
     "",
   ];
+
+  const themeMd = buildThemeMarkdown(routePath);
+  if (themeMd !== undefined) {
+    return [...frontmatter, page.summary ?? "", "", themeMd, ""].join("\n");
+  }
 
   const mdFile = CONTENT_MD_FOR_ROUTE[routePath];
   if (mdFile) {
@@ -290,7 +383,6 @@ export default defineConfig({
     jibeIsolation(),
     jibeStudio(),
     solid(),
-    houseSkill(),
     markdownForAgents(),
     spin.vite({
       extends: { themes: starterThemes },

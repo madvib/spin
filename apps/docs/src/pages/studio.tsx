@@ -213,9 +213,9 @@ export default function Studio(): JSX.Element {
         </p>
         <p>
           The Studio edits the theme document described on{" "}
-          <A href="/docs/themes/overview">Themes &amp; modes</A>, validated against the{" "}
-          <A href="/docs/themes/schema">Token schema</A>. Every token, role, and
-          gate it touches is defined there.
+          <A href="/docs/themes/overview">Themes</A>, validated against the{" "}
+          <A href="/docs/themes/reference">Token Reference</A>. Every token,
+          role, and gate it touches is defined there.
         </p>
       </Section>
       </div>

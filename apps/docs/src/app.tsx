@@ -102,6 +102,22 @@ function buildRoutes(): RouteDefinition[] {
           component: redirect("/docs/getting-started/overview"),
         },
         { path: "themes", component: redirect("/docs/themes/overview") },
+        {
+          path: "themes/authoring",
+          component: redirect("/docs/themes/validation"),
+        },
+        {
+          path: "themes/schema",
+          component: redirect("/docs/themes/reference"),
+        },
+        {
+          path: "themes/starters",
+          component: redirect("/docs/themes/overview"),
+        },
+        {
+          path: "themes/styles",
+          component: redirect("/docs/themes/customization"),
+        },
         { path: "styling", component: redirect("/docs/styling/elements") },
         {
           path: "authoring",

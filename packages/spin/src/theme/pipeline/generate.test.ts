@@ -96,32 +96,65 @@ const LIGHT: TokenTree = [
   },
 ];
 
-const DARK: TokenTree = [
+const LIGHT_WITH_DARK_MODES: TokenTree = [
   {
     kind: "group",
-    name: "dark",
-    path: ["dark"],
+    name: "color",
+    path: ["color"],
     children: [
       {
-        kind: "group",
-        name: "color",
-        path: ["dark", "color"],
-        children: [
-          {
-            kind: "token",
-            name: "brand",
-            path: ["dark", "color", "brand"],
-            type: "color",
-            value: "#101820",
-          },
-          {
-            kind: "token",
-            name: "accent",
-            path: ["dark", "color", "accent"],
-            type: "color",
-            value: "#7fd4ff",
-          },
-        ],
+        kind: "token",
+        name: "brand",
+        path: ["color", "brand"],
+        type: "color",
+        value: "#ff0000",
+        modes: { dark: "#101820" },
+      },
+      {
+        kind: "token",
+        name: "accent",
+        path: ["color", "accent"],
+        type: "color",
+        value: "#00a0ff",
+        modes: { dark: "#7fd4ff" },
+      },
+    ],
+  },
+  {
+    kind: "group",
+    name: "space",
+    path: ["space"],
+    children: [
+      {
+        kind: "token",
+        name: "sm",
+        path: ["space", "sm"],
+        type: "dimension",
+        value: "4px",
+      },
+    ],
+  },
+];
+
+const MIDNIGHT: TokenTree = [
+  {
+    kind: "group",
+    name: "color",
+    path: ["color"],
+    children: [
+      {
+        kind: "token",
+        name: "brand",
+        path: ["color", "brand"],
+        type: "color",
+        value: "#101820",
+      },
+      {
+        kind: "token",
+        name: "accent",
+        path: ["color", "accent"],
+        type: "color",
+        value: "#7fd4ff",
       },
     ],
   },
@@ -146,79 +179,28 @@ test("generateCss puts every token of the tree into the base block", () => {
 });
 
 
-test("a token's per-mode values emit the same CSS as a dark group", () => {
-  // The migration's whole contract: a token that carries its dark value in
-  // `$modes` and a document that carries it in a `dark` group are the same
-  // stylesheet to the last byte. If this fails, the migration is not a
-  // migration — it is a rewrite with a regression in it.
-  const grouped = {
-    color: { brand: { $value: "#000000", $type: "color" } },
-    dark: {
-      color: { brand: { $value: "#ffffff", $type: "color" } },
-    },
-  };
-  const inline = {
+test("a token's $modes.dark value — literal or alias — lands in the dark block", () => {
+  const doc = {
     color: {
+      $type: "color",
       brand: {
         $value: "#000000",
-        $type: "color",
         $modes: { dark: "#ffffff" },
       },
-    },
-  };
-  const alias = {
-    color: {
-      brand: { $value: "#000000", $type: "color" },
-      onBrand: { $value: "#111111", $type: "color" },
-    },
-    dark: {
-      color: { onBrand: { $value: "{color.brand}", $type: "color" } },
-    },
-  };
-  const aliasInline = {
-    color: {
-      brand: { $value: "#000000", $type: "color" },
-      onBrand: {
+      "on-brand": {
         $value: "#111111",
-        $type: "color",
         $modes: { dark: "{color.brand}" },
       },
     },
   };
+  const css = generateCss(treeOf(parseTokens(JSON.stringify(doc))));
+  const base = blockWithSelector(css, ":root");
+  const dark = blockWithSelector(css, ':root[data-mode="dark"]');
 
-  for (
-    const [withGroup, perToken] of [
-      [grouped, inline],
-      [alias, aliasInline],
-    ]
-  ) {
-    const fromGroup = generateCss(
-      treeOf(parseTokens(JSON.stringify(withGroup))),
-    );
-    const fromToken = generateCss(
-      treeOf(parseTokens(JSON.stringify(perToken))),
-    );
-    // Same declarations, byte for byte, in the base block: the migration
-    // touches no base value.
-    const baseOf = (css: string) => css.slice(0, css.indexOf("[data-mode"));
-    deepStrictEqual(
-      baseOf(fromToken),
-      baseOf(fromGroup),
-      "the base block is unchanged by the migration",
-    );
-    // The dark block holds the same declarations. Its ORDER follows the base
-    // tree rather than the old group's, because the values now come from the
-    // tokens themselves — so this is a set comparison, and a deliberate one:
-    // the emitted dark block is ordered by the base it overrides.
-    const declsOf = (css: string) =>
-      (css.slice(css.indexOf("[data-mode")).match(/--[\w-]+:[^;]+;/g) ?? [])
-        .sort();
-    deepStrictEqual(
-      declsOf(fromToken),
-      declsOf(fromGroup),
-      "the dark block declares the same values either way",
-    );
-  }
+  deepStrictEqual(base.declarations["--color-brand"], "#000000");
+  deepStrictEqual(base.declarations["--color-on-brand"], "#111111");
+  deepStrictEqual(dark.declarations["--color-brand"], "#ffffff");
+  deepStrictEqual(dark.declarations["--color-on-brand"], "var(--color-brand)");
 });
 
 test("a boolean token emits its answer loudly: 1 when on, 0 when off", () => {
@@ -255,16 +237,16 @@ test("generateCss honours a custom selector for the base block", () => {
   );
 });
 
-test("generateCss keeps the base block on the light values when a dark variant is present", () => {
-  const css = generateCss([...LIGHT, ...DARK]);
+test("generateCss keeps the base block on the light values when a dark mode is present", () => {
+  const css = generateCss(LIGHT_WITH_DARK_MODES);
   const root = blockWithSelector(css, ":root");
 
   deepStrictEqual(root.declarations["--color-brand"], "#ff0000");
   deepStrictEqual(root.declarations["--color-accent"], "#00a0ff");
 });
 
-test("generateCss emits the dark group as a separate block", () => {
-  const css = generateCss([...LIGHT, ...DARK]);
+test("generateCss emits $modes.dark overrides as a separate block", () => {
+  const css = generateCss(LIGHT_WITH_DARK_MODES);
   const dark = blockMentioning(css, "dark");
 
   deepStrictEqual(dark.declarations["--color-brand"], "#101820");
@@ -272,7 +254,7 @@ test("generateCss emits the dark group as a separate block", () => {
 });
 
 test("generateCss gives the dark block the same property names as the base block", () => {
-  const css = generateCss([...LIGHT, ...DARK]);
+  const css = generateCss(LIGHT_WITH_DARK_MODES);
   const root = blockWithSelector(css, ":root");
   const dark = blockMentioning(css, "dark");
 
@@ -359,7 +341,7 @@ test("generateCss emits an alias token as a reference to its target variable", (
 test("generateThemeCss emits one value block per theme", () => {
   const themes: Record<string, TokenTree> = {
     daylight: LIGHT,
-    midnight: DARK,
+    midnight: MIDNIGHT,
   };
   const css = generateThemeCss(themes);
 
@@ -376,7 +358,7 @@ test("generateThemeCss emits one value block per theme", () => {
 });
 
 test("generateThemeCss scopes each theme to its own selector", () => {
-  const css = generateThemeCss({ daylight: LIGHT, midnight: DARK });
+  const css = generateThemeCss({ daylight: LIGHT, midnight: MIDNIGHT });
   const selectors = blocks(css).map((block) => block.selector);
 
   for (const theme of ["daylight", "midnight"]) {
@@ -407,7 +389,7 @@ test("generateThemeCss gives each theme the values of its own token set", () => 
   }];
   const css = generateThemeCss({
     daylight: LIGHT,
-    midnight: DARK,
+    midnight: MIDNIGHT,
     neon: distinct,
   });
 
@@ -441,7 +423,7 @@ test("generateTypes names every token path in the emitted type", () => {
 });
 
 test("generateTypes declares exactly the custom properties generateCss emits", () => {
-  const tree = [...LIGHT, ...DARK];
+  const tree = LIGHT_WITH_DARK_MODES;
   const emitted = new Set<string>();
 
   for (const block of blocks(generateCss(tree))) {
@@ -521,7 +503,7 @@ test("a theme in force beats the root theme's dark block", () => {
 
 test("generateThemeCss writes each theme's declared modes, not a structural guess", () => {
   const css = generateThemeCss(
-    { console: DARK },
+    { console: MIDNIGHT },
     { modes: { console: ["dark"] } },
   );
   deepStrictEqual(

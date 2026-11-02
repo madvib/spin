@@ -6,19 +6,12 @@
  * as `var(--color-primary)`, so a theme switch is a selector swap, not a
  * rebuild.
  *
- * A top-level group named `dark` is the dark override set. It is emitted as a
- * second block under `<selector>[data-mode="dark"]` with the leading `dark`
- * segment dropped, so `dark.color.brand` overrides `--color-brand` rather
- * than defining a second, dead variable. Light/dark are modes on a theme, not
- * themes: no `dark:` variant exists, and nothing sets `data-theme="dark"`.
- * Its tokens are not repeated in the base block.
- *
- * The light mode is the same idea on the other side of the axis: a token that
- * carries a `$modes.light` value emits it under
- * `<selector>[data-mode="light"]`, and a top-level group named `light` says
- * it the old way. A theme whose own face is its DARK face — a terminal
- * palette, a console — restates its light mode the same way it restates its
- * dark one, and both blocks sit beside the base rather than replacing it.
+ * Mode overrides live on the token itself via `$modes`: a token that carries
+ * `$modes.dark` emits its override under `<selector>[data-mode="dark"]`, and a
+ * token that carries `$modes.light` emits its override under
+ * `<selector>[data-mode="light"]`. Light/dark are modes on a theme, not
+ * separate themes: no `dark:` variant exists, and nothing sets
+ * `data-theme="dark"`.
  */
 
 import {
@@ -28,12 +21,6 @@ import {
   type TokenIndex,
 } from "./resolve.ts";
 import type { CssOptions, TokenLeaf, TokenNode, TokenTree } from "./types.ts";
-
-/** Name of the group that holds dark overrides. */
-const DARK_GROUP = "dark";
-
-/** Name of the group that holds light overrides. */
-const LIGHT_GROUP = "light";
 
 interface Block {
   selector: string;
@@ -95,23 +82,7 @@ function collectBlocks(
   const dark: Block = { selector: darkSelector, declarations: [] };
 
   for (const node of tree) {
-    const name = node.kind === "group" ? node.name.toLowerCase() : "";
-    const isDarkRoot = name === DARK_GROUP;
-    const isLightRoot = name === LIGHT_GROUP;
-    // The `dark` root is a VARIANT, not a namespace: strip its own segment so
-    // `dark.color.brand` lands on the same property as `color.brand`. A token
-    // carrying its own `$modes` does the same job from inside itself, so both
-    // spellings emit identical CSS — which is the migration's contract. The
-    // light root is the same idea on the other side of the axis.
-    collectLeaves(
-      node,
-      index,
-      prefix,
-      isDarkRoot ? dark : isLightRoot ? light : base,
-      light,
-      dark,
-      isDarkRoot || isLightRoot,
-    );
+    collectLeaves(node, index, prefix, base, light, dark);
   }
 
   return [base, light, dark];
@@ -124,27 +95,19 @@ function collectLeaves(
   into: Block,
   light: Block | undefined,
   dark: Block | undefined,
-  stripRoot: boolean,
 ): void {
   if (node.kind === "token") {
-    const path = stripRoot ? node.path.slice(1) : node.path;
-    into.declarations.push([
-      cssVarName(path, prefix),
-      cssValue(node, index, prefix),
-    ]);
-    // A token's own mode values land in the mode block beside its base, which
-    // is what lets the `dark` group go away without changing a byte of
-    // emitted CSS.
+    const name = cssVarName(node.path, prefix);
+    into.declarations.push([name, cssValue(node, index, prefix)]);
     if (node.modes !== undefined) {
-      const name = cssVarName(path, prefix);
-      const lightValue = node.modes[LIGHT_GROUP];
+      const lightValue = node.modes["light"];
       if (lightValue !== undefined && light !== undefined) {
         light.declarations.push([
           name,
           valueAsCss(lightValue, index, prefix),
         ]);
       }
-      const darkValue = node.modes[DARK_GROUP];
+      const darkValue = node.modes["dark"];
       if (darkValue !== undefined && dark !== undefined) {
         dark.declarations.push([
           name,
@@ -155,7 +118,7 @@ function collectLeaves(
     return;
   }
   for (const child of node.children) {
-    collectLeaves(child, index, prefix, into, light, dark, stripRoot);
+    collectLeaves(child, index, prefix, into, light, dark);
   }
 }
 
@@ -270,22 +233,10 @@ export function generateThemeCss(
   return chunks.join("\n\n");
 }
 
-/**
- * Every base leaf of a tree, i.e. everything except the top-level mode
- * variant subtrees.
- *
- * `dark.color.brand` re-declares the SAME token as `color.brand` for another
- * mode; it is not a second token, and listing it would both duplicate a key
- * and advertise a custom property (`--dark-color-brand`) that never exists.
- * The light group is the same idea on the other side of the axis.
- */
+/** Every token leaf in a tree in declaration order. */
 function baseLeaves(tree: TokenTree): TokenLeaf[] {
   const out: TokenLeaf[] = [];
   for (const node of tree) {
-    if (node.kind === "group") {
-      const name = node.name.toLowerCase();
-      if (name === DARK_GROUP || name === LIGHT_GROUP) continue;
-    }
     collectLeafNodes(node, out);
   }
   return out;
@@ -325,12 +276,8 @@ export function generateTypes(tree: TokenTree): string {
     leaves.map((leaf) => JSON.stringify(cssVarName(leaf.path))).join(" | ") ||
     "never";
 
-  const dark = tree.some((node) =>
-    node.kind === "group" && node.name.toLowerCase() === DARK_GROUP
-  );
-  const light = tree.some((node) =>
-    node.kind === "group" && node.name.toLowerCase() === LIGHT_GROUP
-  );
+  const dark = leaves.some((leaf) => leaf.modes?.["dark"] !== undefined);
+  const light = leaves.some((leaf) => leaf.modes?.["light"] !== undefined);
 
   return [
     "// Generated by @spinjs/spin/theme. Do not edit by hand.",

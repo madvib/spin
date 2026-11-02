@@ -20,11 +20,12 @@ import {
   parseTokens,
   resolveAliases,
   spinThemeJsonSchema,
+  starterThemes,
+  themeModes,
   TOKEN_TYPES,
 } from "@spinjs/spin/theme";
 import type { TokenIndex, TokenTree } from "@spinjs/spin/theme";
-import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
-import { primitiveContracts } from "@spinjs/preset";
+import { primitiveContracts } from "@spinjs/spin/preset";
 
 /** A theme's color role, read from the document. */
 export interface Swatch {

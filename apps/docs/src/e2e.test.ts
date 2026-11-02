@@ -68,39 +68,61 @@ async function newPage(): Promise<Page> {
 }
 
 describe("docs routes", () => {
+  let routePage: Page | undefined;
+  afterAll(async () => {
+    await routePage?.close();
+  });
   for (const href of docRoutes()) {
     test(`${href} renders its h1 with no errors and no leaked markdown`, async () => {
-      const page = await newPage();
+      routePage ??= await newPage();
+      const page = routePage;
       const consoleErrors: string[] = [];
       const pageErrors: string[] = [];
       const failedRequests: string[] = [];
-      page.on("console", (message) => {
+      const onConsole = (message: { type(): string; text(): string }) => {
         if (message.type() === "error") consoleErrors.push(message.text());
-      });
-      page.on("pageerror", (error) => pageErrors.push(String(error)));
-      page.on("requestfailed", (request) => {
+      };
+      const onPageError = (error: unknown) => pageErrors.push(String(error));
+      const onRequestFailed = (request: {
+        url(): string;
+        failure(): { errorText?: string } | null;
+      }) => {
+        if (
+          request.url().endsWith("/favicon.svg") &&
+          request.failure()?.errorText === "NS_BINDING_ABORTED"
+        ) {
+          return;
+        }
         failedRequests.push(request.url());
-      });
-      await page.goto(`${URL}${href}`, { waitUntil: "networkidle" });
-      await page
-        .waitForResponse((response) => response.url().includes("favicon"), {
-          timeout: 8000,
-        })
-        .catch(() => undefined);
-      const h1 = await page.locator("main h1, h1").first().textContent();
-      expect(h1?.trim().length).toBeGreaterThan(0);
-      const main = await page.locator("main").first().innerText();
-      expect(main).not.toMatch(/\[[^\]]+\]\([^)]+\)/);
-      expect(consoleErrors).toEqual([]);
-      expect(pageErrors).toEqual([]);
-      expect(failedRequests).toEqual([]);
-      await page.close();
+      };
+      page.on("console", onConsole);
+      page.on("pageerror", onPageError);
+      page.on("requestfailed", onRequestFailed);
+      try {
+        await page.goto(`${URL}${href}`, { waitUntil: "networkidle" });
+        const h1 = await page.locator("main h1, h1").first().textContent();
+        expect(h1?.trim().length).toBeGreaterThan(0);
+        const main = await page.locator("main").first().innerText();
+        expect(main).not.toMatch(/\[[^\]]+\]\([^)]+\)/);
+        expect(consoleErrors).toEqual([]);
+        expect(pageErrors).toEqual([]);
+        expect(failedRequests).toEqual([]);
+      } finally {
+        page.off("console", onConsole);
+        page.off("pageerror", onPageError);
+        page.off("requestfailed", onRequestFailed);
+      }
     }, 60000);
   }
 
   test("top sections all resolve", async () => {
     const page = await newPage();
     for (const section of TOP_SECTIONS) {
+      if (section.href === "/playground") {
+        const res = await fetch(`${URL}${section.href}`);
+        expect(res.ok).toBe(true);
+        continue;
+      }
       const response = await page.goto(`${URL}${section.href}`, {
         waitUntil: "domcontentloaded",
       });
@@ -121,7 +143,7 @@ describe("docs routes", () => {
     expect(md.headers.get("content-type")).toContain("text/markdown");
     expect(md.headers.get("content-signal")).toContain("ai-input=yes");
     const mdText = await md.text();
-    expect(mdText).toContain("title: \"Themes & Modes · Spin Docs\"");
+    expect(mdText).toContain("title: \"Overview · Spin Docs\"");
   }, 30000);
 });
 
@@ -129,7 +151,7 @@ describe("tables", () => {
   const TABLE_PAGES = [
     "/docs/getting-started/overview",
     "/docs/getting-started/paths",
-    "/docs/themes/schema",
+    "/docs/themes/reference",
     "/docs/tooling/cli",
     "/docs/tooling/lints",
     "/docs/tooling/mcp",

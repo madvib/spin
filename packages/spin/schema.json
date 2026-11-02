@@ -5860,6 +5860,40 @@
               "type": "string"
             }
           }
+        },
+        "edge": {
+          "type": "object",
+          "description": "The ink a button frames itself in; both variants share it.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
         }
       }
     },
