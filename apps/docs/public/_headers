@@ -1,0 +1,20 @@
+# Static-host header contract for the docs.
+#
+# The playground embeds a cross-origin iframe. An iframe is cross-origin
+# isolated only when every ancestor is, and isolated is what lets the
+# workspace run vent's Rolldown build (and therefore `vent.config.ts` plugins,
+# which generate the Spin stylesheet). Cloudflare Pages and Netlify read this
+# file; a host that does not must set these headers itself.
+#
+# `require-corp` rather than `credentialless`: Safari never implemented
+# `credentialless`, and an unknown COEP value leaves the page unisolated, so
+# every embed beneath it refuses to boot. `/jibe/*` is imported by the embed by
+# URL, so it needs CORS.
+
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: cross-origin
+
+/jibe/*
+  Access-Control-Allow-Origin: *

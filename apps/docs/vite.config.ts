@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -19,6 +20,89 @@ const SKILL_TEMPLATE = resolve(
 );
 const SKILL_DIR = dirname(SKILL_TEMPLATE);
 const STYLES_URL = "/skill/spin-theme";
+const STUDIO_ROOT = resolve(here, "../studio/dist");
+
+function jibeIsolation(): Plugin {
+  const apply = (
+    _req: unknown,
+    res: { setHeader(name: string, value: string): void },
+    next: () => void,
+  ): void => {
+    res.setHeader("cross-origin-opener-policy", "same-origin");
+    res.setHeader("cross-origin-embedder-policy", "require-corp");
+    res.setHeader("cross-origin-resource-policy", "cross-origin");
+    res.setHeader("access-control-allow-origin", "*");
+    next();
+  };
+  return {
+    name: "spin:jibe-isolation",
+    configureServer(server) {
+      server.middlewares.use(apply);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(apply);
+    },
+  };
+}
+
+function jibeStudio(): Plugin {
+  const bridge = resolve(here, "src/studio-bridge.js");
+  const bridgeVersion = (): string =>
+    createHash("sha256").update(readFileSync(bridge)).digest("hex").slice(0, 8);
+  const index = (): string =>
+    readFileSync(resolve(STUDIO_ROOT, "index.html"), "utf8").replace(
+      "</head>",
+      `<script src="/studio-bridge.js?v=${bridgeVersion()}"></script></head>`,
+    );
+  return {
+    name: "spin:jibe-studio",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = new URL(req.url ?? "/", "http://localhost");
+        if (url.pathname === "/studio-bridge.js") {
+          res.setHeader("content-type", "text/javascript; charset=utf-8");
+          res.end(readFileSync(bridge));
+          return;
+        }
+        if (
+          url.pathname !== "/__spin/jibe-studio" &&
+          url.pathname !== "/__spin/jibe-studio/" &&
+          !url.pathname.startsWith("/__spin/jibe-studio/")
+        ) {
+          return next();
+        }
+        const path = url.pathname.slice("/__spin/jibe-studio".length);
+        if (
+          path === "" ||
+          path === "/" ||
+          path.endsWith("/index.html") ||
+          !path.includes(".")
+        ) {
+          res.setHeader("content-type", "text/html; charset=utf-8");
+          res.end(index());
+          return;
+        }
+        const file = resolve(STUDIO_ROOT, path.replace(/^\/+/, ""));
+        if (!file.startsWith(STUDIO_ROOT) || !existsSync(file)) {
+          res.statusCode = 404;
+          res.end("not found");
+          return;
+        }
+        res.setHeader(
+          "content-type",
+          file.endsWith(".js")
+            ? "text/javascript; charset=utf-8"
+            : file.endsWith(".css")
+            ? "text/css; charset=utf-8"
+            : file.endsWith(".html")
+            ? "text/html; charset=utf-8"
+            : "application/octet-stream",
+        );
+        res.end(readFileSync(file));
+      });
+    },
+  };
+}
 
 function houseSkill(): Plugin {
   const text = (): string => renderSkill(readFileSync(SKILL_TEMPLATE, "utf8"));
@@ -203,6 +287,8 @@ function markdownForAgents(): Plugin {
 
 export default defineConfig({
   plugins: [
+    jibeIsolation(),
+    jibeStudio(),
     solid(),
     houseSkill(),
     markdownForAgents(),

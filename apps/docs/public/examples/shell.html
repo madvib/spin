@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spin preview</title>
+    <link rel="stylesheet" href="/examples/examples.css" />
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        box-sizing: border-box;
+        padding: 24px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        font-family: var(--font-family-body, var(--font-family-sans, system-ui));
+      }
+      #spin-theme {
+        display: none;
+      }
+      #root {
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <style id="spin-theme"></style>
+    <script type="module" src="/examples/shell.js"></script>
+  </body>
+</html>

@@ -112,8 +112,7 @@ describe("Per-subgroup docs snippets", () => {
       };
     };
     expect(config.mcpServers.spin.command).toBe("npx");
-    expect(config.mcpServers.spin.args).toContain("mcp");
-    expect(config.mcpServers.spin.args).toContain("--root");
+    expect(config.mcpServers.spin.args).toEqual(["spin", "mcp"]);
   });
 
   test("the starter themes are a non-empty document map", () => {

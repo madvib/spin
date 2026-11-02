@@ -53,7 +53,7 @@ const spinTheme = JSON.parse(
 export default defineConfig({
   presets: [spinPreset({ themes: { "<name>": spinTheme } })],
 });`,
-  studioServe: `npx spin studio --root .`,
+  studioServe: `npx spin studio`,
   viteOptions: `spin.vite({
   primitives: ["button", "card"],
   classless: false,

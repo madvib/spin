@@ -4,13 +4,13 @@
 export const TOOLING_SNIPPETS = {
   lint: `npx spin lint src/`,
   lintFix: `npx spin lint --fix src/`,
-  studioServe: `npx spin studio --root .`,
-  mcp: `npx spin mcp --root .`,
+  studioServe: `npx spin studio`,
+  mcp: `npx spin mcp`,
   mcpConfig: `{
   "mcpServers": {
     "spin": {
       "command": "npx",
-      "args": ["spin", "mcp", "--root", "."]
+      "args": ["spin", "mcp"]
     }
   }
 }`,

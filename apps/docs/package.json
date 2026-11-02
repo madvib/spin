@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@jibe/embed": "0.4.0",
     "@solidjs/router": "^1.0.0",
     "@spinjs/spin": "workspace:*",
     "animejs": "4.5.0",
