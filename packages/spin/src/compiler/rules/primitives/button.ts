@@ -146,6 +146,7 @@ const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
 const VARIANT_NAMES = [
   "bare",
   "secondary",
+  "chrome",
   "outline",
   "ghost",
   "contrast",
@@ -238,6 +239,46 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // half of one pair. The theme states the elevation once, for both.
       color: token(ctx, "color.text"),
     }),
+  },
+  chrome: {
+    group: BUTTON,
+    name: "chrome",
+    inked: true,
+    body: (ctx) => {
+      const fontSize = token(ctx, "font.size.sm");
+      const spacing1 = token(ctx, "spacing.1");
+      const spacing2 = token(ctx, "spacing.2");
+      const borderWidth = token(ctx, "border.width");
+      return {
+        // A chrome-adjacent trigger: the bar's own voice, not a form action.
+        // Quiet surface, muted ink, the small face, and no resting elevation —
+        // header controls sit IN the bar rather than floating above it. The
+        // height is the content's own: half-step block padding keeps a
+        // cap-carrying trigger level with its bar siblings, where the full
+        // small step would hold it 6px proud.
+        "background-color": token(ctx, "color.surface"),
+        "border-color": token(ctx, "color.border"),
+        "box-shadow": "none",
+        color: token(ctx, "color.text-muted"),
+        "font-size": fontSize,
+        "padding-inline-start": spacing2,
+        "padding-inline-end": spacing2,
+        ...(spacing1 !== undefined
+          ? {
+            "padding-top": `calc(${spacing1} / 2)`,
+            "padding-bottom": `calc(${spacing1} / 2)`,
+          }
+          : {}),
+        gap: token(ctx, "spacing.3"),
+        ...(fontSize !== undefined && spacing1 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            "min-height":
+              `calc(${fontSize} + ${spacing1} + (2 * ${borderWidth}))`,
+          }
+          : {}),
+      };
+    },
   },
   ghost: {
     group: BUTTON,
@@ -389,6 +430,18 @@ const VARIANT_HOVER: Record<string, {
       "box-shadow": "none",
       "border-color": token(ctx, "color.accent"),
       color: token(ctx, "color.on-accent"),
+    }),
+  },
+  chrome: {
+    selector: `${BUTTON}.chrome:hover${ALIVE}:not([aria-busy="true"])`,
+    body: (ctx) => ({
+      // Held flat: the base hover would spend the theme's lift, and a bar
+      // control that jumps on hover reads as broken chrome. The fill warms
+      // one step instead — the only feedback a quiet trigger needs.
+      "background-color": token(ctx, "color.surface-raised"),
+      "box-shadow": "none",
+      transform: "none",
+      color: token(ctx, "color.text"),
     }),
   },
   bare: {

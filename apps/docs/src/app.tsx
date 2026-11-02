@@ -174,7 +174,7 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
         <button
           type="button"
           onClick={props.onOpenSearch}
-          class="secondary s-sm items-center gap-3 text-xs text-text-muted"
+          class="chrome"
         >
           <span>Search...</span>
           <kbd>
