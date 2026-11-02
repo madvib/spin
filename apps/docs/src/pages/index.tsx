@@ -848,14 +848,8 @@ export default function Home(): JSX.Element {
               </h2>
               <p class="text-sm text-text-muted">
                 A button is <code>&lt;button&gt;</code>, a switch is{" "}
-                <code>role="switch"</code>, and a menu surface is{" "}
-                <code>&lt;panel&gt;</code> — styled in CSS, no wrapper class.
-                Elements are classless by default: <code>classless: false</code>{" "}
-                makes primitives ask to be named, and{" "}
-                <code>primitives: [...]</code> trims the set. Prose is
-                theme-bound too — <code>p</code>, <code>h1</code>–<code>h6</code>,{" "}
-                <code>a</code>, <code>li</code>, <code>blockquote</code>,{" "}
-                <code>pre</code>, and <code>code</code> spend the same scale.
+                <code>role="switch"</code> — styled in CSS, no wrapper class.
+                Flip the toggle and watch the markup change.
               </p>
 
               {/* One card size; each specimen fills the same cell */}
@@ -934,41 +928,33 @@ export default function Home(): JSX.Element {
                 </div>
               </div>
 
-              <div class="flex w-[19rem] max-w-full flex-col gap-1">
-                <div class="flex w-fit items-center gap-1 rounded-md border border-border bg-surface-raised p-1 shadow-sm">
-                  <button
-                    type="button"
-                    aria-pressed={classless()}
-                    onClick={() => setClassless(true)}
-                    class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
-                      classless()
-                        ? "bg-primary font-semibold text-on-primary"
-                        : "text-text-muted hover:bg-surface hover:text-text"
-                    }`}
-                  >
-                    classless
+              <div class="flex w-[19rem] max-w-full flex-col gap-2">
+                <label class="inline-flex w-fit cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={classless()}
+                    onChange={(e) => setClassless(e.currentTarget.checked)}
+                  />
+                  <span>classless</span>
+                </label>
+                <Show
+                  when={classless()}
+                  fallback={
+                    <button type="button" class="button s-sm">
+                      Save
+                    </button>
+                  }
+                >
+                  <button type="button" class="s-sm">
+                    Save
                   </button>
-                  <button
-                    type="button"
-                    aria-pressed={!classless()}
-                    onClick={() => setClassless(false)}
-                    class={`bare rounded-md px-2 py-1 font-mono text-xs transition-colors duration-fast ${
-                      !classless()
-                        ? "bg-primary font-semibold text-on-primary"
-                        : "text-text-muted hover:bg-surface hover:text-text"
-                    }`}
-                  >
-                    classless: false
-                  </button>
-                </div>
+                </Show>
                 <code>
                   {classless()
                     ? "<button>Save</button>"
                     : '<button class="button">Save</button>'}
                 </code>
-                <span class="text-xs text-text-muted">
-                  Preset option, set once when the stylesheet is built.
-                </span>
               </div>
 
               <A
@@ -990,18 +976,15 @@ export default function Home(): JSX.Element {
               class="pointer-events-auto flex w-fit flex-col items-start gap-3"
             >
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
-                04 · Interactive · Headless Machines & Primitives
+                04 · Interactive · Headless Machines
               </span>
               <h2 class="text-text">
                 Stateful machines when native HTML isn't enough.
               </h2>
               <p class="text-sm text-text-muted">
-                Pure CSS covers native tags; <code>@spinjs/components</code>{" "}
-                drives multi-part widgets with deterministic state machines.
-                They ship as framework-agnostic custom elements — use the
-                markup anywhere, or drive them from the React and Solid
-                adapters. <strong>Hover any tile</strong> to preview the live
-                component.
+                Multi-part widgets driven by deterministic state machines,
+                shipped as custom elements for any framework.{" "}
+                <strong>Hover any tile</strong> to preview the live component.
               </p>
 
               {/* Compact w-fit Component Tile Grid with Live Specimen HoverCards */}
@@ -1059,8 +1042,8 @@ export default function Home(): JSX.Element {
                 Mechanical verification for humans and agents.
               </h2>
               <p class="text-sm text-text-muted">
-                Spin's ESLint/Oxlint rules, CLI, and MCP server check every
-                class and contrast pair against your theme contract.
+                Spin's lint rules, CLI, and MCP server check every class and
+                contrast pair against your theme contract.
               </p>
 
               <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
@@ -1146,13 +1129,14 @@ export default function Home(): JSX.Element {
                   06 · Workbench · Spin Studio
                 </span>
                 <h2 class="text-text">
-                  Shape tokens visually. Ship recipes in one click.
+                  Edit the theme against the live app.
                 </h2>
                 <p class="text-sm text-text-muted">
                   Spin Studio runs beside your app in development, or
-                  standalone with <code>spin studio</code>: edit DTCG palettes
-                  and type, verify WCAG contrast across modes, vendor icons,
-                  tune motion, and copy component recipes into your repo.
+                  standalone with <code>spin studio</code>: change a color and
+                  the running page repaints before anything is saved. Palettes,
+                  type, icons, motion, geometry — then save, and the document
+                  lands in <code>spin/</code>.
                 </p>
 
                 <div class="grid grid-cols-2 gap-2">

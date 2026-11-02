@@ -26,7 +26,7 @@ const CHIP = (active: boolean): string =>
 export default function Guide(props: RouteSectionProps): JSX.Element {
   const location = useLocation();
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Guide</h1>
       <p class="max-w-screen-md text-text-muted">
         Write semantic HTML and Spin custom elements without class

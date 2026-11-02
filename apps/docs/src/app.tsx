@@ -191,7 +191,7 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
 function DocsRail(): JSX.Element {
   return (
     <nav
-      class="flex h-full w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
+      class="sticky top-0 flex h-full w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
       aria-label="docs"
     >
       <For each={DOCS_GROUPS}>
@@ -300,9 +300,9 @@ function ComponentsRail(props: {
 /** Every docs page: the rail on the left, the page on the right. */
 function DocsShell(props: { children: JSX.Element }): JSX.Element {
   return (
-    <div class="flex h-full min-h-0 items-start bg-surface text-text font-sans text-md">
+    <div class="flex h-full min-h-0 items-start overflow-y-auto bg-surface text-text font-sans text-md">
       <DocsRail />
-      <div class="h-full min-w-0 flex-1 overflow-y-auto">{props.children}</div>
+      <div class="min-w-0 flex-1">{props.children}</div>
     </div>
   );
 }
@@ -312,9 +312,9 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
   const [query, setQuery] = createSignal("");
   const [kind, setKind] = createSignal<ComponentKindFilter>("all");
   return (
-    <div class="flex h-full min-h-0 items-start bg-surface text-text font-sans text-md">
+    <div class="flex h-full min-h-0 items-start overflow-y-auto bg-surface text-text font-sans text-md">
       <nav
-        class="flex h-full w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
+        class="sticky top-0 flex h-full w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
         aria-label="components"
       >
         <input
@@ -327,7 +327,7 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
         />
         <ComponentsRail filter={query()} kind={kind()} onKind={setKind} />
       </nav>
-      <div class="h-full min-w-0 flex-1 overflow-y-auto">{props.children}</div>
+      <div class="min-w-0 flex-1">{props.children}</div>
     </div>
   );
 }

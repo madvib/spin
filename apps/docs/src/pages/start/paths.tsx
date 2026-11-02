@@ -10,7 +10,7 @@ import { SNIPPETS } from "../../snippets.ts";
 
 export default function Paths(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Ways to use Spin</h1>
       <p class="max-w-screen-md text-text-muted">
         Spin is one theme language with four supported entry points. They share

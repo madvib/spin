@@ -90,7 +90,7 @@ const PAIRS: readonly {
 
 export default function Lints(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Lints &amp; Dials</h1>
       <Markdown text={lintsMd} />
       <Section id="specimens" title="Flagged and fixed, side by side">

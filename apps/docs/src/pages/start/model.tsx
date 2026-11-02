@@ -62,7 +62,7 @@ const rows = (): readonly {
 
 export default function Model(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Mental model</h1>
       <p class="max-w-screen-md text-text-muted">
         One theme feeds CSS variables; utilities and elements spend those

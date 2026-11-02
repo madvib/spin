@@ -111,7 +111,7 @@ export default function Utilities(): JSX.Element {
     return q === "" || name.toLowerCase().includes(q);
   };
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Utilities & Scales</h1>
       <p class="max-w-screen-md text-text-muted">
         Every utility the active starter spends, grouped by what you reach for

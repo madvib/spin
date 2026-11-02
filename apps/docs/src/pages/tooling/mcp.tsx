@@ -58,7 +58,7 @@ const TOOLS: readonly { tool: string; actions: string; what: string }[] = [
 
 export default function Mcp(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>MCP &amp; Agents</h1>
       <Markdown text={mcpMd} />
 
