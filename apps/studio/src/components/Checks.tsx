@@ -28,14 +28,14 @@
  */
 
 import { A } from "@solidjs/router";
-import { createMemo, createSignal, For, Show } from "solid-js";
-import type { JSX } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { themeText } from "../lib/store.ts";
 import { checks, remedyText } from "../lib/floors.ts";
 import type { Check, Remedy } from "../lib/floors.ts";
 import { editToken } from "../lib/editing.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
 import { hostPath } from "../lib/client.ts";
+import { checksRequests } from "../lib/checks-bus.ts";
 
 /**
  * How bad the findings are.
@@ -99,12 +99,9 @@ function severityOf(found: readonly Check[]): Severity | undefined {
  * badge is what says how bad it is.
  */
 const BUTTON =
-  "bare peer relative flex h-10 w-full items-center justify-center rounded-md hover:bg-surface hover:text-accent";
+  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface hover:text-text";
 
-export default function Checks(props: {
-  /** The rail's tip for this row, drawn by the rail beside every other. */
-  readonly tip: JSX.Element;
-}) {
+export default function Checks() {
   /**
    * The checks on the document being edited.
    *
@@ -121,8 +118,10 @@ export default function Checks(props: {
   /** How bad the findings are, if there are any. */
   const severity = createMemo(() => severityOf(findings()));
 
-  /** Whether the checks panel is open. */
   const [checksOpen, setChecksOpen] = createSignal(false);
+  createEffect(() => {
+    if (checksRequests() > 0) setChecksOpen(true);
+  });
 
   /**
    * Writes a remedy into the token it belongs to.
@@ -149,7 +148,7 @@ export default function Checks(props: {
   }
 
   return (
-    <li class="m-0 w-full">
+    <>
       <button
         type="button"
         data-testid="checks"
@@ -192,7 +191,6 @@ export default function Checks(props: {
           </badge>
         </Show>
       </button>
-      {props.tip}
       {
         /*
           The checks panel. A dialog rather than a popover, because the
@@ -280,6 +278,6 @@ export default function Checks(props: {
           </footer>
         </dialog>
       </Show>
-    </li>
+    </>
   );
 }

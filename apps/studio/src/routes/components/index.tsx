@@ -73,7 +73,7 @@ export default function ComponentsIndex() {
                   onClick={() => setKindFilter(kind)}
                   class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
                 >
-                  {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+                  {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
                 </button>
               )}
             </For>

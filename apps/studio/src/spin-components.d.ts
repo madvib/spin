@@ -27,6 +27,8 @@ declare global {
     "studio-font-combobox": HTMLElement & SpinProjectComponentAttributes;
     "studio-mode-picker": HTMLElement & SpinProjectComponentAttributes;
     "studio-motion-stage": HTMLElement & SpinProjectComponentAttributes;
+    "studio-nav": HTMLElement & SpinProjectComponentAttributes;
+    "studio-overflow": HTMLElement & SpinProjectComponentAttributes;
     "studio-split-pane": HTMLElement & SpinProjectComponentAttributes;
     "studio-step-list": HTMLElement & SpinProjectComponentAttributes;
     "studio-theme-menu": HTMLElement & SpinProjectComponentAttributes;
@@ -46,6 +48,8 @@ declare module "solid-js" {
       "studio-font-combobox": SpinProjectComponentAttributes;
       "studio-mode-picker": SpinProjectComponentAttributes;
       "studio-motion-stage": SpinProjectComponentAttributes;
+      "studio-nav": SpinProjectComponentAttributes;
+      "studio-overflow": SpinProjectComponentAttributes;
       "studio-split-pane": SpinProjectComponentAttributes;
       "studio-step-list": SpinProjectComponentAttributes;
       "studio-theme-menu": SpinProjectComponentAttributes;

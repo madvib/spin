@@ -646,11 +646,11 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
       );
       await page.settle(1500);
 
-      // The checks are a verdict in the rail's foot; the detail is a panel.
+      // The checks are a verdict in the bar; the detail is a panel.
       const reported = await page.eval<string>(
         `(() => {
           const trigger = document.querySelector(
-            'nav[aria-label="Studio"] [data-testid="checks"]',
+            '[data-testid="checks"]',
           );
           trigger?.click();
           const panel = document.querySelector('dialog[aria-label="Checks"]');

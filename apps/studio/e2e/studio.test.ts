@@ -162,14 +162,14 @@ test("every route fits the drawer", async (t) => {
 });
 
 /**
- * The rail is furniture: it does not travel with the content.
+ * The bar is furniture: it does not travel with the content.
  *
  * Desktop shells clip at the viewport and the column scrolls inside them, so
  * the probe moves both scrollers — the window must refuse the scroll, the
- * column must take it — and the rail's top must not shift while it does.
+ * column must take it — and the bar's top must not shift while it does.
  * A route too short to scroll is skipped rather than passed.
  */
-test("the rail does not scroll with the content", async (t) => {
+test("the bar does not scroll with the content", async (t) => {
   await withPage(async (page) => {
     const routes = await routeTargets(page, studioUrl());
     let checked = 0;
@@ -183,7 +183,7 @@ test("the rail does not scroll with the content", async (t) => {
           drift: number;
         }>(
           `(async () => {
-            const nav = document.querySelector("#app nav");
+            const nav = document.querySelector("#app header");
             if (!nav) return { windowScroll: -1, columnScroll: -1, drift: -1 };
             const top0 = nav.getBoundingClientRect().top;
             const column = [...document.querySelectorAll("#app *")].find((el) => {
@@ -1001,7 +1001,16 @@ async function openComponentPanel(page: StudioPage): Promise<string> {
   );
   if (here !== "button") {
     await page.eval(
-      `(() => { const rail = [...document.querySelectorAll('nav[aria-label="Studio"] a')].find((a) => (a.getAttribute("href") ?? "").endsWith("/components")); if (rail) rail.click(); return "followed"; })()`,
+      `(async () => {
+        const trigger = document.querySelector('[data-testid="studio-nav"]');
+        trigger?.click();
+        for (let i = 0; i < 40; i++) {
+          const item = [...document.querySelectorAll('[role="menuitem"]')].find((x) => (x.textContent ?? "").trim() === "Elements");
+          if (item) { item.click(); return "followed"; }
+          await new Promise((r) => setTimeout(r, 100));
+        }
+        return "absent";
+      })()`,
     );
     await page.settle(400);
     await page.eval(

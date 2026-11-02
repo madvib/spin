@@ -139,23 +139,23 @@ function NavBody(props: {
       >
         Components
       </h2>
-      <div role="group" aria-label="Component kind" class="flex w-full min-w-0 shrink-0 flex-col gap-1 rounded-md border border-solid border-border p-1">
+      <div role="group" aria-label="Component kind" class="flex w-fit min-w-0 shrink-0 gap-1 rounded-md border border-solid border-border p-1">
         <For each={(["all", "primitive", "machine"] as const)}>
           {(kind) => (
             <button
               type="button"
               aria-pressed={props.kindFilter() === kind}
               onClick={() => props.setKindFilter(kind)}
-              class="bare w-full rounded-md border border-solid border-transparent px-2 py-1 text-left text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+              class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
             >
-              {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
+              {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
             </button>
           )}
         </For>
       </div>
-      <label class="flex min-w-0 items-center gap-2">
-        <i
-          class="i-lucide-search icon-sm shrink-0 text-text-muted"
+      <label class="relative flex min-w-0 items-center">
+        <span
+          class="i-lucide-search icon-sm pointer-events-none absolute start-2 shrink-0 text-text-muted"
           aria-hidden="true"
         />
         <input
@@ -164,7 +164,7 @@ function NavBody(props: {
           onInput={(event) => props.setQuery(event.currentTarget.value)}
           aria-label="Filter the components"
           placeholder="filter…"
-          class="min-w-0 flex-1"
+          class="min-w-0 flex-1 ps-7"
         />
       </label>
       <div class="flex items-center justify-between gap-2 text-xs text-text-muted">

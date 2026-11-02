@@ -66,8 +66,10 @@ import { problemText } from "../lib/themes.ts";
 import { stateLabel } from "../lib/theme.ts";
 import { inDrawer } from "../lib/host.ts";
 import { ModePicker, refetchProjectThemes, ThemePicker } from "./Settings.tsx";
+import StudioNav from "./StudioNav.tsx";
+import StudioOverflow from "./StudioOverflow.tsx";
+import Checks from "./Checks.tsx";
 import CommandPalette from "./CommandPalette.tsx";
-
 /**
  * The bar's own look.
  *
@@ -217,6 +219,7 @@ export default function TopBar() {
         */
       }
       <div class="flex flex-1 items-center gap-2">
+        <StudioNav />
         <ThemePicker />
         <ModePicker />
       </div>
@@ -339,6 +342,7 @@ export default function TopBar() {
 
         <div class={VERBS}>
           <CommandPalette />
+          <Checks />
           <span class="relative inline-flex items-center">
             <button
               type="button"
@@ -393,6 +397,7 @@ export default function TopBar() {
                 : "Saved"}
             </tooltip>
           </span>
+          <StudioOverflow />
         </div>
       </div>
       <Show when={pendingSaveCopy()}>
