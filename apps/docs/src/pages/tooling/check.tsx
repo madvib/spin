@@ -22,7 +22,7 @@ const STATES: readonly string[] = [
 
 export default function Check(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Browser Checks</h1>
       <Markdown text={checkMd} />
 

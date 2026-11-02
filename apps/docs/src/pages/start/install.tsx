@@ -9,7 +9,7 @@ import { SNIPPETS } from "../../snippets.ts";
 
 export default function Install(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Install &amp; bundlers</h1>
       <p class="max-w-prose text-text-muted">
         Spin is three packages, installed in two steps: the toolchain as a

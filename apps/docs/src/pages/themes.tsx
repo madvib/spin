@@ -60,7 +60,7 @@ const TASTE: readonly (readonly [string, string])[] = [
 
 export default function Themes(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Themes</h1>
       <p class="max-w-prose text-text-muted">
         A theme is one DTCG JSON document. It declares a product's palette,

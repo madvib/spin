@@ -8,7 +8,7 @@ import { SNIPPETS } from "../../snippets.ts";
 
 export default function Quickstart(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Quickstart</h1>
       <p class="max-w-prose text-text-muted">
         Four steps: initialize or install, wire your bundler, import the

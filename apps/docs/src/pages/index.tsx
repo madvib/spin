@@ -611,7 +611,7 @@ export default function Home(): JSX.Element {
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex w-fit min-w-0 flex-1 items-start gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
+                  class="bare inline-flex w-fit min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
                   <span class="text-text-muted">$</span>
                   <span class="min-w-0 flex-1 break-all">{installCommand()}</span>

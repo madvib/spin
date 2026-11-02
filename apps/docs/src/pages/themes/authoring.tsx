@@ -154,7 +154,7 @@ curl -fsSL "${base}${SKILL_PATH}" \\
     -o ~/.claude/skills/spin-theme/$style.md
 done`;
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Authoring a theme</h1>
       <p class="max-w-prose text-text-muted">
         A theme is written, not generated. The scaffold gives you the roles and

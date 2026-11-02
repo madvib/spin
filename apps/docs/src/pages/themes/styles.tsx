@@ -35,7 +35,7 @@ const LAYERS: readonly (readonly [string, string])[] = [
 export default function Styles(): JSX.Element {
   const styles = styleReferences();
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Style references</h1>
       <p class="max-w-prose text-text-muted">
         A style reference is a direction, not a theme. It names a look, says

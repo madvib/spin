@@ -21,7 +21,7 @@ import type { Swatch, ThemeSummary } from "../../theme-docs.ts";
 export default function Starters(): JSX.Element {
   const themes = themeSummaries();
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Starters</h1>
       <p class="max-w-prose text-text-muted">
         The five starter themes the package ships — <code>silk</code>,{" "}

@@ -39,7 +39,7 @@ const NEXT: readonly {
 
 export default function Start(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>What is Spin?</h1>
       <Markdown text={startMd} />
       <nav aria-label="Start here" class="mt-10 grid gap-3 border-t border-border pt-6 md:grid-cols-2">
