@@ -22,6 +22,8 @@ const STRUCTURAL: Record<string, true> = {
   "flex-wrap": true,
   "items-center": true,
   "gap-2": true,
+  "max-w-full": true,
+  "overflow-x-auto": true,
 };
 
 const THEME = JSON.parse(

@@ -165,24 +165,10 @@ export default function ComponentsIndex(): JSX.Element {
                 {(row) => (
                     <A
                       href={row.href}
-                      class="group flex h-full flex-col overflow-hidden rounded-md border border-solid border-border bg-surface no-underline transition-colors duration-fast hover:border-border-strong"
+                      class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border border-solid border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
                     >
-                    <Show
-                      when={row.mountHtml !== ""}
-                      fallback={
-                        <div class="flex min-h-40 flex-1 items-center justify-center overflow-hidden border-b border-solid border-border bg-surface px-5 py-6">
-                          <span class="text-xs text-text-muted">
-                            utility family
-                          </span>
-                        </div>
-                      }
-                    >
-                      <div class="flex min-h-40 flex-1 items-center justify-center overflow-hidden border-b border-solid border-border bg-surface px-5 py-6">
-                        <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={row.mountHtml} />
-                      </div>
-                    </Show>
-                    <div class="mt-auto flex items-center justify-between gap-2 px-4 py-3">
-                      <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
+                    <span class="flex w-24 shrink-0 flex-col items-start gap-1">
+                      <span class="flex items-center gap-2 font-heading text-lg text-text">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-text-muted`}
                           aria-hidden="true"
@@ -192,7 +178,19 @@ export default function ComponentsIndex(): JSX.Element {
                       <span class="shrink-0 text-xs text-text-muted">
                         {row.meta}
                       </span>
-                    </div>
+                    </span>
+                    <Show
+                      when={row.mountHtml !== ""}
+                      fallback={
+                        <span class="flex min-h-20 flex-1 items-center justify-center text-xs text-text-muted">
+                          utility family
+                        </span>
+                      }
+                    >
+                      <span class="flex min-h-20 min-w-0 flex-1 items-center justify-center overflow-hidden">
+                        <span class="block w-full min-w-0 max-w-full overflow-hidden text-center [&>*]:mx-auto [&>*]:block [&>*]:max-w-full [&>*]:text-left" innerHTML={row.mountHtml} />
+                      </span>
+                    </Show>
                   </A>
                 )}
               </For>

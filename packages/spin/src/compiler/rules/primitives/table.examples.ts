@@ -53,7 +53,7 @@ export const TABLE_CLASSES: readonly ClassDoc[] = [
 export const TABLE_EXAMPLES: readonly TableExample[] = [
   {
     name: "Figures align",
-    html: `<table>
+    html: `<div class="max-w-full overflow-x-auto"><table>
           <caption>Deploys by service, last 7 days</caption>
           <thead>
             <tr>
@@ -69,7 +69,7 @@ export const TABLE_EXAMPLES: readonly TableExample[] = [
             <tr><td>search-indexer</td><td>61</td><td>176</td><td><badge variant="danger">-3%</badge></td></tr>
             <tr><td>webhooks-relay</td><td>24</td><td>203</td><td><badge variant="warning">+21%</badge></td></tr>
           </tbody>
-        </table>`,
+        </table></div>`,
   },
   {
     name: "A sticky header in a scroller",
