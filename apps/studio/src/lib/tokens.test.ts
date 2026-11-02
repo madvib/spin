@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, type TokenTree } from "@spinjs/theme";
-import { silkTheme } from "@spinjs/theme/themes";
+import { indexTree, parseTokens, type TokenTree } from "@spinjs/spin/theme";
+import { silkTheme } from "@spinjs/spin/theme/themes";
 import {
   borderUtilityOf,
   compositeLadders,

@@ -33,7 +33,7 @@ import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { menu } from "@spinjs/components/menu";
-import { toHex } from "@spinjs/theme";
+import { toHex } from "@spinjs/spin/theme";
 import { refetchProjectThemes } from "../components/Settings.tsx";
 import { inDrawer } from "../lib/host.ts";
 import {
@@ -616,7 +616,7 @@ export default function OverviewPage() {
                     </div>
                   </Show>
                   <p class="mt-auto truncate text-xs text-text-muted" style={{ color: cardMuted() }}>
-                    {summary.tokens} tokens · {summary.file ?? "@spinjs/theme"}
+                    {summary.tokens} tokens · {summary.file ?? "@spinjs/spin/theme"}
                   </p>
                 </article>
                 );
@@ -720,7 +720,7 @@ export default function OverviewPage() {
         <hr class="w-full" />
         <footer class="stack-sm text-xs text-text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
-            <span>{active()?.file ?? "@spinjs/theme"}</span>
+            <span>{active()?.file ?? "@spinjs/spin/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
           </div>
         </footer>

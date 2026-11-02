@@ -3,7 +3,7 @@ import { createSpinComponent } from "@spinjs/components/solid";
 import { modePicker } from "@spinjs/components/mode-picker";
 import { ColorField } from "../components/ColorField.tsx";
 import { ReferencePicker } from "../components/ReferencePicker.tsx";
-import { contrastRatio, generateScale, toHex } from "@spinjs/theme";
+import { contrastRatio, generateScale, toHex } from "@spinjs/spin/theme";
 import { inDrawer } from "../lib/host.ts";
 import {
   activeMode,

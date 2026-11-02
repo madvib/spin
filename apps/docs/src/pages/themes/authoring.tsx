@@ -74,31 +74,53 @@ const FAST_PATH: readonly (readonly [string, string])[] = [
   ["the looking", "the rest: a rendered surface and a person"],
 ];
 
-const CHECKS: readonly (readonly [string, string])[] = [
-  [
-    "Completeness",
-    "The contract's required roles must all be present, and every value must be well formed for the type it declares. A missing role is a validation issue with its path in it, and the studio lists the issues and links each one to the editor that fixes it.",
-  ],
-  [
-    "The legibility floors",
-    "A floor is a pair of roles and a ratio: the ink, the fill, and the minimum contrast between them. The validator measures the resolved colors and reports the ones that fall short, with the ratio it measured. A fill without a readable foreground is an error, not a preference.",
-  ],
-  [
-    "The scales",
-    "A scale is a ladder, and the battery says so: a spacing step smaller than the one before it, a radius ladder that descends, or two elevation steps that spell one shadow under two names, is a scale with no shape.",
-  ],
-  [
-    "The loop",
-    "The endless animations — the skeleton's pulse, the spinner, the status dot — spend one step of the motion scale, and that step holds the strobe floor. A loop under a quarter of a second is a flash.",
-  ],
-  [
-    "Mode coverage",
-    "Every mode a theme serves is a mode it has. A document that declares a dark mode and restates nothing for it renders the light mode twice, and the battery reports it: a promise nothing keeps.",
-  ],
-  [
-    "The visual baseline",
-    "The check harness drives an app in a real browser, in every theme and every mode the app serves, and measures what the browser painted: the contrast of the text, the contrast of a control in each of its states, controls a pointer can actually reach, animations that are not a strobe, the geometry the theme claims, an empty console, no failed requests, and a page that rendered at all. It writes a report and compares it with the committed baseline, so a theme that changes what a page measures shows up as a diff rather than as a surprise. In this repository the harness is pointed at the reference app.",
-  ],
+const BATTERY_GATES: readonly {
+  readonly gate: string;
+  readonly checks: string;
+  readonly remedy: string;
+}[] = [
+  {
+    gate: "completeness",
+    checks:
+      "Parses the document via parseDocument and verifies every required path (options.required ?? requiredPaths()), token $type, and served mode.",
+    remedy:
+      "Fix malformed JSON or unknown $type values, add missing required roles or baseline scale steps, or add any unserved $modes key to root modes.",
+  },
+  {
+    gate: "legibility",
+    checks:
+      "Measures every contrast floor in legibilityFloors() on the base document and in each served mode that varies tokens.",
+    remedy:
+      "Adjust the failing foreground or background in that mode until text/status/link pairs reach 4.5:1 and text-muted / focus-ring reach 3:1.",
+  },
+  {
+    gate: "scales",
+    checks:
+      "Checks on the base document that numeric spacing.* steps and radius.{none,sm,md,lg,full} never descend, and that shadow.{sm,md,lg} weights neither descend nor tie unless both are \"none\".",
+    remedy:
+      "Order spacing and radius steps monotonically and give non-\"none\" shadow steps distinct, ascending pixel weights.",
+  },
+  {
+    gate: "motion",
+    checks:
+      "Checks on the base document that motion.duration.loop (or motion.duration.slow when loop is omitted) meets the 250ms strobe floor (STROBE_FLOOR_MS).",
+    remedy:
+      "Set motion.duration.loop to at least 250ms (for example \"900ms\").",
+  },
+  {
+    gate: "modes",
+    checks:
+      "Verifies that every mode in root modes either restates at least one token under $modes.<mode> or already reads as that mode in the base luminance (color.surface vs color.text).",
+    remedy:
+      "Add $modes.<mode> overrides for the palette, or remove the unserved mode from root modes.",
+  },
+  {
+    gate: "invariance",
+    checks:
+      "Verifies that $modes.<mode> overrides only change ink (color and shadow values) or focus (focus.width, focus.offset); no-op restatements equal to the base value are ignored.",
+    remedy:
+      "Remove $modes overrides from spacing, font, radius, motion, border, opacity, breakpoint, or z-index tokens.",
+  },
 ];
 
 /**
@@ -316,23 +338,58 @@ export default {
 
       <Section id="checks" title="What the machine checks">
         <p>
-          {CHECKS.length}{" "}
-          things, and all of them are mechanical. Each one is a rule a person
-          can restate, which is what makes it worth automating.
+          <code>themeGates(text, options?)</code> in{" "}
+          <code>@spinjs/spin/theme</code> runs the six-gate contract battery in
+          fixed order (<code>GATES</code>) and returns a{" "}
+          <code>BatteryReport</code> (<code>{"{ gates, issues, valid }"}</code>
+          ). For a single check,{" "}
+          <code>themeGate(gate, text, options?)</code> returns that gate's{" "}
+          <code>GateResult</code> (<code>{"{ gate, issues }"}</code>).{" "}
+          <code>BatteryOptions</code> accepts <code>required</code> (custom
+          required dotted paths), <code>modes</code> (the modes the document
+          claims to serve), and <code>mode</code> (a single mode to judge in).
         </p>
-        <div class="mt-4 grid gap-3 md:grid-cols-2">
-          <For each={CHECKS}>
-            {([name, what]) => (
-              <div class="border border-border bg-surface-raised rounded-md p-4">
-                <p class="font-semibold text-text">{name}</p>
-                <p class="text-sm">{what}</p>
-              </div>
-            )}
-          </For>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full border-collapse wrap">
+            <thead>
+              <tr class="border-b border-border text-left">
+                <th class="py-2 pr-4">gate</th>
+                <th class="py-2 pr-4">what it checks</th>
+                <th class="py-2 pr-4">remedy when it fails</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={BATTERY_GATES}>
+                {(row) => (
+                  <tr class="border-b border-border">
+                    <td class="font-mono text-xs text-text">{row.gate}</td>
+                    <td class="text-sm text-text-muted">{row.checks}</td>
+                    <td class="text-sm text-text-muted">{row.remedy}</td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
         </div>
 
         <p>
-          The floors are the contract's own list, and this is all of it:
+          The mechanical gates are one call, and they run against any document —
+          a starter, a scaffolded file from <code>scaffoldTheme()</code>, or the
+          theme a project just wrote:
+        </p>
+        <Code
+          class="mt-2"
+          lang="ts"
+          code={SNIPPETS.themeGates}
+        />
+        <p>
+          Save it as <code>check-theme.ts</code> and run{" "}
+          <code>bun check-theme.ts</code>.
+        </p>
+
+        <p>
+          The legibility gate measures every contrast floor declared by the
+          contract across the base palette and every served mode:
         </p>
         <div class="mt-3 overflow-x-auto">
           <table class="w-full border-collapse wrap">
@@ -361,15 +418,11 @@ export default {
           </table>
         </div>
         <p>
-          The state contrast check drives every control through the states it
-          can be in — resting, hovered, focused, pressed, and disabled — and
-          measures the contrast of each. The pass is strict: a state that falls
-          below its floor fails the run. <code>--no-state-contrast</code> is the
-          escape hatch for a quick measurement.
-        </p>
-        <p>
-          The commands, in this repository. The harness drives a browser over a
-          running app, so the app comes first:
+          Beside the static battery, the browser visual harness drives a running
+          app in every theme and mode and checks rendered contrast across
+          resting, hovered, focused, pressed, and disabled states (
+          <code>--no-state-contrast</code> skips the state sweep for a quick
+          pass):
         </p>
         <Code
           class="mt-2"
@@ -379,19 +432,6 @@ bun run visual                                 # every route, against the defaul
 bun run visual -- --route components/button
 bun run visual -- --firefox /path/to/firefox`}
         />
-        <p>
-          The mechanical gates are one call, and it runs against any document —
-          a starter, or the theme a project just wrote:
-        </p>
-        <Code
-          class="mt-2"
-          lang="ts"
-          code={SNIPPETS.themeGates}
-        />
-        <p>
-          Save it as <code>check-theme.ts</code> and run{" "}
-          <code>bun check-theme.ts</code>.
-        </p>
       </Section>
 
       <Section id="project" title="Project config">
@@ -399,7 +439,7 @@ bun run visual -- --firefox /path/to/firefox`}
           The themes live in <code>spin/*.json</code>; the project's word
           about them lives in <code>spin/config.json</code> beside them.
           Two keys, both optional: <code>activeTheme</code> names the
-          theme the Studio seats on load, and <code>themeOrder</code>
+          theme the Studio seats on load, and <code>themeOrder</code>{" "}
           lists the themes in the order the picker shows them. The file
           need not exist — a project without one serves its themes in
           the order the layering hands them over.
@@ -413,21 +453,25 @@ bun run visual -- --firefox /path/to/firefox`}
 }`}
         />
         <p>
-          The first seat wins a chain: the config's{" "}
-          <code>activeTheme</code> when it names a served theme, else
-          the remembered seat, else the first listed. A configured name
-          the project does not serve is ignored rather than seated —
-          the config may name a theme the current layering does not
-          carry. After the first seat the config never moves the
-          author again. Unknown keys are ignored, and an unparsable
-          file reads as empty: the project renders either way.
+          The registry arrives after first paint, and the first seat wins the
+          chain: the config's <code>activeTheme</code> when it names a served
+          theme (<code>served.has(configured)</code>), the remembered seat when
+          it is served, else the first listed theme (
+          <code>listed[0].name</code>). A configured name the layering does not
+          serve is ignored rather than seated — the config may name a theme the
+          current project does not serve, and seating an unserved name would
+          leave the editor on empty text with an invalid-JSON banner. After the
+          first seat the config never moves the author again: the author's own
+          seat is theirs to keep. Unknown keys are ignored, and a file that does
+          not parse counts as absent so a half-written config never costs the
+          reader the themes the project has.
         </p>
         <p>
           The Studio's Overview page carries a Project section that
           edits both keys — a select for the active theme, up and down
-          verbs for the order — and writes the file on save. A theme
-          the order does not name is served after the named ones,
-          alphabetically.
+          verbs for the order — and writes the file on save. Duplicate or
+          non-string entries in <code>themeOrder</code> are skipped, unknown
+          names are ignored, and unlisted served names follow alphabetically.
         </p>
       </Section>
 

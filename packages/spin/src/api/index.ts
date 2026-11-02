@@ -2,7 +2,7 @@
  * @spinjs/api — transport for module-owned procedures.
  *
  * Each module owns its contract and its handler (`themeContract` /
- * `themeRouter` live in `@spinjs/theme` because the theme implements them;
+ * `themeRouter` live in `@spinjs/spin/theme` because the theme implements them;
  * `projectContract` lives here because the wire shape of a project is the
  * daemon's, while the operations over one live in `@spinjs/project`).
  * This package owns nothing procedural: it mounts routers on handlers,

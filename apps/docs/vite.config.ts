@@ -83,7 +83,7 @@ function houseSkill(): Plugin {
 /**
  * The docs eat the product's own food.
  *
- * Themes come from `@spinjs/theme/themes` through `extends` — the shipped
+ * Themes come from `@spinjs/spin/theme/themes` through `extends` — the shipped
  * registry as values, not copies on disk. A starter fixed in the package
  * re-themes this site on the next build, and the site demos the brand
  * posture honestly: `spin`, dark or paper, chosen from the header

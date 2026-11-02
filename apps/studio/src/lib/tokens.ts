@@ -1,5 +1,5 @@
-import { cssVarName, indexTree, valuesInMode } from "@spinjs/theme";
-import type { TokenTree } from "@spinjs/theme";
+import { cssVarName, indexTree, valuesInMode } from "@spinjs/spin/theme";
+import type { TokenTree } from "@spinjs/spin/theme";
 import { ROUTES } from "./routes.ts";
 
 export interface TokenRow {

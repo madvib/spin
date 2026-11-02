@@ -5,7 +5,7 @@ import {
   contrastRatio,
   scaffoldTheme,
   treeToJson,
-} from "@spinjs/theme";
+} from "@spinjs/spin/theme";
 export interface DraftChoices {
   primary: string;
   secondary: string;

@@ -10,7 +10,7 @@
  */
 import type { JSX } from "solid-js";
 import { createSignal, For, onCleanup, onMount } from "solid-js";
-import { starterThemes } from "@spinjs/theme/themes";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 import { mode, theme } from "@spinjs/kit";
 import { CodeBlock, Section as SharedSection } from "@spinjs/kit";
 import { SNIPPETS } from "./snippets.ts";

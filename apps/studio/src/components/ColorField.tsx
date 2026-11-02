@@ -1,7 +1,7 @@
 import { createEffect, createSignal, Show } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { colorPicker } from "@spinjs/components/color-picker";
-import { toHex } from "@spinjs/theme";
+import { toHex } from "@spinjs/spin/theme";
 
 export function ColorField(props: {
   value: string;

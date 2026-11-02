@@ -13,7 +13,7 @@ import { createSpinComponent } from "@spinjs/components/solid";
 import { combobox } from "@spinjs/components/combobox";
 import { colorPicker } from "@spinjs/components/color-picker";
 
-import { formatHex, indexTree, parseColor } from "@spinjs/theme";
+import { formatHex, indexTree, parseColor } from "@spinjs/spin/theme";
 import { measure, quantize, sliderRange } from "../../lib/scale.ts";
 import {
   activeLadders,

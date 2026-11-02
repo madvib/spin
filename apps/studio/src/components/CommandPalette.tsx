@@ -22,7 +22,7 @@ import {
 import type { ModeChoice } from "../lib/store.ts";
 import { ROUTES } from "../lib/routes.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
-import { indexTree } from "@spinjs/theme";
+import { indexTree } from "@spinjs/spin/theme";
 import { COMPONENT_GROUPS } from "@spinjs/components";
 
 

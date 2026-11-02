@@ -2,7 +2,7 @@ import { requiredPaths, scaffoldTheme, treeToJson } from "../theme/index.ts";
 import type { TokenTree } from "../theme/index.ts";
 
 /**
- * The roles a theme must declare: the base roles from `@spinjs/theme`.
+ * The roles a theme must declare: the base roles from `@spinjs/spin/theme`.
  *
  * A component's own tokens are deliberately not among them. They are a
  * customisation a theme opts into — the preflight emits whatever a document

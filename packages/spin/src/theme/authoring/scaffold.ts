@@ -59,7 +59,7 @@ function scaleDeclarations(): readonly Scaffoldable[] {
  * per-element groups arrive with it.
  *
  * Base and per-element roles carry their own type and placeholder, declared
- * once in `@spinjs/theme`. A path that is neither is an error: a scaffold
+ * once in `@spinjs/spin/theme`. A path that is neither is an error: a scaffold
  * cannot invent a role it does not know.
  */
 export function scaffoldTheme(roles?: readonly string[]): TokenTree {

@@ -1,5 +1,5 @@
 /**
- * @spinjs/theme procedures — the typed theme interface, owned by the module
+ * @spinjs/spin/theme procedures — the typed theme interface, owned by the module
  * that implements it.
  *
  * Contract-first oRPC: this file describes every procedure (input, output, no

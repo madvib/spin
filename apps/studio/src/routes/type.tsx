@@ -42,7 +42,7 @@ import {
   resolveAliases,
   treeInMode,
   type TokenTree,
-} from "@spinjs/theme";
+} from "@spinjs/spin/theme";
 import { tokenStatus } from "../lib/live-edit.ts";
 import { activeMode, activeName, activeTree, registry, themeText } from "../lib/store.ts";
 import { groupTokens, parseComposite, type TokenRow, toPx } from "../lib/tokens.ts";

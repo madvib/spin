@@ -15,8 +15,8 @@ import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { createEffect, createMemo, createSignal, For, lazy, onCleanup, Show } from "solid-js";
 import { BrandFavicon, Logo, theme, ThemePicker } from "@spinjs/kit";
-import { starterThemes } from "@spinjs/theme/themes";
-import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/spin/theme/themes";
+import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/spin/theme";
 import {
   COMPONENT_GROUPS,
   DOCS_GROUPS,

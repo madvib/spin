@@ -9,7 +9,7 @@
  * eventually override it.
  *
  * Reset and the reduced-motion clamp live here rather than in
- * `@spinjs/theme/base` because neither spends a token: no theme can change
+ * `@spinjs/spin/theme/base` because neither spends a token: no theme can change
  * them, so a theme module carrying them would claim a decision it does not get
  * to make. They are the stage every document needs before anything else means
  * anything.

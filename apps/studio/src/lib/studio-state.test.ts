@@ -12,7 +12,7 @@ import { test } from "bun:test";
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { scaffoldTheme, treeToJson } from "@spinjs/theme";
+import { scaffoldTheme, treeToJson } from "@spinjs/spin/theme";
 import {
   addMode,
   analyzeTheme,

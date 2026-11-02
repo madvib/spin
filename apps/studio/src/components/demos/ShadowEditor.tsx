@@ -1,7 +1,7 @@
 import { createEffect, createSignal, on, Show } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { colorPicker } from "@spinjs/components/color-picker";
-import { formatHex, parseColor } from "@spinjs/theme";
+import { formatHex, parseColor } from "@spinjs/spin/theme";
 
 /**
  * A shadow is four lengths, a colour swatch picker, and an opacity percentage.

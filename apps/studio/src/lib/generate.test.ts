@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepEqual } from "node:assert/strict";
-import { scaffoldTheme, treeToJson } from "@spinjs/theme";
+import { scaffoldTheme, treeToJson } from "@spinjs/spin/theme";
 import { composeDraft, draftPreview } from "./generate.ts";
 
 const STARTER = treeToJson(scaffoldTheme());

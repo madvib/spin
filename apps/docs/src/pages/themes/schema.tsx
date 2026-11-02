@@ -9,7 +9,7 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { starterGroups } from "@spinjs/theme/themes";
+import { starterGroups } from "@spinjs/spin/theme/themes";
 import { Chip, Code, Section } from "../../bits.tsx";
 import {
   elementGroups,
@@ -22,7 +22,17 @@ import {
 
 const DOCUMENT = `{
   "$extensions": {
-    "spin": { "id": "roastery" }
+    "spin": {
+      "fonts": [
+        {
+          "family": "Inter",
+          "src": "url(https://example.com/inter.woff2) format(\\"woff2\\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
+    }
   },
   "$description": "One line about what this theme is.",
   "color": {
@@ -42,25 +52,43 @@ const DOCUMENT = `{
 }`;
 
 const GROUP_ABOUT: Record<string, string> = {
-  avatar: "The size ladder of a face.",
-  badge: "Whether a badge is a pill, and how present its edge is.",
-  border: "The stroke weight every control and surface draws with.",
-  breakpoint: "The viewport widths where layout steps change.",
-  button:
-    "The button's own tokens: its weight, its case, its tracking and its elevation.",
-  checkbox: "How physical a checkbox is.",
   color:
-    "The palette: the surfaces, the inks, the fills and the status colors.",
-  focus: "The focus ring every interactive element shares.",
-  font: "The faces, the sizes, the weights and the tracking.",
-  icon: "The glyph sizes.",
-  motion: "The durations and the curves.",
-  opacity: "How much of a thing is shown.",
-  radius: "How round the corners are.",
-  shadow: "How high each step lifts.",
-  spacing: "The scale every gap, pad and inset is a step of.",
-  switch: "How physical a switch is.",
-  "z-index": "The stacking order.",
+    "Palette roles: surfaces (surface, surface-raised, surface-sunken, field, scrim), inks (text, text-muted, link), acting fills (primary, secondary, accent) with paired on-* foregrounds, semantic.{success,warning,error,info} with on-semantic-*, selected/disabled pairs, border/border-strong, focus-ring, and neutral.50–900.",
+  font:
+    "Typography: family.{sans,heading,body,serif,mono,brand}, the nine-step size ladder (2xs through display), weight.{regular,medium,semibold,bold}, and letter-spacing.{tighter,tight,normal,wide,wider,widest}.",
+  spacing:
+    "Monotonic length scale (0 through 64) spent by every margin, padding, gap, and inset utility.",
+  radius:
+    "Corner-rounding ladder (none, sm, md, lg, full) shared across controls, cards, and overlays.",
+  shadow:
+    "Elevation ladder (sm, md, lg); may carry $modes overrides because shadow color is an ink over the surface.",
+  motion:
+    "Timing scale: duration.{fast,base,slow,loop} (where loop holds the 250ms strobe floor for endless animations) and easing.{linear,standard,decelerate,accelerate}.",
+  icon:
+    "Root-relative glyph dimensions (sm, md, lg).",
+  breakpoint:
+    "Viewport width thresholds (sm, md, lg, xl) where responsive layout steps change.",
+  opacity:
+    "Fractional transparency steps (0 through 100, values 0 to 1); optional because utilities carry the fraction as fallback.",
+  border:
+    "Stroke width ladder (width, width-2, width-4, width-8) that controls and dividers draw with.",
+  focus:
+    "Shared focus ring geometry (width and offset) paired with color.focus-ring.",
+  "z-index":
+    "Named stacking layers (base, dropdown, modal, toast) for overlays.",
+  avatar: "Per-element square size ladder (sm, md, lg) for avatars.",
+  badge: "Per-element badge tokens: edge stroke width and pill boolean.",
+  button:
+    "Per-element button tokens: weight, case, tracking, shadow, and shadow-hover.",
+  checkbox: "Per-element checkbox inset depth scalar.",
+  switch: "Per-element switch inset depth scalar.",
+  card: "Per-element card corner radius, padding, border color, and elevation.",
+  alert: "Per-element alert corner radius, block/inline padding, and edge color.",
+  field: "Per-element field corner radius and border color.",
+  stat: "Per-element stat figure size, weight, and font family.",
+  table: "Per-element table header weight, row rule color, and zebra stripe fill.",
+  link: "Per-element prose link underline thickness.",
+  gradient: "Optional named CSS gradients declared by a theme.",
 };
 
 const TYPE_ABOUT: Record<string, readonly [string, string]> = {
@@ -143,39 +171,44 @@ export default function Schema(): JSX.Element {
       <Section id="document" title="The document">
         <p>
           The root of a document holds groups, and a group holds tokens and
-          further groups. A token is an object with a{" "}
-          <code>$value</code>, and it may carry a <code>$type</code>, a{" "}
-          <code>$description</code> and a{" "}
-          <code>$modes</code>. The keys DTCG reserves are these five, plus{" "}
-          <code>$deprecated</code>; every other key at a level is a child.
+          further groups. A token is an object with a <code>$value</code>, and
+          it may carry <code>$type</code>, <code>$description</code>,{" "}
+          <code>$extensions</code>, <code>$deprecated</code>, and{" "}
+          <code>$modes</code>. Those six keys are the DTCG reserved set (
+          <code>RESERVED</code>); every other key at a level is a child token or
+          group.
         </p>
         <Code code={DOCUMENT} lang="json" />
         <p>
           A group may declare a <code>$type</code>{" "}
           of its own, and that type is the default for everything under it. A
-          token that declares no type takes the one from the closest parent
-          group that declares one. A token that carries a value may not also
-          carry children, and a group with no children is an error rather than
-          an empty branch.
+          token that declares no type takes the one from the closest ancestor
+          group that declares one (DTCG 2025.10 §6.7). A node that carries both{" "}
+          <code>$value</code> and children, or a group with no token leaves, is
+          a parse error.
         </p>
         <p>
-          An alias is a value written as the path of another token in braces:
-          {" "}
-          <code>{"{color.neutral.50}"}</code>. It is resolved before the
-          stylesheet is written and emitted as a <code>var()</code>{" "}
-          reference, so the reference stays live and the palette can change
-          under it.
+          An alias is a value written as the dotted path of another token in
+          braces: <code>{"{color.neutral.50}"}</code>.{" "}
+          <code>resolveAliases</code> follows the chain across{" "}
+          <code>indexTree(tree)</code>, detects cycles, and records any missing
+          targets in <code>unresolved</code>.
         </p>
       </Section>
 
       <Section id="groups" title="The groups">
         <p>
-          These are the groups the shipped themes declare, with the types their
-          tokens use and the roles the schema requires inside them. The schema
-          names three groups and requires them; the rest are admitted by the
-          schema's own{" "}
-          <code>additionalProperties</code>, because they are the theme's to
-          declare and nobody else's to require.
+          These are the groups the shipped themes declare (
+          <code>starterGroups()</code>), with the types their tokens use and the
+          paths <code>spinThemeJsonSchema()</code> and{" "}
+          <code>requiredPaths()</code> require inside them. The twelve core
+          system groups are <code>color</code>, <code>font</code>,{" "}
+          <code>spacing</code>, <code>radius</code>, <code>shadow</code>,{" "}
+          <code>motion</code>, <code>icon</code>, <code>breakpoint</code>,{" "}
+          <code>opacity</code>, <code>border</code>, <code>focus</code>, and{" "}
+          <code>z-index</code>. Every group that holds a base role or baseline
+          scale step is required by the schema; <code>opacity</code> and the
+          per-element groups are optional.
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={facts.requiredGroups}>
@@ -248,20 +281,13 @@ export default function Schema(): JSX.Element {
           </For>
         </div>
         <p class="text-sm">
-          A theme that leaves one of these out does not get the default: the
-          rule omits the declaration, and the element falls back to whatever the
-          platform does. The scaffold does not write them, because they are an
-          opt-in: a theme that declares no <code>button</code>{" "}
-          group is complete and valid, and a theme that wants to restyle a
-          button's own tokens says so in its own document. The manifest carries
-          a placeholder beside every one of them, and that is the value the
-          studio writes when it creates one.
-        </p>
-        <p class="text-sm">
-          Each of them is also spendable as a utility:{" "}
-          <code>button.weight</code> is spent as{" "}
-          <code>button-weight</code>, reading the same property the preflight
-          emitted.
+          Per-element groups are optional in <code>requiredPaths()</code> and{" "}
+          <code>spinThemeJsonSchema()</code>: a theme that omits{" "}
+          <code>button</code> or <code>card</code> is complete and valid, and
+          elements fall back to the shared system scales. When creating a new
+          theme with <code>scaffoldTheme()</code>, the scaffold includes the
+          per-element groups alongside the required base roles and baseline
+          scales so the author can edit or remove them directly.
         </p>
       </Section>
 
@@ -358,52 +384,56 @@ export default function Schema(): JSX.Element {
 
       <Section id="modes" title="Modes">
         <p>
-          A mode is a variant of a token, not a second theme. Two spellings say
-          the same thing. The first is the root <code>modes</code>{" "}
-          field, which says which modes the document serves, and it is metadata:
-          no emitter reads it. The second is <code>$modes</code>{" "}
-          on a token, which says how that one token varies.
+          A mode is a variant of a token, not a second theme. Two fields work
+          together: the root <code>modes</code> array (<code>["light"]</code>,{" "}
+          <code>["dark"]</code>, or <code>["light", "dark"]</code>) declares
+          which modes the document serves, and <code>$modes</code> on a token
+          leaf declares how that token varies by mode:
         </p>
         <Code
           class="mt-2"
+          lang="json"
           code={`"primary": {
   "$value": "#c8102e",
   "$modes": { "dark": "#ff5a63" }
 }`}
         />
         <p>
-          A document may also spell the dark side as a top-level{" "}
-          <code>dark</code> group, where <code>dark.color.primary</code>{" "}
-          overrides <code>--color-primary</code>{" "}
-          rather than defining a second, dead variable. Both spellings emit
-          identical CSS.
-        </p>
-        <p>
-          Only color and focus vary by mode, and that is a design fact rather
-          than a convention: dark mode changes ink and surface, not space or
-          type. A document's root <code>modes</code>{" "}
-          names the modes it serves; a mode it serves but does not override
-          falls back to the base values, and a value written for a mode it does
-          not serve is reported, because it would never be seen.
+          In any mode, a token without a <code>$modes.&lt;mode&gt;</code> entry
+          falls back to its base <code>$value</code> (
+          <code>leaf.modes?.[mode] ?? leaf.value</code>). A mode is only allowed
+          to change ink (<code>color</code> and <code>shadow</code> values) and
+          the <code>focus</code> ring (<code>focus.width</code>,{" "}
+          <code>focus.offset</code>). Restating spacing, font, radius, or motion
+          in <code>$modes</code> fails the <code>invariance</code> gate;
+          writing a <code>$modes</code> key for a mode not listed in root{" "}
+          <code>modes</code> fails the <code>completeness</code> gate; and
+          listing a mode in root <code>modes</code> without restating any token
+          (unless the base luminance already reads as that mode) fails the{" "}
+          <code>modes</code> gate.
         </p>
       </Section>
 
       <Section id="extensions" title="What lives under $extensions">
         <p>
-          <code>$extensions</code>{" "}
-          is where everything that is neither a token nor DTCG metadata goes.
-          The build reads one key of it:{" "}
-          <code>$extensions.spin.fonts</code>, the list of faces the theme
-          loads.
+          <code>$extensions</code> holds document metadata outside the token
+          tree. <code>parseDocument(input)</code> returns{" "}
+          <code>extensions</code> alongside <code>tree</code> and{" "}
+          <code>modes</code> in a single parse, whereas{" "}
+          <code>parseTokens(input)</code> returns only the token tree. Under{" "}
+          <code>$extensions.spin</code>, a theme may declare{" "}
+          <code>$extensions.spin.fonts</code>: the list of typeface sources the
+          theme uses.
         </p>
         <Code
           class="mt-2"
+          lang="json"
           code={`"$extensions": {
   "spin": {
     "fonts": [
       {
         "family": "Inter",
-        "src": "url(https://example.com/inter.woff2) format(\\"woff2\\")",
+        "src": "url(https://example.com/inter.woff2) format(\\\"woff2\\\")",
         "weight": "100 900",
         "style": "normal",
         "display": "swap"
@@ -413,24 +443,15 @@ export default function Schema(): JSX.Element {
 }`}
         />
         <p>
-          A font is an extension rather than a token because a source is a URL
-          and not a design value: a theme names a family with{" "}
-          <code>font.family.sans</code>, and the source lives beside it so the
-          two cannot drift. The sheet emits one <code>@font-face</code>{" "}
-          per declaration and fetches nothing else.
-        </p>
-        <p>
-          A theme may also carry{" "}
-          <code>$extensions.spin.components</code>, a list of the elements it
-          opts into; the studio reads it and shows it in the overview. A starter
-          opts into everything, so it declares nothing — the extension is for a
-          theme that wants a narrower set.
+          A font source is an extension rather than a token because a URL is not
+          a design token value: the theme names the family in{" "}
+          <code>font.family.sans</code> (or <code>heading</code>,{" "}
+          <code>mono</code>) and keeps the <code>fonts</code> array beside it in
+          the same JSON document.
         </p>
         <p class="text-sm">
-          <A href="/themes/authoring" class="text-link hover:underline">
-            Authoring a theme
-          </A>{" "}
-          walks through filling one of these in.
+          <A href="/themes/authoring">Authoring a theme</A> walks through
+          assembling and validating a complete theme document.
         </p>
       </Section>
     </main>

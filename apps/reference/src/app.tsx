@@ -6,8 +6,8 @@ import {
   SECTIONS,
   utilitiesFor,
 } from "@spinjs/preset";
-import { parseTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { parseTokens } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 import {
   createThemeState,
   Logo,
@@ -26,7 +26,7 @@ import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spinjs/preset";
 import type { Accessor } from "solid-js";
-import type { TokenTree } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/spin/theme";
 
 /**
  * The glyph each element wears, keyed by the element's name.

@@ -9,9 +9,9 @@
  */
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { parseTokens } from "@spinjs/theme";
-import type { TokenTree } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { parseTokens } from "@spinjs/spin/theme";
+import type { TokenTree } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 import {
   describeCatalog,
   SECTIONS,

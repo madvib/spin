@@ -21,13 +21,6 @@
       "@spinjs/components/examples": [
         "../../packages/components/src/examples.ts"
       ],
-      "@spinjs/theme": ["../../packages/spin/src/theme/index.ts"],
-      "@spinjs/theme/themes": [
-        "../../packages/spin/src/theme/themes/index.ts"
-      ],
-      "@spinjs/theme/theme-types": [
-        "../../packages/spin/src/theme/theme-types.d.ts"
-      ],
       "@spinjs/kit": ["../../packages/spin/src/kit/index.ts"],
       "@spinjs/preset": ["../../packages/spin/src/compiler/index.ts"],
       "@spinjs/preset/config": [

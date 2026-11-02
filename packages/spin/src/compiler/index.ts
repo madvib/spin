@@ -1,5 +1,5 @@
 /**
- * @spinjs/preset — the closed UnoCSS vocabulary over `@spinjs/theme`.
+ * @spinjs/preset — the closed UnoCSS vocabulary over `@spinjs/spin/theme`.
  *
  * Allowlist by construction: only utilities defined here exist. Anything else
  * generates no CSS. Token-driven rules resolve their names against the token

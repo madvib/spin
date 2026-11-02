@@ -17,7 +17,7 @@
  * `./service.ts`, and it is the same core underneath.
  *
  * What each rule needs to know about the vocabulary comes from
- * `@spinjs/theme` and `@spinjs/preset` rather than being duplicated here, so a
+ * `@spinjs/spin/theme` and `@spinjs/preset` rather than being duplicated here, so a
  * rename cannot leave the gate enforcing a vocabulary that no longer
  * exists.
  */

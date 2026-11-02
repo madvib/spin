@@ -248,19 +248,25 @@ describe("search and studio", () => {
     await page.close();
   }, 60000);
 
-  test("the Studio FAB opens the overlay with a flush rail", async () => {
+  test("the Studio FAB opens the overlay with the single bar", async () => {
     const page = await newPage();
     await page.goto(`${URL}/start`, { waitUntil: "networkidle" });
     const fab = page.getByRole("button", { name: "Open the theme studio" });
     await fab.waitFor({ state: "visible", timeout: 30000 });
     await fab.click();
     const frame = page.frameLocator("[data-spin-studio]");
-    const rail = frame.locator('nav[aria-label="Studio"] ul').first();
-    await rail.waitFor({ state: "visible", timeout: 30000 });
-    const paddingLeft = await rail.evaluate(
-      (el) => getComputedStyle(el).paddingLeft,
+    const bar = frame.locator("#app header").first();
+    await bar.waitFor({ state: "visible", timeout: 30000 });
+    const nav = frame.locator('[data-testid="studio-nav"]').first();
+    await nav.waitFor({ state: "visible", timeout: 30000 });
+    const barBox = await bar.boundingBox();
+    const navBox = await nav.boundingBox();
+    expect(barBox).not.toBeNull();
+    expect(navBox).not.toBeNull();
+    expect(navBox!.y).toBeGreaterThanOrEqual(barBox!.y);
+    expect(navBox!.y + navBox!.height).toBeLessThanOrEqual(
+      barBox!.y + barBox!.height + 1,
     );
-    expect(paddingLeft).toBe("0px");
     await page.close();
   }, 90000);
 });

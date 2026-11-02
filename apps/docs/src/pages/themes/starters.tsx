@@ -24,12 +24,21 @@ export default function Starters(): JSX.Element {
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Starters</h1>
       <p class="max-w-screen-md text-text-muted">
-        The themes the package ships. Each one is a document in{" "}
-        <code>@spinjs/theme/themes</code>, and this page is a rendering of those
-        documents, so it cannot drift from them. A project forks one by writing
-        a file of the same name into its own <code>spin/</code>{" "}
-        directory. Fork yours in{" "}
-        <A href="/studio">the Studio</A>, or by hand following{" "}
+        The five starter themes the package ships — <code>silk</code>,{" "}
+        <code>neobrut</code>, <code>console</code>, <code>synthwave</code>, and{" "}
+        <code>spin</code>. Each one is exported from{" "}
+        <code>@spinjs/spin/theme/themes</code> (<code>starterThemes</code>,{" "}
+        <code>StarterThemeName</code>, and <code>starterGroups()</code>, under{" "}
+        <code>@spinjs/spin/theme</code>), and this page renders those documents
+        directly so it cannot drift from them.
+      </p>
+      <p class="max-w-screen-md text-sm text-text-muted">
+        Starters are creation-only templates and are never auto-served into a
+        project's <code>spin/</code> directory. An unforked theme served from
+        the package or a <code>themes</code> map has a project path of{" "}
+        <code>null</code>; saving or writing <code>spin/&lt;name&gt;.json</code>{" "}
+        (for example <code>spin/silk.json</code>) forks it into your project.
+        Fork yours in <A href="/studio">the Studio</A>, or by hand following{" "}
         <A href="/themes/authoring">Authoring a theme</A>.
       </p>
       <div class="mt-8">

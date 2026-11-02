@@ -7,7 +7,7 @@ import {
 } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { colorPicker } from "@spinjs/components/color-picker";
-import { scaffoldTheme, themeModes, toHex, treeToJson } from "@spinjs/theme";
+import { scaffoldTheme, themeModes, toHex, treeToJson } from "@spinjs/spin/theme";
 import { registry, refetchThemes, setActiveName, note } from "../lib/store.ts";
 import { refetchProjectThemes } from "../components/Settings.tsx";
 import { saveTheme, problemText, listProjectThemes } from "../lib/themes.ts";

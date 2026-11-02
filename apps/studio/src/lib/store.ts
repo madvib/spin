@@ -19,8 +19,8 @@ import {
   resolveMode,
 } from "./theme.ts";
 import type { FileState } from "./theme.ts";
-import { indexTree } from "@spinjs/theme";
-import type { Mode, TokenTree } from "@spinjs/theme";
+import { indexTree } from "@spinjs/spin/theme";
+import type { Mode, TokenTree } from "@spinjs/spin/theme";
 import { compositeLadders, type CompositeLadders } from "./tokens.ts";
 
 /** The tree before any document parses: no tokens, no modes, no crash. */

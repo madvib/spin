@@ -1,5 +1,5 @@
 /**
- * @spinjs/theme — DTCG JSON in, token trees out.
+ * @spinjs/spin/theme — DTCG JSON in, token trees out.
  *
  * The pipeline is parse, resolve, validate, and CSS variable emission — four
  * independent stages, and you can enter it at any of them. Finished elements

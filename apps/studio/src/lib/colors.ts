@@ -24,8 +24,8 @@ import {
   indexTree,
   toHex,
   valuesInMode,
-} from "@spinjs/theme";
-import type { TokenLeaf, TokenTree } from "@spinjs/theme";
+} from "@spinjs/spin/theme";
+import type { TokenLeaf, TokenTree } from "@spinjs/spin/theme";
 import { tokenValue } from "./overview.ts";
 
 /** The three families a theme's colours fall into. */

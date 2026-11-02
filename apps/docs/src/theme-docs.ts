@@ -2,7 +2,7 @@
  * The themes section's reading of the theme documents.
  *
  * Every list these pages show is derived: the catalogue from the documents in
- * `@spinjs/theme/themes`, the schema page from the contract in `@spinjs/theme` and
+ * `@spinjs/spin/theme/themes`, the schema page from the contract in `@spinjs/spin/theme` and
  * the JSON Schema it writes. A page that spelled them out by hand would be a
  * second source of truth, and the first theme to gain a token would leave the
  * site describing a system that no longer exists.
@@ -21,9 +21,9 @@ import {
   resolveAliases,
   spinThemeJsonSchema,
   TOKEN_TYPES,
-} from "@spinjs/theme";
-import type { TokenIndex, TokenTree } from "@spinjs/theme";
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+} from "@spinjs/spin/theme";
+import type { TokenIndex, TokenTree } from "@spinjs/spin/theme";
+import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
 import { primitiveContracts } from "@spinjs/preset";
 
 /** A theme's color role, read from the document. */

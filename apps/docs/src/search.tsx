@@ -23,7 +23,7 @@ import {
   SECTIONS,
   spinShortcuts,
 } from "@spinjs/preset";
-import { BASE_ROLES } from "@spinjs/theme";
+import { BASE_ROLES } from "@spinjs/spin/theme";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
 
 export interface SearchEntry {

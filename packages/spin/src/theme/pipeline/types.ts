@@ -1,5 +1,5 @@
 /**
- * Shared vocabulary for @spinjs/theme.
+ * Shared vocabulary for @spinjs/spin/theme.
  *
  * The token vocabulary is CLOSED: a design token is one of `TOKEN_TYPES` and
  * nothing else. An unknown `$type` is a parse error, never a silent passthrough,
