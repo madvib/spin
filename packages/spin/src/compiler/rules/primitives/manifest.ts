@@ -272,6 +272,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     reads: [
       "--border-width",
       "--button-case",
+      "--button-edge",
       "--button-shadow",
       "--button-shadow-hover",
       "--button-tracking",
@@ -1150,6 +1151,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
+
 
 
 

@@ -27,6 +27,19 @@ function colorOf(
   // nothing for the reason it always did — the theme carries no such
   // token.
   if (hasRawColor(name)) return undefined;
+  // An alpha suffix thins a theme color without minting one: `bg-surface/80`
+  // is the surface at 80%, mixed toward transparency. The color stays the
+  // theme's — only the strength is the caller's.
+  const slash = name.lastIndexOf("/");
+  if (slash !== -1) {
+    const base = name.slice(0, slash);
+    const pct = Number(name.slice(slash + 1));
+    if (base !== "" && Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+      const path = named(ctx, "color", base);
+      if (path) return { [property]: `color-mix(in srgb, ${path} ${pct}%, transparent)` };
+    }
+    return undefined;
+  }
   const path = named(ctx, "color", name);
   if (path) return { [property]: path };
   if ((COLOR_KEYWORDS as readonly string[]).includes(name)) {

@@ -567,8 +567,9 @@ test("no custom property is defined in terms of itself", async () => {
  * `--un-rotate-x` that nothing in the tree defines; the `blur` family is a
  * different shape of the same defect — its handler reads a `backdropBlur`
  * table a spin theme does not carry and throws inside `generate()` — so the
- * guarded wrapper reports it inert the first time anything asks for it, and
- * `backdrop-blur` quietly matches nothing instead of failing the build.
+ * guarded wrapper reports it inert the first time anything asks for it.
+ * `backdrop-blur` itself is OURS now (an owned static rule), so wind4's blur
+ * pattern stays excluded while our utility generates.
  * `from-primary`, whose values read variables nothing defines, completes the
  * family and is asserted for its consequence below.
  *
@@ -578,15 +579,16 @@ test("no custom property is defined in terms of itself", async () => {
  * quietly lost a utility" into a failing test with the rule's name in it.
  *
  * One wrinkle: the blur report is LAZY — it only exists after something
- * generates a blur utility — so this test asks for one first. An exclusion
+ * generates a blur utility wind4 still owns (our statics never reach its
+ * handler) — so this test asks for `filter-blur` first. An exclusion
  * list that grows with usage is honest about what happened, but only a test
  * that forces the read can pin it.
  */
 test("wind4's inert rules stay out of the layer", async () => {
   const uno = await layered();
-  // Force the lazy report: the guarded wrapper only learns the blur handler
-  // cannot run when something actually asks for a blur utility.
-  await uno.generate("backdrop-blur", { preflights: false });
+  // Force the lazy report with a blur utility WE do not own: the guarded
+  // wrapper only learns the handler cannot run when something reaches it.
+  await uno.generate("filter-blur", { preflights: false });
   const KNOWN_INERT: readonly string[] = [
     "transform",
     "transform-cpu",
@@ -615,7 +617,7 @@ test("wind4's inert rules stay out of the layer", async () => {
       "transform-cpu",
       "transform-gpu",
       "from-primary",
-      "backdrop-blur",
+      "filter-blur",
     ]
   ) {
     const { css } = await uno.generate(name, { preflights: false });

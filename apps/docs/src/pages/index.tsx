@@ -585,7 +585,7 @@ export default function Home(): JSX.Element {
                 <span>Framework-agnostic · W3C DTCG · Pure CSS</span>
               </span>
 
-              <h1 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h1 class="text-text">
                 UI that holds together.
               </h1>
 
@@ -595,7 +595,7 @@ export default function Home(): JSX.Element {
                 and mechanical oracles that verify the result. Adopt it in
                 layers — use Spin to create a single source of truth for
                 themes, styles, and components across all your apps.
-              </p>
+              </p></span>
 
               <div class="flex w-fit flex-wrap items-center gap-2">
                 <A href="/guide/install" role="button" class="no-underline">
@@ -642,7 +642,7 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 01 · Foundation · W3C DTCG
               </span>
-              <h2 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
                 One theme document owns every visual decision.
               </h2>
               <p class="text-sm text-text-muted">
@@ -650,7 +650,7 @@ export default function Home(): JSX.Element {
                 document. Every sample below reads its value from that
                 document, so switching themes or modes rewrites the page — and
                 light/dark contrast pairs are checked before you ship.
-              </p>
+              </p></span>
 
               {/* Compact w-fit DTCG token selector pills */}
               <div class="flex w-fit flex-wrap gap-2">
@@ -734,14 +734,14 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 02 · Styling · Theme-Bound Utilities
               </span>
-              <h2 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
                 Familiar Tailwind syntax, custom to your brand.
               </h2>
               <p class="text-sm text-text-muted">
                 Write the utility classes you already know — <code>p-4</code>,{" "}
                 <code>bg-surface-raised</code>, <code>rounded-lg</code> — backed
                 strictly by your theme's token scale.
-              </p>
+              </p></span>
 
               {/* Compact w-fit Utility Composer */}
               <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
@@ -843,14 +843,14 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 03 · Elements · Pure CSS Primitives
               </span>
-              <h2 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
                 Semantic HTML defaults. Zero wrapper soup.
               </h2>
               <p class="text-sm text-text-muted">
                 A button is <code>&lt;button&gt;</code>, a switch is{" "}
                 <code>role="switch"</code> — styled in CSS, no wrapper class.
                 Flip the toggle and watch the markup change.
-              </p>
+              </p></span>
 
               {/* One card size; each specimen fills the same cell */}
               <div class="grid w-[19rem] max-w-full grid-cols-2 gap-2">
@@ -978,14 +978,14 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 04 · Interactive · Headless Machines
               </span>
-              <h2 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
                 Stateful machines when native HTML isn't enough.
               </h2>
               <p class="text-sm text-text-muted">
                 Multi-part widgets driven by deterministic state machines,
                 shipped as custom elements for any framework.{" "}
                 <strong>Hover any tile</strong> to preview the live component.
-              </p>
+              </p></span>
 
               {/* Compact w-fit Component Tile Grid with Live Specimen HoverCards */}
               <div class="flex max-w-[28rem] flex-wrap gap-2">
@@ -1038,13 +1038,13 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 05 · Verification · Lints, CLI & MCP
               </span>
-              <h2 class="text-text">
+              <span class="inline-block w-fit max-w-full rounded-md bg-surface/80 px-3 py-2 backdrop-blur-sm"><h2 class="text-text">
                 Mechanical verification for humans and agents.
               </h2>
               <p class="text-sm text-text-muted">
                 Spin's lint rules, CLI, and MCP server check every class and
                 contrast pair against your theme contract.
-              </p>
+              </p></span>
 
               <div class="inline-flex w-fit flex-col gap-3 rounded-lg border border-border-strong bg-surface-raised p-4 shadow-sm">
                 <div class="flex items-center justify-between gap-4 border-b border-border pb-2">

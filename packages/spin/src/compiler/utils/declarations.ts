@@ -1,5 +1,6 @@
 import {
   ALIGN_CONTENT,
+  BACKDROP_BLUR,
   ALIGN_ITEMS,
   ALIGN_SELF,
   ANIMATION,
@@ -179,6 +180,12 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
     Object.entries(VISIBILITY).map(([name, value]) => [
       name,
       { visibility: value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(BACKDROP_BLUR).map(([name, value]) => [
+      name,
+      { "backdrop-filter": value, "-webkit-backdrop-filter": value },
     ]),
   ),
   ...Object.fromEntries(

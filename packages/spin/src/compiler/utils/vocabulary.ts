@@ -303,6 +303,14 @@ export const VISIBILITY: Record<string, string> = {
   "collapse": "collapse",
 };
 
+export const BACKDROP_BLUR: Record<string, string> = {
+  "backdrop-blur-none": "none",
+  "backdrop-blur-sm": "blur(4px)",
+  "backdrop-blur": "blur(8px)",
+  "backdrop-blur-md": "blur(12px)",
+  "backdrop-blur-lg": "blur(16px)",
+};
+
 export const INSET_KEYWORDS: Record<string, string> = {
   "0": "0",
   "full": "100%",

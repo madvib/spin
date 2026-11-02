@@ -2,7 +2,7 @@ import type { TokenTree } from "../theme/index.ts";
 import { themeRef } from "../theme/index.ts";
 import { namesIn } from "./utils/lookup.ts";
 import { BORDER_NAMES } from "./rules/border.ts";
-import { DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
+import { BACKDROP_BLUR_NAMES, DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
 import { divideNames } from "./rules/divide.ts";
 import { GRID_NAMES } from "./rules/grid.ts";
 import { INTERACTIVITY_NAMES } from "./rules/interactivity.ts";
@@ -150,7 +150,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "display",
       title: "Display",
-      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES],
+      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES, ...BACKDROP_BLUR_NAMES],
     },
     {
       id: "text",

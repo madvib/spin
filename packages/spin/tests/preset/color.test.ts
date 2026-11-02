@@ -279,6 +279,23 @@ test("the sanctioned colour keywords still paint", async () => {
   );
 });
 
+test("an alpha suffix thins a theme colour without minting one", async () => {
+  // The color stays the theme's — only the strength is the caller's. A raw
+  // color with a suffix is still a raw color, and still refused.
+  deepStrictEqual(
+    valueFor(
+      await sheetFor("bg-surface/80"),
+      "bg-surface/80",
+      "background-color",
+    ),
+    "color-mix(in srgb, var(--color-surface) 80%, transparent)",
+  );
+  const { css } = await (await generator()).generate("bg-[#fff]/80", {
+    preflights: false,
+  });
+  assert(!css.includes("bg-"), "a raw color with a suffix still refuses");
+});
+
 /**
  * The wind4 layer is where a raw colour could still reach the sheet.
  *

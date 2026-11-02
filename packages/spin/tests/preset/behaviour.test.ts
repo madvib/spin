@@ -289,19 +289,19 @@ test("a cross-engine pseudo-element never shares a selector list", async () => {
   }
 });
 
-test("a quiet variant states its own resting posture", async () => {
-  // Breaks if the secondary goes back to wearing the base rule's resting
-  // shadow: in a hard-edged theme that is the loudest offset on the page,
-  // spent by the fill whose background is a surface — a surface floating on
-  // itself, beside the primary action's shout. The hover still spends the
-  // theme's hovered elevation, so the theme keeps saying how loud a lift is.
-  const body = declarations(
-    bodyFor(
-      await generate('<button class="secondary">Save</button>'),
-      "secondary",
-    ),
-  );
-  deepStrictEqual(body["box-shadow"], "none");
+test("a quiet variant shares the pair's resting posture", async () => {
+  // Breaks if the secondary stops sharing the base rule's resting shadow:
+  // the pair reads as one size with one shadow only when both controls
+  // carry the same elevation. The secondary states no shadow of its own —
+  // the declaration is absent, not "none" — so the base's posture shows
+  // through. The divider edge still frames it: the quiet fill with the
+  // shared edge is what makes it the quiet half of one pair.
+  const result = await generate('<button class="secondary">Save</button>');
+  const info = result.matched.get("secondary");
+  assert(info !== undefined && info.data.length > 0);
+  const resting = declarations(info.data[0][2] as string);
+  deepStrictEqual(resting["box-shadow"], undefined);
+  deepStrictEqual(resting["border-color"], "var(--color-border)");
 });
 
 test("a bare control takes the component tokens' movement back", async () => {
