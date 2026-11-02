@@ -454,7 +454,7 @@ export default function Home(): JSX.Element {
           >
             <div class="overflow-hidden rounded-md border border-border-strong bg-surface-raised shadow-lg">
               <div class="flex min-h-[8rem] items-center justify-center overflow-visible border-b border-border bg-surface p-4">
-                <div class="block w-full min-w-0 [&>*]:mx-auto" innerHTML={tile().mountHtml} />
+                <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={tile().mountHtml} />
               </div>
               <div class="flex items-center justify-between gap-2 px-4 py-2">
                 <span class="flex min-w-0 items-center gap-2 font-brand text-md text-text">

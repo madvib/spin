@@ -30,7 +30,7 @@ export const kbdFixtureNote =
 export const KBD_EXAMPLES: readonly KbdExample[] = [
   {
     name: "Kbd · single & modifier keys",
-    html: `<div class="flex flex-wrap items-center gap-2">
+    html: `<div class="flex flex-wrap items-center justify-center gap-2">
   <kbd>⌘</kbd>
   <kbd>⇧</kbd>
   <kbd>⌥</kbd>

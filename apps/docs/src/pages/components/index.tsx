@@ -178,7 +178,7 @@ export default function ComponentsIndex(): JSX.Element {
                       }
                     >
                       <div class="flex min-h-40 flex-1 items-center justify-center overflow-hidden border-b border-solid border-border bg-surface px-5 py-6">
-                        <div class="block w-full min-w-0 [&>*]:mx-auto" innerHTML={row.mountHtml} />
+                        <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={row.mountHtml} />
                       </div>
                     </Show>
                     <div class="mt-auto flex items-center justify-between gap-2 px-4 py-3">

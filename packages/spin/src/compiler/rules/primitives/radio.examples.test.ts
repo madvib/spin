@@ -18,6 +18,7 @@ const STRUCTURAL = new Set([
   "flex-wrap",
   "flex-col",
   "items-center",
+  "justify-center",
   "items-start",
   "gap-2",
 ]);

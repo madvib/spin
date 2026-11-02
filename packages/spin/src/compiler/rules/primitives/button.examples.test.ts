@@ -17,6 +17,7 @@ const STRUCTURAL = new Set([
   "flex",
   "flex-wrap",
   "items-center",
+  "justify-center",
   "gap-2",
   // The ink a bare button asks for: `bare` opts out of the paint, so the
   // example spells the page's ink itself. A utility, not a variant.

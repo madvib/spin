@@ -120,7 +120,7 @@ export const TEXTAREA_CLASSES: readonly ClassDoc[] = [
 ];
 
 const row = (inner: string): string =>
-  `<div class="flex flex-wrap items-center gap-2">
+  `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 

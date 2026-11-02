@@ -30,7 +30,14 @@ export const tooltipFixtureNote =
 
 export const TOOLTIP_EXAMPLES: readonly TooltipExample[] = [
   {
-    name: "Tooltip · beside a control",
+    name: "Tooltip · the chip",
+    html: `<span class="relative inline-flex items-center">
+  <button type="button" class="bare peer inline-flex items-center">Deploy</button>
+  <tooltip class="visible start-0 top-full whitespace-nowrap">Ships the canary to one region</tooltip>
+</span>`,
+  },
+  {
+    name: "Tooltip · revealed on hover",
     html: `<span class="relative inline-flex items-center">
   <button type="button" class="bare peer inline-flex items-center">Deploy</button>
   <tooltip class="start-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Ships the canary to one region</tooltip>

@@ -19,7 +19,7 @@ export interface JoinExample {
 }
 
 const row = (inner: string): string =>
-  `<div class="flex flex-wrap items-center gap-2">
+  `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
 </div>`;
 
@@ -70,7 +70,7 @@ export const JOIN_EXAMPLES: readonly JoinExample[] = [
   },
   {
     name: "Join · beside a caption",
-    html: `<div class="flex flex-wrap items-center gap-2">
+    html: `<div class="flex flex-wrap items-center justify-center gap-2">
   <div class="join">
     <button class="join-item" type="button">Deploy</button>
     <button class="join-item secondary" type="button">Deploy and watch</button>

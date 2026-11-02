@@ -28,6 +28,7 @@ const STRUCTURAL: Record<string, true> = {
   "top-full": true,
   "whitespace-normal": true,
   "whitespace-nowrap": true,
+  "visible": true,
   "peer-hover:visible": true,
   "peer-focus-visible:visible": true,
 };
