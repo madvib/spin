@@ -1,5 +1,7 @@
 import { createGenerator, type Preset, type UserShortcuts } from "@unocss/core";
+import presetIcons from "@unocss/preset-icons";
 import { createUnplugin, type UnpluginOptions } from "unplugin";
+import { createRequire } from "node:module";
 import { type ContentOptions, joinContent, scanContent } from "./content.ts";
 import { describeCatalog } from "../compiler/catalog.ts";
 import { parseTokens, type ThemeDocument } from "../theme/index.ts";
@@ -456,6 +458,17 @@ export interface SpinPluginOptions {
   /** Presets to compose alongside ours — icons are the usual reason. */
   readonly presets?: readonly Preset[];
   /**
+   * Register @unocss/preset-icons with the shipped iconify collections. Default true.
+   *
+   * The five `@iconify-json/*` collections travel in `dependencies`, so the
+   * loader reads them from the consumer's own install rather than fetching
+   * over the network — a class the app writes (`i-lucide-folder`) resolves
+   * to a glyph in an offline build. Each collection loads lazily, so only
+   * referenced collections are parsed. Set false to opt out; an explicit
+   * `@unocss/preset-icons` entry in `presets` wins over this one.
+   */
+  readonly icons?: boolean;
+  /**
    * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
    *
    * A shortcut is a named composition: one class that stands for a set of
@@ -631,6 +644,95 @@ export function projectThemes(
 ): Record<string, ThemeDocument> {
   return { ...brand, ...local };
 }
+/**
+ * The icon data a lazy collection loader hands `@unocss/preset-icons`.
+ *
+ * Structural rather than the `@iconify/types` import: that package arrives
+ * transitively through the icons preset, and a direct import would add a
+ * dependency for one annotation. The loader only reads the `icons` table
+ * (each body an SVG fragment string), so this states what the preset
+ * consumes and lets the excess of a real `icons.json` flow through.
+ */
+interface IconCollection {
+  readonly prefix: string;
+  readonly icons: Record<string, { readonly body: string }>;
+}
+/**
+ * Validate a parsed `icons.json` just far enough to hand it on.
+ *
+ * `JSON.parse` answers `unknown`, and the collections ship as data — a
+ * corrupt install should fail loudly rather than smuggle an `as` through.
+ * The `icons` table is what the loader reads (each entry's `body` is the
+ * SVG fragment); everything else rides along untouched.
+ */
+function parseIconCollection(value: unknown): IconCollection {
+  if (typeof value !== "object" || value === null || !("prefix" in value) || !("icons" in value)) {
+    throw new Error("[spin] invalid icon collection: expected { prefix, icons }");
+  }
+  if (typeof value.prefix !== "string") {
+    throw new Error("[spin] invalid icon collection: missing string prefix");
+  }
+  if (typeof value.icons !== "object" || value.icons === null) {
+    throw new Error("[spin] invalid icon collection: missing icons table");
+  }
+  const table: Record<string, { readonly body: string }> = {};
+  for (const [iconName, entry] of Object.entries(value.icons)) {
+    if (typeof entry !== "object" || entry === null || !("body" in entry) || typeof entry.body !== "string") {
+      throw new Error("[spin] invalid icon collection: every icon needs a string body");
+    }
+    table[iconName] = { body: entry.body };
+  }
+  return { prefix: value.prefix, icons: table };
+}
+
+
+/**
+ * The icons preset every app gets unless it opts out.
+ *
+ * The five `@iconify-json/*` collections ship in `dependencies`, so the
+ * loaders read their `icons.json` from the consumer's own install rather
+ * than fetching over the network — an offline build still resolves the
+ * glyphs its content names. Each collection loads through a `() =>
+ * IconifyJSON` thunk rather than an eagerly parsed dataset, so only the
+ * collections a stylesheet actually references are read. The instance is
+ * built once per stage (`cachedIcons` carries it between generates)
+ * because the preset closes over its loader state.
+ *
+ * Returns null when `icons: false` silences the default or the consumer
+ * already composed `@unocss/preset-icons` in `presets` — the explicit
+ * entry wins, and composing the same preset name twice would register
+ * the same rules twice.
+ */
+function defaultIconsPreset(
+  options: SpinPluginOptions,
+  cached: Preset | null | undefined,
+): Preset | null {
+  if (options.icons === false) return null;
+  if ((options.presets ?? []).some((preset) => preset.name === "@unocss/preset-icons")) return null;
+  if (cached !== undefined) return cached;
+  const require = createRequire(import.meta.url);
+  const lazy = (name: string): (() => Promise<IconCollection>) => {
+    let parsed: IconCollection | null = null;
+    return async (): Promise<IconCollection> => {
+      if (parsed !== null) return parsed;
+      const { readFile } = await import("node:fs/promises");
+      const { dirname, join } = await import("node:path");
+      const text = await readFile(join(dirname(require.resolve(`@iconify-json/${name}/package.json`)), "icons.json"), "utf8");
+      parsed = parseIconCollection(JSON.parse(text));
+      return parsed;
+    };
+  };
+  return presetIcons({
+    collections: {
+      carbon: lazy("carbon"),
+      lucide: lazy("lucide"),
+      "material-symbols": lazy("material-symbols"),
+      ph: lazy("ph"),
+      tabler: lazy("tabler"),
+    },
+  });
+}
+
 
 type StylesheetStage = UnpluginOptions & {
   /** Vite dev-server lifecycle: unplugin forwards this root hook to vite untouched. Async so the mount's dynamic import settles before serving. */
@@ -647,6 +749,10 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
   // regenerates from the same scan — the content is unchanged, the theme
   // documents behind the rules are not.
   let cachedSources: string | null = null;
+  // The default icons preset, built once and shared across generates: the
+  // collections are parsed lazily per glyph, so holding one instance costs
+  // a handful of file lookups rather than five parsed datasets.
+  let cachedIcons: Preset | null | undefined;
 
   async function generate(): Promise<string> {
     // No `themes` option means the project's own: the brand layer,
@@ -696,9 +802,12 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     const safelist = catalogUtilities(resolveThemes(themes));
     // Static: index.ts never imports plugin.ts, so this edge runs one way —
     // the browser graph stays clean because index.ts carries no `node:`.
+    const iconsPreset = defaultIconsPreset(options, cachedIcons);
+    cachedIcons = iconsPreset;
     const generator = await createGenerator({
       envMode,
       presets: [
+        ...(iconsPreset !== null ? [iconsPreset] : []),
         ...(options.presets ?? []),
         spinPreset({
           themes,

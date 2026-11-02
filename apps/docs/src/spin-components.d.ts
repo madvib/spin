@@ -20,14 +20,20 @@ interface SpinProjectComponentAttributes {
 
 declare global {
   interface HTMLElementTagNameMap {
+    "docs-bundler-tabs": HTMLElement & SpinProjectComponentAttributes;
     "docs-select": HTMLElement & SpinProjectComponentAttributes;
+    "docs-toc": HTMLElement & SpinProjectComponentAttributes;
+    "docs-view-tabs": HTMLElement & SpinProjectComponentAttributes;
   }
 }
 
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "docs-bundler-tabs": SpinProjectComponentAttributes;
       "docs-select": SpinProjectComponentAttributes;
+      "docs-toc": SpinProjectComponentAttributes;
+      "docs-view-tabs": SpinProjectComponentAttributes;
     }
   }
 }

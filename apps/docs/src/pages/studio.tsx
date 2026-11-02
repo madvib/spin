@@ -6,7 +6,7 @@
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { Code, Section } from "../bits.tsx";
-import { SNIPPETS } from "../snippets.ts";
+import { GETTING_STARTED_SNIPPETS } from "./docs/getting-started/getting-started.snippets.ts";
 
 export default function Studio(): JSX.Element {
   const app = typeof location === "undefined"
@@ -42,13 +42,13 @@ export default function Studio(): JSX.Element {
           off: <code>studio: false</code> disables the mount and the
           launcher entirely.
         </p>
-        <Code class="mt-3" code={SNIPPETS.studio} lang="ts" />
+        <Code class="mt-3" code={GETTING_STARTED_SNIPPETS.studio} lang="ts" />
         <p>
           Every other bundler — and no bundler at all — runs the Studio
           standalone from the CLI, at{" "}
           <code>http://localhost:7463/studio/</code> by default:
         </p>
-        <Code class="mt-3" code={SNIPPETS.studioServe} lang="bash" />
+        <Code class="mt-3" code={GETTING_STARTED_SNIPPETS.studioServe} lang="bash" />
         <p>
           Either way the editing model is the same. Your keystrokes update an
           in-memory overlay that the preview repaints from immediately; nothing
@@ -213,8 +213,8 @@ export default function Studio(): JSX.Element {
         </p>
         <p>
           The Studio edits the theme document described on{" "}
-          <A href="/themes">Themes &amp; modes</A>, validated against the{" "}
-          <A href="/themes/schema">Theme schema</A>. Every token, role, and
+          <A href="/docs/themes/overview">Themes &amp; modes</A>, validated against the{" "}
+          <A href="/docs/themes/schema">Token schema</A>. Every token, role, and
           gate it touches is defined there.
         </p>
       </Section>

@@ -1,17 +1,11 @@
 /**
  * Markdown renderer for documentation copy modules and style references.
- *
- * Supports headings with deterministic anchor slugs, paragraphs, ordered and
- * unordered lists, fenced code blocks (via `@spinjs/kit` `CodeBlock`), GFM
- * tables, callout blockquotes (`<alert>`), and HTML comment slots
- * (`<!-- USER COPY SLOT: ... -->`) that are stripped before rendering.
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { CodeBlock } from "@spinjs/kit";
+import { CodeFrame } from "./ui/code-frame.tsx";
 
-/** One block of a markdown document. */
 type Block =
   | {
     readonly kind: "heading";
@@ -41,7 +35,6 @@ type Block =
     readonly text: string;
   };
 
-/** Deterministic URL slug for a heading's text. */
 export function slugOf(text: string): string {
   return text
     .toLowerCase()
@@ -65,7 +58,6 @@ function splitTableRow(line: string): string[] {
   return trimmed.split("|").map((cell) => cell.trim());
 }
 
-/** A line that starts a block, rather than continuing a paragraph. */
 function startsBlock(line: string): boolean {
   const trimmed = line.trim();
   return (
@@ -79,7 +71,6 @@ function startsBlock(line: string): boolean {
   );
 }
 
-/** Parse a markdown string into structured blocks. */
 function blocks(text: string): Block[] {
   const out: Block[] = [];
   const lines = text.split("\n");
@@ -122,7 +113,7 @@ function blocks(text: string): Block[] {
       const headingText = (headingMatch[2] ?? "").trim();
       out.push({
         kind: "heading",
-        level: headingMatch[1].length,
+        level: headingMatch[1]!.length,
         id: slugOf(headingText),
         text: headingText,
       });
@@ -232,10 +223,8 @@ function blocks(text: string): Block[] {
   return out;
 }
 
-/** Inline marks: code, strong, and internal/external links. */
 const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
 
-/** Render inline markdown tokens into JSX elements. */
 function inline(text: string): JSX.Element[] {
   const out: JSX.Element[] = [];
   let at = 0;
@@ -270,39 +259,39 @@ function inline(text: string): JSX.Element[] {
   return out;
 }
 
-/** Render a heading block at the appropriate semantic level. */
 function renderHeading(
   level: number,
   id: string,
   text: string,
 ): JSX.Element {
   const children = inline(text);
-  if (level === 1) return <h2 id={id}>{children}</h2>;
-  if (level === 2) return <h3 id={id}>{children}</h3>;
-  if (level === 3) return <h4 id={id}>{children}</h4>;
-  return <h5 id={id}>{children}</h5>;
+  if (level === 1) return <h2 id={id} class="scroll-mt-20">{children}</h2>;
+  if (level === 2) return <h3 id={id} class="scroll-mt-20">{children}</h3>;
+  if (level === 3) return <h4 id={id} class="scroll-mt-20">{children}</h4>;
+  return <h5 id={id} class="scroll-mt-20">{children}</h5>;
 }
 
-/** Render a markdown document with live Spin elements. */
 export function Markdown(
   props: { text: string; class?: string },
 ): JSX.Element {
   return (
-    <prose class={props.class}>
+    <prose class={`w-full ${props.class ?? ""}`}>
       <For each={blocks(props.text)}>
         {(block) => {
           if (block.kind === "heading") {
             return renderHeading(block.level, block.id, block.text);
           }
           if (block.kind === "paragraph") {
-            return <p>{inline(block.text)}</p>;
+            return <p class="max-w-prose">{inline(block.text)}</p>;
           }
           if (block.kind === "code") {
             return (
-              <CodeBlock
-                code={block.code}
-                lang={block.lang === "" ? undefined : block.lang}
-              />
+              <div class="my-4">
+                <CodeFrame
+                  code={block.code}
+                  lang={block.lang === "" ? undefined : block.lang}
+                />
+              </div>
             );
           }
           if (block.kind === "callout") {
@@ -314,14 +303,14 @@ export function Markdown(
               );
             }
             return (
-              <blockquote>
+              <blockquote class="max-w-prose">
                 <p>{inline(block.text)}</p>
               </blockquote>
             );
           }
           if (block.kind === "table") {
             return (
-              <div class="my-4 overflow-x-auto">
+              <div class="my-4 overflow-x-auto rounded-lg border border-border">
                 <table class="wrap">
                   <thead>
                     <tr>
@@ -350,7 +339,9 @@ export function Markdown(
               {(item) => <li>{inline(item)}</li>}
             </For>
           );
-          return block.ordered ? <ol>{items}</ol> : <ul>{items}</ul>;
+          return block.ordered
+            ? <ol class="max-w-prose">{items}</ol>
+            : <ul class="max-w-prose">{items}</ul>;
         }}
       </For>
     </prose>

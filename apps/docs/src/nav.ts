@@ -1,10 +1,7 @@
 /**
- * The docs' single navigation source: the top sections and both sidebars.
- *
- * The top bar switches worlds — Docs vs Components — and the left rail is
- * contextual to the world the reader is in. The component tree is filed by
- * the shared unified taxonomy, so a component added to the library appears
- * in the rail on the next build with no list to maintain.
+ * Single navigation source for the docs site: top-level worlds, the
+ * subgrouped `/docs/*` handbook rail, and the unified `/components/*`
+ * taxonomy rail.
  */
 import {
   COMPONENT_ICONS,
@@ -13,14 +10,16 @@ import {
 import {
   primitiveContracts,
   primitiveElements,
-} from "@spinjs/preset";
+} from "@spinjs/spin/preset";
 
 export interface NavLink {
   readonly title: string;
   readonly href: string;
+  readonly summary?: string;
 }
 
 export interface NavGroup {
+  readonly id: string;
   readonly label: string;
   readonly items: readonly NavLink[];
 }
@@ -31,50 +30,221 @@ export const TOP_SECTIONS: readonly (NavLink & {
 })[] = [
   {
     title: "Docs",
-    href: "/start",
-    active: ["/start", "/guide", "/themes", "/utilities", "/tooling"],
+    href: "/docs/getting-started/overview",
+    active: ["/docs"],
   },
-  { title: "Studio", href: "/studio", active: ["/studio"] },
-  { title: "Components", href: "/components", active: ["/components"] },
+  {
+    title: "Components",
+    href: "/components",
+    active: ["/components"],
+  },
+  {
+    title: "Playground",
+    href: "/playground",
+    active: ["/playground"],
+  },
+  {
+    title: "Studio",
+    href: "/studio",
+    active: ["/studio"],
+  },
 ];
 
-/** The Docs world's left rail. */
+/** The `/docs/*` handbook rail, organized by topic subgroup. */
 export const DOCS_GROUPS: readonly NavGroup[] = [
   {
-    label: "Start here",
+    id: "getting-started",
+    label: "Getting Started",
     items: [
-      { title: "What is Spin?", href: "/start" },
-      { title: "Quickstart", href: "/start/quickstart" },
-      { title: "Install & bundlers", href: "/start/install" },
-      { title: "Ways to use Spin", href: "/start/paths" },
-      { title: "Architecture & layers", href: "/start/model" },
+      {
+        title: "What is Spin?",
+        href: "/docs/getting-started/overview",
+        summary: "How themes, classless HTML elements, utilities, and state machines fit together.",
+      },
+      {
+        title: "Quickstart",
+        href: "/docs/getting-started/quickstart",
+        summary: "Install the packages, wire your bundler, and open the Studio in two minutes.",
+      },
+      {
+        title: "Install & Bundlers",
+        href: "/docs/getting-started/install",
+        summary: "Project layout, spin init flags, and configurations for all seven bundlers.",
+      },
+      {
+        title: "Ways to Use Spin",
+        href: "/docs/getting-started/paths",
+        summary: "Full bundler plugin, UnoCSS preset-only, or standalone Studio daemon.",
+      },
+      {
+        title: "Architecture & Layers",
+        href: "/docs/getting-started/architecture",
+        summary: "Which layer owns each visual or behavioral change, and the checks that verify it.",
+      },
     ],
   },
   {
-    label: "Guides",
+    id: "themes",
+    label: "Themes & Tokens",
     items: [
-      { title: "Themes & modes", href: "/themes" },
-      { title: "Authoring themes", href: "/themes/authoring" },
-      { title: "Elements & CSS", href: "/guide/markup" },
-      { title: "Utilities & animations", href: "/guide/css" },
-      { title: "Components & templates", href: "/guide/components" },
-      { title: "Authoring machines", href: "/guide/machines" },
-      { title: "Lints & verification", href: "/tooling/lints" },
+      {
+        title: "Themes & Modes",
+        href: "/docs/themes/overview",
+        summary: "DTCG JSON structure, token groups, light/dark modes, and programmatic reads.",
+      },
+      {
+        title: "Authoring & Gates",
+        href: "/docs/themes/authoring",
+        summary: "Authoring a theme from scratch and passing the six build-time validation gates.",
+      },
+      {
+        title: "Token Schema",
+        href: "/docs/themes/schema",
+        summary: "Every token group, required color role, contrast pair, and scale step.",
+      },
+      {
+        title: "Starter Themes",
+        href: "/docs/themes/starters",
+        summary: "The five shipped starter palettes and how to fork or seat them.",
+      },
+      {
+        title: "Style References",
+        href: "/docs/themes/styles",
+        summary: "House skill and historical design references for agent-authored themes.",
+      },
     ],
   },
   {
-    label: "Reference",
+    id: "styling",
+    label: "Styling & Markup",
     items: [
-      { title: "Theme schema", href: "/themes/schema" },
-      { title: "Starter themes", href: "/themes/starters" },
-      { title: "Style references", href: "/themes/styles" },
-      { title: "Tokens & utilities", href: "/utilities" },
-      { title: "CLI & plugin options", href: "/tooling/cli" },
-      { title: "MCP server", href: "/tooling/mcp" },
-      { title: "Browser checks", href: "/tooling/check" },
+      {
+        title: "Classless Elements",
+        href: "/docs/styling/elements",
+        summary: "Native HTML tags and Spin custom elements styled automatically by your theme.",
+      },
+      {
+        title: "Utilities & Animations",
+        href: "/docs/styling/utilities",
+        summary: "Closed-scale utility classes, cascade layers, layout shortcuts, and motion.",
+      },
+      {
+        title: "Tokens & Catalog",
+        href: "/docs/styling/catalog",
+        summary: "Live interactive catalog of every utility class and token in the active theme.",
+      },
+    ],
+  },
+  {
+    id: "authoring",
+    label: "Components & Runtime",
+    items: [
+      {
+        title: "Components & Controllers",
+        href: "/docs/authoring/components",
+        summary: "HTML component compiler and framework controllers for React, Solid, Vue, and Svelte.",
+      },
+      {
+        title: "Machines & Signals",
+        href: "/docs/authoring/machines",
+        summary: "Authoring headless statecharts, reactive signals, and DOM directives.",
+      },
+    ],
+  },
+  {
+    id: "tooling",
+    label: "Tooling & Agents",
+    items: [
+      {
+        title: "Lints & Verification",
+        href: "/docs/tooling/lints",
+        summary: "Every spin/* lint rule, strictness dial, and autofix behavior.",
+      },
+      {
+        title: "CLI & Plugin Options",
+        href: "/docs/tooling/cli",
+        summary: "Complete reference for spin CLI subcommands, flags, and SpinPluginOptions.",
+      },
+      {
+        title: "MCP Server",
+        href: "/docs/tooling/mcp",
+        summary: "Connecting coding agents to your live Spin project over MCP.",
+      },
+      {
+        title: "Browser Checks",
+        href: "/docs/tooling/check",
+        summary: "Running automated geometry, contrast, and interaction checks in a real browser.",
+      },
     ],
   },
 ];
+
+/** Flat ordered list of all docs pages with their parent group label. */
+export interface DocsPageEntry extends NavLink {
+  readonly groupId: string;
+  readonly groupLabel: string;
+}
+
+export const ALL_DOCS_PAGES: readonly DocsPageEntry[] = DOCS_GROUPS.flatMap(
+  (group) =>
+    group.items.map((item) => ({
+      ...item,
+      groupId: group.id,
+      groupLabel: group.label,
+    })),
+);
+
+/** Look up a docs page entry and its previous/next neighbors by pathname. */
+export function docsPageContext(pathname: string): {
+  readonly current?: DocsPageEntry;
+  readonly prev?: DocsPageEntry;
+  readonly next?: DocsPageEntry;
+} {
+  const clean = pathname.replace(/\/$/, "");
+  const idx = ALL_DOCS_PAGES.findIndex((entry) => entry.href === clean);
+  if (idx === -1) return {};
+  return {
+    current: ALL_DOCS_PAGES[idx],
+    prev: idx > 0 ? ALL_DOCS_PAGES[idx - 1] : undefined,
+    next: idx + 1 < ALL_DOCS_PAGES.length ? ALL_DOCS_PAGES[idx + 1] : undefined,
+  };
+}
+
+/** Legacy URL redirects so existing bookmarks and links resolve to `/docs/*`. */
+export const LEGACY_DOCS_REDIRECTS: Readonly<Record<string, string>> = {
+  "/docs": "/docs/getting-started/overview",
+  "/docs/getting-started": "/docs/getting-started/overview",
+  "/docs/themes": "/docs/themes/overview",
+  "/docs/styling": "/docs/styling/elements",
+  "/docs/authoring": "/docs/authoring/components",
+  "/docs/tooling": "/docs/tooling/lints",
+  "/start": "/docs/getting-started/overview",
+  "/start/quickstart": "/docs/getting-started/quickstart",
+  "/start/install": "/docs/getting-started/install",
+  "/start/paths": "/docs/getting-started/paths",
+  "/start/model": "/docs/getting-started/architecture",
+  "/why": "/docs/getting-started/overview",
+  "/themes": "/docs/themes/overview",
+  "/themes/authoring": "/docs/themes/authoring",
+  "/themes/schema": "/docs/themes/schema",
+  "/themes/starters": "/docs/themes/starters",
+  "/themes/styles": "/docs/themes/styles",
+  "/guide": "/docs/styling/elements",
+  "/guide/markup": "/docs/styling/elements",
+  "/guide/css": "/docs/styling/utilities",
+  "/guide/components": "/docs/authoring/components",
+  "/guide/machines": "/docs/authoring/machines",
+  "/guide/install": "/docs/getting-started/install",
+  "/guide/themes": "/docs/themes/overview",
+  "/guide/verify": "/docs/tooling/lints",
+  "/utilities": "/docs/styling/catalog",
+  "/tokens": "/docs/styling/catalog",
+  "/tooling": "/docs/tooling/lints",
+  "/tooling/lints": "/docs/tooling/lints",
+  "/tooling/cli": "/docs/tooling/cli",
+  "/tooling/mcp": "/docs/tooling/mcp",
+  "/tooling/check": "/docs/tooling/check",
+};
 
 export interface ComponentNavItem {
   readonly name: string;
@@ -88,13 +258,6 @@ export interface ComponentNavGroup {
   readonly items: readonly ComponentNavItem[];
 }
 
-/**
- * The Components world's left rail, filed by the shared unified taxonomy —
- * the same table the studio's rail reads — so a filing cannot disagree
- * between surfaces. Primitives link to their page; machines link to their
- * machine page. A group the library empties is dropped rather than drawn
- * as a heading over nothing.
- */
 /** Tag names that resolve to the component that owns them. */
 export const COMPONENT_ALIASES: Readonly<Record<string, string>> = {
   input: "field",

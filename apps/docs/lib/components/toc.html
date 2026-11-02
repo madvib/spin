@@ -1,0 +1,33 @@
+<script lang="ts">
+import { toc } from "@spinjs/components/toc";
+
+const machine = toc({
+  items: [],
+  multiple: false,
+});
+</script>
+
+<div class="w-full" {...machine.getRootProps()}>
+  <nav class="flex flex-col gap-2" {...machine.getNavProps()}>
+    <p
+      class="m-0 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted"
+      {...machine.getTitleProps()}
+    >
+      <span class="i-lucide-align-left icon-sm shrink-0" aria-hidden="true"></span>
+      <span>On this page</span>
+    </p>
+    <ul
+      class="m-0 flex list-none flex-col p-0"
+      {...machine.getListProps()}
+    >
+      <template for={machine.items} as={row} key={row.value}>
+        <li class="m-0 p-0" {...machine.getItemProps(row)}>
+          <a
+            class="block border-s-2 border-border py-1 ps-3 text-xs leading-snug text-text-muted no-underline transition-colors duration-fast hover:border-border-strong hover:text-text data-[depth='3']:ps-6 aria-[current=location]:border-primary aria-[current=location]:font-semibold aria-[current=location]:text-primary"
+            {...machine.getLinkProps(row)}
+          >{row.label}</a>
+        </li>
+      </template>
+    </ul>
+  </nav>
+</div>

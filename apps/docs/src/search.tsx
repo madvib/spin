@@ -34,7 +34,7 @@ export interface SearchEntry {
 }
 
 const SEARCH_NOTES: Readonly<Record<string, string>> = {
-  "/start/paths": "plugin, preset only, standalone Studio, CLI, MCP",
+  "/docs/getting-started/paths": "plugin, preset only, standalone Studio, CLI, MCP",
 };
 
 function buildIndex(): readonly SearchEntry[] {
@@ -45,12 +45,18 @@ function buildIndex(): readonly SearchEntry[] {
       href: "/studio",
       category: "Guide",
     },
+    {
+      title: "Playground",
+      subtitle: "Live-editable HTML, utilities, and custom elements sandbox",
+      href: "/playground",
+      category: "Guide",
+    },
   ];
   for (const group of DOCS_GROUPS) {
     for (const item of group.items) {
       out.push({
         title: item.title,
-        subtitle: SEARCH_NOTES[item.href],
+        subtitle: item.summary ?? SEARCH_NOTES[item.href],
         href: item.href,
         category: "Guide",
       });
@@ -81,18 +87,18 @@ function buildIndex(): readonly SearchEntry[] {
     out.push({
       title: section.title,
       subtitle: section.blurb,
-      href: "/utilities",
+      href: "/docs/styling/catalog",
       category: "Utility",
     });
   }
   for (const name of Object.keys(spinShortcuts)) {
-    out.push({ title: name, href: "/utilities", category: "Utility" });
+    out.push({ title: name, href: "/docs/styling/catalog", category: "Utility" });
   }
   for (const role of BASE_ROLES) {
     out.push({
       title: role.path,
       subtitle: role.doc,
-      href: "/themes/schema",
+      href: "/docs/themes/schema",
       category: "Token",
     });
   }

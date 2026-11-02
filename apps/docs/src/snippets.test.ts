@@ -7,7 +7,19 @@ import { themeGates } from "../../../packages/spin/src/theme/index.ts";
 import { parseArgs } from "../../../packages/spin/src/diagnostics/cli.ts";
 import { mountSpinApp } from "../../../packages/spin/src/api/index.ts";
 import { starterThemes } from "../../../packages/spin/src/theme/themes/index.ts";
-import { SNIPPETS } from "./snippets.ts";
+import { GETTING_STARTED_SNIPPETS } from "./pages/docs/getting-started/getting-started.snippets.ts";
+import { THEMES_SNIPPETS } from "./pages/docs/themes/themes.snippets.ts";
+import { STYLING_SNIPPETS } from "./pages/docs/styling/styling.snippets.ts";
+import { AUTHORING_SNIPPETS } from "./pages/docs/authoring/authoring.snippets.ts";
+import { TOOLING_SNIPPETS } from "./pages/docs/tooling/tooling.snippets.ts";
+
+const ALL_SNIPPETS = {
+  ...GETTING_STARTED_SNIPPETS,
+  ...THEMES_SNIPPETS,
+  ...STYLING_SNIPPETS,
+  ...AUTHORING_SNIPPETS,
+  ...TOOLING_SNIPPETS,
+} as const;
 
 const ROOT = resolve(import.meta.dir, "../../..");
 const PACKAGES: Readonly<Record<string, string>> = {
@@ -16,11 +28,12 @@ const PACKAGES: Readonly<Record<string, string>> = {
   "@spinjs/components": "packages/components",
 };
 
-/** Every `@spinjs/...` specifier in the snippets, deduplicated. */
 function specifiers(): readonly string[] {
   const found = new Set<string>();
-  for (const code of Object.values(SNIPPETS)) {
-    for (const match of code.match(/@spinjs\/[a-z0-9-]+(?:\/[a-z0-9./-]+)?/g) ?? []) {
+  for (const code of Object.values(ALL_SNIPPETS)) {
+    for (
+      const match of code.match(/@spinjs\/[a-z0-9-]+(?:\/[a-z0-9./-]+)?/g) ?? []
+    ) {
       found.add(match);
     }
   }
@@ -35,7 +48,7 @@ function splitSpecifier(specifier: string): {
   return { pkg: `${scope}/${name}`, subpath: rest.join("/") };
 }
 
-describe("Start-here snippets", () => {
+describe("Per-subgroup docs snippets", () => {
   test("every package specifier resolves to a workspace export", () => {
     for (const specifier of specifiers()) {
       const { pkg, subpath } = splitSpecifier(specifier);
@@ -83,14 +96,14 @@ describe("Start-here snippets", () => {
       const command = parseArgs(args(sample));
       return "kind" in command ? command.kind : "lint";
     };
-    expect(kind(SNIPPETS.lint)).toBe("lint");
-    expect(kind(SNIPPETS.lintFix)).toBe("lint");
-    expect(kind(SNIPPETS.studioServe)).toBe("studio");
-    expect(kind(SNIPPETS.mcp)).toBe("mcp");
+    expect(kind(TOOLING_SNIPPETS.lint)).toBe("lint");
+    expect(kind(TOOLING_SNIPPETS.lintFix)).toBe("lint");
+    expect(kind(TOOLING_SNIPPETS.studioServe)).toBe("studio");
+    expect(kind(TOOLING_SNIPPETS.mcp)).toBe("mcp");
   });
 
   test("the MCP config names the stdio server", () => {
-    const config = JSON.parse(SNIPPETS.mcpConfig) as {
+    const config = JSON.parse(TOOLING_SNIPPETS.mcpConfig) as {
       readonly mcpServers: {
         readonly spin: {
           readonly command: string;

@@ -1,10 +1,6 @@
 /**
  * The docs site, verified in Firefox: every route renders, nothing leaks,
  * nothing overflows, and the interactive surfaces work.
- *
- * Boots the docs dev server on a fixed port, drives it with Playwright
- * Firefox, and stops the server afterwards. `DOCS_PORT` and `SPIN_FIREFOX`
- * override the port and the browser binary.
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { firefox, type Browser, type Page } from "playwright-core";
@@ -19,7 +15,6 @@ const FIREFOX =
 let server: ReturnType<typeof Bun.spawn> | undefined;
 let browser: Browser | undefined;
 
-/** Every docs-world route, read from the same rail the site draws. */
 function docRoutes(): readonly string[] {
   return DOCS_GROUPS.flatMap((group) => group.items.map((item) => item.href));
 }
@@ -29,10 +24,14 @@ async function waitForServer(url: string, timeoutMs: number): Promise<void> {
   for (;;) {
     try {
       const response = await fetch(url);
-      // Identity, not just liveness: a stale process on this port answers
-      // 200 for the wrong app. The docs shell carries its own marker.
       const text = await response.text();
-      if (response.ok && text.includes('id="app"') && text.includes("/src/main.tsx")) return;
+      if (
+        response.ok &&
+        text.includes('id="app"') &&
+        text.includes("/src/main.tsx")
+      ) {
+        return;
+      }
     } catch {
       // Not up yet.
     }
@@ -62,7 +61,9 @@ afterAll(async () => {
 });
 
 async function newPage(): Promise<Page> {
-  const page = await browser!.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser!.newPage({
+    viewport: { width: 1440, height: 900 },
+  });
   return page;
 }
 
@@ -81,11 +82,6 @@ describe("docs routes", () => {
         failedRequests.push(request.url());
       });
       await page.goto(`${URL}${href}`, { waitUntil: "networkidle" });
-      // The favicon is the one lazy subresource: Firefox fetches it after
-      // load, so under load it can still be in flight when the assertions
-      // finish and page.close() aborts it. Settle it first — a favicon that
-      // already landed or was never requested times out here and asserts
-      // below like any other request.
       await page
         .waitForResponse((response) => response.url().includes("favicon"), {
           timeout: 8000,
@@ -112,17 +108,32 @@ describe("docs routes", () => {
     }
     await page.close();
   }, 60000);
+
+  test("Markdown for Agents serves /llms.txt and .md endpoints", async () => {
+    const llms = await fetch(`${URL}/llms.txt`);
+    expect(llms.ok).toBe(true);
+    expect(llms.headers.get("content-type")).toContain("text/markdown");
+    const llmsText = await llms.text();
+    expect(llmsText).toContain("# Spin Documentation");
+
+    const md = await fetch(`${URL}/docs/themes/overview.md`);
+    expect(md.ok).toBe(true);
+    expect(md.headers.get("content-type")).toContain("text/markdown");
+    expect(md.headers.get("content-signal")).toContain("ai-input=yes");
+    const mdText = await md.text();
+    expect(mdText).toContain("title: \"Themes & Modes · Spin Docs\"");
+  }, 30000);
 });
 
 describe("tables", () => {
   const TABLE_PAGES = [
-    "/start",
-    "/start/paths",
-    "/themes/schema",
-    "/tooling/cli",
-    "/tooling/lints",
-    "/tooling/mcp",
-    "/tooling/check",
+    "/docs/getting-started/overview",
+    "/docs/getting-started/paths",
+    "/docs/themes/schema",
+    "/docs/tooling/cli",
+    "/docs/tooling/lints",
+    "/docs/tooling/mcp",
+    "/docs/tooling/check",
   ] as const;
   for (const href of TABLE_PAGES) {
     test(`${href} tables fit their column without horizontal scroll`, async () => {
@@ -156,7 +167,12 @@ describe("bundler picker", () => {
     "Bun",
     "UnoCSS",
   ] as const;
-  for (const href of ["/start/quickstart", "/start/install"] as const) {
+  for (
+    const href of [
+      "/docs/getting-started/quickstart",
+      "/docs/getting-started/install",
+    ] as const
+  ) {
     test(`${href} switches between all 8 bundlers`, async () => {
       const page = await newPage();
       await page.goto(`${URL}${href}`, { waitUntil: "networkidle" });
@@ -165,10 +181,7 @@ describe("bundler picker", () => {
       const seen = new Set<string>();
       for (const name of TABS) {
         await tablist.getByRole("tab", { name }).click();
-        const code = await tablist
-          .locator("xpath=following-sibling::*")
-          .first()
-          .innerText();
+        const code = await page.locator("main pre").nth(1).innerText();
         expect(code.length).toBeGreaterThan(0);
         seen.add(name);
       }
@@ -181,9 +194,10 @@ describe("bundler picker", () => {
 describe("components world", () => {
   test("/components/button opens and closes the classes modal", async () => {
     const page = await newPage();
-    // First components-world page pays the dev server's cold compile of the
-    // examples graph; the suite timeout still bounds the test at 60s.
-    await page.goto(`${URL}/components/button`, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(`${URL}/components/button`, {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
     await page.getByRole("button", { name: /Classes & tags/ }).click();
     const dialog = page.getByRole("dialog", { name: "button classes and tags" });
     await dialog.waitFor({ state: "visible" });
@@ -210,9 +224,11 @@ describe("components world", () => {
 });
 
 describe("guide demos", () => {
-  test("/guide/components mounts docs-select with live state", async () => {
+  test("/docs/authoring/components mounts docs-select with live state", async () => {
     const page = await newPage();
-    await page.goto(`${URL}/guide/components`, { waitUntil: "networkidle" });
+    await page.goto(`${URL}/docs/authoring/components`, {
+      waitUntil: "networkidle",
+    });
     const demo = page.locator("#guide-components-demo");
     await demo.waitFor({ state: "attached" });
     await page
@@ -223,9 +239,11 @@ describe("guide demos", () => {
     await page.close();
   }, 60000);
 
-  test("/guide/machines runs the signal demo", async () => {
+  test("/docs/authoring/machines runs the signal demo", async () => {
     const page = await newPage();
-    await page.goto(`${URL}/guide/machines`, { waitUntil: "networkidle" });
+    await page.goto(`${URL}/docs/authoring/machines`, {
+      waitUntil: "networkidle",
+    });
     await page.getByRole("button", { name: "count(count() + 1)" }).click();
     const body = await page.locator("main").first().innerText();
     expect(body).toContain("count: 1, doubled: 2");
@@ -236,13 +254,17 @@ describe("guide demos", () => {
 describe("search and studio", () => {
   test("Control+k opens search and Enter navigates", async () => {
     const page = await newPage();
-    await page.goto(`${URL}/start`, { waitUntil: "networkidle" });
+    await page.goto(`${URL}/docs/getting-started/overview`, {
+      waitUntil: "networkidle",
+    });
     await page.keyboard.press("Control+k");
     const dialog = page.getByRole("dialog");
     await dialog.waitFor({ state: "visible" });
     await page.getByRole("combobox").fill("quickstart");
     await page.keyboard.press("Enter");
-    await page.waitForURL("**/start/quickstart", { timeout: 10000 });
+    await page.waitForURL("**/docs/getting-started/quickstart", {
+      timeout: 10000,
+    });
     const h1 = await page.locator("main h1").first().textContent();
     expect(h1?.trim()).toBe("Quickstart");
     await page.close();
@@ -250,7 +272,9 @@ describe("search and studio", () => {
 
   test("the Studio FAB opens the overlay with the single bar", async () => {
     const page = await newPage();
-    await page.goto(`${URL}/start`, { waitUntil: "networkidle" });
+    await page.goto(`${URL}/docs/getting-started/overview`, {
+      waitUntil: "networkidle",
+    });
     const fab = page.getByRole("button", { name: "Open the theme studio" });
     await fab.waitFor({ state: "visible", timeout: 30000 });
     await fab.click();

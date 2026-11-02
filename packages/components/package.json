@@ -141,6 +141,10 @@
       "types": "./src/toast/toast.presentation.ts",
       "default": "./src/toast/toast.presentation.ts"
     },
+    "./toc": {
+      "types": "./src/toc/toc.presentation.ts",
+      "default": "./src/toc/toc.presentation.ts"
+    },
     "./toggle-group": {
       "types": "./src/toggle-group/toggle-group.presentation.ts",
       "default": "./src/toggle-group/toggle-group.presentation.ts"
@@ -332,6 +336,10 @@
       "./toast": {
         "types": "./dist/toast/toast.presentation.d.ts",
         "default": "./dist/toast/toast.presentation.js"
+      },
+      "./toc": {
+        "types": "./dist/toc/toc.presentation.d.ts",
+        "default": "./dist/toc/toc.presentation.js"
       },
       "./toggle-group": {
         "types": "./dist/toggle-group/toggle-group.presentation.d.ts",

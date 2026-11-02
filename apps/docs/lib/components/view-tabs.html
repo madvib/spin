@@ -1,0 +1,25 @@
+<script lang="ts">
+import { tabs } from "@spinjs/components/tabs";
+
+const machine = tabs({
+  items: [
+    { value: "preview", label: "Preview" },
+    { value: "code", label: "Code" },
+  ],
+  defaultValue: "preview",
+});
+</script>
+
+<div class="inline-flex shrink-0" {...machine.getRootProps()}>
+  <div
+    class="inline-flex items-center gap-1 rounded-md border border-border bg-surface p-1"
+    {...machine.getListProps()}
+  >
+    <template for={machine.items} as={row} key={row.value}>
+      <button
+        class="bare rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-fast aria-[selected=true]:bg-primary aria-[selected=true]:text-on-primary aria-[selected=false]:text-text-muted hover:text-text"
+        {...machine.getTriggerProps(row)}
+      >{row.label}</button>
+    </template>
+  </div>
+</div>

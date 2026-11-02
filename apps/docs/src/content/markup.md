@@ -1,45 +1,38 @@
 <!-- USER COPY SLOT: markup-intro — your own markup philosophy, or the default below. -->
 
-# Markup & Elements
+## How classless elements work
 
-Write HTML. The theme dresses it.
+Native HTML tags and Spin custom elements arrive styled by your active theme with zero utility classes required on the element itself:
 
-Native elements arrive styled with no classes: `<button>`, `<input>`,
-`<select>`, `<textarea>`, `<dialog>`, `<details>`, `<table>`, `<fieldset>`,
-`<progress>`, `<meter>`, `<hr>`, `<kbd>`, `<label>` — plus type on
-`<h1>`–`<h6>`, `<p>`, `<a>`, `<code>`, `<blockquote>`, and `<small>`.
+- **Interactive controls:** `<button>`, `<input>`, `<select>`, `<textarea>`, `<label>`, `<fieldset>`
+- **Containers & overlays:** `<dialog>`, `<details>`, `<card>`, `<panel>`, `<field>`, `<alert>`
+- **Data & indicators:** `<table>`, `<progress>`, `<meter>`, `<badge>`, `<stat>`, `<swatch>`, `<skeleton>`, `<kbd>`, `<hr>`
+- **Typography (`<prose>`):** `<h1>`–`<h6>`, `<p>`, `<a>`, `<code>`, `<blockquote>`, `<small>`
 
-The decisions no native tag owns live in Spin elements such as `<field>`,
-`<panel>`, `<card>`, and `<badge>`. The current primitive and machine lists, with
-their contracts, are on [Components](/components?kind=elements). Read the table
-there rather than copying a list from this page: it is derived from the rules.
+Browse every element, its variants, and the theme tokens it reads in the [Components catalog](/components?kind=elements).
 
-The rule is the same for both: the element owns its skin, and you spend
-utilities on what it does not own.
+## TypeScript setup
 
-## TypeScript
-
-Solid projects add the shipped type augmentation once:
+Solid projects add the shipped type augmentation once so custom Spin tags typecheck in JSX:
 
 ```ts
 // src/spin.d.ts
 import "@spinjs/spin/preset/solid";
 ```
 
-The spin plugin generates `src/spin-components.d.ts` for your own
-`lib/components` on the next dev start; it declares each tag for the DOM and
-for Solid's JSX. Other frameworks declare the HTML tags in their own JSX
-namespace if they need to.
+For project components under `lib/components/*.html`, the Spin bundler plugin generates `src/spin-components.d.ts` automatically on dev start or build.
 
-The elements themselves are framework-agnostic — they are HTML the browser
-already styles. The types are the only per-framework seam.
+## Narrowing or disabling classless rules
 
-## Narrowing the library
+Pass `primitives` to ship only a subset of element rules, or set `classless: false` so elements require explicit opt-in classes:
 
-`spin.vite({ primitives: ["button", "card"] })` ships a subset of the plugin's
-primitives, and `spin.vite({ classless: false })` makes each primitive claim
-only its own class, so third-party markup stays unstyled and your own
-components opt in by name. The preset-only path takes the same fields:
-`spinPreset({ primitives: ["button", "card"], classless: false })`.
+```ts
+spin.vite({
+  primitives: ["button", "card", "field"],
+  classless: false,
+});
+```
+
+The standalone UnoCSS preset accepts the same options: `spinPreset({ primitives: ["button", "card"], classless: false })`.
 
 <!-- USER COPY SLOT: markup-close — framework notes (React, Svelte) or migration guidance. -->

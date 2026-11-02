@@ -53,6 +53,7 @@ export { tags } from "./tags-input/tags.presentation.ts";
 export { timer } from "./timer/timer.presentation.ts";
 export { tabs } from "./tabs/tabs.presentation.ts";
 export { toast } from "./toast/toast.presentation.ts";
+export { toc } from "./toc/toc.presentation.ts";
 export { tooltip } from "./tooltip/tooltip.controller-def.ts";
 export { tooltipManifest } from "./tooltip/tooltip.controller-def.ts";
 export { treeView } from "./tree-view/tree-view.presentation.ts";
@@ -103,7 +104,7 @@ export const COMPONENT_GROUPS: readonly ComponentCategory[] = [
   {
     id: "navigation",
     label: "Navigation",
-    members: ["mode-picker", "theme-picker"],
+    members: ["mode-picker", "theme-picker", "toc"],
   },
   {
     id: "display",
@@ -148,6 +149,7 @@ export const UNIFIED_COMPONENT_GROUPS: readonly ComponentCategory[] = [
       "component-pagination",
       "component-steps",
       "component-tabs",
+      "component-toc",
     ],
   },
   {
@@ -271,6 +273,7 @@ export const COMPONENT_ICONS: Readonly<Record<string, string>> = {
   "tags-input": "i-lucide-tags",
   timer: "i-lucide-timer",
   toast: "i-lucide-bell",
+  toc: "i-lucide-list-tree",
   "toggle-group": "i-lucide-toggle-left",
   tooltip: "i-lucide-message-circle-off",
   tour: "i-lucide-route",

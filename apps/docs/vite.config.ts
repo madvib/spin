@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { defineConfig } from "vite";
@@ -9,32 +9,17 @@ import { spin } from "@spinjs/spin/vite";
 import { starterThemes } from "@spinjs/spin/theme/themes";
 import { renderSkill } from "@spinjs/spin/skill";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
+import { ALL_DOCS_PAGES, DOCS_GROUPS } from "./src/nav.ts";
 
 const here = import.meta.dirname!;
-/** Where the house skill is served, and the file it is assembled from. */
 const SKILL_URL = "/skill/spin-theme/SKILL.md";
 const SKILL_TEMPLATE = resolve(
   dirname(createRequire(import.meta.url).resolve("@spinjs/spin/package.json")),
   "skill/SKILL.md",
 );
-
-/** The style references, and the directory they travel in. */
 const SKILL_DIR = dirname(SKILL_TEMPLATE);
 const STYLES_URL = "/skill/spin-theme";
 
-/**
- * The house skill, served from the theme module.
- *
- * The skill is the theme module's manual, so it lives there: the module
- * assembles it from its own contract, and the site serves those bytes rather
- * than a copy of them. The file an agent installs and the file the page
- * presents are therefore the same file, and the checklist inside it is the
- * contract's own group list rather than a copy that can fall behind.
- *
- * The style references travel with it, in the skill's own directory, and are
- * served from the same place: the skill and its styles are one product, and an
- * agent that installs one installs the other.
- */
 function houseSkill(): Plugin {
   const text = (): string => renderSkill(readFileSync(SKILL_TEMPLATE, "utf8"));
   const styles = (): { file: string; source: string }[] =>
@@ -49,7 +34,7 @@ function houseSkill(): Plugin {
     name: "spin:house-skill",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const url = (req.url ?? "").split("?")[0];
+        const url = (req.url ?? "").split("?")[0] ?? "";
         if (url === SKILL_URL) {
           res.setHeader("content-type", "text/markdown; charset=utf-8");
           res.end(text());
@@ -80,37 +65,159 @@ function houseSkill(): Plugin {
   };
 }
 
-/**
- * The docs eat the product's own food.
- *
- * Themes come from `@spinjs/spin/theme/themes` through `extends` — the shipped
- * registry as values, not copies on disk. A starter fixed in the package
- * re-themes this site on the next build, and the site demos the brand
- * posture honestly: `spin`, dark or paper, chosen from the header
- * switcher. No `resolve` block: the plugin carries the specifier table.
- */
+const CONTENT_MD_FOR_ROUTE: Readonly<Record<string, string>> = {
+  "/docs/getting-started/overview": "start.md",
+  "/docs/styling/elements": "markup.md",
+  "/docs/styling/utilities": "css-edges.md",
+  "/docs/authoring/components": "components.md",
+  "/docs/authoring/machines": "machines.md",
+  "/docs/tooling/lints": "lints.md",
+  "/docs/tooling/mcp": "mcp.md",
+  "/docs/tooling/check": "check.md",
+};
+
+function buildLlmsTxt(): string {
+  const lines: string[] = [
+    "# Spin Documentation",
+    "",
+    "> Spin is a theme-driven UI system: DTCG design tokens, classless HTML element rules, closed-scale UnoCSS utilities, and headless state-machine components.",
+    "",
+    "Fetch any documentation page as Markdown by appending `.md` to its URL or sending `Accept: text/markdown`.",
+    "",
+  ];
+  for (const group of DOCS_GROUPS) {
+    lines.push(`## ${group.label}`, "");
+    for (const item of group.items) {
+      lines.push(
+        `- [${item.title}](${item.href}.md)${
+          item.summary ? `: ${item.summary}` : ""
+        }`,
+      );
+    }
+    lines.push("");
+  }
+  lines.push(
+    "## Skills & References",
+    "",
+    `- [Spin Theme Authoring Skill](${SKILL_URL}): Complete DTCG token contract and six-gate validation guide for agents.`,
+    "",
+  );
+  return lines.join("\n");
+}
+
+function buildMarkdownForRoute(routePath: string): string | undefined {
+  const page = ALL_DOCS_PAGES.find((p) => p.href === routePath);
+  if (!page) return undefined;
+
+  const frontmatter = [
+    "---",
+    `title: ${JSON.stringify(`${page.title} · Spin Docs`)}`,
+    ...(page.summary ? [`description: ${JSON.stringify(page.summary)}`] : []),
+    `url: ${JSON.stringify(page.href)}`,
+    "---",
+    "",
+    `> Documentation Index: Fetch the complete documentation index at \`/llms.txt\`.`,
+    "",
+    `# ${page.title}`,
+    "",
+  ];
+
+  const mdFile = CONTENT_MD_FOR_ROUTE[routePath];
+  if (mdFile) {
+    const full = resolve(here, "src/content", mdFile);
+    if (existsSync(full)) {
+      const body = readFileSync(full, "utf8")
+        .replace(/<!--[\s\S]*?-->/g, "")
+        .trim();
+      return [...frontmatter, body, ""].join("\n");
+    }
+  }
+
+  return [
+    ...frontmatter,
+    page.summary ?? "",
+    "",
+    `Category: **${page.groupLabel}**`,
+    "",
+  ].join("\n");
+}
+
+function markdownForAgents(): Plugin {
+  return {
+    name: "spin:markdown-for-agents",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const rawUrl = (req.url ?? "").split("?")[0] ?? "";
+        if (rawUrl === "/llms.txt") {
+          res.setHeader("content-type", "text/markdown; charset=utf-8");
+          res.setHeader("vary", "Accept");
+          res.setHeader(
+            "content-signal",
+            "ai-train=yes, search=yes, ai-input=yes",
+          );
+          res.end(buildLlmsTxt());
+          return;
+        }
+
+        const accept = req.headers["accept"] ?? "";
+        const isMdSuffix = rawUrl.endsWith(".md") && rawUrl.startsWith("/docs/");
+        const wantsMarkdown =
+          isMdSuffix ||
+          (rawUrl.startsWith("/docs/") && accept.includes("text/markdown"));
+        if (!wantsMarkdown) return next();
+
+        const routePath = isMdSuffix
+          ? rawUrl.slice(0, -".md".length)
+          : rawUrl.replace(/\/$/, "");
+        const md = buildMarkdownForRoute(routePath);
+        if (md === undefined) return next();
+
+        res.setHeader("content-type", "text/markdown; charset=utf-8");
+        res.setHeader("vary", "Accept");
+        res.setHeader(
+          "content-signal",
+          "ai-train=yes, search=yes, ai-input=yes",
+        );
+        res.end(md);
+      });
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "llms.txt",
+        source: buildLlmsTxt(),
+      });
+      for (const page of ALL_DOCS_PAGES) {
+        const md = buildMarkdownForRoute(page.href);
+        if (md !== undefined) {
+          this.emitFile({
+            type: "asset",
+            fileName: `${page.href.slice(1)}.md`,
+            source: md,
+          });
+        }
+      }
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    solid(),
+    houseSkill(),
+    markdownForAgents(),
     spin.vite({
-      // Starters arrive as values through `extends`, forked by
-      // `spin/*.json` off this root — the files the studio edits when a
-      // theme is saved. This site defines no themes of its own. No
-      // `mount`: the plugin mounts its own API at this root.
       extends: { themes: starterThemes },
-      // Icons compose alongside the preset: the product does not ship them,
-      // and the pages that show elements show their icons too.
       presets: [presetIcons({ collections: { lucide } as never })],
       content: {
         filesystem: [
           resolve(here, "src/**/*.{tsx,ts}"),
+          resolve(here, "lib/components/**/*.html"),
         ],
         pipeline: {
-          include: [
-            /\.(tsx?|html)($|\?)/,
-          ],
+          include: [/\.(tsx?|html)($|\?)/],
         },
       },
     }),
-    solid(),
   ],
 });

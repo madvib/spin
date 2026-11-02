@@ -575,7 +575,7 @@ export default function Home(): JSX.Element {
               </div>
 
               <div class="flex w-fit max-w-full flex-wrap items-center gap-2">
-                <A href="/start/quickstart" role="button" class="no-underline">
+                <A href="/docs/getting-started/quickstart" role="button" class="no-underline">
                   Quickstart →
                 </A>
                 <A href="/components" role="button" class="secondary no-underline">
@@ -711,7 +711,7 @@ export default function Home(): JSX.Element {
                     {currentDtcg().pairing}
                   </span>
                   <A
-                    href="/themes"
+                    href="/docs/themes/overview"
                     class="shrink-0 font-semibold text-primary no-underline hover:underline"
                   >
                     Themes →
@@ -821,7 +821,7 @@ export default function Home(): JSX.Element {
                     Closed token scale
                   </span>
                   <A
-                    href="/utilities"
+                    href="/docs/styling/catalog"
                     class="font-semibold text-primary no-underline hover:underline"
                   >
                     Utilities →
@@ -1057,13 +1057,13 @@ export default function Home(): JSX.Element {
 
                 <div class="flex items-center justify-between gap-4 text-xs">
                   <A
-                    href="/tooling/lints"
+                    href="/docs/tooling/lints"
                     class="font-semibold text-primary no-underline hover:underline"
                   >
                     Lint rules →
                   </A>
                   <A
-                    href="/tooling/mcp"
+                    href="/docs/tooling/mcp"
                     class="font-semibold text-primary no-underline hover:underline"
                   >
                     MCP server →
@@ -1137,7 +1137,7 @@ export default function Home(): JSX.Element {
                     Open Live Studio →
                   </A>
                   <A
-                    href="/start/quickstart"
+                    href="/docs/getting-started/quickstart"
                     role="button"
                     class="secondary s-sm no-underline"
                   >

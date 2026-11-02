@@ -1,22 +1,8 @@
 <!-- USER COPY SLOT: components-intro — your own component philosophy, or the default below. -->
 
-# Components & Templates
-
-Write a component once, in HTML, and mount it anywhere: React, Solid, Vue,
-Svelte, Astro, or plain HTML, on any of the seven bundler plugins. The Spin
-plugin compiles `lib/components/<name>.html` into a standard custom element
-(`<prefix>-<name>`) with zero framework lock-in — the component is a DOM
-element any host can create, and the theme styles it wherever it lands.
-
-The library side of that contract — thirty-seven headless statechart machines
-plus the platform controllers — ships in `@spinjs/components`. Each one has
-copyable `.html` templates you own: copy, restyle through the theme, and the
-machine stays shared.
-
 ## The CLI workflow
 
-List what the library carries, read one component's contract, and copy the
-recipe you want into your project:
+List available components, inspect a component's machine contract, and copy its `.html` template into your project:
 
 ```bash
 npx spin component list
@@ -24,29 +10,20 @@ npx spin component contract select
 npx spin component copy select basic
 ```
 
-The copy lands at `lib/components/select.html`. The plugin compiles it on the
-next dev start into `<app-select>` (or your configured `--prefix`), and
-regenerates `src/spin-components.d.ts` so the tag typechecks in the DOM and in
-JSX.
+Copying writes `lib/components/select.html`. On the next build or dev start, the Spin plugin compiles it into `<app-select>` (using your configured `--prefix`) and updates `src/spin-components.d.ts`.
 
-## Registration
+## Registering project components
 
-One import registers every project component:
+Import the virtual module once in your application entry to register all compiled custom elements in `lib/components/*.html`:
 
 ```ts
-// src/main.ts — the entry your bundler reads
+// src/main.ts
 import "spin/components";
 ```
 
-The plugin answers for `spin/components` as a virtual module: it registers each
-compiled element under its tag and emits the matching type declarations. No
-registration calls, no globals, no per-component imports.
+## HTML template syntax
 
-## The template syntax
-
-A `.html` component is a `<script lang="ts">` block plus markup. The script
-instantiates the machine; the markup spreads its part props, loops its rows,
-and branches on its state:
+Each `.html` component combines a `<script lang="ts">` setup block with reactive HTML template directives:
 
 ```html
 <script lang="ts">
@@ -79,31 +56,15 @@ const machine = select({
 </div>
 ```
 
-The pieces, each doing one job:
+- **Part prop spreads (`{...machine.getTriggerProps()}`):** Wire deterministic IDs, ARIA roles/states, keyboard handlers, and focus management.
+- **Reactive loops (`<template for={...} as={row} key={row.value}>`):** Keyed fine-grained list rendering.
+- **Reactive conditionals (`<template if={machine.open}>` / `show={...}`):** Mount or toggle visibility from machine state.
+- **Class arrays (`class={["base", { "bg-surface": machine.open }]}`):** Toggle utility classes from state booleans.
+- **Directives (`on:click={...}`, `use:anchor={...}`):** Attach DOM listeners and actions from `@spinjs/runtime/actions`.
 
-- **The script block** imports the machine factory from `@spinjs/components`
-  and calls it with the component's data. Props down from the host element
-  arrive through the bridge the plugin generates.
-- **Part prop spreads** (`{...machine.getRootProps()}`, `{...machine.getTriggerProps()}`,
-  `{...machine.getItemProps(row)}`) carry the ARIA roles, ids, tabindex, and
-  event wiring each part needs. A part without its spread is unpainted
-  behaviorally — the ids the machine coordinates will not exist.
-- **Reactive loops** (`<template for={machine.getRows()} as={row} key={row.value}>`)
-  render one subtree per row and update when the signal updates. The `key`
-  keeps focus and selection stable across re-renders.
-- **Reactive branches** (`<template if={machine.open}>`) mount and unmount a
-  subtree on a boolean signal.
-- **Conditional class arrays** (`class={["base", { "bg-surface": machine.open }]}`)
-  toggle utility classes on machine state, grouped under one key per boolean.
-- **Event and action directives** (`on:click={...}`, `use:anchor={...}`)
-  attach listeners and element actions — `anchor`, `drag`, `hover-delay`,
-  `interact-outside`, `form-control`, `scroll-into-view`, `observe` — from
-  `@spinjs/runtime/actions`.
+## Framework controllers
 
-## Driving components from a host framework
-
-A compiled element is a DOM element: any framework mounts it with a tag. The
-typed controllers in `@spinjs/components` drive it from the host side:
+Drive any mounted Spin custom element from Solid, React, Vue, Svelte, or vanilla DOM using the typed controller adapters:
 
 ```tsx
 // Solid — createSpinComponent from @spinjs/components/solid
@@ -140,10 +101,5 @@ ctl.bind({ value: "bun" }, {
   "value-change": (event) => console.log(event.detail.value),
 });
 ```
-
-Every controller exposes the same surface: `ctl.bind(props, listeners)` seats
-props and subscribes events, `ctl.commands.*` invokes machine commands, and
-`ctl.state.*` reads reactive state. The demo below is the docs' own
-`<docs-select>` — copied, owned, and driven live.
 
 <!-- USER COPY SLOT: components-close — framework notes or migration guidance. -->
