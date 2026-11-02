@@ -447,9 +447,8 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const onPrimary = token(ctx, "color.on-primary");
         const duration = token(ctx, "motion.duration.fast");
         const easing = token(ctx, "motion.easing.standard");
-        // The base. An array body because the rule states `transition-property`
-        // three times and the last one wins; reproducing it keeps the computed
-        // value (transform only) rather than "fixing" it into a colour transition.
+        // The base. An array body because the rule states longhand border and
+        // shadow entries beside the shorthand-free component spends.
         yield [
           [ctx.symbols.selector, () => BUTTON],
           ["align-items", "center"],
@@ -494,12 +493,15 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["color", onPrimary],
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
+          // One transition list for everything the states animate: the same
+          // list the `transition` utility spends, so a control and a utility
+          // transition travel together. The hover spends a new shadow and an
+          // opt-in lift, and both must travel — a list that names only
+          // transform snaps the shadow.
           [
             "transition-property",
-            "color, background-color, border-color, text-decoration-color, fill, stroke",
+            "color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate",
           ],
-          ["transition-property", "box-shadow"],
-          ["transition-property", "transform, translate, scale, rotate"],
           ["transition-duration", duration],
           ["transition-timing-function", easing],
         ];
