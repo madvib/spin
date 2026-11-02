@@ -606,12 +606,12 @@ export default function Home(): JSX.Element {
                 </A>
               </div>
 
-              <div class="inline-flex w-fit flex-wrap items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
+              <div class="flex w-fit max-w-full flex-nowrap items-center gap-1 overflow-x-auto rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
                 <docs-select ref={setSelectEl} id="install-pm" />
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex w-fit items-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
+                  class="bare inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
                   <span class="text-text-muted">$</span>
                   <span>{installCommand()}</span>

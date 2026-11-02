@@ -12,11 +12,12 @@ function kbdRule(mode: Mode): Rule {
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
         ...(t.spacing1 !== undefined
-          ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
+          ? { padding: `calc(${t.spacing1} / 4) ${t.spacing1}` }
           : {}),
-        ...(t.borderWidth !== undefined && t.border !== undefined
-          ? { border: `${t.borderWidth} solid ${t.border}` }
-          : {}),
+        // A keycap's edge is a hairline, never the theme's control stroke: the
+        // cap is a micro-element, and a 3px border plus padding doubles its
+        // height until it stretches whatever control carries it.
+        ...(t.border !== undefined ? { border: `1px solid ${t.border}` } : {}),
         // The keycap's bottom step is a shadow, not a thicker border: a
         // doubled block-end border eats the face on chunky-border themes
         // until the cap reads as a solid brick.
