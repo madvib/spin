@@ -202,6 +202,7 @@ function DocsRail(): JSX.Element {
               {(item) => (
                 <A
                   href={item.href}
+                  end
                   class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
                   activeClass="bg-surface-raised text-text font-semibold"
                   inactiveClass="text-text-muted hover:text-text"
@@ -293,6 +294,15 @@ function ComponentsRail(props: {
           </>
         )}
       </For>
+    </div>
+  );
+}
+
+/** The studio world: the live editor fills the page under the top nav. */
+function StudioShell(props: { children: JSX.Element }): JSX.Element {
+  return (
+    <div class="flex h-full min-h-0 flex-col bg-surface">
+      <div class="min-h-0 flex-1">{props.children}</div>
     </div>
   );
 }
@@ -414,7 +424,14 @@ function Layout(props: RouteSectionProps): JSX.Element {
           fallback={
             <Show
               when={location.pathname.startsWith("/components")}
-              fallback={<DocsShell>{props.children}</DocsShell>}
+              fallback={
+                <Show
+                  when={location.pathname.startsWith("/studio")}
+                  fallback={<DocsShell>{props.children}</DocsShell>}
+                >
+                  <StudioShell>{props.children}</StudioShell>
+                </Show>
+              }
             >
               <ComponentsShell>{props.children}</ComponentsShell>
             </Show>

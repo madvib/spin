@@ -577,7 +577,7 @@ export default function Home(): JSX.Element {
           <Match when={stage() === 0}>
             <section
               id="sec-hero"
-              style={{ "max-width": "29rem" }}
+              style={{ "max-width": "38rem" }}
               class="pointer-events-auto flex w-fit flex-col items-start gap-4"
             >
               <span class="inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
@@ -606,15 +606,15 @@ export default function Home(): JSX.Element {
                 </A>
               </div>
 
-              <div class="flex w-fit max-w-full flex-nowrap items-center gap-1 overflow-x-auto rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
+              <div class="flex w-full max-w-full flex-wrap items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
                 <docs-select ref={setSelectEl} id="install-pm" />
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
+                  class="bare inline-flex w-fit min-w-0 flex-1 items-start gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
                 >
                   <span class="text-text-muted">$</span>
-                  <span>{installCommand()}</span>
+                  <span class="min-w-0 flex-1 break-all">{installCommand()}</span>
                   <span
                     class={
                       copiedCmd()
@@ -852,10 +852,10 @@ export default function Home(): JSX.Element {
                 Flip the toggle and watch the markup change.
               </p></span>
 
-              {/* One card size; each specimen fills the same cell */}
+              {/* Compact rows: specimen left, label right, no stacked caption */}
               <div class="grid w-[19rem] max-w-full grid-cols-2 gap-2">
-                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex flex-wrap items-center gap-1">
+                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
+                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
                     <button type="button" class="s-sm">
                       Save
                     </button>
@@ -863,13 +863,13 @@ export default function Home(): JSX.Element {
                       Cancel
                     </button>
                   </div>
-                  <code>
+                  <code class="shrink-0">
                     &lt;button&gt;
                   </code>
                 </div>
 
-                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <label class="inline-flex w-fit cursor-pointer items-center gap-2">
+                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
+                  <label class="inline-flex min-w-0 flex-1 cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
                       role="switch"
@@ -878,15 +878,15 @@ export default function Home(): JSX.Element {
                         setSwitchChecked(e.currentTarget.checked)
                       }
                     />
-                    <span>Token gate</span>
+                    <span class="truncate">Token gate</span>
                   </label>
-                  <code>
-                    role="switch"
+                  <code class="shrink-0">
+                    switch
                   </code>
                 </div>
 
-                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex flex-wrap items-center gap-1">
+                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
+                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
                     <progress value={progressVal()} max={100} class="w-16" />
                     <button
                       type="button"
@@ -898,32 +898,31 @@ export default function Home(): JSX.Element {
                       {progressVal()}%
                     </button>
                   </div>
-                  <code>
+                  <code class="shrink-0">
                     &lt;progress&gt;
                   </code>
                 </div>
 
-                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <div class="flex flex-wrap items-center gap-1">
+                <div class="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
+                  <div class="flex min-w-0 flex-1 flex-col items-start gap-1">
                     <badge class="badge-success">AA</badge>
                     <badge class="badge-warning">DTCG</badge>
                     <badge class="badge-neutral">CSS</badge>
                   </div>
-                  <code>
+                  <code class="shrink-0">
                     &lt;badge&gt;
                   </code>
                 </div>
 
-                <div class="col-span-2 flex flex-col justify-center gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
-                  <p class="font-heading text-sm font-semibold text-text">
-                    Theme-bound prose
+                <div class="col-span-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
+                  <p class="min-w-0 flex-1 text-xs text-text-muted">
+                    <span class="font-heading text-sm font-semibold text-text">
+                      Theme-bound prose
+                    </span>{" "}
+                    — headings, <a href="/guide/markup">links</a> share one scale.
                   </p>
-                  <p class="text-xs text-text-muted">
-                    Headings, paragraphs, lists, and{" "}
-                    <a href="/guide/markup">links</a> spend the same type scale.
-                  </p>
-                  <code>
-                    &lt;p&gt; · &lt;h2&gt; · &lt;a&gt;
+                  <code class="shrink-0">
+                    &lt;p&gt;
                   </code>
                 </div>
               </div>

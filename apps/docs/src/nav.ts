@@ -55,7 +55,6 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     items: [
       { title: "Themes & modes", href: "/themes" },
       { title: "Authoring themes", href: "/themes/authoring" },
-      { title: "Using the Studio", href: "/studio" },
       { title: "Elements & CSS", href: "/guide/markup" },
       { title: "Utilities & animations", href: "/guide/css" },
       { title: "Components & templates", href: "/guide/components" },

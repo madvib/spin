@@ -1,7 +1,7 @@
 /**
- * Using the Studio: the complete walkthrough — launching it, managing
- * themes, and editing colors, type, icons, motion, spacing, style,
- * elements, and findings.
+ * The Studio world: the live editor embedded full-bleed, with the
+ * walkthrough beneath it. This page edits the docs' own theme — the
+ * preview repaints this site before anything is saved.
  */
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
@@ -9,22 +9,28 @@ import { Code, Section } from "../bits.tsx";
 import { SNIPPETS } from "../snippets.ts";
 
 export default function Studio(): JSX.Element {
+  const app = typeof location === "undefined"
+    ? ""
+    : `?app=${encodeURIComponent(location.origin)}&mode=drawer`;
   return (
-    <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
-      <h1>Using the Studio</h1>
-      <p class="max-w-prose text-text-muted">
-        The Studio is Spin's theme editor: change a color, a type ramp, an
-        icon, or a spacing step, and the running page repaints before anything
-        is saved. When it is right, save; the theme document lands in{" "}
-        <code>spin/</code>.
-      </p>
-      <div class="mt-6">
-        <img
-          src={`${import.meta.env.BASE_URL}studio/themes.png`}
-          alt="The Spin Studio theme list, with live swatches for each theme"
-          class="w-full rounded-md border border-border bg-surface-raised shadow-md"
+    <main class="flex h-full min-h-0 flex-col">
+      <div class="mx-auto w-full max-w-screen-lg px-6 pt-10">
+        <h1>Using the Studio</h1>
+        <p class="max-w-prose text-text-muted">
+          The Studio is Spin's theme editor: change a color, a type ramp, an
+          icon, or a spacing step, and the running page repaints before anything
+          is saved. When it is right, save; the theme document lands in{" "}
+          <code>spin/</code>. Below is the live editor, editing this site.
+        </p>
+      </div>
+      <div class="mx-auto mt-6 w-full max-w-screen-lg flex-1 px-6 pb-6">
+        <iframe
+          title="Spin theme studio, editing this site"
+          src={`${import.meta.env.BASE_URL}__spin/studio/${app}`}
+          class="h-[70dvh] w-full rounded-md border border-border bg-surface-raised shadow-md"
         />
       </div>
+      <div class="mx-auto w-full max-w-screen-lg px-6 pb-10 md:pb-16">
 
       <Section id="launch" title="Launching the Studio">
         <p>
@@ -212,6 +218,7 @@ export default function Studio(): JSX.Element {
           gate it touches is defined there.
         </p>
       </Section>
+      </div>
     </main>
   );
 }

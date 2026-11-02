@@ -68,7 +68,7 @@ export function Section(props: {
     <SharedSection
       title={props.title}
       id={props.id}
-      class="mb-10 scroll-mt-20"
+      class="mb-10 max-w-prose scroll-mt-20"
       muted
     >
       {props.children}
