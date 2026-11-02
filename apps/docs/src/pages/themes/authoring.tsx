@@ -156,7 +156,7 @@ done`;
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Authoring a theme</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         A theme is written, not generated. The scaffold gives you the roles and
         the studio gives you the editors, and neither of them can decide what
         the product should look like. This page is the method: the shape of the

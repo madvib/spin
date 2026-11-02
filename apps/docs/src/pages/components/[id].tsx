@@ -102,7 +102,7 @@ export default function ComponentPage(): JSX.Element {
           </Show>
           <h1>{params.id}</h1>
           <Show when={examples()}>
-            {(ex) => <p class="max-w-screen-md text-text-muted">{ex().note}</p>}
+            {(ex) => <p class="max-w-prose text-text-muted">{ex().note}</p>}
           </Show>
 
           <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">

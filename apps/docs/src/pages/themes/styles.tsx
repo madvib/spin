@@ -37,7 +37,7 @@ export default function Styles(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Style references</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         A style reference is a direction, not a theme. It names a look, says
         what makes that look recognisable, and says what would pull it back
         towards the house style. Pick one, read it, and spend the axes

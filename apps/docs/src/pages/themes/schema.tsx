@@ -158,7 +158,7 @@ export default function Schema(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Theme schema</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         A theme is a JSON object of groups. The groups the starters declare are
         the groups a theme owns; the roles the schema requires are the floor
         under them; and the types are the closed vocabulary a token may declare.

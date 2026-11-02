@@ -136,6 +136,9 @@ export const WIDTH_KEYWORDS: Record<string, string> = {
   "min": "min-content",
   "max": "max-content",
   "fit": "fit-content",
+  // The prose measure: the same 65ch the `<prose>` container caps at, so a
+  // page's own lede and the markdown beside it share one column.
+  "prose": "65ch",
 };
 
 export const HEIGHT_KEYWORDS: Record<string, string> = {

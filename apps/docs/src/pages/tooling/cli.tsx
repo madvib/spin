@@ -10,7 +10,7 @@ export default function ToolingCli(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>CLI &amp; plugin options</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         The <code>spin</code> command, the plugin that wires it into your
         bundler, and the subpaths the three packages publish. Options below
         are quoted from the CLI's own usage text and the{" "}

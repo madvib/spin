@@ -12,7 +12,7 @@ export default function Studio(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Using the Studio</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         The Studio is Spin's theme editor: change a color, a type ramp, an
         icon, or a spacing step, and the running page repaints before anything
         is saved. When it is right, save; the theme document lands in{" "}

@@ -113,7 +113,7 @@ export default function Utilities(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Utilities & Scales</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         Every utility the active starter spends, grouped by what you reach for
         it to do. Switch the starter in the header and the catalog re-derives — a
         scale the new theme does not declare simply is not listed. The probe

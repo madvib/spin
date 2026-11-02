@@ -62,7 +62,7 @@ export default function Themes(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Themes</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         A theme is one DTCG JSON document. It declares a product's palette,
         typography, spatial scales, elevation, motion, and mode variants in a
         single tree of groups and tokens. See{" "}

@@ -10,7 +10,7 @@ export default function Quickstart(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Quickstart</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         Four steps: initialize or install, wire your bundler, import the
         stylesheet and the component registry, then vendor a component and open
         the Studio.

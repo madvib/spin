@@ -28,7 +28,7 @@ export default function Guide(props: RouteSectionProps): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Guide</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         Write semantic HTML and Spin custom elements without class
         boilerplate, then learn the exact CSS boundaries where Spin's closed
         token vocabulary takes over from utility CSS. Installation and

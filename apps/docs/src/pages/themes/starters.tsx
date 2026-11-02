@@ -23,7 +23,7 @@ export default function Starters(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Starters</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         The five starter themes the package ships — <code>silk</code>,{" "}
         <code>neobrut</code>, <code>console</code>, <code>synthwave</code>, and{" "}
         <code>spin</code>. Each one is exported from{" "}
@@ -32,7 +32,7 @@ export default function Starters(): JSX.Element {
         <code>@spinjs/spin/theme</code>), and this page renders those documents
         directly so it cannot drift from them.
       </p>
-      <p class="max-w-screen-md text-sm text-text-muted">
+      <p class="max-w-prose text-sm text-text-muted">
         Starters are creation-only templates and are never auto-served into a
         project's <code>spin/</code> directory. An unforked theme served from
         the package or a <code>themes</code> map has a project path of{" "}

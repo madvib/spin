@@ -64,7 +64,7 @@ export default function Model(): JSX.Element {
   return (
     <main class="mx-auto max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Mental model</h1>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-prose text-text-muted">
         One theme feeds CSS variables; utilities and elements spend those
         variables. Machines are a separate, optional layer. A change belongs to
         the layer that owns the decision, and each layer has its own check.
@@ -93,7 +93,7 @@ export default function Model(): JSX.Element {
         </table>
       </div>
 
-      <p class="max-w-screen-md">
+      <p class="max-w-prose">
         The theme is the single source of truth. Utilities and native elements
         read it through CSS variables; a class outside the vocabulary emits no
         CSS. The machine components read it too, but they add behaviour rather
