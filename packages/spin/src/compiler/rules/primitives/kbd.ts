@@ -14,11 +14,12 @@ function kbdRule(mode: Mode): Rule {
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),
-        // A keycap's edge is a hairline, never the theme's control stroke: the
-        // cap is a micro-element, and a 3px border plus padding doubles its
-        // height until it stretches whatever control carries it. The shadow
-        // keeps the theme's step as the bottom stamp — the keycap read.
-        ...(t.border !== undefined ? { border: `1px solid ${t.border}` } : {}),
+        ...(t.borderWidth !== undefined && t.border !== undefined
+          ? { border: `${t.borderWidth} solid ${t.border}` }
+          : {}),
+        // The keycap's bottom step is a shadow, not a thicker border: a
+        // doubled block-end border eats the face on chunky-border themes
+        // until the cap reads as a solid brick.
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { "box-shadow": `0 ${t.borderWidth} 0 0 ${t.border}` }
           : {}),

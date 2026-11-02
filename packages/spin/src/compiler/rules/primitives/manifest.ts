@@ -260,7 +260,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     variants: [
       "bare",
       "button-icon",
-      "chrome",
       "contrast",
       "danger",
       "ghost",
@@ -290,7 +289,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--color-surface",
       "--color-surface-raised",
       "--color-text",
-      "--color-text-muted",
       "--focus-offset",
       "--focus-width",
       "--font-family-sans",
@@ -304,7 +302,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--radius-md",
       "--spacing-1",
       "--spacing-2",
-      "--spacing-3",
       "--spacing-4",
       "--spacing-8",
     ],
@@ -1153,7 +1150,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
-
 
 
 
