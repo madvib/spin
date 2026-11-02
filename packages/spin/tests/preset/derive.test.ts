@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { writeManifest } from "../../src/preset/rules/primitives/derive.ts";
+import { writeManifest } from "../../src/compiler/rules/primitives/derive.ts";
 
 /**
  * The manifest is written by reading the checked-in file: `variants` and
@@ -16,7 +16,7 @@ import { writeManifest } from "../../src/preset/rules/primitives/derive.ts";
  */
 
 const MANIFEST = new URL(
-  "../../src/preset/rules/primitives/manifest.ts",
+  "../../src/compiler/rules/primitives/manifest.ts",
   import.meta.url,
 );
 

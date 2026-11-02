@@ -22,7 +22,6 @@ const TITLES = ["Template", "Palette", "Fonts", "Name"];
 
 function defaultStarter(): string {
   const all = registry() ?? [];
-  if (all.some((t) => t.name === "silk")) return "silk";
   for (const theme of all) {
     try {
       if (themeModes(JSON.parse(theme.text)).length > 1) return theme.name;

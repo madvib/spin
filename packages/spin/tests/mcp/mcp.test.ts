@@ -83,7 +83,7 @@ describe("the spin MCP server", () => {
       JSON.stringify(unlighted, null, 2),
     );
 
-    daemon = startDaemon({ root: dir, port: 0 });
+    daemon = await startDaemon({ root: dir, port: 0 });
     rpc = createSpinClient(daemon.url);
 
     const [clientTransport, serverTransport] = InMemoryTransport
@@ -107,12 +107,7 @@ describe("the spin MCP server", () => {
       arguments: { action: "list" },
     });
     deepStrictEqual(jsonOf(result), [
-      { name: "console", file: null },
-      { name: "neobrut", file: null },
       { name: "sample", file: "spin/sample.json" },
-      { name: "silk", file: null },
-      { name: "spin", file: null },
-      { name: "synthwave", file: null },
       { name: "unlighted", file: "spin/unlighted.json" },
     ]);
   });

@@ -157,8 +157,13 @@ function resolve(
     const inkPath = INK_FOR[spec.path];
     let ink = inkPath === undefined ? undefined : tokenValue(tree, mode, inkPath);
     if (ink === undefined) {
+      // The higher-contrast of the theme's text, white, and black: a chip
+      // whose theme text fails against its own value must still read.
       const text = tokenValue(tree, mode, "color.text") ?? "#111111";
-      ink = contrastRatio(text, value) >= contrastRatio("#ffffff", value) ? text : "#ffffff";
+      const candidates = [text, "#ffffff", "#111111"];
+      ink = candidates.reduce((best, candidate) =>
+        contrastRatio(candidate, value) > contrastRatio(best, value) ? candidate : best
+      );
     }
     out.push({ ...spec, value, ink });
   }

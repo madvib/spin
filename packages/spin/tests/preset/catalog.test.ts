@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
-import { describeCatalog, scaffoldDocument, spinPreset } from "../../src/preset/index.ts";
+import { describeCatalog, scaffoldDocument, spinPreset } from "../../src/compiler/index.ts";
 import { BASE_ROLES, parseTokens, scaffoldTheme, treeToJson } from "../../src/theme/index.ts";
-import { claims } from "../../src/preset/utils/claimed.ts";
+import { claims } from "../../src/compiler/utils/claimed.ts";
 
 /**
  * The REAL default theme, not a fixture.
@@ -17,6 +17,7 @@ import { claims } from "../../src/preset/utils/claimed.ts";
 const THEME = JSON.parse(
   await readFile(
     new URL("../../src/theme/themes/silk.json", import.meta.url),
+    "utf8",
   ),
 ) as Record<string, unknown>;
 

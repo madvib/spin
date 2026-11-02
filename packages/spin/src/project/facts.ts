@@ -9,7 +9,7 @@
 
 import { parseTokens, scaffoldTheme, treeToJson } from "../theme/index.ts";
 import { starterThemes } from "../theme/themes/index.ts";
-import { configScaffoldText } from "../preset/config.ts";
+import { configScaffoldText } from "../plugin/config.ts";
 
 /**
  * The directory a project's themes live in, relative to its root.
@@ -45,12 +45,30 @@ export function defaultPrefix(packageName?: string): string {
 export const ICONS_DIR = "icons";
 
 /**
+ * The file a project's own configuration lives in, under its directory.
+ *
+ * Additive metadata the plugin options cannot express: which theme the
+ * studio seats, and what order the theme list shows. Unknown keys are
+ * ignored, and a file that does not parse counts as absent — a half
+ * written config must not cost the reader the themes the project has.
+ */
+export const CONFIG_FILENAME = "config.json";
+
+/** What `spin/config.json` holds, when it holds anything. */
+export interface SpinConfigFile {
+  /** The theme the studio seats on load, when it names a served theme. */
+  readonly activeTheme?: string;
+  /** Display order for the theme list; unknown names ignored, unlisted served names after, alphabetically. */
+  readonly themeOrder?: readonly string[];
+}
+
+/**
  * The file a project's build configuration is written to.
  *
  * The one name `spin init` writes, and the one the report looks for when it
  * says whether a project is wired.
  */
-export const CONFIG_FILENAME = "uno.config.ts";
+export const UNO_FILENAME = "uno.config.ts";
 
 /**
  * The build configurations a project may keep.
@@ -71,7 +89,9 @@ export const CONFIG_FILES: readonly string[] = [
   "rspack.config.ts",
   "rspack.config.js",
   "webpack.config.js",
+  "webpack.config.mjs",
   "rollup.config.js",
+  "rollup.config.mjs",
   "rolldown.config.ts",
   "spin.config.ts",
   "spin.config.js",
@@ -106,9 +126,12 @@ export function initFiles(
     readonly name: string;
     readonly starter: string;
     readonly bundler?: string;
+    readonly themesDir?: string;
   },
 ): Record<string, string> {
-  const config = configScaffoldText(options.bundler ?? "vite");
+  const config = configScaffoldText(options.bundler ?? "vite", {
+    themesDir: options.themesDir,
+  });
   return {
     [`${options.name}.json`]: themeText(options.starter),
     [config.filename]: config.text,
@@ -123,9 +146,9 @@ export function initFiles(
  * fails on a name it does not know.
  */
 function themeText(starter: string): string {
-  const document = (starterThemes as Record<string, unknown>)[starter];
+  const document = starterThemes[starter];
   if (document === undefined) return treeToJson(scaffoldTheme());
-  const parsed = parseTokens(document as Parameters<typeof parseTokens>[0]);
+  const parsed = parseTokens(document);
   if (!parsed.ok) return treeToJson(scaffoldTheme());
   return treeToJson(parsed.tree);
 }

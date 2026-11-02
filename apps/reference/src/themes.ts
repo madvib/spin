@@ -6,12 +6,13 @@
  * out is a theme nobody can compare, and a theme compared under a name the
  * app does not serve is a theme that does not exist.
  *
- * The list is the starters the theme package ships, FORKED by the project's
- * own files: a file of the same name in `spin/` replaces the starter of that
- * name, and a file of a name the package does not ship adds a theme of its
- * own. The build serves the same set — the plugin reads `spin/*.json` from
- * the same directory — so the names here are the names the page carries, and
- * the montage shows whatever the project serves under them.
+ * The list is the starters the app names through `extends`, FORKED by the
+ * project's own files: a file of the same name in `spin/` replaces the
+ * starter of that name, and a file of a name the package does not ship
+ * adds a theme of its own. The build serves the same set — the plugin
+ * reads `spin/*.json` from the same directory — so the names here are
+ * the names the page carries, and the montage shows whatever the
+ * project serves under them.
  */
 
 import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
@@ -57,13 +58,16 @@ const PROJECT_THEMES: Record<string, Record<string, unknown>> = Object
   );
 
 /**
- * Every theme the app serves: the shipped starters, and the project's own.
+ * Every theme the app serves: the named starters, and the project's own.
  *
  * A project's file wins over the starter of the same name, which is what
- * "forked" means: the build serves the project's copy, so the app must too.
+ * "forked" means: the build serves the project's copy, so the app must
+ * too. This merge mirrors the plugin's `extends` layering — same
+ * inputs, same order — so the columns are the themes the stylesheet
+ * carries.
  */
 const SERVED: Record<string, Record<string, unknown>> = {
-  ...(starterThemes as unknown as Record<string, Record<string, unknown>>),
+  ...starterThemes,
   ...PROJECT_THEMES,
 };
 

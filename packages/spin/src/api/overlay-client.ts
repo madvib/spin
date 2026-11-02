@@ -37,7 +37,7 @@ export const OVERLAY_SCRIPT =
   fab.type = "button";
   fab.setAttribute(
     "style",
-    "position:fixed;right:16px;bottom:16px;z-index:50;display:flex;" +
+    "position:fixed;right:16px;bottom:16px;z-index:2147483000;display:flex;" +
       "align-items:center;gap:8px;padding:8px 16px;border:none;border-radius:999px;" +
       "font:inherit;cursor:pointer;",
   );
@@ -55,7 +55,7 @@ export const OVERLAY_SCRIPT =
   const host = document.createElement("div");
   host.setAttribute(
     "style",
-    "position:fixed;inset:8px;z-index:50;display:none;overflow:hidden;",
+    "position:fixed;inset:0;z-index:2147483000;display:none;overflow:hidden;",
   );
   host.dataset.mode = "modal";
   host.innerHTML = [
@@ -103,6 +103,7 @@ export const OVERLAY_SCRIPT =
   }
   grip.addEventListener("pointerup", endDrag);
   grip.addEventListener("pointercancel", endDrag);
+  let open = false;
   function syncGrip(mode) {
     const drawer = mode === "drawer";
     grip.style.display = drawer && open ? "block" : "none";
@@ -137,9 +138,9 @@ export const OVERLAY_SCRIPT =
     host.setAttribute(
       "style",
       mode === "drawer"
-        ? "position:fixed;" + edge + "z-index:50;width:" + width + ";" +
+        ? "position:fixed;" + edge + "z-index:2147483000;width:" + width + ";" +
           "min-width:360px;max-width:85vw;display:" + (open ? "block" : "none") + ";overflow:hidden;"
-        : "position:fixed;inset:8px;z-index:50;display:" + (open ? "block" : "none") +
+        : "position:fixed;inset:0;z-index:2147483000;display:" + (open ? "block" : "none") +
           ";overflow:hidden;",
     );
     syncGrip(mode);

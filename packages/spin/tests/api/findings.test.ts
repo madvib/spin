@@ -14,6 +14,9 @@ import { test } from "bun:test";
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createSpinClient, setProjectRoot } from "../../src/api/index.ts";
+import spinStarter from "../../src/theme/themes/spin.json" with {
+  type: "json",
+};
 import { RPCHandler } from "@orpc/server/fetch";
 import { router } from "../../src/api/index.ts";
 
@@ -34,10 +37,11 @@ function serve(root: string) {
   };
 }
 
-/** A project with a source file that has something to report. */
+/** A project with a theme and a source file that has something to report. */
 async function project(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   await mkdir(`${root}/spin`);
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
   await mkdir(`${root}/src`);
   await writeFile(
     `${root}/src/app.tsx`,
@@ -51,7 +55,7 @@ async function project(): Promise<string> {
   );
   await writeFile(
     `${root}/vite.config.ts`,
-    `import { spin } from "../../src/preset/index.ts";
+    `import { spin } from "../../src/compiler/index.ts";
 
 export default {
   plugins: [

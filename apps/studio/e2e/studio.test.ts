@@ -13,7 +13,7 @@
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { ROUTE_PATHS } from "../src/lib/routes.ts";
+import { CHILD_PATHS, ROUTE_PATHS } from "../src/lib/routes.ts";
 import { test, withPage, withWatcher } from "./harness.ts";
 import {
   appUrl,
@@ -22,6 +22,7 @@ import {
   studioUrl,
   valueAt,
 } from "./studio.ts";
+import { seatTheme } from "./themes.ts";
 
 test("every route renders", async (t) => {
   await withPage(async (page) => {
@@ -70,10 +71,14 @@ for (const mode of ["Light", "Dark"] as const) {
   test(`the studio is legible in ${label} mode`, async (t) => {
     await withPage(async (page) => {
       await page.goto(`${studioUrl()}/`);
+      // Silk serves both modes, so the mode control is never disabled;
+      // the seated default may serve one.
+      const seated = await seatTheme(page, "silk");
+      assert(seated === "seated", `silk never seated: ${seated}`);
       const pressed = await page.chooseMode(label);
       assert(pressed === "pressed", `the ${mode} control is ${pressed}`);
       const failures: string[] = [];
-      for (const route of ROUTE_PATHS) {
+      for (const route of [...ROUTE_PATHS, ...CHILD_PATHS.filter((path) => !path.includes(":"))]) {
         await t.step(route, async () => {
           await page.followRail(route);
           for (const failure of await page.contrastFailures()) {
@@ -96,6 +101,8 @@ for (const mode of ["Light", "Dark"] as const) {
   test(`the code view is legible in ${label} mode`, async () => {
     await withPage(async (page) => {
       await page.goto(`${studioUrl()}/`);
+      const seated = await seatTheme(page, "silk");
+      assert(seated === "seated", `silk never seated: ${seated}`);
       const pressed = await page.chooseMode(label);
       await page.followRail("/components");
       await page.followRail("/components/button");
@@ -179,18 +186,20 @@ test("the rail does not scroll with the content", async (t) => {
             const nav = document.querySelector("#app nav");
             if (!nav) return { windowScroll: -1, columnScroll: -1, drift: -1 };
             const top0 = nav.getBoundingClientRect().top;
-            const windowScroller = document.scrollingElement;
-            if (windowScroller) windowScroller.scrollTop = 400;
             const column = [...document.querySelectorAll("#app *")].find((el) => {
               if (nav.contains(el)) return false;
               const s = getComputedStyle(el);
               return (s.overflowY === "auto" || s.overflowY === "scroll") &&
                 el.scrollHeight > el.clientHeight + 400;
             });
+            // The content column scrolls; the window must not move with it.
+            // (Setting window scroll first would drag a sticky rail along
+            // and blame the rail for the window's own scrollability.)
             if (column) column.scrollTop = 400;
             await new Promise((r) =>
               requestAnimationFrame(() => requestAnimationFrame(r))
             );
+            const windowScroller = document.scrollingElement;
             return {
               windowScroll: windowScroller ? windowScroller.scrollTop : -1,
               columnScroll: column ? column.scrollTop : -1,
@@ -250,7 +259,13 @@ test("a studio edit re-themes the app", async () => {
     await watcher.reload();
     const before = await watcher.cssVar("--color-primary");
 
-    await driver.goto(`${studioUrl()}/colors?app=${encodeURIComponent(app)}`);
+    await driver.goto(`${studioUrl()}/themes/colors?app=${encodeURIComponent(app)}`);
+    await driver.settle(2000);
+    const seated = await seatTheme(driver, "silk");
+    assert(seated === "seated", `silk never seated: ${seated}`);
+    const lit = await driver.chooseMode("light");
+    assert(lit === "pressed", `light never chose: ${lit}`);
+    await driver.settle(1500);
     const edited = await driver.setColor(
       '[id="token-color.primary-light"]',
       "#b91c1c",
@@ -292,9 +307,15 @@ test("one step dragged lands the whole scale", async () => {
     await watcher.reload();
     const before = await watcher.cssVar("--spacing-2");
 
-    await driver.goto(`${studioUrl()}/spacing?app=${encodeURIComponent(app)}`);
+    await driver.goto(`${studioUrl()}/themes/spacing?app=${encodeURIComponent(app)}`);
+    await driver.settle(2000);
+    const seatedScale = await seatTheme(driver, "silk");
+    assert(seatedScale === "seated", `silk never seated: ${seatedScale}`);
+    const litScale = await driver.chooseMode("light");
+    assert(litScale === "pressed", `light never chose: ${litScale}`);
+    await driver.settle(1500);
     await driver.selectStep("spacing.1");
-    const driven = await driver.dragRange("spacing.1", "1");
+    const driven = await driver.dragRange("spacing.1", "1", { linked: true });
     await watcher.settle(3000);
     const state = await watcher.overlay(app);
     const name = state.dirty[0] ?? "";
@@ -302,7 +323,7 @@ test("one step dragged lands the whole scale", async () => {
     const after = await watcher.cssVar("--spacing-2");
 
     assert(
-      driven === "dragged" && published !== null && after === published &&
+      driven.startsWith("dragged") && published !== null && after === published &&
         after !== before,
       `spacing.1 → 1rem drove spacing.2 ${before} → ${after}, published=${published}, theme=${name}`,
     );
@@ -328,6 +349,8 @@ test("save clears the dirty set", async () => {
     // run's leftovers. The status line lives on the overview, so the theme a
     // save would write is read there, before the editor opens it.
     await page.goto(`${studioUrl()}/`);
+    const seatedSave = await seatTheme(page, "silk");
+    assert(seatedSave === "seated", `silk never seated: ${seatedSave}`);
     const theme = await page.editingName();
     assert(theme !== "", "no status line names the theme a save would write");
     await page.eval(
@@ -337,14 +360,15 @@ test("save clears the dirty set", async () => {
         const listed = await rpc("/project/themes/list", {});
         const forked = listed.some((t) => t.name === ${JSON.stringify(theme)} && t.file !== null);
         if (!forked) {
-          const orig = (await rpc("/project/themes/read", { name: ${JSON.stringify(theme)} })).text;
-          await rpc("/project/themes/write", { name: ${JSON.stringify(theme)}, text: orig });
+          // A brand theme is read-only: fork it with an explicit copy,
+          // which is the one write the brand allows.
+          await rpc("/project/themes/copy", { from: ${JSON.stringify(theme)}, to: ${JSON.stringify(theme)} });
         }
       })()`,
     );
     await page.reload();
     await page.settle(1200);
-    await page.goto(`${studioUrl()}/colors`);
+    await page.goto(`${studioUrl()}/themes/colors`);
 
     const flow = await page.eval<{
       edited: string;
@@ -432,8 +456,17 @@ test("a theme is created, seated, and deleted from the registry", async () => {
         opener.click();
         await wait(400);
         const dialog = document.querySelector('dialog[aria-label="New theme"]');
-        const field = dialog ? dialog.querySelector('input[type="text"]') : null;
-        if (!dialog || !field) return miss("no-name-field");
+        if (!dialog) return miss("no-dialog");
+        // The dialog steps template → palette → fonts → name: walk to the
+        // name step before filling it.
+        for (let step = 0; step < 3; step++) {
+          const next = [...dialog.querySelectorAll("button")].find((b) => b.textContent.trim() === "Next");
+          if (!next) return miss("no-next-button");
+          next.click();
+          await wait(200);
+        }
+        const field = dialog.querySelector('input[type="text"]');
+        if (!field) return miss("no-name-field");
         field.value = NAME;
         field.dispatchEvent(new Event("input", { bubbles: true }));
         const create = [...dialog.querySelectorAll("button")].find((b) => b.textContent.trim() === "Create");
@@ -455,7 +488,7 @@ test("a theme is created, seated, and deleted from the registry", async () => {
           return true;
         };
         const row = (name) =>
-          document.querySelector('[role="option"][data-theme="' + name + '"]');
+          document.querySelector('[role="option"][data-theme-option="' + name + '"], [role="option"][data-value="' + name + '"], [role="option"][data-theme="' + name + '"]');
         await openPanel();
         const offered = row(NAME) !== null;
         const seated = (document.getElementById("app")?.innerText ?? "").indexOf("Editing " + NAME) > -1;
@@ -467,12 +500,19 @@ test("a theme is created, seated, and deleted from the registry", async () => {
         if (rest) rest.click();
         await wait(600);
 
-        const card = [...document.querySelectorAll("article")].find((c) => [...c.querySelectorAll("button")].some((b) => b.textContent.trim() === NAME));
-        const remove = card ? card.querySelector('button[title="Delete this theme"]') : null;
+        const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) => [...c.querySelectorAll("button")].some((b) => b.textContent.trim() === NAME));
+        const menu = card ? card.querySelector("studio-theme-menu") : null;
+        const trigger = menu ? menu.querySelector("button") : null;
+        if (!trigger) return { created: "created", listed, carded, offered, seated, removed: "no-delete-button", stillListed: true, stale: false, restored: false };
+        trigger.click();
+        await wait(400);
+        const remove = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Delete");
         if (!remove) return { created: "created", listed, carded, offered, seated, removed: "no-delete-button", stillListed: true, stale: false, restored: false };
         remove.click();
-        await wait(200);
-        remove.click();
+        await wait(400);
+        const confirm = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Confirm delete?");
+        if (!confirm) return { created: "created", listed, carded, offered, seated, removed: "no-delete-confirm", stillListed: true, stale: false, restored: false };
+        confirm.click();
         await wait(1800);
 
         const stillListed = (await names()).indexOf(NAME) > -1;
@@ -524,14 +564,14 @@ const SWEEP: readonly {
   readonly step?: string;
 }[] = [
   {
-    route: "/colors",
+    route: "/themes/colors",
     variable: "--color-primary",
     path: ["color", "primary"],
     expected: "#b91c1c",
     color: { control: '[id="token-color.primary-light"]', value: "#b91c1c" },
   },
   {
-    route: "/spacing",
+    route: "/themes/spacing",
     variable: "--spacing-4",
     path: ["spacing", "4"],
     expected: "3rem",
@@ -539,21 +579,21 @@ const SWEEP: readonly {
     step: "spacing.4",
   },
   {
-    route: "/type",
+    route: "/themes/type",
     variable: "--font-weight-medium",
     path: ["font", "weight", "medium"],
     expected: "600",
     drag: "600",
   },
   {
-    route: "/motion",
+    route: "/themes/motion",
     variable: "--motion-duration-base",
     path: ["motion", "duration", "base"],
     expected: "600ms",
     drag: "600",
   },
   {
-    route: "/style",
+    route: "/themes/style",
     variable: "--radius-md",
     path: ["radius", "md"],
     expected: "1rem",
@@ -575,23 +615,36 @@ test("every editor writes the token it names, and the app renders it", async (t)
           await driver.goto(
             `${studioUrl()}${edit.route}?app=${encodeURIComponent(app)}`,
           );
+          await driver.settle(2000);
+          const seatedSweep = await seatTheme(driver, "silk");
+          assert(seatedSweep === "seated", `silk never seated: ${seatedSweep}`);
+          const litSweep = await driver.chooseMode("light");
+          assert(litSweep === "pressed", `light never chose: ${litSweep}`);
+          await driver.settle(1500);
         } else {
           await driver.followRail(edit.route);
         }
         let driven = "no-control";
+        let snapped: number | undefined;
         if (edit.color !== undefined) {
           driven = await driver.setColor(edit.color.control, edit.color.value);
         }
         if (edit.drag !== undefined) {
           if (edit.step !== undefined) await driver.selectStep(edit.step);
-          driven = await driver.dragRange(edit.path.join("."), edit.drag);
+          const result = await driver.dragRange(edit.path.join("."), edit.drag);
+          if (result.startsWith("dragged:")) {
+            driven = "dragged";
+            snapped = Number(result.slice("dragged:".length));
+          } else {
+            driven = result;
+          }
+          (edit as { snapped?: number }).snapped = snapped;
         }
         if (driven !== "edited" && driven !== "dragged") {
           misses.push(`${edit.path.join(".")}: ${driven}`);
         }
       });
     }
-
     await watcher.settle(3500);
     const state = await watcher.overlay(app);
     const theme = state.dirty[0] ?? "";
@@ -599,11 +652,19 @@ test("every editor writes the token it names, and the app renders it", async (t)
     for (const edit of SWEEP) {
       const published = valueAt(state.themes[theme], edit.path);
       const rendered = await watcher.cssVar(edit.variable);
-      if (published !== edit.expected || rendered !== published) {
+      // A drag lands on the track's grid (min + k·step): the snapped
+      // number plus the token's unit is the expectation, not the
+      // decimal the walk named.
+      const snapped = (edit as { snapped?: number }).snapped;
+      const unit = edit.expected.replace(/^[0-9.]+/, "");
+      const wanted = edit.drag !== undefined && snapped !== undefined
+        ? `${snapped}${unit}`
+        : edit.expected;
+      if (published !== wanted || rendered !== published) {
         misses.push(
           `${
             edit.path.join(".")
-          }: published=${published} rendered=${rendered} wanted=${edit.expected}`,
+          }: published=${published} rendered=${rendered} wanted=${wanted}`,
         );
       }
     }
@@ -626,7 +687,7 @@ test("every editor writes the token it names, and the app renders it", async (t)
  */
 test("a motion commit survives navigation", async () => {
   await withPage(async (page) => {
-    await page.goto(`${studioUrl()}/motion`);
+    await page.goto(`${studioUrl()}/themes/motion`);
     const committed = await page.eval<string>(
       `(async () => {
         const track = document.querySelector('input[type="range"][aria-label="motion.duration.fast"]');
@@ -639,7 +700,7 @@ test("a motion commit survives navigation", async () => {
       })()`,
     );
     assert(committed === "held", `the commit left the page ${committed}`);
-    await page.followRail("/style");
+    await page.followRail("/themes/style");
     const heading = await page.eval<string | null>(
       `document.querySelector("#app h1")?.textContent ?? null`,
     );
@@ -667,8 +728,12 @@ test("the dark slot writes $modes.dark and the app renders it", async () => {
     const base = await watcher.cssVar("--color-primary");
 
     await driver.goto(`${studioUrl()}/?app=${encodeURIComponent(app)}`);
+    await driver.settle(2000);
+    const seatedDark = await seatTheme(driver, "silk");
+    assert(seatedDark === "seated", `silk never seated: ${seatedDark}`);
+    await driver.settle(1500);
     const flipped = await driver.chooseMode("dark");
-    await driver.followRail("/colors");
+    await driver.followRail("/themes/colors");
     const edited = await driver.setColor(
       '[id="token-color.primary-dark"]',
       "#b91c1c",
@@ -781,7 +846,7 @@ test("a theme that declares one mode hides the cycle button", async () => {
         const cycled = button ? button.getAttribute("data-choice") === "light" || button.disabled === true : false;
 
         // Off the overview, the pane still wears the theme's own mode.
-        const link = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").indexOf("/colors") === 0);
+        const link = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").indexOf("/themes/colors") === 0);
         if (link) link.click();
         await wait(1200);
         const onAnotherRoute = paneMode("neobrut") === "light" && (document.getElementById("app")?.innerText ?? "").indexOf("does not build") === -1;
@@ -936,13 +1001,13 @@ async function openComponentPanel(page: StudioPage): Promise<string> {
   );
   if (here !== "button") {
     await page.eval(
-      `(() => { const rail = document.querySelector('nav[aria-label="Studio"] a[href="/components"]'); if (rail) rail.click(); return "followed"; })()`,
+      `(() => { const rail = [...document.querySelectorAll('nav[aria-label="Studio"] a')].find((a) => (a.getAttribute("href") ?? "").endsWith("/components")); if (rail) rail.click(); return "followed"; })()`,
     );
     await page.settle(400);
     await page.eval(
       `(async () => {
         for (let i = 0; i < 40; i++) {
-          const a = document.querySelector('nav[aria-label="Components"] a[href="/components/button"]');
+          const a = [...document.querySelectorAll('nav[aria-label="Components"] a')].find((x) => (x.getAttribute("href") ?? "").endsWith("/components/button"));
           if (a) { a.click(); return "clicked"; }
           await new Promise((r) => setTimeout(r, 100));
         }
@@ -1069,6 +1134,9 @@ test("the component-token controls read as chrome, not as calls to action", asyn
  */
 test("a negative tracking rests where the row says it does", async () => {
   await withPage(async (page) => {
+    await page.goto(`${studioUrl()}/`);
+    const seatedTrack = await seatTheme(page, "silk");
+    assert(seatedTrack === "seated", `silk never seated: ${seatedTrack}`);
     await page.goto(`${studioUrl()}/components/button`);
     const opened = await openComponentPanel(page);
     assert(opened === "opened", `the component panel is ${opened}`);

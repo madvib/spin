@@ -7,7 +7,7 @@ import {
   requiredRolesFor,
   scaffoldDocument,
   spinPreset,
-} from "../../src/preset/index.ts";
+} from "../../src/compiler/index.ts";
 
 /**
  * The compositional proof.

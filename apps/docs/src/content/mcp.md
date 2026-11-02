@@ -1,48 +1,27 @@
 <!-- USER COPY SLOT: mcp-intro — your own agent-workflow framing, or the default below. -->
 
-# MCP & Agents
-
 An agent that writes markup blind invents names. The MCP server connects the
 agent to your project before it writes a word: eight tools over the daemon RPC,
 two resources for read-only documents, and the house skill that teaches the
 theme language.
 
-```json
-{
-  "mcpServers": {
-    "spin": {
-      "command": "deno",
-      "args": [
-        "run",
-        "--allow-net",
-        "--allow-env",
-        "packages/mcp/src/main.ts",
-        "--daemon",
-        "http://127.0.0.1:7463/rpc"
-      ]
-    }
-  }
-}
-```
-
-Run it from your spin workspace: `main.ts` is the stdio entry, `--daemon` points
-at the daemon the dev server already runs, and the tools answer over that RPC.
-Nothing is published yet — v0.1 is source-first, so the server runs from the
-tree you have.
+`spin mcp` starts the stdio server and reads the project's themes and
+components. Add `--url http://127.0.0.1:7463/rpc` to dial a running daemon
+instead. `spin studio` serves that RPC at `http://127.0.0.1:7463/rpc` and the
+Studio at `http://127.0.0.1:7463/studio/`. 0.1 is a preview; the server ships
+in `@spinjs/spin` as `spin mcp`.
 
 ## The eight tools
 
-| Tool        | Actions                                                | What the agent gets                                                                                                                     |
-| ----------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `theme`     | `list`, `read`, `create`, `write`, `analyze`, `delete` | Whole DTCG documents — create forks a theme or scaffolds the required roles; `analyze` answers with the issues the document still has   |
-| `token`     | `set`, `remove`, `rename`                              | Atomic token edits: read → mutate → write → validate in one call, so the document is never half-written                                 |
-| `component` | `list`, `contract`                                     | Every primitive's tags, variants, token reads, component tokens, and example HTML — the names the agent may write                       |
-| `utility`   | —                                                      | The project theme's utilities grouped by intent — the classes the agent may spend                                                       |
-| `icon`      | `search`, `body`                                       | The 5 installed Iconify collections (`lucide`, `material-symbols`, `tabler`, `carbon`, `ph`): find glyph names, fetch inline SVG bodies |
-| `savedIcon` | `list`, `read`, `save`, `remove`                       | Your project's `spin/icons/*.svg` — saved glyphs with attribution                                                                       |
-| `font`      | —                                                      | The Fontsource catalog by family name — what `font.family.*` may name                                                                   |
-| `preview`   | —                                                      | Scoped `.spin-preview` CSS for a theme plus a markup snippet — render before committing                                                 |
-
+`theme` (whole DTCG documents — list, read, create, write, analyze, delete),
+`token` (atomic token edits — set, remove, rename), `component` (every
+primitive's tags, variants, token reads, and example HTML), `utility` (the
+project theme's utilities grouped by intent), `icon` (the five installed
+Iconify collections — search names, fetch SVG bodies), `savedIcon` (your
+project's `spin/icons/*.json` with attribution), `font` (the Fontsource
+catalog by family name), and `preview` (scoped `.spin-preview` CSS for a
+theme plus a markup snippet). The table below the page keeps the same list
+beside the connection config.
 ## The two resources
 
 `spin://project` answers what the project holds — themes, primitives, shortcuts
@@ -51,12 +30,19 @@ theme as DTCG JSON text, the same bytes the Studio edits and the sheet spends.
 
 ## The house skill
 
-The skill is the theme module's manual: the order of the work, the checklist of
-the theme's own groups, the gates and what each failure means. This site serves
-the assembled file beside the docs — install it with:
+The file is served at `/skill/spin-theme/SKILL.md` beside this page. Fetch it
+from the origin you are reading the docs on — the dev server below is `:5174`:
 
 ```bash
-curl -fsSL http://localhost:5199/skill/spin-theme/SKILL.md -o ~/.claude/skills/spin-theme/SKILL.md
+curl -fsSL http://localhost:5174/skill/spin-theme/SKILL.md -o ~/.claude/skills/spin-theme/SKILL.md
+```
+
+Or copy it from the installed package — the same bytes the site serves, since
+both are assembled from the theme module's own contract:
+
+```bash
+cp node_modules/@spinjs/spin/skill/SKILL.md ~/.claude/skills/spin-theme/SKILL.md
+cp node_modules/@spinjs/spin/skill/*.md ~/.claude/skills/spin-theme/
 ```
 
 <!-- USER COPY SLOT: mcp-close — your own agent policy (which tools are read-only, who may write). -->

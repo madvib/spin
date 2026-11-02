@@ -57,7 +57,11 @@ test("DatePickerApi promises the component's surface", () => {
   > = true;
   const getValueTextRowsTyped: AssertExact<
     DatePickerApi["getValueTextRows"],
-    () => readonly { readonly value: string; readonly text: string }[]
+    () => readonly {
+      readonly value: string;
+      readonly text: string;
+      readonly first: boolean;
+    }[]
   > = true;
   const getViewTextRowsTyped: AssertExact<
     DatePickerApi["getViewTextRows"],

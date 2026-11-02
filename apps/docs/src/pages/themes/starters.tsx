@@ -110,7 +110,7 @@ function ThemeCard(props: { theme: ThemeSummary }): JSX.Element {
           signature
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">axis</th>

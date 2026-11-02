@@ -1,5 +1,5 @@
 /**
- * `spin daemon` — the local distribution entry.
+ * The local daemon entry; `spin studio` starts it.
  *
  * One process, one port, one project root. The CLI, the MCP server, and the
  * studio all speak to this same surface; nothing here is dev tooling, so
@@ -23,7 +23,7 @@ const port = portFlag === -1 ? 7463 : Number(process.argv[portFlag + 1]);
 // and a port open to the network is a remote write to a developer's project.
 // `--host 0.0.0.0` is available and is a deliberate choice.
 const hostFlag = process.argv.indexOf("--host");
-const daemon = startDaemon({
+const daemon = await startDaemon({
   root,
   port,
   ...(hostFlag === -1 ? {} : { hostname: process.argv[hostFlag + 1] as string }),

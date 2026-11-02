@@ -3,9 +3,9 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator, escapeRegExp, toEscapedSelector } from "@unocss/core";
 import { parseTokens, treeToJson } from "../../src/theme/index.ts";
 import type { TokenTree } from "../../src/theme/index.ts";
-import { scaffold, spinPreset } from "../../src/preset/index.ts";
-import type { ThemeDocument } from "../../src/preset/index.ts";
-import { carriesRawColor, hasRawColor } from "../../src/preset/utils/color.ts";
+import { scaffold, spinPreset } from "../../src/compiler/index.ts";
+import type { ThemeDocument } from "../../src/compiler/index.ts";
+import { carriesRawColor, hasRawColor } from "../../src/compiler/utils/color.ts";
 
 /**
  * The working theme: the scaffold plus a few scales, so the rules that

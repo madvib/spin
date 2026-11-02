@@ -18,7 +18,7 @@
  * itself belongs to whoever is holding the file.
  */
 
-import { paintKeyOf } from "../preset/index.ts";
+import { paintKeyOf } from "../compiler/index.ts";
 import { isNativeElement } from "./html.ts";
 import { type Tier, tierInPlace } from "./tiers.ts";
 import type { Decision } from "./properties.ts";

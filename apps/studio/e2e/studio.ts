@@ -224,19 +224,33 @@ export class StudioPage {
     );
   }
 
-  /** A row's track, released: `change` commits — linked, the group follows. */
-  async dragRange(label: string, value: string): Promise<string> {
+  /** A row's track, released: `change` commits. Unlinked by default, so the
+   * drag lands one value rather than a lockstep ratio — a walk asserting
+   * the edited token passes `{ linked: true }` to keep the group's move. */
+  async dragRange(label: string, value: string, options?: { linked?: boolean }): Promise<string> {
+    const keep = options?.linked === true;
     return await this.eval<string>(
       `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        if (!${JSON.stringify(keep)}) {
+          const links = [...document.querySelectorAll("button")].filter((b) => (b.textContent ?? "").trim().startsWith("Linked"));
+          for (const link of links) link.click();
+          await wait(300);
+        }
         const input = document.querySelector(${
         JSON.stringify(`input[type="range"][aria-label="${label}"], input[aria-label="${label} value"]`)
       });
         if (input === null) return "no-track";
-        input.value = ${JSON.stringify(value)};
+        // A range snaps to min + k·step: write the value the track can
+        // hold, not the decimal the walk names. A walk asserting the
+        // commit reads the same grid the control commits on.
+        const min = Number(input.min), step = Number(input.step);
+        const snapped = step > 0 ? min + Math.round((Number(${JSON.stringify(value)}) - min) / step) * step : Number(${JSON.stringify(value)});
+        input.value = String(snapped);
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await new Promise((r) => setTimeout(r, 1200));
-        return "dragged";
+        return "dragged:" + snapped;
       })()`,
     );
   }
@@ -366,17 +380,40 @@ export class StudioPage {
   /** Client-side, because a navigation would reset the mode this walk was given. */
   async followRail(route: string): Promise<void> {
     await this.eval(
-      `(() => { const a = [...document.querySelectorAll("nav a")].find((x) => { const h = x.getAttribute("href") ?? ""; return h === ${
-        JSON.stringify(route)
-      } || h.startsWith(${
-        JSON.stringify(route)
-      } + "?"); }); if (a) a.click(); })()`,
+      `(() => { const route = ${JSON.stringify(route)};
+      // Hrefs carry the ?app= session param: match on the path half.
+      const pathOf = (h) => h.split("?")[0];
+      const match = (h) => {
+        const p = pathOf(h);
+        if (route === "/") return h === "/" || p.endsWith("/studio") || h.endsWith("/studio/");
+        return p === route || p.endsWith(route);
+      };
+      const a = [...document.querySelectorAll("nav a")].find((x) => match(x.getAttribute("href") ?? ""));
+      if (a) { a.click(); return; }
+      // A sub-view has no rail row of its own: walk through the parent job,
+      // whose side list offers the group.
+      const parent = route.split("/").slice(0, -1).join("/") || "/";
+      const p = [...document.querySelectorAll("nav a")].find((x) => pathOf(x.getAttribute("href") ?? "").endsWith(parent));
+      if (p) p.click(); })()`,
+    );
+    await this.settle(800);
+    // The side list arrives with the parent: click the group row when the
+    // first click only reached the job.
+    await this.eval(
+      `(() => { const route = ${JSON.stringify(route)}; const here = location.pathname;
+      const arrived = route === "/" ? (here === "/" || here.endsWith("/studio") || here.endsWith("/studio/")) : (here === route || here.endsWith(route));
+      if (arrived) return;
+      const a = [...document.querySelectorAll("nav a")].find((x) => (x.getAttribute("href") ?? "").split("?")[0].endsWith(route));
+      if (a) a.click(); })()`,
     );
     // The arrival, not any heading: a client-side navigation leaves the
     // old page's h1 on screen while the route's chunk compiles, and a
     // readiness check that matches any h1 passes on the page being left.
+    // The pathname ends with the route under a mount (`/__spin/studio`).
     await this.#waitFor(
-      `location.pathname === ${JSON.stringify(route)} ? location.pathname : null`,
+      route === "/"
+        ? `(location.pathname === "/" || location.pathname.endsWith("/studio") || location.pathname.endsWith("/studio/")) ? location.pathname : null`
+        : `location.pathname === ${JSON.stringify(route)} || location.pathname.endsWith(${JSON.stringify(route)}) ? location.pathname : null`,
       20_000,
     );
     await this.#waitFor(
@@ -401,7 +438,21 @@ export class StudioPage {
   > {
     return await this.eval(
       `(() => {
-        const parse = (c) => { const m = c.match(/[\\d.]+/g); if (!m) return null; return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 }; };
+        const canvas = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+        const hex = (c) => { const m = c.replace(/^#/, ""); if (!/^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(m)) return null;
+          return { r: parseInt(m.slice(0, 2), 16), g: parseInt(m.slice(2, 4), 16), b: parseInt(m.slice(4, 6), 16), a: m.length > 6 ? parseInt(m.slice(6, 8), 16) / 255 : 1 }; };
+        const parse = (c) => {
+          // oklch()/oklab() have no 0-255 channels to match: resolve through
+          // the canvas, which answers every spelling as sRGB hex.
+          if (c.includes("oklch") || c.includes("oklab")) {
+            if (!canvas) return null;
+            canvas.fillStyle = "#000000";
+            canvas.fillStyle = c;
+            return hex(canvas.fillStyle);
+          }
+          if (c.startsWith("#")) { const h = hex(c); if (h) return h; }
+          const m = c.match(/[\\d.]+/g); if (!m) return null; return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
+        };
         const over = (fg, bg) => ({ r: fg.r*fg.a + bg.r*(1-fg.a), g: fg.g*fg.a + bg.g*(1-fg.a), b: fg.b*fg.a + bg.b*(1-fg.a), a: 1 });
         const lum = (c) => { const f = [c.r,c.g,c.b].map((v) => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }); return 0.2126*f[0] + 0.7152*f[1] + 0.0722*f[2]; };
         const ratio = (a, b) => { const x = lum(a), y = lum(b); const hi = Math.max(x,y), lo = Math.min(x,y); return Math.round(((hi+0.05)/(lo+0.05)) * 100) / 100; };

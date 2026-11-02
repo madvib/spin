@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
-import { scaffoldDocument, spinPreset } from "../../src/preset/index.ts";
-import type { ThemeDocument } from "../../src/preset/index.ts";
+import { scaffoldDocument, spinPreset } from "../../src/compiler/index.ts";
+import type { ThemeDocument } from "../../src/compiler/index.ts";
 
 /**
  * A theme's declared faces are CSS the sheet must carry — whatever the theme

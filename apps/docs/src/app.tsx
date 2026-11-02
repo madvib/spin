@@ -13,7 +13,7 @@
 import { A, Navigate, Router, useLocation, useNavigate } from "@solidjs/router";
 import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { createEffect, createMemo, createSignal, For, lazy, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, lazy, onCleanup, Show } from "solid-js";
 import { BrandFavicon, Logo, theme, ThemePicker } from "@spinjs/kit";
 import { starterThemes } from "@spinjs/theme/themes";
 import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/theme";
@@ -98,7 +98,7 @@ function buildRoutes(): RouteDefinition[] {
       flat.push(layout);
       continue;
     }
-    const defaultChild = dir === "/guide" ? "install" : children[0].path;
+    const defaultChild = dir === "/guide" ? "markup" : children[0].path;
     flat.push({
       ...layout,
       children: [
@@ -108,6 +108,8 @@ function buildRoutes(): RouteDefinition[] {
     });
   }
   flat.push(
+    { path: "/why", component: redirect("/start") },
+    { path: "/guide/install", component: redirect("/start/install") },
     { path: "/guide/themes", component: redirect("/themes") },
     { path: "/guide/verify", component: redirect("/tooling/lints") },
     { path: "/tokens", component: redirect("/utilities") },
@@ -120,9 +122,9 @@ const ROUTES: RouteDefinition[] = buildRoutes();
 
 /** The primary color of the active starter, for the tab icon. */
 function activePrimary(): string {
-  const doc = (starterThemes as Readonly<Record<string, unknown>>)[
-    theme() as string
-  ] as { color?: { primary?: { $value?: unknown } } } | undefined;
+  const doc = starterThemes[theme() as string] as
+    | { color?: { primary?: { $value?: unknown } } }
+    | undefined;
   const value = doc?.color?.primary?.$value;
   return typeof value === "string" ? value : "#c8102e";
 }
@@ -141,7 +143,7 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
   const isHome = () => location.pathname === "/";
   return (
     <header
-      class={`sticky top-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b px-4 md:px-6 ${
+      class={`shrink-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-4 border-b px-4 md:px-6 ${
         isHome()
           ? "border-transparent bg-transparent"
           : "border-border bg-surface"
@@ -189,7 +191,7 @@ function TopNav(props: { onOpenSearch: () => void }): JSX.Element {
 function DocsRail(): JSX.Element {
   return (
     <nav
-      class="sticky top-0 flex h-screen w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
+      class="flex h-full w-[14rem] shrink-0 flex-col gap-5 overflow-y-auto border-e border-border px-4 py-6"
       aria-label="docs"
     >
       <For each={DOCS_GROUPS}>
@@ -298,9 +300,9 @@ function ComponentsRail(props: {
 /** Every docs page: the rail on the left, the page on the right. */
 function DocsShell(props: { children: JSX.Element }): JSX.Element {
   return (
-    <div class="flex min-h-[calc(100dvh-3.5rem)] items-start bg-surface text-text font-sans text-md">
+    <div class="flex h-full min-h-0 items-start bg-surface text-text font-sans text-md">
       <DocsRail />
-      <div class="min-w-0 flex-1">{props.children}</div>
+      <div class="h-full min-w-0 flex-1 overflow-y-auto">{props.children}</div>
     </div>
   );
 }
@@ -310,28 +312,22 @@ function ComponentsShell(props: { children: JSX.Element }): JSX.Element {
   const [query, setQuery] = createSignal("");
   const [kind, setKind] = createSignal<ComponentKindFilter>("all");
   return (
-    <div class="flex min-h-[calc(100dvh-3.5rem)] items-start bg-surface text-text font-sans text-md">
+    <div class="flex h-full min-h-0 items-start bg-surface text-text font-sans text-md">
       <nav
-        class="sticky top-0 flex h-screen w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
+        class="flex h-full w-56 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6"
         aria-label="components"
       >
-        <label class="flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs">
-          <span
-            class="i-lucide-search icon-sm shrink-0 text-text-muted"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            placeholder="Filter components..."
-            value={query()}
-            onInput={(event) => setQuery(event.currentTarget.value)}
-            aria-label="filter components"
-            class="w-full border-transparent bg-transparent"
-          />
-        </label>
+        <input
+          type="search"
+          placeholder="Filter components..."
+          value={query()}
+          onInput={(event) => setQuery(event.currentTarget.value)}
+          aria-label="filter components"
+          class="s-sm w-full"
+        />
         <ComponentsRail filter={query()} kind={kind()} onKind={setKind} />
       </nav>
-      <div class="min-w-0 flex-1">{props.children}</div>
+      <div class="h-full min-w-0 flex-1 overflow-y-auto">{props.children}</div>
     </div>
   );
 }
@@ -367,6 +363,16 @@ function Layout(props: RouteSectionProps): JSX.Element {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = createSignal(false);
   createEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    onCleanup(() => window.removeEventListener("keydown", onKeyDown));
+  });
+  createEffect(() => {
     let style = document.getElementById("docs-theme-swatches");
     if (style === null) {
       style = document.createElement("style");
@@ -394,7 +400,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
     navigate(href);
   };
   return (
-    <div class="min-h-dvh bg-surface text-text font-sans text-md">
+    <div class="flex h-dvh flex-col overflow-hidden bg-surface text-text font-sans text-md">
       <BrandFavicon getPrimary={activePrimary} />
       <SearchDialog
         open={searchOpen()}
@@ -402,23 +408,34 @@ function Layout(props: RouteSectionProps): JSX.Element {
         onNavigate={onNavigate}
       />
       <TopNav onOpenSearch={() => setSearchOpen(true)} />
-      <Show
-        when={location.pathname === "/"}
-        fallback={
-          <Show
-            when={location.pathname.startsWith("/components")}
-            fallback={<DocsShell>{props.children}</DocsShell>}
-          >
-            <ComponentsShell>{props.children}</ComponentsShell>
-          </Show>
-        }
-      >
-        {props.children}
-      </Show>
+      <div class="min-h-0 flex-1">
+        <Show
+          when={location.pathname === "/"}
+          fallback={
+            <Show
+              when={location.pathname.startsWith("/components")}
+              fallback={<DocsShell>{props.children}</DocsShell>}
+            >
+              <ComponentsShell>{props.children}</ComponentsShell>
+            </Show>
+          }
+        >
+          <div class="h-full overflow-y-auto">{props.children}</div>
+        </Show>
+      </div>
     </div>
   );
 }
 
 export function App(): JSX.Element {
-  return <Router root={Layout}>{ROUTES}</Router>;
+  // The site serves from the build's base: `/` on its own domain, `/spin/`
+  // under project pages. The router strips the base before matching, so
+  // every route and link below reads base-free and the deploy moves by
+  // changing the build's `--base`, not the site's links.
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+  return (
+    <Router root={Layout} base={base}>
+      {ROUTES}
+    </Router>
+  );
 }

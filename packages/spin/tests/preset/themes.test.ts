@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { parseTokens, validateTokens } from "../../src/theme/index.ts";
-import { requiredRolesFor } from "../../src/preset/index.ts";
+import { requiredRolesFor } from "../../src/compiler/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import type { TokenLeaf, TokenNode } from "../../src/theme/index.ts";
 
@@ -17,6 +17,7 @@ function example(name: string): unknown {
   return JSON.parse(
     readFileSync(
       new URL(`../../src/theme/themes/${name}`, import.meta.url),
+      "utf8",
     ),
   );
 }

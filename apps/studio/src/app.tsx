@@ -27,14 +27,16 @@
  */
 
 import { MetaProvider, Title } from "@solidjs/meta";
-import { A, Route, Router } from "@solidjs/router";
+import { A, Navigate, Route, Router } from "@solidjs/router";
 import { Web } from "@spinjs/kit";
+import { studioBase } from "./lib/mount.ts";
 import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
 import IconsPage from "./routes/icons.tsx";
 import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
 import StylePage from "./routes/style.tsx";
+import ThemesLayout from "./routes/themes.tsx";
 import ComponentsLayout from "./routes/components.tsx";
 import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
@@ -49,7 +51,7 @@ import PreviewStyles from "./components/PreviewStyles.tsx";
 import Checks from "./components/Checks.tsx";
 import StudioError from "./components/StudioError.tsx";
 import TopBar from "./components/TopBar.tsx";
-import { CONCERNS, FOOT, MARK, type RoutePath, ROUTES } from "./lib/routes.ts";
+import { CONCERNS, FOOT, MARK, REDIRECTS, type RoutePath, ROUTES } from "./lib/routes.ts";
 
 import {
   activeMode,
@@ -87,12 +89,7 @@ const STUDIO_THEME = "studio";
 const PAGES = {
   "/": OverviewPage,
   "/preferences": PreferencesPage,
-  "/icons": IconsPage,
-  "/colors": ColorsPage,
-  "/type": TypePage,
-  "/style": StylePage,
-  "/spacing": SpacingPage,
-  "/motion": MotionPage,
+  "/themes": ThemesLayout,
   "/components": ComponentsLayout,
   "/findings": FindingsPage,
 } satisfies Record<RoutePath, Component>;
@@ -117,6 +114,13 @@ type ChildPath = RouteEntry extends {
 const CHILDREN = {
   "/components": ComponentsIndex,
   "/components/:name": ComponentPage,
+  "/themes": ColorsPage,
+  "/themes/colors": ColorsPage,
+  "/themes/type": TypePage,
+  "/themes/icons": IconsPage,
+  "/themes/motion": MotionPage,
+  "/themes/spacing": SpacingPage,
+  "/themes/style": StylePage,
 } satisfies Record<ChildPath, Component>;
 
 /**
@@ -243,9 +247,9 @@ export default function App() {
 
   return (
     <Router
-      // The bundle is served under `/__spin/studio/`; dev serves at `/`.
-      // Vite injects the build's base here, so one line covers both.
-      base={import.meta.env.BASE_URL.replace(/\/$/, "")}
+      // The bundle serves under the plugin's `/__spin/studio/` and the
+      // standalone daemon's `/studio/`; the router follows the page's mount.
+      base={studioBase(location.pathname)}
       root={(props) => (
         <MetaProvider>
           <Title>spin theme studio</Title>
@@ -371,7 +375,7 @@ export default function App() {
                   </A>
                   <RailTip label={MARK.label} top="top-4" />
                   </span>
-                  <ul class="flex w-full shrink-0 flex-col items-center gap-1">
+                  <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
                     <For each={CONCERNS}>
                       {(route) => (
                         <li class="relative m-0 w-full">
@@ -419,7 +423,7 @@ export default function App() {
                   }
                   <div class="mt-auto w-full">
                     <hr class="w-full" />
-                    <ul class="flex w-full shrink-0 flex-col items-center gap-1">
+                    <ul class="flow-list flex w-full shrink-0 flex-col items-center gap-1">
                       <Checks tip={<RailTip label="Checks" />} />
                       <For each={FOOT}>
                         {(route) => (
@@ -551,6 +555,16 @@ export default function App() {
               />
             ))}
           </Route>
+        )}
+      </For>
+      {
+        /* The folded group paths redirect to their sub-views: a bookmark
+          written against the old shape lands on the same page, and the
+          address bar tells the truth about where it is. */
+      }
+      <For each={Object.entries(REDIRECTS)}>
+        {([from, to]) => (
+          <Route path={from} component={() => <Navigate href={to} />} />
         )}
       </For>
     </Router>

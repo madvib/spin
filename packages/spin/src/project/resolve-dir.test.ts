@@ -8,22 +8,23 @@ import { resolveProjectDir } from "./resolve-dir.ts";
 /**
  * A project's directories, where they live.
  *
- * The configuration names a local path or a package specifier; what the
- * readers need is a filesystem path. These are the rules that turn one
- * into the other.
+ * The configuration names a local path; what the readers need is a
+ * filesystem path. These are the rules that turn one into the other —
+ * and the refusal a specifier earns, redirecting it to `extends`.
  */
 
-/** A root with a fixture package beneath it. */
+/** A root with a local tree and a fixture package beneath it. */
 async function fixture(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "spin-resolve-"));
+  await mkdir(join(root, "spin"), { recursive: true });
   await mkdir(join(root, "node_modules/@acme/kit/themes"), { recursive: true });
   await writeFile(join(root, "package.json"), JSON.stringify({ name: "probe" }));
   await writeFile(
     join(root, "node_modules/@acme/kit/package.json"),
     JSON.stringify({ name: "@acme/kit" }),
   );
-  await writeFile(join(root, "node_modules/@acme/kit/themes/acme.json"), "{}");
-  await writeFile(join(root, "node_modules/@acme/kit/theme.json"), "{}");
+  await writeFile(join(root, "spin/acme.json"), "{}");
+  await writeFile(join(root, "spin/single.json"), "{}");
   return root;
 }
 
@@ -39,34 +40,26 @@ test("a local path joins the root", async () => {
   );
 });
 
-test("a specifier naming a directory resolves beneath the package", async () => {
+test("a local file resolves to the file", async () => {
   const root = await fixture();
   deepStrictEqual(
-    await resolveProjectDir(root, "@acme/kit/themes", "themes"),
-    { path: join(root, "node_modules/@acme/kit/themes"), file: false },
+    await resolveProjectDir(root, "spin/single.json", "themes"),
+    { path: join(root, "spin/single.json"), file: true },
   );
 });
 
-test("a specifier naming a file resolves to the file", async () => {
+test("a specifier is refused with the redirect to extends", async () => {
   const root = await fixture();
-  deepStrictEqual(
-    await resolveProjectDir(root, "@acme/kit/theme.json", "themes"),
-    { path: join(root, "node_modules/@acme/kit/theme.json"), file: true },
-  );
-});
-
-test("an unresolvable specifier names kind, value, and root", async () => {
-  const root = await fixture();
-  let message = "";
-  try {
-    await resolveProjectDir(root, "@acme/missing/deep", "themes");
-  } catch (error) {
-    message = error instanceof Error ? error.message : "";
+  for (const value of ["@acme/kit/themes", "@acme/kit/theme.json"]) {
+    let message = "";
+    try {
+      await resolveProjectDir(root, value, "themes");
+    } catch (error) {
+      message = error instanceof Error ? error.message : "";
+    }
+    deepStrictEqual(
+      message,
+      `[spin] shared trees arrive through extends, not paths: '${value}'`,
+    );
   }
-  deepStrictEqual(
-    message.startsWith(
-      `[spin] cannot resolve themes '@acme/missing/deep' from ${root}: `,
-    ),
-    true,
-  );
 });

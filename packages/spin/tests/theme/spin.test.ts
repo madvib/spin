@@ -26,7 +26,7 @@ const SPIN = new URL("../../src/theme/themes/spin.json", import.meta.url);
 
 /** The spin document, parsed. */
 function spinTree(): TokenTree {
-  const parsed = parseTokens(JSON.parse(readFileSync(SPIN)));
+  const parsed = parseTokens(JSON.parse(readFileSync(SPIN, "utf8")));
   if (!parsed.ok) throw new Error(`spin.json did not parse: ${parsed.error}`);
   return parsed.tree;
 }

@@ -11,6 +11,7 @@
  */
 
 import { createSpinClient, type SpinClient } from "@spinjs/api/client";
+import { studioRpc } from "./mount.ts";
 
 /**
  * The host app the studio was pointed at, read once.
@@ -45,7 +46,7 @@ function rpcUrl(): string {
   // A `file://` preview or an opaque origin reports `"null"`: fall back
   // to the page URL rather than a dead origin.
   const origin = location.origin === "null" ? location.href : location.origin;
-  return new URL("/__spin/rpc", origin).toString();
+  return new URL(studioRpc(location.pathname), origin).toString();
 }
 
 let instance: SpinClient | undefined;

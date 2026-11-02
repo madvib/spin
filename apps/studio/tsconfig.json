@@ -15,7 +15,8 @@
     "esModuleInterop": true,
     "allowJs": true,
     "types": [
-      "vite/client"
+      "vite/client",
+      "bun-types"
     ],
     "paths": {
       "~/*": [
@@ -55,10 +56,10 @@
         "../../packages/spin/src/diagnostics/index.ts"
       ],
       "@spinjs/preset": [
-        "../../packages/spin/src/preset/index.ts"
+        "../../packages/spin/src/compiler/index.ts"
       ],
       "@spinjs/preset/config": [
-        "../../packages/spin/src/preset/config.ts"
+        "../../packages/spin/src/plugin/config.ts"
       ],
       "@spinjs/theme/base": [
         "../../packages/spin/src/theme/base/index.ts"
@@ -71,8 +72,5 @@
   "include": [
     "src",
     "vite.config.ts"
-  ],
-  "exclude": [
-    "src/**/*.test.ts"
   ]
 }

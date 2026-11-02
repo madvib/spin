@@ -1,15 +1,18 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "target": "esnext",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
     "strict": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true
-  }
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["bun-types", "vite/client"]
+  },
+  "include": ["packages", "scripts", "internal"],
+  "exclude": ["**/node_modules/**", "**/dist/**"]
 }

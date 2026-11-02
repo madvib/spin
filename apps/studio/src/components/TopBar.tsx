@@ -128,6 +128,20 @@ export default function TopBar() {
   const dirty = () => isDirty(theme());
   /** Whether the file moved under the studio. */
   const diverged = () => divergedFromDisk(theme());
+  /**
+   * Where the theme is served from, when it is not the project's own file.
+   *
+   * A trailing run on the editing line: the author is editing a theme they
+   * cannot write to, and the run says where it comes from instead. Absent
+   * origin (an old daemon) omits the run rather than guessing.
+   */
+  const scopeLine = (): string | undefined => {
+    if (hasProjectFile(theme())) return undefined;
+    const origin = registry()?.find((entry) => entry.name === theme())?.origin;
+    if (origin === "brand") return "Read-only — served from the brand";
+    if (origin === "verbatim") return "Read-only — served from verbatim themes";
+    return undefined;
+  };
   const [copyName, setCopyName] = createSignal("");
   const [copyProblem, setCopyProblem] = createSignal<string | null>(null);
 
@@ -244,6 +258,17 @@ export default function TopBar() {
           <span class="whitespace-nowrap">
             {fileStateText(dirty(), diverged())}
           </span>
+          <Show when={scopeLine()}>
+            {(line) => (
+              // The scope run hides where the bar is narrow: the editing
+              // line truncates rather than wraps, and a long run would push
+              // the bar past the viewport in the drawer.
+              <span class="hidden sm:inline">
+                {" · "}
+                <span class="whitespace-nowrap">{line()}</span>
+              </span>
+            )}
+          </Show>
         </p>
       </div>
 
@@ -396,7 +421,7 @@ export default function TopBar() {
               </button>
             </div>
             <p class="text-sm text-text-muted">
-              Built-in themes are read-only. Save your edits as a project
+              This theme is read-only here. Save your edits as a project
               theme in <code>spin/</code>.
             </p>
             <div class="field">

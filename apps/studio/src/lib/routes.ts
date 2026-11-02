@@ -50,51 +50,14 @@ export const ROUTES = [
     place: "mark",
   },
   {
-    path: "/colors",
-    label: "Color",
+    path: "/themes",
+    label: "Themes",
     icon: "i-lucide-palette",
     place: "concern",
-    owns: [["color"]],
-  },
-  {
-    path: "/type",
-    label: "Type",
-    icon: "i-lucide-type",
-    place: "concern",
-    owns: [["font"]],
-  },
-  {
-    path: "/icons",
-    label: "Icons",
-    // A stack of glyphs, not a shapes glyph: `shapes` reads as geometry —
-    // a concern the style page already owns — where the concern here is a
-    // SET of glyphs to choose from.
-    icon: "i-lucide-layers",
-    place: "concern",
-    owns: [["icon"]],
-  },
-  {
-    path: "/motion",
-    label: "Motion",
-    icon: "i-lucide-square-play",
-    place: "concern",
-    owns: [["motion"]],
-  },
-  {
-    path: "/spacing",
-    label: "Spacing",
-    icon: "i-lucide-ruler",
-    place: "concern",
-    owns: [["spacing"], ["breakpoint"]],
-  },
-  {
-    path: "/style",
-    label: "Style",
-    icon: "i-lucide-contrast",
-    place: "concern",
-    owns: [["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
+    owns: [["color"], ["font"], ["icon"], ["motion"], ["spacing"], ["breakpoint"], ["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
       "focus",
     ]],
+    children: ["", "/colors", "/type", "/icons", "/motion", "/spacing", "/style"],
   },
   {
     path: "/components",
@@ -119,6 +82,22 @@ export const ROUTES = [
     place: "foot",
   },
 ] as const satisfies readonly StudioRoute[];
+
+/**
+ * The folded token-group paths, and where they land now.
+ *
+ * The six group routes folded into `/themes` sub-views; a bookmark or a link
+ * written against the old shape still lands on the same page. A redirect,
+ * not an alias: the router navigates, so the address bar tells the truth.
+ */
+export const REDIRECTS: Readonly<Record<string, string>> = {
+  "/colors": "/themes/colors",
+  "/type": "/themes/type",
+  "/icons": "/themes/icons",
+  "/motion": "/themes/motion",
+  "/spacing": "/themes/spacing",
+  "/style": "/themes/style",
+};
 
 /** Every path the studio can be told to go to, for links and for gates. */
 export const ROUTE_PATHS: readonly string[] = ROUTES.map((route) => route.path);

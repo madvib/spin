@@ -3,6 +3,7 @@
  * declares its own: `badge` is an element the primitives ship, so JSX gets
  * to know it.
  */
+/// <reference types="@spinjs/spin/preset/solid" />
 import "solid-js";
 
 declare module "solid-js" {

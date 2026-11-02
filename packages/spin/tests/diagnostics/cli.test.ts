@@ -346,17 +346,17 @@ test("the init command carries its flags", () => {
   deepStrictEqual(command.yes, true);
 });
 
-test("the serve command defaults to the current directory", () => {
-  const command = parseArgs(["serve"]);
-  deepStrictEqual(command.kind, "serve");
-  if (command.kind !== "serve") return;
+test("the studio command defaults to the current directory", () => {
+  const command = parseArgs(["studio"]);
+  deepStrictEqual(command.kind, "studio");
+  if (command.kind !== "studio") return;
   deepStrictEqual(command.port, undefined);
   deepStrictEqual(command.host, undefined);
 });
 
-test("the serve command carries its port and host", () => {
+test("the studio command carries its port and host", () => {
   const command = parseArgs([
-    "serve",
+    "studio",
     "--root",
     "/tmp/x",
     "--port",
@@ -364,17 +364,17 @@ test("the serve command carries its port and host", () => {
     "--host",
     "0.0.0.0",
   ]);
-  deepStrictEqual(command.kind, "serve");
-  if (command.kind !== "serve") return;
+  deepStrictEqual(command.kind, "studio");
+  if (command.kind !== "studio") return;
   deepStrictEqual(command.root, "/tmp/x");
   deepStrictEqual(command.port, 8080);
   deepStrictEqual(command.host, "0.0.0.0");
 });
 
-test("the serve command refuses a port that is not a port", () => {
+test("the studio command refuses a port that is not a port", () => {
   let thrown: unknown;
   try {
-    parseArgs(["serve", "--port", "http"]);
+    parseArgs(["studio", "--port", "http"]);
   } catch (error) {
     thrown = error;
   }

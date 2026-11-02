@@ -37,6 +37,7 @@ export function formatExampleHtml(html: string): string {
 
 export type CodeTokenType =
   | "tag"
+  | "tag-name"
   | "attr"
   | "string"
   | "comment"
@@ -45,6 +46,11 @@ export type CodeTokenType =
   | "keyword"
   | "code-string"
   | "number"
+  | "boolean"
+  | "function"
+  | "type"
+  | "property"
+  | "operator"
   | "plain";
 
 export interface CodeToken {
@@ -196,8 +202,48 @@ function tokenizeTs(source: string): readonly CodeToken[] {
       let j = i + 1;
       while (j < source.length && /[\w$]/.test(source[j]!)) j += 1;
       const word = source.slice(i, j);
-      push(TS_KEYWORDS.has(word) ? "keyword" : "plain", word);
+      let prevNonSpace = "";
+      for (let k = i - 1; k >= 0; k -= 1) {
+        if (!WHITESPACE.test(source[k]!)) { prevNonSpace = source[k]!; break; }
+      }
+      let nextNonSpace = "";
+      let k2 = j;
+      while (k2 < source.length && WHITESPACE.test(source[k2]!)) k2 += 1;
+      if (k2 < source.length) nextNonSpace = source[k2]!;
+      let type: CodeTokenType;
+      if (word === "true" || word === "false" || word === "null" || word === "undefined") {
+        type = "boolean";
+      } else if (TS_KEYWORDS.has(word)) {
+        type = "keyword";
+      } else if (
+        word === "number" || word === "string" || word === "boolean" ||
+        word === "unknown" || word === "never" || word === "void" ||
+        word === "any" || word === "object" || word === "bigint" ||
+        word === "symbol"
+      ) {
+        type = "type";
+      } else if (nextNonSpace === "(") {
+        type = "function";
+      } else if (prevNonSpace === "." || nextNonSpace === ":") {
+        type = "property";
+      } else if (/^[A-Z]/.test(word)) {
+        type = "type";
+      } else {
+        type = "plain";
+      }
+      push(type, word);
       i = j;
+      continue;
+    }
+    const twoOp = source.slice(i, i + 2);
+    if (twoOp === "=>") {
+      push("operator", twoOp);
+      i += 2;
+      continue;
+    }
+    if ("=+-*/|&!?<>".includes(ch)) {
+      push("operator", ch);
+      i += 1;
       continue;
     }
     push(ch.trim() === "" ? "plain" : "punct", ch);
@@ -246,7 +292,7 @@ export function tokenizeHtml(html: string): readonly CodeToken[] {
     ) {
       end += 1;
     }
-    push("tag", html.slice(i, end));
+    push("tag-name", html.slice(i, end));
     i = end;
     while (i < html.length) {
       const ch = html[i]!;
@@ -305,14 +351,20 @@ export function tokenizeHtml(html: string): readonly CodeToken[] {
 }
 
 export const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
-  tag: "text-semantic-error",
+  tag: "text-primary",
+  "tag-name": "text-primary",
   attr: "text-link",
-  string: "text-semantic-warning",
+  string: "text-semantic-success",
   comment: "text-text-muted",
   punct: "text-text-muted",
   text: "text-text",
-  keyword: "text-semantic-error",
-  "code-string": "text-semantic-warning",
+  keyword: "text-primary",
+  "code-string": "text-semantic-success",
   number: "text-link",
+  boolean: "text-link",
+  function: "text-link",
+  type: "text-link",
+  property: "text-text",
+  operator: "text-text-muted",
   plain: "text-text",
 };

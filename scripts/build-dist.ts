@@ -681,18 +681,22 @@ async function buildPackage(
 
     // The studio bundle, built by `bun run build:studio` in this checkout.
     // A published `@spinjs/spin` serves `/__spin/studio` from this copy;
-    // absent (studio never built) the mount skips it instead of failing.
+    // shipping without it strands every consumer's Studio, so the build
+    // fails loudly instead of publishing a package that cannot serve it.
     if (manifest.name === "@spinjs/spin") {
       const built = join(REPO, "apps", "studio", "dist");
       const shipped = join(dist, "studio");
-      if ((await exists(join(built, "index.html")))) {
-        await rm(shipped, { recursive: true }).catch(() => {});
-        await mkdir(shipped, { recursive: true });
-        for (const file of await walk(built)) {
-          const target = join(shipped, file);
-          await mkdir(dirname(target), { recursive: true });
-          await copyFile(join(built, file), target);
-        }
+      if (!(await exists(join(built, "index.html")))) {
+        throw new Error(
+          "[spin] studio bundle missing: run bun run build:studio first",
+        );
+      }
+      await rm(shipped, { recursive: true }).catch(() => {});
+      await mkdir(shipped, { recursive: true });
+      for (const file of await walk(built)) {
+        const target = join(shipped, file);
+        await mkdir(dirname(target), { recursive: true });
+        await copyFile(join(built, file), target);
       }
     }
     if (manifest.name === "@spinjs/components") {
@@ -847,7 +851,16 @@ export function packManifestOf(
   };
   const next: Record<string, unknown> = { ...raw };
   next["exports"] = publishExports;
-  delete next["publishConfig"];
+  // The exports map ships promoted, but access travels with the
+  // package: a scoped tarball without `access: public` publishes as
+  // restricted, which the registry refuses without a paid org.
+  const { exports: _exports, ...publishRest } =
+    (raw["publishConfig"] as Record<string, unknown> | undefined) ?? {};
+  if (Object.keys(publishRest).length > 0) {
+    next["publishConfig"] = publishRest;
+  } else {
+    delete next["publishConfig"];
+  }
   const dependencies = pin(
     raw["dependencies"] as Record<string, string> | undefined,
   );

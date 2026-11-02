@@ -14,7 +14,7 @@
 import assert from "node:assert/strict";
 import { readdir, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { ROUTE_PATHS } from "../src/lib/routes.ts";
+import { CHILD_PATHS, ROUTE_PATHS } from "../src/lib/routes.ts";
 import { test, withPage } from "./harness.ts";
 import { type StudioPage, studioUrl } from "./studio.ts";
 import {
@@ -277,7 +277,7 @@ test("overview: create by copy and by scaffold, fork, reload, seat, delete", asy
       const seated = await page.eval<string>(
         `(async () => {
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-          const card = [...document.querySelectorAll("article")].find((c) =>
+          const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
             [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === ${JSON.stringify(copy)})
           );
           const name = card ? [...card.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === ${JSON.stringify(copy)}) : null;
@@ -293,39 +293,52 @@ test("overview: create by copy and by scaffold, fork, reload, seat, delete", asy
       );
       assert(seated === "seated", `the card never seated ${copy}: ${seated}`);
 
-      // Reload-from-disk and reset-to-starter answer without error.
+      // Reload-from-disk and reset-to-starter answer without error. The
+      // card's verbs live behind its menu: open it, then press Reload.
       const reloaded = await page.eval<string>(
         `(async () => {
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-          const card = [...document.querySelectorAll("article")].find((c) =>
-            [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === ${JSON.stringify(copy)})
-          );
-          const reload = card ? [...card.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Reload") : null;
-          if (!reload) return "no-reload";
-          reload.click();
-          await wait(800);
-          const silk = [...document.querySelectorAll("article")].find((c) =>
-            [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "silk")
-          );
-          const reset = silk ? [...silk.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Reload") : null;
-          if (!reset) return "no-reset";
-          reset.click();
-          await wait(800);
+          const press = async (name, verb, missing) => {
+            const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
+              [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === name)
+            );
+            if (!card) return "no-card";
+            const menu = card.querySelector("studio-theme-menu");
+            const trigger = menu ? menu.querySelector("button") : null;
+            if (!trigger) return "no-menu";
+            trigger.click();
+            await wait(400);
+            const item = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === verb);
+            if (!item) return missing;
+            item.click();
+            await wait(800);
+            return "pressed";
+          };
+          const first = await press(${JSON.stringify(copy)}, "Reload", "no-reload");
+          if (first !== "pressed") return first;
+          const second = await press("silk", "Reload", "no-reset");
+          if (second !== "pressed") return second;
           return "answered";
         })()`,
       );
       assert(reloaded === "answered", `the reload walk says ${reloaded}`);
 
-      // Fork silk, then delete the fork by its card.
+      // Fork silk via its card menu, then delete the fork by its card.
       const forked = await page.eval<string>(
         `(async () => {
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-          const card = [...document.querySelectorAll("article")].find((c) =>
+          const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
             [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "silk")
           );
-          const fork = card ? [...card.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Fork") : null;
-          if (!fork) return "no-fork";
-          fork.click();
+          if (!card) return "no-card";
+          const menu = card.querySelector("studio-theme-menu");
+          const trigger = menu ? menu.querySelector("button") : null;
+          if (!trigger) return "no-menu";
+          trigger.click();
+          await wait(400);
+          const dup = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Duplicate");
+          if (!dup) return "no-fork";
+          dup.click();
           await wait(1500);
           return "forked";
         })()`,
@@ -366,7 +379,7 @@ test("colors: card select, picker commit, swatch pick, then discard", async () =
     await openStudio(page);
     const seated = await seatTheme(page, "silk");
     assert(seated === "seated", `silk never seated: ${seated}`);
-    await page.followRail("/colors");
+    await page.followRail("/themes/colors");
 
     // Clicking role cards moves the inspector through the roles.
     const followed = await page.eval<string>(
@@ -477,7 +490,7 @@ test("type: font commit on a scratch theme, then discard and delete", async () =
       assert(made.accepted, `scratch creation refused: ${made.problem}`);
       const seated = await seatTheme(page, name);
       assert(seated === "seated", `the scratch theme never seated: ${seated}`);
-      await page.goto(`${studioUrl()}/type`);
+      await page.goto(`${studioUrl()}/themes/type`);
 
       const committed = await page.eval<string>(
         `(async () => {
@@ -530,7 +543,7 @@ test("spacing: row select, link toggle both ways, reset presence", async () => {
     await openStudio(page);
     const seated = await seatTheme(page, "silk");
     assert(seated === "seated", `silk never seated: ${seated}`);
-    await page.goto(`${studioUrl()}/spacing`);
+    await page.goto(`${studioUrl()}/themes/spacing`);
 
     const selected = await page.eval<string>(
       `(async () => {
@@ -583,7 +596,7 @@ test("style: first value per section commits and resets, link toggles flip", asy
     await openStudio(page);
     const seated = await seatTheme(page, "silk");
     assert(seated === "seated", `silk never seated: ${seated}`);
-    await page.goto(`${studioUrl()}/style`);
+    await page.goto(`${studioUrl()}/themes/style`);
 
     // Unlink the radius lockstep: a linked commit fans out to siblings.
     const unlink = await page.eval<string>(
@@ -666,7 +679,7 @@ test("icons: filters, search, size, copy, keep and remove", async () => {
     const root = await projectRoot(page);
     const seated = await seatTheme(page, "silk");
     assert(seated === "seated", `silk never seated: ${seated}`);
-    await page.goto(`${studioUrl()}/icons`);
+    await page.goto(`${studioUrl()}/themes/icons`);
 
     // Each collection filter redraws the grid.
     const filtered = await page.eval<string>(
@@ -809,7 +822,7 @@ test("motion: lane select and loop toggle", async () => {
     await openStudio(page);
     const seated = await seatTheme(page, "silk");
     assert(seated === "seated", `silk never seated: ${seated}`);
-    await page.goto(`${studioUrl()}/motion`);
+    await page.goto(`${studioUrl()}/themes/motion`);
 
     const lanes = await page.eval<string>(
       `(async () => {
@@ -888,7 +901,7 @@ test("components: filter narrows and clears, rail links land", async () => {
       const landed = await page.eval<string>(
         `(async () => {
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-          const link = document.querySelector(${JSON.stringify(`nav[aria-label="Components"] a[href="/components/${name}"]`)});
+          const link = [...document.querySelectorAll('nav[aria-label="Components"] a')].find((a) => (a.getAttribute("href") ?? "").endsWith("/components/${name}"));
           if (!link) return "no-link";
           link.click();
           await wait(800);
@@ -950,14 +963,17 @@ test("component detail: code switch both ways, copy to project and take away", a
         copy.click();
         for (let i = 0; i < 50; i++) {
           const text = (copy.textContent ?? "").trim();
-          if (text !== "copy to project") return "file:" + text;
+          if (text !== "copy to project") return "tag:" + text;
           await wait(100);
         }
         return "never-answered";
       })()`,
     );
-    assert(copied.startsWith("file:"), `the copy walk says ${copied}`);
-    const file = join(root, copied.slice("file:".length));
+    assert(copied.startsWith("tag:<"), `the copy walk says ${copied}`);
+    // The button wears the tag (`<reference-slider-basic>`); the file lands
+    // under the component's own directory by example stem.
+    const stem = copied.slice("tag:<".length, -">".length).split("-").pop() ?? "";
+    const file = join(root, "lib/components/slider", `${stem}.html`);
     try {
       assert(await there(file), `the copied example never landed: ${file}`);
     } finally {
@@ -1047,20 +1063,21 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
 
     const HEADINGS: Record<string, string> = {
       "/": "Themes",
-      "/colors": "Colors",
-      "/type": "Type",
-      "/icons": "Icons",
-      "/motion": "Motion",
-      "/spacing": "Spacing",
-      "/style": "Style",
+      "/themes/colors": "Colors",
+      "/themes/type": "Type",
+      "/themes/icons": "Icons",
+      "/themes/motion": "Motion",
+      "/themes/spacing": "Spacing",
+      "/themes/style": "Style",
       "/components": "Components",
       "/findings": "Findings",
       "/preferences": "Preferences",
     };
-    for (const route of ROUTE_PATHS) {
+    for (const route of [...ROUTE_PATHS, ...CHILD_PATHS.filter((path) => !path.includes(":"))]) {
       const h1 = await page.goto(`${studioUrl()}${route}?mode=drawer`);
+      const expected = route === "/themes" ? "Colors" : (HEADINGS[route] ?? "");
       assert(
-        (h1 ?? "").trim() === (HEADINGS[route] ?? ""),
+        (h1 ?? "").trim() === expected,
         `the drawer never rendered ${route}: h1="${h1 ?? "none"}"`,
       );
       const fits = await page.eval<boolean>(
@@ -1069,10 +1086,13 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
       assert(fits, `the drawer overflows on ${route}`);
     }
 
-    // Rail navigation works in the drawer.
+    // Rail navigation works in the drawer: the rail offers the Themes job,
+    // and the job's side list offers the groups.
     await page.goto(`${studioUrl()}/?mode=drawer`);
-    await page.followRail("/colors");
-    assert((await heading(page)) === "Colors", "the drawer rail never landed on /colors");
+    await page.followRail("/themes");
+    assert((await heading(page)) === "Colors", "the drawer rail never landed on /themes");
+    await page.followRail("/themes/colors");
+    assert((await heading(page)) === "Colors", "the drawer never landed on /themes/colors");
 
     // The theme seats in the drawer.
     const seated = await seatTheme(page, "silk");
@@ -1091,7 +1111,7 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
     assert((await clickText(page, "New theme")) === "clicked", "the drawer dialog never opened");
     assert((await clickText(page, "Cancel")) === "clicked", "the drawer dialog never cancelled");
 
-    await page.goto(`${studioUrl()}/colors?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/colors?mode=drawer`);
     const colorCommitted = await page.eval<string>(
       `(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1106,7 +1126,7 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
     assert(colorCommitted === "dirty", "the drawer color commit never landed");
     assert((await pressRail(page, "Discard changes")) === "pressed", "the drawer discard never pressed");
 
-    await page.goto(`${studioUrl()}/type?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/type?mode=drawer`);
     const comboOpened = await page.eval<string>(
       `(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1120,7 +1140,7 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
     );
     assert(comboOpened === "opened", "the drawer font field never opened");
 
-    await page.goto(`${studioUrl()}/spacing?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/spacing?mode=drawer`);
     const rowSelected = await page.eval<string>(
       `(() => {
         const row = document.querySelector("main ul button[aria-pressed]");
@@ -1131,13 +1151,13 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
     );
     assert(rowSelected === "selected", "the drawer spacing row never selected");
 
-    await page.goto(`${studioUrl()}/style?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/style?mode=drawer`);
     const resetThere = await page.eval<number>(
       `document.querySelectorAll('main button[title^="Reset "]').length`,
     );
     assert(resetThere > 0, "no reset button in the drawer style page");
 
-    await page.goto(`${studioUrl()}/icons?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/icons?mode=drawer`);
     const filterClicked = await page.eval<string>(
       `(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1152,7 +1172,7 @@ test("drawer: every route renders, navigates, seats, acts, and fits", async () =
     );
     assert(filterClicked === "clicked", "the drawer icon filter never clicked");
 
-    await page.goto(`${studioUrl()}/motion?mode=drawer`);
+    await page.goto(`${studioUrl()}/themes/motion?mode=drawer`);
     const laneSelected = await page.eval<string>(
       `(() => {
         const lane = document.querySelector("main ul button[aria-pressed]");

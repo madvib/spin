@@ -145,8 +145,8 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`rounded-md border border-border bg-surface-raised p-4 text-text overflow-x-auto ${
-          props.class ?? ""
+        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 font-mono text-sm leading-relaxed text-text ${
+          props.class ? ` ${props.class}` : ""
         }`}
       >
         <code>

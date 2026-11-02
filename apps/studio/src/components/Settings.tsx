@@ -47,7 +47,7 @@ export { refetchProjectThemes };
  * The project theme picker.
  *
  * A swatch in the bar and a panel over the page. The panel lists the themes
- * the project serves — the shipped starters, forked by its own files — not
+ * the project serves — local files beside the unforked brand — not
  * the studio's own chrome. The selected theme drives the preview surface
  * only.
  */

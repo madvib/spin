@@ -15,7 +15,7 @@
  * property — and only then are they equal or not.
  */
 
-import type { PaintKey } from "../preset/index.ts";
+import type { PaintKey } from "../compiler/index.ts";
 
 /**
  * The decisions an element's look is made of.

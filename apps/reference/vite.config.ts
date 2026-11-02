@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { mountSpinApp } from "@spinjs/spin/api";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 const here = import.meta.dirname!;
 
@@ -18,12 +18,12 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      // No `themes`: the app serves the shipped starters, forked by
-      // `spin/*.json` at this root — the same files the studio edits — so a
-      // theme change in the studio re-themes this app and nothing has to be
-      // re-imported. This project defines no themes of its own.
+      // The reference renders every starter, forked by `spin/*.json` at
+      // this root — the same files the studio edits — so a theme change
+      // in the studio re-themes this app. Starters arrive as values
+      // through `extends`, never by silent merge.
+      extends: { themes: starterThemes },
       presets: [presetIcons({ collections: { lucide } as never })],
-      mount: mountSpinApp(here),
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data

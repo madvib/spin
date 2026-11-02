@@ -22,7 +22,7 @@ import {
   describeCatalog,
   primitiveVariants,
   spinPreset,
-} from "../preset/index.ts";
+} from "../compiler/index.ts";
 import type { ThemeDocument } from "../theme/index.ts";
 import { createGenerator } from "@unocss/core";
 
@@ -216,6 +216,14 @@ export async function generatePreview(
   const parsed = parseTokens(input.text);
   if (!parsed.ok) return { css: "", error: `does not parse: ${parsed.error}` };
   const tree = parsed.tree;
+  // The overlay is shelved while the sheet generates: a preview is for the
+  // document it was handed — the editor's own text — and the cell still
+  // holds the edit an undo just took back, which would win the merge and
+  // repaint with the undone value. Restored after, so the running app
+  // keeps wearing the edit.
+  const { clearOverlay, overlayThemes, setOverlay } = await import("../plugin/session.ts");
+  const held = overlayThemes();
+  clearOverlay();
   try {
     const document = JSON.parse(input.text) as ThemeDocument;
     const uno = await createGenerator({
@@ -236,8 +244,10 @@ export async function generatePreview(
     // utility rule is scoped under the preview host: an unscoped preview
     // re-declares utilities the chrome also uses, and the later duplicate
     // wins by order. Theme variables keep their own data-theme scope.
+    setOverlay(held);
     return { css: scopePreview(css), error: null };
   } catch (err) {
+    setOverlay(held);
     return { css: "", error: err instanceof Error ? err.message : String(err) };
   }
 }

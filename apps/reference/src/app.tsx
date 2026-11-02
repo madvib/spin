@@ -46,7 +46,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -399,9 +399,7 @@ function AppHeader(props: { state: ThemeState }) {
         <span class="shrink-0 font-mono text-xs text-text-muted">theme</span>
         <ThemePicker
           state={props.state}
-          system
           class="min-w-0 flex-1"
-          triggerClass="w-full justify-between"
         />
       </div>
     </div>

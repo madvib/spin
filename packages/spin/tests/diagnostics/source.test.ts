@@ -11,10 +11,14 @@ import { test } from "bun:test";
  * source repeats, and the class lists that are not in the order the sheet
  * writes them.
  *
- * The fixture is a project: a `spin/` directory (the mark of one), a
- * source file, and the build configuration beside it. The themes are the
- * shipped starters, so the vocabulary is the one every project serves.
+ * The fixture is a project: a `spin/` directory (the mark of one) holding
+ * one named theme, a source file, and the build configuration beside it.
+ * The sheet the order is read from is the project's own.
  */
+
+import spinStarter from "../../src/theme/themes/spin.json" with {
+  type: "json",
+};
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import {
@@ -25,7 +29,7 @@ import {
   lintSource,
 } from "../../src/diagnostics/source.ts";
 
-/** A project with the given source, and a configuration beside it. */
+/** A project with the given source, a theme, and a configuration beside it. */
 async function project(
   source: string,
   config = `export default { plugins: [] };`,
@@ -34,6 +38,7 @@ async function project(
   await mkdir(`${root}/spin`);
   await mkdir(`${root}/src`);
   await writeFile(`${root}/src/app.tsx`, source);
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
   await writeFile(`${root}/vite.config.ts`, config);
   return root;
 }
@@ -245,7 +250,7 @@ test("a shortcut is declared in the project's own configuration", async () => {
   const root = await project(
     `export const App = () => <span className="flex flex-col gap-4" />;
 `,
-    `import { spin } from "../../src/preset/index.ts";
+    `import { spin } from "../../src/compiler/index.ts";
 
 export default {
   plugins: [

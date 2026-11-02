@@ -7,9 +7,9 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { parseTokens } from "../../src/theme/index.ts";
-import { spinPreset } from "../../src/preset/index.ts";
-import { splitTopLevel } from "../../src/preset/rules/primitives/derive.ts";
-import { primitiveContracts } from "../../src/preset/rules/primitives/manifest.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
+import { splitTopLevel } from "../../src/compiler/rules/primitives/derive.ts";
+import { primitiveContracts } from "../../src/compiler/rules/primitives/manifest.ts";
 
 /**
  * The behavioural proof.

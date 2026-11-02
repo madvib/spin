@@ -52,9 +52,9 @@ async function dirOf(root: string): Promise<string> {
       // Fall back to the default themes directory.
     }
   }
-  // Icons are always the project's own: a shared themes tree is read, not
-  // written beside — a specifier resolves for the read path, but the icons
-  // directory stays local either way.
+  // Icons are always the project's own, beside its local themes tree —
+  // or beside the default directory when the configured value names a
+  // single file rather than a directory.
   const resolved = await resolveProjectDir(root, themesDir, "themes");
   return resolved.file
     ? join(root, PROJECT_DIR, ICONS_DIR)

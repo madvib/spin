@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { classObjectExtractor, variantExtractor } from "../../src/preset/extractors.ts";
+import { classObjectExtractor, variantExtractor } from "../../src/compiler/extractors.ts";
 
 function extract(code: string): string[] {
   const result = variantExtractor.extract!({

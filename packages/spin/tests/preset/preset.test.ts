@@ -6,10 +6,10 @@ import type { UnocssPluginContext } from "@unocss/core";
 import MagicString from "magic-string";
 import { parseTokens } from "../../src/theme/index.ts";
 import type { TokenTree } from "../../src/theme/index.ts";
-import { scaffold, scaffoldDocument, spinPreset } from "../../src/preset/index.ts";
-import type { ThemeDocument } from "../../src/preset/index.ts";
+import { scaffold, scaffoldDocument, spinPreset } from "../../src/compiler/index.ts";
+import type { ThemeDocument } from "../../src/compiler/index.ts";
 import { treeToJson } from "../../src/theme/index.ts";
-import { wind4Layers } from "../../src/preset/wind4.ts";
+import { wind4Layers } from "../../src/compiler/wind4.ts";
 
 /**
  * The working theme: the scaffold plus one scale each, so token-driven rules

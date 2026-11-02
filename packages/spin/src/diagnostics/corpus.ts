@@ -266,7 +266,7 @@ export async function sheetOrder(
   if (classes.length === 0) return out;
   try {
     const { createGenerator } = await import("@unocss/core");
-    const { spinPreset } = await import("../preset/index.ts");
+    const { spinPreset } = await import("../compiler/index.ts");
     const generator = await createGenerator({
       presets: [spinPreset({ themes })],
     });

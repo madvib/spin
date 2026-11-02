@@ -54,18 +54,23 @@ export const synthwaveTheme = synthwave as ThemeDocument;
  */
 export { supportsDark, themeModes } from "../modes.ts";
 
-export const starterThemes = {
+export const starterThemes: Record<string, ThemeDocument> = {
   silk: silkTheme,
   neobrut: neobrutTheme,
   console: consoleTheme,
   synthwave: synthwaveTheme,
   spin: spinTheme,
-} as const;
+};
 
-export type StarterThemeName = keyof typeof starterThemes;
+export type StarterThemeName =
+  | "silk"
+  | "neobrut"
+  | "console"
+  | "synthwave"
+  | "spin";
 
 /**
- * The groups the shipped starters declare, in the order a document reads them.
+ * The groups the starters declare, in the order a document reads them.
  *
  * The starters are the product, so their groups are the system's vocabulary:
  * the scales a theme spends, the machinery it states, and the per-element

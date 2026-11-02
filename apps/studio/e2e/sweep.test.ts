@@ -19,11 +19,11 @@ import { seatTheme } from "./themes.ts";
 const THEMES = ["console", "neobrut", "silk", "spin", "synthwave"] as const;
 
 const CONCERNS = [
-  "/colors",
-  "/type",
-  "/motion",
-  "/spacing",
-  "/style",
+  "/themes/colors",
+  "/themes/type",
+  "/themes/motion",
+  "/themes/spacing",
+  "/themes/style",
   "/findings",
   "/preferences",
 ] as const;
@@ -119,7 +119,7 @@ test("Gate A: every theme renders every route with no dead scroll and no errors"
 
 test("Gate A: split panes and sidebars fit the viewport on /icons and /components/button", async () => {
   await withPage(async (studio) => {
-    await open(studio, "/icons");
+    await open(studio, "/themes/icons");
     const iconsFit = await studio.eval<{
       bottom: number;
       viewport: number;
@@ -128,7 +128,7 @@ test("Gate A: split panes and sidebars fit the viewport on /icons and /component
       `(() => {
         const pane = document.querySelector("studio-split-pane");
         const rect = pane?.getBoundingClientRect();
-        const scroller = pane?.querySelector(".drawer-scroll, [slot] > div");
+        const scroller = pane?.querySelector('[slot="primary"]');
         return {
           bottom: rect?.bottom ?? -1,
           viewport: window.innerHeight,
@@ -185,13 +185,13 @@ test("Gate A: split panes and sidebars fit the viewport on /icons and /component
 test("Gate B: window focus and refetch preserve projected slots", async () => {
   await withPage(async (studio) => {
     const probes: Record<string, string> = {
-      "/icons":
-        `document.querySelectorAll(".drawer-scroll svg").length`,
+      "/themes/icons":
+        `document.querySelector("studio-split-pane")?.querySelectorAll("svg").length ?? 0`,
       "/components/button":
         `document.querySelectorAll(".spin-preview").length`,
       "/components/component-slider":
         `document.querySelectorAll(".spin-preview").length`,
-      "/motion": `document.querySelectorAll('input[type="range"]').length`,
+      "/themes/motion": `document.querySelectorAll('input[type="range"]').length`,
     };
     for (const [route, probe] of Object.entries(probes)) {
       await open(studio, route);
@@ -212,7 +212,7 @@ test("Gate B: window focus and refetch preserve projected slots", async () => {
 
 test("Gate C: range inputs are grooves, not pills", async () => {
   await withPage(async (studio) => {
-    for (const route of ["/spacing", "/style", "/motion"]) {
+    for (const route of ["/themes/spacing", "/themes/style", "/themes/motion"]) {
       await open(studio, route);
       const boxes = await studio.eval<
         readonly { height: number; width: number }[]
@@ -240,8 +240,8 @@ test("Gate C: range inputs are grooves, not pills", async () => {
 test("Gate C: combobox inputs have borders and non-zero trigger icons", async () => {
   await withPage(async (studio) => {
     const probes: Record<string, string> = {
-      "/type": "studio-font-combobox",
-      "/colors": "studio-token-combobox",
+      "/themes/type": "studio-font-combobox",
+      "/themes/colors": "studio-token-combobox",
     };
     for (const [route, tag] of Object.entries(probes)) {
       await open(studio, route);
@@ -279,7 +279,7 @@ test("Gate C: /colors slots match the theme's declared modes", async () => {
       await open(studio, "/");
       const seated = await seatTheme(studio, theme);
       assert(seated === "seated", `the picker never seated ${theme}`);
-      await open(studio, "/colors");
+      await open(studio, "/themes/colors");
       const slots = await studio.eval<{
         modes: string;
         light: number;
@@ -335,11 +335,13 @@ test("Gate D: every routed specimen upgrades in the studio bundle", async () => 
     await open(studio, "/components/button");
     const routes = await studio.eval<string[]>(
       `(() => {
-        const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href^="/components/"]')];
+        const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href*="/components/"]')];
         const seen = new Set();
         for (const link of links) {
           const href = link.getAttribute("href") ?? "";
-          if (href !== "/components" && href.startsWith("/components/")) seen.add(href);
+          const at = href.indexOf("/components/");
+          if (at < 0 || href.endsWith("/components")) continue;
+          seen.add(href.slice(at));
         }
         return [...seen].sort();
       })()`,

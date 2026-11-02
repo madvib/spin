@@ -163,25 +163,25 @@ export default function ComponentsIndex(): JSX.Element {
             <div class="mt-4 grid gap-4 md:grid-cols-2">
               <For each={group.rows}>
                 {(row) => (
-                  <A
-                    href={row.href}
-                    class="block border border-border bg-surface-raised rounded-md overflow-hidden no-underline hover:border-border-strong transition-colors duration-fast"
-                  >
+                    <A
+                      href={row.href}
+                      class="group flex h-full flex-col overflow-hidden rounded-md border border-solid border-border bg-surface no-underline transition-colors duration-fast hover:border-border-strong"
+                    >
                     <Show
                       when={row.mountHtml !== ""}
                       fallback={
-                        <div class="flex min-h-24 max-h-64 items-center justify-center border-b border-border bg-surface p-3">
+                        <div class="flex min-h-40 flex-1 items-center justify-center overflow-hidden border-b border-solid border-border bg-surface px-5 py-6">
                           <span class="text-xs text-text-muted">
                             utility family
                           </span>
                         </div>
                       }
                     >
-                      <div class="flex min-h-24 max-h-64 items-center justify-center overflow-hidden border-b border-border bg-surface p-3">
+                      <div class="flex min-h-40 flex-1 items-center justify-center overflow-hidden border-b border-solid border-border bg-surface px-5 py-6">
                         <div class="block w-full min-w-0 [&>*]:mx-auto" innerHTML={row.mountHtml} />
                       </div>
                     </Show>
-                    <div class="flex items-center justify-between gap-2 px-4 py-3">
+                    <div class="mt-auto flex items-center justify-between gap-2 px-4 py-3">
                       <span class="flex min-w-0 items-center gap-2 font-heading text-lg text-text">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-text-muted`}

@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/runtime",
-  "version": "0.1.6",
+  "version": "0.1.0-preview.3",
   "description": "The component runtime: signals, bridges, elements, and directives.",
   "type": "module",
   "license": "MIT",
@@ -37,7 +37,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
     "alien-signals": "^3.2.1",

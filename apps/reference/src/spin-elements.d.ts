@@ -17,7 +17,3 @@
 // oxlint-disable-next-line typescript/triple-slash-reference
 /// <reference types="@spinjs/spin/preset/solid" />
 
-declare module "@spinjs/components/examples" {
-  const tags: readonly string[];
-  export default tags;
-}

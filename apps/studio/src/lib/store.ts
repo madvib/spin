@@ -34,10 +34,12 @@ import {
   loadProjectTheme,
   problemText,
   type ProjectReport,
+  readProjectConfig,
   saveTheme,
+  type StudioConfig,
+  type StudioTheme,
 } from "./themes.ts";
 import { spinClient, spinClientAt } from "./client.ts";
-import type { StudioTheme } from "./themes.ts";
 
 /**
  * Every theme the project serves, at load. Refresh is explicit: the user picks it up.
@@ -100,10 +102,31 @@ export function project(): ProjectReport | undefined {
 export function projectFailure(): unknown {
   return projectData.error;
 }
-
 /** Asks the daemon about the project again. */
 export function refetchProject(): void {
   refetchProjectResource();
+}
+
+/**
+ * The project's own configuration: the seat and the order.
+ *
+ * The daemon is the only one who can look: the studio is a browser, and the
+ * config is a file. Asked once, re-asked after every write — a resource like
+ * the registry, because it is the same kind of answer.
+ */
+const [configData, { refetch: refetchConfigResource }] = createResource(
+  readProjectConfig,
+);
+
+/** The project's own config, or `undefined` before it answers. A background
+ * refetch keeps the resolved config on screen. */
+export function config(): StudioConfig | undefined {
+  return configData.state === "refreshing" ? configData.latest : configData();
+}
+
+/** Asks the daemon about the project's config again. */
+export function refetchConfig(): void {
+  refetchConfigResource();
 }
 
 /**
@@ -112,19 +135,36 @@ export function refetchProject(): void {
  * The registry is the answer to "what is there", and it arrives after first
  * paint — a signal seeded with a name nobody writes would otherwise have the
  * editor editing a theme the project does not have, with empty text and an
- * invalid-JSON banner. When the current name is absent from what the daemon
- * listed, take the first thing it did list rather than guessing.
+ * invalid-JSON banner. The first seat wins the chain: the config's
+ * `activeTheme` when it names a served theme, the remembered seat when
+ * served, else the first listed. A configured name the layering does not
+ * serve is ignored — the config may name a theme the current project does
+ * not serve. After the first seat the config never moves the author again:
+ * the author's own seat is theirs to keep.
  */
+let seated = false;
 createEffect(() => {
   // A refetch in flight is a list that is about to change, and answering
   // against the one still on screen would undo a seat its own write just
   // made: a create appends to the registry, then seats the new name, and the
-  // stale list does not have it yet. Wait for the answer, then judge.
-  if (registryData.loading) return;
+  // stale list does not have it yet. Wait for the answer, then judge. The
+  // same holds for the config: seating before it answers would seat the
+  // remembered name, then jump when the configured one arrives.
+  if (registryData.loading || configData.loading) return;
   const listed = registry();
   if (listed === undefined || listed.length === 0) return;
-  const known = listed.some((theme) => theme.name === activeName());
-  if (!known) setActiveName(listed[0]!.name);
+  const served = new Set(listed.map((theme) => theme.name));
+  if (!seated) {
+    seated = true;
+    const configured = config()?.config.activeTheme;
+    if (configured !== undefined && served.has(configured)) {
+      setActiveName(configured);
+      return;
+    }
+    if (!served.has(activeName())) setActiveName(listed[0]!.name);
+    return;
+  }
+  if (!served.has(activeName())) setActiveName(listed[0]!.name);
 });
 
 /**
@@ -205,7 +245,7 @@ function remember(key: string, value: string): void {
 }
 
 const [activeName, setActiveNameSignal] = createSignal(
-  stored("spin-theme") ?? "silk",
+  stored("spin-theme") ?? "",
 );
 
 /**
@@ -871,6 +911,11 @@ export function pendingSaveCopy(): string | null {
   return saveCopyRequest();
 }
 
+/** Opens the save-as-project-theme dialog for a read-only theme. */
+export function openSaveCopy(name: string): void {
+  setSaveCopyRequest(name);
+}
+
 export function closeSaveCopy(): void {
   setSaveCopyRequest(null);
 }
@@ -1046,9 +1091,31 @@ export interface ThemeSummary {
   swatches: SwatchGroup[];
 }
 
+/**
+ * The served themes in display order.
+ *
+ * The config's `themeOrder` first, then served names it does not list,
+ * alphabetically. Order entries that name nothing served are ignored — the
+ * config may name a theme the current layering does not serve.
+ */
+export function themeOrder(): StudioTheme[] {
+  const listed = registry() ?? [];
+  const order = config()?.config.themeOrder;
+  if (order === undefined || order.length === 0) return [...listed].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  const rank = new Map(order.map((name, index) => [name, index]));
+  return [...listed].sort((a, b) => {
+    const ra = rank.get(a.name);
+    const rb = rank.get(b.name);
+    if (ra !== undefined && rb !== undefined) return ra - rb;
+    if (ra !== undefined) return -1;
+    if (rb !== undefined) return 1;
+    return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+  });
+}
+
 /** One card per theme the project serves, with its editor state attached. */
 export function themeSummaries(): ThemeSummary[] {
-  return (registry() ?? []).map((theme: StudioTheme) => {
+  return themeOrder().map((theme: StudioTheme) => {
     const text = seed(theme.name) ?? theme.text;
     const state = analyzeTheme(text);
     const leaves = state.tree

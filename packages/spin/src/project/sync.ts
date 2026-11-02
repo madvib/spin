@@ -15,7 +15,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { type ShortcutDeclaration, shortcutsIn } from "./configuration.ts";
-import { CONFIG_FILES, PROJECT_DIR } from "./facts.ts";
+import { CONFIG_FILES, CONFIG_FILENAME, PROJECT_DIR, type SpinConfigFile } from "./facts.ts";
 
 export type { ShortcutDeclaration };
 
@@ -77,7 +77,7 @@ export function findConfigRoot(from: string): string | undefined {
 /**
  * The project's own themes, by name: the text of each file in `spin/`.
  *
- * The shipped starters are not here: a project inherits them rather than
+ * The starters are not here: a project inherits them rather than
  * restating them, and the set they come from is the theme package's. A file
  * that cannot be read is skipped rather than thrown on — a half written
  * theme in an editor must not cost the reader the themes the project has.
@@ -87,7 +87,7 @@ export function themeTextsIn(root: string): Record<string, string> {
   let names: string[];
   try {
     names = readdirSync(join(root, PROJECT_DIR)).filter((name) =>
-      name.endsWith(".json")
+      name.endsWith(".json") && name !== CONFIG_FILENAME
     );
   } catch {
     return out;
@@ -105,6 +105,42 @@ export function themeTextsIn(root: string): Record<string, string> {
   return out;
 }
 
+/**
+ * The project's own configuration: the parsed `spin/config.json`.
+ *
+ * Additive metadata only — the theme the studio seats, the order the list
+ * shows. Missing, unreadable, or unparsable all answer the empty config:
+ * unknown keys ignored, shape coerced, never an error.
+ */
+export function configIn(root: string): SpinConfigFile {
+  let text: string;
+  try {
+    text = readFileSync(join(root, PROJECT_DIR, CONFIG_FILENAME), "utf8");
+  } catch {
+    return {};
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return {};
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+  const record = parsed as Record<string, unknown>;
+  const out: { activeTheme?: string; themeOrder?: string[] } = {};
+  if (typeof record["activeTheme"] === "string") out.activeTheme = record["activeTheme"];
+  if (Array.isArray(record["themeOrder"])) {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    for (const entry of record["themeOrder"]) {
+      if (typeof entry !== "string" || seen.has(entry)) continue;
+      seen.add(entry);
+      order.push(entry);
+    }
+    out.themeOrder = order;
+  }
+  return out;
+}
 /**
  * The shortcuts a project's configuration declares.
  *

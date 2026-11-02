@@ -83,7 +83,7 @@ export const projectRouter = os.router({
           // the dirty comparison — and the badge reading it — clears. The
           // overlay is the daemon's own session, so the note is the
           // daemon's to make.
-          const { noteDiskDocument } = await import("../preset/index.ts");
+          const { noteDiskDocument } = await import("../compiler/index.ts");
           noteDiskDocument(input.name, input.text);
         }
         return written;
@@ -95,6 +95,16 @@ export const projectRouter = os.router({
 
       copy: os.project.themes.copy.handler(({ input }) =>
         projectService.themes.copy(rootFor(input), input.from, input.to)
+      ),
+    },
+
+    config: {
+      read: os.project.config.read.handler(({ input }) =>
+        projectService.config.read(rootFor(input))
+      ),
+
+      write: os.project.config.write.handler(({ input }) =>
+        projectService.config.write(rootFor(input), input.config)
       ),
     },
   },

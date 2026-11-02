@@ -15,7 +15,6 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
-import { starterThemes } from "../theme/themes/index.ts";
 import type { ThemeDocument } from "../theme/index.ts";
 import {
   type ClassAttribute,
@@ -431,23 +430,20 @@ export async function corpus(root: string): Promise<CorpusReport> {
 /**
  * The order the sheet writes the project's classes in.
  *
- * The project's own themes first — a theme that declares a colour the
- * starters do not have declares a utility too — and the starters when the
- * project's own themes are ones the preset will not accept: an incomplete
- * theme is a theme being edited, and the order of the classes that ARE
- * there does not depend on it.
+ * The project's own themes alone — the sheet the app serves is the only
+ * order there is. A project with no themes (or themes the preset will
+ * not accept) reports no order rather than a wrong one borrowed from
+ * themes the app never renders.
  */
 async function orderOf(
   root: string,
   classes: readonly string[],
 ): Promise<ReadonlyMap<string, number>> {
-  const themes = { ...starterThemes, ...readProjectThemes(root) };
-  const own = await sheetOrder(
+  const themes = readProjectThemes(root);
+  return await sheetOrder(
     classes,
     themes as Record<string, ThemeDocument>,
   );
-  if (own.size > 0) return own;
-  return await sheetOrder(classes, { ...starterThemes });
 }
 
 /** The class attributes of a set of files. */

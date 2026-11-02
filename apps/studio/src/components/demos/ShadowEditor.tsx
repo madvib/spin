@@ -52,7 +52,7 @@ export default function ShadowEditor(props: {
   const isNone = () => props.value.trim() === "none";
 
   return (
-    <div class="row-sm items-center gap-2">
+    <div class="row-sm flex-wrap items-center gap-2">
       <Show
         when={!isNone()}
         fallback={

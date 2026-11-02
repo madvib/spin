@@ -12,7 +12,7 @@ import { A } from "@solidjs/router";
 import { mode } from "@spinjs/kit";
 import { Chip, Code, Probe, Section } from "../bits.tsx";
 import { Markdown } from "../markdown.tsx";
-import { ROLES, TYPES } from "../theme-docs.ts";
+import { TYPES } from "../theme-docs.ts";
 import contractMd from "../content/themes-contract.md?raw";
 const DOCUMENT = `{
   "color": {
@@ -113,45 +113,11 @@ export default function Themes(): JSX.Element {
           </For>
         </div>
         <p>
-          On top of the types, a theme must declare the base roles: the palette,
-          the inks that go on the palette, the focus ring every interactive
-          element shares, and the two dimensions of the ring. The contract is
-          one declaration, and the JSON Schema the package writes derives its
-          {" "}
-          <code>required</code>{" "}
-          list from it, so a role added to the contract is required by the
-          schema in the same change.
+          A theme must declare the base roles: the palette, the inks that go on
+          each fill, the selected and disabled states, and the focus ring. The
+          full list, with the contrast floor for each role, is in the{" "}
+          <A href="/themes/schema#roles">theme schema</A>.
         </p>
-        <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4">role</th>
-                <th class="py-2 pr-4">type</th>
-                <th class="py-2 pr-4">what it is</th>
-                <th class="py-2 pr-4">the floor</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={ROLES}>
-                {(role) => (
-                  <tr class="border-b border-border">
-                    <td class="font-mono text-xs text-text">
-                      {role.path}
-                    </td>
-                    <td class="font-mono text-xs">{role.type}</td>
-                    <td class="text-text-muted">{role.doc}</td>
-                    <td class="font-mono text-xs">
-                      {role.floor === undefined
-                        ? "none"
-                        : `${role.floor.fg} on ${role.floor.bg}, ${role.floor.min}:1`}
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </div>
 
         <p>
           A mode is a variant of a token, not a second theme. <code>modes</code>

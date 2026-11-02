@@ -305,7 +305,7 @@ export default function TypePage() {
             </p>
           }
         >
-          <div class="grid gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
             <For each={declaredFaces()}>
               {(slot) => <FaceCard slot={slot} />}
             </For>
@@ -447,7 +447,7 @@ export default function TypePage() {
         fact={`${elementTypeElements().length} elements`}
         info="Elements inherit from the scale unless overridden under font.element."
       >
-        <div class="overflow-x-auto">
+        <div class="overflow-auto">
           <table>
             <thead>
               <tr>

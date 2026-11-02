@@ -185,7 +185,7 @@ export function TokenLine(props: {
       <Show when={props.specimen}>
         <div data-studio-specimen="" class="min-w-[8rem] flex-1">{props.specimen}</div>
       </Show>
-      <div class="ms-auto min-w-0">{props.editor}</div>
+      <div class="ms-auto w-full min-w-0 sm:w-auto sm:max-w-full">{props.editor}</div>
       {
         /* A refused value is said where the value was asked for. The banner
           at the top of the work says what the studio last refused; a reader

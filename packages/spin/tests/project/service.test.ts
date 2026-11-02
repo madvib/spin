@@ -19,9 +19,11 @@ import {
   initProject,
   isWired,
   listThemes,
+  readConfig,
   readConfiguration,
   readTheme,
   removeTheme,
+  writeConfig,
   writeTheme,
 } from "../../src/project/index.ts";
 
@@ -35,6 +37,57 @@ async function projectWith(name: string, text: string): Promise<string> {
   const dir = await root();
   await mkdir(join(dir, "spin"));
   await writeFile(join(dir, "spin", `${name}.json`), text, "utf8");
+  return dir;
+}
+
+/** A root whose configuration extends a brand module holding one theme. */
+async function projectWithBrand(): Promise<string> {
+  const dir = await root();
+  await mkdir(join(dir, "spin"));
+  await writeFile(
+    join(dir, "brand.ts"),
+    `export const acmeBrand = { themes: { halide: { color: { primary: { $value: "#123456" } } } } };\n`,
+    "utf8",
+  );
+  await writeFile(
+    join(dir, "vite.config.ts"),
+    `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
+    "utf8",
+  );
+  return dir;
+}
+
+/** A root whose configuration declares its themes verbatim from a JSON module. */
+async function projectVerbatim(): Promise<string> {
+  const dir = await root();
+  await mkdir(join(dir, "spin"));
+  await writeFile(
+    join(dir, "halide.json"),
+    JSON.stringify({ color: { primary: { $value: "#123456" } } }),
+    "utf8",
+  );
+  await writeFile(
+    join(dir, "vite.config.ts"),
+    `import halide from "./halide.json";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ themes: { halide } })] };\n`,
+    "utf8",
+  );
+  return dir;
+}
+
+/** A root whose configuration extends an inline record import. */
+async function projectWithRecord(): Promise<string> {
+  const dir = await root();
+  await mkdir(join(dir, "spin"));
+  await writeFile(
+    join(dir, "records.ts"),
+    `export const records = { halide: { color: { primary: { $value: "#123456" } } } };\n`,
+    "utf8",
+  );
+  await writeFile(
+    join(dir, "vite.config.ts"),
+    `import { records } from "./records.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: { themes: records } })] };\n`,
+    "utf8",
+  );
   return dir;
 }
 
@@ -113,8 +166,9 @@ test("init refuses a root it cannot make a project in", async () => {
   assert(made.error !== null, "a refused init says why");
 });
 
-test("a project holds its own themes beside the starters it has not forked", async () => {
-  const dir = await projectWith("acme", '{"own":true}');
+test("a project holds its own themes beside the brand it has not forked", async () => {
+  const dir = await projectWithBrand();
+  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
 
   const listed = await listThemes(dir);
   const own = listed.filter((theme) => theme.file !== null);
@@ -122,21 +176,26 @@ test("a project holds its own themes beside the starters it has not forked", asy
   deepStrictEqual(own[0]?.file, join("spin", "acme.json"));
   deepStrictEqual(own[0]?.text, '{"own":true}');
 
-  const starters = listed.filter((theme) => theme.file === null);
-  assert(
-    starters.some((theme) => theme.name === "silk"),
-    `the shipped starters are listed: ${starters.map((t) => t.name).join(",")}`,
-  );
+  const brand = listed.filter((theme) => theme.file === null);
+  deepStrictEqual(brand.map((theme) => theme.name), ["halide"]);
 });
 
-test("a forked starter replaces the starter it forked", async () => {
-  const dir = await projectWith("silk", '{"forked":true}');
+test("a project without a brand lists only its own files", async () => {
+  const dir = await projectWith("acme", '{"own":true}');
 
   const listed = await listThemes(dir);
-  const silk = listed.filter((theme) => theme.name === "silk");
-  deepStrictEqual(silk.length, 1);
-  deepStrictEqual(silk[0]?.file, join("spin", "silk.json"));
-  deepStrictEqual(silk[0]?.text, '{"forked":true}');
+  deepStrictEqual(listed.map((theme) => theme.name), ["acme"]);
+});
+
+test("a forked brand theme replaces the brand theme it forked", async () => {
+  const dir = await projectWithBrand();
+  await writeFile(join(dir, "spin", "halide.json"), '{"forked":true}', "utf8");
+
+  const listed = await listThemes(dir);
+  const halide = listed.filter((theme) => theme.name === "halide");
+  deepStrictEqual(halide.length, 1);
+  deepStrictEqual(halide[0]?.file, join("spin", "halide.json"));
+  deepStrictEqual(halide[0]?.text, '{"forked":true}');
 });
 
 test("a theme reads back exactly as it was written", async () => {
@@ -163,15 +222,15 @@ test("a write creates the themes directory the project did not have", async () =
   );
 });
 
-test("a theme the project has not forked reads as the starter", async () => {
-  const dir = await root();
+test("a theme the project has not forked reads as the brand", async () => {
+  const dir = await projectWithBrand();
 
-  const read = await readTheme(dir, "silk");
+  const read = await readTheme(dir, "halide");
   const document = JSON.parse(read.text ?? "{}") as Record<string, unknown>;
-  assert(document["color"] !== undefined, "the starter reads as a document");
+  assert(document["color"] !== undefined, "the brand reads as a document");
 });
 
-test("a theme that is neither a file nor a starter reads as nothing", async () => {
+test("a theme that is neither a file nor brand reads as nothing", async () => {
   const read = await readTheme(await root(), "absent");
   deepStrictEqual(read.text, null);
 });
@@ -186,15 +245,15 @@ test("a copy of a project's file is byte for byte", async () => {
   deepStrictEqual(read.text, '{"own":true}');
 });
 
-test("a copy of a starter writes the starter's document", async () => {
-  const dir = await root();
+test("a copy of a brand theme writes the brand's document", async () => {
+  const dir = await projectWithBrand();
 
-  const copied = await copyTheme(dir, "silk", "fork");
+  const copied = await copyTheme(dir, "halide", "fork");
   deepStrictEqual(copied.error, null);
 
   const forked = await readTheme(dir, "fork");
-  const starter = await readTheme(dir, "silk");
-  deepStrictEqual(forked.text, starter.text);
+  const brand = await readTheme(dir, "halide");
+  deepStrictEqual(forked.text, brand.text);
 });
 
 test("a copy refuses a name that is taken", async () => {
@@ -204,7 +263,7 @@ test("a copy refuses a name that is taken", async () => {
   deepStrictEqual(copied.error, "a theme named acme already exists");
 });
 
-test("a copy refuses a source that is neither a file nor a starter", async () => {
+test("a copy refuses a source that is neither a file nor brand", async () => {
   const copied = await copyTheme(await root(), "absent", "fork");
   deepStrictEqual(copied.error, "no theme named absent");
 });
@@ -222,6 +281,92 @@ test("a remove takes the theme away", async () => {
 test("a remove of a theme that is not there is refused", async () => {
   const removed = await removeTheme(await root(), "absent");
   assert(removed.error !== null, "a refused remove says why");
+});
+
+test("a write to a brand-only theme is refused", async () => {
+  const dir = await projectWithBrand();
+
+  const written = await writeTheme(dir, "halide", "{}");
+  deepStrictEqual(
+    written.error,
+    "Brand theme 'halide' is read-only here; save as a local theme to fork it.",
+  );
+});
+
+test("a remove of a brand-only theme is refused", async () => {
+  const dir = await projectWithBrand();
+
+  const removed = await removeTheme(dir, "halide");
+  deepStrictEqual(
+    removed.error,
+    "Brand theme 'halide' is read-only here; save as a local theme to fork it.",
+  );
+});
+
+test("a forked brand theme writes like any local file", async () => {
+  const dir = await projectWithBrand();
+  await writeFile(join(dir, "spin", "halide.json"), '{"forked":true}', "utf8");
+
+  const written = await writeTheme(dir, "halide", '{"edited":true}');
+  deepStrictEqual(written.error, null);
+  deepStrictEqual((await readTheme(dir, "halide")).text, '{"edited":true}');
+});
+
+test("an inline record extends serves the imported record", async () => {
+  const dir = await projectWithRecord();
+
+  const listed = await listThemes(dir);
+  deepStrictEqual(listed.map((theme) => theme.name), ["halide"]);
+  deepStrictEqual(listed[0]?.file, null);
+  const written = await writeTheme(dir, "halide", "{}");
+  deepStrictEqual(
+    written.error,
+    "Brand theme 'halide' is read-only here; save as a local theme to fork it.",
+  );
+});
+
+test("a verbatim configuration serves its declared documents", async () => {
+  const dir = await projectVerbatim();
+  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
+
+  const listed = await listThemes(dir);
+  deepStrictEqual(listed.map((theme) => theme.name), ["halide"]);
+  deepStrictEqual(listed[0]?.file, null);
+  const document = JSON.parse(listed[0]?.text ?? "{}") as Record<string, unknown>;
+  assert(document["color"] !== undefined, "the declared document reads");
+
+  const read = await readTheme(dir, "halide");
+  deepStrictEqual(read.text, listed[0]?.text);
+});
+
+test("a write to a verbatim theme names where it is served from", async () => {
+  const dir = await projectVerbatim();
+
+  const written = await writeTheme(dir, "halide", "{}");
+  deepStrictEqual(
+    written.error,
+    "Theme 'halide' is read-only here; it is served from './halide.json'.",
+  );
+});
+
+test("a write to an undeclared name under verbatim says it would not serve", async () => {
+  const dir = await projectVerbatim();
+
+  const written = await writeTheme(dir, "fresh", "{}");
+  deepStrictEqual(
+    written.error,
+    "Theme 'fresh' would not be served: 'vite.config.ts' declares its themes verbatim.",
+  );
+});
+
+test("a copy under verbatim is refused like a write", async () => {
+  const dir = await projectVerbatim();
+
+  const copied = await copyTheme(dir, "halide", "fork");
+  deepStrictEqual(
+    copied.error,
+    "Theme 'fork' would not be served: 'vite.config.ts' declares its themes verbatim.",
+  );
 });
 
 test("an operation about one root leaves another root alone", async () => {
@@ -339,4 +484,79 @@ test("init and configuration respect custom themesDir, componentsDir, and prefix
   const report = await detectProject(dir);
   deepStrictEqual(report.spin, true);
   deepStrictEqual(report.themes, ["acme.json"]);
+});
+test("a listed theme names where it is served from", async () => {
+  const dir = await projectWithBrand();
+  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
+
+  const listed = await listThemes(dir);
+  const byName = Object.fromEntries(listed.map((theme) => [theme.name, theme.origin]));
+  deepStrictEqual(byName, { acme: "local", halide: "brand" });
+});
+
+test("a verbatim listing names its entries verbatim", async () => {
+  const dir = await projectVerbatim();
+
+  const listed = await listThemes(dir);
+  deepStrictEqual(listed.map((theme) => theme.origin), ["verbatim"]);
+});
+
+test("a written config reads back with the file that holds it", async () => {
+  const dir = await root();
+
+  const written = await writeConfig(dir, {
+    activeTheme: "halide",
+    themeOrder: ["halide", "acme"],
+  });
+  deepStrictEqual(written.error, null);
+
+  const read = await readConfig(dir);
+  deepStrictEqual(read.config, {
+    activeTheme: "halide",
+    themeOrder: ["halide", "acme"],
+  });
+  deepStrictEqual(read.file, join("spin", "config.json"));
+
+  const onDisk = await readFile(join(dir, "spin", "config.json"), "utf8");
+  deepStrictEqual(
+    onDisk,
+    `${JSON.stringify({ activeTheme: "halide", themeOrder: ["halide", "acme"] }, null, 2)}\n`,
+  );
+});
+
+test("a project that never wrote a config reads the empty default", async () => {
+  const dir = await projectWith("acme", '{"own":true}');
+
+  const read = await readConfig(dir);
+  deepStrictEqual(read.config, {});
+  deepStrictEqual(read.file, null);
+});
+
+test("a half written config reads as the empty default, over its file", async () => {
+  const dir = await projectWith("acme", '{"own":true}');
+  await writeFile(join(dir, "spin", "config.json"), '{"activeTheme":', "utf8");
+
+  const read = await readConfig(dir);
+  deepStrictEqual(read.config, {});
+  deepStrictEqual(read.file, join("spin", "config.json"));
+});
+
+test("a config write creates the spin directory the project did not have", async () => {
+  const dir = await root();
+
+  const written = await writeConfig(dir, { activeTheme: "halide" });
+  deepStrictEqual(written.error, null);
+
+  const read = await readConfig(dir);
+  deepStrictEqual(read.config, { activeTheme: "halide" });
+});
+
+test("config.json is not served as a theme", async () => {
+  const dir = await projectWith("halide", "{}");
+  await writeConfig(dir, { activeTheme: "halide" });
+
+  const listed = await listThemes(dir);
+  deepStrictEqual(listed.map((theme) => theme.name), ["halide"]);
+  const report = await detectProject(dir);
+  deepStrictEqual(report.themes, ["halide.json"]);
 });

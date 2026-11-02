@@ -7,7 +7,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { cssVarName } from "../../src/theme/index.ts";
-import { spinPreset } from "../../src/preset/index.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
 
 /**
  * The posture of a dead control.

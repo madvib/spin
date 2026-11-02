@@ -240,6 +240,7 @@ export const def = {
     },
   },
   commands: {
+    goToNextStep: { event: () => ({ type: "STEP.NEXT" }) },
     goToPrevStep: { event: () => ({ type: "STEP.PREV" }) },
     resetStep: { event: () => ({ type: "STEP.RESET" }) },
     setStep: {

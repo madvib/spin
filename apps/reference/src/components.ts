@@ -74,7 +74,7 @@ export const COMPONENTS: readonly PrimitivePage[] = [...grouped.entries()]
   .map(([id, group]) => ({
     id: `component-${id}`,
     title: titleOf(id),
-    kind: "machine",
+    kind: "machine" as const,
     note: "",
     examples: [...group.examples].sort((a, b) => a.name.localeCompare(b.name)),
   }))

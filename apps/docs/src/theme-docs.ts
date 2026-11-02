@@ -184,7 +184,7 @@ export function themeSummaries(): readonly ThemeSummary[] {
 export function starterDocument(
   name: string,
 ): Record<string, unknown> | undefined {
-  return (starterThemes as Record<string, Record<string, unknown>>)[name];
+  return starterThemes[name];
 }
 
 /** The value a document states at a path, with aliases followed. */

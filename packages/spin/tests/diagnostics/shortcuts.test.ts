@@ -44,7 +44,7 @@ function reported(facts: Facts, classes: string): string[] {
 }
 
 const CONFIG = `
-import { spin } from "../../src/preset/index.ts";
+import { spin } from "../../src/compiler/index.ts";
 
 export default {
   plugins: [

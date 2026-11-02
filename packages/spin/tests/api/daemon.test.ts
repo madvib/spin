@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startDaemon } from "../../src/api/daemon.ts";
+import { type Daemon, startDaemon } from "../../src/api/daemon.ts";
 import { parseTokens, themeModes, validateTokens } from "../../src/theme/index.ts";
 import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
 
@@ -31,10 +31,10 @@ describe("daemon project.themes over HTTP", () => {
     "../../../../examples/fixture-app/spin",
     import.meta.url,
   );
-  let daemon: ReturnType<typeof startDaemon>;
+  let daemon: Daemon;
   let client: SpinClient;
 
-  before(() => {
+  before(async () => {
     // The daemon reads themes from `<root>/spin`, so the fixture is
     // copied into a temp dir shaped like a project: root with a themes/
     // directory inside it. The product's own themes are never touched.
@@ -43,7 +43,7 @@ describe("daemon project.themes over HTTP", () => {
     for (const entry of readdirSync(fixture)) {
       copyFileSync(join(fixture.pathname, entry), join(dir, "spin", entry));
     }
-    daemon = startDaemon({ root: dir, port: 0 });
+    daemon = await startDaemon({ root: dir, port: 0 });
     client = createSpinClient(daemon.url);
   });
 
@@ -85,20 +85,15 @@ describe("daemon project.themes over HTTP", () => {
     }
   });
 
-  it("lists the shipped starters beside the project's files", async () => {
+  it("lists the project's own files, and no brand it never named", async () => {
     const listed = await client.project.themes.list({});
     deepStrictEqual(
       listed.map((t) => [t.name, t.file]),
       [
         ["acme", "spin/acme.json"],
-        ["console", null],
-        ["neobrut", null],
-        ["silk", null],
-        ["spin", null],
         ["starter", "spin/starter.json"],
-        ["synthwave", null],
       ],
-      "a file carries its path; an unforked starter carries none",
+      "a file carries its path; a fixture with no brand lists nothing else",
     );
     // Project-relative, never absolute: a path a developer sees carries no
     // machine with it — no screenshot, log line, or issue report says where
@@ -113,42 +108,73 @@ describe("daemon project.themes over HTTP", () => {
     );
   });
 
-  it("serves a shipped starter until a write forks it", async () => {
-    const shipped = await client.project.themes.read({ name: "silk" });
-    const doc = JSON.parse(shipped.text ?? "{}") as {
-      color: { primary: { $value: string } };
-    };
-    deepStrictEqual(
-      typeof doc.color.primary.$value,
-      "string",
-      "the unforked starter reads as its document",
+  it("serves a brand theme until a copy forks it, over HTTP", async () => {
+    // A second root, named per call: the fixture's own root stays
+    // config-free so the detect test keeps proving what it proves.
+    const branded = mkdtempSync(join(tmpdir(), "spin-branded-"));
+    mkdirSync(join(branded, "spin"));
+    copyFileSync(
+      join(fixture.pathname, "acme.json"),
+      join(branded, "brand.json"),
     );
-    doc.color.primary.$value = "#ff0000";
-    const written = await client.project.themes.write({
-      name: "silk",
-      text: JSON.stringify(doc, null, 2),
-    });
-    deepStrictEqual(written.error, null, "the save forks the starter");
-    deepStrictEqual(
-      (await client.project.themes.list({})).find((t) => t.name === "silk")
-        ?.file,
-      "spin/silk.json",
-      "the fork is the project's own file",
+    writeFileSync(
+      join(branded, "brand.ts"),
+      `import doc from "./brand.json";\nexport const acmeBrand = { themes: { brand: doc } };\n`,
     );
-    deepStrictEqual(
-      (await client.project.themes.read({ name: "silk" })).text?.includes(
-        "#ff0000",
-      ),
-      true,
-      "and shadows the shipped document",
+    writeFileSync(
+      join(branded, "vite.config.ts"),
+      `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
     );
-    const removed = await client.project.themes.remove({ name: "silk" });
-    deepStrictEqual(removed.error, null, "the fork is removable");
-    deepStrictEqual(
-      (await client.project.themes.read({ name: "silk" })).text,
-      shipped.text,
-      "and removing it puts the shipped document back",
-    );
+    try {
+      const served = await client.project.themes.read({
+        name: "brand",
+        root: branded,
+      });
+      const doc = JSON.parse(served.text ?? "{}") as {
+        color: { primary: { $value: string } };
+      };
+      deepStrictEqual(
+        typeof doc.color.primary.$value,
+        "string",
+        "the unforked brand reads as its document",
+      );
+      const refused = await client.project.themes.write({
+        name: "brand",
+        text: "{}",
+        root: branded,
+      });
+      deepStrictEqual(
+        refused.error,
+        "Brand theme 'brand' is read-only here; save as a local theme to fork it.",
+        "a save does not silently fork the brand",
+      );
+      const copied = await client.project.themes.copy({
+        from: "brand",
+        to: "brand",
+        root: branded,
+      });
+      deepStrictEqual(copied.error, null, "the copy forks the brand");
+      deepStrictEqual(
+        (await client.project.themes.list({ root: branded })).find(
+          (t) => t.name === "brand",
+        )?.file,
+        "spin/brand.json",
+        "the fork is the project's own file",
+      );
+      const removed = await client.project.themes.remove({
+        name: "brand",
+        root: branded,
+      });
+      deepStrictEqual(removed.error, null, "the fork is removable");
+      deepStrictEqual(
+        (await client.project.themes.read({ name: "brand", root: branded }))
+          .text,
+        served.text,
+        "and removing it puts the brand document back",
+      );
+    } finally {
+      rmSync(branded, { recursive: true, force: true });
+    }
   });
 
   it("detects a project by its spin directory, and by an uno config", async () => {
@@ -203,19 +229,14 @@ describe("daemon project.themes over HTTP", () => {
     const theirs = await client.project.themes.list({ root: other });
     deepStrictEqual(
       theirs.map((t) => t.name),
-      ["console", "neobrut", "silk", "solo", "spin", "synthwave"],
-      "the named root's own file plus the shipped starters",
+      ["solo"],
+      "the named root's own file, and no brand it never named",
     );
     // The daemon's own project is unchanged, which is the point.
     const mine = await client.project.themes.list({});
     deepStrictEqual(mine.map((t) => t.name), [
       "acme",
-      "console",
-      "neobrut",
-      "silk",
-      "spin",
       "starter",
-      "synthwave",
     ]);
     rmSync(other, { recursive: true, force: true });
   });
@@ -241,7 +262,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(detect.wired, true, "and that config wires the preset");
     const config = readFileSync(join(fresh, "vite.config.ts"), "utf8");
     deepStrictEqual(
-      config.includes('"@spinjs/spin"'),
+      config.includes('"@spinjs/spin/vite"'),
       true,
       "it applies the spin plugin",
     );
@@ -253,8 +274,8 @@ describe("daemon project.themes over HTTP", () => {
     const listed = await client.project.themes.list({ root: fresh });
     deepStrictEqual(
       listed.map((t) => t.name),
-      ["console", "first", "neobrut", "silk", "spin", "synthwave"],
-      "the seeded theme joins the shipped starters",
+      ["first"],
+      "the seeded theme stands alone — init names no brand",
     );
     const seeded = await client.project.themes.read({
       name: "first",
@@ -348,6 +369,52 @@ describe("daemon project.themes over HTTP", () => {
       body: JSON.stringify({ json: {} }),
     });
     deepStrictEqual(res.status, 200, "the daemon answers its own procedures");
+  });
+
+  it("writes a config and reads it back, over HTTP", async () => {
+    // The studio's seat and order persist through the daemon, not around it:
+    // the write lands in spin/config.json and the read names the file, so a
+    // client can tell an author their values are written rather than default.
+    const wrote = await client.project.config.write({
+      config: { activeTheme: "acme", themeOrder: ["acme", "starter"] },
+    });
+    deepStrictEqual(wrote.error, null);
+    const read = await client.project.config.read({});
+    deepStrictEqual(read.config, {
+      activeTheme: "acme",
+      themeOrder: ["acme", "starter"],
+    });
+    deepStrictEqual(read.file, "spin/config.json");
+  });
+
+  it("serves the studio entry with mount-absolute assets on a nested route", async () => {
+    // The bundle's asset references are relative (`./assets/…`): served
+    // verbatim on `/studio/themes/type`, the browser resolves them against
+    // the nested route and the page loads no script. The fallback rewrites
+    // them to the mount, so a nested studio route boots from anywhere.
+    // The daemon's own bundle serves when one is built; absent, the mount
+    // skips it — so this builds the smallest bundle that proves the rule.
+    const studio = join(dir, "studio-fixture");
+    mkdirSync(join(studio, "assets"), { recursive: true });
+    writeFileSync(
+      join(studio, "index.html"),
+      '<script src="./assets/app.js"></script><link href="./assets/app.css">',
+    );
+    writeFileSync(join(studio, "assets", "app.js"), "ok");
+    const { createSpinApp } = await import("../../src/api/index.ts");
+    const app = createSpinApp({ root: dir, base: "/rpc", studioDir: studio });
+    const res = await app.request("/studio/themes/type");
+    deepStrictEqual(res.status, 200);
+    deepStrictEqual(
+      await res.text(),
+      '<script src="/studio/assets/app.js"></script><link href="/studio/assets/app.css">',
+    );
+    const root = await app.request("/studio/");
+    deepStrictEqual(root.status, 200);
+    deepStrictEqual(
+      await root.text(),
+      '<script src="/studio/assets/app.js"></script><link href="/studio/assets/app.css">',
+    );
   });
 
   it("refuses a name that escapes the themes directory", async () => {

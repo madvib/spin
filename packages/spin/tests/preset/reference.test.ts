@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { scaleClass } from "../../src/preset/reference/build.ts";
+import { scaleClass } from "../../src/compiler/reference/build.ts";
 
 /**
  * `scaleClass` is the inverse of the split `buildScale` performs.

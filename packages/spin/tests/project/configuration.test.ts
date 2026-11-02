@@ -14,9 +14,11 @@ import { join } from "node:path";
 import {
   configurationIn,
   contentIn,
+  extendsIn,
   mountIn,
   readConfiguration,
   shortcutsIn,
+  themesIn,
 } from "../../src/project/index.ts";
 
 /** A root holding one configuration file. */
@@ -155,4 +157,163 @@ test("a config that wires spin is read like any other", async () => {
     declared.unreadable === false,
     "a config this can read is not reported as unreadable",
   );
+});
+
+test("a config declares the module its brand arrives from", () => {
+  const declared = extendsIn(
+    `import { acmeBrand } from "@acme/brand";\nspin.vite({ extends: acmeBrand })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "brand",
+    value: { source: "@acme/brand", exportName: "acmeBrand" },
+  });
+});
+
+test("a default-imported brand resolves to its module", () => {
+  const declared = extendsIn(
+    `import acmeBrand from "./brand.ts";\nspin.vite({ extends: acmeBrand })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "brand",
+    value: { source: "./brand.ts", exportName: "default" },
+  });
+});
+
+test("an aliased brand resolves to the export it names", () => {
+  const declared = extendsIn(
+    `import { brand as acmeBrand } from "@acme/brand";\nspin.vite({ extends: acmeBrand })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "brand",
+    value: { source: "@acme/brand", exportName: "brand" },
+  });
+});
+
+test("an inline themes record resolves to the import it names", () => {
+  const declared = extendsIn(
+    `import { starterThemes } from "@spinjs/spin/theme/themes";\nspin.vite({ extends: { themes: starterThemes } })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "inline",
+    record: {
+      kind: "record",
+      value: {
+        source: "@spinjs/spin/theme/themes",
+        exportName: "starterThemes",
+      },
+    },
+  });
+});
+
+test("an inline per-key map resolves to its entries", () => {
+  const declared = extendsIn(
+    `import halide from "./halide.json";\nspin.vite({ extends: { themes: { halide } } })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "inline",
+    record: {
+      kind: "entries",
+      entries: [
+        {
+          key: "halide",
+          value: { source: "./halide.json", exportName: "default" },
+        },
+      ],
+    },
+  });
+});
+
+test("a theme named like the other option does not hijack it", () => {
+  const extendsFirst = extendsIn(
+    `import { acmeBrand } from "@acme/brand";\nspin.vite({ themes: { extends: acmeBrand }, extends: acmeBrand })`,
+  );
+  deepStrictEqual(extendsFirst?.kind, "brand");
+  const themesFirst = themesIn(
+    `import halide from "./halide.json";\nspin.vite({ extends: { themes: { halide } } })`,
+  );
+  deepStrictEqual(themesFirst, null);
+});
+
+test("an extends in no followable shape is unresolved", () => {
+  deepStrictEqual(
+    extendsIn(`spin.vite({ extends: makeBrand() })`),
+    { kind: "unresolved" },
+  );
+  deepStrictEqual(
+    extendsIn(`spin.vite({ extends: acmeBrand })`),
+    { kind: "unresolved" },
+  );
+  deepStrictEqual(
+    extendsIn(
+      `import * as brand from "@acme/brand";\nspin.vite({ extends: brand })`,
+    ),
+    { kind: "unresolved" },
+  );
+});
+
+test("a config without extends declares none", () => {
+  deepStrictEqual(extendsIn(`spin.vite({ themes: {} })`), null);
+  deepStrictEqual(configurationIn(CONFIG, "uno.config.ts").extends, null);
+});
+
+test("a config declares its verbatim themes as followable imports", () => {
+  const declared = themesIn(
+    `import halide from "./halide.json";\nspin.vite({ themes: { halide } })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "entries",
+    entries: [
+      { key: "halide", value: { source: "./halide.json", exportName: "default" } },
+    ],
+  });
+});
+
+test("a verbatim record names the import it arrives from", () => {
+  const declared = themesIn(
+    `import { myThemes } from "./themes.ts";\nspin.vite({ themes: myThemes })`,
+  );
+  deepStrictEqual(declared, {
+    kind: "record",
+    value: { source: "./themes.ts", exportName: "myThemes" },
+  });
+});
+
+test("a verbatim entry that cannot be followed is kept without an import", () => {
+  const declared = themesIn(`spin.vite({ themes: { mine: { color: {} } } })`);
+  deepStrictEqual(declared, {
+    kind: "entries",
+    entries: [{ key: "mine", value: null }],
+  });
+  const unimported = themesIn(`spin.vite({ themes: { mine: halide } })`);
+  deepStrictEqual(unimported, {
+    kind: "entries",
+    entries: [{ key: "mine", value: null }],
+  });
+});
+
+test("a config without themes declares no verbatim map", () => {
+  deepStrictEqual(themesIn(`spin.vite({})`), null);
+  deepStrictEqual(
+    configurationIn(CONFIG, "uno.config.ts").verbatimThemes,
+    null,
+  );
+});
+
+test("a directory field that is not a literal falls back and says so", () => {
+  const declared = configurationIn(
+    `spin.vite({ themesDir: join(root, "spin"), componentsDir: "lib/x" })`,
+    "vite.config.ts",
+  );
+  deepStrictEqual(declared.themesDir, "spin");
+  deepStrictEqual(declared.componentsDir, "lib/x");
+  deepStrictEqual(declared.unreadableFields, ["themesDir"]);
+});
+
+test("readable fields name nothing unreadable", () => {
+  const declared = configurationIn(
+    `spin.vite({ themesDir: "spin", prefix: "acme" })`,
+    "vite.config.ts",
+  );
+  deepStrictEqual(declared.unreadableFields, []);
+  deepStrictEqual(declared.prefix, "acme");
 });

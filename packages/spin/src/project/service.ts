@@ -11,14 +11,16 @@
  */
 
 import { configurationIn } from "./configuration.ts";
-import { configScaffoldText, wireConfigText } from "../preset/config.ts";
+import { configScaffoldText, wireConfigText } from "../plugin/config.ts";
 import {
   COMPONENTS_DIR,
   CONFIG_FILES,
+  CONFIG_FILENAME,
   defaultPrefix,
   initFiles,
   isWired,
   PROJECT_DIR,
+  type SpinConfigFile,
 } from "./facts.ts";
 import { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
 import type {
@@ -26,6 +28,7 @@ import type {
   ProjectConfiguration,
   ProjectReport,
   ProjectTheme,
+  ThemeRecordDeclaration,
   WriteResult,
 } from "./types.ts";
 
@@ -48,18 +51,189 @@ async function themesDirOf(
 const BUILD_CONFIGS: readonly string[] = CONFIG_FILES;
 
 /**
- * The shipped starters by name.
+ * One export of one module, loaded from the project root.
  *
- * Canonical JSON, not the package's file bytes: a theme is a document, and
- * this is the text the system writes for one. A project inherits the
- * starters rather than restating them, so an unforked theme lists as text
- * from here and a read falls back to it.
+ * Resolution runs from the root the way the bundler runs from the
+ * configuration: a relative source lands beside the config, a bare one
+ * in the root's `node_modules`. JSON loads by read rather than import
+ * so the Node daemon serves it the same way the Bun one does.
  */
-async function shippedThemes(): Promise<Record<string, unknown>> {
-  const { starterThemes } = await import("../theme/themes/index.ts");
-  return starterThemes as Record<string, unknown>;
+async function loadExport(
+  root: string,
+  source: string,
+  exportName: string,
+): Promise<unknown> {
+  const { createRequire } = await import("node:module");
+  const { join } = await import("node:path");
+  const { pathToFileURL } = await import("node:url");
+  const resolved = createRequire(join(root, "package.json")).resolve(source);
+  if (resolved.endsWith(".json")) {
+    const { readFile } = await import("node:fs/promises");
+    const document = JSON.parse(await readFile(resolved, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    return exportName === "default" ? document : document[exportName];
+  }
+  const module = await import(pathToFileURL(resolved).href) as Record<
+    string,
+    unknown
+  >;
+  return exportName === "default" ? module.default : module[exportName];
 }
 
+/**
+ * A declared themes record, loaded.
+ *
+ * A per-key map loads each entry from its import; a whole-record
+ * import loads as one. Anything that cannot be followed or loaded is
+ * skipped loudly — the plugin serves a document there, and the daemon
+ * says it cannot see it rather than serving nothing quietly.
+ */
+async function loadThemeRecord(
+  root: string,
+  where: string,
+  scope: string,
+  record: ThemeRecordDeclaration,
+): Promise<Record<string, unknown>> {
+  if (record.kind === "record") {
+    if (record.value === null) {
+      console.warn(`[spin] ${where}: could not follow ${scope}, skipping it`);
+      return {};
+    }
+    try {
+      const value = await loadExport(
+        root,
+        record.value.source,
+        record.value.exportName,
+      );
+      if (value === null || typeof value !== "object") {
+        throw new Error("not a record");
+      }
+      return value as Record<string, unknown>;
+    } catch {
+      console.warn(
+        `[spin] ${where}: could not load ${scope} from '${record.value.source}', skipping it`,
+      );
+      return {};
+    }
+  }
+  const docs: Record<string, unknown> = {};
+  for (const entry of record.entries) {
+    if (entry.value === null) {
+      console.warn(
+        `[spin] ${where}: could not follow ${scope} entry '${entry.key}', skipping it`,
+      );
+      continue;
+    }
+    try {
+      const document = await loadExport(
+        root,
+        entry.value.source,
+        entry.value.exportName,
+      );
+      if (document === null || typeof document !== "object") {
+        throw new Error("not a document");
+      }
+      docs[entry.key] = document;
+    } catch {
+      console.warn(
+        `[spin] ${where}: could not load ${scope} theme '${entry.key}' from '${entry.value.source}', skipping it`,
+      );
+    }
+  }
+  return docs;
+}
+
+/**
+ * The verbatim `themes:` map the configuration declares, loaded.
+ *
+ * A declared map replaces the whole stack exactly as the plugin does:
+ * the daemon serves what this loads and nothing else.
+ */
+async function servedVerbatim(
+  root: string,
+  config: ProjectConfiguration,
+): Promise<Record<string, unknown>> {
+  if (config.verbatimThemes === null) return {};
+  return await loadThemeRecord(
+    root,
+    config.file ?? "configuration",
+    "themes",
+    config.verbatimThemes,
+  );
+}
+
+/**
+ * The brand layer the project's configuration names, by theme name.
+ *
+ * The daemon follows the consumer's `extends` in whichever shape it
+ * takes: a brand value's `themes` record or an inline record. The
+ * layer is what the local disk forks — the same merge the plugin
+ * serves, so the studio lists what the app renders. A brand that
+ * cannot be loaded or followed is served as nothing, loudly: the
+ * daemon logs which file it could not follow and serves the local
+ * disk alone.
+ */
+async function brandThemes(
+  root: string,
+  config: ProjectConfiguration,
+): Promise<Record<string, unknown>> {
+  const declared = config.extends;
+  const where = config.file ?? "configuration";
+  if (declared === null) return {};
+  if (declared.kind === "unresolved") {
+    console.warn(
+      `[spin] ${where}: could not follow extends, serving local themes only`,
+    );
+    return {};
+  }
+  if (declared.kind === "inline") {
+    return await loadThemeRecord(root, where, "extends", declared.record);
+  }
+  try {
+    const value = await loadExport(
+      root,
+      declared.value.source,
+      declared.value.exportName,
+    ) as { readonly themes?: unknown } | null;
+    const themes = value?.themes;
+    if (themes === null || typeof themes !== "object") return {};
+    return themes as Record<string, unknown>;
+  } catch {
+    console.warn(
+      `[spin] ${where}: could not load extends from '${declared.value.source}', serving local themes only`,
+    );
+    return {};
+  }
+}
+
+/**
+ * Why a write to `name` is refused when the configuration declares its
+ * themes verbatim.
+ *
+ * A declared name is read-only here: its document lives in the module
+ * the configuration imports (or in the configuration itself, when the
+ * daemon cannot follow the value), and a local file would never be
+ * served. An undeclared name would not be served either — the verbatim
+ * map replaces the whole stack, so a new file lands nowhere.
+ */
+function verbatimRefusal(config: ProjectConfiguration, name: string): string {
+  const declared = config.verbatimThemes;
+  if (declared?.kind === "record" && declared.value != null) {
+    return `Theme '${name}' is read-only here; it is served from '${declared.value.source}'.`;
+  }
+  const entry = declared?.kind === "entries"
+    ? declared.entries.find((ref) => ref.key === name)
+    : undefined;
+  if (entry?.value != null) {
+    return `Theme '${name}' is read-only here; it is served from '${entry.value.source}'.`;
+  }
+  if (entry !== undefined) {
+    return `Theme '${name}' is read-only here; it is served from '${config.file}'.`;
+  }
+  return `Theme '${name}' would not be served: '${config.file}' declares its themes verbatim.`;
+}
 /** A theme document as the text written for it. */
 function themeJson(document: unknown): string {
   return JSON.stringify(document, null, 2) + "\n";
@@ -99,7 +273,7 @@ export async function detectProject(root: string): Promise<ProjectReport> {
       themes = basename(here).endsWith(".json") ? [basename(here)] : [];
     } else {
       try {
-        themes = (await readdir(here)).filter((e) => e.endsWith(".json"))
+        themes = (await readdir(here)).filter((e) => e.endsWith(".json") && e !== CONFIG_FILENAME)
           .sort();
       } catch {
         themes = [];
@@ -203,19 +377,38 @@ export async function initProject(
       componentsDir,
       ...(prefix === undefined ? {} : { prefix }),
     };
+    if (bundler === "unocss") {
+      return {
+        error:
+          "spin init wires the Spin plugin; it does not write a preset-only UnoCSS config. Add spinPreset to uno.config.ts yourself, or scaffold in a project without uno.config.",
+      };
+    }
+    const existing = await findExistingConfigFile(options.root, bundler);
+    const existingText = existing === null
+      ? null
+      : await readFile(existing, "utf8");
+    if (
+      existingText !== null &&
+      (bundler === "webpack" || bundler === "rollup") &&
+      /\brequire\s*\(|\bmodule\.exports\b/.test(existingText)
+    ) {
+      return {
+        error:
+          "spin init cannot wire a CommonJS webpack/rollup config; use an ESM config or add the plugin manually.",
+      };
+    }
     const dir = join(options.root, themesDir);
     await mkdir(dir, { recursive: true });
     const files = initFiles({
       name: options.name,
       starter: options.starter,
       bundler,
+      themesDir,
     });
     await writeFile(join(dir, `${options.name}.json`), files[`${options.name}.json`], "utf8");
-    const existing = await findExistingConfigFile(options.root, bundler);
     if (existing !== null) {
-      const text = await readFile(existing, "utf8");
-      if (!isWired(text)) {
-        await writeFile(existing, wireConfigText(text, bundler, opts), "utf8");
+      if (!isWired(existingText!)) {
+        await writeFile(existing, wireConfigText(existingText!, bundler, opts), "utf8");
       }
     } else {
       const scaffold = configScaffoldText(bundler, opts);
@@ -293,6 +486,9 @@ export async function readConfiguration(
       themesDir: PROJECT_DIR,
       componentsDir: COMPONENTS_DIR,
       prefix: null,
+      extends: null,
+      verbatimThemes: null,
+      unreadableFields: [],
       unreadable: false,
     };
   }
@@ -308,23 +504,38 @@ export async function readConfiguration(
       themesDir: PROJECT_DIR,
       componentsDir: COMPONENTS_DIR,
       prefix: null,
+      extends: null,
+      verbatimThemes: null,
+      unreadableFields: [],
       unreadable: true,
     };
   }
-  return configurationIn(text, file);
+  const config = configurationIn(text, file);
+  for (const field of config.unreadableFields) {
+    console.warn(`[spin] ${file}: unreadable ${field}, using default`);
+  }
+  return config;
 }
 
 /**
- * The themes a project holds: its own files, and the starters it has not
- * forked.
+ * The themes a project holds: what the build serves.
  *
- * The starters a project has not forked sit beside its own files: the same
- * base the build serves, so a studio lists what an app renders. A fork
- * replaces its entry rather than joining it.
+ * A configuration that declares its themes verbatim replaces the whole
+ * stack exactly as the plugin does: the list is the loaded documents
+ * and nothing else. Otherwise the project's own files sit beside the
+ * brand themes they have not forked, and a fork replaces its entry
+ * rather than joining it.
  */
 export async function listThemes(root: string): Promise<ProjectTheme[]> {
   const { readdir, readFile } = await import("node:fs/promises");
   const { basename, join } = await import("node:path");
+  const config = await readConfiguration(root).catch(() => null);
+  if (config?.verbatimThemes != null) {
+    const docs = await servedVerbatim(root, config);
+    return Object.entries(docs)
+      .map(([name, document]) => ({ name, text: themeJson(document), file: null as string | null, origin: "verbatim" as const }))
+      .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  }
   const { path: dir, file, display } = await themesDirOf(root);
   let entries: string[] = [];
   if (file) {
@@ -338,7 +549,7 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
   }
   const themes: ProjectTheme[] = [];
   for (const entry of entries.sort()) {
-    if (!entry.endsWith(".json")) continue;
+    if (!entry.endsWith(".json") || entry === CONFIG_FILENAME) continue;
     let text: string;
     try {
       text = await readFile(file ? dir : join(dir, entry), "utf8");
@@ -351,14 +562,15 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
       // Project-relative, so a path a developer sees never carries the
       // machine's filesystem layout: a screenshot, a log line, an issue
       // report. The daemon knows the root; the contract does not leak it.
-      // A specifier is already root-independent, so it is named as is.
       file: file ? `${display}/${entry}` : join(display, entry),
+      origin: "local",
     });
   }
   const forked = new Set(themes.map((theme) => theme.name));
-  for (const [name, document] of Object.entries(await shippedThemes())) {
+  const brand = config === null ? {} : await brandThemes(root, config);
+  for (const [name, document] of Object.entries(brand)) {
     if (forked.has(name)) continue;
-    themes.push({ name, text: themeJson(document), file: null });
+    themes.push({ name, text: themeJson(document), file: null, origin: "brand" });
   }
   return themes.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 }
@@ -366,9 +578,10 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
 /**
  * One theme, as the text it is written as.
  *
- * The project's own file first, then the shipped set: a project inherits the
- * starters rather than restating them, so a theme it has not forked still
- * reads.
+ * A configuration that declares its themes verbatim reads them from the
+ * declared imports. Otherwise the project's own file first, then the
+ * brand layer: a project inherits the brand rather than restating it,
+ * so a theme it has not forked still reads.
  */
 export async function readTheme(
   root: string,
@@ -377,6 +590,12 @@ export async function readTheme(
   const { path: dir, file } = await themesDirOf(root);
   const { readFile } = await import("node:fs/promises");
   const { basename, join } = await import("node:path");
+  const config = await readConfiguration(root).catch(() => null);
+  if (config?.verbatimThemes != null) {
+    const docs = await servedVerbatim(root, config);
+    const document = docs[name];
+    return { text: document === undefined ? null : themeJson(document) };
+  }
   try {
     if (file) {
       if (basename(dir, ".json") !== name) throw new Error("other theme");
@@ -386,7 +605,8 @@ export async function readTheme(
       text: await readFile(join(dir, `${name}.json`), "utf8"),
     };
   } catch {
-    const document = (await shippedThemes())[name];
+    const brand = config === null ? {} : await brandThemes(root, config);
+    const document = brand[name];
     return { text: document === undefined ? null : themeJson(document) };
   }
 }
@@ -398,6 +618,10 @@ export async function readTheme(
  * the themes directory is created rather than demanded. The alternative
  * shipped for a while — an ENOENT in a dialog on a fresh checkout — was the
  * directory's absence surfacing as the writer's failure.
+ *
+ * A name that exists only in the brand layer is refused: the brand is
+ * read-only here, and a save must not silently fork it. The fork is an
+ * explicit copy, not a side effect of editing.
  */
 export async function writeTheme(
   root: string,
@@ -410,6 +634,19 @@ export async function writeTheme(
   if (file) {
     return { error: `cannot write into '${display}': it names one file` };
   }
+  const config = await readConfiguration(root).catch(() => null);
+  if (config?.verbatimThemes != null) {
+    return { error: verbatimRefusal(config, name) };
+  }
+  if (!await exists(join(dir, `${name}.json`))) {
+    const brand = config === null ? {} : await brandThemes(root, config);
+    if (brand[name] !== undefined) {
+      return {
+        error:
+          `Brand theme '${name}' is read-only here; save as a local theme to fork it.`,
+      };
+    }
+  }
   try {
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, `${name}.json`), text, "utf8");
@@ -419,7 +656,13 @@ export async function writeTheme(
   }
 }
 
-/** Removes one theme file. */
+/**
+ * Removes one theme file.
+ *
+ * A name that exists only in the brand layer is refused rather than
+ * reported missing: there is no local file to remove, and the brand is
+ * read-only here.
+ */
 export async function removeTheme(
   root: string,
   name: string,
@@ -429,6 +672,19 @@ export async function removeTheme(
   const { join } = await import("node:path");
   if (file) {
     return { error: `cannot remove from '${display}': it names one file` };
+  }
+  const config = await readConfiguration(root).catch(() => null);
+  if (config?.verbatimThemes != null) {
+    return { error: verbatimRefusal(config, name) };
+  }
+  if (!await exists(join(dir, `${name}.json`))) {
+    const brand = config === null ? {} : await brandThemes(root, config);
+    if (brand[name] !== undefined) {
+      return {
+        error:
+          `Brand theme '${name}' is read-only here; save as a local theme to fork it.`,
+      };
+    }
   }
   try {
     await rm(join(dir, `${name}.json`));
@@ -442,8 +698,10 @@ export async function removeTheme(
  * Copies one theme to a new name.
  *
  * The copy is the text, so a fork copies byte for byte. A source the project
- * has not forked is a shipped starter, and it answers for a name the project
- * never wrote.
+ * has not forked is a brand theme, and it answers for a name the project
+ * never wrote — the copy is the explicit fork a write refuses to be. A
+ * verbatim configuration reads its source from the declared imports and
+ * refuses every target, because a new file would never be served.
  */
 export async function copyTheme(
   root: string,
@@ -456,6 +714,10 @@ export async function copyTheme(
   if (file) {
     return { error: `cannot copy into '${display}': it names one file` };
   }
+  const config = await readConfiguration(root).catch(() => null);
+  if (config?.verbatimThemes != null) {
+    return { error: verbatimRefusal(config, to) };
+  }
   try {
     const source = join(dir, `${from}.json`);
     // Read first so a missing source is an error, not an empty file.
@@ -463,7 +725,8 @@ export async function copyTheme(
     try {
       text = await readFile(source, "utf8");
     } catch {
-      const document = (await shippedThemes())[from];
+      const brand = config === null ? {} : await brandThemes(root, config);
+      const document = brand[from];
       if (document === undefined) {
         throw new Error(`no theme named ${from}`);
       }
@@ -473,7 +736,8 @@ export async function copyTheme(
     // A copy never overwrites: the name is the author's, and a theme that
     // exists holds work someone saved. Writing over it would destroy that
     // work with no warning and no undo, so a taken name is an error the
-    // studio can show.
+    // studio can show. A brand-only target is the explicit fork a write
+    // refuses to be: the copy lands as a local file beside the brand.
     const target = join(dir, `${to}.json`);
     if (await exists(target)) {
       return { error: `a theme named ${to} already exists` };
@@ -484,6 +748,77 @@ export async function copyTheme(
     return { error: err instanceof Error ? err.message : String(err) };
   }
 }
+/**
+ * The project's own configuration: the parsed `spin/config.json`.
+ *
+ * The same coercions as the synchronous reader — unknown keys ignored,
+ * malformed entries dropped — because the empty config is a valid config,
+ * not a refusal. `file` names the file when it exists, so a client can
+ * tell an author their values are defaults rather than written.
+ */
+export async function readConfig(
+  root: string,
+): Promise<{ readonly config: { readonly activeTheme?: string; readonly themeOrder?: string[] }; readonly file: string | null }> {
+  const { readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const path = join(root, PROJECT_DIR, CONFIG_FILENAME);
+  let text: string;
+  try {
+    text = await readFile(path, "utf8");
+  } catch {
+    return { config: {}, file: null };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { config: {}, file: join(PROJECT_DIR, CONFIG_FILENAME) };
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return { config: {}, file: join(PROJECT_DIR, CONFIG_FILENAME) };
+  }
+  const record = parsed as Record<string, unknown>;
+  const config: { activeTheme?: string; themeOrder?: string[] } = {};
+  if (typeof record["activeTheme"] === "string") config.activeTheme = record["activeTheme"];
+  if (Array.isArray(record["themeOrder"])) {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    for (const entry of record["themeOrder"]) {
+      if (typeof entry !== "string" || seen.has(entry)) continue;
+      seen.add(entry);
+      order.push(entry);
+    }
+    config.themeOrder = order;
+  }
+  return { config, file: join(PROJECT_DIR, CONFIG_FILENAME) };
+}
+
+/**
+ * Writes the project's own configuration.
+ *
+ * The `spin/` directory is created rather than demanded, the same as a
+ * first theme write. Shape only is validated — an `activeTheme` that names
+ * no served theme still writes, and the studio's fallback chain absorbs it.
+ */
+export async function writeConfig(
+  root: string,
+  config: SpinConfigFile,
+): Promise<WriteResult> {
+  const { mkdir, writeFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  try {
+    await mkdir(join(root, PROJECT_DIR), { recursive: true });
+    await writeFile(
+      join(root, PROJECT_DIR, CONFIG_FILENAME),
+      `${JSON.stringify(config, null, 2)}\n`,
+      "utf8",
+    );
+    return { error: null };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 
 /**
  * The moniker a project's component tags carry: its configured prefix, or
@@ -528,6 +863,10 @@ export const projectService = {
     write: writeTheme,
     remove: removeTheme,
     copy: copyTheme,
+  },
+  config: {
+    read: readConfig,
+    write: writeConfig,
   },
   icons: {
     list: listIcons,

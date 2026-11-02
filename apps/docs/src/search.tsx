@@ -33,11 +33,27 @@ export interface SearchEntry {
   readonly category: "Guide" | "Component" | "Utility" | "Token";
 }
 
+const SEARCH_NOTES: Readonly<Record<string, string>> = {
+  "/start/paths": "plugin, preset only, standalone Studio, CLI, MCP",
+};
+
 function buildIndex(): readonly SearchEntry[] {
-  const out: SearchEntry[] = [];
+  const out: SearchEntry[] = [
+    {
+      title: "Studio",
+      subtitle: "Edit the theme against a live page",
+      href: "/studio",
+      category: "Guide",
+    },
+  ];
   for (const group of DOCS_GROUPS) {
     for (const item of group.items) {
-      out.push({ title: item.title, href: item.href, category: "Guide" });
+      out.push({
+        title: item.title,
+        subtitle: SEARCH_NOTES[item.href],
+        href: item.href,
+        category: "Guide",
+      });
     }
   }
   for (const group of COMPONENT_GROUPS) {
@@ -65,12 +81,12 @@ function buildIndex(): readonly SearchEntry[] {
     out.push({
       title: section.title,
       subtitle: section.blurb,
-      href: "/tokens",
+      href: "/utilities",
       category: "Utility",
     });
   }
   for (const name of Object.keys(spinShortcuts)) {
-    out.push({ title: name, href: "/tokens", category: "Utility" });
+    out.push({ title: name, href: "/utilities", category: "Utility" });
   }
   for (const role of BASE_ROLES) {
     out.push({
@@ -108,131 +124,175 @@ export interface SearchDialogProps {
  */
 export function SearchDialog(props: SearchDialogProps): JSX.Element {
   const [query, setQuery] = createSignal("");
-  const [highlight, setHighlight] = createSignal(0);
-  let input: HTMLInputElement | undefined;
-  const results = createMemo(() => search(query()));
-
-  createEffect(() => {
-    if (props.open) {
-      setQuery("");
-      setHighlight(0);
-      input?.focus();
-    }
+  const [active, setActive] = createSignal(0);
+  let dialogEl: HTMLDialogElement | undefined;
+  let inputEl: HTMLInputElement | undefined;
+  let trigger: HTMLElement | null = null;
+  const hits = createMemo(() => search(query()));
+  const clampedActive = createMemo(() =>
+    Math.min(active(), Math.max(0, hits().length - 1)),
+  );
+  const grouped = createMemo(() => {
+    const groups: { label: string; items: { entry: SearchEntry; idx: number }[] }[] = [
+      { label: "Docs", items: [] },
+      { label: "Components", items: [] },
+      { label: "Utilities", items: [] },
+      { label: "Tokens", items: [] },
+    ];
+    hits().forEach((entry, idx) => {
+      const label =
+        entry.category === "Guide"
+          ? "Docs"
+          : entry.category === "Component"
+            ? "Components"
+            : entry.category === "Utility"
+              ? "Utilities"
+              : "Tokens";
+      groups.find((g) => g.label === label)?.items.push({ entry, idx });
+    });
+    return groups.filter((g) => g.items.length > 0);
   });
 
-  const onGlobalKey = (event: KeyboardEvent) => {
-    if (props.open && event.key === "Escape") {
-      event.preventDefault();
-      props.onClose();
-      return;
-    }
-    if (!props.open) return;
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setHighlight((current) =>
-        Math.min(current + 1, Math.max(results().length - 1, 0))
-      );
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setHighlight((current) => Math.max(current - 1, 0));
-    } else if (event.key === "Enter") {
-      const hit = results()[highlight()];
-      if (hit !== undefined) {
-        event.preventDefault();
-        props.onNavigate(hit.href);
+  createEffect(() => {
+    if (!dialogEl) return;
+    if (props.open) {
+      if (!dialogEl.open) {
+        trigger = document.activeElement as HTMLElement | null;
+        dialogEl.showModal();
+        setQuery("");
+        setActive(0);
+        inputEl?.focus();
+      }
+    } else {
+      if (dialogEl.open) {
+        dialogEl.close();
+        if (trigger && trigger.isConnected) trigger.focus();
+        trigger = null;
       }
     }
-  };
-
-  // The dialog listens on the document so arrows and Enter work whichever
-  // element inside it holds focus: the input, or a result the reader tabbed
-  // to. It is the dialog's own listener on its own open state, removed with
-  // it, so the landing's shortcuts are unaffected when it is closed.
-  createEffect(() => {
-    document.addEventListener("keydown", onGlobalKey);
-    onCleanup(() => document.removeEventListener("keydown", onGlobalKey));
   });
 
-  let dialog: HTMLDialogElement | undefined;
   createEffect(() => {
-    if (props.open) {
-      requestAnimationFrame(() => {
-        if (dialog?.isConnected && !dialog.open) dialog.showModal();
-      });
-    } else {
-      dialog?.close();
-    }
+    const idx = clampedActive();
+    if (hits().length === 0) return;
+    document
+      .getElementById(`docs-search-option-${idx}`)
+      ?.scrollIntoView({ block: "nearest" });
   });
 
   return (
     <dialog
-      ref={dialog}
-      aria-label="search"
-      class="w-full max-w-screen-sm overflow-hidden rounded-md border border-border bg-surface-raised p-4"
-      onClose={props.onClose}
-      onClick={(event) => {
-        if (event.target === dialog) props.onClose();
+      ref={(el: HTMLDialogElement) => (dialogEl = el)}
+      class="w-full max-w-screen-md"
+      aria-label="Search documentation"
+      onClose={() => props.onClose()}
+      onCancel={(e: Event) => {
+        e.preventDefault();
+        props.onClose();
+      }}
+      onClick={(e: MouseEvent) => {
+        if (e.target === e.currentTarget) props.onClose();
       }}
     >
-      <div class="stack-sm p-4" role="document">
-          <input
-            ref={input}
-            type="search"
-            placeholder="Search guides, components, utilities, tokens..."
-            value={query()}
-            onInput={(event) => {
-              setQuery(event.currentTarget.value);
-              setHighlight(0);
-            }}
-            class="w-full rounded-sm border border-border bg-surface px-3 py-2 placeholder:text-text-muted focus:outline-none"
-            aria-label="search"
-          />
-          <ul role="listbox">
-            <For
-              each={results()}
-              fallback={
-                <li class="px-3 py-6 text-center text-sm text-text-muted">
-                  Nothing matches — try a component name, a utility, or a token
-                  path.
-                </li>
-              }
-            >
-              {(entry, index) => (
-                <li role="option" aria-selected={index() === highlight()}>
-                  <button
-                    type="button"
-                    onMouseEnter={() =>
-                      setHighlight(index())}
-                    onClick={() =>
-                      props.onNavigate(entry.href)}
-                    class={`bare flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left transition-colors duration-fast ${
-                      index() === highlight()
+      <input
+        ref={(el) => (inputEl = el)}
+        type="search"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="docs-search-listbox"
+        aria-activedescendant={
+          hits().length > 0 ? `docs-search-option-${clampedActive()}` : undefined
+        }
+        aria-autocomplete="list"
+        aria-label="Search documentation"
+        placeholder="Search pages, components, utilities, tokens..."
+        class="w-full"
+        value={query()}
+        onInput={(e) => {
+          setQuery(e.currentTarget.value);
+          setActive(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActive((cur) => Math.min(cur + 1, Math.max(hits().length - 1, 0)));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActive((cur) => Math.max(cur - 1, 0));
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            setActive(0);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            setActive(Math.max(0, hits().length - 1));
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            const hit = hits()[clampedActive()];
+            if (hit) props.onNavigate(hit.href);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            props.onClose();
+          }
+        }}
+      />
+      <ul
+        id="docs-search-listbox"
+        role="listbox"
+        aria-label="Search results"
+        class="flow-list max-h-64 overflow-y-auto"
+      >
+        <Show when={hits().length === 0}>
+          <li
+            role="presentation"
+            class="px-3 py-6 text-center text-sm text-text-muted"
+          >
+            No matches for “{query()}”.
+          </li>
+        </Show>
+        <For each={grouped()}>
+          {(group) => (
+            <>
+              <li
+                role="presentation"
+                class="px-2 pt-2 pb-1 text-xs font-semibold text-text-muted"
+              >
+                {group.label}
+              </li>
+              <For each={group.items}>
+                {(item) => (
+                  <li
+                    id={`docs-search-option-${item.idx}`}
+                    role="option"
+                    aria-selected={item.idx === clampedActive()}
+                    onMouseMove={() => setActive(item.idx)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => props.onNavigate(item.entry.href)}
+                    class={`flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-3 py-2 text-sm ${
+                      item.idx === clampedActive()
                         ? "bg-surface-raised text-text"
-                        : "text-text-muted"
+                        : "text-text-muted hover:text-text"
                     }`}
                   >
                     <span class="min-w-0">
                       <span class="block truncate font-mono text-sm">
-                        {entry.title}
+                        {item.entry.title}
                       </span>
-                      <Show when={entry.subtitle}>
+                      <Show when={item.entry.subtitle}>
                         <span class="block truncate text-xs">
-                          {entry.subtitle}
+                          {item.entry.subtitle}
                         </span>
                       </Show>
                     </span>
                     <span class="shrink-0 font-mono text-xs uppercase tracking-wide text-text-muted">
-                      {entry.category}
+                      {item.entry.category}
                     </span>
-                  </button>
-                </li>
-              )}
-            </For>
-          </ul>
-          <p class="px-3 pt-1 text-xs text-text-muted">
-            {results().length} shown — keep typing to narrow.
-          </p>
-      </div>
+                  </li>
+                )}
+              </For>
+            </>
+          )}
+        </For>
+      </ul>
     </dialog>
   );
 }

@@ -10,7 +10,7 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { spinShortcuts } from "@spinjs/preset";
 import { animationContract } from "@spinjs/animation";
-import { Chip, Code, Section } from "../../bits.tsx";
+import { Chip, Code, Section, starterDoc } from "../../bits.tsx";
 import { Markdown } from "../../markdown.tsx";
 import cssMd from "../../content/css-edges.md?raw";
 
@@ -31,9 +31,32 @@ function ShortcutRow(props: { name: string; expansion: string }): JSX.Element {
 export default function Css(): JSX.Element {
   const shortcuts = Object.entries(spinShortcuts as Record<string, string>)
     .sort(([a], [b]) => a.localeCompare(b));
+  const spacing = (): readonly string[] =>
+    Object.keys(
+      (starterDoc().spacing ?? {}) as Readonly<Record<string, unknown>>,
+    )
+      .filter((step) => !step.startsWith("$"))
+      .sort((a, b) => {
+        const left = Number(a);
+        const right = Number(b);
+        return Number.isFinite(left) && Number.isFinite(right)
+          ? left - right
+          : a.localeCompare(b);
+      });
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <>
       <Markdown text={cssMd} />
+
+      <Section id="spacing" title="Spacing scale, live">
+        <p>
+          The active theme's spacing steps, read from its document. A step not
+          listed here has no <code>p-*</code>, <code>gap-*</code>, or{" "}
+          <code>space-*</code> utility in this theme.
+        </p>
+        <div class="my-3 flex flex-wrap gap-2">
+          <For each={spacing()}>{(step) => <Chip>{step}</Chip>}</For>
+        </div>
+      </Section>
 
       <Section id="shortcuts" title="Shipped shortcuts, live">
         <p>
@@ -43,7 +66,7 @@ export default function Css(): JSX.Element {
           compose a primitive rule.
         </p>
         <div class="my-3 overflow-x-auto">
-          <table>
+          <table class="wrap">
             <thead>
               <tr>
                 <th class="text-left">Shortcut</th>
@@ -64,9 +87,9 @@ export default function Css(): JSX.Element {
       <Section id="animation" title="Global animation utilities, live">
         <p>
           Every <code>animate-*</code> utility from{" "}
-          <code>@spinjs/animation</code>, and the motion tokens each one spends.
-          Add a keyframe anywhere else and it silently wins over — or loses to —
-          this file's, which is why the namespace has one home.
+          <code>@spinjs/spin/animation</code>, and the motion tokens each one
+          spends — one home for the namespace, so no keyframe silently wins
+          over or loses to another.
         </p>
         <div class="my-3 flex flex-wrap gap-2">
           <For each={animationContract.variants}>
@@ -75,11 +98,11 @@ export default function Css(): JSX.Element {
         </div>
         <Code
           class="mt-3"
-          code={animationContract.reads.map((token) => `motion: ${token}`).join(
+          code={animationContract.reads.map((token: string) => `motion: ${token}`).join(
             "\n",
           )}
         />
       </Section>
-    </main>
+    </>
   );
 }

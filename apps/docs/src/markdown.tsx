@@ -174,8 +174,18 @@ function blocks(text: string): Block[] {
         index < lines.length &&
         /^[-*]\s/.test((lines[index] ?? "").trim())
       ) {
-        items.push((lines[index] ?? "").trim().slice(2).trim());
+        const parts = [(lines[index] ?? "").trim().slice(2).trim()];
         index++;
+        while (
+          index < lines.length &&
+          (lines[index] ?? "").trim() !== "" &&
+          !isComment((lines[index] ?? "").trim()) &&
+          !startsBlock(lines[index] ?? "")
+        ) {
+          parts.push((lines[index] ?? "").trim());
+          index++;
+        }
+        items.push(parts.join(" "));
       }
       out.push({ kind: "list", ordered: false, items });
       continue;
@@ -187,10 +197,20 @@ function blocks(text: string): Block[] {
         index < lines.length &&
         /^\d+\.\s/.test((lines[index] ?? "").trim())
       ) {
-        items.push(
+        const parts = [
           (lines[index] ?? "").trim().replace(/^\d+\.\s*/, "").trim(),
-        );
+        ];
         index++;
+        while (
+          index < lines.length &&
+          (lines[index] ?? "").trim() !== "" &&
+          !isComment((lines[index] ?? "").trim()) &&
+          !startsBlock(lines[index] ?? "")
+        ) {
+          parts.push((lines[index] ?? "").trim());
+          index++;
+        }
+        items.push(parts.join(" "));
       }
       out.push({ kind: "list", ordered: true, items });
       continue;
@@ -226,7 +246,7 @@ function inline(text: string): JSX.Element[] {
     if (code !== undefined) {
       out.push(<code>{code}</code>);
     } else if (strong !== undefined) {
-      out.push(<strong class="text-text">{strong}</strong>);
+      out.push(<strong>{inline(strong)}</strong>);
     } else if (label !== undefined && href !== undefined) {
       if (href.startsWith("/") && !href.startsWith("/skill/")) {
         out.push(<A href={href}>{label}</A>);
@@ -257,10 +277,10 @@ function renderHeading(
   text: string,
 ): JSX.Element {
   const children = inline(text);
-  if (level === 1) return <h2 id={id} class="text-text">{children}</h2>;
-  if (level === 2) return <h3 id={id} class="text-text">{children}</h3>;
-  if (level === 3) return <h4 id={id} class="text-text">{children}</h4>;
-  return <h5 id={id} class="text-text">{children}</h5>;
+  if (level === 1) return <h2 id={id}>{children}</h2>;
+  if (level === 2) return <h3 id={id}>{children}</h3>;
+  if (level === 3) return <h4 id={id}>{children}</h4>;
+  return <h5 id={id}>{children}</h5>;
 }
 
 /** Render a markdown document with live Spin elements. */
@@ -268,83 +288,71 @@ export function Markdown(
   props: { text: string; class?: string },
 ): JSX.Element {
   return (
-    <prose>
-      <div class={props.class ?? "stack"}>
-        <For each={blocks(props.text)}>
-          {(block) => {
-            if (block.kind === "heading") {
-              return renderHeading(block.level, block.id, block.text);
-            }
-            if (block.kind === "paragraph") {
-              return <p class="text-sm">{inline(block.text)}</p>;
-            }
-            if (block.kind === "code") {
-              return (
-                <CodeBlock
-                  code={block.code}
-                  lang={block.lang === "" ? undefined : block.lang}
-                  class="mt-3 text-xs"
-                />
-              );
-            }
-            if (block.kind === "callout") {
-              if (block.variant === "warning" || block.variant === "info") {
-                return (
-                  <alert variant={block.variant} class="mt-3">
-                    <p class="text-sm">{inline(block.text)}</p>
-                  </alert>
-                );
-              }
-              return (
-                <blockquote>
-                  <p class="text-sm">{inline(block.text)}</p>
-                </blockquote>
-              );
-            }
-            if (block.kind === "table") {
-              // Tables break out of the prose measure: a reference table at
-              // 65ch scrolls in a column half the page wide. Full-bleed within
-              // the page shell, scroll only when the viewport demands it.
-              return (
-                <div class="my-4 -mx-4 overflow-x-auto px-4 md:-mx-8 md:px-8">
-                  <table class="w-full">
-                    <thead>
-                      <tr>
-                        <For each={block.headers}>
-                          {(header) => (
-                            <th class="text-left">{inline(header)}</th>
-                          )}
-                        </For>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <For each={block.rows}>
-                        {(row) => (
-                          <tr>
-                            <For each={row}>
-                              {(cell) => (
-                                <td class="align-top">{inline(cell)}</td>
-                              )}
-                            </For>
-                          </tr>
-                        )}
-                      </For>
-                    </tbody>
-                  </table>
-                </div>
-              );
-            }
-            const items = (
-              <For each={block.items}>
-                {(item) => <li class="text-sm">{inline(item)}</li>}
-              </For>
+    <prose class={props.class}>
+      <For each={blocks(props.text)}>
+        {(block) => {
+          if (block.kind === "heading") {
+            return renderHeading(block.level, block.id, block.text);
+          }
+          if (block.kind === "paragraph") {
+            return <p>{inline(block.text)}</p>;
+          }
+          if (block.kind === "code") {
+            return (
+              <CodeBlock
+                code={block.code}
+                lang={block.lang === "" ? undefined : block.lang}
+              />
             );
-            return block.ordered
-              ? <ol class="grid gap-1 list-decimal">{items}</ol>
-              : <ul class="grid gap-1 list-disc">{items}</ul>;
-          }}
-        </For>
-      </div>
+          }
+          if (block.kind === "callout") {
+            if (block.variant === "warning" || block.variant === "info") {
+              return (
+                <alert variant={block.variant}>
+                  <p>{inline(block.text)}</p>
+                </alert>
+              );
+            }
+            return (
+              <blockquote>
+                <p>{inline(block.text)}</p>
+              </blockquote>
+            );
+          }
+          if (block.kind === "table") {
+            return (
+              <div class="my-4 overflow-x-auto">
+                <table class="wrap">
+                  <thead>
+                    <tr>
+                      <For each={block.headers}>
+                        {(header) => <th>{inline(header)}</th>}
+                      </For>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={block.rows}>
+                      {(row) => (
+                        <tr>
+                          <For each={row}>
+                            {(cell) => <td>{inline(cell)}</td>}
+                          </For>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+          const items = (
+            <For each={block.items}>
+              {(item) => <li>{inline(item)}</li>}
+            </For>
+          );
+          return block.ordered ? <ol>{items}</ol> : <ul>{items}</ul>;
+        }}
+      </For>
     </prose>
   );
 }

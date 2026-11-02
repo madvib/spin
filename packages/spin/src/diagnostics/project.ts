@@ -7,9 +7,9 @@
  * what the project composes. The lint keeps none of that: it asks, and it
  * works with the answer.
  *
- * A project that has no themes still renders — it serves the shipped
- * starters — so the absence of the directory is not an error, it is the
- * shape of a project that has not forked a theme yet.
+ * A project that has no themes serves none — the absence of the
+ * directory is the shape of a project that has not written a theme yet,
+ * not an error.
  */
 
 import {

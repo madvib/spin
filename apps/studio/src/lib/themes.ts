@@ -2,8 +2,8 @@
  * The theme registry the studio edits.
  *
  * Themes are not bundled and they are not the studio's own: they are the
- * project's — the shipped starters, forked by the files in its themes
- * directory. The daemon answers the merge at request time, so a theme added
+ * project's — what the build serves, local files beside the unforked brand.
+ * The daemon answers the merge at request time, so a theme added
  * or forked while the studio is running has to be visible without a rebuild.
  *
  * The chrome is deliberately not in this list. It is styled by the studio's own
@@ -21,9 +21,11 @@ export interface StudioTheme {
   text: string;
   /**
    * Path relative to the workspace, shown so the author knows what they are
-   * editing — `null` while the theme is a shipped starter no save has forked.
+   * editing — `null` while the theme is a brand or verbatim theme no copy has forked.
    */
   file: string | null;
+  /** Where the theme is served from, when the daemon says. Absent from old daemons. */
+  origin?: "local" | "brand" | "verbatim";
 }
 
 /**
@@ -88,7 +90,42 @@ export async function listProjectThemes(): Promise<StudioTheme[]> {
     name: theme.name,
     text: theme.text,
     file: theme.file,
+    origin: theme.origin ?? undefined,
   }));
+}
+
+/** What `spin/config.json` holds, and the file that holds it. */
+export interface StudioConfig {
+  /** The parsed config; empty when no file is written. */
+  readonly config: { readonly activeTheme?: string; readonly themeOrder?: readonly string[] };
+  /** Project-relative path when the file exists, `null` while values are defaults. */
+  readonly file: string | null;
+}
+
+/** Reads the project's own configuration: the seat and the order. */
+export async function readProjectConfig(): Promise<StudioConfig> {
+  const read = await (await spinClient()).project.config.read({});
+  return {
+    config: {
+      activeTheme: read.config.activeTheme ?? undefined,
+      themeOrder: read.config.themeOrder ?? undefined,
+    },
+    file: read.file,
+  };
+}
+
+/** Writes the project's own configuration. */
+export async function writeProjectConfig(config: {
+  readonly activeTheme?: string;
+  readonly themeOrder?: readonly string[];
+}): Promise<{ error: string | null }> {
+  const written = await (await spinClient()).project.config.write({
+    config: {
+      ...(config.activeTheme !== undefined ? { activeTheme: config.activeTheme } : {}),
+      ...(config.themeOrder !== undefined ? { themeOrder: [...config.themeOrder] } : {}),
+    },
+  });
+  return { error: written.error ?? null };
 }
 
 /**

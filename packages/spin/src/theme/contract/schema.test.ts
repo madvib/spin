@@ -16,6 +16,7 @@ function example(name: string): unknown {
   return JSON.parse(
     readFileSync(
       new URL(`../themes/${name}`, import.meta.url),
+      "utf8",
     ),
   );
 }

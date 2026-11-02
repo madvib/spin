@@ -18,7 +18,7 @@ import { createSpinClient, type SpinClient } from "./client.ts";
 import { setProjectRoot } from "./project-procedures.ts";
 import { OVERLAY_SCRIPT } from "./overlay-client.ts";
 import { themeRouter } from "../theme/index.ts";
-import { overlayRouter, presetRouter } from "../preset/index.ts";
+import { overlayRouter, presetRouter } from "../compiler/index.ts";
 import { projectRouter } from "./project-procedures.ts";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "./fonts-procedures.ts";
@@ -39,7 +39,7 @@ export {
   overlayRouter,
   presetContract,
   presetRouter,
-} from "../preset/index.ts";
+} from "../compiler/index.ts";
 export { componentsRouter } from "./components-procedures.ts";
 export { componentsContract } from "./components-contract.ts";
 export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
@@ -258,7 +258,7 @@ export function defaultStudioDir(): string | undefined {
  * studio bundle beside it when one is built.
  *
  * One Hono app, every host — the standalone daemon mounts this same app,
- * so dev and `spin daemon` never drift. No CORS: the app, the API, and the
+ * so dev and `spin studio` never drift. No CORS: the app, the API, and the
  * studio are one origin, and the handlers that echoed loopback origins are
  * gone with the split.
  */
@@ -324,6 +324,9 @@ export function createSpinApp(options: SpinAppOptions): Hono {
   if (studioDir !== undefined) {
     const dir = studioDir;
     const prefix = `${sideRoot}/studio`;
+    // Relative assets in the bundle resolve against the index URL. Without
+    // the trailing slash they resolve one level too high.
+    outer.get(prefix, (c) => c.redirect(`${prefix}/`));
     outer.use(`${prefix}/*`, async (c, next) => {
       // Directories fall through to the index fallback below: hono's
       // serveStatic neither returns nor calls `next()` for a directory
@@ -362,12 +365,15 @@ export function createSpinApp(options: SpinAppOptions): Hono {
     // The bundle is one page: every studio route serves the same entry,
     // and the client router takes it from there. Read directly — the
     // middleware form with an overridden path never finalizes the context.
+    // The entry's asset references are relative (`./assets/…`), which a
+    // nested route (`/themes/type`) would resolve against itself; rewrite
+    // them to the mount-absolute prefix, which resolves from anywhere.
     outer.get(`${prefix}/*`, async (c) => {
       const { readFile } = await import("node:fs/promises");
       const { join } = await import("node:path");
       try {
         const html = await readFile(join(dir, "index.html"), "utf8");
-        return c.html(html);
+        return c.html(html.replaceAll("./assets/", `${prefix}/assets/`));
       } catch {
         return c.notFound();
       }

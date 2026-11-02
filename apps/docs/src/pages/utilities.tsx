@@ -115,7 +115,7 @@ export default function Utilities(): JSX.Element {
       <h1>Utilities & Scales</h1>
       <p class="max-w-screen-md text-text-muted">
         Every utility the active starter spends, grouped by what you reach for
-        it to do. Switch the starter in the rail and the catalog re-derives — a
+        it to do. Switch the starter in the header and the catalog re-derives — a
         scale the new theme does not declare simply is not listed. The probe
         below shows what the utilities resolve against in both modes at once.
       </p>
@@ -149,7 +149,7 @@ export default function Utilities(): JSX.Element {
 
       <Section id="character" title="Where the starters disagree">
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">decision</th>
@@ -229,7 +229,7 @@ export default function Utilities(): JSX.Element {
         <p>
           The shipped shortcuts compose utilities under one name; the{" "}
           <code>animate-*</code> utilities come from{" "}
-          <code>@spinjs/animation</code> and spend the theme's motion tokens.
+          <code>@spinjs/spin/animation</code> and spend the theme's motion tokens.
         </p>
         <div class="mt-3 flex flex-wrap gap-1">
           <For

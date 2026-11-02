@@ -8,10 +8,10 @@
  * enforcing a vocabulary that no longer exists, and a theme that declares a
  * new pairing is pairable immediately.
  *
- * The documents are the project's own themes plus the shipped starters.
- * That union is what the preset serves a project (`projectThemes` in
- * `packages/preset/src/plugin.ts`): the starters, forked by the files at the
- * project's root. A class the project's theme can produce is therefore known
+ * The documents are the project's own themes alongside the starters.
+ * That union is what the preset analyses a project against: the starters
+ * as the known-vocabulary base, forked by the files at the project's
+ * root. A class the project's theme can produce is therefore known
  * here, and one no theme produces is not.
  */
 
@@ -28,7 +28,7 @@ import {
   primitiveContracts,
   primitiveVariants,
   spinShortcuts,
-} from "../preset/index.ts";
+} from "../compiler/index.ts";
 import { animationVariants } from "../animation/index.ts";
 import type { Facts, ScopeFact } from "./core.ts";
 import { generatedClasses } from "./generated.ts";

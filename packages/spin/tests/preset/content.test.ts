@@ -8,7 +8,7 @@ import {
   isIncluded,
   joinContent,
   scanContent,
-} from "../../src/preset/content.ts";
+} from "../../src/plugin/content.ts";
 
 const PIPELINE_INCLUDE = [
   /\.(vue|svelte|[jt]sx?|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,

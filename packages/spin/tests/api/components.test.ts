@@ -4,7 +4,7 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startDaemon } from "../../src/api/daemon.ts";
+import { type Daemon, startDaemon } from "../../src/api/daemon.ts";
 import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
 
 /**
@@ -14,12 +14,12 @@ import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
  */
 describe("daemon components over HTTP", () => {
   let dir: string;
-  let daemon: ReturnType<typeof startDaemon>;
+  let daemon: Daemon;
   let client: SpinClient;
 
   before(async () => {
     dir = mkdtempSync(join(tmpdir(), "spin-components-"));
-    daemon = startDaemon({ root: dir, port: 0 });
+    daemon = await startDaemon({ root: dir, port: 0 });
     client = createSpinClient(daemon.url);
   });
 

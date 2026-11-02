@@ -1,31 +1,45 @@
 # spin
 
-A theme system for agent-authored UI. You bring a DTCG JSON theme; spin turns it
-into the utilities that spend it, a library of styled elements, a studio to edit
-it live, and the tooling that checks the result — an oxlint plugin, an MCP
-server, and a visual check that renders every theme in a browser.
+One theme, every stack. Spin keeps your interface decisions in a DTCG JSON
+theme and makes the whole web surface obey it — React, Solid, Vue, Svelte,
+Astro, or plain HTML, across Vite, Rspack, webpack, Rollup, Rolldown, esbuild,
+Bun, and UnoCSS.
 
-One theme document per theme, in `spin/*.json` at a project's root. The build
-reads it and emits CSS custom properties; every utility and every element
-resolves against those properties, so replacing the document replaces the
-product's look without touching its markup.
+You write the decisions once — color, type, spacing, radius, motion — as a
+theme. Spin turns that theme into the CSS, the styled HTML elements, the
+utilities, and the compiled interactive components your interfaces are built
+from. Change the theme and everything follows.
+
+```sh
+npm install -D @spinjs/spin
+npm install @spinjs/components @spinjs/runtime
+```
+
+```ts
+import { spin } from "@spinjs/spin/vite";
+
+export default {
+  plugins: [spin.vite()],
+};
+```
+
+## The three packages
+
+| Package               | Install as     | What it is                                                                                          |
+| --------------------- | -------------- | --------------------------------------------------------------------------------------------------- |
+| `@spinjs/spin`        | devDependency  | The toolchain: bundler plugins, UnoCSS preset, `.html` component compiler, theme engine, Studio, CLI, lint plugins, MCP server. |
+| `@spinjs/components`  | dependency     | The 37 statechart machines and platform controllers, with React, Solid, and DOM adapters.           |
+| `@spinjs/runtime`     | dependency     | The signals, template directives, element actions, and finite-state machine interpreter.            |
+
+Public subpaths: `@spinjs/spin/vite` (the plugin in all seven bundler shapes),
+`@spinjs/spin/preset` (the stylesheet-only `spinPreset`), `@spinjs/spin/cli`
+(the `spin` bin), `@spinjs/spin/mcp`, `@spinjs/spin/api` (including
+`mountSpinApp`), plus the toolchain areas (`theme`, `project`, `diagnostics`,
+`kit`, `animation`, `skill`). `@spinjs/components` publishes one subpath per
+component plus `/react`, `/solid`, `/controller`. `@spinjs/runtime` publishes
+`/fsm`, `/actions`, `/props`, `/load`, `/testing`.
 
 ## The repository
-
-### Packages
-
-Three packages ship under `@spinjs`. Everything else is an app, an example,
-internal tooling, or source inside one of the three.
-
-| Package               | What it is                                                                                   |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| `@spinjs/runtime`     | The component runtime: signals, bridges, elements, directives, machines. Browser dependency. |
-| `@spinjs/components`  | The machine components: per-component subpaths plus `/react`, `/solid`, `/controller`.       |
-| `@spinjs/spin`        | The toolchain: themes, the preset and `spin()` plugin, the daemon, lints, MCP server.        |
-
-Public subpaths: `@spinjs/spin/vite` (the plugin), `@spinjs/spin/eslint`,
-`@spinjs/spin/cli` (the `spin` bin), `@spinjs/spin/mcp`, plus the toolchain
-areas (`theme`, `preset`, `project`, `diagnostics`, `api`, `animation`).
 
 ### Apps
 
@@ -49,8 +63,10 @@ it is published.
 ## Commands
 
 ```
-bun run dev      # the studio's dev server, alongside the API daemon
-bun test         # the packages' suites (bun:test)
+bun run dev        # the studio's dev server, alongside the API daemon
+bun run dev:docs   # the documentation site
+bun test           # the packages' suites (bun:test)
+bun run check      # typecheck every package and app, plus the docs lint gate
 ```
 
 `bun run dev` starts the studio and the daemon it talks to. The studio is the
@@ -70,19 +86,17 @@ source manifest:
 ```
 bun run build:dist   # the dist for every publishable package
 bun run check:dist   # the export maps agree, every subpath resolves
+bun run pack         # pack every tarball the release ships
 ```
-
-The manifests are not published yet; publishing is a decision, not a default.
 
 ## Where to read more
 
-- [`packages/spin/README.md`](packages/spin/README.md) — the toolchain's
-  contract.
+- [`packages/spin/README.md`](packages/spin/README.md) — the toolchain.
+- [`packages/components/README.md`](packages/components/README.md) — the component library.
+- [`packages/runtime/README.md`](packages/runtime/README.md) — the reactive runtime.
 - [`apps/docs`](apps/docs) — the documentation site; `bun run dev:docs` runs
   it, and its install page carries the per-bundler recipes.
 
 ## Status
 
-Pre-alpha. The packages are consumed from source — workspace imports today — and
-the npm distributions are built but unpublished. MIT licensed; see
-[LICENSE](LICENSE).
+0.1.x. MIT licensed; see [LICENSE](LICENSE).

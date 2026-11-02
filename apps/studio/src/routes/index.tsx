@@ -42,10 +42,14 @@ import {
   activeModes,
   activeName,
   activeTree,
+  config,
+  hasProjectFile,
   library,
   note,
+  openSaveCopy,
   project,
   projectFailure,
+  refetchConfig,
   refetchProject,
   refetchThemes,
   registerMarkup,
@@ -66,6 +70,7 @@ import {
   listProjectThemes,
   problemText,
   removeTheme,
+  writeProjectConfig,
 } from "../lib/themes.ts";
 import { groupTokens, toPx } from "../lib/tokens.ts";
 import type { TokenRow } from "../lib/tokens.ts";
@@ -132,6 +137,18 @@ export default function OverviewPage() {
   const active = createMemo(() =>
     summaries().find((summary) => summary.name === activeName())
   );
+  /**
+   * Where the active theme is served from, in the banner's words.
+   *
+   * The brand by name; a verbatim map by the act, since the report carries
+   * no config filename to name. An old daemon that says nothing reads as
+   * the brand's sibling — "another project" is the honest vagueness.
+   */
+  const activeOriginLine = (): string => {
+    const origin = registry()?.find((entry) => entry.name === activeName())?.origin;
+    if (origin === "verbatim") return "verbatim themes";
+    return "the brand";
+  };
 
   /**
    * The project, when it is not one yet.
@@ -296,8 +313,8 @@ export default function OverviewPage() {
    * Creates the project the daemon is serving.
    *
    * The daemon's own composer: the themes directory, a first theme, and
-   * the uno config that wires spin into the build. A studio that told the
-   * author to make a directory by hand would leave two of the three.
+   * the bundler config that wires the Spin plugin into the build. A studio
+   * that told the author to make a directory by hand would leave two of the three.
    */
   async function init(): Promise<void> {
     const report = project();
@@ -319,6 +336,49 @@ export default function OverviewPage() {
       setProjectProblem(problemText(err));
     }
   }
+  /**
+   * Seats the active theme the config names, and remembers the seat.
+   *
+   * The config's `activeTheme` is the project's seat; the browser's seat is
+   * the author's. Changing the select writes the project's seat and takes it
+   * — the two agree again until the author picks another theme elsewhere.
+   */
+  async function chooseActiveTheme(name: string): Promise<void> {
+    const current = config()?.config ?? {};
+    try {
+      const written = await writeProjectConfig({ ...current, activeTheme: name });
+      if (written.error !== null) {
+        note(written.error);
+        return;
+      }
+      refetchConfig();
+      setActiveName(name);
+    } catch (err) {
+      note(problemText(err));
+    }
+  }
+
+  /** Moves a theme one step in the display order, and persists the order. */
+  async function moveTheme(name: string, delta: -1 | 1): Promise<void> {
+    const names = summaries().map((summary) => summary.name);
+    const from = names.indexOf(name);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= names.length) return;
+    const [moved] = names.splice(from, 1);
+    names.splice(to, 0, moved!);
+    const current = config()?.config ?? {};
+    try {
+      const written = await writeProjectConfig({ ...current, themeOrder: names });
+      if (written.error !== null) {
+        note(written.error);
+        return;
+      }
+      refetchConfig();
+    } catch (err) {
+      note(problemText(err));
+    }
+  }
+
 
   return (
     // The pane's paper is the project's, because its ink is: a header reading
@@ -351,8 +411,8 @@ export default function OverviewPage() {
             it, and the daemon is the only one who can look — so the studio
             asks, and when the answer is "this is not a project" it says so
             and offers the step that makes it one. The daemon's own composer
-            does the work: the directory, a first theme, and the uno config
-            that wires spin into the build. */
+            does the work: the directory, a first theme, and the bundler config
+            that wires the Spin plugin into the build. */
         }
         <Show when={projectFailure()}>
           {(failure) => (
@@ -378,7 +438,7 @@ export default function OverviewPage() {
               </p>
               <p class="text-sm text-text-muted">
                 Creating the project writes the directory, a first theme, and
-                the uno config that wires spin into the build.
+                the bundler config that wires the Spin plugin into the build.
               </p>
               <div class="row-sm">
                 <label for="project-theme-name" class="text-sm text-text-muted">
@@ -402,6 +462,16 @@ export default function OverviewPage() {
         </Show>
 
         <section class="stack-sm" aria-label="Themes">
+          <Show when={!hasProjectFile(activeName()) && active() !== undefined}>
+            <alert variant="warning" class="flex flex-wrap items-center gap-2">
+              <span class="flex-1">
+                {activeName()} is read-only here — it is served from {activeOriginLine()}. Copy it to spin/ to edit.
+              </span>
+              <button type="button" class="secondary s-sm" onClick={() => openSaveCopy(activeName())}>
+                Copy to spin/
+              </button>
+            </alert>
+          </Show>
           <div class="flex justify-end">
             <span class="text-sm text-text-muted">
               {summaries().length} themes
@@ -428,6 +498,7 @@ export default function OverviewPage() {
                 };
                 return (
                 <article
+                  data-testid="theme-card"
                   class="flex min-h-44 flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3"
                   classList={{
                     "border-primary border-2": summary.name === activeName(),
@@ -553,6 +624,58 @@ export default function OverviewPage() {
             </For>
           </div>
         </section>
+        <section class="stack-sm panel" aria-label="Project">
+          <h2>Project</h2>
+          <Show when={config()?.file === null}>
+            <p class="text-sm text-text-muted">
+              Defaults — save to write spin/config.json.
+            </p>
+          </Show>
+          <div class="row-sm">
+            <label for="project-active-theme" class="text-sm text-text-muted">
+              Active theme
+            </label>
+            <select
+              id="project-active-theme"
+              value={config()?.config.activeTheme ?? activeName()}
+              onChange={(event) => void chooseActiveTheme(event.currentTarget.value)}
+            >
+              <For each={summaries()}>
+                {(summary) => (
+                  <option value={summary.name}>{summary.name}</option>
+                )}
+              </For>
+            </select>
+          </div>
+          <ol class="flow-list">
+            <For each={summaries()}>
+              {(summary, index) => (
+                <li class="row-sm">
+                  <span class="flex-1 truncate text-sm">{summary.name}</span>
+                  <button
+                    type="button"
+                    class="secondary s-sm"
+                    disabled={index() === 0}
+                    onClick={() => void moveTheme(summary.name, -1)}
+                    aria-label={`Move ${summary.name} up`}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    class="secondary s-sm"
+                    disabled={index() === summaries().length - 1}
+                    onClick={() => void moveTheme(summary.name, 1)}
+                    aria-label={`Move ${summary.name} down`}
+                  >
+                    ↓
+                  </button>
+                </li>
+              )}
+            </For>
+          </ol>
+        </section>
+
 
         {
           /* One card per concern, each a specimen rather than a description:
@@ -627,7 +750,7 @@ export default function OverviewPage() {
 /**
  * One concern: what it is for, and a specimen of what it spends.
  *
- * The path is typed against the route table rather than spelled as a string,
+ * The path is a child the route table serves rather than a spelled string,
  * so a card cannot link to an editor the studio does not serve.
  *
  * The specimen gets the room the card has. A grid row is as tall as its
@@ -637,7 +760,7 @@ export default function OverviewPage() {
  * fills the card, and the card fills the row.
  */
 function ConcernCard(props: {
-  path: RoutePath;
+  path: RoutePath | "/themes/colors" | "/themes/type" | "/themes/icons" | "/themes/motion" | "/themes/spacing" | "/themes/style";
   title: string;
   /** Stretches the card across the row: for a specimen that needs width. */
   wide?: boolean;
@@ -679,7 +802,7 @@ function ConcernCard(props: {
 function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
   return (
     <ConcernCard
-      path="/colors"
+      path="/themes/colors"
       title="Palette"
       wide={props.wide === true}
     >
@@ -722,7 +845,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
   const raised = () => props.steps.find((step) => step.path === "color.surface-raised");
   return (
     <ConcernCard
-      path="/colors"
+      path="/themes/colors"
       title="Surface"
     >
       <Show
@@ -782,7 +905,7 @@ const SPECIMEN: Record<string, string> = {
 function TypeCard(props: { faces: readonly Face[] }) {
   return (
     <ConcernCard
-      path="/type"
+      path="/themes/type"
       title="Type"
     >
       <Show
@@ -868,7 +991,7 @@ function ShapeCard(props: {
   const empty = () => props.radius.length + props.shadow.length === 0;
   return (
     <ConcernCard
-      path="/style"
+      path="/themes/style"
       title="Shape"
     >
       <Show
@@ -953,7 +1076,7 @@ function SpaceCard(props: {
 
   return (
     <ConcernCard
-      path="/spacing"
+      path="/themes/spacing"
       title="Space"
     >
       <Show
@@ -1016,7 +1139,7 @@ function MotionCard(props: {
 
   return (
     <ConcernCard
-      path="/motion"
+      path="/themes/motion"
       title="Motion"
     >
       <Show

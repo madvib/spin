@@ -183,7 +183,7 @@ export default function Schema(): JSX.Element {
           </For>
         </div>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">group</th>
@@ -273,7 +273,7 @@ export default function Schema(): JSX.Element {
           below is every type there is.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">type</th>
@@ -320,7 +320,7 @@ export default function Schema(): JSX.Element {
           document to it.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">role</th>

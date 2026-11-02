@@ -15,7 +15,7 @@ import { test } from "bun:test";
  */
 import assert from "node:assert/strict";
 import { readdir, stat } from "node:fs/promises";
-import { spinAliases } from "../../src/preset/plugin.ts";
+import { spinAliases } from "../../src/plugin/plugin.ts";
 
 test("the specifier table resolves spin packages to source that exists", async () => {
   const entries = await spinAliases();

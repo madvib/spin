@@ -9,10 +9,11 @@
  * resolve a color
  */
 import type { JSX } from "solid-js";
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, For, onCleanup, onMount } from "solid-js";
 import { starterThemes } from "@spinjs/theme/themes";
 import { mode, theme } from "@spinjs/kit";
 import { CodeBlock, Section as SharedSection } from "@spinjs/kit";
+import { SNIPPETS } from "./snippets.ts";
 
 /**
  * Scroll-in for the blocks below the fold: a plain opacity fade, skipped
@@ -91,7 +92,7 @@ export function Code(props: {
   return (
     <CodeBlock
       code={props.code}
-      class={props.class ?? "text-xs"}
+      class={props.class}
       lang={props.lang}
     />
   );
@@ -132,6 +133,105 @@ export function Probe(props: { children: JSX.Element }): JSX.Element {
       data-mode={mode() === "dark" ? "light" : "dark"}
     >
       {props.children}
+    </div>
+  );
+}
+
+/**
+ * Every bundler Spin wires, as an interactive tab bar: the config filename,
+ * the exact config snippet, and what that integration provides.
+ *
+ * All seven `spin.<bundler>()` plugins compile both `uno.css` and the
+ * project's `lib/components/*.html`; Vite additionally mounts the Studio
+ * on its own dev server, while the other six pair with
+ * `npx spin studio` alongside the dev server. The UnoCSS preset is the
+ * stylesheet-only path for apps that already own `uno.config.ts`.
+ */
+const BUNDLER_TABS: readonly {
+  readonly name: string;
+  readonly file: string;
+  readonly code: string;
+  readonly note: string;
+}[] = [
+  {
+    name: "Vite",
+    file: "vite.config.ts",
+    code: SNIPPETS.vite,
+    note: "The stylesheet, the component transform and types, and the in-app Studio on its own dev server.",
+  },
+  {
+    name: "Rspack",
+    file: "rspack.config.mjs",
+    code: SNIPPETS.rspack,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "webpack",
+    file: "webpack.config.mjs",
+    code: SNIPPETS.webpack,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "Rollup",
+    file: "rollup.config.mjs",
+    code: SNIPPETS.rollup,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "Rolldown",
+    file: "rolldown.config.mjs",
+    code: SNIPPETS.rolldown,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "esbuild",
+    file: "esbuild.config.mjs",
+    code: SNIPPETS.esbuild,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "Bun",
+    file: "build.ts",
+    code: SNIPPETS.bun,
+    note: "The stylesheet and the component transform; run `npx spin studio` alongside the dev server.",
+  },
+  {
+    name: "UnoCSS",
+    file: "uno.config.ts",
+    code: SNIPPETS.unocss,
+    note: "Stylesheet only: `spinPreset` in an existing UnoCSS app, with explicit theme documents.",
+  },
+];
+
+export function BundlerPicker(): JSX.Element {
+  const [active, setActive] = createSignal(0);
+  const tab = () => BUNDLER_TABS[active()]!;
+  return (
+    <div>
+      <div role="tablist" aria-label="Bundler" class="flex flex-wrap gap-2">
+        <For each={BUNDLER_TABS}>
+          {(entry, index) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={active() === index()}
+              onClick={() => setActive(index())}
+              class="bare rounded-md border border-border px-3 py-1"
+              classList={{
+                "bg-surface-raised": active() === index(),
+                "text-text": active() === index(),
+                "text-text-muted": active() !== index(),
+              }}
+            >
+              {entry.name}
+            </button>
+          )}
+        </For>
+      </div>
+      <p>
+        <code>{tab().file}</code> — {tab().note}
+      </p>
+      <Code code={tab().code} lang="ts" />
     </div>
   );
 }

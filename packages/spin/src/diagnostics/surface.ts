@@ -19,7 +19,7 @@
  * here reaches into the generator that would normally run them.
  */
 
-import { spinPreset } from "../preset/index.ts";
+import { spinPreset } from "../compiler/index.ts";
 import {
   parseTokens,
   requiredPaths,

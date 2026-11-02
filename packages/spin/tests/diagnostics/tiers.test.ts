@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { describeCatalog } from "../../src/preset/index.ts";
+import { describeCatalog } from "../../src/compiler/index.ts";
 import { parseTokens } from "../../src/theme/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import { TIER_BY_GROUP, tierInPlace } from "../../src/diagnostics/tiers.ts";

@@ -13,7 +13,7 @@ import markupMd from "../../content/markup.md?raw";
 
 export default function Markup(): JSX.Element {
   return (
-    <main class="mx-auto max-w-screen-lg px-4 py-10 md:py-16">
+    <>
       <Markdown text={markupMd} />
       <Section id="specimens" title="Live specimens">
         <ExampleRow
@@ -21,8 +21,8 @@ export default function Markup(): JSX.Element {
           html={componentExamples.button.rows[0].html}
         />
         <ExampleRow name="badges" html={componentExamples.badge.rows[0].html} />
-        <ExampleRow name="fields" html={componentExamples.input.rows[0].html} />
+        <ExampleRow name="fields" html={componentExamples.field.rows[0].html} />
       </Section>
-    </main>
+    </>
   );
 }

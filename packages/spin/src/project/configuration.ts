@@ -15,7 +15,13 @@
  * read is one it must not enforce.
  */
 
-import type { ProjectConfiguration } from "./types.ts";
+import type {
+  ExtendsDeclaration,
+  ImportedValue,
+  ProjectConfiguration,
+  ThemeRecordDeclaration,
+  VerbatimThemeRef,
+} from "./types.ts";
 
 /**
  * The shortcuts a configuration's text declares.
@@ -56,27 +62,29 @@ export function configurationIn(
   const themesDirValue = propertyValue(source, "themesDir");
   const componentsDirValue = propertyValue(source, "componentsDir");
   const prefixValue = propertyValue(source, "prefix");
-  const themesDirRaw = themesDirValue?.text.trim();
-  const themesDir = themesDirValue === undefined || themesDirRaw === undefined
-    ? "spin"
-    : (themesDirRaw.startsWith('"') && themesDirRaw.endsWith('"')) ||
-        (themesDirRaw.startsWith("'") && themesDirRaw.endsWith("'"))
-      ? themesDirRaw.slice(1, -1)
-      : "spin";
-  const componentsDirRaw = componentsDirValue?.text.trim();
-  const componentsDir = componentsDirValue === undefined || componentsDirRaw === undefined
-    ? "lib/components"
-    : (componentsDirRaw.startsWith('"') && componentsDirRaw.endsWith('"')) ||
-        (componentsDirRaw.startsWith("'") && componentsDirRaw.endsWith("'"))
-      ? componentsDirRaw.slice(1, -1)
-      : "lib/components";
+  const unreadableFields: string[] = [];
+  const literalOf = (field: string, raw: string | undefined): string | null => {
+    if (raw === undefined) return null;
+    const text = raw.trim();
+    if (
+      (text.startsWith('"') && text.endsWith('"') && text.length >= 2) ||
+      (text.startsWith("'") && text.endsWith("'") && text.length >= 2)
+    ) {
+      return text.slice(1, -1);
+    }
+    unreadableFields.push(field);
+    return null;
+  };
+  const themesDir = literalOf("themesDir", themesDirValue?.text) ?? "spin";
+  const componentsDir = literalOf("componentsDir", componentsDirValue?.text) ?? "lib/components";
   let prefix: string | null = null;
   if (prefixValue !== undefined) {
     const prefixRaw = prefixValue.text.trim();
-    if (prefixRaw === "null") prefix = null;
-    else if (prefixRaw.startsWith('"') && prefixRaw.endsWith('"')) prefix = prefixRaw.slice(1, -1);
-    else if (prefixRaw.startsWith("'") && prefixRaw.endsWith("'")) prefix = prefixRaw.slice(1, -1);
+    if (prefixRaw !== "null") {
+      prefix = literalOf("prefix", prefixValue.text);
+    }
   }
+  const followed = extendsIn(text);
   return {
     file,
     shortcuts: shortcuts.shortcuts,
@@ -85,6 +93,9 @@ export function configurationIn(
     themesDir,
     componentsDir,
     prefix,
+    extends: followed,
+    verbatimThemes: themesIn(text),
+    unreadableFields,
     unreadable: shortcuts.unreadable || content.unreadable,
   };
 }
@@ -162,6 +173,175 @@ export function mountIn(text: string): string | null {
   return declaration === "" ? null : declaration;
 }
 
+
+/**
+ * The `extends` value a configuration declares, as the daemon can follow it.
+ *
+ * The brand is a value the configuration imports: a bare identifier
+ * (`extends: acmeBrand`) whose `themes` record is the layer, or an
+ * inline `themes` in the same shapes a verbatim map takes. A declared
+ * value in none of those shapes answers `unresolved`, and no `extends`
+ * at all answers `null`.
+ */
+export function extendsIn(text: string): ExtendsDeclaration | null {
+  const source = withoutComments(text);
+  const property = topLevelProperty(source, "extends", "themes");
+  if (property === undefined) return null;
+  const raw = property.text.trim();
+  if (/^[A-Za-z_$][\w$]*$/.test(raw)) {
+    const value = importOf(source, raw);
+    return value === null ? { kind: "unresolved" } : { kind: "brand", value };
+  }
+  if (!raw.startsWith("{")) return { kind: "unresolved" };
+  const themes = objectEntries(raw).find((entry) => entry.name === "themes");
+  if (themes === undefined) return { kind: "unresolved" };
+  return { kind: "inline", record: recordOf(source, themes.value) };
+}
+
+/**
+ * The verbatim `themes:` map a configuration declares, as the daemon can
+ * load it.
+ *
+ * `null` when the configuration declares no `themes:` at all — the
+ * daemon then serves the brand layer forked by the local disk. A
+ * declared map (even an empty one) replaces the whole stack exactly as
+ * the plugin does: the daemon serves what this loads and nothing else.
+ */
+export function themesIn(text: string): ThemeRecordDeclaration | null {
+  const source = withoutComments(text);
+  const property = topLevelProperty(source, "themes", "extends");
+  if (property === undefined) return null;
+  return recordOf(source, property.text);
+}
+
+/**
+ * The property called `name` that is not nested inside the rival
+ * option's value.
+ *
+ * A theme can be named `extends`, and `extends: { themes: ... }` nests
+ * a `themes` of its own: the first textual match is not always the
+ * option. Matches inside the rival's span are skipped until one stands
+ * outside it — the option the configuration declares.
+ */
+function topLevelProperty(
+  source: string,
+  name: string,
+  rival: string,
+): Value | undefined {
+  let from = 0;
+  for (;;) {
+    const self = propertyValue(source, name, from);
+    if (self === undefined) return undefined;
+    const other = propertyValue(source, rival, from);
+    if (
+      other !== undefined && self.start >= other.start && self.end <= other.end
+    ) {
+      from = other.end;
+      continue;
+    }
+    return self;
+  }
+}
+
+/**
+ * A themes record expression, as the daemon can load it.
+ *
+ * An object literal is a per-key map; a bare identifier is one import
+ * that IS the record. Anything else — a call, a spread-only literal, a
+ * name with no import — is a record with no import, which the daemon
+ * skips loudly. Entries whose value is not a bare imported identifier
+ * are kept with a `null` import so the daemon can say which entry it
+ * could not follow.
+ */
+function recordOf(source: string, expression: string): ThemeRecordDeclaration {
+  const raw = expression.trim();
+  if (raw.startsWith("{")) {
+    if (raw.replace(/\s/g, "") !== "{}") {
+      const entries = entriesOf(source, raw);
+      if (entries.length > 0) return { kind: "entries", entries };
+      return { kind: "record", value: null };
+    }
+    return { kind: "entries", entries: [] };
+  }
+  if (/^[A-Za-z_$][\w$]*$/.test(raw)) {
+    return { kind: "record", value: importOf(source, raw) };
+  }
+  return { kind: "record", value: null };
+}
+
+/** The entries of a themes object literal, each with its import or none. */
+function entriesOf(
+  source: string,
+  literal: string,
+): VerbatimThemeRef[] {
+  const entries: VerbatimThemeRef[] = [];
+  for (const { name, value } of objectEntries(literal)) {
+    const identifier = value.trim();
+    if (!/^[A-Za-z_$][\w$]*$/.test(identifier)) {
+      entries.push({ key: name, value: null });
+      continue;
+    }
+    entries.push({ key: name, value: importOf(source, identifier) });
+  }
+  return entries;
+}
+
+/**
+ * The static value import that binds `name`, if one does.
+ *
+ * Default, named, and aliased imports resolve to the export to read;
+ * namespace imports, type imports, and names bound nowhere answer
+ * `null`. Strings are blanked before the scan so an import spelled
+ * inside one cannot resolve.
+ */
+function importOf(source: string, name: string): ImportedValue | null {
+  const code = blankStrings(source);
+  const pattern = /import\s+([\s\S]*?)\s+from\s*(["'])([^"']*)\2/g;
+  for (const match of code.matchAll(pattern)) {
+    const clause = (match[1] as string).trim();
+    // The source is blanked in the scan text, so it is read back from
+    // the original at the same indexes, which blanking preserves.
+    const at = (match.index ?? 0) + match[0].length - match[3].length - 1;
+    const moduleSource = source.slice(at, at + match[3].length);
+    if (clause.startsWith("type ") || clause.startsWith("*")) continue;
+    const brace = clause.match(/\{([\s\S]*)\}/);
+    if (brace !== null) {
+      for (const member of (brace[1] as string).split(",")) {
+        const cleaned = member.trim().replace(/^type\s+/, "");
+        const aliased = cleaned.match(/^([A-Za-z_$][\w$]*)\s+as\s+([A-Za-z_$][\w$]*)$/);
+        if (aliased !== null && aliased[2] === name) {
+          return { source: moduleSource, exportName: aliased[1] as string };
+        }
+        if (aliased === null && cleaned === name) {
+          return { source: moduleSource, exportName: name };
+        }
+      }
+      continue;
+    }
+    const head = clause.split(",")[0]!.trim();
+    if (head === name) return { source: moduleSource, exportName: "default" };
+  }
+  return null;
+}
+
+/** The text with its strings blanked out. Lengths stay, so indexes hold. */
+function blankStrings(text: string): string {
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i] as string;
+    if (ch === '"' || ch === "'" || ch === "`") {
+      const end = stringEnd(text, i);
+      // The quotes stay so `from "..."` still matches; the contents go.
+      out += ch + " ".repeat(Math.max(0, end - i - 2)) + (end - i >= 2 ? text[end - 1] : "");
+      i = end;
+      continue;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out;
+}
 /* ------------------------------------------------------------- the scanner -- */
 
 /** The text with its comments blanked out. The strings stay. */
@@ -285,6 +465,8 @@ function expressionEnd(text: string, start: number, to: number): number {
 interface Value {
   /** The value's text. */
   readonly text: string;
+  /** The index where the property's key starts. */
+  readonly start: number;
   /** The index just past the value. */
   readonly end: number;
 }
@@ -294,6 +476,7 @@ function expressionAt(
   source: string,
   start: number,
   to: number,
+  key: number,
 ): Value | undefined {
   let i = start;
   while (i < to && isSpace(source[i] as string)) i += 1;
@@ -302,12 +485,12 @@ function expressionAt(
   if (ch === "{" || ch === "[" || ch === "(") {
     const end = balancedEnd(source, i, to);
     if (end <= i) return undefined;
-    return { text: source.slice(i, end), end };
+    return { text: source.slice(i, end), start: key, end };
   }
   const end = expressionEnd(source, i, to);
   const text = source.slice(i, end).trim();
   if (text === "") return undefined;
-  return { text, end };
+  return { text, start: key, end };
 }
 
 /** The value of the property called `name`, as the text it was written as. */
@@ -336,7 +519,7 @@ function propertyValue(
     // A member of something else is not a property of the configuration.
     const previous = i > 0 ? source[i - 1] as string : "";
     if (word === name && source[k] === ":" && previous !== ".") {
-      return expressionAt(source, k + 1, to);
+      return expressionAt(source, k + 1, to, i);
     }
     i = j;
   }
@@ -361,7 +544,7 @@ function objectEntries(
       let k = end;
       while (k < literal.length && isSpace(literal[k] as string)) k += 1;
       if (literal[k] === ":") {
-        const value = expressionAt(literal, k + 1, literal.length);
+        const value = expressionAt(literal, k + 1, literal.length, i);
         if (value !== undefined) {
           out.push({ name: literal.slice(i + 1, end - 1), value: value.text });
           i = value.end;
@@ -380,12 +563,17 @@ function objectEntries(
     let k = j;
     while (k < literal.length && isSpace(literal[k] as string)) k += 1;
     if (literal[k] === ":") {
-      const value = expressionAt(literal, k + 1, literal.length);
+      const value = expressionAt(literal, k + 1, literal.length, i);
       if (value !== undefined) {
         out.push({ name: literal.slice(i, j), value: value.text });
         i = value.end;
         continue;
       }
+    }
+    // Shorthand: `{ theme }` names the value it spells. Only when the name
+    // stands alone — a spread's member is not an entry of this object.
+    if (literal[k] === "," || literal[k] === "}" || k >= literal.length) {
+      out.push({ name: literal.slice(i, j), value: literal.slice(i, j) });
     }
     i = j;
   }

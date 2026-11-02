@@ -131,6 +131,9 @@ export function createLockstep(
       const edits = lockstepEdits(steps, path, next, isLinked);
       const map: Record<string, string> = {};
       for (const edit of edits) {
+        // Siblings only: the dragged row reads its own draft, and a
+        // proposal echoing back would rewrite its thumb mid-gesture.
+        if (edit.path.join(".") === path) continue;
         map[edit.path.join(".")] = edit.value;
       }
       setProposals(map);

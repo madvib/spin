@@ -8,7 +8,7 @@ import {
   overlayThemes,
   resolveThemes,
   setOverlay,
-} from "../../src/preset/session.ts";
+} from "../../src/plugin/session.ts";
 import type { ThemeDocument } from "../../src/theme/index.ts";
 
 // Bun runs test files in one process, so module state leaks across files:

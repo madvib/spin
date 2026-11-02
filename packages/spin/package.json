@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/spin",
-  "version": "0.1.6",
+  "version": "0.1.0-preview.3",
   "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
   "type": "module",
   "license": "MIT",
@@ -12,12 +12,12 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./src/preset/index.ts",
-      "default": "./src/preset/index.ts"
+      "types": "./src/compiler/index.ts",
+      "default": "./src/compiler/index.ts"
     },
     "./vite": {
-      "types": "./src/preset/plugin.ts",
-      "default": "./src/preset/plugin.ts"
+      "types": "./src/plugin/plugin.ts",
+      "default": "./src/plugin/plugin.ts"
     },
     "./eslint": {
       "types": "./src/diagnostics/eslint.ts",
@@ -55,24 +55,32 @@
       "types": "./src/theme/theme-types.d.ts"
     },
     "./preset": {
-      "types": "./src/preset/index.ts",
-      "default": "./src/preset/index.ts"
+      "types": "./src/compiler/index.ts",
+      "default": "./src/compiler/index.ts"
     },
     "./preset/plugin": {
-      "types": "./src/preset/plugin.ts",
-      "default": "./src/preset/plugin.ts"
+      "types": "./src/plugin/plugin.ts",
+      "default": "./src/plugin/plugin.ts"
     },
     "./preset/config": {
-      "types": "./src/preset/config.ts",
-      "default": "./src/preset/config.ts"
+      "types": "./src/plugin/config.ts",
+      "default": "./src/plugin/config.ts"
     },
     "./preset/components-compiler": {
-      "types": "./src/preset/components-compiler.ts",
-      "default": "./src/preset/components-compiler.ts"
+      "types": "./src/plugin/components-compiler.ts",
+      "default": "./src/plugin/components-compiler.ts"
     },
     "./preset/compile": {
-      "types": "./src/preset/compile.ts",
-      "default": "./src/preset/compile.ts"
+      "types": "./src/plugin/compile.ts",
+      "default": "./src/plugin/compile.ts"
+    },
+    "./compiler": {
+      "types": "./src/compiler/index.ts",
+      "default": "./src/compiler/index.ts"
+    },
+    "./plugin": {
+      "types": "./src/plugin/plugin.ts",
+      "default": "./src/plugin/plugin.ts"
     },
     "./project": {
       "types": "./src/project/index.ts",
@@ -134,12 +142,13 @@
       "default": "./src/theme/skill/index.ts"
     },
     "./preset/solid": {
-      "types": "./src/preset/solid.d.ts"
+      "types": "./src/compiler/solid.d.ts"
     }
   },
   "files": [
     "dist",
     "README.md",
+    "LICENSE",
     "skill",
     "schema.json"
   ],
@@ -192,12 +201,12 @@
         "default": "./package.json"
       },
       ".": {
-        "types": "./dist/preset/index.d.ts",
-        "default": "./dist/preset/index.js"
+        "types": "./dist/compiler/index.d.ts",
+        "default": "./dist/compiler/index.js"
       },
       "./vite": {
-        "types": "./dist/preset/plugin.d.ts",
-        "default": "./dist/preset/plugin.js"
+        "types": "./dist/plugin/plugin.d.ts",
+        "default": "./dist/plugin/plugin.js"
       },
       "./eslint": {
         "types": "./dist/diagnostics/eslint.d.ts",
@@ -235,24 +244,32 @@
         "types": "./dist/theme/theme-types.d.ts"
       },
       "./preset": {
-        "types": "./dist/preset/index.d.ts",
-        "default": "./dist/preset/index.js"
+        "types": "./dist/compiler/index.d.ts",
+        "default": "./dist/compiler/index.js"
       },
       "./preset/plugin": {
-        "types": "./dist/preset/plugin.d.ts",
-        "default": "./dist/preset/plugin.js"
+        "types": "./dist/plugin/plugin.d.ts",
+        "default": "./dist/plugin/plugin.js"
       },
       "./preset/config": {
-        "types": "./dist/preset/config.d.ts",
-        "default": "./dist/preset/config.js"
+        "types": "./dist/plugin/config.d.ts",
+        "default": "./dist/plugin/config.js"
       },
       "./preset/components-compiler": {
-        "types": "./dist/preset/components-compiler.d.ts",
-        "default": "./dist/preset/components-compiler.js"
+        "types": "./dist/plugin/components-compiler.d.ts",
+        "default": "./dist/plugin/components-compiler.js"
       },
       "./preset/compile": {
-        "types": "./dist/preset/compile.d.ts",
-        "default": "./dist/preset/compile.js"
+        "types": "./dist/plugin/compile.d.ts",
+        "default": "./dist/plugin/compile.js"
+      },
+      "./compiler": {
+        "types": "./dist/compiler/index.d.ts",
+        "default": "./dist/compiler/index.js"
+      },
+      "./plugin": {
+        "types": "./dist/plugin/plugin.d.ts",
+        "default": "./dist/plugin/plugin.js"
       },
       "./project": {
         "types": "./dist/project/index.d.ts",
@@ -314,7 +331,7 @@
         "default": "./dist/theme/skill/index.js"
       },
       "./preset/solid": {
-        "types": "./dist/preset/solid.d.ts"
+        "types": "./dist/compiler/solid.d.ts"
       }
     }
   },
@@ -322,7 +339,7 @@
     "test": "bun test src/ tests/",
     "lint": "oxlint",
     "fmt": "biome format --write .",
-    "codegen": "bun run src/preset/rules/primitives/derive.ts && biome format --write . src/preset/rules/primitives/manifest.ts && bun run codegen-animation.ts",
+    "codegen": "bun run src/compiler/rules/primitives/derive.ts && biome format --write . src/compiler/rules/primitives/manifest.ts && bun run codegen-animation.ts",
     "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/theme/skill/index.ts'; const rendered = renderSkill(await readFile('./skill/SKILL.md', 'utf8')); await writeFile('./skill/SKILL.md', rendered); console.log('wrote skill/SKILL.md');\"",
     "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/theme/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n'); console.log('wrote schema.json');\"",
     "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes } from './src/theme/index.ts'; import { spinTheme } from './src/theme/themes/index.ts'; const parsed = parseTokens(spinTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme/theme-types.d.ts');\""

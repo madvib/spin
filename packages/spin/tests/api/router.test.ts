@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { BASE_ROLES, parseTokens, scaffoldTheme, setToken, treeToJson } from "../../src/theme/index.ts";
-import { scaffold } from "../../src/preset/index.ts";
+import { scaffold } from "../../src/compiler/index.ts";
 import {
   createSpinClient,
   componentsContract,

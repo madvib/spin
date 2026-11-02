@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { parseTokens } from "../../src/theme/index.ts";
 import type { TokenTree } from "../../src/theme/index.ts";
-import { toUnoTheme } from "../../src/preset/index.ts";
+import { toUnoTheme } from "../../src/compiler/index.ts";
 
 function treeOf(doc: unknown): TokenTree {
   const parsed = parseTokens(doc);

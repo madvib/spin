@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { def as comboboxDef } from "@spinjs/components/combobox";
 import { EXAMPLE_ONLOAD } from "./mount-glue.ts";
+type RubricPart = { id?: string } & Record<string, unknown>;
 const segmentsOf = (def: {
-  parts: Record<string, { id?: string }>;
-  slots: Record<string, { id?: string }>;
+  parts: Record<string, RubricPart>;
+  slots: Record<string, RubricPart>;
 }): Set<string> => {
   const segments = new Set<string>();
   for (const [key, part] of Object.entries(def.parts)) {

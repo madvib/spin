@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { join } from "node:path";
-import type { CheckConfig as HarnessConfig } from "../../../internal/check/harness.ts";
+import type { CheckConfig as HarnessConfig } from "../../../../internal/check/harness.ts";
 import type { CheckConfig } from "../../src/diagnostics/check.ts";
 import { findHarness, workspaceHarness } from "../../src/diagnostics/workspace.ts";
 

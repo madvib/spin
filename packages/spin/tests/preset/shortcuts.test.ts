@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { spinPreset } from "../../src/preset/index.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
 
 /**
  * The project's own shortcuts.

@@ -251,11 +251,29 @@ test("paletteChips pairs a role with its on-colour ink", () => {
   deepStrictEqual(chip?.ink, "#aabbcc");
 });
 
-test("paletteChips falls back to the higher-contrast of text and white", () => {
+test("paletteChips falls back to the higher-contrast of text, white, and black", () => {
   const light = paletteChips(TEXT, "light").find((c) => c.path === "color.link");
   deepStrictEqual(light?.ink, "#ffffff");
   const sunken = surfaceSteps(TEXT, "light").find(
     (c) => c.path === "color.surface-sunken",
   );
   deepStrictEqual(sunken?.ink, "#111111");
+  // A dark-mode value both inks clear: white wins by ratio, as before.
+  const dark = paletteChips(TEXT, "dark").find((c) => c.path === "color.link");
+  deepStrictEqual(dark?.value, "#445566");
+  deepStrictEqual(dark?.ink, "#ffffff");
+  // A light value in dark mode: the theme's dark text fails against it,
+  // and white fails too — black is the only ink that reads.
+  const pale = {
+    ...DOC,
+    color: {
+      ...DOC.color,
+      text: { $value: "#111111", $modes: { dark: "#f3f5f8" } },
+      accent: { $value: "#8db9fa" },
+    },
+  };
+  const chip = paletteChips(JSON.stringify(pale), "dark").find((c) =>
+    c.path === "color.accent"
+  );
+  deepStrictEqual(chip?.ink, "#111111");
 });

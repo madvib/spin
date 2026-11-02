@@ -31,8 +31,8 @@ export const TOP_SECTIONS: readonly (NavLink & {
 })[] = [
   {
     title: "Docs",
-    href: "/guide/install",
-    active: ["/why", "/guide", "/themes", "/tokens", "/utilities", "/tooling"],
+    href: "/start",
+    active: ["/start", "/guide", "/themes", "/utilities", "/tooling"],
   },
   { title: "Studio", href: "/studio", active: ["/studio"] },
   { title: "Components", href: "/components", active: ["/components"] },
@@ -40,25 +40,39 @@ export const TOP_SECTIONS: readonly (NavLink & {
 
 /** The Docs world's left rail. */
 export const DOCS_GROUPS: readonly NavGroup[] = [
-  { label: "Overview", items: [{ title: "Why Spin", href: "/why" }] },
   {
-    label: "Getting Started",
+    label: "Start here",
     items: [
-      { title: "Install", href: "/guide/install" },
-      { title: "Markup", href: "/guide/markup" },
-      { title: "Themes", href: "/guide/themes" },
-      { title: "Verify", href: "/guide/verify" },
+      { title: "What is Spin?", href: "/start" },
+      { title: "Quickstart", href: "/start/quickstart" },
+      { title: "Install & bundlers", href: "/start/install" },
+      { title: "Ways to use Spin", href: "/start/paths" },
+      { title: "Architecture & layers", href: "/start/model" },
     ],
   },
   {
-    label: "Themes & Tokens",
+    label: "Guides",
     items: [
-      { title: "Theme Contract", href: "/themes" },
-      { title: "Authoring & Gates", href: "/themes/authoring" },
-      { title: "Token Schema", href: "/themes/schema" },
-      { title: "Starters", href: "/themes/starters" },
-      { title: "Style References", href: "/themes/styles" },
-      { title: "Tokens & Utilities", href: "/tokens" },
+      { title: "Themes & modes", href: "/themes" },
+      { title: "Authoring themes", href: "/themes/authoring" },
+      { title: "Using the Studio", href: "/studio" },
+      { title: "Elements & CSS", href: "/guide/markup" },
+      { title: "Utilities & animations", href: "/guide/css" },
+      { title: "Components & templates", href: "/guide/components" },
+      { title: "Authoring machines", href: "/guide/machines" },
+      { title: "Lints & verification", href: "/tooling/lints" },
+    ],
+  },
+  {
+    label: "Reference",
+    items: [
+      { title: "Theme schema", href: "/themes/schema" },
+      { title: "Starter themes", href: "/themes/starters" },
+      { title: "Style references", href: "/themes/styles" },
+      { title: "Tokens & utilities", href: "/utilities" },
+      { title: "CLI & plugin options", href: "/tooling/cli" },
+      { title: "MCP server", href: "/tooling/mcp" },
+      { title: "Browser checks", href: "/tooling/check" },
     ],
   },
 ];

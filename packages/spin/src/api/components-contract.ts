@@ -141,8 +141,6 @@ const CopyOutput = v.object({
   /** The custom element tag the file registers (`<moniker>-<name>-<example>`). Null when the write failed. */
   tag: v.nullable(v.string()),
   error: v.nullable(v.string()),
-  /** Where the copy landed when the components resolve to a shared package. */
-  note: v.optional(v.string()),
 });
 
 /** List every component — primitives first, then machines — with reads. */

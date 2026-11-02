@@ -10,6 +10,7 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { Chip, Code, Section } from "../../bits.tsx";
+import { SNIPPETS } from "../../snippets.ts";
 import {
   FLOORS,
   groupSteps,
@@ -19,6 +20,7 @@ import {
   thesisOf,
 } from "../../theme-docs.ts";
 import {
+  SKILL_DIR,
   SKILL_PATH,
   skillChecklist,
   skillSections,
@@ -126,7 +128,7 @@ curl -fsSL "${base}${SKILL_PATH}" \\
   const installStyles = `for style in ${
     styles.map((style) => style.slug).join(" ")
   }; do
-  curl -fsSL "${base}/skill/spin-theme/$style.md" \\
+  curl -fsSL "${base}${SKILL_DIR}/$style.md" \\
     -o ~/.claude/skills/spin-theme/$style.md
 done`;
   return (
@@ -171,7 +173,7 @@ done`;
           followed rather than read.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">step</th>
@@ -200,16 +202,11 @@ done`;
         <Code
           class="mt-3"
           lang="ts"
-          code={`import { spin } from "@spinjs/preset/plugin";
-import { mountSpinApp } from "@spinjs/api";
+          code={`import { spin } from "@spinjs/spin/vite";
 
 export default {
-  plugins: [
-    spin.vite({
-      // The studio is mounted beside the app, on the app's own origin.
-      mount: mountSpinApp(import.meta.dirname!),
-    }),
-  ],
+  // The studio mounts itself beside the app, on the app's own origin.
+  plugins: [spin.vite()],
 };`}
         />
         <p>
@@ -256,7 +253,7 @@ export default {
           What the file carries, read from the file rather than listed here:
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">section</th>
@@ -338,7 +335,7 @@ export default {
           The floors are the contract's own list, and this is all of it:
         </p>
         <div class="mt-3 overflow-x-auto">
-          <table class="w-full border-collapse">
+          <table class="w-full border-collapse wrap">
             <thead>
               <tr class="border-b border-border text-left">
                 <th class="py-2 pr-4">the ink</th>
@@ -364,13 +361,11 @@ export default {
           </table>
         </div>
         <p>
-          The state contrast check is the one that is not yet fatal. It drives
-          every control through the states it can be in, resting, hovered,
-          focused, pressed and disabled, and measures the contrast of each. It
-          reports what it finds and leaves the verdict alone, because the themes
-          have not been held to it yet. Promoting it is a decision, and the
-          harness makes it explicit: <code>--state-contrast-strict</code>{" "}
-          lets its findings decide the run.
+          The state contrast check drives every control through the states it
+          can be in — resting, hovered, focused, pressed, and disabled — and
+          measures the contrast of each. The pass is strict: a state that falls
+          below its floor fails the run. <code>--no-state-contrast</code> is the
+          escape hatch for a quick measurement.
         </p>
         <p>
           The commands, in this repository. The harness drives a browser over a
@@ -379,10 +374,10 @@ export default {
         <Code
           class="mt-2"
           lang="bash"
-          code={`deno task serve                                 # the reference app, on http://localhost:5173
-deno task visual -- --url http://localhost:5173 # the check harness, over every route
-deno task visual -- --route components/button
-deno task visual -- --state-contrast-strict`}
+          code={`bun run serve                                  # the reference app, http://localhost:5173
+bun run visual                                 # every route, against the default URL
+bun run visual -- --route components/button
+bun run visual -- --firefox /path/to/firefox`}
         />
         <p>
           The mechanical gates are one call, and it runs against any document —
@@ -390,19 +385,50 @@ deno task visual -- --state-contrast-strict`}
         </p>
         <Code
           class="mt-2"
-          lang="bash"
-code={`deno eval --ext=ts "
-import { readFile } from 'node:fs/promises';
-import { themeGates } from '@spinjs/theme';
-const text = await readFile('spin/<name>.json', 'utf8');
-const report = themeGates(text);
-for (const gate of report.gates) {
-  for (const issue of gate.issues) {
-    console.log(gate.gate + ': ' + issue.path + ' — ' + issue.message);
-  }
-}
-"`}
+          lang="ts"
+          code={SNIPPETS.themeGates}
         />
+        <p>
+          Save it as <code>check-theme.ts</code> and run{" "}
+          <code>bun check-theme.ts</code>.
+        </p>
+      </Section>
+
+      <Section id="project" title="Project config">
+        <p>
+          The themes live in <code>spin/*.json</code>; the project's word
+          about them lives in <code>spin/config.json</code> beside them.
+          Two keys, both optional: <code>activeTheme</code> names the
+          theme the Studio seats on load, and <code>themeOrder</code>
+          lists the themes in the order the picker shows them. The file
+          need not exist — a project without one serves its themes in
+          the order the layering hands them over.
+        </p>
+        <Code
+          class="mt-2"
+          lang="json"
+          code={`{
+  "activeTheme": "acme",
+  "themeOrder": ["acme", "silk", "console"]
+}`}
+        />
+        <p>
+          The first seat wins a chain: the config's{" "}
+          <code>activeTheme</code> when it names a served theme, else
+          the remembered seat, else the first listed. A configured name
+          the project does not serve is ignored rather than seated —
+          the config may name a theme the current layering does not
+          carry. After the first seat the config never moves the
+          author again. Unknown keys are ignored, and an unparsable
+          file reads as empty: the project renders either way.
+        </p>
+        <p>
+          The Studio's Overview page carries a Project section that
+          edits both keys — a select for the active theme, up and down
+          verbs for the order — and writes the file on save. A theme
+          the order does not name is served after the named ones,
+          alphabetically.
+        </p>
       </Section>
 
       <Section id="taste" title="What the machine cannot check">

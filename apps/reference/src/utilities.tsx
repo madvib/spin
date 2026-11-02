@@ -35,7 +35,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.silk as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.silk,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -60,9 +60,9 @@ function colorValues(
   theme: string,
   mode: string,
 ): Readonly<Record<string, string>> {
-  const doc = (starterThemes as unknown as Record<string, unknown>)[theme];
+  const doc = starterThemes[theme];
   if (doc === undefined) return {};
-  const parsed = parseTokens(doc as Parameters<typeof parseTokens>[0]);
+  const parsed = parseTokens(doc);
   if (!parsed.ok) throw new Error(parsed.error);
   const index = indexTree(resolveAliases(parsed.tree).tree);
   const out: Record<string, string> = {};

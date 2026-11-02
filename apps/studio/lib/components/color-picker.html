@@ -23,6 +23,7 @@ const machine = colorPicker({
   </button>
   <div
     class={["absolute left-0 top-full z-dropdown mt-1 origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
+    show={machine.open}
     {...machine.getPositionerProps()}
   >
     <div

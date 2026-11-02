@@ -7,7 +7,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { elementTypeElements, elementTypeFields } from "../../src/theme/index.ts";
-import { spinPreset } from "../../src/preset/index.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
 
 /**
  * The per-element typography, spent.

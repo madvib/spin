@@ -19,6 +19,7 @@
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { test, withPage } from "./harness.ts";
 import { StudioPage, studioUrl } from "./studio.ts";
+import { seatTheme } from "./themes.ts";
 
 /**
  * The studio's own RPC, asked from inside the page.
@@ -105,7 +106,12 @@ async function state(page: StudioPage): Promise<State> {
 test("a drag paints the pane before it commits", async () => {
   await withPage(async (page) => {
     try {
-      await page.goto(`${studioUrl()}/spacing`);
+      await page.goto(`${studioUrl()}/themes/spacing`);
+      await page.settle(1500);
+      const seated = await seatTheme(page, "silk");
+      assert(seated === "seated", `silk never seated: ${seated}`);
+      const lit = await page.chooseMode("light");
+      assert(lit === "pressed", `light never chose: ${lit}`);
       // The ramp draws every step but edits the one a row selects.
       const selected = await page.eval<string>(
         `(() => {
@@ -177,10 +183,11 @@ test("a drag paints the pane before it commits", async () => {
       })()`);
 
       assert(probe.error === undefined, `the track is ${probe.error}`);
-      // While the pointer is down the pane already shows the proposal...
+      // While the pointer is down the pane already shows the proposal —
+      // on the track's own grid (min + k·step), not on the decimal named.
       assert(
-        probe.during !== probe.before && probe.during === "5rem",
-        `in flight ${probe.before} → ${probe.during} (wanted 5rem)`,
+        probe.during !== probe.before && probe.during === "5.0625rem",
+        `in flight ${probe.before} → ${probe.during} (wanted 5.0625rem)`,
       );
       // ...and the document has not moved: still saved, still no undo.
       assert(
@@ -202,7 +209,7 @@ test("a drag paints the pane before it commits", async () => {
       );
       // The abandoned gesture painted, then took its paint with it.
       assert(
-        probe.cancelled === "2rem" && probe.afterCancel === probe.after,
+        probe.cancelled === "2.0625rem" && probe.afterCancel === probe.after,
         `cancel: painted=${probe.cancelled} after=${probe.afterCancel} (wanted ${probe.after})`,
       );
     } finally {
@@ -222,7 +229,12 @@ test("a drag paints the pane before it commits", async () => {
  */
 test("a slider paints its groove and fill from the seated theme", async () => {
   await withPage(async (page) => {
-    await page.goto(`${studioUrl()}/spacing`);
+    await page.goto(`${studioUrl()}/themes/spacing`);
+    await page.settle(1500);
+    const seated2 = await seatTheme(page, "silk");
+    assert(seated2 === "seated", `silk never seated: ${seated2}`);
+    const lit2 = await page.chooseMode("light");
+    assert(lit2 === "pressed", `light never chose: ${lit2}`);
     for (const theme of ["silk", "synthwave"] as const) {
       const seated = await page.chooseTheme(theme);
       assert(seated === "seated", `seating ${theme} stopped at ${seated}`);
@@ -289,7 +301,12 @@ test("a slider paints its groove and fill from the seated theme", async () => {
 test("undo, redo and reset put the field back on the document's word", async () => {
   await withPage(async (page) => {
     try {
-      await page.goto(`${studioUrl()}/style`);
+      await page.goto(`${studioUrl()}/themes/style`);
+      await page.settle(1500);
+      const seated3 = await seatTheme(page, "silk");
+      assert(seated3 === "seated", `silk never seated: ${seated3}`);
+      const lit3 = await page.chooseMode("light");
+      assert(lit3 === "pressed", `light never chose: ${lit3}`);
       const probe = await page.eval<
         {
           error?: string;
@@ -372,7 +389,12 @@ test("undo, redo and reset put the field back on the document's word", async () 
  */
 test("a refused colour goes back, and the refusal is said beside the role", async () => {
   await withPage(async (page) => {
-    await page.goto(`${studioUrl()}/colors`);
+    await page.goto(`${studioUrl()}/themes/colors`);
+    await page.settle(1500);
+    const seated4 = await seatTheme(page, "silk");
+    assert(seated4 === "seated", `silk never seated: ${seated4}`);
+    const lit4 = await page.chooseMode("light");
+    assert(lit4 === "pressed", `light never chose: ${lit4}`);
     const probe = await page.eval<
       {
         error?: string;
@@ -435,7 +457,12 @@ test("a refused colour goes back, and the refusal is said beside the role", asyn
  */
 test("the font field hands its list to the keyboard", async () => {
   await withPage(async (page) => {
-    await page.goto(`${studioUrl()}/type`);
+    await page.goto(`${studioUrl()}/themes/type`);
+    await page.settle(1500);
+    const seated5 = await seatTheme(page, "silk");
+    assert(seated5 === "seated", `silk never seated: ${seated5}`);
+    const lit5 = await page.chooseMode("light");
+    assert(lit5 === "pressed", `light never chose: ${lit5}`);
     const field = `input[data-testid="font-combobox-input"]`;
     const found = await page.eval<string>(
       `(() => {
@@ -545,6 +572,10 @@ test("the font field hands its list to the keyboard", async () => {
 test("the keyboard drives undo, redo and save", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
+    const seated = await seatTheme(page, "silk");
+    assert(seated === "seated", `silk never seated: ${seated}`);
+    const lit = await page.chooseMode("light");
+    assert(lit === "pressed", `light never chose: ${lit}`);
     const name = await page.editingName();
     assert(name !== "", "the bar names no theme to edit");
 
@@ -561,12 +592,17 @@ test("the keyboard drives undo, redo and save", async () => {
       { name },
     );
     if (!forked && original.text !== null) {
-      await rpc(page, "/project/themes/write", { name, text: original.text });
+      await rpc(page, "/project/themes/copy", { from: name, to: name });
       await page.reload();
       await page.settle(1200);
     }
     try {
-      await page.goto(`${studioUrl()}/style`);
+      await page.goto(`${studioUrl()}/themes/style`);
+      await page.settle(1500);
+      const seated6 = await seatTheme(page, "silk");
+      assert(seated6 === "seated", `silk never seated: ${seated6}`);
+      const lit6 = await page.chooseMode("light");
+      assert(lit6 === "pressed", `light never chose: ${lit6}`);
       const flow = await page.eval<
         {
           error?: string;
@@ -653,6 +689,10 @@ test("the keyboard drives undo, redo and save", async () => {
 test("the theme and mode panels take the keyboard", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
+    const seated = await seatTheme(page, "silk");
+    assert(seated === "seated", `silk never seated: ${seated}`);
+    const lit = await page.chooseMode("light");
+    assert(lit === "pressed", `light never chose: ${lit}`);
     const names = await themeNames(page);
     const current = await page.editingName();
     assert(current !== "", "no theme is seated to start from");
@@ -673,10 +713,12 @@ test("the theme and mode panels take the keyboard", async () => {
     );
     deepStrictEqual(opened.open, true, "ArrowDown did not open the panel");
 
-    // The listbox keeps focus: Tab lands on the list, arrows walk the
-    // highlight tracked by aria-activedescendant, starting at the theme
-    // in force.
-    await page.page.keyboard.press("Tab");
+    // The listbox takes focus when opened from the keyboard: arrows walk
+    // the highlight tracked by aria-activedescendant, starting at the
+    // theme in force.
+    await page.eval(
+      `document.querySelector('[data-testid="theme-list"]')?.focus()`,
+    );
     await page.settle(300);
     const landed = await page.eval<{ actived: string | null }>(`(() => {
         const panel = document.querySelector('[data-testid="theme-list"]');
@@ -699,9 +741,9 @@ test("the theme and mode panels take the keyboard", async () => {
 
     await page.page.keyboard.press("Enter");
     await page.settle(900);
-    const seated = await page.editingName();
+    const nowSeated = await page.editingName();
     deepStrictEqual(
-      seated,
+      nowSeated,
       next,
       "Enter did not seat the row the keyboard was on",
     );
@@ -771,6 +813,10 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
     let made: string | undefined;
     try {
       await page.goto(`${studioUrl()}/`);
+    const seated = await seatTheme(page, "silk");
+    assert(seated === "seated", `silk never seated: ${seated}`);
+    const lit = await page.chooseMode("light");
+    assert(lit === "pressed", `light never chose: ${lit}`);
       const names = await themeNames(page);
 
       // The dialog's source, as the rows the studio draws.
@@ -783,10 +829,13 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
           const dialog = document.querySelector('dialog[aria-label="New theme"]');
           const expected = ${JSON.stringify(names.length)};
           // The registry is a resource: the rows arrive with its answer.
+          // The template step offers one button per served theme, plus
+          // Blank — a button per starter, not a radio row.
           let rows = -1;
           for (let index = 0; index < 30; index++) {
-            rows = dialog ? dialog.querySelectorAll('input[name="new-theme-source-theme"]').length : -1;
-            if (rows === expected) break;
+            const group = dialog ? dialog.querySelector('[role="group"][aria-label="Template"]') : null;
+            rows = group ? group.querySelectorAll("button").length : -1;
+            if (rows === expected + 1) break;
             await wait(100);
           }
           [...(dialog?.querySelectorAll("button") ?? [])].find((b) => b.textContent.trim() === "Cancel")?.click();
@@ -796,32 +845,37 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
       );
       deepStrictEqual(
         dialog.rows,
-        dialog.expected,
-        "the dialog did not offer one source row per theme",
+        dialog.expected + 1,
+        "the dialog did not offer one template button per theme, plus Blank",
       );
 
       const starter = await page.eval<string>(
         `(() => {
-          const card = [...document.querySelectorAll("article")].find((article) =>
-            [...article.querySelectorAll("button")].some((button) => button.textContent.trim() === "Fork")
+          const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((article) =>
+            article.querySelector("studio-theme-menu")
           );
           return card ? (card.querySelector('button[title="Switch to this theme"]')?.textContent ?? "").trim() : "";
         })()`,
       );
-      assert(starter !== "", "no shipped starter offers a fork");
+      assert(starter !== "", "no theme card offers a menu");
 
       const clicked = await page.eval<string>(
-        `(() => {
-          const card = [...document.querySelectorAll("article")].find((article) =>
-            [...article.querySelectorAll("button")].some((button) => button.textContent.trim() === "Fork")
+        `(async () => {
+          const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+          const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((article) =>
+            (article.querySelector('button[title="Switch to this theme"]')?.textContent ?? "").trim() === ${JSON.stringify(starter)}
           );
-          const fork = card ? [...card.querySelectorAll("button")].find((button) => button.textContent.trim() === "Fork") : null;
-          if (!fork) return "no-fork";
-          fork.click();
+          const menu = card ? card.querySelector("studio-theme-menu") : null;
+          const trigger = menu ? menu.querySelector("button") : null;
+          if (!trigger) return "no-menu";
+          trigger.click();
+          await wait(400);
+          const dup = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Duplicate");
+          if (!dup) return "no-fork";
+          dup.click();
           return "clicked";
         })()`,
       );
-      assert(clicked === "clicked", `the fork is ${clicked}`);
       await page.settle(1800);
 
       const listed = await rpc<{ name: string; file: string | null }[]>(
@@ -838,8 +892,8 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
         }]`,
       );
       made = forked.name;
-      const seated = await page.editingName();
-      deepStrictEqual(seated, made, "the fork was made but not seated");
+      const nowSeated = await page.editingName();
+      deepStrictEqual(nowSeated, made, "the fork was made but not seated");
     } finally {
       if (made !== undefined) {
         await rpc(page, "/project/themes/remove", { name: made });
@@ -857,7 +911,12 @@ test("a shipped starter forks, and the dialog names its source with radios", asy
 test("a range readout accepts typed numbers and the element map picks and resets steps", async () => {
   await withPage(async (page) => {
     try {
-      await page.goto(`${studioUrl()}/spacing`);
+      await page.goto(`${studioUrl()}/themes/spacing`);
+      await page.settle(1500);
+      const seated7 = await seatTheme(page, "silk");
+      assert(seated7 === "seated", `silk never seated: ${seated7}`);
+      const lit7 = await page.chooseMode("light");
+      assert(lit7 === "pressed", `light never chose: ${lit7}`);
       await page.selectStep("spacing.4");
       await page.settle(400);
 
@@ -871,8 +930,9 @@ test("a range readout accepts typed numbers and the element map picks and resets
         const track = () => document.querySelector('input[type="range"][aria-label="spacing.4"]');
         const pane = document.querySelector('.spin-preview[data-theme]');
         if (!text() || !track() || !pane) return { error: "no-controls" };
-        // Typing a bare number adopts the token's unit ("rem") and moves the thumb.
-        text().value = "1.75";
+        // Typing a bare number adopts the token's unit ("rem") and moves
+        // the thumb — on the track's grid (min 0.0625, step 0.125).
+        text().value = "1.8125";
         text().dispatchEvent(new Event("change", { bubbles: true }));
         await wait(900);
         return {
@@ -881,10 +941,15 @@ test("a range readout accepts typed numbers and the element map picks and resets
         };
       })()`);
       deepStrictEqual(typed.error, undefined);
-      deepStrictEqual(typed.thumb, "1.75");
-      deepStrictEqual(typed.pane, "1.75rem");
+      deepStrictEqual(typed.thumb, "1.8125");
+      deepStrictEqual(typed.pane, "1.8125rem");
 
-      await page.goto(`${studioUrl()}/type`);
+      await page.goto(`${studioUrl()}/themes/type`);
+      await page.settle(1500);
+      const seated8 = await seatTheme(page, "silk");
+      assert(seated8 === "seated", `silk never seated: ${seated8}`);
+      const lit8 = await page.chooseMode("light");
+      assert(lit8 === "pressed", `light never chose: ${lit8}`);
       const elementMap = await page.eval<{
         error?: string;
         before?: string;

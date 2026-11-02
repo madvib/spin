@@ -2,9 +2,9 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { parseTokens, treeToJson } from "../../src/theme/index.ts";
-import { scaffold, spinPreset } from "../../src/preset/index.ts";
-import { GRID_DECLS, STATIC_DECLS } from "../../src/preset/utils/declarations.ts";
-import { wind4Layers } from "../../src/preset/wind4.ts";
+import { scaffold, spinPreset } from "../../src/compiler/index.ts";
+import { GRID_DECLS, STATIC_DECLS } from "../../src/compiler/utils/declarations.ts";
+import { wind4Layers } from "../../src/compiler/wind4.ts";
 import {
   DISPLAY_UTILITIES,
   FLEX_DIRECTIONS,
@@ -15,7 +15,7 @@ import {
   OVERFLOW_UTILITIES,
   POSITION_UTILITIES,
   STATIC_UTILITIES,
-} from "../../src/preset/utils/vocabulary.ts";
+} from "../../src/compiler/utils/vocabulary.ts";
 
 /**
  * The vocabulary and the assembly agree.

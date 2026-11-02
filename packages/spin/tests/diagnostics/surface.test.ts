@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
-import { spinPreset } from "../../src/preset/index.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import { factsFor } from "../../src/diagnostics/facts.ts";
 import { canonicalMap } from "../../src/diagnostics/properties.ts";

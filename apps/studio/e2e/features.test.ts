@@ -41,6 +41,11 @@ import {
 async function openStudio(page: StudioPage): Promise<void> {
   await page.goto(`${studioUrl()}/`);
   await page.clearOverlay(studioUrl());
+  // Silk serves both modes with floors the walks clear; the seated
+  // default may serve one or refuse the edit colors.
+  const seated = await seatTheme(page, "silk");
+  if (seated !== "seated") throw new Error(`silk never seated: ${seated}`);
+  await page.settle(1000);
 }
 
 /**
@@ -651,7 +656,7 @@ test("a composite token opens an editor of the theme's own steps, and one part w
       "seated",
       "the studio did not seat the theme under edit",
     );
-    await page.followRail("/type");
+    await page.followRail("/themes/type");
     await page.settle(2000);
 
     // the theme under edit, and the value it declares for the token
@@ -774,7 +779,7 @@ test("the saved icons library keeps what the studio saved, and the api lists it"
       // It was not there to begin with.
     });
     try {
-      await page.followRail("/icons");
+      await page.followRail("/themes/icons");
       await page.settle(2500);
 
       // find the glyph, and look at it
@@ -938,7 +943,7 @@ test("the colours page's picker opens for the role the swatch names, and writes 
 const errs: string[] = [];
     page.page.on("pageerror", (e) => errs.push(String(e).slice(0, 200)));
     await openStudio(page);
-    await page.followRail("/colors");
+    await page.followRail("/themes/colors");
 
     const heading = await page.eval<string>(
       `(async () => {
@@ -1075,7 +1080,7 @@ const errs: string[] = [];
 async function rowBackground(page: StudioPage): Promise<string | null> {
   return await page.eval<string | null>(
     `(() => {
-      const row = document.querySelector('nav a[href^="/findings"]');
+      const row = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").split("?")[0].endsWith("/findings"));
       if (!row) return null;
       return getComputedStyle(row).backgroundColor;
     })()`,
@@ -1109,8 +1114,8 @@ test("the rail marks the row the pointer is on, and lets it go when the pointer 
       "the rail row wears a paint of its own at rest",
     );
 
-    const hovered = await page.hover('nav a[href^="/findings"]');
-    deepStrictEqual(hovered, "hovered", "the rail row could not be hovered");
+    const hovered = await page.hover('nav a[href$="/findings"]');
+    deepStrictEqual(hovered === "hovered" ? "hovered" : await page.hover('nav a[href*="/findings?"]'), "hovered", "the rail row could not be hovered");
     const marked = await rowBackground(page);
     const surface = await chromeSurface(page);
     assert(surface !== null, "the studio's chrome wears no surface of its own");

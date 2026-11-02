@@ -148,11 +148,13 @@ function controlRange(
   return base;
 }
 
-function formatStepped(value: string, n: number, step: number): string {
+function formatStepped(value: string, n: number, step: number, min = 0): string {
   const own = measure(value);
   if (own === undefined || !Number.isFinite(n)) return value;
   const q = step > 0 ? step : 1;
-  const snapped = cleanNum(Math.round(n / q) * q);
+  // Min-relative, like the native track: the grid is min + k·step, so a
+  // value the track already holds formats back to itself.
+  const snapped = cleanNum(min + Math.round((n - min) / q) * q);
   return `${snapped}${own.unit}`;
 }
 
@@ -237,7 +239,7 @@ export default function ValueInput(props: {
     props.id ??
       (props.label === undefined ? undefined : `token-${props.label}`);
   return (
-    <div data-studio-chrome="" class="row-sm gap-2">
+    <div data-studio-chrome="" class="row-sm flex-wrap gap-2">
       <Switch fallback={<TextControl {...props} id={controlId()} />}>
         <Match when={isCompositeType(props.type)}>
           <CompositeEditor
@@ -569,8 +571,10 @@ function RangeControl(props: {
     clear = undefined;
   };
 
-  // The value the control shows: the gesture's own while it is in flight,
-  // a linked sibling's proposal when the group is moving, or the document's.
+  // The value the control shows: the gesture's own draft while it is in
+  // flight — read before any proposal, because the proposal for the
+  // dragged row echoes back through lockstep and would rewrite the thumb
+  // mid-gesture — then a linked sibling's proposal, then the document's.
   const shown = () => draft() ?? props.proposed ?? props.value;
   const shownNumber = () => measure(shown())?.n;
   // How far along the value is, as the share of the travel the fill paints.
@@ -590,7 +594,7 @@ function RangeControl(props: {
     const target = cleanNum(
       Math.min(r.max, Math.max(r.min, m.n + dir * r.step)),
     );
-    const next = formatStepped(props.value, target, r.step);
+    const next = formatStepped(props.value, target, r.step, r.min);
     if (next === props.value) return;
     props.onCommit(next);
   };
@@ -623,6 +627,7 @@ function RangeControl(props: {
                 props.value,
                 Number(event.currentTarget.value),
                 range().step,
+                range().min,
               );
               setDraft(next);
               if (props.onPreview !== undefined) {
@@ -637,6 +642,7 @@ function RangeControl(props: {
                 props.value,
                 Number(event.currentTarget.value),
                 range().step,
+                range().min,
               );
               release();
               const accepted = props.onCommit(next);

@@ -13,7 +13,8 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import type { Page } from "playwright-core";
 import { AUDIT_GLOBAL, auditInstallScript, type AuditResult } from "@spin/check";
 import { test, withPage } from "./harness.ts";
-import { studioUrl } from "./studio.ts";
+import { StudioPage, studioUrl } from "./studio.ts";
+import { seatTheme } from "./themes.ts";
 
 /** The clipboard the copy control's contract ends at. */
 const CLIPBOARD = ["clipboard-read", "clipboard-write"];
@@ -358,15 +359,22 @@ test("the copy belongs to the code it copies", async () => {
 });
 
 test("every component renders legible non-empty upgraded specimens", async () => {
-  await withPage(async ({ page }) => {
+  await withPage(async (studio) => {
+    const page = studio.page;
     await page.addInitScript({ content: auditInstallScript() });
     await open(page, "/components/button");
+    // Silk serves both modes: single-mode themes hide specimens that
+    // collapse by design (the mode picker's minimal row).
+    const seated = await seatTheme(studio, "silk");
+    assert(seated === "seated", `silk never seated: ${seated}`);
     const routes = await page.evaluate(() => {
-      const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href^="/components/"]')];
+      const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href*="/components/"]')];
       const seen = new Set<string>();
       for (const link of links) {
         const href = link.getAttribute("href") ?? "";
-        if (href !== "/components" && href.startsWith("/components/")) seen.add(href.slice("/components/".length));
+        const at = href.indexOf("/components/");
+        if (at < 0 || href.endsWith("/components")) continue;
+        seen.add(href.slice(at + "/components/".length).split("?")[0]);
       }
       return [...seen].sort();
     });
@@ -378,11 +386,16 @@ test("every component renders legible non-empty upgraded specimens", async () =>
         return previews.map((preview) => {
           const first = preview.firstElementChild;
           const rect = preview.getBoundingClientRect();
+          // A void element (meter, input) draws with no children and no
+          // text: its rendered box is the specimen.
+          const voided = first !== null &&
+            ["METER", "INPUT", "IMG", "HR", "PROGRESS"].includes(first.tagName);
           return {
             children: first === null ? -1 : first.children.length,
             text: (first?.textContent ?? "").trim().length,
             width: rect.width,
             height: rect.height,
+            voided,
             upgraded: first === null
               ? false
               : first.tagName.includes("-") && customElements.get(first.tagName.toLowerCase()) !== undefined,
@@ -392,7 +405,7 @@ test("every component renders legible non-empty upgraded specimens", async () =>
       assert(stages.length > 0, `${route} renders no specimen stages`);
       for (const [index, stage] of stages.entries()) {
         assert(
-          stage.children > 0 || stage.text > 0,
+          stage.voided || stage.children > 0 || stage.text > 0,
           `${route} stage ${index} is an empty white box (${stage.children} children)`,
         );
         assert(

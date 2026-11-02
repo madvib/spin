@@ -12,6 +12,7 @@ import {
   liveRegion,
   resolveTwins,
   type SlotViewFor,
+  type ViewFor,
 } from "@spinjs/runtime";
 import { carousel as carouselMachine } from "./carousel.machine.ts";
 import {

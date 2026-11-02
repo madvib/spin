@@ -47,7 +47,7 @@ test("a mode a document spells as a group is not one of its groups", () => {
   deepStrictEqual(documentGroups({ color: {}, dark: {} }), ["color"]);
 });
 
-test("every group the contract declares is one the shipped starters state", () => {
+test("every group the contract declares is one the starters state", () => {
   // The contract is the floor and the starters are its expression, so the two
   // have to agree: a group the contract requires that no starter states is a
   // group the product cannot spend.
@@ -55,6 +55,6 @@ test("every group the contract declares is one the shipped starters state", () =
     Object.values(starterThemes).flatMap((doc) => documentGroups(doc)),
   );
   for (const group of contractGroups()) {
-    assert(stated.has(group), `no shipped starter states the ${group} group`);
+    assert(stated.has(group), `no starter states the ${group} group`);
   }
 });

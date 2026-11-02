@@ -16,7 +16,7 @@
 import { SKILL_TEXT, styleOrder, styleSources } from "@spinjs/spin/kit/skill";
 
 /** Where the skill is served from, so an agent can install it. */
-export const SKILL_DIR = "/skill/spin-theme";
+export const SKILL_DIR = `${import.meta.env.BASE_URL}skill/spin-theme`;
 
 /** The skill file itself. */
 export const SKILL_PATH = `${SKILL_DIR}/SKILL.md`;

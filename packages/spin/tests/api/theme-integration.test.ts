@@ -110,22 +110,25 @@ describe("the theme surface over RPC, against the fixture app", () => {
     deepStrictEqual((await themeText("acme")).text, original, "byte for byte");
   });
 
-  it("serves the shipped starters a project has not forked", async () => {
-    const read = await themeText("silk");
+  it("serves a fixture theme end to end as a document that generates", async () => {
+    // The fixture app declares no brand, so the daemon serves its own
+    // files: the read below is the project's document, and the preview
+    // proves it generates a stylesheet scoped to its own name.
+    const read = await themeText("acme");
     const doc = JSON.parse(read.text ?? "{}") as { color?: unknown };
     deepStrictEqual(
       doc.color !== undefined,
       true,
-      "an unforked starter reads as a document",
+      "a project file reads as a document",
     );
     const out = await preview(
       read.text as string,
-      "silk",
+      "acme",
       "<button>x</button>",
     );
     deepStrictEqual(out.error, null, "and generates a stylesheet");
     deepStrictEqual(
-      out.css.includes('data-theme="silk"'),
+      out.css.includes('data-theme="acme"'),
       true,
       "scoped to its own name",
     );
@@ -218,8 +221,8 @@ describe("the theme surface over RPC, against the fixture app", () => {
     // the overview's buttons hovered on the studio's rules because no sample
     // there spelled `button`. The primitives' vocabulary is scanned on every
     // generation, and element rules take the host scope like utilities do.
-    const text = (await themeText("neobrut")).text as string;
-    const out = await preview(text, "neobrut", "<div>hi</div>");
+    const text = (await themeText("acme")).text as string;
+    const out = await preview(text, "acme", "<div>hi</div>");
     deepStrictEqual(out.error, null, "the stylesheet generates");
     deepStrictEqual(
       out.css.includes(":where(.spin-preview) :is(button"),
@@ -227,9 +230,9 @@ describe("the theme surface over RPC, against the fixture app", () => {
       "the button rule rides along under the host scope",
     );
     deepStrictEqual(
-      out.css.includes("transform:translate(var(--button-hover-lift-x)"),
+      out.css.includes("0 4px 12px -2px rgba(15, 23, 42, 0.14)"),
       true,
-      "and the theme's own hover lift is in it",
+      "and the theme's own hover shadow is in it",
     );
   });
 
@@ -248,6 +251,38 @@ describe("the theme surface over RPC, against the fixture app", () => {
     );
   });
 
+  it("generates for the document it was handed, not the overlay cell", async () => {
+    // The overlay still holds the edit an undo just took back; a preview
+    // that merged it would repaint with the undone value. The cell is
+    // shelved for the generation and restored after, so the running app
+    // keeps wearing the edit.
+    const text = (await themeText("acme")).text as string;
+    const red = JSON.parse(text) as {
+      color: Record<string, { $value: unknown }>;
+    };
+    red.color["primary"]!["$value"] = "#b91c1c";
+    const { setOverlay, overlayThemes, clearOverlay } = await import(
+      "../../src/plugin/session.ts"
+    );
+    setOverlay({ acme: JSON.parse(JSON.stringify(red)) });
+    try {
+      const out = await preview(text, "acme", "<div>hi</div>");
+      deepStrictEqual(out.error, null, "the stylesheet generates");
+      deepStrictEqual(
+        out.css.includes("--color-primary: #b91c1c") === false,
+        true,
+        "the overlay's edit does not leak into the handed document's sheet",
+      );
+      deepStrictEqual(
+        Object.keys(overlayThemes()),
+        ["acme"],
+        "the cell still holds the edit for the running app",
+      );
+    } finally {
+      clearOverlay();
+    }
+  });
+
   it("keeps the reported path relative to the project", async () => {
     const listed = await listThemes();
     deepStrictEqual(
@@ -257,8 +292,8 @@ describe("the theme surface over RPC, against the fixture app", () => {
     );
     deepStrictEqual(
       listed.filter((t) => t.file === null).map((t) => t.name).sort(),
-      ["console", "neobrut", "silk", "spin", "synthwave"],
-      "the unforked starters carry no path at all",
+      [],
+      "a fixture with no brand lists no pathless themes",
     );
   });
 

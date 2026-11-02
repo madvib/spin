@@ -101,7 +101,7 @@ export async function cardText(
 ): Promise<string> {
   return await page.eval<string>(
     `(() => {
-      const card = [...document.querySelectorAll("article")].find((c) =>
+      const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
         [...c.querySelectorAll("button")].some((b) => b.textContent.trim() === ${
       JSON.stringify(name)
     })
@@ -139,7 +139,11 @@ export async function seatTheme(
       }
       button.click();
       await wait(300);
-      const selector = '[role="option"][data-theme=' + ${
+      const selector = '[role="option"][data-theme-option=' + ${
+      JSON.stringify(name)
+    } + '], [role="option"][data-value=' + ${
+      JSON.stringify(name)
+    } + '], [role="option"][data-theme=' + ${
       JSON.stringify(name)
     } + ']';
       const deadline = Date.now() + 15000;
@@ -248,17 +252,23 @@ export async function createTheme(
         }
         await wait(100);
       }
+      // No alert and no close: a silent refusal (an empty name the dialog
+      // will not create). Close it so the next creation starts clean.
+      const cancel = [...document.querySelectorAll('dialog[aria-label="New theme"] button')].find((b) =>
+        b.textContent.trim() === "Cancel"
+      );
+      cancel?.click();
       return { accepted: false, problem: "the dialog stayed open" };
     })()`,
   );
 }
 
 /**
- * Delete a theme from its card.
+ * Delete a theme from its card menu.
  *
- * The card's control asks once: the first press arms it, the second
- * removes it. The outcome is what the studio does with the file, so the
- * answer is the file's own.
+ * The menu's Delete asks once: the first press arms it ("Confirm
+ * delete?"), the second removes it. The outcome is what the studio does
+ * with the file, so the answer is the file's own.
  */
 export async function deleteFromCard(
   page: StudioPage,
@@ -267,17 +277,24 @@ export async function deleteFromCard(
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const card = [...document.querySelectorAll("article")].find((c) =>
+      const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
         [...c.querySelectorAll("button")].some((b) => b.textContent.trim() === ${
       JSON.stringify(name)
     })
       );
       if (!card) return "no-card";
-      const remove = card.querySelector('button[title="Delete this theme"]');
+      const menu = card.querySelector("studio-theme-menu");
+      const trigger = menu ? menu.querySelector("button") : null;
+      if (!trigger) return "no-delete-control";
+      trigger.click();
+      await wait(400);
+      const remove = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Delete");
       if (!remove) return "no-delete-control";
       remove.click();
       await wait(400);
-      remove.click();
+      const confirm = [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"], [role="option"]')].find((b) => (b.textContent ?? "").trim() === "Confirm delete?");
+      if (!confirm) return "no-delete-confirm";
+      confirm.click();
       await wait(1500);
       return "pressed";
     })()`,
@@ -376,13 +393,21 @@ export async function previewMode(page: StudioPage): Promise<string | null> {
   );
 }
 
-/** The colour the editor's own control for a token holds. */
+/** The colour the editor's own control for a token holds. Reselects the
+ * control by id on every read: an undo re-renders the inspector, and a
+ * handle taken before it points at the detached element. */
 export async function tokenValue(
   page: StudioPage,
   control: string,
 ): Promise<string | null> {
   return await page.eval<string | null>(
-    `(() => {
+    `(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      for (let i = 0; i < 20; i++) {
+        const input = document.querySelector(${JSON.stringify(control)});
+        if (input && input.isConnected) return input.value;
+        await wait(100);
+      }
       const input = document.querySelector(${JSON.stringify(control)});
       return input ? input.value : null;
     })()`,

@@ -33,3 +33,18 @@ apps/studio/visual/out-drawer/
 
 # The e2e suite writes a copied theme into the reference project
 apps/reference/spin/e2e-copy.json
+
+# Release tarballs (built by `bun run pack`, published, never tracked)
+dist-tarballs/
+*.tgz
+
+# Local-only state
+.local/
+.omp/
+coverage/
+
+# Editor and OS noise
+*.log
+*.swp
+*~
+.DS_Store

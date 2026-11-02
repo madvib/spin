@@ -1,25 +1,22 @@
 <!-- USER COPY SLOT: check-intro — your own verification story, or the default below. -->
 
-# Browser Checks
-
 Static lints read the source. They cannot see computed contrast over layered
 backgrounds, state contrast on hover and focus, clipped or zero-area controls,
-or layout geometry drifting from what the theme named. The visual harness closes
-that gap with a real browser: Playwright loads your app, drives it through every
-state, measures what a person would measure, and reports what fails.
-
-The harness lives in `internal/check/` and each app feeds it a config: the
-reference app's is `apps/reference/visual/check.ts`, the studio's is
-`apps/studio/visual/check.ts`. They run with:
+or layout geometry drifting from what the theme named. The rendered checks
+close that gap with a real browser: Playwright loads your app, drives it
+through every state, measures what a person would measure, and reports what
+fails.
 
 ```bash
-bun run visual                                     # reference: the whole matrix
-bun run visual -- --route components/button        # reference: one route
-bun run visual -- --write-baseline                 # reference: refresh the baseline
-bun run visual:studio                              # studio: modal + drawer layouts
-bun run visual:studio -- --route /colors           # studio: one route
-bun run visual:studio -- --write-baseline          # studio: refresh both baselines
+npx spin check --config ./visual/check.ts
 ```
+
+The harness needs a check configuration — the module your app's checks are
+written in. It names what the harness cannot know: the routes to visit, the
+themes to visit them in, how the app boots, when it is ready, and the layout
+assertions only your app can state. Narrow a run with `--route <substring>`
+(repeatable) or `--themes a,b,c`; pass `--format json` for machine-readable
+findings.
 
 ## The eight probes
 
@@ -41,7 +38,7 @@ themes to visit them in, how the app boots, when it is ready, and the layout
 assertions only that app can state:
 
 ```ts
-// apps/reference/visual/check.ts (excerpt)
+// visual/check.ts (excerpt)
 import { type CheckConfig, runCheck } from "@spin/check";
 
 const config: CheckConfig = {
@@ -66,9 +63,9 @@ page adapter teaches the harness how your app boots and when it is ready;
 state. Results compare against the committed baseline, so a theme change that
 moves what the page measures shows up as a diff.
 
-Studio runs the harness twice: the modal layout at 1280x800, then the drawer
-layout at 480x900 with `?mode=drawer` on every route. Each layout keeps its
-own baseline (`baseline.json`, `baseline-drawer.json`), both committed, while
-the captures beside them (`out/`, `out-drawer/`) are gitignored regenerations.
+An app with two layouts runs the harness twice — the Studio checks its modal
+layout at 1280x800, then its drawer layout at 480x900 with `?mode=drawer` on
+every route. Each layout keeps its own baseline, both committed, while the
+captures beside them are gitignored regenerations.
 
 <!-- USER COPY SLOT: check-close — CI wiring (which routes, which gates block merge). -->

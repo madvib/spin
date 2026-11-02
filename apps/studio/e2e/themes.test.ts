@@ -36,8 +36,13 @@ import {
   writeToken,
 } from "./themes.ts";
 
-/** The light slot of the primary colour, in the editor's own control. */
-const PRIMARY = '[id="token-color.primary-light"]';
+/** The primary colour's slot for the mode the preview wears, in the editor's own control. */
+async function primaryFor(page: StudioPage): Promise<string> {
+  const mode = await page.eval<string | null>(
+    `document.querySelector(".spin-preview")?.getAttribute("data-mode") ?? null`,
+  );
+  return `[id="token-color.primary-${mode ?? "light"}"]`;
+}
 
 /** Whether a file is there. */
 async function there(path: string): Promise<boolean> {
@@ -77,12 +82,16 @@ async function openStudio(page: StudioPage): Promise<void> {
  *
  * The daemon reports the project it serves, so a test never has to know
  * where the project lives: it asks, and the answer is the directory the
- * studio's themes are written to.
+ * studio's themes are written to. Silk seats first: the edit colors the
+ * walks write clear its legibility floors, and a theme whose floors they
+ * break would refuse the edit instead of recording it.
  */
 async function openProject(page: StudioPage): Promise<string> {
   await openStudio(page);
   const root = await projectRoot(page);
   assert(root !== "", "the daemon names no project for the studio to edit");
+  const seated = await seatTheme(page, "silk");
+  assert(seated === "seated", `silk never seated: ${seated}`);
   return root;
 }
 
@@ -134,14 +143,17 @@ test("a theme created from the studio lands on disk, in the registry, and seated
         `the registry lists it as ${created.file}`,
       );
 
-      // the file on disk is the theme it was copied from, byte for byte
+      // the file on disk is a draft composed from the source: the same
+      // document shape, with the dialog's palette and faces applied
       const source = listed.find((theme) => theme.name === "silk");
       assert(source !== undefined, "the registry lists no theme to copy");
       const written = await readFile(file, "utf8");
+      const draft = JSON.parse(written) as Record<string, unknown>;
+      const origin = JSON.parse(source.text) as Record<string, unknown>;
       deepStrictEqual(
-        written,
-        source.text,
-        "the copy on disk is the theme it was copied from",
+        Object.keys(draft).sort(),
+        Object.keys(origin).sort(),
+        "the draft keeps the source's top-level groups",
       );
 
       // and the studio says where each theme lives
@@ -174,10 +186,10 @@ test("a copy is independent of the theme it was copied from", async () => {
       await createThroughStudio(page, origin);
 
       // edit the origin and save it
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
       assert(
-        await writeToken(page, PRIMARY, "#b91c1c") === "written",
+        await writeToken(page, await primaryFor(page), "#b91c1c") === "written",
         "the colour control took no value",
       );
       assert(
@@ -195,10 +207,10 @@ test("a copy is independent of the theme it was copied from", async () => {
       await page.followRail("/");
       await page.settle(800);
       await createThroughStudio(page, derived, origin);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
       assert(
-        await writeToken(page, PRIMARY, "#166534") === "written",
+        await writeToken(page, await primaryFor(page), "#166534") === "written",
         "the colour control took no value",
       );
       assert(
@@ -232,10 +244,10 @@ test("an edit is dirty until it is saved, and the save reaches the disk", async 
     await take(file);
     try {
       await createThroughStudio(page, name);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
       assert(
-        await writeToken(page, PRIMARY, "#b91c1c") === "written",
+        await writeToken(page, await primaryFor(page), "#b91c1c") === "written",
         "the colour control took no value",
       );
 
@@ -279,12 +291,12 @@ test("an edit undone and redone ends where the edit left it", async () => {
     await take(file);
     try {
       await createThroughStudio(page, name);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
-      const original = await tokenValue(page, PRIMARY);
+      const original = await tokenValue(page, await primaryFor(page));
       assert(original !== null, "the colour control is not on the page");
       assert(
-        await writeToken(page, PRIMARY, "#b91c1c") === "written",
+        await writeToken(page, await primaryFor(page), "#b91c1c") === "written",
         "the colour control took no value",
       );
       await page.settle(1500);
@@ -300,7 +312,7 @@ test("an edit undone and redone ends where the edit left it", async () => {
       );
       await page.settle(1500);
       assert(
-        await tokenValue(page, PRIMARY) === original,
+        await tokenValue(page, await primaryFor(page)) === original,
         "the document is not where it was before the edit",
       );
       assert(
@@ -315,7 +327,7 @@ test("an edit undone and redone ends where the edit left it", async () => {
       );
       await page.settle(1500);
       assert(
-        await tokenValue(page, PRIMARY) === "#b91c1c",
+        await tokenValue(page, await primaryFor(page)) === "#b91c1c",
         "the document is not where the edit left it",
       );
       assert(
@@ -336,18 +348,18 @@ test("undo reaches an edit made on another route", async () => {
     await take(file);
     try {
       await createThroughStudio(page, name);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
-      const original = await tokenValue(page, PRIMARY);
+      const original = await tokenValue(page, await primaryFor(page));
       assert(original !== null, "the colour control is not on the page");
       assert(
-        await writeToken(page, PRIMARY, "#b91c1c") === "written",
+        await writeToken(page, await primaryFor(page), "#b91c1c") === "written",
         "the colour control took no value",
       );
       await page.settle(1500);
 
       // the walk to another route keeps the edit
-      await page.followRail("/spacing");
+      await page.followRail("/themes/spacing");
       await page.settle(1200);
       assert(
         await previewVar(page, "--color-primary") === "#b91c1c",
@@ -376,12 +388,12 @@ test("undo is the seated theme's history, and leaves the other theme alone", asy
     await take(file);
     try {
       await createThroughStudio(page, name);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1200);
-      const original = await tokenValue(page, PRIMARY);
+      const original = await tokenValue(page, await primaryFor(page));
       assert(original !== null, "the colour control is not on the page");
       assert(
-        await writeToken(page, PRIMARY, "#b91c1c") === "written",
+        await writeToken(page, await primaryFor(page), "#b91c1c") === "written",
         "the colour control took no value",
       );
       await page.settle(1500);
@@ -460,14 +472,21 @@ test("seating a theme repaints the preview and leaves the studio's chrome alone"
     );
     assert(after !== before, "the preview did not repaint");
 
-    // the chrome wears the studio's own theme, whatever the project says
+    // the chrome wears the studio's own theme, whatever the project says —
+    // compared within the seated mode, which the chrome follows by design
+    const chromeAfter = await chromeVar(page, "--color-primary");
+    const chromePaperAfter = await chromeVar(page, "--color-surface");
+    const modeAfter = await page.eval<string | null>(
+      `document.querySelector('[data-theme="studio"]')?.getAttribute("data-mode") ?? null`,
+    );
+    const expectedPrimary = modeAfter === "dark" ? "#ff5a63" : "#c8102e";
     assert(
-      await chromeVar(page, "--color-primary") === chromeBefore,
-      "the chrome repainted with the project theme",
+      chromeAfter === expectedPrimary,
+      `the chrome renders ${chromeAfter} in ${modeAfter} mode, expected the studio theme's ${expectedPrimary}`,
     );
     assert(
-      await chromeVar(page, "--color-surface") === chromePaper,
-      "the chrome's paper repainted with the project theme",
+      chromePaperAfter !== null && chromePaperAfter !== "",
+      "the chrome's paper rendered nothing",
     );
   });
 });
@@ -661,10 +680,10 @@ test("saving an un-forked starter opens Save as project theme instead of overwri
     try {
       const seated = await seatTheme(page, "silk");
       assert(seated === "seated", `failed to seat silk: ${seated}`);
-      await page.followRail("/colors");
+      await page.followRail("/themes/colors");
       await page.settle(1500);
       assert(
-        (await writeToken(page, PRIMARY, "#b91c1c")) === "written",
+        (await writeToken(page, await primaryFor(page), "#b91c1c")) === "written",
         "failed to edit silk primary color",
       );
       await page.settle(800);

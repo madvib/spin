@@ -5,13 +5,13 @@ import {
   elementNamed,
   PRIMITIVE_CATEGORIES,
   PRIMITIVE_ELEMENTS,
-} from "../../src/preset/rules/primitives/categories.ts";
+} from "../../src/compiler/rules/primitives/categories.ts";
 import {
   primitiveCategories,
   primitiveContracts,
   primitiveElements,
-} from "../../src/preset/rules/primitives/manifest.ts";
-import { componentExamples } from "../../src/preset/rules/primitives/examples-index.ts";
+} from "../../src/compiler/rules/primitives/manifest.ts";
+import { componentExamples } from "../../src/compiler/rules/primitives/examples-index.ts";
 
 /**
  * The taxonomy is a fact about the elements, so it is checked against the

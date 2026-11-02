@@ -6,7 +6,7 @@ import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { mountSpinApp } from "@spinjs/spin/api";
+import { starterThemes } from "@spinjs/spin/theme/themes";
 import { renderSkill } from "@spinjs/spin/skill";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
@@ -83,23 +83,23 @@ function houseSkill(): Plugin {
 /**
  * The docs eat the product's own food.
  *
- * Themes come from `@spinjs/theme/themes` — the shipped registry, not copies
- * on disk. A starter fixed in the package re-themes this site on the next
- * build, and the site demos the brand posture honestly: `spin`, dark or
- * paper, chosen from the header switcher. No `resolve` block: the plugin
- * carries the specifier table.
+ * Themes come from `@spinjs/theme/themes` through `extends` — the shipped
+ * registry as values, not copies on disk. A starter fixed in the package
+ * re-themes this site on the next build, and the site demos the brand
+ * posture honestly: `spin`, dark or paper, chosen from the header
+ * switcher. No `resolve` block: the plugin carries the specifier table.
  */
 export default defineConfig({
   plugins: [
-    solid(),
     spin.vite({
-      // No `themes` option: the app serves the shipped starters, forked by
+      // Starters arrive as values through `extends`, forked by
       // `spin/*.json` off this root — the files the studio edits when a
-      // theme is saved. This site defines no themes of its own.
+      // theme is saved. This site defines no themes of its own. No
+      // `mount`: the plugin mounts its own API at this root.
+      extends: { themes: starterThemes },
       // Icons compose alongside the preset: the product does not ship them,
       // and the pages that show elements show their icons too.
       presets: [presetIcons({ collections: { lucide } as never })],
-      mount: mountSpinApp(here),
       content: {
         filesystem: [
           resolve(here, "src/**/*.{tsx,ts}"),
@@ -111,5 +111,6 @@ export default defineConfig({
         },
       },
     }),
+    solid(),
   ],
 });

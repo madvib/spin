@@ -13,8 +13,9 @@ import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { rpcHandler } from "../../src/api/index.ts";
+import { OVERLAY_SCRIPT } from "../../src/api/overlay-client.ts";
 import { setProjectRoot } from "../../src/api/project-procedures.ts";
-import { clearOverlay } from "../../src/preset/index.ts";
+import { clearOverlay } from "../../src/compiler/index.ts";
 
 function clientFor<T>(procedure: string, input?: unknown): Promise<T> {
   return rpcHandler.handle(
@@ -111,5 +112,10 @@ describe("the overlay", () => {
     const state = await readOverlay();
     assert(state.open === false);
     deepStrictEqual(state.themes, {});
+  });
+
+  it("the overlay script covers the viewport above host chrome", () => {
+    assert(OVERLAY_SCRIPT.includes("z-index:2147483000"));
+    assert(OVERLAY_SCRIPT.includes("inset:0"));
   });
 });

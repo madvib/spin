@@ -25,7 +25,7 @@
   },
   "include": [
     "src",
-    "../../packages/spin/src/preset/solid.d.ts",
+    "../../packages/spin/src/compiler/solid.d.ts",
     "vite.config.ts"
   ]
 }

@@ -29,10 +29,21 @@ const ProjectTheme = v.object({
   /**
    * Path within the project, shown so the author knows what they edit.
    *
-   * `null` for a shipped starter the project has not forked: the theme comes
-   * from `@spinjs/theme`, and a save writes `spin/<name>.json` to fork it.
+   * `null` for a theme the project has not forked: it is served from the
+   * brand or from a verbatim `themes:` map, and a save writes
+   * `spin/<name>.json` to fork it.
    */
   file: v.nullable(v.string()),
+  /** Where the theme is served from: a local file, the brand, or a verbatim map. Optional so old daemons stay wire-compatible. */
+  origin: v.optional(v.picklist(["local", "brand", "verbatim"])),
+});
+
+/** What `spin/config.json` holds, when it holds anything. Unknown keys stripped, never rejected. */
+const SpinConfigFileSchema = v.object({
+  /** The theme the studio seats on load, when it names a served theme. */
+  activeTheme: v.optional(v.string()),
+  /** Display order for the theme list. */
+  themeOrder: v.optional(v.array(v.string())),
 });
 
 /**
@@ -57,7 +68,7 @@ export const listThemes = oc
     method: "GET",
     path: "/project/themes/list",
     summary:
-      "List the project's themes: the shipped starters, forked by its files",
+      "List the project's themes: what the build serves, local files beside the unforked brand",
   });
 
 export const readTheme = oc
@@ -66,7 +77,7 @@ export const readTheme = oc
   .route({
     method: "GET",
     path: "/project/themes/read",
-    summary: "Read one theme by name, disk first, then the shipped set",
+    summary: "Read one theme by name, disk first, then the brand layer",
   });
 
 export const writeTheme = oc
@@ -104,6 +115,23 @@ export const copyTheme = oc
     summary: "Copy one theme file to a new name",
   });
 
+export const readConfig = oc
+  .input(ProjectInput)
+  .output(v.object({ config: SpinConfigFileSchema, file: v.nullable(v.string()) }))
+  .route({
+    method: "GET",
+    path: "/project/config/read",
+    summary: "Read spin/config.json, or the empty config",
+  });
+
+export const writeConfig = oc
+  .input(v.object({ config: SpinConfigFileSchema, root: v.optional(v.string()) }))
+  .output(v.object({ error: v.nullable(v.string()) }))
+  .route({
+    method: "POST",
+    path: "/project/config/write",
+    summary: "Write spin/config.json",
+  });
 /** What a project root looks like to the daemon. */
 const ProjectReport = v.object({
   /** The root that was examined. */
@@ -200,6 +228,10 @@ export const projectContract = {
       write: writeTheme,
       remove: removeTheme,
       copy: copyTheme,
+    },
+    config: {
+      read: readConfig,
+      write: writeConfig,
     },
   },
 };

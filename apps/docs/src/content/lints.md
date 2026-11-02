@@ -1,7 +1,5 @@
 <!-- USER COPY SLOT: lints-intro — your own lint philosophy, or the default below. -->
 
-# Lints & Dials
-
 Six rules read your source. They run in three places — oxlint, ESLint, and the
 standalone CLI — and all three read the same facts about your project: its
 `spin/*.json` themes, its shortcuts, the primitives' owned decisions. A rule
@@ -11,7 +9,7 @@ cannot flag what the theme does not know, and two linters cannot disagree.
 
 | Rule                         | Kind              | Fix                                    | What it flags                                                                                                                                             |
 | ---------------------------- | ----------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `spin/closed-vocabulary`     | error             | removes the dead class                 | A class no theme, shortcut, primitive variant, or `@spin/animation` can generate — it emits no CSS                                                        |
+| `spin/closed-vocabulary`     | error             | removes the dead class                 | A class no theme, shortcut, primitive variant, or `@spinjs/spin/animation` can generate — it emits no CSS                                                        |
 | `spin/no-redundant-class`    | error             | removes the redundant class            | A class that sets the exact property and value the element (or active variant) already sets, e.g. `<h3 class="text-xl">`                                  |
 | `spin/prefer-theme-value`    | error             | none — change the variant or the token | A class that overrides a CSS decision the element owns (`skin`, `typography`, block `spacing` on typed prose)                                             |
 | `spin/prefer-element`        | warn / suggestion | none — change the tag                  | A non-semantic tag carrying a decision that belongs to a semantic element, e.g. `<span class="text-3xl">` wants `<h1>`                                    |
@@ -45,7 +43,7 @@ goes quiet).
 ```json
 // .oxlintrc.json — jsPlugins carry the theme-aware rules
 {
-  "jsPlugins": ["@spin/diagnostics"],
+  "jsPlugins": ["@spinjs/spin/oxlint"],
   "rules": {
     "spin/no-redundant-class": "error",
     "spin/prefer-theme-value": ["error", { "strictness": "balanced" }]
@@ -55,7 +53,7 @@ goes quiet).
 
 ```js
 // eslint.config.js — spread the recommended set, then tune
-import spin from "@spin/diagnostics/eslint";
+import spin from "@spinjs/spin/eslint";
 
 export default [
   ...spin.configs.recommended,
@@ -66,13 +64,12 @@ export default [
 ```
 
 ```bash
-deno run --allow-read --allow-write --allow-env src/cli.ts lint src/        # print findings as text (or --format json)
-deno run --allow-read --allow-write --allow-env src/cli.ts lint --fix src/  # apply the edits the findings carry
+npx spin lint src/        # print findings as text (or --format json)
+npx spin lint --fix src/  # apply the edits the findings carry
 ```
 
-v0.1 ships no `spin` binary — the CLI runs from source in the diagnostics
-package (`deno task lint:cli`). The oxlint and ESLint plugins are the same rules
-over the same facts, for editors and CI.
+The `spin` binary ships with `@spinjs/spin`. The oxlint and ESLint plugins are
+the same rules over the same facts, for editors and CI.
 
 > **Note:** The linter reads `class` / `className` JSX attributes — string
 > literals, template literals, ternaries, logical expressions — and

@@ -187,7 +187,7 @@ async function resolve(
   try {
     if (candidates.size === 0) return new Set<string>();
     const { createGenerator } = await import("@unocss/core");
-    const { spinPreset } = await import("../preset/index.ts");
+    const { spinPreset } = await import("../compiler/index.ts");
     const generator = await createGenerator({
       presets: [
         spinPreset({ themes: { ...starterThemes } }),

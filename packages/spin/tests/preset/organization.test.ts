@@ -3,31 +3,32 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import type { UnoGenerator } from "@unocss/core";
 import { createGenerator } from "@unocss/core";
 import { parseTokens } from "../../src/theme/index.ts";
-import { describeCatalog, spinPreset } from "../../src/preset/index.ts";
-import { wind4Exclusions } from "../../src/preset/wind4.ts";
-import { claimedClasses, claims, selectorFor } from "../../src/preset/utils/claimed.ts";
-import { BORDER_NAMES } from "../../src/preset/rules/border.ts";
-import { BORDER_STYLE_NAMES } from "../../src/preset/rules/border.ts";
-import { DISPLAY_NAMES } from "../../src/preset/rules/display.ts";
-import { DIVIDE_NAMES } from "../../src/preset/rules/divide.ts";
-import { GRID_NAMES } from "../../src/preset/rules/grid.ts";
-import { INTERACTIVITY_NAMES } from "../../src/preset/rules/interactivity.ts";
-import { LAYOUT_NAMES } from "../../src/preset/rules/layout.ts";
-import { OPACITY_NAMES } from "../../src/preset/rules/opacity.ts";
-import { OVERFLOW_NAMES } from "../../src/preset/rules/overflow.ts";
-import { POSITION_NAMES } from "../../src/preset/rules/position.ts";
-import { SHADOW_NAMES } from "../../src/preset/rules/shadow.ts";
-import { SIZING_NAMES } from "../../src/preset/rules/sizing.ts";
-import { STACKING_NAMES } from "../../src/preset/rules/stacking.ts";
-import { TEXT_NAMES } from "../../src/preset/rules/text.ts";
-import { TRANSITION_NAMES } from "../../src/preset/rules/transitions.ts";
-import { TYPOGRAPHY_NAMES } from "../../src/preset/rules/typography.ts";
+import { describeCatalog, spinPreset } from "../../src/compiler/index.ts";
+import { createSpinFactory } from "../../src/compiler/factory.ts";
+import { wind4Exclusions } from "../../src/compiler/wind4.ts";
+import { claimedClasses, claims, selectorFor } from "../../src/compiler/utils/claimed.ts";
+import { BORDER_NAMES } from "../../src/compiler/rules/border.ts";
+import { BORDER_STYLE_NAMES } from "../../src/compiler/rules/border.ts";
+import { DISPLAY_NAMES } from "../../src/compiler/rules/display.ts";
+import { DIVIDE_NAMES } from "../../src/compiler/rules/divide.ts";
+import { GRID_NAMES } from "../../src/compiler/rules/grid.ts";
+import { INTERACTIVITY_NAMES } from "../../src/compiler/rules/interactivity.ts";
+import { LAYOUT_NAMES } from "../../src/compiler/rules/layout.ts";
+import { OPACITY_NAMES } from "../../src/compiler/rules/opacity.ts";
+import { OVERFLOW_NAMES } from "../../src/compiler/rules/overflow.ts";
+import { POSITION_NAMES } from "../../src/compiler/rules/position.ts";
+import { SHADOW_NAMES } from "../../src/compiler/rules/shadow.ts";
+import { SIZING_NAMES } from "../../src/compiler/rules/sizing.ts";
+import { STACKING_NAMES } from "../../src/compiler/rules/stacking.ts";
+import { TEXT_NAMES } from "../../src/compiler/rules/text.ts";
+import { TRANSITION_NAMES } from "../../src/compiler/rules/transitions.ts";
+import { TYPOGRAPHY_NAMES } from "../../src/compiler/rules/typography.ts";
 import {
   claimedGroups,
   sectionFor,
   SECTIONS,
   utilitiesFor,
-} from "../../src/preset/organization.ts";
+} from "../../src/compiler/organization.ts";
 import { readFileSync } from "node:fs";
 
 /**
@@ -369,7 +370,7 @@ let spinOnlyGenerator: Promise<UnoGenerator> | undefined;
 
 function spinOnly(): Promise<UnoGenerator> {
   return spinOnlyGenerator ??= createGenerator({
-    presets: [spinPreset({ themes: { default: theme }, wind4: false })],
+    presets: [createSpinFactory(false)({ themes: { default: theme } })],
   });
 }
 

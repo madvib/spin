@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
  * with an error that only shows up in a browser.
  */
 test("the browser entry reaches no node builtin", async () => {
-  const entry = new URL("../../src/preset/index.ts", import.meta.url).pathname;
+  const entry = new URL("../../src/compiler/index.ts", import.meta.url).pathname;
   const proc = Bun.spawn(["bun", "build", entry, "--external:node:*", "--dry-run"], {
     stdout: "pipe",
     stderr: "pipe",

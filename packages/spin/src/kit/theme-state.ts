@@ -5,8 +5,8 @@
  * `data-theme`/`data-mode` on the document element, one persistence pair.
  * Apps re-export or import this; they do not reimplement it.
  *
- * The default instance knows the shipped starters. An app that serves more
- * themes — the reference app serves the project's `spin/*.json` beside them —
+ * The default instance knows the starters. An app that serves more themes —
+ * the reference app serves its project's named set beside them —
  * calls `createThemeState` with its own document map, and keeps the same
  * behaviour: the stored name is clamped to one that exists, a mode the theme
  * does not serve falls back to one it does, and the document element is the
@@ -33,13 +33,13 @@ export const modesFor = (name: string): readonly string[] => {
 /**
  * What a state needs to know about the app it lives in.
  *
- * Every field has a default: the shipped starters, the first starter's name,
+ * Every field has a default: the starters, the first served name,
  * the kit's storage keys. An app that brings its own themes brings only those.
  */
 export interface ThemeStateOptions {
   /** The theme documents this app serves. Defaults to the starters. */
   readonly documents?: ThemeDocuments;
-  /** The theme a first visit starts on. Defaults to `spin` when served. */
+  /** The theme a first visit starts on. Defaults to the first served name. */
   readonly initialTheme?: string;
   /** The mode a first visit starts on. Defaults to `system`. */
   readonly initialMode?: string;
@@ -104,19 +104,18 @@ function servedModes(
  *
  * Created at the app's root: the signals belong to that app, and the effect
  * writes the document element the app is rendered into. The default instance
- * below is the same function over the shipped starters.
+ * below is the same function over the starters.
  */
 export function createThemeState(
   options: ThemeStateOptions = {},
 ): ThemeState {
-  const documents = options.documents ??
-    (starterThemes as unknown as ThemeDocuments);
+  const documents = options.documents ?? starterThemes;
   const names = Object.keys(documents).sort();
   const storage = options.storage ??
     { theme: "spin:theme", mode: "spin:mode" };
 
   const storedTheme = read(storage.theme);
-  const fallbackTheme = "spin" in documents ? "spin" : (names[0] ?? "spin");
+  const fallbackTheme = names[0] ?? "";
   const initialTheme = storedTheme !== null && storedTheme in documents
     ? storedTheme
     : (options.initialTheme ?? fallbackTheme);
@@ -189,7 +188,7 @@ export function createThemeState(
 }
 
 /**
- * The default state: the shipped starters, remembered under the kit's keys.
+ * The default state: the starters, remembered under the kit's keys.
  *
  * Built on first use, not at import: creating it stamps the document and
  * the storage, so a page with its own state (which imports this module for

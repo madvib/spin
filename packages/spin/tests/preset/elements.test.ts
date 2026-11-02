@@ -8,8 +8,8 @@ import {
 import { readFileSync } from "node:fs";
 import { cssVarName, ELEMENT_ROLES } from "../../src/theme/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
-import { spinPreset } from "../../src/preset/index.ts";
-import { deriveRuleContract } from "../../src/preset/rules/primitives/derive.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
+import { deriveRuleContract } from "../../src/compiler/rules/primitives/derive.ts";
 
 /**
  * The per-element groups, held to the two halves of their promise: the

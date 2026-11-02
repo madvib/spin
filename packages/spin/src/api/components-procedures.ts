@@ -11,12 +11,12 @@ import { implement } from "@orpc/server";
 import {
   primitiveComponents,
   primitiveReadsByGroup,
-} from "../preset/rules/primitives/manifest.ts";
-import { componentExamples } from "../preset/rules/primitives/examples-index.ts";
+} from "../compiler/rules/primitives/manifest.ts";
+import { componentExamples } from "../compiler/rules/primitives/examples-index.ts";
 import { EXAMPLE_ONLOAD } from "../kit/mount-glue.ts";
 import { componentsContract } from "./components-contract.ts";
 import { prefixOf, readConfiguration } from "../project/index.ts";
-import { tagForProjectFile } from "../preset/components-compiler.ts";
+import { tagForProjectFile } from "../plugin/components-compiler.ts";
 import { rootFor } from "./project-procedures.ts";
 import * as catalog from "@spinjs/components";
 
@@ -255,7 +255,7 @@ const machineReads = async (name: string): Promise<string[]> => {
     return [];
   }
   const { createGenerator } = await import("@unocss/core");
-  const { spinPreset } = await import("../preset/index.ts");
+  const { spinPreset } = await import("../compiler/index.ts");
   const { starterThemes } = await import("../theme/themes/index.ts");
   const generator = await createGenerator({
     presets: [spinPreset({ themes: starterThemes })],
@@ -446,22 +446,13 @@ const copy = os.components.copy.handler(async ({ input }) => {
   try {
     const { mkdir, writeFile } = await import("node:fs/promises");
     const { join } = await import("node:path");
-    const { resolveProjectDir } = await import("../project/resolve-dir.ts");
-    const { COMPONENTS_DIR } = await import("../project/facts.ts");
     // The caller's project, or the daemon's own — one process serves many
     // projects, so the root rides the call the way project.* carries it.
     const root = rootFor(input);
     const config = await readConfiguration(root);
-    // Copying writes the project's own tree, never a shared package's:
-    // when the components resolve to a specifier, the copy lands in the
-    // local default and the answer says where it went.
-    const resolved = await resolveProjectDir(
-      root,
-      config.componentsDir,
-      "components",
-    );
-    const shared = resolved.path !== join(root, config.componentsDir);
-    const componentsDir = shared ? COMPONENTS_DIR : config.componentsDir;
+    // The copy lands in the project's own tree, which is always local:
+    // shared trees arrive through `extends`, never through this path.
+    const componentsDir = config.componentsDir;
     const file = join(componentsDir, name, `${input.example}.html`);
     await mkdir(join(root, componentsDir, name), { recursive: true });
     await writeFile(
@@ -475,16 +466,7 @@ const copy = os.components.copy.handler(async ({ input }) => {
       componentsDir,
       moniker,
     );
-    return {
-      file,
-      tag,
-      error: null,
-      ...(shared
-        ? {
-          note: `components resolve to '${config.componentsDir}'; wrote the local '${file}' instead`,
-        }
-        : {}),
-    };
+    return { file, tag, error: null };
   } catch (err) {
     return {
       file: null,

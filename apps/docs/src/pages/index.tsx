@@ -54,11 +54,11 @@ const ELEMENT_COUNT = primitiveElements.filter(
 ).length;
 
 const PACKAGE_MANAGERS = [
-  { id: "bun", command: "bun add @spinjs/spin" },
-  { id: "npm", command: "npm install @spinjs/spin" },
-  { id: "pnpm", command: "pnpm add @spinjs/spin" },
-  { id: "yarn", command: "yarn add @spinjs/spin" },
-  { id: "deno", command: "deno add npm:@spinjs/spin" },
+  { id: "bun", command: "bun add -d @spinjs/spin && bun add @spinjs/components @spinjs/runtime" },
+  { id: "npm", command: "npm i -D @spinjs/spin && npm i @spinjs/components @spinjs/runtime" },
+  { id: "pnpm", command: "pnpm add -D @spinjs/spin && pnpm add @spinjs/components @spinjs/runtime" },
+  { id: "yarn", command: "yarn add -D @spinjs/spin && yarn add @spinjs/components @spinjs/runtime" },
+  { id: "deno", command: "deno add -D npm:@spinjs/spin && deno add npm:@spinjs/components npm:@spinjs/runtime" },
 ] as const;
 
 type PackageManager = (typeof PACKAGE_MANAGERS)[number]["id"];
@@ -585,11 +585,11 @@ export default function Home(): JSX.Element {
                 <span>Framework-agnostic · W3C DTCG · Pure CSS</span>
               </span>
 
-              <h1 class="m-0 font-brand text-3xl font-bold tracking-tight text-text">
+              <h1 class="text-text">
                 UI that holds together.
               </h1>
 
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 Spin gives humans and coding agents a closed design vocabulary:
                 theme tokens, semantic HTML primitives, headless state machines,
                 and mechanical oracles that verify the result. Adopt it in
@@ -642,10 +642,10 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 01 · Foundation · W3C DTCG
               </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+              <h2 class="text-text">
                 One theme document owns every visual decision.
               </h2>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 Colors, typography, spacing, and radii live in one W3C DTCG
                 document. Every sample below reads its value from that
                 document, so switching themes or modes rewrites the page — and
@@ -734,10 +734,10 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 02 · Styling · Theme-Bound Utilities
               </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+              <h2 class="text-text">
                 Familiar Tailwind syntax, custom to your brand.
               </h2>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 Write the utility classes you already know — <code>p-4</code>,{" "}
                 <code>bg-surface-raised</code>, <code>rounded-lg</code> — backed
                 strictly by your theme's token scale.
@@ -809,7 +809,7 @@ export default function Home(): JSX.Element {
                       {utilTryInvalid() ? "unknown: p-13" : "Verified"}
                     </badge>
                   </div>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     {utilTryInvalid()
                       ? "Rejected: step 13 is not in spacing scale"
                       : `class="${utilSurface()} ${utilPad()} ${utilRadius()}"`}
@@ -843,10 +843,10 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 03 · Elements · Pure CSS Primitives
               </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+              <h2 class="text-text">
                 Semantic HTML defaults. Zero wrapper soup.
               </h2>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 A button is <code>&lt;button&gt;</code>, a switch is{" "}
                 <code>role="switch"</code>, and a menu surface is{" "}
                 <code>&lt;panel&gt;</code> — styled in CSS, no wrapper class.
@@ -869,13 +869,13 @@ export default function Home(): JSX.Element {
                       Cancel
                     </button>
                   </div>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     &lt;button&gt;
                   </code>
                 </div>
 
                 <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <label class="inline-flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-text">
+                  <label class="inline-flex w-fit cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
                       role="switch"
@@ -886,7 +886,7 @@ export default function Home(): JSX.Element {
                     />
                     <span>Token gate</span>
                   </label>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     role="switch"
                   </code>
                 </div>
@@ -904,7 +904,7 @@ export default function Home(): JSX.Element {
                       {progressVal()}%
                     </button>
                   </div>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     &lt;progress&gt;
                   </code>
                 </div>
@@ -915,20 +915,20 @@ export default function Home(): JSX.Element {
                     <badge class="badge-warning">DTCG</badge>
                     <badge class="badge-neutral">CSS</badge>
                   </div>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     &lt;badge&gt;
                   </code>
                 </div>
 
                 <div class="col-span-2 flex min-h-20 flex-col justify-center gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
-                  <p class="m-0 font-heading text-sm font-semibold text-text">
+                  <p class="font-heading text-sm font-semibold text-text">
                     Theme-bound prose
                   </p>
-                  <p class="m-0 text-xs text-text-muted">
+                  <p class="text-xs text-text-muted">
                     Headings, paragraphs, lists, and{" "}
                     <a href="/guide/markup">links</a> spend the same type scale.
                   </p>
-                  <code class="font-mono text-xs text-text-muted">
+                  <code>
                     &lt;p&gt; · &lt;h2&gt; · &lt;a&gt;
                   </code>
                 </div>
@@ -961,7 +961,7 @@ export default function Home(): JSX.Element {
                     classless: false
                   </button>
                 </div>
-                <code class="font-mono text-xs text-text-muted">
+                <code>
                   {classless()
                     ? "<button>Save</button>"
                     : '<button class="button">Save</button>'}
@@ -992,10 +992,10 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 04 · Interactive · Headless Machines & Primitives
               </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+              <h2 class="text-text">
                 Stateful machines when native HTML isn't enough.
               </h2>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 Pure CSS covers native tags; <code>@spinjs/components</code>{" "}
                 drives multi-part widgets with deterministic state machines.
                 They ship as framework-agnostic custom elements — use the
@@ -1055,10 +1055,10 @@ export default function Home(): JSX.Element {
               <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 05 · Verification · Lints, CLI & MCP
               </span>
-              <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+              <h2 class="text-text">
                 Mechanical verification for humans and agents.
               </h2>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="text-sm text-text-muted">
                 Spin's ESLint/Oxlint rules, CLI, and MCP server check every
                 class and contrast pair against your theme contract.
               </p>
@@ -1102,7 +1102,7 @@ export default function Home(): JSX.Element {
                           <span class="font-mono text-xs font-semibold text-primary">
                             {item.rule}
                           </span>
-                          <code class="font-mono text-xs text-text">
+                          <code>
                             {isFixed() ? item.fixedCode : item.badCode}
                           </code>
                           <span class="font-mono text-xs text-text-muted">
@@ -1145,13 +1145,14 @@ export default function Home(): JSX.Element {
                 <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                   06 · Workbench · Spin Studio
                 </span>
-                <h2 class="m-0 font-brand text-2xl font-bold tracking-tight text-text">
+                <h2 class="text-text">
                   Shape tokens visually. Ship recipes in one click.
                 </h2>
-                <p class="m-0 text-sm text-text-muted">
-                  Spin Studio runs beside your app in development: edit DTCG
-                  palettes and type, verify WCAG contrast across modes, vendor
-                  icons, tune motion, and copy component recipes into your repo.
+                <p class="text-sm text-text-muted">
+                  Spin Studio runs beside your app in development, or
+                  standalone with <code>spin studio</code>: edit DTCG palettes
+                  and type, verify WCAG contrast across modes, vendor icons,
+                  tune motion, and copy component recipes into your repo.
                 </p>
 
                 <div class="grid grid-cols-2 gap-2">

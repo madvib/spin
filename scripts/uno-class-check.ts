@@ -19,7 +19,7 @@ import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { readdir, readFile } from "node:fs/promises";
 import { classTokens, expandVariantGroups, parse } from "../packages/runtime/src/syntax/index.ts";
-import { spinPreset } from "../packages/spin/src/preset/index.ts";
+import { spinPreset } from "../packages/spin/src/compiler/index.ts";
 import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */

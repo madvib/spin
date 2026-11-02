@@ -20,9 +20,10 @@
 
 export {
   COMPONENTS_DIR,
-  CONFIG_FILENAME,
   CONFIG_FILES,
+  CONFIG_FILENAME,
   ICONS_DIR,
+  UNO_FILENAME,
   initFiles,
   isWired,
   PROJECT_DIR,
@@ -39,9 +40,11 @@ export {
   listThemes,
   projectService,
   prefixOf,
+  readConfig,
   readConfiguration,
   readTheme,
   removeTheme,
+  writeConfig,
   writeTheme,
 } from "./service.ts";
 
@@ -53,22 +56,29 @@ export { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
 export {
   configurationIn,
   contentIn,
+  extendsIn,
   mountIn,
   shortcutsIn,
+  themesIn,
 } from "./configuration.ts";
 export type {
   ContentDeclaration,
   ShortcutDeclaration,
 } from "./configuration.ts";
+export type { SpinConfigFile } from "./facts.ts";
 
 export type {
   BundlerKind,
+  ExtendsDeclaration,
   IconAttribution,
+  ImportedValue,
   InitProjectOptions,
   ProjectConfiguration,
   ProjectIcon,
   ProjectReport,
   ProjectTheme,
   SavedIcon,
+  ThemeRecordDeclaration,
+  VerbatimThemeRef,
   WriteResult,
 } from "./types.ts";

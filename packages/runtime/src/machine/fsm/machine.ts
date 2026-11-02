@@ -3,9 +3,7 @@
  * (MIT, © Stately, https://github.com/statelyai/xstate).
  *
  * The machine is HEADLESS: state, transitions, and its own arguments. It
- * knows nothing about props, markup, or the DOM. The shape it is heading
- * toward — the arguments as the props, the signal-backed context, the
- * restricted `<script>` scope — is specified in `.agents/specs/`.
+ * knows nothing about props, markup, or the DOM.
  *
  * Why fork rather than depend: the package is correct, tiny, MIT, and the
  * last stable was published in 2023 — a frozen base is a solid foundation

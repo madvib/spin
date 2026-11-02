@@ -29,7 +29,7 @@ async function pressRow(page: Page, selector: string): Promise<void> {
 }
 
 await runComponentSuite({
-  port: PORT,
+  port: 5225,
   route: "/menu",
   ready: 'spin-menu [aria-haspopup="menu"]',
 }, async ({ page }) => {

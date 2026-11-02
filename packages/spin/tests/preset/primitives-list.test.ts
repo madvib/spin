@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { primitiveComponents } from "../../src/preset/index.ts";
-import { componentExamples } from "../../src/preset/rules/primitives/examples-index.ts";
+import { primitiveComponents } from "../../src/compiler/index.ts";
+import { componentExamples } from "../../src/compiler/rules/primitives/examples-index.ts";
 import { listedPrimitives as listedComponents } from "../../src/api/components-procedures.ts";
 
 /**

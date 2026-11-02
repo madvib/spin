@@ -6,7 +6,7 @@
  * with. Everything mechanical lives in `internal/check`:
  *
  *   bun run visual                                     # both layouts
- *   bun run visual -- --route /colors                  # one route
+ *   bun run visual -- --route /themes/colors          # one route
  *   bun run visual -- --write-baseline                 # refresh both baselines
  */
 
@@ -41,12 +41,12 @@ const BASE = new URL(".", import.meta.url).pathname;
 function routes(query?: string): readonly Route[] {
   const entries: ReadonlyArray<readonly [string, string]> = [
     ["/", "Themes"],
-    ["/colors", "Colors"],
-    ["/type", "Type"],
-    ["/icons", "Icons"],
-    ["/motion", "Motion"],
-    ["/spacing", "Spacing"],
-    ["/style", "Style"],
+    ["/themes/colors", "Colors"],
+    ["/themes/type", "Type"],
+    ["/themes/icons", "Icons"],
+    ["/themes/motion", "Motion"],
+    ["/themes/spacing", "Spacing"],
+    ["/themes/style", "Style"],
     ["/components", "Components"],
     // The detail capitalizes by CSS, not by text: the check reads text.
     ["/components/button", "button"],
@@ -61,10 +61,7 @@ function routes(query?: string): readonly Route[] {
   }));
 }
 
-const THEMES = starterThemes as unknown as Record<
-  string,
-  Parameters<typeof themeModes>[0]
->;
+const THEMES: Record<string, Parameters<typeof themeModes>[0]> = starterThemes;
 
 /**
  * The mounted project's own themes: the files in the reference's `spin/`,
@@ -92,12 +89,12 @@ async function projectThemes(): Promise<
       }
     }
   } catch {
-    // No project directory: the studio seats the starters alone.
+    // No project directory: the matrix carries the named starters alone.
   }
   return out;
 }
 
-/** Every theme the preview renders: the starters, and the project's own. */
+/** Every theme the preview renders: the named starters, and the project's own. */
 const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
   ...THEMES,
   ...(await projectThemes()),

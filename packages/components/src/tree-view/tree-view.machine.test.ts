@@ -8,6 +8,7 @@ import {
   type VisibleRow,
 } from "./tree-view.presentation.ts";
 import { loadDone } from "./tree-view.transitions.ts";
+import { initial } from "./tree-view.state.ts";
 import type {
   TreeCheckedChange,
   TreeExpandedChange,
@@ -365,17 +366,12 @@ test("tree-view: completing the same load twice grafts the children once", () =>
     value: "remote",
     children: [{ value: "remote/child.ts", label: "child.ts" }],
   } as const;
-  const once = loadDone(
-    { nodes: [{ value: "remote", label: "remote" }], loadingStatus: {} },
-    done,
+  const base = initial(
+    { nodes: [{ value: "remote", label: "remote" }] },
+    () => true,
   );
-  const twice = loadDone(
-    {
-      nodes: once.nodes ?? [],
-      loadingStatus: once.loadingStatus ?? {},
-    },
-    done,
-  );
+  const once = loadDone(base, done);
+  const twice = loadDone({ ...base, ...once }, done);
   deepStrictEqual(
     twice.nodes?.flatMap((node) => node.children ?? []).map((node) => node.value),
     ["remote/child.ts"],

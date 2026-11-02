@@ -2,8 +2,8 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { spinPreset } from "../../src/preset/index.ts";
-import { CONTROL_FIELDS } from "../../src/preset/rules/primitives/field.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
+import { CONTROL_FIELDS } from "../../src/compiler/rules/primitives/field.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 
 /**
@@ -397,10 +397,7 @@ test("the layout contract holds in every theme", async () => {
   // that wraps in silk wraps in console, and a table with a minimum in one
   // has it in all of them.
   for (const name of Object.keys(starterThemes)) {
-    const document = (starterThemes as unknown as Record<
-      string,
-      Record<string, unknown>
-    >)[name];
+    const document = starterThemes[name];
     const css = await sheetFor(
       "<card><card-header><card-title>Deploy</card-title></card-header><card-footer><button>Deploy</button></card-footer></card>" +
         '<div class="stat-row"><div class="stat"></div></div>' +

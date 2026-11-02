@@ -8,12 +8,12 @@ import {
   primitiveComponents,
   primitiveContracts,
   primitiveVariants,
-} from "../../src/preset/index.ts";
+} from "../../src/compiler/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import {
   deriveRuleContract,
   deriveScope,
-} from "../../src/preset/rules/primitives/derive.ts";
+} from "../../src/compiler/rules/primitives/derive.ts";
 
 /**
  * The manifest is DERIVED from the rules, so "is it stale?" is answered by
@@ -32,7 +32,7 @@ const THEMES_DIR = new URL("../../src/theme/themes/", import.meta.url);
 const THEMES = Object.keys(starterThemes).map((name) => `${name}.json`);
 
 function varsOf(name: string): Set<string> {
-  const text = readFileSync(new URL(name, THEMES_DIR));
+  const text = readFileSync(new URL(name, THEMES_DIR), "utf8");
   const parsed = parseTokens(JSON.parse(text));
   if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
   return new Set(Object.keys(indexTree(resolveAliases(parsed.tree).tree).vars));

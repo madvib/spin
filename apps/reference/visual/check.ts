@@ -95,19 +95,17 @@ function routes(): readonly Route[] {
   ];
 }
 
-const THEMES = starterThemes as unknown as Record<
-  string,
-  Parameters<typeof themeModes>[0]
->;
+const THEMES: Record<string, Parameters<typeof themeModes>[0]> = starterThemes;
 
 /**
  * The project's own themes: the files in `spin/`, read from disk.
  *
- * The build serves the same set — the plugin reads `spin/*.json` from the
- * same directory — so the matrix has to carry the same themes the app
- * renders, or a theme the app can show is a theme nobody checked. A file
- * that does not parse is skipped rather than thrown on: a half-written theme
- * in an editor must not cost the run the rest of the matrix.
+ * The build serves the same set — the plugin layers `extends` under
+ * `spin/*.json` from the same directory — so the matrix has to carry
+ * the same themes the app renders, or a theme the app can show is a
+ * theme nobody checked. A file that does not parse is skipped rather
+ * than thrown on: a half-written theme in an editor must not cost the
+ * run the rest of the matrix.
  */
 async function projectThemes(): Promise<
   Record<string, Parameters<typeof themeModes>[0]>

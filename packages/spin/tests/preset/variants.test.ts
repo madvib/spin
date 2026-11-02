@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
-import { spinPreset } from "../../src/preset/index.ts";
+import { spinPreset } from "../../src/compiler/index.ts";
 import { readFile } from "node:fs/promises";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 

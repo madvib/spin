@@ -72,9 +72,9 @@ export interface InitCommand {
   readonly yes: boolean;
 }
 
-/** What the CLI was asked to do: serve a project. */
-export interface ServeCommand {
-  readonly kind: "serve";
+/** What the CLI was asked to do: open the standalone studio. */
+export interface StudioCommand {
+  readonly kind: "studio";
   /** The project root to serve. */
   readonly root: string;
   /** The port to bind. */
@@ -124,6 +124,7 @@ export interface ComponentCommand {
 
 /** What the CLI was asked to do: the rules, over a path. */
 export interface LintCommand {
+  readonly kind: "lint";
   readonly paths: readonly string[];
   /** How the findings are printed. */
   readonly format: Format;
@@ -154,7 +155,7 @@ export type Command =
   | LintCommand
   | CheckCommand
   | InitCommand
-  | ServeCommand
+  | StudioCommand
   | McpCommand
   | ThemeCommand
   | ComponentCommand
@@ -169,7 +170,7 @@ const USAGE = `spin — the project, the rules, and the checks.
 
 Usage:
   spin init [options]
-  spin serve [options]
+  spin studio [options]
   spin mcp [options]
   spin theme <list|analyze|scaffold> [name] [options]
   spin component <list|contract|copy> [name] [example] [options]
@@ -178,7 +179,7 @@ Usage:
 
 Commands:
   init        make a project: a theme, and a build config that wires spin
-  serve       serve a project: the API, and the studio beside it
+  studio      open the standalone theme editor: the API, and the studio beside it
   mcp         run the agent server over stdio
   theme       read the themes: list, analyze, or scaffold one
   component   read the components: list, contract, or copy an example
@@ -188,7 +189,7 @@ Commands:
 Options for init:
   --name <name>          the first theme's file stem (default: default)
   --starter <starter>    spin | swiss-grid | paper-ink | nordic | synthwave (default: spin)
-  --bundler <bundler>    vite | rspack | webpack | rollup | rolldown | esbuild | bun | unocss (default: detected)
+  --bundler <bundler>    vite | rspack | webpack | rollup | rolldown | esbuild | bun (default: detected)
   --themes-dir <dir>     themes directory (default: spin)
   --components-dir <dir> components directory (default: lib/components)
   --prefix <prefix>      component prefix (default: derived)
@@ -197,7 +198,7 @@ Options for init:
   -y, --yes              skip the interactive prompts
   -h, --help             this text
 
-Options for serve:
+Options for studio:
   --root <dir>           the project root (default: the current directory)
   --port <n>             the port to bind (default: 7463)
   --host <addr>          the address to bind (default: 127.0.0.1)
@@ -257,7 +258,7 @@ export function parseArgs(argv: readonly string[]): Command {
   const [command, ...rest] = argv[0] === "--" ? argv.slice(1) : argv;
   if (command === undefined) {
     throw new CliUsageError(
-      "Name a command: init, serve, mcp, theme, component, lint, or check.",
+      "Name a command: init, studio, mcp, theme, component, lint, or check.",
     );
   }
   if (command === "-h" || command === "--help" || command === "help") {
@@ -266,7 +267,7 @@ export function parseArgs(argv: readonly string[]): Command {
   if (command === "lint") return parseLint(rest);
   if (command === "check") return parseCheck(rest);
   if (command === "init") return parseInit(rest);
-  if (command === "serve") return parseServe(rest);
+  if (command === "studio") return parseStudio(rest);
   if (command === "mcp") return parseMcp(rest);
   if (command === "theme") return parseTheme(rest);
   if (command === "component") return parseComponent(rest);
@@ -338,8 +339,8 @@ function parseInit(argv: readonly string[]): Command {
   };
 }
 
-/** Serve a project: the API, and the studio beside it. */
-function parseServe(argv: readonly string[]): Command {
+/** Open the standalone studio: the API, and the studio beside it. */
+function parseStudio(argv: readonly string[]): Command {
   let root = process.cwd();
   let port: number | undefined;
   let host: string | undefined;
@@ -373,7 +374,7 @@ function parseServe(argv: readonly string[]): Command {
     }
   }
   return {
-    kind: "serve",
+    kind: "studio",
     root,
     ...(port === undefined ? {} : { port }),
     ...(host === undefined ? {} : { host }),
@@ -838,8 +839,8 @@ export async function run(
       return await runCheck(command, write, warn);
     case "init":
       return await runInit(command, write, warn);
-    case "serve":
-      return await runServe(command, write, warn);
+    case "studio":
+      return await runStudio(command, write, warn);
     case "mcp":
       return await runMcp(command, write, warn);
     case "theme":
@@ -1051,21 +1052,22 @@ async function runInit(
   return 0;
 }
 
-/** Serve a project: the API, and the studio beside it. */
-async function runServe(
-  command: ServeCommand,
+/** Open the standalone studio: the API, and the studio beside it. */
+async function runStudio(
+  command: StudioCommand,
   write: (line: string) => void,
   _warn: (line: string) => void,
 ): Promise<number> {
   const { startDaemon } = await import("../api/daemon.ts");
-  const daemon = startDaemon({
+  const daemon = await startDaemon({
     root: command.root,
     ...(command.port === undefined ? {} : { port: command.port }),
     ...(command.host === undefined ? {} : { hostname: command.host }),
   });
-  write(`${daemon.url} — serving ${command.root}`);
+  write(`${daemon.url} — rpc`);
+  write(`${new URL("/studio/", daemon.url)} — studio`);
   // The process stays up serving: never resolve while the daemon lives.
-  await new Promise<never>(() => {});
+  return await new Promise<never>(() => {});
 }
 
 /** Run the agent server over stdio. */
