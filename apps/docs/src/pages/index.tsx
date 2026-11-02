@@ -853,8 +853,8 @@ export default function Home(): JSX.Element {
               </p>
 
               {/* One card size; each specimen fills the same cell */}
-              <div class="grid w-[19rem] max-w-full auto-rows-fr grid-cols-2 gap-2">
-                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+              <div class="grid w-[19rem] max-w-full grid-cols-2 gap-2">
+                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
                   <div class="flex flex-wrap items-center gap-1">
                     <button type="button" class="s-sm">
                       Save
@@ -868,7 +868,7 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
                   <label class="inline-flex w-fit cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
@@ -885,7 +885,7 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
                   <div class="flex flex-wrap items-center gap-1">
                     <progress value={progressVal()} max={100} class="w-16" />
                     <button
@@ -903,7 +903,7 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                <div class="flex flex-col items-start justify-between gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
                   <div class="flex flex-wrap items-center gap-1">
                     <badge class="badge-success">AA</badge>
                     <badge class="badge-warning">DTCG</badge>
@@ -914,7 +914,7 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="col-span-2 flex min-h-20 flex-col justify-center gap-1 rounded-lg border border-border bg-surface-raised p-3 shadow-sm">
+                <div class="col-span-2 flex flex-col justify-center gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-sm">
                   <p class="font-heading text-sm font-semibold text-text">
                     Theme-bound prose
                   </p>

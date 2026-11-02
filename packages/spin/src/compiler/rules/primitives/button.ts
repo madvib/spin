@@ -232,12 +232,10 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     body: (ctx) => ({
       "background-color": token(ctx, "color.surface-raised"),
       "border-color": token(ctx, "color.border"),
-      // The fill is a surface, so the base's resting shadow is a surface
-      // floating on itself — and that shadow is the loud variant's shout
-      // (in neobrut, the hard offset that makes a quiet fill read as a
-      // second primary action). The hover still spends the theme's hovered
-      // elevation: the theme keeps saying how loud a hover is.
-      "box-shadow": "none",
+      // No shadow of its own: the base's resting elevation is the pair's
+      // shared posture, and a secondary that floats differently from its
+      // primary reads as a different kind of control rather than the quiet
+      // half of one pair. The theme states the elevation once, for both.
       color: token(ctx, "color.text"),
     }),
   },
