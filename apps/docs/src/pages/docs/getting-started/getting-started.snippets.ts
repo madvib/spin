@@ -2,7 +2,7 @@
  * Code snippets for the Getting Started subgroup (`/docs/getting-started/*`).
  */
 export const GETTING_STARTED_SNIPPETS = {
-  install: `npm install -D @spinjs/spin\nnpm install @spinjs/components @spinjs/runtime`,
+  install: `npm install -D @spinjs/spin\nnpm install @spinjs/components`,
   init: `npx spin init`,
   vite: `import { spin } from "@spinjs/spin/vite";
 
@@ -64,8 +64,11 @@ export default defineConfig({
 });`,
   studioServe: `npx spin studio`,
   viteOptions: `spin.vite({
-  primitives: ["button", "card"],
-  classless: false,
+  themesDir: "spin",
+  componentsDir: "lib/components",
+  prefix: "app",
+  classless: true,
+  studio: true,
 });`,
   firstMarkup: `<card class="card-default">
   <card-header>

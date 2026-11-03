@@ -156,6 +156,13 @@ function cardSurface(card: string): Rule {
           : {}),
         ...(shadow !== undefined ? { "box-shadow": shadow } : {}),
       };
+      if (spacing !== undefined) {
+        yield {
+          [ctx.symbols.selector]: () =>
+            `${card}:not(:has(> :is(card-header, card-content, card-footer, card-figure, .card-header, .card-content, .card-footer, .card-figure)))`,
+          padding: spacing,
+        };
+      }
     },
     { layer: "primitives", autocomplete: "card" },
   ];
@@ -178,12 +185,15 @@ function cardHeader(mode: Mode): Rule {
     /^card-header$/,
     function* (_m, ctx) {
       const { spacing } = cardTokens(ctx);
+      const rowGap = token(ctx, "spacing.1");
+      const header = claim(mode, "card-header");
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-header"),
+        [ctx.symbols.selector]: () => header,
         display: "grid",
         "grid-template-columns": "minmax(0, 1fr) auto",
         "align-items": "start",
         ...(spacing !== undefined ? { gap: spacing } : {}),
+        ...(rowGap !== undefined ? { "row-gap": rowGap } : {}),
         ...(spacing !== undefined
           ? {
             "padding-inline-start": spacing,
@@ -192,6 +202,12 @@ function cardHeader(mode: Mode): Rule {
           }
           : {}),
       };
+      if (spacing !== undefined) {
+        yield {
+          [ctx.symbols.selector]: () => `${header}:last-child`,
+          "padding-block-end": spacing,
+        };
+      }
     },
     { layer: "primitives", autocomplete: "card-header" },
   ];
@@ -271,8 +287,9 @@ function cardContent(mode: Mode): Rule {
     /^card-content$/,
     function* (_m, ctx) {
       const { spacing, text } = cardTokens(ctx);
+      const content = claim(mode, "card-content");
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-content"),
+        [ctx.symbols.selector]: () => content,
         ...(spacing !== undefined
           ? {
             "padding-inline-start": spacing,
@@ -281,6 +298,16 @@ function cardContent(mode: Mode): Rule {
           : {}),
         ...(text !== undefined ? { color: text } : {}),
       };
+      if (spacing !== undefined) {
+        yield {
+          [ctx.symbols.selector]: () => `${content}:first-child`,
+          "padding-block-start": spacing,
+        };
+        yield {
+          [ctx.symbols.selector]: () => `${content}:last-child`,
+          "padding-block-end": spacing,
+        };
+      }
     },
     { layer: "primitives", autocomplete: "card-content" },
   ];

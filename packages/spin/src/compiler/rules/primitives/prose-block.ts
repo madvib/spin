@@ -77,6 +77,7 @@ function paragraphRule(mode: Mode): Rule {
       const own = statedType(ctx, "p");
       yield {
         [ctx.symbols.selector]: () => claim(mode, "p"),
+        "line-height": "1.65",
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
@@ -96,8 +97,10 @@ function listRule(mode: Mode, tag: string): Rule {
       yield {
         [ctx.symbols.selector]: () => claim(mode, tag),
         ...spacing(t),
+        "line-height": "1.65",
+        "list-style-type": tag === "ol" ? "decimal" : "disc",
         ...(t.spacing4 !== undefined
-          ? { "padding-inline-start": t.spacing4 }
+          ? { "padding-inline-start": `calc(${t.spacing4} * 1.5)` }
           : {}),
       };
     },
@@ -120,8 +123,8 @@ function listItemRule(mode: Mode): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => `${li} + ${li}`,
-        ...(t.spacing1 !== undefined
-          ? { "margin-block-start": t.spacing1 }
+        ...(t.spacing2 !== undefined
+          ? { "margin-block-start": t.spacing2 }
           : {}),
       };
     },

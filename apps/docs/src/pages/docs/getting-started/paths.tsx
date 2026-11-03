@@ -56,15 +56,14 @@ export default function Paths(): JSX.Element {
 
       <Section id="plugin" title="Full bundler plugin">
         <p class="max-w-prose">
-          The Spin plugin ships for all seven bundlers:{" "}
-          <code>spin.vite()</code>, <code>spin.rspack()</code>,{" "}
-          <code>spin.webpack()</code>, <code>spin.rollup()</code>,{" "}
-          <code>spin.rolldown()</code>, <code>spin.esbuild()</code>, and{" "}
-          <code>spin.bun()</code>. It replaces <code>@unocss/vite</code>, owns
-          the stylesheet, discovers <code>spin/*.json</code>, transforms{" "}
-          <code>lib/components/*.html</code>, generates{" "}
-          <code>src/spin-components.d.ts</code>, and mounts the Studio on its
-          own dev server.
+          The Spin bundler plugin supports Vite, Rspack, webpack, Rollup,
+          Rolldown, esbuild, and Bun: <code>spin.vite()</code>,{" "}
+          <code>spin.rspack()</code>, <code>spin.webpack()</code>,{" "}
+          <code>spin.rollup()</code>, <code>spin.rolldown()</code>,{" "}
+          <code>spin.esbuild()</code>, and <code>spin.bun()</code>. It compiles{" "}
+          <code>spin/styles.css</code>, discovers <code>spin/*.json</code>,
+          transforms <code>lib/components/**/*.html</code> into custom elements,
+          and mounts the Studio in development.
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
           <Code

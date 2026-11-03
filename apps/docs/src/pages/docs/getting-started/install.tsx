@@ -23,9 +23,64 @@ const PACKAGE_ITEMS: readonly PropEntry[] = [
   },
   {
     name: "@spinjs/runtime",
-    badge: "dependency",
+    badge: "transitive",
     description:
-      "Reactive signals, custom-element bridges, and finite-state machines that power @spinjs/components.",
+      "Signals, custom-element bridges, and finite-state machines installed automatically with @spinjs/components.",
+  },
+];
+
+const PLUGIN_OPTIONS: readonly PropEntry[] = [
+  {
+    name: "themesDir",
+    badge: "string",
+    defaultValue: '"spin"',
+    description: "Local directory containing DTCG theme JSON files.",
+  },
+  {
+    name: "componentsDir",
+    badge: "string",
+    defaultValue: '"lib/components"',
+    description: "Local directory containing .html components compiled into custom elements.",
+  },
+  {
+    name: "prefix",
+    badge: "string",
+    defaultValue: "package.json name",
+    description: "Tag prefix for compiled project components (fallback: \"app\").",
+  },
+  {
+    name: "extends",
+    badge: "{ themes?, componentsDir? }",
+    description: "Shared brand package whose themes and components sit beneath local overrides.",
+  },
+  {
+    name: "shortcuts",
+    badge: "Record<string, string>",
+    description: "Project-specific utility compositions layered on top of spinShortcuts.",
+  },
+  {
+    name: "primitives",
+    badge: "string[] | boolean",
+    defaultValue: "true",
+    description: "Subset of element rules to include, or false for a utility-only build.",
+  },
+  {
+    name: "classless",
+    badge: "boolean",
+    defaultValue: "true",
+    description: "When true, element rules style bare tags (<button>, <table>); when false, they require explicit classes (.button, .table).",
+  },
+  {
+    name: "icons",
+    badge: "boolean",
+    defaultValue: "true",
+    description: "Register @unocss/preset-icons with the shipped offline Iconify collections.",
+  },
+  {
+    name: "studio",
+    badge: "boolean",
+    defaultValue: "true",
+    description: "Mount the Studio and /__spin/rpc API on the dev server.",
   },
 ];
 
@@ -99,7 +154,7 @@ export default function Install(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Install & Bundlers"
-        lede="Spin ships as three lockstep packages: the toolchain as a devDependency, and the component machines and runtime as dependencies."
+        lede="Package setup, spin init flags, bundler adapters, plugin configuration reference, and project layout."
       />
 
       <Section id="packages" title="Install the packages">
@@ -125,31 +180,34 @@ export default function Install(): JSX.Element {
 
       <Section id="wire" title="Wire your bundler">
         <p class="max-w-prose">
-          Pick your bundler below. All seven <code>spin.&lt;bundler&gt;()</code>{" "}
-          plugins compile the stylesheet and project components; Vite
-          additionally mounts the Studio in-process, while the other six pair
-          with <code>npx spin studio</code> alongside your dev server.
+          Pick your bundler below, then import <code>spin/styles.css</code> and{" "}
+          <code>spin/components</code> once in your entry file:
         </p>
         <div class="my-4">
           <BundlerPicker />
         </div>
-        <p class="max-w-prose">
-          Import <code>spin/styles.css</code> and <code>spin/components</code>{" "}
-          once in your entry file. The Spin plugin and <code>spin init</code>{" "}
-          generate <code>src/spin-components.d.ts</code> automatically:
-        </p>
-        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="mt-3">
           <Code
             code={GETTING_STARTED_SNIPPETS.entry}
             lang="ts"
             title="src/main.ts"
           />
+        </div>
+      </Section>
+
+      <Section id="config" title="Plugin configuration reference">
+        <p class="max-w-prose">
+          Every <code>spin.&lt;bundler&gt;(options)</code> adapter accepts the
+          same <code>SpinPluginOptions</code> object. All fields are optional:
+        </p>
+        <div class="my-3">
           <Code
-            code={GETTING_STARTED_SNIPPETS.declareCss}
+            code={GETTING_STARTED_SNIPPETS.viteOptions}
             lang="ts"
-            title="src/spin-components.d.ts (auto-generated)"
+            title="vite.config.ts"
           />
         </div>
+        <PropList items={PLUGIN_OPTIONS} />
       </Section>
       <Section id="layout" title="Project layout">
         <PropList

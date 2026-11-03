@@ -40,8 +40,7 @@ export default function Quickstart(): JSX.Element {
       <Section id="sheet" title="2. Import styles and components">
         <p class="max-w-prose">
           Import <code>spin/styles.css</code> and <code>spin/components</code>{" "}
-          in your entry file. Both virtual modules are pre-declared in{" "}
-          <code>src/spin-components.d.ts</code>.
+          in your entry file:
         </p>
         <div class="my-3">
           <Code
@@ -74,15 +73,16 @@ export default function Quickstart(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="studio" title="4. Open the Studio & onboard agents">
+      <Section id="studio" title="4. Open the Studio & connect your agent">
         <p class="max-w-prose">
-          On Vite, the <A href="/studio">Studio</A> mounts automatically at{" "}
-          <code>/__spin/studio/</code> (or run <code>npx spin studio</code> on{" "}
-          <A href="/docs/getting-started/install#wire">other bundlers</A>). For
-          coding agents, <code>npx spin init</code> writes{" "}
-          <code>.mcp.json</code> (<code>npx spin mcp</code>) — pair it with the{" "}
+          During development, the <A href="/studio">Studio</A> mounts at{" "}
+          <code>/__spin/studio/</code> on your dev server (or run{" "}
+          <code>npx spin studio</code> standalone).{" "}
+          <code>npx spin init</code> also writes <code>.mcp.json</code> so
+          coding agents automatically connect to <code>npx spin mcp</code> —
+          pair it with the{" "}
           <a href="/llms.txt" target="_blank" rel="noreferrer">
-            /llms.txt agent index
+            /llms.txt agent guide
           </a>{" "}
           or the prompt below:
         </p>

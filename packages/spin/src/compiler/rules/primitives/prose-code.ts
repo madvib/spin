@@ -40,7 +40,7 @@ function codeRule(mode: Mode): Rule {
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),
         ...(t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {}),
-        ...(t.surface !== undefined ? { "background-color": t.surface } : {}),
+        ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
       };
     },

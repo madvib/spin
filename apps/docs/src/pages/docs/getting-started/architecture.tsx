@@ -19,48 +19,53 @@ const layerItems = (): readonly PropEntry[] => [
     ),
   },
   {
-    name: "2. Classless Elements (@spinjs/spin/preset)",
-    badge: "prefer-theme-value",
-    description: (
-      <>
-        Styles native HTML tags (<code>&lt;button&gt;</code>,{" "}
-        <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>,{" "}
-        <code>&lt;table&gt;</code>) and Spin custom elements directly from theme
-        CSS variables. Explore{" "}
-        <A href="/docs/styling/elements">Classless Elements</A>.
-      </>
-    ),
-  },
-  {
-    name: "3. Closed-Scale Utilities (uno.css)",
+    name: "2. Closed-Scale Utilities (spin/styles.css)",
     badge: "spin lint",
     description: (
       <>
-        Handles layout and composition using only steps declared in your theme.
-        Unrecognized classes and arbitrary brackets emit zero CSS and are
-        flagged by <code>spin lint</code>. See{" "}
+        Handles layout and composition using only steps declared in your theme (
+        <code>stack</code>, <code>row</code>, <code>split</code>,{" "}
+        <code>p-4</code>, <code>gap-2</code>). Unrecognized classes and
+        arbitrary brackets emit zero CSS and fail <code>spin lint</code>. See{" "}
         <A href="/docs/styling/utilities">Utilities &amp; Animations</A>.
       </>
     ),
   },
   {
-    name: "4. State Machines (@spinjs/components)",
-    badge: "machine tests",
+    name: "3. Elements (primitives)",
+    badge: "classless: true",
     description: (
       <>
-        Headless statecharts that wire ARIA attributes, keyboard navigation,
-        and focus management into your markup. Browse the{" "}
+        Styles native HTML tags (<code>&lt;button&gt;</code>,{" "}
+        <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>,{" "}
+        <code>&lt;table&gt;</code>) and Spin elements (<code>&lt;card&gt;</code>
+        , <code>&lt;badge&gt;</code>, <code>&lt;alert&gt;</code>) from theme CSS
+        variables. Enabled by default (<code>classless: true</code>), or opt-in
+        by class with <code>classless: false</code>. Explore{" "}
+        <A href="/docs/styling/elements">Classless Elements</A>.
+      </>
+    ),
+  },
+  {
+    name: "4. Interactive Components (@spinjs/components)",
+    badge: "lib/components/",
+    description: (
+      <>
+        Headless state machines paired with copyable <code>.html</code>{" "}
+        templates that compile into custom elements with ARIA attributes,
+        keyboard navigation, and focus management. Browse the{" "}
         <A href="/components">Components catalog</A>.
       </>
     ),
   },
   {
-    name: "5. Rendered Verification (spin check)",
-    badge: "spin check",
+    name: "5. Verification (spin lint & spin check)",
+    badge: "CI & MCP",
     description: (
       <>
-        Drives a real browser against your routes and themes to verify
-        contrast, hit targets, and clipping. See{" "}
+        <code>spin lint</code> checks templates and themes statically, while{" "}
+        <code>spin check</code> drives a real browser across your routes and
+        modes to verify contrast, hit targets, and clipping. See{" "}
         <A href="/docs/tooling/check">Browser Checks</A>.
       </>
     ),
@@ -72,7 +77,7 @@ export default function Architecture(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Architecture & Layers"
-        lede="One theme feeds CSS variables; elements and utilities spend those variables; state machines add interactive behavior without owning styles."
+        lede="How Spin turns a theme file into a verified UI — from design tokens and utilities up through elements, interactive components, and automated checks."
       />
 
       <Section id="layers" title="Ownership & verification by layer">

@@ -386,6 +386,6 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
 export function spacing(t: Tokens): Record<string, string | undefined> {
   return {
     "margin-block-start": "0",
-    ...(t.spacing2 !== undefined ? { "margin-block-end": t.spacing2 } : {}),
+    ...(t.spacing4 !== undefined ? { "margin-block-end": t.spacing4 } : {}),
   };
 }

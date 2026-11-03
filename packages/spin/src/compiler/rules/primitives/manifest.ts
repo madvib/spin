@@ -362,7 +362,16 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "card-header",
       "card-title",
     ],
-    variants: ["card-default", "card-ghost", "card-narrow", "card-wide"],
+    variants: [
+      "card-content",
+      "card-default",
+      "card-figure",
+      "card-footer",
+      "card-ghost",
+      "card-header",
+      "card-narrow",
+      "card-wide",
+    ],
     reads: [
       "--border-width",
       "--card-border",
@@ -380,6 +389,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--font-weight-semibold",
       "--radius-md",
       "--shadow-md",
+      "--spacing-1",
       "--spacing-4",
     ],
     scope: {
@@ -1158,6 +1168,7 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
+
 
 
 

@@ -223,7 +223,7 @@ function blocks(text: string): Block[] {
   return out;
 }
 
-const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+const INLINE = /`([^`]+)`|\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
 
 function inline(text: string): JSX.Element[] {
   const out: JSX.Element[] = [];
@@ -265,10 +265,9 @@ function renderHeading(
   text: string,
 ): JSX.Element {
   const children = inline(text);
-  if (level === 1) return <h2 id={id} class="scroll-mt-20">{children}</h2>;
-  if (level === 2) return <h3 id={id} class="scroll-mt-20">{children}</h3>;
-  if (level === 3) return <h4 id={id} class="scroll-mt-20">{children}</h4>;
-  return <h5 id={id} class="scroll-mt-20">{children}</h5>;
+  if (level <= 2) return <h2 id={id} class="scroll-mt-20">{children}</h2>;
+  if (level === 3) return <h3 id={id} class="scroll-mt-20">{children}</h3>;
+  return <h4 id={id} class="scroll-mt-20">{children}</h4>;
 }
 
 export function Markdown(

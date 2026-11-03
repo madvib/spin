@@ -41,7 +41,7 @@ export default function GettingStartedOverview(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="What is Spin?"
-        lede="A theme-driven UI system: DTCG design tokens, classless HTML elements, closed-scale UnoCSS utilities, and headless state-machine components."
+        lede="Your theme, styling, and component layer in one verifiable system — so humans and coding agents ship consistent UI with zero CSS drift or runtime bloat."
         playgroundExample="elements-form"
       />
       <Markdown text={startMd} />
