@@ -124,14 +124,19 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Styling",
     items: [
       {
-        title: "Elements",
+        title: "Primitives",
         href: "/docs/styling/elements",
-        summary: "Native HTML tags and Spin custom elements styled automatically by your theme.",
+        summary: "Stylesheet cascade layers, HTML and custom element primitives (tag or class mode), variants, .bare, and compound parts.",
       },
       {
         title: "Utilities",
         href: "/docs/styling/utilities",
-        summary: "Closed-scale utility classes, cascade layers, layout shortcuts, and motion.",
+        summary: "Closed-scale utility classes, editor diagnostics & autocomplete, paired fills and inks, and layout shortcuts.",
+      },
+      {
+        title: "Animations",
+        href: "/docs/styling/animation",
+        summary: "Theme-driven transition utilities, @spinjs/spin/animation keyframes, reduced-motion clamping, and the 250ms loop floor.",
       },
       {
         title: "Catalog",

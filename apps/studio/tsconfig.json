@@ -63,6 +63,9 @@
       ],
       "@spinjs/animation": [
         "../../packages/spin/src/animation/index.ts"
+      ],
+      "@spinjs/spin/elements": [
+        "../../packages/spin/src/compiler/elements.d.ts"
       ]
     }
   },

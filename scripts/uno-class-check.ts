@@ -26,6 +26,8 @@ import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
 const SOURCES = [
   "packages/components/src",
   "apps/studio/lib/components",
+  "apps/docs/examples",
+  "apps/docs/lib/components",
 ];
 
 /** A `class="..."` attribute's value, minus anything dynamic. */

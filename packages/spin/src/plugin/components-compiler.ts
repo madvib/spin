@@ -91,12 +91,40 @@ export function renderComponentsModule(
   return files.map((file) => `import "/${file}";`).join("\n") + "\n";
 }
 
-/** The project's component tags as JSX types, mirroring the primitives' elements.d.ts. */
+const PRIMITIVE_CUSTOM_TAGS = [
+  "alert",
+  "badge",
+  "breadcrumbs",
+  "card",
+  "card-action",
+  "card-content",
+  "card-description",
+  "card-figure",
+  "card-footer",
+  "card-header",
+  "card-title",
+  "checkbox",
+  "field",
+  "icon",
+  "join",
+  "panel",
+  "panel-list",
+  "prose",
+  "radio",
+  "range",
+  "skeleton",
+  "stat",
+  "swatch",
+  "tooltip",
+] as const;
+
+/** The project's component tags and Spin primitive tags as JSX types. */
 export function renderComponentsDts(tags: readonly string[]): string {
-  const globalEntries = [...tags].sort().map((tag) =>
+  const allTags = [...new Set([...PRIMITIVE_CUSTOM_TAGS, ...tags])].sort();
+  const globalEntries = allTags.map((tag) =>
     `    "${tag}": HTMLElement & SpinProjectComponentAttributes;`
   ).join("\n");
-  const jsxEntries = [...tags].sort().map((tag) =>
+  const jsxEntries = allTags.map((tag) =>
     `      "${tag}": SpinProjectComponentAttributes;`
   ).join("\n");
   return [
@@ -111,7 +139,6 @@ export function renderComponentsDts(tags: readonly string[]): string {
     'declare module "spin.css";',
     'declare module "uno.css";',
     'declare module "spin/components";',
-    "",
     "/** What every project component accepts: a ref, common attributes, and machine props. */",
     "interface SpinProjectComponentAttributes {",
     "  ref?: HTMLElement | ((el: HTMLElement) => void);",

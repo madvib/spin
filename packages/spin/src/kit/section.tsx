@@ -98,7 +98,7 @@ export function Section(props: {
         <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
       </Show>
       <Show when={props.muted} fallback={props.children}>
-        <div class="text-text-muted">{props.children}</div>
+        <div class="stack text-text-muted">{props.children}</div>
       </Show>
     </section>
   );

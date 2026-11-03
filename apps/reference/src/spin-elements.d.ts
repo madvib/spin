@@ -15,5 +15,4 @@
  * file, so the finding is declared and dismissed where it is correct.
  */
 // oxlint-disable-next-line typescript/triple-slash-reference
-/// <reference types="@spinjs/spin/preset/solid" />
-
+/// <reference types="@spinjs/spin/elements" />

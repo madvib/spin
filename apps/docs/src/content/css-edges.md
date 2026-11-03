@@ -1,38 +1,49 @@
 <!-- USER COPY SLOT: css-intro — your own mental model of the cascade, or the default below. -->
 
-## The closed vocabulary
+## The closed vocabulary & editor tooling
 
-Any class whose token step does not exist in your theme emits **no CSS rule at all** — and `spin lint` flags it as `spin/closed-vocabulary`. Arbitrary bracket values (`p-[1rem]`, `w-[320px]`, `bg-[#ff0000]`) are blocked by design: if a visual value matters, declare it as a named token in your theme.
+Every utility class in Spin maps to a declared token in your `spin/*.json` theme (`p-4` → `var(--spacing-4)`, `bg-surface-raised` → `var(--color-surface-raised)`, `rounded-md` → `var(--radius-md)`). If a token step does not exist in your theme — or if you write an arbitrary bracket class (`w-[320px]`, `bg-[#ff0000]`) or a misspelled role (`bg-success` instead of `bg-semantic-success`) — the preset emits **no CSS rule**.
 
-> **Warning:** A class outside the theme vocabulary produces no CSS rule in the stylesheet. When a utility has no effect, check your theme's declared steps first.
+Because UnoCSS silently ignores unmatched classes at build time, Spin provides three layers of editor and CLI tooling so unknown classes are caught immediately as you type:
 
-## The cascade layers
+1. **Inline editor squiggles (`@spinjs/spin/eslint` & `@spinjs/spin/oxlint`):** The `spin/closed-vocabulary` rule reads your project's `spin/*.json` files directly, computes the exact utility set your theme generates, and underlines any unknown or undeclared class in red inside VS Code, Cursor, Zed, or Neovim with a one-click autofix.
+2. **Theme-aware autocomplete (UnoCSS editor extension):** `spinPreset` registers `autocomplete.templates` (`bg-$colors`, `border-$colors`, `p-$spacing`, `m-$spacing`, `gap-$spacing`, `rounded-$radius`, `shadow-$shadow`, `text-$fontSize`, `font-$fontFamily`, plus every shortcut and primitive variant) populated dynamically from your theme's token steps.
+3. **CLI & agent checks (`npx spin lint` & MCP `utility` / `lint` tools):** `npx spin lint` verifies JSX/TSX and `.html` files in CI or pre-commit, and the `spin` MCP server (`npx spin mcp`, wired into `.mcp.json` by `spin init`) lets coding agents query valid utilities before writing markup.
 
-Spin emits styles into four ordered CSS layers so utilities always override element defaults without specificity wars:
+```ts
+// eslint.config.js — inline editor diagnostics for unknown classes & unpaired inks
+import spin from "@spinjs/spin/eslint";
 
-1. **`reset`** (`-100`) — `box-sizing: border-box`, `border-width: 0`, and `[hidden] { display: none !important }`.
-2. **`theme`** (`-90`) — `:root`, `[data-theme]`, and `[data-mode]` CSS custom properties, `@font-face` rules from `$extensions.spin.fonts`, `body` defaults, and the `prefers-reduced-motion: reduce` clamp.
-3. **`primitives`** (`-50`) — classless HTML and Spin element rules plus `@spinjs/spin/animation` keyframes.
-4. **`default` (utilities)** (`0`) — token-backed utility classes (`p-*`, `bg-*`, `text-*`, `rounded-*`, `shadow-*`), layout shortcuts (`stack`, `row`, `split`, `cluster`), and structural layout utilities (`flex`, `grid`, `items-*`, `justify-*`).
+export default [
+  spin.configs.recommended,
+];
+```
 
-Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or any container subtree. There is no `dark:` class prefix — `bg-surface` and `text-text` automatically resolve to the dark palette inside a dark subtree.
+## Paired fills, semantic inks, and dark mode
 
-## State and responsive variants
+Every fill token in your theme has a paired foreground ink role tested against WCAG contrast floors in every declared mode:
 
-- **Interactive states:** `hover:`, `focus:`, `focus-visible:`, `active:`, `disabled:`, `aria-[current]:`, `group-hover:`, `peer-hover:`
-- **Responsive breakpoints:** `sm:`, `md:`, `lg:`, `xl:` (generated directly from your theme's `breakpoint.*` tokens)
+- **Brand & accent fills:** `bg-primary text-on-primary`, `bg-secondary text-on-secondary`, `bg-accent text-on-accent`
+- **Semantic status fills:** `bg-semantic-success text-on-semantic-success`, `bg-semantic-warning text-on-semantic-warning`, `bg-semantic-error text-on-semantic-error`, `bg-semantic-info text-on-semantic-info`
+- **Surfaces:** `bg-surface text-text`, `bg-surface-raised text-text`, `bg-surface-sunken text-text` (with `text-text-muted` for secondary copy)
 
-## Layout shortcuts
+Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or any container subtree. There is no `dark:` utility prefix — `bg-surface` and `text-text` resolve to the active mode's tokens automatically, and `spin/no-unpaired-ink` flags any fill missing its paired ink.
 
-Shortcuts compose common flex and typography patterns under a single class name (`stack`, `stack-xs`, `stack-sm`, `stack-lg`, `row`, `row-sm`, `row-lg`, `split`, `cluster`, `cluster-sm`, `cluster-lg`, `inline`, `overline`). Declare project-specific shortcuts in `spin.vite({ shortcuts: { ... } })` so both the stylesheet compiler and `spin lint` recognize them.
-## Motion and animations
+## State variants and responsive breakpoints
 
-The `animate-*` utilities from `@spinjs/spin/animation` spend your theme's `motion.duration.*` and `motion.easing.*` tokens. Pair them with transition utilities (`transition-colors duration-fast ease-standard`) for state changes.
+- **Interactive states:** `hover:`, `focus:`, `focus-visible:`, `active:`, `disabled:`, `aria-[current]:`, `data-[state=open]:`, `group-hover:`, `peer-hover:`
+- **Responsive breakpoints:** `sm:`, `md:`, `lg:`, `xl:` — generated directly from your theme's `breakpoint.*` tokens (`@media (min-width: ...)`).
 
-> **Note:** Continuous loop animations faster than `250ms` fail the `motion` theme gate and the `strobe-animation` browser check.
+## Custom project shortcuts
 
-## Avoiding double-boxed fields
+In addition to the shipped `spinShortcuts` listed below, you can register project-specific utility compositions in `spin.vite({ shortcuts: { ... } })`. Both the stylesheet compiler and `spin/closed-vocabulary` read `shortcuts` from your bundler config, and `spin lint` verifies that every utility inside your custom shortcut exists in your theme:
 
-Native `<input>`, `<select>`, and `<textarea>` elements already carry their own border, padding, and `bg-field` background. When grouping an input with an icon or button inside a container, use the `<field>` primitive so the outer container owns the border and focus ring instead of drawing a box inside a box.
+```ts
+spin.vite({
+  shortcuts: {
+    "page-shell": "mx-auto w-full max-w-screen-lg px-6 py-10 stack-lg",
+  },
+});
+```
 
 <!-- USER COPY SLOT: css-close — your own edge notes or migration gotchas. -->

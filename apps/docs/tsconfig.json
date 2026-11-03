@@ -29,8 +29,8 @@
       "@spinjs/animation": ["../../packages/spin/src/animation/index.ts"],
       "@spinjs/spin/vite": ["../../packages/spin/src/plugin/plugin.ts"],
       "@spinjs/spin/preset": ["../../packages/spin/src/compiler/index.ts"],
-      "@spinjs/spin/preset/solid": [
-        "../../packages/spin/src/compiler/solid.d.ts"
+      "@spinjs/spin/elements": [
+        "../../packages/spin/src/compiler/elements.d.ts"
       ],
       "@spinjs/spin/kit": ["../../packages/spin/src/kit/index.ts"],
       "@spinjs/spin/theme": ["../../packages/spin/src/theme/index.ts"],

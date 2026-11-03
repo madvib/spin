@@ -1147,6 +1147,8 @@ async function writeElements(
     "sub",
     "summary",
     "sup",
+    "svg",
+    "switch",
     "table",
     "tbody",
     "td",
@@ -1167,11 +1169,16 @@ async function writeElements(
   ]);
   const tags = [
     ...new Set(
-      [...contracts.values()].map((contract) => contract.scope.self),
+      [...contracts.values()].flatMap((contract) => [
+        contract.scope.self,
+        ...contract.scope.paints.map((p) => p.tag),
+      ]),
     ),
-  ].filter((tag) => !NATIVE.has(tag) && tag !== "a11y").sort();
+  ]
+    .filter((tag) => !NATIVE.has(tag) && tag !== "a11y" && /^[a-z][a-z0-9-]*$/.test(tag))
+    .sort();
   const domEntries = tags.map((tag) =>
-    `    "${tag}": HTMLElement & SpinElementAttributes;`
+    `    "${tag}": HTMLElement;`
   ).join("\n");
   const jsxEntries = tags.map((tag) =>
     `    "${tag}": SpinElementAttributes;`
@@ -1193,6 +1200,7 @@ async function writeElements(
       "  id?: string;",
       "  role?: string;",
       "  title?: string;",
+      "  children?: unknown;",
       "  hidden?: boolean;",
       "  variant?: string;",
       "  open?: boolean;",

@@ -1,21 +1,48 @@
 <!-- USER COPY SLOT: markup-intro — your own markup philosophy, or the default below. -->
 
-## How classless elements work
+## How the stylesheet layers work
 
-With `classless: true` (the default), standard HTML tags and Spin custom elements arrive styled by your active theme with zero utility classes required on the element itself:
+Importing `spin/styles.css` compiles your `spin/*.json` theme into four ordered CSS `@layer` blocks:
 
-- **Actions:** `<button>`, `<breadcrumbs>`, `<join>`, `<kbd>`
-- **Inputs:** `<input>`, `<select>`, `<textarea>`, `<checkbox>`, `<radio>`, `<switch>`, `<field>`, `<meter>`, `<label>`
-- **Containers & layout:** `<card>`, `<panel>`, `<dialog>`, `<details>`, `<fieldset>`, `<hr>`
-- **Display:** `<table>`, `<stat>`, `<swatch>`
-- **Feedback & status:** `<alert>`, `<badge>`, `<progress>`, `<skeleton>`, `<tooltip>`
-- **Typography:** `<prose>` (`<h1>`–`<h6>`, `<p>`, `<a>`, `<code>`, `<blockquote>`, `<small>`), `<icon>`
+1. **`reset`** (`-100`) — `box-sizing: border-box`, `border-width: 0`, and `[hidden] { display: none !important }`.
+2. **`theme`** (`-90`) — `:root`, `[data-theme]`, and `[data-mode]` CSS custom properties, `@font-face` declarations from `$extensions.spin.fonts`, `body` defaults, and the `prefers-reduced-motion: reduce` clamp.
+3. **`primitives`** (`-50`) — element rules for interactive controls, containers, feedback, and typography (`<button>`, `<card>`, `<field>`, `<table>`, `<prose>`).
+4. **`default` (utilities)** (`0`) — closed-scale utility classes (`p-4`, `bg-surface-raised`, `rounded-md`) and layout shortcuts (`stack`, `row`, `split`, `cluster`).
 
-Browse every element, its variants, and the theme tokens it reads in the [Element directory](#directory) below or in the [Components catalog](/components?kind=elements).
+Because `default` (`0`) sits above `primitives` (`-50`) in the cascade, **any utility class cleanly overrides a primitive's default styling** (`<card class="p-6 bg-surface-sunken">`) without specificity wars, `!important`, or runtime class-merging utilities like `twMerge`.
 
-## Buttons, variants, and `.bare`
+## Tag or class (`classless` is a preference)
 
-A bare `<button>` renders with a neutral raised surface (`bg-surface-raised`) so secondary and toolbar actions never compete with your primary call to action. Opt into emphasis or size with element variant classes, or strip element chrome altogether with `class="bare"`:
+Every primitive rule can match either the **element tag** (`<button>`, `<table>`, `<card>`) or an **explicit class** (`.button`, `.table`, `.card`):
+
+- **`classless: true` (default):** Bare semantic HTML tags and Spin custom elements carry their primitive styling automatically.
+- **`classless: false`:** Bare HTML tags remain unstyled until you opt in with `class="button"`, `class="table"`, `class="card"` — useful when adopting Spin incrementally inside an existing application.
+- **`primitives: [...]` or `false`:** Ship only a subset of primitive rules, or pass `false` for a utility-only stylesheet.
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import { spin } from "@spinjs/spin/vite";
+
+export default defineConfig({
+  plugins: [
+    spin.vite({
+      // Default is true (<button>, <table>). Set false to require .button, .table:
+      classless: false,
+      // Or restrict which primitive rules are emitted:
+      primitives: ["button", "card", "field", "table"],
+    }),
+  ],
+});
+```
+
+## Variants, sizes, and `.bare`
+
+Primitives keep everyday markup terse by expressing emphasis, tone, and size directly on the element:
+
+- **Neutral default `<button>`:** A bare `<button>` renders with a neutral raised surface (`bg-surface-raised`) so toolbar and secondary actions never compete with your primary call to action. Add `.primary`, `.secondary`, `.contrast`, `.outline`, `.ghost`, or `.danger` to set emphasis, and `.s-sm` or `.s-lg` to change size.
+- **Status tones (`variant="..."`):** Feedback primitives (`<badge>`, `<alert>`) take a `variant` attribute (`variant="primary"`, `variant="success"`, `variant="warning-muted"`, `variant="error"`) or the matching class (`.badge-primary`, `.alert-info`).
+- **Stripping chrome with `.bare`:** When a `<button>` serves as a custom interactive trigger (such as a tab, accordion header, or unstyled icon button) that needs native `<button>` semantics and keyboard handling without button paint, border, shadow, or minimum height, add `class="bare"`.
 
 ```html
 <div class="row">
@@ -28,62 +55,47 @@ A bare `<button>` renders with a neutral raised surface (`bg-surface-raised`) so
 </div>
 
 <div class="row">
-  <button type="button" class="primary s-sm">Small CTA</button>
-  <button type="button" class="primary s-lg">Large CTA</button>
-  <button type="button" class="bare inline-flex items-center gap-1 text-sm text-text-muted">
-    Custom chrome-free trigger
+  <button type="button" class="primary s-sm">Small</button>
+  <button type="button" class="primary s-lg">Large</button>
+  <button type="button" class="bare inline-flex items-center gap-1 text-sm text-text-muted hover:text-text">
+    Chrome-free button (.bare)
   </button>
 </div>
 ```
 
-## Cards and containers
+## Compound element anatomy
 
-`<card>` works both as a standalone padded surface (`<card class="stack">...</card>`) and as a structured container composed from `<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`, and `<card-figure>`:
+Container primitives coordinate spacing, borders, and typography across their child parts so you don't have to wire utility classes on every wrapper:
+
+- **`<card>`:** Works standalone as a padded surface (`<card class="stack">...</card>`) or structured with `<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`, and `<card-figure>`.
+- **`<field>` (preventing double-boxed inputs):** Native `<input>`, `<select>`, and `<textarea>` elements already carry their own border, padding, and `bg-field` background. When grouping an input with a leading icon, prefix, or inline button, wrap them in `<field>` — the outer `<field>` claims the single border and focus ring instead of drawing a box inside a box.
+- **`<prose>`:** Opt-in typographic measure and vertical rhythm (`<prose>` or `.prose`) for long-form copy and rendered Markdown (`<h1>`–`<h6>`, `<p>`, `<ul>`, `<ol>`, `<blockquote>`, `<code>`, `<pre>`).
 
 ```html
 <card>
   <card-header>
-    <card-title>Billing notifications</card-title>
-    <card-description>Receive an alert when monthly usage crosses your threshold.</card-description>
+    <card-title>Alert routing</card-title>
+    <card-description>Notify on-call engineers when error budgets burn.</card-description>
     <card-action>
-      <badge variant="primary">Active</badge>
+      <badge variant="success">Active</badge>
     </card-action>
   </card-header>
   <card-content class="stack-sm">
-    <label>
-      Alert email
-      <input type="email" placeholder="ops@example.com" />
-    </label>
+    <label for="webhook-url">Webhook endpoint</label>
+    <field>
+      <span class="i-lucide-webhook icon-sm text-text-muted" aria-hidden="true"></span>
+      <input id="webhook-url" type="url" placeholder="https://hooks.acme.dev/incidents" />
+    </field>
   </card-content>
   <card-footer class="justify-end">
     <button type="button" class="ghost">Cancel</button>
-    <button type="button" class="primary">Save</button>
+    <button type="button" class="primary">Save rule</button>
   </card-footer>
 </card>
 ```
 
-## TypeScript setup
+## Automatic TypeScript types
 
-Solid projects add the shipped type augmentation once so custom Spin tags typecheck in JSX:
+When your bundler runs `spin.vite()` (or any Spin bundler adapter), Spin automatically generates `src/spin-components.d.ts`. That declaration file imports `@spinjs/spin/elements` and registers every Spin primitive tag (`<card>`, `<card-header>`, `<badge>`, `<field>`, `<alert>`, `<prose>`, `<stat>`, `<swatch>`, `<tooltip>`) alongside your project's compiled `lib/components/*.html` tags in `HTMLElementTagNameMap` and `JSX.IntrinsicElements` — with no framework-specific setup.
 
-```ts
-// src/spin.d.ts
-import "@spinjs/spin/preset/solid";
-```
-
-For project components under `lib/components/*.html`, the Spin bundler plugin generates `src/spin-components.d.ts` automatically on dev start or build.
-
-## Narrowing or disabling classless rules
-
-Pass `primitives` to ship only a subset of element rules, or set `classless: false` so elements require explicit opt-in classes:
-
-```ts
-spin.vite({
-  primitives: ["button", "card", "field"],
-  classless: false,
-});
-```
-
-The standalone UnoCSS preset accepts the same options: `spinPreset({ primitives: ["button", "card"], classless: false })`.
-
-<!-- USER COPY SLOT: markup-close — framework notes (React, Svelte) or migration guidance. -->
+<!-- USER COPY SLOT: markup-close — framework notes or migration guidance. -->

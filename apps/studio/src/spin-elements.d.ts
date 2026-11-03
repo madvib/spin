@@ -3,7 +3,7 @@
  * in the one shared augmentation rather than a second copy that would drift
  * from it.
  */
-/// <reference types="@spinjs/spin/preset/solid" />
+/// <reference types="@spinjs/spin/elements" />
 
 declare module "lib/components/*.html" {
   const tag: string;

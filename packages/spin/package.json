@@ -141,8 +141,8 @@
       "types": "./src/theme/skill/index.ts",
       "default": "./src/theme/skill/index.ts"
     },
-    "./preset/solid": {
-      "types": "./src/compiler/solid.d.ts"
+    "./elements": {
+      "types": "./src/compiler/elements.d.ts"
     }
   },
   "files": [
@@ -319,8 +319,8 @@
         "types": "./dist/theme/skill/index.d.ts",
         "default": "./dist/theme/skill/index.js"
       },
-      "./preset/solid": {
-        "types": "./dist/compiler/solid.d.ts"
+      "./elements": {
+        "types": "./dist/compiler/elements.d.ts"
       }
     }
   },

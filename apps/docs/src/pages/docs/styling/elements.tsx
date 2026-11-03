@@ -1,83 +1,97 @@
 /**
- * Classless Elements: semantic HTML tags and Spin custom elements dressed by the theme.
+ * Primitives: how Spin's stylesheet layers work, tag vs. class mode,
+ * variants, `.bare`, and compound element anatomy.
  */
 import { A } from "@solidjs/router";
-import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import {
-  componentExamples,
-  primitiveCategories,
-  primitiveElements,
-} from "@spinjs/spin/preset";
-import { ExampleRow } from "../../../example-row.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader, PlaygroundEmbed, Section } from "../../../ui/index.ts";
+import { PageHeader, Section } from "../../../ui/index.ts";
 import markupMd from "../../../content/markup.md?raw";
 
 export default function StylingElements(): JSX.Element {
-  const elementsForCategory = (categoryId: string) =>
-    primitiveElements.filter((el) => el.category === categoryId);
-
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Classless Elements"
-        lede="Write standard semantic HTML and Spin custom elements. Your active theme dresses every control, container, and prose element without class boilerplate."
-        playgroundExample="elements-form"
+        title="Primitives"
+        lede="How Spin's stylesheet layers work, how primitive rules style HTML and custom elements (by tag or by class), and how variants, compound parts, and utilities compose."
       />
       <Markdown text={markupMd} />
 
-      <Section id="directory" title="Element directory by category">
+      <Section id="live-preview" title="Live primitive composition">
         <p class="max-w-prose">
-          Every element rule in <code>@spinjs/spin/preset</code>, grouped by its
-          category in the primitive manifest. Click any element to inspect its
-          live specimens, variants, and theme token reads.
+          The markup above rendered live against the active theme — switch
+          starters or toggle light/dark mode in the top bar to see every
+          surface, border, radius, and button variant update from the theme:
         </p>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <For each={primitiveCategories}>
-            {(cat) => (
-              <div class="rounded-lg border border-border bg-surface-raised p-4">
-                <p class="overline">{cat.label}</p>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <For each={elementsForCategory(cat.id)}>
-                    {(el) => (
-                      <A
-                        href={`/components/${el.name}`}
-                        class="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-text no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
-                      >
-                        <span class={`${el.icon} icon-sm text-text-muted`} aria-hidden="true" />
-                        <span>{el.name}</span>
-                      </A>
-                    )}
-                  </For>
-                </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface-raised p-4">
+            <div class="stack-sm">
+              <p class="overline">Button variants &amp; .bare</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="primary">Save changes</button>
+                <button type="button">Neutral</button>
+                <button type="button" class="secondary">Secondary</button>
+                <button type="button" class="outline">Outline</button>
+                <button type="button" class="ghost">Ghost</button>
+                <button type="button" class="danger">Delete</button>
               </div>
-            )}
-          </For>
+              <div class="flex flex-wrap items-center gap-3 pt-1">
+                <button type="button" class="primary s-sm">Small</button>
+                <button type="button" class="primary s-lg">Large</button>
+                <button
+                  type="button"
+                  class="bare inline-flex items-center gap-1 text-sm text-text-muted hover:text-text"
+                >
+                  <span>Chrome-free (.bare)</span>
+                </button>
+              </div>
+            </div>
+            <div class="stack-xs border-t border-border pt-3">
+              <p class="overline">Status tones</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <badge variant="primary">primary</badge>
+                <badge variant="success">success</badge>
+                <badge variant="warning-muted">warning-muted</badge>
+                <badge variant="error">error</badge>
+              </div>
+            </div>
+          </div>
+
+          <card>
+            <card-header>
+              <card-title>Alert routing</card-title>
+              <card-description>
+                Notify on-call engineers when error budgets burn.
+              </card-description>
+              <card-action>
+                <badge variant="success">Active</badge>
+              </card-action>
+            </card-header>
+            <card-content class="stack-sm">
+              <label for="demo-webhook-url">Webhook endpoint</label>
+              <field>
+                <span
+                  class="i-lucide-webhook icon-sm text-text-muted"
+                  aria-hidden="true"
+                />
+                <input
+                  id="demo-webhook-url"
+                  type="url"
+                  placeholder="https://hooks.acme.dev/incidents"
+                />
+              </field>
+            </card-content>
+            <card-footer class="justify-end">
+              <button type="button" class="ghost">Cancel</button>
+              <button type="button" class="primary">Save rule</button>
+            </card-footer>
+          </card>
         </div>
-      </Section>
-
-      <Section id="specimens" title="Live specimens">
-        <ExampleRow
-          name="buttons"
-          html={componentExamples.button.rows[1].html}
-        />
-        <ExampleRow
-          name="cards"
-          html={componentExamples.card.rows[0].html}
-        />
-        <ExampleRow
-          name="badges"
-          html={componentExamples.badge.rows[0].html}
-        />
-        <ExampleRow
-          name="fields"
-          html={componentExamples.field.rows[0].html}
-        />
-      </Section>
-
-      <Section id="playground" title="Try classless markup live">
-        <PlaygroundEmbed exampleId="elements-form" compact />
+        <p class="max-w-prose">
+          Browse all 26 primitives, their variant classes, and the exact theme
+          tokens each rule reads in the{" "}
+          <A href="/components?kind=elements">Components catalog</A>.
+        </p>
       </Section>
     </main>
   );

@@ -32,9 +32,9 @@ var SUBJECT_HTML = {
     <div class="grid grid-cols-2 gap-2">
       <div class="rounded-md bg-primary p-3 text-sm font-medium text-on-primary">primary</div>
       <div class="rounded-md border border-solid border-border bg-surface p-3 text-sm font-medium text-text">surface</div>
-      <div class="rounded-md bg-success p-3 text-sm font-medium text-on-semantic-success">success</div>
-      <div class="rounded-md bg-warning p-3 text-sm font-medium text-on-semantic-warning">warning</div>
-      <div class="rounded-md bg-error p-3 text-sm font-medium text-on-semantic-error">error</div>
+      <div class="rounded-md bg-semantic-success p-3 text-sm font-medium text-on-semantic-success">success</div>
+      <div class="rounded-md bg-semantic-warning p-3 text-sm font-medium text-on-semantic-warning">warning</div>
+      <div class="rounded-md bg-semantic-error p-3 text-sm font-medium text-on-semantic-error">error</div>
       <div class="rounded-md bg-accent p-3 text-sm font-medium text-on-accent">accent</div>
     </div>
   </card-content>

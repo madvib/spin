@@ -12,6 +12,7 @@ interface SpinElementAttributes {
   id?: string;
   role?: string;
   title?: string;
+  children?: unknown;
   hidden?: boolean;
   variant?: string;
   open?: boolean;
@@ -21,23 +22,30 @@ interface SpinElementAttributes {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "alert": HTMLElement & SpinElementAttributes;
-    "badge": HTMLElement & SpinElementAttributes;
-    "breadcrumbs": HTMLElement & SpinElementAttributes;
-    "card": HTMLElement & SpinElementAttributes;
-    "checkbox": HTMLElement & SpinElementAttributes;
-    "field": HTMLElement & SpinElementAttributes;
-    "icon": HTMLElement & SpinElementAttributes;
-    "join": HTMLElement & SpinElementAttributes;
-    "panel": HTMLElement & SpinElementAttributes;
-    "prose": HTMLElement & SpinElementAttributes;
-    "radio": HTMLElement & SpinElementAttributes;
-    "range": HTMLElement & SpinElementAttributes;
-    "skeleton": HTMLElement & SpinElementAttributes;
-    "stat": HTMLElement & SpinElementAttributes;
-    "swatch": HTMLElement & SpinElementAttributes;
-    "switch": HTMLElement & SpinElementAttributes;
-    "tooltip": HTMLElement & SpinElementAttributes;
+    "alert": HTMLElement;
+    "badge": HTMLElement;
+    "breadcrumbs": HTMLElement;
+    "card": HTMLElement;
+    "card-action": HTMLElement;
+    "card-content": HTMLElement;
+    "card-description": HTMLElement;
+    "card-figure": HTMLElement;
+    "card-footer": HTMLElement;
+    "card-header": HTMLElement;
+    "card-title": HTMLElement;
+    "checkbox": HTMLElement;
+    "field": HTMLElement;
+    "icon": HTMLElement;
+    "join": HTMLElement;
+    "panel": HTMLElement;
+    "panel-list": HTMLElement;
+    "prose": HTMLElement;
+    "radio": HTMLElement;
+    "range": HTMLElement;
+    "skeleton": HTMLElement;
+    "stat": HTMLElement;
+    "swatch": HTMLElement;
+    "tooltip": HTMLElement;
   }
 }
 
@@ -48,18 +56,25 @@ declare module "solid-js" {
     "badge": SpinElementAttributes;
     "breadcrumbs": SpinElementAttributes;
     "card": SpinElementAttributes;
+    "card-action": SpinElementAttributes;
+    "card-content": SpinElementAttributes;
+    "card-description": SpinElementAttributes;
+    "card-figure": SpinElementAttributes;
+    "card-footer": SpinElementAttributes;
+    "card-header": SpinElementAttributes;
+    "card-title": SpinElementAttributes;
     "checkbox": SpinElementAttributes;
     "field": SpinElementAttributes;
     "icon": SpinElementAttributes;
     "join": SpinElementAttributes;
     "panel": SpinElementAttributes;
+    "panel-list": SpinElementAttributes;
     "prose": SpinElementAttributes;
     "radio": SpinElementAttributes;
     "range": SpinElementAttributes;
     "skeleton": SpinElementAttributes;
     "stat": SpinElementAttributes;
     "swatch": SpinElementAttributes;
-    "switch": SpinElementAttributes;
     "tooltip": SpinElementAttributes;
     }
   }

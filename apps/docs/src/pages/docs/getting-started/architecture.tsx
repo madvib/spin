@@ -26,7 +26,7 @@ const layerItems = (): readonly PropEntry[] => [
         <code>stack</code>, <code>row</code>, <code>split</code>,{" "}
         <code>p-4</code>, <code>gap-2</code>). Unrecognized classes and
         arbitrary brackets emit zero CSS and fail <code>spin lint</code>. See{" "}
-        <A href="/docs/styling/utilities">Utilities &amp; Animations</A>.
+        <A href="/docs/styling/utilities">Utilities &amp; Layout</A>.
       </>
     ),
   },
@@ -41,7 +41,7 @@ const layerItems = (): readonly PropEntry[] => [
         , <code>&lt;badge&gt;</code>, <code>&lt;alert&gt;</code>) from theme CSS
         variables. Enabled by default (<code>classless: true</code>), or opt-in
         by class with <code>classless: false</code>. Explore{" "}
-        <A href="/docs/styling/elements">Classless Elements</A>.
+        <A href="/docs/styling/elements">Primitives</A>.
       </>
     ),
   },
