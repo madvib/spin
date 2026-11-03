@@ -1,5 +1,5 @@
 /**
- * Themes Validation: CLI analysis, the six build-time validation gates, WCAG contrast floors, and runtime JS reads.
+ * Themes Validation: spin lint integration, CLI analysis, the six validation checks, and runtime JS reads.
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
@@ -8,7 +8,7 @@ import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
 import { FLOORS } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
-const GATE_ITEMS: readonly PropEntry[] = [
+const CHECK_ITEMS: readonly PropEntry[] = [
   {
     name: "completeness",
     badge: "Schema & required roles",
@@ -52,31 +52,35 @@ export default function ThemesValidation(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Validation"
-        lede="Spin validates every theme at build time and live inside the Studio across six mechanical gates: schema completeness, WCAG contrast floors, monotonic scales, motion safety, mode consistency, and layout invariance."
+        lede="Spin validates every theme automatically — in spin lint alongside your source files, live inside the Studio, and from the CLI — across six checks: schema completeness, WCAG contrast floors, monotonic scales, motion safety, mode consistency, and layout invariance."
       />
 
-      <Section id="cli" title="Inspecting themes from the CLI">
+      <Section id="cli" title="Lint and CLI analysis">
         <p class="max-w-prose">
-          Run <code>npx spin theme analyze</code> in CI or locally to verify
-          every theme in <code>spin/*.json</code> against all six gates. If a
-          contrast pair falls below its floor or a required role is missing,
-          the CLI prints the exact token path, mode, and offending values:
+          Run <code>npx spin lint .</code> in CI or locally to validate{" "}
+          <code>spin/*.json</code> themes together with your source files: a
+          contrast pair below its floor or a missing required role surfaces as
+          a lint diagnostic with the exact token path. To inspect themes on
+          their own, <code>npx spin theme list</code> prints every resolved
+          theme and <code>npx spin theme analyze</code> reports every issue:
         </p>
         <div class="my-3">
           <Code
             code={THEMES_SNIPPETS.cliAnalyze}
             lang="bash"
-            title="CLI theme commands"
+            title="Lint and theme commands"
           />
         </div>
       </Section>
 
-      <Section id="gates" title="The six validation gates">
+      <Section id="checks" title="The six validation checks">
         <p class="max-w-prose">
-          Both the Studio and <code>npx spin theme analyze</code> run the same{" "}
-          <code>themeGates</code> battery from <code>@spinjs/spin/theme</code>:
+          The Studio, <code>npx spin lint</code>, and{" "}
+          <code>npx spin theme analyze</code> all run the same{" "}
+          <code>validateTheme</code> pipeline from{" "}
+          <code>@spinjs/spin/theme</code>:
         </p>
-        <PropList items={GATE_ITEMS} />
+        <PropList items={CHECK_ITEMS} />
 
         <h3 id="contrast-floors">
           Enforced WCAG contrast pairs ({FLOORS.length})
@@ -99,15 +103,15 @@ export default function ThemesValidation(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="programmatic" title="Running gates in TypeScript">
+      <Section id="programmatic" title="Validating in TypeScript">
         <p class="max-w-prose">
-          Import <code>themeGates</code> or <code>themeGate</code> from{" "}
+          Import <code>validateTheme</code> from{" "}
           <code>@spinjs/spin/theme</code> to validate user-supplied or
           agent-authored theme documents in your own tests or build scripts:
         </p>
         <div class="my-3">
           <Code
-            code={THEMES_SNIPPETS.themeGates}
+            code={THEMES_SNIPPETS.validateTheme}
             lang="ts"
             title="Programmatic validation"
           />
@@ -120,7 +124,7 @@ export default function ThemesValidation(): JSX.Element {
           <code>var(--color-primary)</code>). When you need resolved hex or
           pixel values in JavaScript — for <code>&lt;canvas&gt;</code>, WebGL,
           charting libraries, or <code>&lt;meta name="theme-color"&gt;</code>{" "}
-          — use <code>resolveTheme(doc, mode)</code> from{" "}
+          — use <code>resolveTheme(spinTheme, "dark")</code> from{" "}
           <code>@spinjs/spin/theme</code>:
         </p>
         <div class="my-3">

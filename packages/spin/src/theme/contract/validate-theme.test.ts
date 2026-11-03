@@ -183,3 +183,27 @@ test("the roles a caller states are the roles the document owes", () => {
   deepStrictEqual(report.valid, false);
   assert(issueAt(report, "color.never-declared").message.length > 0);
 });
+
+test("a theme object is judged, and a broken scale, loop, and restated spacing are reported", () => {
+  // `validateTheme` takes the document, not just its text: a caller holding
+  // the parsed object hands it over directly.
+  const parsed = JSON.parse(complete()) as Record<string, unknown>;
+  const valid = validateTheme(parsed);
+  deepStrictEqual(valid.valid, true);
+  deepStrictEqual(valid.issues, []);
+
+  // A ladder that descends, a loop under the strobe floor, and a dark mode
+  // with its own spacing: the full battery, not just the roles and floors.
+  const doc = JSON.parse(complete()) as Record<string, unknown>;
+  const spacing = doc["spacing"] as Record<string, unknown>;
+  spacing["4"] = { $type: "dimension", $value: "0.125rem" };
+  const motion = (doc["motion"] as Record<string, unknown>)["duration"] as Record<string, unknown>;
+  motion["loop"] = { $type: "duration", $value: "120ms" };
+  (spacing["8"] as Record<string, unknown>)["$modes"] = { dark: "9rem" };
+  const report = validateTheme(doc);
+
+  deepStrictEqual(report.valid, false);
+  assert(issueAt(report, "spacing.4").message.includes("descends"));
+  assert(issueAt(report, "motion.duration.loop").message.includes("strobe"));
+  assert(issueAt(report, "spacing.8").message.includes("ink and focus"));
+});

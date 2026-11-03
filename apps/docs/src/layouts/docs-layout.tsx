@@ -96,7 +96,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
       for (const node of rawNodes) {
         const sec = node.id ? node : node.closest<HTMLElement>("section[id]");
         const id = node.id || sec?.id || "";
-        const label = (node.textContent ?? "").trim();
+        const label = (node.textContent ?? "").replace(/#$/, "").trim();
         if (!id || !label || seenIds.has(id)) continue;
         seenIds.add(id);
         trackedTargets.push(sec ?? node);

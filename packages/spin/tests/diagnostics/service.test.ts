@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { test } from "bun:test";
-import { deepStrictEqual } from "node:assert/strict";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { join, relative } from "node:path";
 import type { RenderedFinding, RenderedHarness } from "../../src/diagnostics/check.ts";
 import type { TextEdit } from "../../src/diagnostics/core.ts";
@@ -133,4 +133,32 @@ test("the check answers with what the harness found", async () => {
   deepStrictEqual(quiet.findings, []);
   deepStrictEqual(quiet.failed, []);
   deepStrictEqual(quiet.code, 0);
+});
+
+test("a broken spin theme is reported gate by gate", async () => {
+  // The lint reads the themes beside the sources: a `spin/*.json` document
+  // that fails the battery lands as `spin/theme-*` findings.
+  const { mkdir, writeFile } = await import("node:fs/promises");
+  const { scaffoldTheme } = await import("../../src/theme/index.ts");
+  const { treeToJson } = await import("../../src/theme/index.ts");
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
+  try {
+    await mkdir(join(directory, "spin"), { recursive: true });
+    const doc = JSON.parse(treeToJson(scaffoldTheme())) as Record<string, unknown>;
+    const spacing = doc["spacing"] as Record<string, unknown>;
+    spacing["4"] = { $type: "dimension", $value: "0.125rem" };
+    await writeFile(join(directory, "spin", "acme.json"), JSON.stringify(doc, null, 2));
+    await writeFile(join(directory, "app.tsx"), CLEAN);
+    const report = await lint(directory);
+    const themed = report.findings.filter((finding) => finding.ruleId.startsWith("spin/theme-"));
+    assert(themed.length > 0, "expected a spin/theme-* finding");
+    const scales = themed.find((finding) => finding.ruleId === "spin/theme-scales");
+    assert(scales !== undefined, `no scales finding: ${JSON.stringify(themed)}`);
+    deepStrictEqual(scales.severity, "error");
+    deepStrictEqual(scales.messageId, "scales");
+    assert(scales.message.includes("spacing.4"), `message names the token: ${scales.message}`);
+    assert(scales.line >= 1 && scales.column >= 1, "1-based location");
+  } finally {
+    await rm(directory, { recursive: true });
+  }
 });

@@ -191,14 +191,16 @@ function buildThemeMarkdown(routePath: string): string | undefined {
         THEMES_SNIPPETS.pickers,
         "```",
       ].join("\n");
-    case "/docs/themes/customization":
+    case "/docs/themes/fonts":
       return [
-        "## Web Fonts (`$extensions.spin.fonts`)",
+        "## Automatic `@font-face` Generation (`$extensions.spin.fonts`)",
         "",
         "```json",
         THEMES_SNIPPETS.webFonts,
         "```",
-        "",
+      ].join("\n");
+    case "/docs/themes/customization":
+      return [
         "## Per-Element Overrides",
         "",
         "```json",
@@ -210,7 +212,7 @@ function buildThemeMarkdown(routePath: string): string | undefined {
         (f) => `- \`${f.fg}\` on \`${f.bg}\`: **≥ ${f.min}:1**`,
       ).join("\n");
       return [
-        "## CLI Theme Commands",
+        "## Lint and CLI Theme Commands (`npx spin lint`)",
         "",
         "```bash",
         THEMES_SNIPPETS.cliAnalyze,
@@ -220,10 +222,10 @@ function buildThemeMarkdown(routePath: string): string | undefined {
         "",
         floors,
         "",
-        "## Programmatic Validation (`themeGates`)",
+        "## Programmatic Validation (`validateTheme`)",
         "",
         "```ts",
-        THEMES_SNIPPETS.themeGates,
+        THEMES_SNIPPETS.validateTheme,
         "```",
         "",
         "## Reading Token Values in JavaScript (`resolveTheme`)",

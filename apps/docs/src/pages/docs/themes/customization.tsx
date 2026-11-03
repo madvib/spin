@@ -1,5 +1,5 @@
 /**
- * Themes Customization: palette roles, web fonts, spatial scales, and per-element token overrides.
+ * Themes Customization: token-to-utility mapping, palette roles, spatial scales, and per-element overrides.
  */
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
@@ -8,6 +8,33 @@ import { Chip, Code, Section } from "../../../bits.tsx";
 import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
 import { elementGroups, elementTokens } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
+
+const MAPPING_ITEMS: readonly PropEntry[] = [
+  {
+    name: "color.primary → --color-primary",
+    badge: "bg-primary / text-primary / border-primary",
+    description:
+      "Every color role becomes a CSS variable and a set of utilities: backgrounds, inks, borders, and outlines all spend the same token.",
+  },
+  {
+    name: "spacing.4 → --spacing-4",
+    badge: "p-4 / m-4 / gap-4",
+    description:
+      "Every spatial step becomes a variable spent by padding, margin, and gap utilities — one scale, three axes.",
+  },
+  {
+    name: "radius.md → --radius-md",
+    badge: "rounded-md",
+    description:
+      "Every corner step becomes a variable spent by rounded-* utilities and by element rules (cards, buttons, inputs).",
+  },
+  {
+    name: "shadow.md → --shadow-md",
+    badge: "shadow-md",
+    description:
+      "Every elevation step becomes a variable spent by shadow-* utilities and floating surfaces (dropdowns, popovers, dialogs).",
+  },
+];
 
 const PALETTE_LAYERS: readonly PropEntry[] = [
   {
@@ -92,8 +119,18 @@ export default function ThemesCustomization(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Customization"
-        lede="Customize your theme's color roles, load web fonts from Fontsource, tune spacing and corner radii, or override individual HTML elements without forks or custom CSS files."
+        lede="Customize your theme's color roles, tune spacing and corner radii, or override individual HTML elements — every token becomes a CSS variable and a utility class, with no forks or custom CSS files."
       />
+
+      <Section id="mapping" title="How tokens become CSS variables and utilities">
+        <p class="max-w-prose">
+          A token path is a contract: the segments join with{" "}
+          <code>-</code> to form the CSS custom property name, and the
+          utilities spend that variable. Learn one row of this cheat sheet and
+          the rest of the theme reads the same way:
+        </p>
+        <PropList items={MAPPING_ITEMS} />
+      </Section>
 
       <Section id="palette" title="Palette and semantic roles">
         <p class="max-w-prose">
@@ -124,31 +161,6 @@ export default function ThemesCustomization(): JSX.Element {
         <PropList items={PALETTE_LAYERS} />
       </Section>
 
-      <Section id="typography" title="Typography and web fonts">
-        <p class="max-w-prose">
-          The <code>font</code> group controls font families (
-          <code>sans</code>, <code>heading</code>, <code>mono</code>, plus
-          optional <code>body</code>, <code>serif</code>, and{" "}
-          <code>brand</code>), the monotonic type size scale (
-          <code>2xs</code> through <code>display</code>), weights, line heights,
-          and letter-spacing.
-        </p>
-        <p class="max-w-prose">
-          In the Studio's <strong>Type</strong> view, picking a family from the
-          built-in Fontsource catalog writes its declaration into{" "}
-          <code>$extensions.spin.fonts</code>. At build time, Spin bundles the
-          font files and emits the corresponding <code>@font-face</code> rules
-          automatically:
-        </p>
-        <div class="my-3">
-          <Code
-            code={THEMES_SNIPPETS.webFonts}
-            lang="json"
-            title="Web fonts via $extensions.spin.fonts"
-          />
-        </div>
-      </Section>
-
       <Section id="scales" title="Spatial scales, shape, and motion">
         <p class="max-w-prose">
           Every spacing utility (<code>p-4</code>, <code>gap-6</code>), radius
@@ -157,6 +169,9 @@ export default function ThemesCustomization(): JSX.Element {
           value from your theme's scales. Adjusting{" "}
           <code>radius.md</code> from <code>6px</code> to <code>0px</code>{" "}
           sharpens every card, input, and button across the app in one edit.
+          Typography — families, the <code>2xs</code>–<code>display</code>{" "}
+          scale, weights, and tracking — lives on the dedicated{" "}
+          <A href="/docs/themes/fonts">Fonts</A> guide.
         </p>
         <PropList items={SCALE_ITEMS} />
       </Section>

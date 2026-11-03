@@ -62,7 +62,11 @@ export function Section(props: {
       <div class="split">
         <h2 class="row-sm">
           <Marker tone={props.tone} />
-          <span class="min-w-0">{props.title}</span>
+          <Show when={props.id} fallback={<span class="min-w-0">{props.title}</span>}>
+            {(id) => (
+              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 text-text no-underline hover:text-text hover:underline"><span class="min-w-0">{props.title}</span><span class="font-mono text-sm text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
+            )}
+          </Show>
           <Show when={props.info}>
             {(info) => (
               <span class="relative inline-flex items-center">

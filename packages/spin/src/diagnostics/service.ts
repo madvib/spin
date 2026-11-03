@@ -13,7 +13,7 @@
 
 import type { Dirent, Stats } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { DEFAULT_SEMANTIC_OPTIONS, type SemanticOptions } from "./core.ts";
 import {
   type Diagnostic,
@@ -24,6 +24,7 @@ import {
 } from "./engine.ts";
 import type { RenderedFinding, RenderedHarness } from "./check.ts";
 import { RULE_NAMES, type RuleName } from "./rules.ts";
+import { themeGates } from "../theme/index.ts";
 
 /* -------------------------------------------------------------- the view -- */
 
@@ -135,7 +136,21 @@ export async function filesUnder(path: string): Promise<string[]> {
         if (!SKIPPED.has(entry.name)) stack.push(child);
         continue;
       }
-      if (SOURCE.test(entry.name)) out.push(child);
+      if (SOURCE.test(entry.name)) {
+        out.push(child);
+        continue;
+      }
+      // A theme document beside the sources: `spin/*.json`, but never the
+      // project's own configuration and never the icons beside the themes.
+      // A `.json` file handed over directly is already included: a path that
+      // names a file is that file.
+      if (
+        entry.name.endsWith(".json") &&
+        entry.name !== "config.json" &&
+        basename(directory) === "spin"
+      ) {
+        out.push(child);
+      }
     }
   }
   return out;
@@ -219,6 +234,12 @@ export async function lintFiles(
       unreadable.push(file);
       continue;
     }
+    // A theme document is judged by the battery, gate by gate: each gate's
+    // issues land as their own findings, located at the token they name.
+    if (file.endsWith(".json")) {
+      findings.push(...lintTheme(file, code));
+      continue;
+    }
     // Markup is walked through the component syntax, not the module parser:
     // an `.html` file is a fragment the module parser cannot read, so it is
     // never handed to it.
@@ -237,6 +258,54 @@ export async function lintFiles(
   }
 
   return { findings, unreadable, missing };
+}
+
+/**
+ * The battery over one theme document, as findings.
+ *
+ * One finding per issue per gate, so the rule that said it is the finding's
+ * own name: `spin/theme-scales` reads as the gate that failed.
+ */
+function lintTheme(file: string, code: string): Diagnostic[] {
+  const out: Diagnostic[] = [];
+  const report = themeGates(code);
+  for (const gateResult of report.gates) {
+    for (const issue of gateResult.issues) {
+      const at = locateIssue(code, issue.path);
+      out.push({
+        file,
+        line: at.line,
+        column: at.column,
+        ruleId: `spin/theme-${gateResult.gate}`,
+        messageId: gateResult.gate,
+        message: issue.path ? `${issue.path}: ${issue.message}` : issue.message,
+        severity: "error",
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * The line and column of an issue's path in the document, counted from one.
+ *
+ * The last segment names the token, so that is what is located: the line
+ * carrying `"step":` and the column it starts on. Absent (a parse error,
+ * a document-level complaint), the finding sits at the start of the file.
+ */
+function locateIssue(
+  code: string,
+  path: string,
+): { line: number; column: number } {
+  if (!path) return { line: 1, column: 1 };
+  const last = path.split(".").at(-1) as string;
+  const lines = code.split("\n");
+  for (let at = 0; at < lines.length; at++) {
+    const line = lines[at] as string;
+    const column = line.indexOf(`"${last}"`);
+    if (column !== -1) return { line: at + 1, column: column + 1 };
+  }
+  return { line: 1, column: 1 };
 }
 
 /** Whether a path is there. */

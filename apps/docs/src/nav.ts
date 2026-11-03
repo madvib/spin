@@ -90,22 +90,27 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Overview",
         href: "/docs/themes/overview",
-        summary: "Designing themes in the Studio, previewing starters, and configuring spin/*.json and shared brands.",
+        summary: "Designing your brand theme in the Studio, previewing starters, and configuring spin/*.json.",
       },
       {
         title: "Modes",
         href: "/docs/themes/modes",
-        summary: "Light and dark mode resolution, subtree scoping with data-mode, and runtime theme pickers.",
+        summary: "Light and dark mode resolution, subtree scoping with data-mode, mode invariance, and mode pickers.",
+      },
+      {
+        title: "Fonts",
+        href: "/docs/themes/fonts",
+        summary: "Loading web fonts with @font-face generation, font family roles, and the monotonic type scale.",
       },
       {
         title: "Customization",
         href: "/docs/themes/customization",
-        summary: "Customizing palette roles, web fonts, spatial scales, and per-element tokens.",
+        summary: "How tokens map to utilities, semantic palette roles, spatial scales, and per-element overrides.",
       },
       {
         title: "Validation",
         href: "/docs/themes/validation",
-        summary: "Running the six build-time validation gates, contrast floors, and reading tokens in JavaScript.",
+        summary: "Automatic theme checks in spin lint, CLI analysis, WCAG contrast floors, and validateTheme().",
       },
       {
         title: "Token Reference",

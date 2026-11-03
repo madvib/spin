@@ -1,5 +1,5 @@
 /**
- * Themes Modes: light and dark mode resolution, subtree scoping, mode invariance, and runtime pickers.
+ * Themes Modes: light and dark mode resolution, subtree scoping, mode invariance, and mode pickers.
  */
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
@@ -36,7 +36,7 @@ const MODE_RULES: readonly PropEntry[] = [
     name: "--spin-modes",
     badge: "CSS metadata",
     description:
-      "Emitted on each [data-theme] block so <ModePicker /> knows whether a theme supports both light and dark or is single-mode.",
+      "Emitted on each [data-theme] block so a mode picker knows whether a theme supports both light and dark or is single-mode.",
   },
 ];
 
@@ -108,12 +108,15 @@ export default function ThemesModes(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="overrides" title="Token overrides and alias resolution">
+      <Section id="overrides" title="Studio vs. theme JSON ($modes)">
         <p class="max-w-prose">
-          At the root of your theme JSON, <code>modes</code> lists the modes
-          the theme serves (<code>["light", "dark"]</code>,{" "}
-          <code>["light"]</code>, or <code>["dark"]</code>). Individual tokens
-          carry their mode-specific values in <code>$modes</code>:
+          You rarely hand-write <code>$modes</code>. In the Studio's{" "}
+          <strong>Color</strong> view, light and dark render side by side:
+          editing a role while the dark preview is active writes the{" "}
+          <code>$modes.dark</code> override into{" "}
+          <code>spin/&lt;name&gt;.json</code> for you. The JSON below is what
+          the Studio saves — the same document you can edit by hand when you
+          prefer an editor:
         </p>
         <div class="my-3">
           <Code
@@ -128,16 +131,20 @@ export default function ThemesModes(): JSX.Element {
       <Section id="invariance" title="Mode invariance">
         <p class="max-w-prose">
           Toggling between light and dark mode must never cause layout shift
-          or text reflow. Spin enforces <strong>mode invariance</strong> in
-          its validation battery:
+          or text reflow. Reskinning a mode only swaps ink and elevation:{" "}
+          <code>color.*</code> roles repaint surfaces and text,{" "}
+          <code>shadow.*</code> re-grades elevation for the darker backdrop,
+          and <code>focus.*</code> may adjust ring geometry for contrast.
+          Everything structural — typography and spatial scales — stays
+          constant, so paragraphs never re-wrap when the user flips modes:
         </p>
         <ul class="max-w-prose">
           <li>
-            <strong>Allowed to vary by mode:</strong>{" "}
-            <code>color.*</code>, <code>shadow.*</code>, per-element color or
-            shadow tokens (such as <code>button.edge</code> or{" "}
-            <code>card.shadow</code>), and focus ring geometry (
-            <code>focus.width</code>, <code>focus.offset</code>).
+            <strong>Allowed to vary by mode:</strong> <code>color.*</code>,{" "}
+            <code>shadow.*</code>, per-element color or shadow tokens (such as{" "}
+            <code>button.edge</code> or <code>card.shadow</code>), and focus
+            ring geometry (<code>focus.width</code>, <code>focus.offset</code>
+            ).
           </li>
           <li>
             <strong>Mode-invariant (must stay constant):</strong>{" "}
@@ -146,25 +153,26 @@ export default function ThemesModes(): JSX.Element {
             <code>breakpoint.*</code>, <code>icon.*</code>, and{" "}
             <code>z-index.*</code>. Placing <code>$modes</code> on a spacing
             or typography token is rejected by the{" "}
-            <A href="/docs/themes/validation#gates">invariance gate</A>.
+            <A href="/docs/themes/validation#checks">invariance check</A>.
           </li>
         </ul>
       </Section>
 
-      <Section id="switching" title="Switching themes and modes in your UI">
+      <Section id="switching" title="Switching modes in your UI">
         <p class="max-w-prose">
-          <code>@spinjs/spin/kit</code> provides ready-made{" "}
-          <code>&lt;ThemePicker /&gt;</code> and{" "}
-          <code>&lt;ModePicker /&gt;</code> components that read{" "}
+          Copy a ready-made control from{" "}
+          <code>@spinjs/components/mode-picker</code> into your app with{" "}
+          <code>npx spin component copy mode-picker basic</code> — it reads{" "}
           <code>--spin-themes</code> and <code>--spin-modes</code> directly
-          from the generated stylesheet, along with reactive signals for custom
-          controls:
+          from the generated stylesheet. Or drive the mode yourself: Spin
+          reads <code>data-mode</code> on <code>&lt;html&gt;</code>, so one
+          dataset assignment flips the whole page:
         </p>
         <div class="my-3">
           <Code
             code={THEMES_SNIPPETS.pickers}
             lang="ts"
-            title="Switching themes and modes"
+            title="Switching modes"
           />
         </div>
       </Section>

@@ -19,6 +19,7 @@ import { parseTokens } from "../pipeline/parse.ts";
 import type { TokenTree, ValidationIssue } from "../pipeline/types.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import { type Mode, treeInMode } from "../modes.ts";
+import { themeGates } from "./battery.ts";
 import { requiredPaths } from "./roles.ts";
 import { validateLegibility } from "./schema.ts";
 
@@ -83,9 +84,10 @@ export interface ThemeReport {
  * turns a six-line fix into six round trips.
  */
 export function validateTheme(
-  text: string,
+  input: string | Record<string, unknown>,
   options: ValidateThemeOptions = {},
 ): ThemeReport {
+  const text = typeof input === "string" ? input : JSON.stringify(input);
   const parsed = parseTokens(text);
   if (!parsed.ok) {
     return { tree: undefined, error: parsed.error, issues: [], valid: false };
@@ -105,6 +107,24 @@ export function validateTheme(
     ...(options.modes !== undefined ? { modes: options.modes } : {}),
   });
   const issues = [...report.issues, ...validateLegibility(judged)];
+
+  // A full theme owes the whole battery: the ladders, the loop, and the
+  // modes' restraint, on top of the roles and the floors. A caller that
+  // states what the document owes (or the mode it is read in) judges a
+  // fragment, so only the stated judgement runs there.
+  if (options.required === undefined && options.mode === undefined) {
+    const battery = themeGates(text, {
+      ...(options.modes !== undefined ? { modes: options.modes } : {}),
+    });
+    const seen = new Set(issues.map((issue) => `${issue.path}|${issue.message}`));
+    for (const extra of battery.issues) {
+      const key = `${extra.path}|${extra.message}`;
+      if (!seen.has(key)) {
+        issues.push(extra);
+        seen.add(key);
+      }
+    }
+  }
 
   return {
     tree: parsed.tree,

@@ -315,17 +315,6 @@
         "types": "./dist/animation/index.d.ts",
         "default": "./dist/animation/index.js"
       },
-      "./kit": {
-        "types": "./dist/kit/index.d.ts",
-        "default": "./dist/kit/index.js"
-      },
-      "./kit/skill": {
-        "types": "./dist/kit/skill.d.ts",
-        "default": "./dist/kit/skill.js"
-      },
-      "./kit/solid": {
-        "types": "./dist/kit/solid-server.d.ts"
-      },
       "./skill": {
         "types": "./dist/theme/skill/index.d.ts",
         "default": "./dist/theme/skill/index.js"

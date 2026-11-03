@@ -1,5 +1,6 @@
 /**
- * Themes Overview: Studio workflow, interactive starter preview, project files, and shared brands.
+ * Themes Overview: one brand theme with light and dark modes, the Studio vs. CLI
+ * setup walkthrough, the starter switcher, and optional multi-theme skins.
  */
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
@@ -15,7 +16,7 @@ const STUDIO_STEPS: readonly PropEntry[] = [
     name: "1. Launch the Studio",
     badge: "/__spin/studio/",
     description:
-      "With spin.vite() running, click the Studio pill in the bottom-right corner of your app (or run npx spin studio for any other bundler).",
+      "With a Spin bundler plugin running (spin.vite(), spin.rspack(), spin.webpack(), spin.bun(), or any of the seven adapters), click the Studio pill in the bottom-right corner of your app — or run npx spin studio standalone beside any dev server.",
   },
   {
     name: "2. Fork a starter or create a theme",
@@ -24,8 +25,8 @@ const STUDIO_STEPS: readonly PropEntry[] = [
       "Pick one of the five starter palettes (spin, silk, neobrut, console, synthwave) or start from a clean scaffold, then tune colors, typefaces, spacing, and radii against your live page.",
   },
   {
-    name: "3. Check live contrast & scale gates",
-    badge: "6 gates",
+    name: "3. Check live contrast & scale checks",
+    badge: "6 checks",
     description:
       "Every fill-and-ink pair displays its live WCAG contrast ratio and offers a one-click fix whenever a token drops below its legibility floor.",
   },
@@ -34,6 +35,27 @@ const STUDIO_STEPS: readonly PropEntry[] = [
     badge: "git-diffable",
     description:
       "Changes preview in memory first. Pressing Save writes spin/<name>.json and updates spin/config.json in your repository.",
+  },
+];
+
+const CLI_STEPS: readonly PropEntry[] = [
+  {
+    name: "1. Scaffold a project",
+    badge: "npx spin init",
+    description:
+      "From an empty folder, npx spin init detects your bundler, writes the plugin wiring, and creates spin/default.json — a single brand theme serving light and dark modes.",
+  },
+  {
+    name: "2. Edit the JSON directly",
+    badge: "spin/default.json",
+    description:
+      "Prefer an editor to the visual Studio? Theme documents are plain DTCG JSON: change a $value, save, and the dev server rebuilds. Run npx spin lint . to catch contrast or schema mistakes.",
+  },
+  {
+    name: "3. Analyze before shipping",
+    badge: "npx spin theme analyze",
+    description:
+      "The same six validation checks the Studio runs live are available from the CLI, so CI can gate on npx spin theme analyze or npx spin lint .",
   },
 ];
 
@@ -89,18 +111,24 @@ export default function ThemesOverview(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Overview"
-        lede="A Spin theme defines your application's palette, typography, spacing, radii, shadows, and motion. Design and validate themes visually in the Studio, commit the generated JSON to spin/, and switch themes or modes at runtime with zero rebuild."
+        lede="Most applications need one brand theme — spin/default.json — serving light and dark modes. Design it visually in the Studio or scaffold it from the CLI, commit the generated JSON to spin/, and switch modes at runtime with zero rebuild."
       />
 
-      <Section id="studio" title="Designing in the Studio">
+      <Section id="studio" title="Studio vs. CLI setup">
         <p class="max-w-prose">
-          You do not write theme JSON by hand. Spin ships with a live visual
-          editor — the <A href="/studio">Studio</A> — that mounts directly
-          beside your app during development. Any adjustment to a color role,
-          font family, spacing step, or corner radius repaints your running
-          application immediately before touching disk.
+          You do not write theme JSON by hand unless you want to. Spin ships
+          with a live visual editor — the <A href="/studio">Studio</A> — that
+          mounts directly beside your app during development. Any adjustment
+          to a color role, font family, spacing step, or corner radius repaints
+          your running application immediately before touching disk.
         </p>
         <PropList items={STUDIO_STEPS} />
+        <p class="max-w-prose">
+          Prefer the terminal? <code>npx spin init</code> scaffolds the same
+          project, and every check the Studio runs live is also available from{" "}
+          <code>npx spin lint</code> and <code>npx spin theme analyze</code>:
+        </p>
+        <PropList items={CLI_STEPS} />
         <p class="max-w-prose">
           Try the live editor on the <A href="/studio">Studio page</A>, or
           connect a coding agent via the{" "}
@@ -239,11 +267,16 @@ export default function ThemesOverview(): JSX.Element {
         <PropList items={SEATING_ITEMS} />
       </Section>
 
-      <Section id="extends" title="Sharing a brand across apps">
+      <Section id="extends" title="Optional skins and shared brands">
         <p class="max-w-prose">
-          Multi-app teams can publish a shared brand package exporting{" "}
-          <code>{"{ themes: { ... } }"}</code> and pass it to{" "}
-          <code>spin.vite({"{ extends: acmeBrand }"})</code>. Local files in{" "}
+          One theme with two modes covers most applications. When your app
+          offers user-selectable color skins — seasonal palettes, team colors,
+          white-label variants — add more files to <code>spin/*.json</code>{" "}
+          and list them in <code>themeOrder</code>. Multi-app teams can also
+          publish a shared brand package exporting{" "}
+          <code>{"{ themes: { ... } }"}</code> and pass it to any bundler
+          adapter (<code>spin.vite()</code>, <code>spin.rspack()</code>,{" "}
+          <code>spin.webpack()</code>, <code>spin.bun()</code>). Local files in{" "}
           <code>spin/*.json</code> layer on top of <code>extends</code>: a
           local theme with the same name overrides the shared one, and saving
           a shared theme in the Studio forks it into <code>spin/</code>.
@@ -255,12 +288,20 @@ export default function ThemesOverview(): JSX.Element {
             title="vite.config.ts"
           />
         </div>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.bundlerPlugin}
+            lang="ts"
+            title="Any bundler adapter"
+          />
+        </div>
         <p class="max-w-prose">
           Next, see <A href="/docs/themes/modes">Modes</A> for light and dark
-          mode scoping, <A href="/docs/themes/customization">Customization</A>{" "}
-          for fonts and element overrides,{" "}
-          <A href="/docs/themes/validation">Validation</A> for the six build
-          gates, or <A href="/docs/themes/reference">Token Reference</A> for
+          mode scoping, <A href="/docs/themes/fonts">Fonts</A> for web fonts
+          and the type scale, <A href="/docs/themes/customization">Customization</A>{" "}
+          for palette roles and element overrides,{" "}
+          <A href="/docs/themes/validation">Validation</A> for the six
+          validation checks, or <A href="/docs/themes/reference">Token Reference</A> for
           every token group and role.
         </p>
       </Section>

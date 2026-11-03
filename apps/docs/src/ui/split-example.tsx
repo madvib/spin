@@ -61,7 +61,6 @@ export function SplitExample(props: {
           <CodeFrame
             code={props.code}
             lang={props.lang ?? "html"}
-            title={props.title}
             class="rounded-none border-0 shadow-none"
           />
         }

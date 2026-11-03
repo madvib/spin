@@ -217,7 +217,23 @@ export default function ThemesReference(): JSX.Element {
         <PropList items={RESERVED_KEYS} />
 
         <h3 id="token-types">Supported $type values ({TYPES.length})</h3>
-        <PropList items={typeEntries} />
+        <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <For each={typeEntries}>
+            {(entry) => (
+              <div class="flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-mono text-sm font-semibold text-text">
+                    {entry.name}
+                  </span>
+                  <Show when={entry.badge}>
+                    <span class="badge shrink-0">{entry.badge}</span>
+                  </Show>
+                </div>
+                <span class="text-sm text-text-muted">{entry.description}</span>
+              </div>
+            )}
+          </For>
+        </div>
       </Section>
 
       <Section id="groups" title="Core token groups">

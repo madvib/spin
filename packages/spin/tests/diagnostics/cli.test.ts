@@ -450,3 +450,88 @@ test("help answers as a command and as a flag", async () => {
     deepStrictEqual(lines[0]?.startsWith("spin — "), true);
   }
 });
+
+test("the theme scaffold prints the document, not an envelope", async () => {
+  // `spin theme scaffold` is a document on stdout: raw JSON a caller can
+  // redirect into `spin/acme.json`, not `{"text": ...}`.
+  const lines: string[] = [];
+  const code = await run(["theme", "scaffold"], (line) => lines.push(line), () => {});
+  deepStrictEqual(code, 0);
+  const doc = JSON.parse(lines.join("\n")) as Record<string, unknown>;
+  deepStrictEqual(typeof doc["color"], "object");
+  deepStrictEqual((lines.join("\n").includes('"text"') && doc["text"] !== undefined), false);
+});
+
+test("the theme analyze judges one theme and fails on an invalid one", async () => {
+  // A named theme is analyzed alone; an invalid theme exits 1 with the
+  // issue on stdout as `<path>: <message>`.
+  const dir = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
+  try {
+    const { scaffoldTheme } = await import("../../src/theme/index.ts");
+    const { treeToJson } = await import("../../src/theme/index.ts");
+    const doc = JSON.parse(treeToJson(scaffoldTheme())) as Record<string, unknown>;
+    delete (doc["color"] as Record<string, unknown>)["text"];
+    await import("node:fs/promises").then((fs) => fs.mkdir(join(dir, "spin"), { recursive: true }));
+    await writeFile(join(dir, "spin", "broken.json"), JSON.stringify(doc, null, 2));
+    const lines: string[] = [];
+    const code = await run(
+      ["theme", "analyze", "broken", "--root", dir],
+      (line) => lines.push(line),
+      () => {},
+    );
+    deepStrictEqual(code, 1);
+    deepStrictEqual(lines[0], "broken");
+    deepStrictEqual(lines.some((line) => line.includes("color.text")), true);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("the theme analyze without a name judges every theme", async () => {
+  // No name means every project theme; one invalid theme fails the run,
+  // and a project of valid themes passes with `<name>: valid`.
+  const { scaffoldTheme } = await import("../../src/theme/index.ts");
+  const { treeToJson } = await import("../../src/theme/index.ts");
+  const bad = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
+  try {
+    const doc = JSON.parse(treeToJson(scaffoldTheme())) as Record<string, unknown>;
+    delete (doc["color"] as Record<string, unknown>)["text"];
+    await import("node:fs/promises").then((fs) => fs.mkdir(join(bad, "spin"), { recursive: true }));
+    await writeFile(join(bad, "spin", "broken.json"), JSON.stringify(doc, null, 2));
+    const lines: string[] = [];
+    const code = await run(
+      ["theme", "analyze", "--root", bad],
+      (line) => lines.push(line),
+      () => {},
+    );
+    deepStrictEqual(code, 1);
+    deepStrictEqual(lines.some((line) => line.includes("color.text")), true);
+  } finally {
+    await rm(bad, { recursive: true, force: true });
+  }
+  const good = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
+  try {
+    await import("node:fs/promises").then((fs) => fs.mkdir(join(good, "spin"), { recursive: true }));
+    await writeFile(join(good, "spin", "fine.json"), treeToJson(scaffoldTheme()));
+    const lines: string[] = [];
+    const code = await run(
+      ["theme", "analyze", "--root", good],
+      (line) => lines.push(line),
+      () => {},
+    );
+    deepStrictEqual(code, 0);
+    deepStrictEqual(lines, ["fine: valid"]);
+    const json: string[] = [];
+    const jsonCode = await run(
+      ["theme", "analyze", "--root", good, "--format", "json"],
+      (line) => json.push(line),
+      () => {},
+    );
+    deepStrictEqual(jsonCode, 0);
+    const parsed = JSON.parse(json.join("\n")) as Array<{ name: string; valid: boolean; tree?: unknown }>;
+    deepStrictEqual(parsed[0]?.valid, true);
+    deepStrictEqual("tree" in (parsed[0] ?? {}), false);
+  } finally {
+    await rm(good, { recursive: true, force: true });
+  }
+});

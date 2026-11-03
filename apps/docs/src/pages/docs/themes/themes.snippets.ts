@@ -20,6 +20,15 @@ export default defineConfig({
     }),
   ],
 });`,
+  bundlerPlugin: `import { spin } from "@spinjs/spin/vite";
+// spin.vite(), spin.rspack(), spin.webpack(), spin.bun(), and the rest
+// all share one options surface: { extends, themes, activeTheme }.
+
+export const plugins = [
+  spin.vite({
+    // extends: { themes: starterThemes },
+  }),
+];`,
   modeToken: `{
   "$description": "Editorial palette with warm paper and crimson ink.",
   "modes": ["light", "dark"],
@@ -51,36 +60,30 @@ export default defineConfig({
     <button>Primary Action</button>
   </article>
 </div>`,
-  pickers: `import {
-  ModePicker,
-  ThemePicker,
-  mode,
-  setMode,
-  setTheme,
-  theme,
-} from "@spinjs/spin/kit";
+  pickers: `<!-- Copy a ready-made control into your app: -->
+<!-- npx spin component copy mode-picker basic -->
 
-// Drop-in controls that read --spin-themes and --spin-modes from the stylesheet:
-// <ThemePicker />
-// <ModePicker />
-
-// Or drive theme and mode state programmatically:
-setTheme("neobrut");
-setMode(mode() === "dark" ? "light" : "dark");
-console.log(theme(), mode());`,
+<script type="module">
+  // Or drive the mode directly — Spin reads data-mode on <html>:
+  document.documentElement.dataset.mode = "dark";
+</script>`,
   webFonts: `{
   "$extensions": {
     "spin": {
       "fonts": [
         {
           "family": "Fraunces",
-          "source": "fontsource",
-          "weights": [600, 700]
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/fraunces:vf@latest/latin-wght-normal.woff2) format(\\"woff2\\")",
+          "weight": "300 900",
+          "style": "normal",
+          "display": "swap"
         },
         {
           "family": "Plus Jakarta Sans",
-          "source": "fontsource",
-          "weights": [400, 500, 600]
+          "src": "url(/fonts/plus-jakarta-sans.woff2) format(\\"woff2\\")",
+          "weight": "400 700",
+          "style": "normal",
+          "display": "swap"
         }
       ]
     }
@@ -105,27 +108,24 @@ console.log(theme(), mode());`,
     "shadow": { "$type": "shadow", "$value": "{shadow.md}" }
   }
 }`,
-  cliAnalyze: `# List all themes resolved in spin/ and extends
+  cliAnalyze: `# Lint source files AND spin/*.json themes together
+npx spin lint .
+
+# Or inspect themes directly from the CLI
 npx spin theme list
-
-# Run the six-gate validation battery against every project theme
 npx spin theme analyze
+npx spin theme scaffold > spin/acme.json`,
+  validateTheme: `import { readFileSync } from "node:fs";
+import { validateTheme } from "@spinjs/spin/theme";
 
-# Scaffold a new valid theme document into spin/acme.json
-npx spin theme scaffold --name acme`,
-  themeGates: `import { readFileSync } from "node:fs";
-import { themeGate, themeGates } from "@spinjs/spin/theme";
+const text = readFileSync("spin/default.json", "utf8");
+const report = validateTheme(text, { modes: ["light", "dark"] });
 
-const text = readFileSync("spin/acme.json", "utf8");
-
-// Run all six gates (completeness, legibility, scales, motion, modes, invariance):
-const findings = themeGates(text);
-for (const issue of findings) {
-  console.error(\`[\${issue.gate}] \${issue.path}: \${issue.message}\`);
-}
-
-// Or run a single gate on a specific mode:
-const contrastIssues = themeGate("legibility", text, { mode: "dark" });`,
+if (!report.valid) {
+  for (const issue of report.issues) {
+    console.error(\`\${issue.path}: \${issue.message}\`);
+  }
+}`,
   resolveTheme: `import {
   indexTree,
   parseTokens,

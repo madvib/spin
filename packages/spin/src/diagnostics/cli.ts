@@ -1111,24 +1111,91 @@ async function runTheme(
     }
     if (command.action === "scaffold") {
       const scaffolded = await client.theme.scaffold({});
-      print(scaffolded);
+      write(scaffolded.text);
       return 0;
     }
-    if (command.name === undefined) {
-      warn("theme analyze needs a theme name.");
+    // Analyze one theme by name, or every theme the project holds. The
+    // listing carries the text, so no second read is needed.
+    const entries = command.name === undefined
+      ? await client.project.themes.list({
+        ...(command.root === undefined ? {} : { root: command.root }),
+      })
+      : await client.project.themes.list({
+        ...(command.root === undefined ? {} : { root: command.root }),
+      }).then((listed) => listed.filter((entry) => entry.name === command.name));
+    if (command.name === undefined && entries.length === 0) {
+      warn("no themes in this project.");
       return 2;
     }
-    const read = await client.project.themes.read({
-      name: command.name,
-      ...(command.root === undefined ? {} : { root: command.root }),
-    });
-    if (read.text === null) {
+    if (command.name !== undefined && entries.length === 0) {
       warn(`no theme named "${command.name}" in this project.`);
       return 2;
     }
-    const analysis = await client.theme.analyze({ text: read.text });
-    print(analysis);
-    return 0;
+    const results: Array<{
+      name: string;
+      error: string | null;
+      issues: Array<{ path: string; message: string }>;
+    }> = [];
+    for (const entry of entries) {
+      const read = entry.text !== undefined && entry.text !== null
+        ? { text: entry.text as string }
+        : await client.project.themes.read({
+          name: entry.name,
+          ...(command.root === undefined ? {} : { root: command.root }),
+        });
+      if (read.text === null) {
+        warn(`no theme named "${entry.name}" in this project.`);
+        return 2;
+      }
+      const analysis = await client.theme.analyze({ text: read.text });
+      results.push({
+        name: entry.name,
+        error: analysis.error,
+        issues: [...analysis.issues],
+      });
+    }
+    if (command.format === "json") {
+      write(
+        JSON.stringify(
+          command.name === undefined
+            ? results.map(({ name, error, issues }) => ({
+              name,
+              valid: error === null && issues.length === 0,
+              error,
+              issues,
+            }))
+            : {
+              name: results[0]?.name,
+              valid: (results[0]?.error ?? null) === null &&
+                (results[0]?.issues.length ?? 1) === 0,
+              error: results[0]?.error ?? null,
+              issues: results[0]?.issues ?? [],
+            },
+          null,
+          2,
+        ),
+      );
+    } else {
+      for (const result of results) {
+        if (result.error !== null) {
+          write(`${result.name}: ${result.error}`);
+          continue;
+        }
+        if (result.issues.length === 0) {
+          write(`${result.name}: valid`);
+          continue;
+        }
+        write(result.name);
+        for (const issue of result.issues) {
+          write(`  ${issue.path ? `${issue.path}: ` : ""}${issue.message}`);
+        }
+      }
+    }
+    return results.some((result) =>
+      result.error !== null || result.issues.length > 0
+    )
+      ? 1
+      : 0;
   } catch (error) {
     warn(error instanceof Error ? error.message : String(error));
     return 2;

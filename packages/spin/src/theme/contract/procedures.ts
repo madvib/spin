@@ -20,11 +20,10 @@ import {
 } from "../authoring/mutate.ts";
 import type { MutationResult } from "../authoring/mutate.ts";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
-import { requiredPaths } from "./roles.ts";
 import type { Mode } from "../modes.ts";
 import type { TokenTree } from "../pipeline/types.ts";
 import { themeContract } from "./contract.ts";
-import { validateTheme } from "./validate-theme.ts";
+import { themeGates } from "./battery.ts";
 
 const os = implement(themeContract);
 
@@ -43,16 +42,15 @@ function analyze(
   required?: readonly string[],
   modes?: readonly Mode[],
 ) {
-  const declared = parseDocument(text);
-  const served = modes ?? (declared.ok ? declared.modes : undefined) ?? [];
-  const report = validateTheme(text, {
-    required: required ?? requiredPaths(),
-    modes: served,
+  const parsed = parseDocument(text);
+  const battery = themeGates(text, {
+    ...(required !== undefined ? { required } : {}),
+    ...(modes !== undefined ? { modes } : {}),
   });
   return {
-    error: report.error ?? null,
-    issues: [...report.issues],
-    tree: report.tree ?? null,
+    error: parsed.ok ? null : parsed.error,
+    issues: [...battery.issues],
+    tree: parsed.ok ? parsed.tree : null,
   };
 }
 
