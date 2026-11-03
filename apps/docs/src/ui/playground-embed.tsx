@@ -7,12 +7,14 @@
 import { A } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { CodeFrame } from "./code-frame.tsx";
 import { ExamplePreview } from "../example-preview.tsx";
 import {
+  activeFileForFramework,
   SpinEmbed,
   type PlaygroundFramework,
 } from "../jibe-playground.tsx";
-import type { Subject } from "../../examples/shared.ts";
+import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export interface PlaygroundRecipe {
   readonly id: string;
@@ -45,14 +47,27 @@ export function PlaygroundEmbed(props: {
   readonly framework?: PlaygroundFramework;
   readonly height?: string;
 }): JSX.Element {
-  const [editing, setEditing] = createSignal(!props.compact);
+  const [showCode, setShowCode] = createSignal(false);
   const recipe = () =>
     PLAYGROUND_RECIPES.find((r) => r.id === props.exampleId) ??
     PLAYGROUND_RECIPES[0]!;
 
   return (
     <div class="flex flex-col gap-2">
-      <Show when={props.compact}>
+      <Show
+        when={props.compact}
+        fallback={
+          <SpinEmbed
+            files={{}}
+            framework={props.framework ?? "solid"}
+            subject={recipe().subject}
+            activeFile={activeFileForFramework(props.framework ?? "solid")}
+            chrome="studio"
+            view="split"
+            height={props.height ?? "h-[26rem]"}
+          />
+        }
+      >
         <div class="flex flex-wrap items-center justify-between gap-2">
           <span class="font-mono text-xs text-text-muted">
             {props.title ?? recipe().title}
@@ -60,10 +75,10 @@ export function PlaygroundEmbed(props: {
           <div class="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setEditing((v) => !v)}
-              class="bare rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text hover:border-border-strong"
+              onClick={() => setShowCode((v) => !v)}
+              class="bare cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text hover:border-border-strong"
             >
-              {editing() ? "Close editor" : "Edit live in Jibe"}
+              {showCode() ? "Hide markup" : "Show markup"}
             </button>
             <A
               href="/playground"
@@ -73,27 +88,19 @@ export function PlaygroundEmbed(props: {
             </A>
           </div>
         </div>
-      </Show>
-      <Show
-        when={editing()}
-        fallback={
-          <ExamplePreview
-            kind="module"
-            url={`/examples/${props.framework ?? "solid"}/index.js`}
-            subject={recipe().subject}
-            height={props.height ?? "h-[22rem]"}
-          />
-        }
-      >
-        <SpinEmbed
-          files={{}}
-          framework={props.framework ?? "solid"}
+        <ExamplePreview
+          kind="module"
+          url={`/examples/${props.framework ?? "solid"}/index.js`}
           subject={recipe().subject}
-          activeFile="src/subject.ts"
-          chrome="studio"
-          view="split"
-          height={props.height ?? "h-[26rem]"}
+          height={props.height ?? "h-[19rem]"}
         />
+        <Show when={showCode()}>
+          <CodeFrame
+            code={SUBJECT_HTML[recipe().subject].trim()}
+            lang="html"
+            title="Markup"
+          />
+        </Show>
       </Show>
     </div>
   );

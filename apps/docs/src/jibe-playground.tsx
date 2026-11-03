@@ -98,7 +98,7 @@ function collect(dir: string, out: string[]): void {
       collect(path, out);
       continue;
     }
-    if (/\\.(ts|tsx|js|jsx|html)$/.test(path)) out.push(read(path));
+    if (/\\.(ts|tsx|js|jsx|vue|svelte|html)$/.test(path)) out.push(read(path));
   }
 }
 
@@ -164,6 +164,42 @@ interface StudioTheme {
   readonly file: string | null;
 }
 
+export function activeFileForFramework(
+  framework: PlaygroundFramework,
+): string {
+  switch (framework) {
+    case "solid":
+    case "react":
+      return "src/App.tsx";
+    case "vue":
+      return "src/App.vue";
+    case "svelte":
+      return "src/App.svelte";
+    case "vanilla":
+      return "index.html";
+  }
+}
+
+function indentMarkup(markup: string, spaces: number): string {
+  const pad = " ".repeat(spaces);
+  return markup
+    .trim()
+    .split("\n")
+    .map((line) => `${pad}${line}`)
+    .join("\n");
+}
+
+function jsxMarkup(markup: string, framework: "solid" | "react"): string {
+  let out = markup.trim().replace(
+    `onclick="this.closest('card').querySelector('dialog').showModal()"`,
+    `onClick={(e) => e.currentTarget.closest("card")?.querySelector("dialog")?.showModal()}`,
+  );
+  if (framework === "react") {
+    out = out.replaceAll("for=", "htmlFor=");
+  }
+  return indentMarkup(out, 4);
+}
+
 function workspaceFiles(
   framework: PlaygroundFramework,
   subject: Subject,
@@ -171,63 +207,8 @@ function workspaceFiles(
   const wiring = FRAMEWORK_WIRING[framework];
   const entry = `src/main.${wiring.ext}`;
   const markup = SUBJECT_HTML[subject];
-  const mount = ((): string => {
-    switch (framework) {
-      case "solid":
-        return `import { render } from "solid-js/web";
-import { SUBJECT } from "./subject.ts";
-
-const root = document.getElementById("app");
-if (root !== null) render(() => <div innerHTML={SUBJECT} />, root);
-`;
-      case "react":
-        return `import { createRoot } from "react-dom/client";
-import { SUBJECT } from "./subject.ts";
-
-const root = document.getElementById("app");
-if (root !== null) {
-  createRoot(root).render(<div dangerouslySetInnerHTML={{ __html: SUBJECT }} />);
-}
-`;
-      case "vue":
-        return `import { createApp, h } from "vue";
-import { SUBJECT } from "./subject.ts";
-
-const root = document.getElementById("app");
-if (root !== null) {
-  createApp({ render: () => h("div", { innerHTML: SUBJECT }) }).mount(root);
-}
-`;
-      case "svelte":
-        return `import { mount } from "svelte";
-import App from "./App.svelte";
-import { SUBJECT } from "./subject.ts";
-
-const root = document.getElementById("app");
-if (root !== null) mount(App, { target: root, props: { subject: SUBJECT } });
-`;
-      case "vanilla":
-        return `import { SUBJECT } from "./subject.ts";
-
-const root = document.getElementById("app");
-if (root !== null) root.innerHTML = SUBJECT;
-`;
-    }
-  })();
   const markRuntime = `document.documentElement.dataset.runtime = ${JSON.stringify(framework)};\n`;
-  return {
-    [entry]: markRuntime + mount,
-    "src/subject.ts": `export const SUBJECT = \`\n${markup.trim()}\n\`;\n`,
-    ...(framework === "svelte"
-      ? {
-          "src/App.svelte": `<script lang="ts">
-  let { subject }: { subject: string } = $props();
-</script>
-
-<div>{@html subject}</div>
-`,
-        }
-      : {}),
+  const common = {
     "package.json": `${JSON.stringify(
       {
         name: "spin-playground",
@@ -245,6 +226,38 @@ export const versions = {};
 export default { env, platform, cwd, versions };
 `,
   };
+
+  switch (framework) {
+    case "solid":
+      return {
+        ...common,
+        [entry]: `${markRuntime}import { render } from "solid-js/web";\nimport { App } from "./App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) render(() => <App />, root);\n`,
+        "src/App.tsx": `export function App() {\n  return (\n${jsxMarkup(markup, "solid")}\n  );\n}\n`,
+      };
+    case "react":
+      return {
+        ...common,
+        [entry]: `${markRuntime}import { createRoot } from "react-dom/client";\nimport { App } from "./App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) createRoot(root).render(<App />);\n`,
+        "src/App.tsx": `export function App() {\n  return (\n${jsxMarkup(markup, "react")}\n  );\n}\n`,
+      };
+    case "vue":
+      return {
+        ...common,
+        [entry]: `${markRuntime}import { createApp } from "vue";\nimport App from "./App.vue";\n\nconst root = document.getElementById("app");\nif (root !== null) createApp(App).mount(root);\n`,
+        "src/App.vue": `<template>\n${indentMarkup(markup, 2)}\n</template>\n`,
+      };
+    case "svelte":
+      return {
+        ...common,
+        [entry]: `${markRuntime}import { mount } from "svelte";\nimport App from "./App.svelte";\n\nconst root = document.getElementById("app");\nif (root !== null) mount(App, { target: root });\n`,
+        "src/App.svelte": `${markup.trim()}\n`,
+      };
+    case "vanilla":
+      return {
+        ...common,
+        [entry]: `${markRuntime}`,
+      };
+  }
 }
 
 function hostSeedFiles(): Record<string, string> {
@@ -484,6 +497,10 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       null,
       2,
     );
+    const inner =
+      framework === "vanilla"
+        ? `\n${indentMarkup(SUBJECT_HTML[subject], 6)}\n    `
+        : "";
     return {
       ...workspaceFiles(framework, subject),
       ...props.files,
@@ -493,7 +510,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       "index.html": `<!doctype html>
 <html lang="en" data-theme="${themeName}" data-mode="${modeName}">
   <body>
-    <div id="app" class="min-h-dvh bg-surface p-6 text-text font-sans"></div>
+    <div id="app" class="min-h-dvh bg-surface p-6 text-text font-sans">${inner}</div>
     <script type="module" src="/src/main.${wiring.ext}"></script>
   </body>
 </html>
@@ -523,17 +540,15 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     studioConnected = false;
     const modules = await spinModules();
     if (disposed) return;
+    const fw = props.framework ?? "solid";
+    const defaultActive = activeFileForFramework(fw);
     const mounted = await createJibeEmbed(node, {
       embedOrigin,
       files: { ...files, ...hostSeedFiles() },
       customSetup: { modules },
       theme: resolveSpinJibeTheme(theme(), mode()),
-      ...(props.activeFile === undefined
-        ? {}
-        : { activeFile: props.activeFile }),
-      ...(props.visibleFiles === undefined
-        ? {}
-        : { visibleFiles: props.visibleFiles }),
+      activeFile: props.activeFile ?? defaultActive,
+      visibleFiles: props.visibleFiles ?? [defaultActive, "spin/spin.json"],
       ...(props.view === undefined ? {} : { view: props.view }),
       chrome: props.chrome ?? "studio",
     });

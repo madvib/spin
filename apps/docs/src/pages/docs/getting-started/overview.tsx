@@ -6,8 +6,7 @@ import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { Markdown } from "../../../markdown.tsx";
 import { PageHeader, PlaygroundEmbed } from "../../../ui/index.ts";
-import { Code, Section } from "../../../bits.tsx";
-import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
+import { Section } from "../../../bits.tsx";
 import startMd from "../../../content/start.md?raw";
 
 const NEXT: readonly {
@@ -47,28 +46,11 @@ export default function GettingStartedOverview(): JSX.Element {
       />
       <Markdown text={startMd} />
 
-      <Section id="agents" title="Using Spin with a coding agent">
-        <p class="max-w-prose">
-          Pointing an AI coding agent at a Spin project? Copy the rules below
-          into your project's <code>AGENTS.md</code> or <code>CLAUDE.md</code>{" "}
-          (or paste it into your agent chat), and run{" "}
-          <code>npx spin init</code> to wire <code>.mcp.json</code> (
-          <code>npx spin mcp</code>). That prevents agents from writing
-          redundant utility soup, inline styles, or hand-rolled widgets:
-        </p>
-        <div class="my-3">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.agentPrompt}
-            lang="md"
-            title="AGENTS.md — Copy & send to your coding agent"
-          />
-        </div>
-      </Section>
-
       <Section id="live-preview" title="Interactive preview">
         <p class="max-w-prose">
-          Edit the markup below to see how standard HTML tags and Spin tokens
-          render live under the active theme and mode.
+          Switch themes and light or dark mode in the top bar to see how
+          semantic HTML and Spin elements adapt live, or open the example in
+          the full Playground.
         </p>
         <div class="mt-3">
           <PlaygroundEmbed exampleId="elements-form" compact />

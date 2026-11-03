@@ -5,7 +5,11 @@
 import { createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { ExamplePreview } from "../example-preview.tsx";
-import { SpinEmbed, type PlaygroundFramework } from "../jibe-playground.tsx";
+import {
+  activeFileForFramework,
+  SpinEmbed,
+  type PlaygroundFramework,
+} from "../jibe-playground.tsx";
 import type { Subject } from "../../examples/shared.ts";
 
 interface Preset {
@@ -105,7 +109,7 @@ export default function PlaygroundPage(): JSX.Element {
             files={{}}
             framework={framework()}
             subject={current().subject}
-            activeFile="src/subject.ts"
+            activeFile={activeFileForFramework(framework())}
             chrome="studio"
             view="split"
             height="h-full"

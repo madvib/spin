@@ -67,11 +67,15 @@ export default defineConfig({
   primitives: ["button", "card"],
   classless: false,
 });`,
-  firstMarkup: `<main class="stack">
-  <h1>Settings</h1>
-  <p>Changes save automatically.</p>
-  <button class="primary">Save now</button>
-</main>`,
+  firstMarkup: `<card class="card-default">
+  <card-header>
+    <card-title>Settings</card-title>
+    <card-description>Changes save automatically.</card-description>
+  </card-header>
+  <card-footer>
+    <button class="primary">Save now</button>
+  </card-footer>
+</card>`,
   dev: `npm run dev`,
   mcpConfig: `{
   "mcpServers": {
@@ -81,14 +85,5 @@ export default defineConfig({
     }
   }
 }`,
-  agentPrompt: `# Spin UI Rules for Coding Agents
-
-1. **Theme owns every visual value (\`spin/*.json\`).** Never write \`.css\` files, \`<style>\` blocks, inline \`style={{}}\`, or arbitrary bracket classes (\`w-[320px]\`, \`bg-[#fff]\`). Every color, font, spacing step, radius, shadow, and motion curve comes from the DTCG theme.
-2. **Classless elements first.** Native HTML and Spin tags arrive styled by the theme:
-   - Actions & inputs: \`<button>\` (neutral), \`<button class="primary">\` (CTA), \`.secondary\`, \`.ghost\`, \`.destructive\`, \`.bare\` (strip chrome), \`<input>\`, \`<select>\`, \`<textarea>\`, \`<label>\`, \`<field>\`
-   - Containers & data: \`<card>\`, \`<panel>\`, \`<dialog>\`, \`<details>\`, \`<fieldset>\`, \`<table>\`, \`<badge>\`, \`<alert>\`, \`<stat>\`, \`<progress>\`, \`<meter>\`, \`<skeleton>\`, \`<prose>\`
-   - Never re-declare padding, borders, radii, or backgrounds that an element already sets (\`spin/no-redundant-class\`, \`spin/prefer-theme-value\`).
-3. **Closed-scale utilities & layout shortcuts.** Use shortcuts for layout: \`stack\`, \`stack-xs\`, \`stack-sm\`, \`stack-lg\`, \`row\`, \`row-sm\`, \`row-lg\`, \`split\`, \`cluster\`, \`inline\`, \`overline\`. Pair every fill with its semantic ink (\`bg-primary text-on-primary\`, \`bg-surface-raised text-text\`, \`bg-success text-on-semantic-success\`). Dark mode is automatic via \`[data-mode="dark"]\` — never write \`dark:*\` classes.
-4. **Interactive widgets come from \`@spinjs/components\`.** Never hand-roll custom select, combobox, tabs, dialog, menu, popover, or date-picker state. Run \`npx spin component list\`, vendor a recipe with \`npx spin component copy <name> <example>\` (writes \`lib/components/<name>/<example>.html\` -> \`<prefix>-<name>-<example>\`), and bind with \`createSpinComponent\` (Solid) or \`useSpinComponent\` (React).
-5. **Verify before finishing.** Always run \`npx spin lint .\` and \`npx spin theme analyze\` (or use the \`spin\` MCP server tools) and fix all findings before yielding.`,
+  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/*.json tokens, classless elements (<card>, <button class="primary">, <input>), and layout shortcuts (stack, row, split); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
 } as const;
