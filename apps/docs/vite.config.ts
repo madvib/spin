@@ -462,6 +462,24 @@ function buildThemeMarkdown(routePath: string): string | undefined {
 }
 
 function buildStylingMarkdown(routePath: string): string | undefined {
+  if (routePath === "/docs/styling/prose") {
+    return [
+      "## Elements Own Typography",
+      "",
+      "- `<h1>` – `<h6>`: Spend `font.family.heading`, monotonic `font.size.*` (`2xl` to `sm`), `font.weight.bold`/`semibold`, and `font.line-height.tight`.",
+      "- `<p>`, `<small>`, `<strong>`: Spend `font.family.sans` (or `font.family.body`), `font.size.md` (`font.size.xs` on `<small>`), and `color.text`.",
+      "- `<code>`, `<pre>`, `<kbd>`: Spend `font.family.mono`, `color.surface-raised`, and `color.border`.",
+      "- `<blockquote>`, `<a>`, `<hr>`: Spend `color.link`, `color.link-hover`, and `border.width`.",
+      "- `<prose>` / `.prose`: Sets `max-width: 65ch`, vertical rhythm between headings/paragraphs/tables, and restores `disc`/`decimal` markers on `<ul>`/`<ol>`.",
+      "",
+      "## Lists: UI Reset vs. Document Prose",
+      "",
+      "- Bare `<ul>` / `<ol>`: Reset to `margin: 0; padding: 0; list-style: none` in the base layer.",
+      "- `<prose> <ul>` / `<ol>`: Restores `disc` and `decimal` markers and inline-start padding.",
+      "- `row-list`: Horizontal flex list (`display: flex; align-items: center; list-style-type: none; margin: 0; padding: 0`) that zeroes `li + li` top margin.",
+      "- `flow-list`: Vertical list with markers off and theme-spaced `li + li` block gaps.",
+    ].join("\n");
+  }
   if (routePath === "/docs/styling/animation") {
     const animations = animationContract.variants
       .map((v) => `- \`${v}\``)

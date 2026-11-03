@@ -1,232 +1,509 @@
 /**
- * Tokens & Catalog: every utility the active starter spends, grouped by
- * intent, plus the dual-mode token probe.
+ * Utility Reference: structured grammar reference for every utility rule family
+ * and the CSS declarations it emits. Token steps live on Token Reference;
+ * this page links out instead of duplicating them.
  */
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
-import { parseTokens } from "@spinjs/spin/theme";
-import type { TokenTree } from "@spinjs/spin/theme";
-import { starterThemes } from "@spinjs/spin/theme/themes";
-import {
-  describeCatalog,
-  SECTIONS,
-  spinShortcuts,
-  utilitiesFor,
-} from "@spinjs/spin/preset";
+import { A } from "@solidjs/router";
+import { spinShortcuts } from "@spinjs/spin/preset";
 import { animationContract } from "@spinjs/spin/animation";
-import { mode, starterList, theme } from "@spinjs/kit";
-import { Chip, PageHeader, Probe, Section, starterDoc } from "../../../ui/index.ts";
+import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 
-type Cell = Record<string, unknown>;
-const leaf = (root: unknown, path: string): unknown => {
-  let cur: unknown = root;
-  for (const part of path.split(".")) {
-    if (cur === null || typeof cur !== "object") return undefined;
-    cur = (cur as Cell)[part];
-  }
-  return cur;
-};
-
-const stated = (doc: unknown, path: string): string => {
-  const v = leaf(doc, `${path}.$value`);
-  return v === undefined || v === null ? "—" : String(v);
-};
-
-function colorRoles(doc: unknown): string[] {
-  const color = leaf(doc, "color") as Cell | undefined;
-  if (color === undefined) return [];
-  const out: string[] = [];
-  for (const [name, value] of Object.entries(color)) {
-    if (name.startsWith("$")) continue;
-    if (value === null || typeof value !== "object") continue;
-    if ("$value" in (value as Cell)) out.push(name);
-  }
-  return out;
+interface UtilityGroupSpec {
+  readonly id: string;
+  readonly title: string;
+  readonly summary: JSX.Element;
+  readonly rules: readonly PropEntry[];
 }
 
-const otherMode = () => (mode() === "dark" ? "light" : "dark");
 
-function activeTree(): TokenTree {
-  const doc = starterThemes[theme() as keyof typeof starterThemes] as unknown;
-  const parsed = parseTokens(doc as Parameters<typeof parseTokens>[0]);
-  if (!parsed.ok) throw new Error(parsed.error);
-  return parsed.tree;
+function useReferenceGroups(): readonly UtilityGroupSpec[] {
+  const groups: readonly UtilityGroupSpec[] = [
+  {
+    id: "layout",
+    title: "Layout & Shipped Shortcuts",
+    summary:
+      "Flexbox, CSS Grid, and the named layout shortcuts in spinShortcuts.",
+    rules: [
+      {
+        name: "stack / stack-xs / stack-sm / stack-lg",
+        badge: "spinShortcuts",
+        description: (
+          <>
+            Vertical flex column (<code>flex flex-col</code>) with{" "}
+            <code>gap-4</code> (<code>stack</code>), <code>gap-1</code> (
+            <code>stack-xs</code>), <code>gap-2</code> (<code>stack-sm</code>),
+            or <code>gap-8</code> (<code>stack-lg</code>).
+          </>
+        ),
+      },
+      {
+        name: "row / row-sm / row-lg / split",
+        badge: "spinShortcuts",
+        description: (
+          <>
+            Centered horizontal flex row (<code>flex items-center</code>) with{" "}
+            <code>gap-4</code>, <code>gap-2</code>, or <code>gap-8</code>;{" "}
+            <code>split</code> adds <code>justify-between</code>.
+          </>
+        ),
+      },
+      {
+        name: "cluster / cluster-sm / cluster-lg / inline",
+        badge: "spinShortcuts",
+        description: (
+          <>
+            Wrapping horizontal flex row (<code>flex flex-wrap items-center</code>
+            ) with <code>gap-2</code>, <code>gap-1</code>, or{" "}
+            <code>gap-4</code>; <code>inline</code> is{" "}
+            <code>inline-flex items-center gap-1</code>.
+          </>
+        ),
+      },
+      {
+        name: "row-list / flow-list",
+        badge: "list rules",
+        description: (
+          <>
+            List layout utilities that strip <code>list-style</code>,{" "}
+            <code>margin</code>, and <code>padding</code> while zeroing{" "}
+            <code>li + li</code> block offset (<code>row-list</code>) or
+            applying theme block rhythm (<code>flow-list</code>).
+          </>
+        ),
+      },
+      {
+        name: "flex / inline-flex / grid / inline-grid / block / hidden",
+        badge: "display",
+        description: (
+          <>
+            Standard display, flex-direction (<code>flex-row</code>,{" "}
+            <code>flex-col</code>, <code>flex-wrap</code>), alignment (
+            <code>items-*</code>, <code>justify-*</code>, <code>self-*</code>),
+            and grid column/span utilities (<code>grid-cols-1</code>–
+            <code>grid-cols-12</code>, <code>col-span-*</code>).
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "spacing",
+    title: "Spacing (Padding, Margin & Gap)",
+    summary: (
+      <>
+        Every spatial utility spends a step from your theme's{" "}
+        <code>spacing.*</code> scale — the full step list lives on{" "}
+        <A href="/docs/themes/reference#groups">Token Reference</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "p-<step> / px-<step> / py-<step>",
+        badge: "padding",
+        description: (
+          <>
+            Sets all-side (<code>padding</code>), inline (
+            <code>padding-inline</code>), or block (<code>padding-block</code>)
+            padding to <code>var(--spacing-&lt;step&gt;)</code>.
+          </>
+        ),
+      },
+      {
+        name: "pt-<step> / pr-<step> / pb-<step> / pl-<step> / ps-<step> / pe-<step>",
+        badge: "directional padding",
+        description: (
+          <>
+            Sets physical or logical side padding (
+            <code>padding-inline-start</code> for <code>ps-*</code>,{" "}
+            <code>padding-inline-end</code> for <code>pe-*</code>) to{" "}
+            <code>var(--spacing-&lt;step&gt;)</code>.
+          </>
+        ),
+      },
+      {
+        name: "m-<step> / mx-<step> / my-<step> / mt|mr|mb|ml|ms|me-<step>",
+        badge: "margin",
+        description: (
+          <>
+            Sets margin to <code>var(--spacing-&lt;step&gt;)</code> or{" "}
+            <code>auto</code> (<code>mx-auto</code>, <code>ms-auto</code>).
+            Supports negative steps (<code>-mt-&lt;step&gt;</code>).
+          </>
+        ),
+      },
+      {
+        name: "gap-<step> / gap-x-<step> / gap-y-<step>",
+        badge: "flex & grid gap",
+        description: (
+          <>
+            Sets <code>gap</code>, <code>column-gap</code>, or{" "}
+            <code>row-gap</code> to <code>var(--spacing-&lt;step&gt;)</code>.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "colors",
+    title: "Colors (Backgrounds, Inks, Borders & Alpha)",
+    summary: (
+      <>
+        Color utilities resolve against <code>color.*</code> roles in your
+        theme and switch automatically under{" "}
+        <code>[data-mode="dark"]</code> — the full role list lives on{" "}
+        <A href="/docs/themes/reference#roles">Token Reference</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "bg-<role> / bg-<role>/<0-100>",
+        badge: "background-color",
+        description: (
+          <>
+            Sets <code>background-color: var(--color-&lt;role&gt;)</code>. Adding
+            an alpha percentage (<code>bg-surface/80</code>) emits{" "}
+            <code>color-mix(in srgb, var(--color-surface) 80%, transparent)</code>.
+            Also accepts <code>bg-transparent</code> and <code>bg-current</code>.
+          </>
+        ),
+      },
+      {
+        name: "text-<role> / text-<role>/<0-100>",
+        badge: "color",
+        description: (
+          <>
+            Sets foreground <code>color: var(--color-&lt;role&gt;)</code> (for
+            example <code>text-text</code>, <code>text-text-muted</code>,{" "}
+            <code>text-on-primary</code>,{" "}
+            <code>text-on-semantic-success</code>).
+          </>
+        ),
+      },
+      {
+        name: "border-<role> / divide-<role> / ring-<role> / outline-<role> / accent-<role>",
+        badge: "stroke & accent",
+        description: (
+          <>
+            Sets <code>border-color</code>, child divider color,{" "}
+            <code>--un-ring-color</code>, <code>outline-color</code>, or form{" "}
+            <code>accent-color</code> to <code>var(--color-&lt;role&gt;)</code>.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "sizing",
+    title: "Sizing & Measure",
+    summary:
+      "Width, height, and container measure utilities backed by spacing.*, breakpoint.*, and intrinsic keywords.",
+    rules: [
+      {
+        name: "w-<step> / h-<step> / size-<step> / min-w-<step> / min-h-<step> / max-w-<step> / max-h-<step>",
+        badge: "spacing scale",
+        description: (
+          <>
+            Sizes width and/or height from{" "}
+            <code>var(--spacing-&lt;step&gt;)</code>.
+          </>
+        ),
+      },
+      {
+        name: "w-full / w-fit / w-min / w-max / w-screen / h-full / h-screen / min-w-0 / min-h-0",
+        badge: "intrinsic keywords",
+        description: (
+          <>
+            Standard percentage, viewport (<code>100vw</code> /{" "}
+            <code>100vh</code> / <code>100dvh</code>), and intrinsic sizing (
+            <code>fit-content</code>, <code>min-content</code>,{" "}
+            <code>max-content</code>).
+          </>
+        ),
+      },
+      {
+        name: "max-w-prose / max-w-screen-<bp> / max-w-<xs|sm|md|lg|xl|2xl>",
+        badge: "reading & container measure",
+        description: (
+          <>
+            <code>max-w-prose</code> caps reading measure at <code>65ch</code>;{" "}
+            <code>max-w-screen-sm</code> through <code>max-w-screen-xl</code>{" "}
+            read your theme's <code>breakpoint.*</code> tokens.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "typography",
+    title: "Typography & Icons",
+    summary: (
+      <>
+        Font family, size, weight, tracking, and icon sizing utilities for UI
+        chrome outside semantic prose elements — steps live on{" "}
+        <A href="/docs/themes/reference#groups">Token Reference</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "font-<sans|heading|mono|serif|body|brand>",
+        badge: "font-family",
+        description: (
+          <>
+            Sets <code>font-family: var(--font-family-&lt;role&gt;)</code> for
+            every role declared under <code>font.family</code> in your theme.
+          </>
+        ),
+      },
+      {
+        name: "text-<step>",
+        badge: "font-size",
+        description: (
+          <>
+            Sets <code>font-size: var(--font-size-&lt;step&gt;)</code> from your
+            theme's monotonic <code>font.size</code> ramp.
+          </>
+        ),
+      },
+      {
+        name: "font-<weight> / tracking-<step> / overline",
+        badge: "weight & tracking",
+        description: (
+          <>
+            Spends <code>font.weight.*</code> and{" "}
+            <code>font.letter-spacing.*</code>; <code>overline</code> composes{" "}
+            <code>text-xs font-semibold uppercase tracking-wider text-text-muted</code>.
+          </>
+        ),
+      },
+      {
+        name: "icon-sm / icon-md / icon-lg & i-<collection>-<glyph>",
+        badge: "icons",
+        description: (
+          <>
+            <code>icon-sm</code>, <code>icon-md</code>, and <code>icon-lg</code>{" "}
+            size icons from your theme's <code>icon.size.*</code> tokens;{" "}
+            <code>i-lucide-*</code>, <code>i-ph-*</code>,{" "}
+            <code>i-tabler-*</code>, <code>i-carbon-*</code>, and{" "}
+            <code>i-material-symbols-*</code> render offline Iconify glyphs.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "borders-effects",
+    title: "Borders, Radii, Shadows & Opacity",
+    summary: (
+      <>
+        Surface edges, corner radii, elevation shadows, and opacity steps —
+        declared under <code>radius.*</code>, <code>shadow.*</code>, and{" "}
+        <code>opacity.*</code> on{" "}
+        <A href="/docs/themes/reference#groups">Token Reference</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "border / border-<0|2|4|8> / border-<t|r|b|l|x|y|s|e>",
+        badge: "border-width",
+        description: (
+          <>
+            <code>border</code> sets <code>1px solid var(--color-border)</code>{" "}
+            (or directional edges <code>border-b</code>, <code>border-t</code>,{" "}
+            <code>border-s</code>, <code>border-e</code>).{" "}
+            <code>divide-x</code> and <code>divide-y</code> add borders between
+            adjacent children.
+          </>
+        ),
+      },
+      {
+        name: "rounded-<step> / rounded-<t|r|b|l>-<step>",
+        badge: "border-radius",
+        description: (
+          <>
+            Sets <code>border-radius: var(--radius-&lt;step&gt;)</code> for steps
+            declared under <code>radius.*</code> (<code>none</code>,{" "}
+            <code>sm</code>, <code>md</code>, <code>lg</code>,{" "}
+            <code>xl</code>, <code>full</code>).
+          </>
+        ),
+      },
+      {
+        name: "shadow-<step> / opacity-<step>",
+        badge: "elevation & opacity",
+        description: (
+          <>
+            <code>shadow-&lt;step&gt;</code> sets{" "}
+            <code>box-shadow: var(--shadow-&lt;step&gt;)</code> (
+            <code>none</code>, <code>sm</code>, <code>md</code>,{" "}
+            <code>lg</code>); <code>opacity-&lt;step&gt;</code> reads{" "}
+            <code>opacity.*</code>.
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "positioning",
+    title: "Positioning, Z-Index & CSS Anchor",
+    summary: (
+      <>
+        Offsets, theme z-index layers, and native CSS Anchor Positioning
+        utilities — layers live on{" "}
+        <A href="/docs/themes/reference#groups">Token Reference</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "relative / absolute / fixed / sticky & inset-<step> / top|right|bottom|left|start|end-<step>",
+        badge: "position & offsets",
+        description: (
+          <>
+            Standard positioning modes with offsets backed by{" "}
+            <code>var(--spacing-&lt;step&gt;)</code> or <code>0</code> /{" "}
+            <code>full</code> / <code>auto</code>.
+          </>
+        ),
+      },
+      {
+        name: "z-<layer>",
+        badge: "z-index",
+        description: (
+          <>
+            Sets <code>z-index: var(--z-index-&lt;layer&gt;)</code> for layers
+            declared under <code>z-index.*</code> in your theme.
+          </>
+        ),
+      },
+      {
+        name: "anchor-<name> / position-anchor-<name> / position-area-<side>",
+        badge: "CSS anchor positioning",
+        description: (
+          <>
+            Pins floating panels to triggers via native CSS anchor positioning (
+            <code>anchor-name: --&lt;name&gt;</code>,{" "}
+            <code>position-anchor: --&lt;name&gt;</code>, and{" "}
+            <code>position-area: top|right|bottom|left|center</code>).
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    id: "motion",
+    title: "Transitions, Transforms & Animations",
+    summary: (
+      <>
+        State transitions, hardware transforms, and{" "}
+        <code>@spinjs/spin/animation</code> keyframe utilities — tokens live
+        on <A href="/docs/themes/reference#groups">Token Reference</A> and
+        the live previews on{" "}
+        <A href="/docs/styling/animation">Animations & Motion</A>.
+      </>
+    ),
+    rules: [
+      {
+        name: "transition / transition-<colors|opacity|transform|all> & duration-<step> & ease-<curve>",
+        badge: "transitions",
+        description: (
+          <>
+            Composes transition properties with{" "}
+            <code>var(--motion-duration-&lt;step&gt;)</code> and{" "}
+            <code>var(--motion-easing-&lt;curve&gt;)</code>.
+          </>
+        ),
+      },
+      {
+        name: "translate-x-<step> / translate-y-<step> / scale-<pct> / rotate-<deg>",
+        badge: "transforms",
+        description: (
+          <>
+            Translates by <code>var(--spacing-&lt;step&gt;)</code> (or{" "}
+            <code>full</code> / <code>1/2</code>) and scales/rotates elements.
+          </>
+        ),
+      },
+      {
+        name: animationContract.variants.join(" / "),
+        badge: "@spinjs/spin/animation",
+        description: (
+          <>
+            Keyframe utilities spending <code>--motion-distance</code>,{" "}
+            <code>--motion-duration-*</code>, and{" "}
+            <code>--motion-easing-*</code>.
+          </>
+        ),
+      },
+    ],
+  },
+  ];
+  return groups;
 }
-
-function SwatchToken(props: { name: string; doc: unknown }): JSX.Element {
-  const d = props.doc as Cell;
-  const color = (d["color"] ?? {}) as Cell;
-  const token = (color[props.name] ?? {}) as Cell;
-  const base = String(token["$value"] ?? "—");
-  const dark = String(
-    (token["$modes"] as Cell | undefined)?.["dark"] ?? "",
-  );
-  const value = dark ? `${base} · dark ${dark}` : base;
-  return (
-    <div class="flex items-center gap-3">
-      <div
-        class={`h-7 w-12 shrink-0 rounded-sm border border-border-strong bg-${props.name}`}
-      />
-      <div class="flex min-w-0 flex-col">
-        <span class="font-mono text-xs text-text">{props.name}</span>
-        <span class="truncate font-mono text-xs text-text-muted">
-          {value}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-const CHARACTER_ROWS: readonly {
-  label: string;
-  read: (doc: unknown) => string;
-}[] = [
-  { label: "button radius", read: (d) => stated(d, "button.radius") },
-  { label: "button case", read: (d) => stated(d, "button.case") },
-  { label: "button tracking", read: (d) => stated(d, "button.tracking") },
-  { label: "card elevation", read: (d) => stated(d, "card.elevation") },
-  { label: "border width", read: (d) => stated(d, "border.width") },
-  { label: "radius md", read: (d) => stated(d, "radius.md") },
-  { label: "motion base", read: (d) => stated(d, "motion.duration.base") },
-  { label: "sans face", read: (d) => stated(d, "font.family.sans") },
-  { label: "heading face", read: (d) => stated(d, "font.family.heading") },
-];
 
 export default function Catalog(): JSX.Element {
-  const doc = createMemo(() => starterDoc());
-  const catalog = createMemo(() => describeCatalog(activeTree()));
+  const groups = useReferenceGroups();
   const [query, setQuery] = createSignal("");
-  const matches = (name: string): boolean => {
+
+  const filteredGroups = createMemo(() => {
     const q = query().trim().toLowerCase();
-    return q === "" || name.toLowerCase().includes(q);
-  };
+    if (q === "") return groups;
+    return groups.map((group) => {
+      if (group.title.toLowerCase().includes(q)) return group;
+      const rules = group.rules.filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          (r.badge?.toLowerCase().includes(q) ?? false),
+      );
+      return { ...group, rules };
+    }).filter((g) => g.rules.length > 0);
+  });
+
+  const shortcutEntries = createMemo(() =>
+    Object.entries(spinShortcuts as Record<string, string>).sort(([a], [b]) =>
+      a.localeCompare(b),
+    ),
+  );
+
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Tokens & Catalog"
-        lede="Every utility class the active starter generates, grouped by intent. Switch the starter theme in the top bar and the catalog re-derives live."
+        title="Utility Reference"
+        lede="Grammar reference for every utility class family in @spinjs/spin/preset: the class pattern you write, the CSS declarations it emits, and the active theme token steps that back it."
       />
 
-      <Section id="palette" title="The palette, live">
-        <div class="mt-4 grid gap-6 md:grid-cols-2">
-          <div class="rounded-lg border border-border bg-surface-raised p-4">
-            <p class="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-              Active mode ({mode()})
-            </p>
-            <div class="grid gap-2 sm:grid-cols-2">
-              <For each={colorRoles(doc())}>
-                {(name) => <SwatchToken name={name} doc={doc()} />}
-              </For>
-            </div>
-          </div>
-          <div class="rounded-lg border border-border bg-surface-raised p-4">
-            <p class="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">
-              Opposite mode ({otherMode()})
-            </p>
-            <Probe>
-              <div class="grid gap-2 sm:grid-cols-2">
-                <For each={colorRoles(doc())}>
-                  {(name) => <SwatchToken name={name} doc={doc()} />}
-                </For>
-              </div>
-            </Probe>
-          </div>
-        </div>
+      <Section id="search" title="Filter utility rules">
+        <input
+          type="search"
+          value={query()}
+          onInput={(event) => setQuery(event.currentTarget.value)}
+          placeholder="Search utility patterns — e.g. p-, bg-, rounded-, stack, anchor-, duration-"
+          aria-label="Search utility patterns"
+          class="w-full max-w-screen-sm"
+        />
       </Section>
 
-      <Section id="character" title="Where the starters disagree">
-        <div class="mt-3 overflow-x-auto rounded-lg border border-border">
-          <table class="w-full wrap">
-            <thead>
-              <tr>
-                <th>decision</th>
-                <For each={starterList}>
-                  {(name) => <th class="font-mono">{name}</th>}
-                </For>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={CHARACTER_ROWS}>
-                {(row) => (
-                  <tr>
-                    <td class="text-text-muted">{row.label}</td>
-                    <For each={starterList}>
-                      {(name) => (
-                        <td class="font-mono text-xs">
-                          {row.read(
-                            starterThemes[
-                              name as keyof typeof starterThemes
-                            ] as unknown as Record<string, unknown>,
-                          )}
-                        </td>
-                      )}
-                    </For>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </div>
-      </Section>
+      <For each={filteredGroups()}>
+        {(group) => (
+          <Section id={group.id} title={group.title}>
+            <p class="max-w-prose">{group.summary}</p>
+            <PropList items={group.rules} />
+          </Section>
+        )}
+      </For>
 
-      <Section id="catalog" title="The catalog, by intent">
+      <Section id="shortcuts-table" title="Complete spinShortcuts expansions">
         <p class="max-w-prose">
-          Type to filter. Each section lists the utilities the active starter
-          produces for that intent, in scale order.
+          Exact utility expansion for every shortcut exported by{" "}
+          <code>spinShortcuts</code> in <code>@spinjs/spin/preset</code>:
         </p>
-        <div class="mt-3">
-          <input
-            type="search"
-            value={query()}
-            onInput={(event) => setQuery(event.currentTarget.value)}
-            placeholder="Filter utilities — e.g. text-, p-, rounded-"
-            aria-label="Filter utilities"
-            class="w-full max-w-screen-sm"
-          />
-        </div>
-        <For each={SECTIONS}>
-          {(section) => (
-            <Show
-              when={utilitiesFor(section, catalog()).filter(matches).length > 0}
-            >
-              <div class="mt-6">
-                <h3 class="text-text">
-                  {section.title}{" "}
-                  <span class="font-mono text-xs text-text-muted">
-                    {utilitiesFor(section, catalog()).filter(matches).length}
-                  </span>
-                </h3>
-                <p class="text-sm text-text-muted">{section.blurb}</p>
-                <div class="mt-2 flex flex-wrap gap-1">
-                  <For each={utilitiesFor(section, catalog()).filter(matches)}>
-                    {(name) => <Chip>{name}</Chip>}
-                  </For>
-                </div>
-              </div>
-            </Show>
-          )}
-        </For>
-      </Section>
-
-      <Section id="shortcuts" title="Shortcuts & animation">
-        <p class="max-w-prose">
-          The shipped shortcuts compose utilities under one name; the{" "}
-          <code>animate-*</code> utilities come from{" "}
-          <code>@spinjs/spin/animation</code> and spend the theme's motion
-          tokens.
-        </p>
-        <div class="mt-3 flex flex-wrap gap-1">
-          <For
-            each={Object.keys(spinShortcuts as Record<string, string>)
-              .filter(matches)
-              .sort()}
-          >
-            {(name) => <Chip>{name}</Chip>}
-          </For>
-          <For each={animationContract.variants.filter(matches)}>
-            {(name) => <Chip>{name}</Chip>}
-          </For>
-        </div>
+        <PropList
+          items={shortcutEntries().map(([name, expansion]) => ({
+            name,
+            badge: "shortcut",
+            description: <code>{expansion}</code>,
+          }))}
+        />
       </Section>
     </main>
   );

@@ -129,9 +129,14 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Stylesheet cascade layers, HTML and custom element primitives (tag or class mode), variants, .bare, and compound parts.",
       },
       {
+        title: "Typography & Lists",
+        href: "/docs/styling/prose",
+        summary: "Element-owned typography (h1-h6, p, code, blockquote, <prose>) and list primitives (ul/ol reset, row-list, flow-list).",
+      },
+      {
         title: "Utilities",
         href: "/docs/styling/utilities",
-        summary: "Closed-scale utility classes, editor diagnostics & autocomplete, paired fills and inks, and layout shortcuts.",
+        summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and layout shortcuts.",
       },
       {
         title: "Animations",
@@ -139,9 +144,9 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Theme-driven transition utilities, @spinjs/spin/animation keyframes, reduced-motion clamping, and the 250ms loop floor.",
       },
       {
-        title: "Catalog",
+        title: "Utility Reference",
         href: "/docs/styling/catalog",
-        summary: "Live interactive catalog of every utility class and token in the active theme.",
+        summary: "Grammar reference for every utility rule family, the CSS declarations it emits, and the active theme token scale it reads.",
       },
     ],
   },

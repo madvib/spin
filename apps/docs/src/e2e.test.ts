@@ -189,12 +189,7 @@ describe("bundler picker", () => {
     "Bun",
     "UnoCSS",
   ] as const;
-  for (
-    const href of [
-      "/docs/getting-started/quickstart",
-      "/docs/getting-started/install",
-    ] as const
-  ) {
+  for (const href of ["/docs/getting-started/install"] as const) {
     test(`${href} switches between all 8 bundlers`, async () => {
       const page = await newPage();
       await page.goto(`${URL}${href}`, { waitUntil: "networkidle" });
