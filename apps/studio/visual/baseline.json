@@ -1,17 +1,17 @@
 {
  "url": "http://localhost:5173",
  "themes": [
-  "console",
+  "industrial",
+  "material",
   "neobrut",
   "silk",
-  "spin",
-  "synthwave"
+  "spin"
  ],
  "modes": [
   "dark",
   "light"
  ],
- "routes": 88,
+ "routes": 110,
  "findings": [],
  "counts": {}
 }

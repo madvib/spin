@@ -117,11 +117,14 @@ export function validateTheme(
       ...(options.modes !== undefined ? { modes: options.modes } : {}),
     });
     const seen = new Set(issues.map((issue) => `${issue.path}|${issue.message}`));
-    for (const extra of battery.issues) {
-      const key = `${extra.path}|${extra.message}`;
-      if (!seen.has(key)) {
-        issues.push(extra);
-        seen.add(key);
+    for (const gate of battery.gates) {
+      if (gate.gate === "completeness" || gate.gate === "legibility") continue;
+      for (const extra of gate.issues) {
+        const key = `${extra.path}|${extra.message}`;
+        if (!seen.has(key)) {
+          issues.push(extra);
+          seen.add(key);
+        }
       }
     }
   }

@@ -16,7 +16,7 @@ import { type StudioPage, studioUrl } from "./studio.ts";
 import { ROUTE_PATHS } from "../src/lib/routes.ts";
 import { seatTheme } from "./themes.ts";
 
-const THEMES = ["console", "neobrut", "silk", "spin", "synthwave"] as const;
+const THEMES = ["industrial", "material", "neobrut", "silk", "spin"] as const;
 
 const CONCERNS = [
   "/themes/colors",
@@ -275,21 +275,33 @@ test("Gate C: combobox inputs have borders and non-zero trigger icons", async ()
 
 test("Gate C: /colors slots match the theme's declared modes", async () => {
   await withPage(async (studio) => {
-    for (const theme of ["synthwave", "console"] as const) {
+    for (const theme of ["spin", "industrial"] as const) {
       await open(studio, "/");
       const seated = await seatTheme(studio, theme);
       assert(seated === "seated", `the picker never seated ${theme}`);
-      await open(studio, "/themes/colors");
+      if (theme === "industrial") {
+        await studio.eval(
+          `(async () => {
+            const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+            const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
+              [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "industrial")
+            );
+            const menu = card?.querySelector("studio-theme-menu");
+            menu?.querySelector("button")?.click();
+            await wait(300);
+            const rmLight = [...(menu?.querySelectorAll('[role="menuitem"]') ?? [])].find((b) => (b.textContent ?? "").trim() === "Remove light mode");
+            rmLight?.click();
+            await wait(500);
+          })()`,
+        );
+      }
+      await studio.followRail("/themes/colors");
       const slots = await studio.eval<{
         modes: string;
         light: number;
         dark: number;
       }>(
         `(() => {
-          const editors = [...document.querySelectorAll("#app [class]")].filter((el) =>
-            ["light", "dark"].includes((el.textContent ?? "").trim().split("\\n")[0]?.trim() ?? "")
-          );
-          void editors;
           const labels = [...document.querySelectorAll("#app span")]
             .map((s) => (s.textContent ?? "").trim())
             .filter((t) => t === "light" || t === "dark");
@@ -300,15 +312,19 @@ test("Gate C: /colors slots match the theme's declared modes", async () => {
           };
         })()`,
       );
-      if (theme === "console") {
+      if (theme === "industrial") {
+        await studio.eval(
+          `document.querySelector('button[aria-label="Discard changes"]')?.click()`,
+        );
+        await studio.settle(400);
         assert(
           slots.dark > 0 && slots.light === 0,
-          `console serves dark alone but renders light:${slots.light} dark:${slots.dark}`,
+          `single-mode dark industrial renders light:${slots.light} dark:${slots.dark}`,
         );
       } else {
         assert(
           slots.light > 0 && slots.dark > 0,
-          `synthwave serves both modes but renders light:${slots.light} dark:${slots.dark}`,
+          `spin serves both modes but renders light:${slots.light} dark:${slots.dark}`,
         );
       }
     }

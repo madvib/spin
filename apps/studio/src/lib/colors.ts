@@ -121,7 +121,7 @@ export interface Role {
   /** The dark value, when the theme serves a dark mode. */
   readonly dark: RoleValue | null;
   /** Which mode the token's own `$value` is written in. A dark-base theme
-   * (synthwave) writes dark in `$value` and restates light under `$modes`. */
+   * writes dark in `$value` and restates light under `$modes`. */
   readonly baseSlot: "light" | "dark";
   /** Whether the theme restates this role for a mode other than the base. */
   readonly restated: boolean;
@@ -173,9 +173,9 @@ export function colorRoles(
 /**
  * The mode a leaf's own `$value` is written in.
  *
- * A light restatement on a dark deck (`synthwave`'s `$modes.light`) means the
- * base is dark; a theme that serves dark alone (`console`) is dark-based by
- * declaration. Otherwise the base is light — the system's own default.
+ * A light restatement on a dark deck (`$modes.light`) means the base is dark;
+ * a theme that serves dark alone is dark-based by declaration. Otherwise the
+ * base is light — the system's own default.
  */
 function baseSlotOf(
   leaf: TokenLeaf,

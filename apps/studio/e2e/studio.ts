@@ -380,28 +380,54 @@ export class StudioPage {
   /** Client-side, because a navigation would reset the mode this walk was given. */
   async followRail(route: string): Promise<void> {
     await this.eval(
-      `(() => { const route = ${JSON.stringify(route)};
-      // Hrefs carry the ?app= session param: match on the path half.
-      const pathOf = (h) => h.split("?")[0];
-      const match = (h) => {
-        const p = pathOf(h);
-        if (route === "/") return h === "/" || p.endsWith("/studio") || h.endsWith("/studio/");
-        return p === route || p.endsWith(route);
-      };
-      const a = [...document.querySelectorAll("nav a")].find((x) => match(x.getAttribute("href") ?? ""));
-      if (a) { a.click(); return; }
-      // A sub-view has no rail row of its own: walk through the parent job,
-      // whose side list offers the group.
-      const parent = route.split("/").slice(0, -1).join("/") || "/";
-      const p = [...document.querySelectorAll("nav a")].find((x) => pathOf(x.getAttribute("href") ?? "").endsWith(parent));
-      if (p) p.click(); })()`,
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const route = ${JSON.stringify(route)};
+        const pathOf = (h) => h.split("?")[0];
+        const match = (h) => {
+          const p = pathOf(h);
+          if (route === "/") return h === "/" || p.endsWith("/studio") || p.endsWith("/studio/");
+          return p === route || p.endsWith(route);
+        };
+        const a = [...document.querySelectorAll("nav a")].find((x) => match(x.getAttribute("href") ?? ""));
+        if (a) { a.click(); return; }
+
+        const navTrigger = document.querySelector('[data-testid="studio-nav"]');
+        if (navTrigger) {
+          navTrigger.click();
+          await wait(250);
+          const items = () => [...document.querySelectorAll('studio-nav [role="menuitem"]')];
+          if (route === "/themes" || route.startsWith("/themes/")) {
+            const themesItem = items().find((el) => el.getAttribute("data-value") === "/themes");
+            if (themesItem) {
+              themesItem.click();
+              await wait(250);
+            }
+            const subTarget = route === "/themes" ? "/themes/colors" : route;
+            const subItem = items().find((el) => el.getAttribute("data-value") === subTarget);
+            if (subItem) {
+              subItem.click();
+              return;
+            }
+          } else if (route.startsWith("/components/")) {
+            const compItem = items().find((el) => el.getAttribute("data-value") === "/components");
+            if (compItem) compItem.click();
+          } else {
+            const direct = items().find((el) => el.getAttribute("data-value") === route);
+            if (direct) {
+              direct.click();
+              return;
+            }
+          }
+        }
+      })()`,
     );
     await this.settle(800);
     // The side list arrives with the parent: click the group row when the
     // first click only reached the job.
     await this.eval(
       `(() => { const route = ${JSON.stringify(route)}; const here = location.pathname;
-      const arrived = route === "/" ? (here === "/" || here.endsWith("/studio") || here.endsWith("/studio/")) : (here === route || here.endsWith(route));
+      const arrived = route === "/" ? (here === "/" || here.endsWith("/studio") || here.endsWith("/studio/")) : route === "/themes" ? (here === "/themes" || here.endsWith("/themes") || here.endsWith("/themes/colors")) : (here === route || here.endsWith(route));
       if (arrived) return;
       const a = [...document.querySelectorAll("nav a")].find((x) => (x.getAttribute("href") ?? "").split("?")[0].endsWith(route));
       if (a) a.click(); })()`,
@@ -413,6 +439,8 @@ export class StudioPage {
     await this.#waitFor(
       route === "/"
         ? `(location.pathname === "/" || location.pathname.endsWith("/studio") || location.pathname.endsWith("/studio/")) ? location.pathname : null`
+        : route === "/themes"
+        ? `(location.pathname === "/themes" || location.pathname.endsWith("/themes") || location.pathname.endsWith("/themes/colors")) ? location.pathname : null`
         : `location.pathname === ${JSON.stringify(route)} || location.pathname.endsWith(${JSON.stringify(route)}) ? location.pathname : null`,
       20_000,
     );

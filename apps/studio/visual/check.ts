@@ -100,7 +100,7 @@ const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
   ...(await projectThemes()),
 };
 
-const THEME_NAMES = ["console", "neobrut", "silk", "spin", "synthwave"];
+const THEME_NAMES = ["industrial", "material", "neobrut", "silk", "spin"];
 
 function modesFor(theme: string): readonly string[] {
   const served = themeModes(SERVED[theme]!).filter((mode) =>

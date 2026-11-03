@@ -369,38 +369,17 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
       "--card-elevation",
       "--card-padding",
       "--card-radius",
-      "--color-accent",
       "--color-border",
-      "--color-focus-ring",
-      "--color-link",
-      "--color-on-accent",
-      "--color-semantic-error",
-      "--color-semantic-success",
-      "--color-surface",
       "--color-surface-raised",
       "--color-text",
       "--color-text-muted",
-      "--focus-offset",
-      "--focus-width",
-      "--font-family-body",
       "--font-family-heading",
-      "--font-family-mono",
       "--font-family-sans",
-      "--font-family-serif",
-      "--font-size-2xl",
-      "--font-size-3xl",
       "--font-size-lg",
-      "--font-size-md",
       "--font-size-sm",
-      "--font-size-xl",
-      "--font-size-xs",
-      "--font-weight-bold",
       "--font-weight-semibold",
       "--radius-md",
-      "--radius-sm",
       "--shadow-md",
-      "--spacing-1",
-      "--spacing-2",
       "--spacing-4",
     ],
     scope: {
@@ -1179,6 +1158,8 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
+
+
 
 
 

@@ -16,7 +16,9 @@ export function studioMount(pathname: string): string {
 
 /** The router's base: the mount without its trailing slash. */
 export function studioBase(pathname: string): string {
-  return `${studioMount(pathname).replace(/\/$/, "")}/studio`;
+  const at = pathname.indexOf("/studio");
+  if (at < 0) return "";
+  return `${pathname.slice(0, at)}/studio`;
 }
 
 /** The RPC endpoint beside the studio's mount. */

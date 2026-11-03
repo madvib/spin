@@ -823,6 +823,32 @@ test("a theme that declares one mode hides the cycle button", async () => {
           return pane ? pane.getAttribute("data-mode") : null;
         };
 
+        const pressCardMenu = async (name, label) => {
+          const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
+            [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === name)
+          );
+          const menu = card?.querySelector("studio-theme-menu");
+          menu?.querySelector("button")?.click();
+          await wait(300);
+          const item = [...(menu?.querySelectorAll('[role="menuitem"]') ?? [])].find((b) => (b.textContent ?? "").trim() === label);
+          item?.click();
+          await wait(500);
+        };
+        const navTo = async (route) => {
+          const trigger = document.querySelector('[data-testid="studio-nav"]');
+          trigger?.click();
+          await wait(250);
+          if (route.startsWith("/themes/")) {
+            document.querySelector('studio-nav [role="menuitem"][data-value="/themes"]')?.click();
+            await wait(250);
+          }
+          document.querySelector('studio-nav [role="menuitem"][data-value="' + route + '"]')?.click();
+          await wait(1200);
+        };
+
+        await pressCardMenu("neobrut", "Remove dark mode");
+        await pressCardMenu("industrial", "Remove light mode");
+
         // Work in dark, on a theme that has one.
         await seat("silk");
         await pageCycleTo("dark");
@@ -846,29 +872,27 @@ test("a theme that declares one mode hides the cycle button", async () => {
         const cycled = button ? button.getAttribute("data-choice") === "light" || button.disabled === true : false;
 
         // Off the overview, the pane still wears the theme's own mode.
-        const link = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").indexOf("/themes/colors") === 0);
-        if (link) link.click();
-        await wait(1200);
+        await navTo("/themes/colors");
         const onAnotherRoute = paneMode("neobrut") === "light" && (document.getElementById("app")?.innerText ?? "").indexOf("does not build") === -1;
 
         // Back to the overview, where the pickers live.
-        const home = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "") === "/");
-        if (home) home.click();
-        await wait(1200);
+        await navTo("/");
 
         // The dark-only theme clamps the other way.
-        await seat("console");
+        await seat("industrial");
         for (let i = 0; i < 150 && (rootOf() === null || !rootOf().hasAttribute("hidden")); i++) await wait(100);
-        const darkOnlyClamped = paneMode("console") === "dark";
+        const darkOnlyClamped = paneMode("industrial") === "dark";
         const darkButton = document.querySelector('[data-testid="mode-button"]');
         const darkOnlyDisabled = darkButton ? darkButton.disabled === true : false;
         const darkOnlyHidden = rootOf()?.hasAttribute("hidden") ?? false;
+
+        await pressCardMenu("neobrut", "Discard changes");
+        await pressCardMenu("industrial", "Discard changes");
 
         // Leave the studio where it was found.
         await seat("silk");
         await pageCycleTo("light");
         const restored = paneMode("silk") === "light";
-
         async function pageCycleTo(want) {
           for (let press = 0; press < 3; press++) {
             const worn = document.querySelector(".spin-preview")?.getAttribute("data-mode");

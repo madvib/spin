@@ -136,7 +136,7 @@ test("chrome: every rail link navigates, the pickers seat, the dialogs open", as
     assertQuiet(noisy, "the rail walk");
 
     // The theme picker seats each starter, then Escape-closes without change.
-    for (const name of ["console", "neobrut", "silk", "spin", "synthwave"]) {
+    for (const name of ["industrial", "material", "neobrut", "silk", "spin"]) {
       const seated = await seatTheme(page, name);
       assert(seated === "seated", `the picker never seated ${name}: ${seated}`);
     }
@@ -163,15 +163,28 @@ test("chrome: every rail link navigates, the pickers seat, the dialogs open", as
     }
 
     // A single-mode theme disables the cycle rather than letting it lie.
-    await seatTheme(page, "console");
+    await page.followRail("/");
+    await seatTheme(page, "neobrut");
     const single = await page.eval<string>(
-      `(() => {
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
+          [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "neobrut")
+        );
+        const menu = card?.querySelector("studio-theme-menu");
+        menu?.querySelector("button")?.click();
+        await wait(300);
+        const rmDark = [...(menu?.querySelectorAll('[role="menuitem"]') ?? [])].find((b) => (b.textContent ?? "").trim() === "Remove dark mode");
+        rmDark?.click();
+        await wait(500);
         const button = document.querySelector('[data-testid="mode-button"]');
-        if (!button) return "absent";
-        return button.disabled || button.hidden || button.getAttribute("aria-hidden") === "true" ? "held" : "live";
+        const state = !button ? "absent" : (button.disabled || button.hidden || button.getAttribute("aria-hidden") === "true" || button.closest('[data-part="root"]')?.hasAttribute("hidden")) ? "held" : "live";
+        document.querySelector('button[aria-label="Discard changes"]')?.click();
+        await wait(400);
+        return state;
       })()`,
     );
-    assert(single === "held", `the mode button stays live on console: ${single}`);
+    assert(single === "held", `the mode button stays live on a single-mode theme: ${single}`);
     await seatTheme(page, "silk");
 
     // The checks dialog opens, Escape-closes, reopens and Close-closes.
@@ -1238,8 +1251,8 @@ test("dark: every route renders under a dark-capable theme with no errors", asyn
   await withPage(async (page) => {
     const { noisy } = watchNoise(page);
     await openStudio(page);
-    const seated = await seatTheme(page, "synthwave");
-    assert(seated === "seated", `synthwave never seated: ${seated}`);
+    const seated = await seatTheme(page, "industrial");
+    assert(seated === "seated", `industrial never seated: ${seated}`);
     const chosen = await page.chooseMode("dark");
     assert(chosen === "pressed", `dark never chosen: ${chosen}`);
     for (const route of ROUTE_PATHS) {

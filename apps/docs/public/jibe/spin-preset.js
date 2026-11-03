@@ -14,7 +14,7 @@ var __export = (target, all) => {
     });
 };
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/base64.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/base64.js
 var require_base64 = __commonJS(function(exports) {
   var intToCharMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split("");
   exports.encode = function(number) {
@@ -53,7 +53,7 @@ var require_base64 = __commonJS(function(exports) {
   };
 });
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/base64-vlq.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/base64-vlq.js
 var require_base64_vlq = __commonJS(function(exports) {
   var base64 = require_base64();
   var VLQ_BASE_SHIFT = 5;
@@ -105,7 +105,7 @@ var require_base64_vlq = __commonJS(function(exports) {
   };
 });
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/util.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/util.js
 var require_util = __commonJS(function(exports) {
   function getArg(aArgs, aName, aDefaultValue) {
     if (aName in aArgs) {
@@ -483,7 +483,7 @@ var require_util = __commonJS(function(exports) {
   exports.computeSourceURL = computeSourceURL;
 });
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/array-set.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/array-set.js
 var require_array_set = __commonJS(function(exports) {
   var util = require_util();
   var has = Object.prototype.hasOwnProperty;
@@ -551,7 +551,7 @@ var require_array_set = __commonJS(function(exports) {
   exports.ArraySet = ArraySet;
 });
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/mapping-list.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/mapping-list.js
 var require_mapping_list = __commonJS(function(exports) {
   var util = require_util();
   function generatedPositionAfter(mappingA, mappingB) {
@@ -588,167 +588,16 @@ var require_mapping_list = __commonJS(function(exports) {
   exports.MappingList = MappingList;
 });
 
-// node_modules/.bun/@unocss+core@66.10.5/node_modules/@unocss/core/dist/index.mjs
-var LAYER_DEFAULT = "default";
-var LAYER_PREFLIGHTS = "preflights";
-var LAYER_SHORTCUTS = "shortcuts";
-var LAYER_IMPORTS = "imports";
-var DEFAULT_LAYERS = {
-  [LAYER_IMPORTS]: -200,
-  [LAYER_PREFLIGHTS]: -100,
-  [LAYER_SHORTCUTS]: -10,
-  [LAYER_DEFAULT]: 0
-};
-var defaultSplitRE = /[\\:]?[\s'"`;{}]+/g;
-function toArray(value = []) {
-  return Array.isArray(value) ? value : [value];
-}
-function uniq(value) {
-  return Array.from(new Set(value));
-}
-function isString(s) {
-  return typeof s === "string";
-}
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-function escapeSelector(str) {
-  const length = str.length;
-  let index = -1;
-  let codeUnit;
-  let result = "";
-  const firstCodeUnit = str.charCodeAt(0);
-  while (++index < length) {
-    codeUnit = str.charCodeAt(index);
-    if (codeUnit === 0) {
-      result += "�";
-      continue;
-    }
-    if (codeUnit === 37) {
-      result += "\\%";
-      continue;
-    }
-    if (codeUnit === 44) {
-      result += "\\,";
-      continue;
-    }
-    if (codeUnit >= 1 && codeUnit <= 31 || codeUnit === 127 || index === 0 && codeUnit >= 48 && codeUnit <= 57 || index === 1 && codeUnit >= 48 && codeUnit <= 57 && firstCodeUnit === 45) {
-      result += `\\${codeUnit.toString(16)} `;
-      continue;
-    }
-    if (index === 0 && length === 1 && codeUnit === 45) {
-      result += `\\${str.charAt(index)}`;
-      continue;
-    }
-    if (codeUnit >= 128 || codeUnit === 45 || codeUnit === 95 || codeUnit >= 48 && codeUnit <= 57 || codeUnit >= 65 && codeUnit <= 90 || codeUnit >= 97 && codeUnit <= 122) {
-      result += str.charAt(index);
-      continue;
-    }
-    result += `\\${str.charAt(index)}`;
-  }
-  return result;
-}
-var cssIdRE = /\.(css|postcss|sass|scss|less|stylus|styl)($|\?)/;
-var validateFilterRE = /[\w\u00A0-\uFFFF%-?]/;
-function isValidSelector(selector = "") {
-  return validateFilterRE.test(selector);
-}
-function notNull(value) {
-  return value != null;
-}
-var regexCache = {};
-function makeRegexClassGroup(separators = ["-", ":"]) {
-  const key = separators.map((s) => escapeRegExp(s)).join("|");
-  if (!regexCache[key])
-    regexCache[key] = new RegExp(`((?:[!@*<~\\w+:_-]|\\[&?>?:?[^\\s\\]]*\\])+?)(${key})\\(((?:[~!<>@*\\w\\s:/\\\\,%#.$?-]|\\[[^\\]]*?\\])+?)\\)(?!\\s*?=>)`, "gm");
-  regexCache[key].lastIndex = 0;
-  return regexCache[key];
-}
-function parseVariantGroup(str, separators = ["-", ":"], depth = 5) {
-  const regexClassGroup = makeRegexClassGroup(separators);
-  let hasChanged;
-  let content = str.toString();
-  const prefixes = /* @__PURE__ */ new Set;
-  const groupsByOffset = /* @__PURE__ */ new Map;
-  do {
-    hasChanged = false;
-    content = content.replace(regexClassGroup, (from, pre, sep, body, groupOffset) => {
-      if (!separators.includes(sep))
-        return from;
-      hasChanged = true;
-      prefixes.add(pre + sep);
-      const bodyOffset = groupOffset + pre.length + sep.length + 1;
-      const group = {
-        length: from.length,
-        items: []
-      };
-      groupsByOffset.set(groupOffset, group);
-      for (const itemMatch of [...body.matchAll(/\S+/g)]) {
-        const itemOffset = bodyOffset + itemMatch.index;
-        let innerItems = groupsByOffset.get(itemOffset)?.items;
-        if (innerItems)
-          groupsByOffset.delete(itemOffset);
-        else
-          innerItems = [{
-            offset: itemOffset,
-            length: itemMatch[0].length,
-            className: itemMatch[0]
-          }];
-        for (const item of innerItems) {
-          item.className = item.className === "~" ? sep === ":" ? `${pre}${sep}~` : pre : item.className.replace(/^(!?)(.*)/, `$1${pre}${sep}$2`);
-          group.items.push(item);
-        }
-      }
-      return "$".repeat(from.length);
-    });
-    depth -= 1;
-  } while (hasChanged && depth);
-  let expanded;
-  const groupsInOrder = [...groupsByOffset].sort(([a], [b]) => a - b);
-  if (typeof str === "string") {
-    expanded = "";
-    let prevOffset = 0;
-    for (const [offset, group] of groupsInOrder) {
-      expanded += str.slice(prevOffset, offset);
-      expanded += group.items.map((item) => item.className).join(" ");
-      prevOffset = offset + group.length;
-    }
-    expanded += str.slice(prevOffset);
-  } else {
-    expanded = str;
-    for (const [offset, group] of groupsInOrder)
-      expanded.overwrite(offset, offset + group.length, group.items.map((item) => item.className).join(" "));
-  }
-  return {
-    prefixes: Array.from(prefixes),
-    hasChanged,
-    groupsByOffset,
-    get expanded() {
-      return expanded.toString();
-    }
-  };
-}
-function expandVariantGroup(str, separators = ["-", ":"], depth = 5) {
-  const res = parseVariantGroup(str, separators, depth);
-  return typeof str === "string" ? res.expanded : str;
-}
-function definePreset(preset) {
-  return preset;
-}
-var symbols = {
-  shortcutsNoMerge: "$$symbol-shortcut-no-merge",
-  noMerge: "$$symbol-no-merge",
-  noScope: "$$symbol-no-scope",
-  variants: "$$symbol-variants",
-  parent: "$$symbol-parent",
-  selector: "$$symbol-selector",
-  layer: "$$symbol-layer",
-  sort: "$$symbol-sort",
-  body: "$$symbol-body"
-};
-var regexScopePlaceholder = /\s\$\$\s+/g;
+// ../../packages/spin/src/compiler/factory.ts
+import { definePreset as definePreset2 } from "@unocss/core";
 
-// node_modules/.bun/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs
+// ../../node_modules/.bun/@unocss+transformer-directives@66.10.5/node_modules/@unocss/transformer-directives/dist/index.mjs
+import { cssIdRE, expandVariantGroup, notNull, regexScopePlaceholder, toArray as toArray2 } from "@unocss/core";
+
+// ../../node_modules/.bun/@unocss+rule-utils@66.10.5/node_modules/@unocss/rule-utils/dist/index.mjs
+import { escapeRegExp, escapeSelector, isString, toArray } from "@unocss/core";
+
+// ../../node_modules/.bun/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs
 var comma = 44;
 var semicolon = 59;
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -858,7 +707,7 @@ function encode(decoded) {
   return writer.flush();
 }
 
-// node_modules/.bun/magic-string@1.4.3/node_modules/magic-string/dist/index.mjs
+// ../../node_modules/.bun/magic-string@1.4.3/node_modules/magic-string/dist/index.mjs
 var BitSet = class BitSet {
   constructor(arg) {
     this.bits = arg instanceof BitSet ? arg.bits.slice() : [];
@@ -2316,7 +2165,7 @@ var MagicString = class MagicString {
   }
 };
 
-// node_modules/.bun/@unocss+rule-utils@66.10.5/node_modules/@unocss/rule-utils/dist/index.mjs
+// ../../node_modules/.bun/@unocss+rule-utils@66.10.5/node_modules/@unocss/rule-utils/dist/index.mjs
 function getBracket(str, open, close) {
   if (str === "")
     return;
@@ -3050,7 +2899,7 @@ function variantGetParameter(prefix, matcher, separators) {
     }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/types.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/types.js
 var EOF = 0;
 var Ident = 1;
 var Function = 2;
@@ -3078,7 +2927,7 @@ var LeftCurlyBracket = 23;
 var RightCurlyBracket = 24;
 var Comment = 25;
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/char-code-definitions.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/char-code-definitions.js
 var EOF2 = 0;
 function isDigit(code) {
   return code >= 48 && code <= 57;
@@ -3171,7 +3020,7 @@ function charCodeCategory(code) {
   return code < 128 ? CATEGORY[code] : NameStartCategory;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/utils.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/utils.js
 function getCharCode(source, offset) {
   return offset < source.length ? source.charCodeAt(offset) : 0;
 }
@@ -3309,7 +3158,7 @@ function decodeEscaped(escaped) {
   }
   return String.fromCodePoint(code);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/names.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/names.js
 var names_default = [
   "EOF-token",
   "ident-token",
@@ -3338,7 +3187,7 @@ var names_default = [
   "}-token",
   "comment-token"
 ];
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/adopt-buffer.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/adopt-buffer.js
 var MIN_SIZE = 16 * 1024;
 function adoptBuffer(buffer = null, size) {
   if (buffer === null || buffer.length < size) {
@@ -3347,7 +3196,7 @@ function adoptBuffer(buffer = null, size) {
   return buffer;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/OffsetToLocation.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/OffsetToLocation.js
 var N = 10;
 var F = 12;
 var R = 13;
@@ -3423,7 +3272,7 @@ class OffsetToLocation {
     };
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/TokenStream.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/TokenStream.js
 var OFFSET_MASK = 16777215;
 var TYPE_SHIFT = 24;
 var BLOCK_OPEN_TOKEN = 1;
@@ -3683,7 +3532,7 @@ class TokenStream {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/tokenizer/index.js
 function tokenize(source, onToken) {
   function getCharCode(offset) {
     return offset < sourceLength ? source.charCodeAt(offset) : 0;
@@ -3938,7 +3787,7 @@ function tokenize(source, onToken) {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/List.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/List.js
 var releasedCursors = null;
 
 class List {
@@ -4273,7 +4122,7 @@ class List {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/create-custom-error.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/create-custom-error.js
 function createCustomError(name, message) {
   const error = Object.create(SyntaxError.prototype);
   const errorStack = new Error;
@@ -4287,7 +4136,7 @@ function createCustomError(name, message) {
   });
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/SyntaxError.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/SyntaxError.js
 var MAX_LINE_LENGTH = 100;
 var OFFSET_CORRECTION = 60;
 var TAB_REPLACEMENT = "    ";
@@ -4339,7 +4188,7 @@ function SyntaxError2(message, source, offset, line, column, baseLine = 1, baseC
   return error;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/sequence.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/sequence.js
 function readSequence(recognizer) {
   const children = this.createList();
   let space = false;
@@ -4374,7 +4223,7 @@ function readSequence(recognizer) {
   return children;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/create.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/parser/create.js
 var NOOP = () => {};
 var EXCLAMATIONMARK = 33;
 var NUMBERSIGN = 35;
@@ -4662,7 +4511,7 @@ function createParser(config) {
   });
 }
 
-// node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/source-map-generator.js
+// ../../node_modules/.bun/source-map-js@1.2.2/node_modules/source-map-js/lib/source-map-generator.js
 var base64VLQ = require_base64_vlq();
 var util = require_util();
 var ArraySet = require_array_set().ArraySet;
@@ -4948,7 +4797,7 @@ SourceMapGenerator.prototype.toString = function SourceMapGenerator_toString() {
 };
 var $SourceMapGenerator = SourceMapGenerator;
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/sourceMap.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/sourceMap.js
 var trackNodes = new Set(["Atrule", "Selector", "Declaration"]);
 function generateSourceMap(handlers) {
   const map = new $SourceMapGenerator;
@@ -5025,7 +4874,7 @@ function generateSourceMap(handlers) {
   return handlers;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/token-before.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/token-before.js
 var exports_token_before = {};
 __export(exports_token_before, {
   safe: () => safe,
@@ -5151,7 +5000,7 @@ function createMap(pairs) {
 var spec = createMap(specPairs);
 var safe = createMap(safePairs);
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/create.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/generator/create.js
 var REVERSESOLIDUS = 92;
 function processChildren(node, delimeter) {
   if (typeof delimeter === "function") {
@@ -5229,7 +5078,7 @@ function createGenerator(config) {
   };
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/convertor/create.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/convertor/create.js
 function createConvertor(walk) {
   return {
     fromPlainObject(ast) {
@@ -5255,7 +5104,7 @@ function createConvertor(walk) {
   };
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/walker/create.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/walker/create.js
 var { hasOwnProperty: hasOwnProperty2 } = Object.prototype;
 var noop = function() {};
 function ensureFunction(value) {
@@ -5488,7 +5337,7 @@ function createWalker(config) {
   return walk;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/generate.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/generate.js
 function noop2(value) {
   return value;
 }
@@ -5578,7 +5427,7 @@ function generate(node, options) {
   return internalGenerate(node, decorate, forceBraces, compact);
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/error.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/error.js
 var defaultLoc = { offset: 0, line: 1, column: 1 };
 function locateMismatch(matchResult, node) {
   const tokens = matchResult.tokens;
@@ -5674,7 +5523,7 @@ var SyntaxMatchError = function(message, syntax, node, matchResult) {
   return error;
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/names.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/names.js
 var keywords = new Map;
 var properties = new Map;
 var HYPHENMINUS2 = 45;
@@ -5750,7 +5599,7 @@ function getPropertyDescriptor(property) {
   return descriptor;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-const.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-const.js
 var cssWideKeywords = [
   "initial",
   "inherit",
@@ -5759,7 +5608,7 @@ var cssWideKeywords = [
   "revert-layer"
 ];
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-an-plus-b.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-an-plus-b.js
 var PLUSSIGN2 = 43;
 var HYPHENMINUS3 = 45;
 var N2 = 110;
@@ -5902,7 +5751,7 @@ function anPlusB(token, getNextToken) {
   return 0;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-urange.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic-urange.js
 var PLUSSIGN3 = 43;
 var HYPHENMINUS4 = 45;
 var QUESTIONMARK = 63;
@@ -5987,7 +5836,7 @@ function urange(token, getNextToken) {
   return 0;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/generic.js
 var calcFunctionNames = [
   "calc(",
   "-moz-calc(",
@@ -6455,7 +6304,7 @@ function createGenericTypes(units) {
   };
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/units.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/units.js
 var exports_units = {};
 __export(exports_units, {
   angle: () => angle,
@@ -6526,7 +6375,7 @@ var flex = ["fr"];
 var decibel = ["db"];
 var semitones = ["st"];
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/SyntaxError.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/SyntaxError.js
 function SyntaxError3(message, input, offset) {
   return Object.assign(createCustomError("SyntaxError", message), {
     input,
@@ -6537,7 +6386,7 @@ function SyntaxError3(message, input, offset) {
 ` + "--" + new Array((offset || input.length) + 1).join("-") + "^"
   });
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/scanner.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/scanner.js
 var TAB = 9;
 var N3 = 10;
 var F2 = 12;
@@ -6631,7 +6480,7 @@ class Scanner {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/parse.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/parse.js
 var TAB2 = 9;
 var N4 = 10;
 var F3 = 12;
@@ -7055,7 +6904,7 @@ function parse(source) {
   }
   return result;
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/walk.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/definition-syntax/walk.js
 var noop3 = function() {};
 function ensureFunction2(value) {
   return typeof value === "function" ? value : noop3;
@@ -7098,7 +6947,7 @@ function walk(node, options, context) {
   }
   walk(node, context);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/prepare-tokens.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/prepare-tokens.js
 var astToTokens = {
   decorator(handlers) {
     const tokens = [];
@@ -7140,7 +6989,7 @@ function prepare_tokens_default(value, syntax) {
   return syntax.generate(value, astToTokens);
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/match-graph.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/match-graph.js
 var MATCH = { type: "Match" };
 var MISMATCH = { type: "Mismatch" };
 var DISALLOW_EMPTY = { type: "DisallowEmpty" };
@@ -7424,7 +7273,7 @@ function buildMatchGraph(syntaxTree, ref) {
   };
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/match.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/match.js
 var { hasOwnProperty: hasOwnProperty3 } = Object.prototype;
 var STUB = 0;
 var TOKEN = 1;
@@ -7841,7 +7690,7 @@ function matchAsTree(tokens, matchGraph, syntaxes) {
   return matchResult;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/trace.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/trace.js
 var exports_trace = {};
 __export(exports_trace, {
   getTrace: () => getTrace,
@@ -7895,7 +7744,7 @@ function testNode(match, node, fn) {
   return trace.some(fn);
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/search.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/search.js
 function getFirstMatchNode(matchNode) {
   if ("node" in matchNode) {
     return matchNode.node;
@@ -7941,7 +7790,7 @@ function matchFragments(lexer, ast, match, type, name) {
   return fragments;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/structure.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/structure.js
 var { hasOwnProperty: hasOwnProperty4 } = Object.prototype;
 function isValidNumber(value) {
   return typeof value === "number" && isFinite(value) && Math.floor(value) === value && value >= 0;
@@ -8070,7 +7919,7 @@ function getStructureFromConfig(config) {
   return structure;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/Lexer.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/lexer/Lexer.js
 function dumpMapSyntax(map, compact, syntaxAsAst) {
   const result = {};
   for (const name in map) {
@@ -8457,7 +8306,7 @@ class Lexer {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/mix.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/mix.js
 function appendOrSet(a, b) {
   if (typeof b === "string" && /^\s*\|/.test(b)) {
     return typeof a === "string" ? a + b : b.replace(/^\s*\|\s*/, "");
@@ -8550,7 +8399,7 @@ function mix(dest, src) {
   return result;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/create.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/create.js
 function createSyntax(config) {
   const parse = createParser(config);
   const walk = createWalker(config);
@@ -8586,7 +8435,7 @@ function createSyntax(config) {
 }
 var create_default = (config) => createSyntax(mix({}, config));
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/dist/data.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/dist/data.js
 var data_default = {
   generic: true,
   cssWideKeywords: [
@@ -10000,7 +9849,7 @@ var data_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/index.js
 var exports_node = {};
 __export(exports_node, {
   AnPlusB: () => exports_AnPlusB,
@@ -10054,7 +9903,7 @@ __export(exports_node, {
   WhiteSpace: () => exports_WhiteSpace
 });
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AnPlusB.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AnPlusB.js
 var exports_AnPlusB = {};
 __export(exports_AnPlusB, {
   generate: () => generate2,
@@ -10250,7 +10099,7 @@ function generate2(node) {
     this.tokenize(node.b);
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Atrule.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Atrule.js
 var exports_Atrule = {};
 __export(exports_Atrule, {
   generate: () => generate3,
@@ -10329,7 +10178,7 @@ function generate3(node) {
     this.token(Semicolon, ";");
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AtrulePrelude.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AtrulePrelude.js
 var exports_AtrulePrelude = {};
 __export(exports_AtrulePrelude, {
   generate: () => generate4,
@@ -10367,7 +10216,7 @@ function parse4(name) {
 function generate4(node) {
   this.children(node);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AttributeSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/AttributeSelector.js
 var exports_AttributeSelector = {};
 __export(exports_AttributeSelector, {
   generate: () => generate5,
@@ -10475,7 +10324,7 @@ function generate5(node) {
   }
   this.token(Delim, "]");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Block.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Block.js
 var exports_Block = {};
 __export(exports_Block, {
   generate: () => generate6,
@@ -10556,7 +10405,7 @@ function generate6(node) {
   });
   this.token(RightCurlyBracket, "}");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Brackets.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Brackets.js
 var exports_Brackets = {};
 __export(exports_Brackets, {
   generate: () => generate7,
@@ -10587,7 +10436,7 @@ function generate7(node) {
   this.children(node);
   this.token(Delim, "]");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/CDC.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/CDC.js
 var exports_CDC = {};
 __export(exports_CDC, {
   generate: () => generate8,
@@ -10608,7 +10457,7 @@ function parse8() {
 function generate8() {
   this.token(CDC, "-->");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/CDO.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/CDO.js
 var exports_CDO = {};
 __export(exports_CDO, {
   generate: () => generate9,
@@ -10629,7 +10478,7 @@ function parse9() {
 function generate9() {
   this.token(CDO, "<!--");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/ClassSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/ClassSelector.js
 var exports_ClassSelector = {};
 __export(exports_ClassSelector, {
   generate: () => generate10,
@@ -10654,7 +10503,7 @@ function generate10(node) {
   this.token(Delim, ".");
   this.token(Ident, node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Combinator.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Combinator.js
 var exports_Combinator = {};
 __export(exports_Combinator, {
   generate: () => generate11,
@@ -10704,7 +10553,7 @@ function parse11() {
 function generate11(node) {
   this.tokenize(node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Comment.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Comment.js
 var exports_Comment = {};
 __export(exports_Comment, {
   generate: () => generate12,
@@ -10734,7 +10583,7 @@ function parse12() {
 function generate12(node) {
   this.token(Comment, "/*" + node.value + "*/");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Condition.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Condition.js
 var exports_Condition = {};
 __export(exports_Condition, {
   generate: () => generate13,
@@ -10827,7 +10676,7 @@ function generate13(node) {
     }
   });
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Declaration.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Declaration.js
 var exports_Declaration = {};
 __export(exports_Declaration, {
   generate: () => generate14,
@@ -10952,7 +10801,7 @@ function getImportant() {
   const important = this.consume(Ident);
   return important === "important" ? true : important;
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/DeclarationList.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/DeclarationList.js
 var exports_DeclarationList = {};
 __export(exports_DeclarationList, {
   generate: () => generate15,
@@ -11006,7 +10855,7 @@ function generate15(node) {
     }
   });
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Dimension.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Dimension.js
 var exports_Dimension = {};
 __export(exports_Dimension, {
   generate: () => generate16,
@@ -11032,7 +10881,7 @@ function parse16() {
 function generate16(node) {
   this.token(Dimension, node.value + node.unit);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Feature.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Feature.js
 var exports_Feature = {};
 __export(exports_Feature, {
   generate: () => generate17,
@@ -11109,7 +10958,7 @@ function generate17(node) {
   }
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/FeatureFunction.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/FeatureFunction.js
 var exports_FeatureFunction = {};
 __export(exports_FeatureFunction, {
   generate: () => generate18,
@@ -11160,7 +11009,7 @@ function generate18(node) {
   this.node(node.value);
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/FeatureRange.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/FeatureRange.js
 var exports_FeatureRange = {};
 __export(exports_FeatureRange, {
   generate: () => generate19,
@@ -11262,7 +11111,7 @@ function generate19(node) {
   }
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Function.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Function.js
 var exports_Function = {};
 __export(exports_Function, {
   generate: () => generate20,
@@ -11298,7 +11147,7 @@ function generate20(node) {
   this.children(node);
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/GeneralEnclosed.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/GeneralEnclosed.js
 var exports_GeneralEnclosed = {};
 __export(exports_GeneralEnclosed, {
   generate: () => generate21,
@@ -11348,7 +11197,7 @@ function generate21(node) {
   this.children(node);
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Hash.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Hash.js
 var exports_Hash = {};
 __export(exports_Hash, {
   generate: () => generate22,
@@ -11374,7 +11223,7 @@ function parse22() {
 function generate22(node) {
   this.token(Hash, "#" + node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Identifier.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Identifier.js
 var exports_Identifier = {};
 __export(exports_Identifier, {
   generate: () => generate23,
@@ -11396,7 +11245,7 @@ function parse23() {
 function generate23(node) {
   this.token(Ident, node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/IdSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/IdSelector.js
 var exports_IdSelector = {};
 __export(exports_IdSelector, {
   generate: () => generate24,
@@ -11420,7 +11269,7 @@ function parse24() {
 function generate24(node) {
   this.token(Delim, "#" + node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Layer.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Layer.js
 var exports_Layer = {};
 __export(exports_Layer, {
   generate: () => generate25,
@@ -11449,7 +11298,7 @@ function parse25() {
 function generate25(node) {
   this.tokenize(node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/LayerList.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/LayerList.js
 var exports_LayerList = {};
 __export(exports_LayerList, {
   generate: () => generate26,
@@ -11484,7 +11333,7 @@ function parse26() {
 function generate26(node) {
   this.children(node, () => this.token(Comma, ","));
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/MediaQuery.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/MediaQuery.js
 var exports_MediaQuery = {};
 __export(exports_MediaQuery, {
   generate: () => generate27,
@@ -11567,7 +11416,7 @@ function generate27(node) {
     this.node(node.condition);
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/MediaQueryList.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/MediaQueryList.js
 var exports_MediaQueryList = {};
 __export(exports_MediaQueryList, {
   generate: () => generate28,
@@ -11600,7 +11449,7 @@ function parse28() {
 function generate28(node) {
   this.children(node, () => this.token(Comma, ","));
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/NestingSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/NestingSelector.js
 var exports_NestingSelector = {};
 __export(exports_NestingSelector, {
   generate: () => generate29,
@@ -11622,7 +11471,7 @@ function parse29() {
 function generate29() {
   this.token(Delim, "&");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Nth.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Nth.js
 var exports_Nth = {};
 __export(exports_Nth, {
   generate: () => generate30,
@@ -11667,7 +11516,7 @@ function generate30(node) {
     this.node(node.selector);
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Number.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Number.js
 var exports_Number = {};
 __export(exports_Number, {
   generate: () => generate31,
@@ -11689,7 +11538,7 @@ function parse31() {
 function generate31(node) {
   this.token(Number2, node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Operator.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Operator.js
 var exports_Operator = {};
 __export(exports_Operator, {
   generate: () => generate32,
@@ -11713,7 +11562,7 @@ function parse32() {
 function generate32(node) {
   this.tokenize(node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Parentheses.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Parentheses.js
 var exports_Parentheses = {};
 __export(exports_Parentheses, {
   generate: () => generate33,
@@ -11744,7 +11593,7 @@ function generate33(node) {
   this.children(node);
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Percentage.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Percentage.js
 var exports_Percentage = {};
 __export(exports_Percentage, {
   generate: () => generate34,
@@ -11766,7 +11615,7 @@ function parse34() {
 function generate34(node) {
   this.token(Percentage, node.value + "%");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/PseudoClassSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/PseudoClassSelector.js
 var exports_PseudoClassSelector = {};
 __export(exports_PseudoClassSelector, {
   generate: () => generate35,
@@ -11821,7 +11670,7 @@ function generate35(node) {
     this.token(RightParenthesis, ")");
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/PseudoElementSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/PseudoElementSelector.js
 var exports_PseudoElementSelector = {};
 __export(exports_PseudoElementSelector, {
   generate: () => generate36,
@@ -11878,7 +11727,7 @@ function generate36(node) {
     this.token(RightParenthesis, ")");
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Ratio.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Ratio.js
 var exports_Ratio = {};
 __export(exports_Ratio, {
   generate: () => generate37,
@@ -11928,7 +11777,7 @@ function generate37(node) {
     this.node(Number2, 1);
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Raw.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Raw.js
 var exports_Raw = {};
 __export(exports_Raw, {
   generate: () => generate38,
@@ -11966,7 +11815,7 @@ function parse38(consumeUntil, excludeWhiteSpace) {
 function generate38(node) {
   this.tokenize(node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Rule.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Rule.js
 var exports_Rule = {};
 __export(exports_Rule, {
   generate: () => generate39,
@@ -12013,7 +11862,7 @@ function generate39(node) {
   this.node(node.prelude);
   this.node(node.block);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Scope.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Scope.js
 var exports_Scope = {};
 __export(exports_Scope, {
   generate: () => generate40,
@@ -12068,7 +11917,7 @@ function generate40(node) {
     this.token(RightParenthesis, ")");
   }
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Selector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Selector.js
 var exports_Selector = {};
 __export(exports_Selector, {
   generate: () => generate41,
@@ -12102,7 +11951,7 @@ function parse41() {
 function generate41(node) {
   this.children(node);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/SelectorList.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/SelectorList.js
 var exports_SelectorList = {};
 __export(exports_SelectorList, {
   generate: () => generate42,
@@ -12138,7 +11987,7 @@ function parse42() {
 function generate42(node) {
   this.children(node, () => this.token(Comma, ","));
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/String.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/String.js
 var exports_String = {};
 __export(exports_String, {
   generate: () => generate43,
@@ -12147,7 +11996,7 @@ __export(exports_String, {
   structure: () => structure42
 });
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/string.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/string.js
 var REVERSE_SOLIDUS = 92;
 var QUOTATION_MARK = 34;
 var APOSTROPHE2 = 39;
@@ -12213,7 +12062,7 @@ function encode2(str, apostrophe) {
   return quote + encoded + quote;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/String.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/String.js
 var name42 = "String";
 var structure42 = {
   value: String
@@ -12228,7 +12077,7 @@ function parse43() {
 function generate43(node) {
   this.token(String2, encode2(node.value));
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/StyleSheet.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/StyleSheet.js
 var exports_StyleSheet = {};
 __export(exports_StyleSheet, {
   generate: () => generate44,
@@ -12293,7 +12142,7 @@ function parse44() {
 function generate44(node) {
   this.children(node);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/SupportsDeclaration.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/SupportsDeclaration.js
 var exports_SupportsDeclaration = {};
 __export(exports_SupportsDeclaration, {
   generate: () => generate45,
@@ -12324,7 +12173,7 @@ function generate45(node) {
   this.node(node.declaration);
   this.token(RightParenthesis, ")");
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/TypeSelector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/TypeSelector.js
 var exports_TypeSelector = {};
 __export(exports_TypeSelector, {
   generate: () => generate46,
@@ -12365,7 +12214,7 @@ function parse46() {
 function generate46(node) {
   this.tokenize(node.name);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/UnicodeRange.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/UnicodeRange.js
 var exports_UnicodeRange = {};
 __export(exports_UnicodeRange, {
   generate: () => generate47,
@@ -12463,7 +12312,7 @@ function parse47() {
 function generate47(node) {
   this.tokenize(node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Url.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Url.js
 var exports_Url = {};
 __export(exports_Url, {
   generate: () => generate48,
@@ -12472,7 +12321,7 @@ __export(exports_Url, {
   structure: () => structure47
 });
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/url.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/url.js
 var SPACE3 = 32;
 var REVERSE_SOLIDUS2 = 92;
 var QUOTATION_MARK2 = 34;
@@ -12544,7 +12393,7 @@ function encode3(str) {
   return "url(" + encoded + ")";
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Url.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Url.js
 var name47 = "Url";
 var structure47 = {
   value: String
@@ -12580,7 +12429,7 @@ function parse48() {
 function generate48(node) {
   this.token(Url, encode3(node.value));
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Value.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/Value.js
 var exports_Value = {};
 __export(exports_Value, {
   generate: () => generate49,
@@ -12604,7 +12453,7 @@ function parse49() {
 function generate49(node) {
   this.children(node);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/WhiteSpace.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/WhiteSpace.js
 var exports_WhiteSpace = {};
 __export(exports_WhiteSpace, {
   generate: () => generate50,
@@ -12628,7 +12477,7 @@ function parse50() {
 function generate50(node) {
   this.token(WhiteSpace, node.value);
 }
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/lexer.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/lexer.js
 var lexer_default = {
   generic: true,
   cssWideKeywords,
@@ -12636,7 +12485,7 @@ var lexer_default = {
   node: exports_node
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/index.js
 var exports_scope = {};
 __export(exports_scope, {
   AtrulePrelude: () => atrulePrelude_default,
@@ -12644,7 +12493,7 @@ __export(exports_scope, {
   Value: () => value_default
 });
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/default.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/default.js
 var NUMBERSIGN4 = 35;
 var ASTERISK6 = 42;
 var PLUSSIGN9 = 43;
@@ -12692,11 +12541,11 @@ function defaultRecognizer(context) {
   }
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/atrulePrelude.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/atrulePrelude.js
 var atrulePrelude_default = {
   getNode: defaultRecognizer
 };
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/selector.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/selector.js
 var NUMBERSIGN5 = 35;
 var AMPERSAND6 = 38;
 var ASTERISK7 = 42;
@@ -12763,12 +12612,12 @@ var selector_default = {
   onWhiteSpace,
   getNode
 };
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/function/expression.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/function/expression.js
 function expression_default() {
   return this.createSingleNodeList(this.Raw(null, false));
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/function/var.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/function/var.js
 function var_default() {
   const children = this.createList();
   this.skipSC();
@@ -12795,7 +12644,7 @@ function var_default() {
   return children;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/value.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/scope/value.js
 function isPlusMinusOperator(node) {
   return node !== null && node.type === "Operator" && (node.value[node.value.length - 1] === "-" || node.value[node.value.length - 1] === "+");
 }
@@ -12812,7 +12661,7 @@ var value_default = {
   expression: expression_default,
   var: var_default
 };
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/container.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/container.js
 var nonContainerNameKeywords = new Set(["none", "and", "not", "or"]);
 var container_default = {
   parse: {
@@ -12833,7 +12682,7 @@ var container_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/font-face.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/font-face.js
 var font_face_default = {
   parse: {
     prelude: null,
@@ -12843,7 +12692,7 @@ var font_face_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/import.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/import.js
 function parseWithFallback(parse, fallback) {
   return this.parseWithFallback(() => {
     try {
@@ -12910,7 +12759,7 @@ var import_default3 = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/layer.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/layer.js
 var layer_default = {
   parse: {
     prelude() {
@@ -12922,7 +12771,7 @@ var layer_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/media.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/media.js
 var media_default = {
   parse: {
     prelude() {
@@ -12934,7 +12783,7 @@ var media_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/nest.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/nest.js
 var nest_default = {
   parse: {
     prelude() {
@@ -12946,7 +12795,7 @@ var nest_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/page.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/page.js
 var page_default = {
   parse: {
     prelude() {
@@ -12958,7 +12807,7 @@ var page_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/scope.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/scope.js
 var scope_default = {
   parse: {
     prelude() {
@@ -12970,7 +12819,7 @@ var scope_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/starting-style.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/starting-style.js
 var starting_style_default = {
   parse: {
     prelude: null,
@@ -12980,7 +12829,7 @@ var starting_style_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/supports.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/supports.js
 var supports_default = {
   parse: {
     prelude() {
@@ -12992,7 +12841,7 @@ var supports_default = {
   }
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/atrule/index.js
 var atrule_default = {
   container: container_default,
   "font-face": font_face_default,
@@ -13006,7 +12855,7 @@ var atrule_default = {
   supports: supports_default
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/pseudo/lang.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/pseudo/lang.js
 function parseLanguageRangeList() {
   const children = this.createList();
   this.skipSC();
@@ -13032,7 +12881,7 @@ function parseLanguageRangeList() {
   return children;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/pseudo/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/pseudo/index.js
 var selectorList = {
   parse() {
     return this.createSingleNodeList(this.SelectorList());
@@ -13075,7 +12924,7 @@ var pseudo_default = {
   "host-context": selector
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/index-parse.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/node/index-parse.js
 var exports_index_parse = {};
 __export(exports_index_parse, {
   AnPlusB: () => parse2,
@@ -13129,7 +12978,7 @@ __export(exports_index_parse, {
   WhiteSpace: () => parse50
 });
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/parser.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/parser.js
 var parser_default = {
   parseContext: {
     default: "StyleSheet",
@@ -13171,18 +13020,18 @@ var parser_default = {
   node: exports_index_parse
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/walker.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/config/walker.js
 var walker_default = {
   node: exports_node
 };
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/syntax/index.js
 var syntax_default = create_default({
   ...lexer_default,
   ...parser_default,
   ...walker_default
 });
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/clone.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/utils/clone.js
 function clone(node) {
   const result = {};
   for (const key of Object.keys(node)) {
@@ -13199,7 +13048,7 @@ function clone(node) {
   return result;
 }
 
-// node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/index.js
+// ../../node_modules/.bun/css-tree@3.2.1/node_modules/css-tree/lib/index.js
 var {
   tokenize: tokenize2,
   parse: parse51,
@@ -13215,7 +13064,7 @@ var {
   fork
 } = syntax_default;
 
-// node_modules/.bun/@unocss+transformer-directives@66.10.5/node_modules/@unocss/transformer-directives/dist/index.mjs
+// ../../node_modules/.bun/@unocss+transformer-directives@66.10.5/node_modules/@unocss/transformer-directives/dist/index.mjs
 async function handleApply(ctx, node) {
   const { code, uno, options, filename } = ctx;
   await Promise.all(node.block.children.map(async (childNode) => {
@@ -13337,7 +13186,7 @@ async function transformIconString(uno, icon, color) {
   const loader = await api.createNodeLoader?.() || (async () => {
     return;
   });
-  for (const p of toArray(prefix))
+  for (const p of toArray2(prefix))
     if (icon.startsWith(p)) {
       icon = icon.slice(p.length);
       const parsed = await api.parseIconWithLoader(icon, loader, loaderOptions, iconifyCollectionsNames);
@@ -13439,7 +13288,7 @@ function resolveApplyVariables(options) {
       "--uno-apply",
       "--uno"
     ];
-  return toArray(applyVariable || []);
+  return toArray2(applyVariable || []);
 }
 async function transformDirectives(code, uno, options, filename, originalCode, offset) {
   const applyVariable = resolveApplyVariables(options);
@@ -13503,7 +13352,8 @@ function transformerDirectives(options = {}) {
   };
 }
 
-// node_modules/.bun/@unocss+transformer-variant-group@66.10.5/node_modules/@unocss/transformer-variant-group/dist/index.mjs
+// ../../node_modules/.bun/@unocss+transformer-variant-group@66.10.5/node_modules/@unocss/transformer-variant-group/dist/index.mjs
+import { parseVariantGroup } from "@unocss/core";
 function transformerVariantGroup(options = {}) {
   const separators = options.separators || [":", "-"];
   return {
@@ -13519,7 +13369,7 @@ function transformerVariantGroup(options = {}) {
     }
   };
 }
-// packages/spin/src/theme/pipeline/types.ts
+// ../../packages/spin/src/theme/pipeline/types.ts
 var TOKEN_TYPES = [
   "color",
   "boolean",
@@ -13538,7 +13388,7 @@ var TOKEN_TYPES = [
   "textTransform"
 ];
 
-// packages/spin/src/theme/pipeline/parse.ts
+// ../../packages/spin/src/theme/pipeline/parse.ts
 var TYPE_SET = Object.fromEntries(TOKEN_TYPES.map((type) => [type, true]));
 function isTokenType(value) {
   return typeof value === "string" && Object.hasOwn(TYPE_SET, value);
@@ -13665,7 +13515,7 @@ function parseTokens(input) {
   return { ok: true, tree };
 }
 var DOCUMENT_KEYS = { modes: true };
-// packages/spin/src/theme/pipeline/resolve.ts
+// ../../packages/spin/src/theme/pipeline/resolve.ts
 var ALIAS = /^\{([^{}]+)\}$/;
 function cssVarName(path, prefix) {
   const base = path.join("-").toLowerCase();
@@ -13767,7 +13617,7 @@ function resolveAliases(tree) {
   });
   return { tree: clone(tree), cycles, unresolved };
 }
-// packages/spin/src/theme/pipeline/color.ts
+// ../../packages/spin/src/theme/pipeline/color.ts
 var CSS_WIDE_COLORS = ["transparent", "currentColor"];
 var HEX_DIGITS = {
   "0": 0,
@@ -13974,7 +13824,7 @@ function contrastRatio(a, b) {
   return Math.round((hi + 0.05) / (lo + 0.05) * 1e4) / 1e4;
 }
 
-// packages/spin/src/theme/pipeline/validate.ts
+// ../../packages/spin/src/theme/pipeline/validate.ts
 var TYPE_SET2 = Object.fromEntries(TOKEN_TYPES.map((type) => [type, true]));
 var COLOR_FUNCTION = /^-?[a-z][a-z0-9-]*\(/i;
 var DIMENSION = /^-?\d*\.?\d+(px|rem|em|%|vh|vw|ch|ex|pt|pc|cm|mm|in|q)$/;
@@ -14131,7 +13981,7 @@ function* walk3(nodes) {
       yield* walk3(node.children);
   }
 }
-// packages/spin/src/theme/contract/elements.ts
+// ../../packages/spin/src/theme/contract/elements.ts
 var ELEMENT_ROLES = [
   {
     group: "badge",
@@ -14190,6 +14040,24 @@ var ELEMENT_ROLES = [
     type: "shadow",
     value: "none",
     doc: "The elevation a button lifts to when it is touched."
+  },
+  {
+    group: "button",
+    element: "button",
+    path: "button.edge",
+    type: "color",
+    value: "#e5e5e5",
+    doc: "The ink a button frames itself in; both variants share it.",
+    fallback: "color.border"
+  },
+  {
+    group: "button",
+    element: "button",
+    path: "button.radius",
+    type: "dimension",
+    value: "0.375rem",
+    doc: "The corner rounding of a button.",
+    fallback: "radius.md"
   },
   {
     group: "checkbox",
@@ -14385,7 +14253,7 @@ var ELEMENT_ROLES = [
   }
 ];
 
-// packages/spin/src/theme/contract/typography.ts
+// ../../packages/spin/src/theme/contract/typography.ts
 var FACE_CHAINS = {
   "font.family.heading": ["font.family.body", "font.family.sans"],
   "font.family.body": ["font.family.sans"]
@@ -14712,7 +14580,7 @@ function elementTypeFields(element) {
     weight: find("weight")
   };
 }
-// packages/spin/src/theme/themes/silk.json
+// ../../packages/spin/src/theme/themes/silk.json
 var silk_default = {
   $extensions: {
     spin: {
@@ -15341,6 +15209,11 @@ var silk_default = {
       $description: "Label tracking. Slightly tight, because a 600-weight label in a small control needs the width back.",
       $value: "-0.01em"
     },
+    edge: {
+      $type: "color",
+      $description: "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
+      $value: "{color.border}"
+    },
     shadow: {
       $type: "shadow",
       $description: "The resting elevation. A control with no shadow sits on the page rather than in it.",
@@ -15350,6 +15223,11 @@ var silk_default = {
       $type: "shadow",
       $description: "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
       $value: "0 4px 12px -2px rgb(15 19 30 / 0.14)"
+    },
+    radius: {
+      $type: "dimension",
+      $description: "The corner rounding of a button.",
+      $value: "{radius.md}"
     }
   },
   border: {
@@ -15559,7 +15437,7 @@ var silk_default = {
   ]
 };
 
-// packages/spin/src/theme/contract/roles.ts
+// ../../packages/spin/src/theme/contract/roles.ts
 var TEXT_ON_SURFACE = {
   fg: "color.text",
   bg: "color.surface",
@@ -15821,7 +15699,7 @@ var TokenTypeSchema = {
   type: "string",
   enum: [...TOKEN_TYPES]
 };
-// packages/spin/src/theme/contract/schema.ts
+// ../../packages/spin/src/theme/contract/schema.ts
 function validateLegibility(tree) {
   const index = indexTree(resolveAliases(tree).tree);
   const issues = [];
@@ -15847,9 +15725,9 @@ function validateLegibility(tree) {
   }
   return issues;
 }
-// packages/spin/src/theme/contract/motion.ts
+// ../../packages/spin/src/theme/contract/motion.ts
 var LOOP_STEP = "loop";
-// packages/spin/src/theme/authoring/scaffold.ts
+// ../../packages/spin/src/theme/authoring/scaffold.ts
 function declarations() {
   return [...BASE_ROLES, ...ELEMENT_ROLES];
 }
@@ -15891,7 +15769,7 @@ function scaffoldTheme(roles) {
     children: leaves
   }));
 }
-// packages/spin/src/theme/authoring/mutate.ts
+// ../../packages/spin/src/theme/authoring/mutate.ts
 function treeToJson(tree) {
   const doc = {};
   for (const node of tree)
@@ -15964,9 +15842,7 @@ function nodeToJson(node) {
   }
   return out;
 }
-// packages/spin/src/theme/pipeline/generate.ts
-var DARK_GROUP = "dark";
-var LIGHT_GROUP = "light";
+// ../../packages/spin/src/theme/pipeline/generate.ts
 function cssValue(leaf, index, prefix) {
   return valueAsCss(leaf.value, index, prefix);
 }
@@ -15992,30 +15868,23 @@ function collectBlocks(tree, selector, prefix, darkSelector, lightSelector) {
   const light = { selector: lightSelector, declarations: [] };
   const dark = { selector: darkSelector, declarations: [] };
   for (const node of tree) {
-    const name = node.kind === "group" ? node.name.toLowerCase() : "";
-    const isDarkRoot = name === DARK_GROUP;
-    const isLightRoot = name === LIGHT_GROUP;
-    collectLeaves(node, index, prefix, isDarkRoot ? dark : isLightRoot ? light : base, light, dark, isDarkRoot || isLightRoot);
+    collectLeaves(node, index, prefix, base, light, dark);
   }
   return [base, light, dark];
 }
-function collectLeaves(node, index, prefix, into, light, dark, stripRoot) {
+function collectLeaves(node, index, prefix, into, light, dark) {
   if (node.kind === "token") {
-    const path = stripRoot ? node.path.slice(1) : node.path;
-    into.declarations.push([
-      cssVarName(path, prefix),
-      cssValue(node, index, prefix)
-    ]);
+    const name = cssVarName(node.path, prefix);
+    into.declarations.push([name, cssValue(node, index, prefix)]);
     if (node.modes !== undefined) {
-      const name = cssVarName(path, prefix);
-      const lightValue = node.modes[LIGHT_GROUP];
+      const lightValue = node.modes["light"];
       if (lightValue !== undefined && light !== undefined) {
         light.declarations.push([
           name,
           valueAsCss(lightValue, index, prefix)
         ]);
       }
-      const darkValue = node.modes[DARK_GROUP];
+      const darkValue = node.modes["dark"];
       if (darkValue !== undefined && dark !== undefined) {
         dark.declarations.push([
           name,
@@ -16026,7 +15895,7 @@ function collectLeaves(node, index, prefix, into, light, dark, stripRoot) {
     return;
   }
   for (const child of node.children) {
-    collectLeaves(child, index, prefix, into, light, dark, stripRoot);
+    collectLeaves(child, index, prefix, into, light, dark);
   }
 }
 function renderBlock(block, indent) {
@@ -16071,7 +15940,7 @@ ${indent}--spin-themes: ${names};
 
 `);
 }
-// packages/spin/src/theme/uno-ref.ts
+// ../../packages/spin/src/theme/uno-ref.ts
 function themeKey(path) {
   return path.split(".").join("-");
 }
@@ -16083,14 +15952,14 @@ function themeRef(tree) {
   }
   return out;
 }
-// packages/spin/src/theme/modes.ts
+// ../../packages/spin/src/theme/modes.ts
 function themeModes(theme) {
   const raw = theme["modes"];
   if (!Array.isArray(raw))
     return [];
   return raw.filter((entry) => entry === "light" || entry === "dark");
 }
-// packages/spin/src/preset/rules/primitives/manifest.ts
+// ../../packages/spin/src/compiler/rules/primitives/manifest.ts
 var primitiveContracts = {
   a11y: {
     tags: [],
@@ -16266,6 +16135,7 @@ var primitiveContracts = {
       "ghost",
       "icon",
       "outline",
+      "primary",
       "s-lg",
       "s-sm",
       "secondary"
@@ -16273,6 +16143,8 @@ var primitiveContracts = {
     reads: [
       "--border-width",
       "--button-case",
+      "--button-edge",
+      "--button-radius",
       "--button-shadow",
       "--button-shadow-hover",
       "--button-tracking",
@@ -16284,8 +16156,10 @@ var primitiveContracts = {
       "--color-on-accent",
       "--color-on-disabled",
       "--color-on-primary",
+      "--color-on-secondary",
       "--color-on-semantic-error",
       "--color-primary",
+      "--color-secondary",
       "--color-semantic-error",
       "--color-surface",
       "--color-surface-raised",
@@ -16342,15 +16216,38 @@ var primitiveContracts = {
       "--card-elevation",
       "--card-padding",
       "--card-radius",
+      "--color-accent",
       "--color-border",
+      "--color-focus-ring",
+      "--color-link",
+      "--color-on-accent",
+      "--color-semantic-error",
+      "--color-semantic-success",
+      "--color-surface",
       "--color-surface-raised",
       "--color-text",
       "--color-text-muted",
+      "--focus-offset",
+      "--focus-width",
+      "--font-family-body",
+      "--font-family-heading",
+      "--font-family-mono",
+      "--font-family-sans",
+      "--font-family-serif",
+      "--font-size-2xl",
+      "--font-size-3xl",
       "--font-size-lg",
+      "--font-size-md",
       "--font-size-sm",
+      "--font-size-xl",
+      "--font-size-xs",
+      "--font-weight-bold",
       "--font-weight-semibold",
       "--radius-md",
+      "--radius-sm",
       "--shadow-md",
+      "--spacing-1",
+      "--spacing-2",
       "--spacing-4"
     ],
     scope: {
@@ -16363,7 +16260,7 @@ var primitiveContracts = {
         { tag: "card-figure", where: "global", owns: ["edge"] },
         { tag: "card-footer", where: "global", owns: [] },
         { tag: "card-header", where: "global", owns: [] },
-        { tag: "card-title", where: "global", owns: ["ink", "size", "weight"] }
+        { tag: "card-title", where: "global", owns: ["face", "ink", "size", "weight"] }
       ]
     },
     category: "containers",
@@ -16679,7 +16576,8 @@ var primitiveContracts = {
       "--font-family-sans",
       "--font-size-sm",
       "--font-weight-medium",
-      "--spacing-1"
+      "--spacing-1",
+      "--spacing-2"
     ],
     scope: {
       self: "label",
@@ -17053,7 +16951,7 @@ var primitiveContracts = {
   },
   table: {
     tags: ["caption", "table", "td", "th"],
-    variants: ["striped"],
+    variants: ["striped", "wrap"],
     reads: [
       "--border-width",
       "--color-border",
@@ -17194,7 +17092,7 @@ var primitiveElements = [
   { name: "icon", category: "typography", icon: "i-lucide-image" }
 ];
 
-// packages/spin/src/preset/roles.ts
+// ../../packages/spin/src/compiler/roles.ts
 function requiredRolesFor() {
   return [...requiredPaths()];
 }
@@ -17205,7 +17103,7 @@ function scaffoldDocument() {
   return JSON.parse(treeToJson(scaffold()));
 }
 
-// packages/spin/src/preset/session.ts
+// ../../packages/spin/src/plugin/session.ts
 var CELL_KEY = "__spin_theme_overlay__";
 function cell() {
   const globals = globalThis;
@@ -17265,7 +17163,7 @@ function resolveThemes(documents) {
   return { ...documents, ...overlayThemes() };
 }
 
-// packages/spin/src/theme/base/css.ts
+// ../../packages/spin/src/theme/base/css.ts
 function documentDefaults() {
   return [
     "body, [data-theme] {",
@@ -17296,7 +17194,7 @@ function documentDefaults() {
 `);
 }
 
-// node_modules/.bun/valibot@1.5.0+ca84541ac88a3075/node_modules/valibot/dist/index.mjs
+// ../../node_modules/.bun/valibot@1.5.0+ca84541ac88a3075/node_modules/valibot/dist/index.mjs
 var store$4;
 var DEFAULT_CONFIG = {
   lang: undefined,
@@ -17737,7 +17635,7 @@ function safeParse(schema, input, config$1) {
   };
 }
 
-// packages/spin/src/theme/base/fonts.ts
+// ../../packages/spin/src/theme/base/fonts.ts
 var Font = object({
   family: pipe(string(), nonEmpty("a font needs a family name")),
   src: pipe(string(), nonEmpty("a font needs a source")),
@@ -17789,7 +17687,7 @@ function fontFaces(result) {
 
 `);
 }
-// packages/spin/src/animation/styles.ts
+// ../../packages/spin/src/animation/styles.ts
 var animationCss = `/*
  * Motion — the one global namespace in CSS, given one home.
  *
@@ -17958,7 +17856,7 @@ var animationCss = `/*
 }
 `;
 
-// packages/spin/src/animation/index.ts
+// ../../packages/spin/src/animation/index.ts
 function animationPreflights() {
   return [
     {
@@ -17969,7 +17867,7 @@ function animationPreflights() {
   ];
 }
 
-// packages/spin/src/preset/preflights.ts
+// ../../packages/spin/src/compiler/preflights.ts
 var RESET_CSS = "*, ::before, ::after { box-sizing: border-box; border-width: 0; }";
 var HIDDEN_CSS = "[hidden] { display: none !important; }";
 var REDUCED_MOTION_CSS = [
@@ -18060,7 +17958,7 @@ function buildPreflights(input) {
   }));
 }
 
-// packages/spin/src/preset/utils/lookup.ts
+// ../../packages/spin/src/compiler/utils/lookup.ts
 function themeOf(ctx) {
   const theme = ctx?.theme;
   return typeof theme === "object" && theme !== null ? theme : undefined;
@@ -18076,7 +17974,7 @@ function namesIn(theme, family) {
   return Object.keys(theme).filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length));
 }
 
-// packages/spin/src/preset/rules/primitives/shared.ts
+// ../../packages/spin/src/compiler/rules/primitives/shared.ts
 function claim(mode, tag) {
   return mode.classless ? tag : `.${tag}`;
 }
@@ -18198,7 +18096,7 @@ function spacing(t) {
   };
 }
 
-// packages/spin/src/preset/rules/primitives/a11y.ts
+// ../../packages/spin/src/compiler/rules/primitives/a11y.ts
 function a11yRules(roots) {
   return [...cursorRules(roots), ...hiddenRules(roots)];
 }
@@ -18260,7 +18158,7 @@ function hiddenRules(roots) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/alert.ts
+// ../../packages/spin/src/compiler/rules/primitives/alert.ts
 function alertRules(roots, mode) {
   if (!roots.includes("alert"))
     return [];
@@ -18360,7 +18258,7 @@ function alertTones(mode) {
   });
 }
 
-// packages/spin/src/preset/rules/primitives/badge.ts
+// ../../packages/spin/src/compiler/rules/primitives/badge.ts
 function badgeRules(roots, mode) {
   if (!roots.includes("badge"))
     return [];
@@ -18524,7 +18422,7 @@ function badgeClose(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/breadcrumbs.ts
+// ../../packages/spin/src/compiler/rules/primitives/breadcrumbs.ts
 function breadcrumbsRules(roots, _mode) {
   if (!roots.includes("breadcrumbs"))
     return [];
@@ -18635,7 +18533,7 @@ function arrowRule() {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/button.ts
+// ../../packages/spin/src/compiler/rules/primitives/button.ts
 var BUTTON = ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"])';
 var CONTRAST = ':is(button, [type="submit"], [type="button"], [role="button"])';
 var GROUP = 'span[role="group"]';
@@ -18644,23 +18542,30 @@ var COMPONENT_PROPERTY = {
   case: "text-transform",
   tracking: "letter-spacing",
   shadow: "box-shadow",
-  "shadow-hover": "box-shadow"
+  "shadow-hover": "box-shadow",
+  edge: "border-color",
+  radius: "border-radius"
 };
 var COMPONENT_STEPS = [
   "weight",
   "case",
   "tracking",
   "shadow",
-  "shadow-hover"
+  "shadow-hover",
+  "edge",
+  "radius"
 ];
 var BASE_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) => step !== "shadow-hover");
 var HOVER_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) => step === "shadow-hover");
 var SHADOW_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) => step === "shadow");
 var COMPONENT_FALLBACK = {
-  weight: "font.weight.semibold"
+  weight: "font.weight.semibold",
+  edge: "color.border",
+  radius: "radius.md"
 };
 var VARIANT_NAMES = [
   "bare",
+  "primary",
   "secondary",
   "outline",
   "ghost",
@@ -18689,15 +18594,24 @@ var VARIANTS = {
       "min-height": "0"
     })
   },
+  primary: {
+    group: BUTTON,
+    name: "primary",
+    inked: true,
+    body: (ctx) => ({
+      "background-color": token(ctx, "color.primary"),
+      "border-color": token(ctx, "color.primary"),
+      color: token(ctx, "color.on-primary")
+    })
+  },
   secondary: {
     group: BUTTON,
     name: "secondary",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.surface-raised"),
+      "background-color": token(ctx, "color.secondary"),
       "border-color": token(ctx, "color.border"),
-      "box-shadow": "none",
-      color: token(ctx, "color.text")
+      color: token(ctx, "color.on-secondary")
     })
   },
   ghost: {
@@ -18839,10 +18753,9 @@ function buttonRules(roots) {
         const spacing4 = token(ctx, "spacing.4");
         const fontFamily = token(ctx, "font.family.sans");
         const fontSize = token(ctx, "font.size.md");
-        const radius = token(ctx, "radius.md");
         const borderWidth = token(ctx, "border.width");
-        const primary = token(ctx, "color.primary");
-        const onPrimary = token(ctx, "color.on-primary");
+        const surfaceRaised = token(ctx, "color.surface-raised");
+        const text = token(ctx, "color.text");
         const duration = token(ctx, "motion.duration.fast");
         const easing = token(ctx, "motion.easing.standard");
         yield [
@@ -18864,24 +18777,21 @@ function buttonRules(roots) {
           ["gap", spacing2],
           ["font-family", fontFamily],
           ["font-size", fontSize],
-          ["border-radius", radius],
           ["line-height", "1"],
           ...fontSize !== undefined && spacing2 !== undefined && borderWidth !== undefined ? [[
             "min-height",
             `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`
           ]] : [],
           ...spentEntries(spend(ctx, "button", COMPONENT_PROPERTY, COMPONENT_FALLBACK, ...BASE_COMPONENT_STEPS)),
-          ...borderWidth !== undefined && primary !== undefined ? [["border", `${borderWidth} solid ${primary}`]] : [],
-          ["background-color", primary],
-          ["color", onPrimary],
+          ...borderWidth !== undefined ? [["border-width", borderWidth], ["border-style", "solid"]] : [],
+          ["background-color", surfaceRaised],
+          ["color", text],
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           [
             "transition-property",
-            "color, background-color, border-color, text-decoration-color, fill, stroke"
+            "color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, translate, scale, rotate"
           ],
-          ["transition-property", "box-shadow"],
-          ["transition-property", "transform, translate, scale, rotate"],
           ["transition-duration", duration],
           ["transition-timing-function", easing]
         ];
@@ -19074,7 +18984,7 @@ function buttonRules(roots) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/card.ts
+// ../../packages/spin/src/compiler/rules/primitives/card.ts
 function cardRules(roots, mode) {
   if (!roots.includes("card"))
     return [];
@@ -19173,10 +19083,12 @@ function cardTitle(mode) {
     /^card-title$/,
     function* (_m, ctx) {
       const { sizeLg, weightSemibold, text } = cardTokens(ctx);
+      const headingFamily = proseTokens(ctx).heading;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-title"),
         "grid-column": "1",
         "min-width": "0",
+        ...headingFamily !== undefined ? { "font-family": headingFamily } : {},
         ...sizeLg !== undefined ? { "font-size": sizeLg } : {},
         ...weightSemibold !== undefined ? { "font-weight": weightSemibold } : {},
         ...text !== undefined ? { color: text } : {}
@@ -19290,7 +19202,7 @@ function cardFigure(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/control.ts
+// ../../packages/spin/src/compiler/rules/primitives/control.ts
 function controlRules(roots) {
   return [
     ...roots.includes("checkbox") ? [checkboxRule()] : [],
@@ -19534,7 +19446,7 @@ function switchRule() {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/dialog.ts
+// ../../packages/spin/src/compiler/rules/primitives/dialog.ts
 function dialogRules(roots, mode) {
   if (!roots.includes("dialog"))
     return [];
@@ -19665,7 +19577,7 @@ function tokens2(ctx) {
   };
 }
 
-// packages/spin/src/preset/rules/primitives/disclosure.ts
+// ../../packages/spin/src/compiler/rules/primitives/disclosure.ts
 function disclosureRules(roots, mode) {
   if (!roots.includes("details"))
     return [];
@@ -19817,7 +19729,7 @@ function summaryRule(summary, details) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/field.ts
+// ../../packages/spin/src/compiler/rules/primitives/field.ts
 function fieldTokens(ctx) {
   return {
     spacing2: token(ctx, "spacing.2"),
@@ -19999,7 +19911,7 @@ function fieldBox() {
   return rule;
 }
 
-// packages/spin/src/preset/rules/primitives/fieldset.ts
+// ../../packages/spin/src/compiler/rules/primitives/fieldset.ts
 function fieldsetRules(roots, mode) {
   if (!roots.includes("fieldset"))
     return [];
@@ -20042,7 +19954,7 @@ function fieldsetRule(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/join.ts
+// ../../packages/spin/src/compiler/rules/primitives/join.ts
 function joinRules(roots, _mode) {
   if (!roots.includes("join"))
     return [];
@@ -20104,7 +20016,7 @@ function joinItem() {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/hr.ts
+// ../../packages/spin/src/compiler/rules/primitives/hr.ts
 function hrRules(roots, mode) {
   if (!roots.includes("hr"))
     return [];
@@ -20167,7 +20079,7 @@ function dividerDashed(base) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/kbd.ts
+// ../../packages/spin/src/compiler/rules/primitives/kbd.ts
 function kbdRule(mode) {
   return [
     /^kbd$/,
@@ -20177,8 +20089,8 @@ function kbdRule(mode) {
         [ctx.symbols.selector]: () => claim(mode, "kbd"),
         ...t.mono !== undefined ? { "font-family": t.mono } : {},
         ...t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {},
-        ...t.spacing1 !== undefined ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` } : {},
-        ...t.borderWidth !== undefined && t.border !== undefined ? { border: `${t.borderWidth} solid ${t.border}` } : {},
+        ...t.spacing1 !== undefined ? { padding: `calc(${t.spacing1} / 4) ${t.spacing1}` } : {},
+        ...t.border !== undefined ? { border: `1px solid ${t.border}` } : {},
         ...t.borderWidth !== undefined && t.border !== undefined ? { "box-shadow": `0 ${t.borderWidth} 0 0 ${t.border}` } : {},
         ...t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {},
         ...t.raised !== undefined ? { "background-color": t.raised } : {},
@@ -20195,7 +20107,7 @@ function kbdRules(roots, mode) {
   return [kbdRule(mode)];
 }
 
-// packages/spin/src/preset/rules/primitives/label.ts
+// ../../packages/spin/src/compiler/rules/primitives/label.ts
 function labelRules(roots, mode) {
   if (!roots.includes("label"))
     return [];
@@ -20216,12 +20128,20 @@ function labelRule(mode) {
         ...token(ctx, "font.weight.medium") !== undefined ? { "font-weight": token(ctx, "font.weight.medium") } : {},
         ...token(ctx, "color.text") !== undefined ? { color: token(ctx, "color.text") } : {}
       };
+      yield {
+        [ctx.symbols.selector]: () => `${label}:has(> input:is([type="checkbox"], [type="radio"]))`,
+        "flex-direction": "row",
+        "align-items": "center",
+        width: "fit-content",
+        cursor: "pointer",
+        ...token(ctx, "spacing.2") !== undefined ? { gap: token(ctx, "spacing.2") } : {}
+      };
     },
     { layer: "primitives", autocomplete: "label" }
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/meter.ts
+// ../../packages/spin/src/compiler/rules/primitives/meter.ts
 function meterRules(roots, mode) {
   if (!roots.includes("meter"))
     return [];
@@ -20297,7 +20217,7 @@ function meterRule(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/panel.ts
+// ../../packages/spin/src/compiler/rules/primitives/panel.ts
 function panelRules(roots, mode) {
   if (!roots.includes("panel"))
     return [];
@@ -20360,7 +20280,7 @@ function panelTokens(ctx) {
   };
 }
 
-// packages/spin/src/preset/rules/primitives/progress.ts
+// ../../packages/spin/src/compiler/rules/primitives/progress.ts
 function progressRules(roots, mode) {
   if (!roots.includes("progress"))
     return [];
@@ -20521,7 +20441,7 @@ function ariaBusyRule() {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/scope.ts
+// ../../packages/spin/src/compiler/rules/primitives/scope.ts
 function paintKeyOf(property) {
   if (property === "border-radius")
     return "corner";
@@ -20560,7 +20480,7 @@ function painted(mode, self, where, tag) {
   return `:where(${claim(mode, self)}) :is(${subject})`;
 }
 
-// packages/spin/src/preset/rules/primitives/prose-block.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose-block.ts
 function block(mode, tag) {
   return painted(mode, "prose", "descendant", tag);
 }
@@ -20708,7 +20628,7 @@ function blockRules(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/prose-heading.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose-heading.ts
 function headingRule(mode, tag, type) {
   return [
     new RegExp(`^${tag}$`),
@@ -20767,7 +20687,7 @@ function headingRules(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/prose-inline.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose-inline.ts
 function linkRule(mode) {
   const a = claim(mode, "a");
   return [
@@ -20923,7 +20843,7 @@ function inlineRules(roots, mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/prose-media.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose-media.ts
 function figureRule(mode) {
   return [
     /^figure$/,
@@ -21011,7 +20931,7 @@ function mediaRules(roots, mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/prose-code.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose-code.ts
 function codeRule(mode) {
   return [
     /^code$/,
@@ -21087,7 +21007,7 @@ function codeRules(roots, mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/prose.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose.ts
 function proseRules(roots, mode) {
   if (!roots.includes("prose"))
     return [];
@@ -21124,7 +21044,7 @@ function proseContainerRule(mode) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/radio.ts
+// ../../packages/spin/src/compiler/rules/primitives/radio.ts
 function radioRules(roots) {
   if (!roots.includes("radio"))
     return [];
@@ -21222,7 +21142,7 @@ function radioRules(roots) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/range.ts
+// ../../packages/spin/src/compiler/rules/primitives/range.ts
 function rangeRules(roots) {
   if (!roots.includes("range"))
     return [];
@@ -21309,7 +21229,7 @@ function rangeRules(roots) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/stat.ts
+// ../../packages/spin/src/compiler/rules/primitives/stat.ts
 function statRules(roots, _mode) {
   if (!roots.includes("stat"))
     return [];
@@ -21408,7 +21328,75 @@ function statDesc() {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/swatch.ts
+// ../../packages/spin/src/compiler/rules/primitives/skeleton.ts
+function skeletonRules(roots, _mode) {
+  if (!roots.includes("skeleton"))
+    return [];
+  return [block2(), textLine(), circle()];
+}
+function tokens5(ctx) {
+  return {
+    well: token(ctx, "color.surface-sunken"),
+    ink: token(ctx, "color.text-muted"),
+    radiusSm: token(ctx, "radius.sm"),
+    radiusFull: token(ctx, "radius.full"),
+    spacing2: token(ctx, "spacing.2"),
+    textSize: token(ctx, "font.size.sm"),
+    avatar: named(ctx, "avatar", "md"),
+    duration: withFallback(ctx, "motion.duration.loop", "motion.duration.slow"),
+    easing: token(ctx, "motion.easing.standard")
+  };
+}
+function block2() {
+  return [
+    /^skeleton$/,
+    function* (_m, ctx) {
+      const t = tokens5(ctx);
+      const fill = t.well !== undefined && t.ink !== undefined ? `color-mix(in oklab, ${t.well} 88%, ${t.ink})` : t.well;
+      yield {
+        [ctx.symbols.selector]: () => ".skeleton",
+        display: "block",
+        ...fill !== undefined ? { "background-color": fill } : {},
+        ...t.radiusSm !== undefined ? { "border-radius": t.radiusSm } : {},
+        ...t.duration !== undefined && t.easing !== undefined ? {
+          animation: `spin-skeleton-pulse ${t.duration} ${t.easing} infinite`
+        } : {}
+      };
+    },
+    { layer: "primitives", autocomplete: "skeleton" }
+  ];
+}
+function textLine() {
+  return [
+    /^skeleton-text$/,
+    function* (_m, ctx) {
+      const t = tokens5(ctx);
+      yield {
+        [ctx.symbols.selector]: () => ".skeleton.skeleton-text",
+        width: "100%",
+        ...t.textSize !== undefined ? { height: t.textSize } : {},
+        ...t.radiusFull !== undefined ? { "border-radius": t.radiusFull } : {},
+        ...t.spacing2 !== undefined ? { "margin-block-end": t.spacing2 } : {}
+      };
+    }
+  ];
+}
+function circle() {
+  return [
+    /^skeleton-circle$/,
+    function* (_m, ctx) {
+      const t = tokens5(ctx);
+      yield {
+        [ctx.symbols.selector]: () => ".skeleton.skeleton-circle",
+        ...t.avatar !== undefined ? { width: t.avatar, height: t.avatar } : {},
+        ...t.radiusFull !== undefined ? { "border-radius": t.radiusFull } : {}
+      };
+    },
+    { layer: "primitives", autocomplete: "skeleton-circle" }
+  ];
+}
+
+// ../../packages/spin/src/compiler/rules/primitives/swatch.ts
 function swatchRules(roots, mode) {
   if (!roots.includes("swatch"))
     return [];
@@ -21466,7 +21454,7 @@ function swatchSizes(base) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/table.ts
+// ../../packages/spin/src/compiler/rules/primitives/table.ts
 function tableRules(roots, mode) {
   if (!roots.includes("table"))
     return [];
@@ -21475,7 +21463,8 @@ function tableRules(roots, mode) {
     cellRule(mode),
     headerRule(mode),
     captionRule(mode),
-    stripedRule(mode)
+    stripedRule(mode),
+    wrapRule(mode)
   ];
 }
 function tableTokens(ctx) {
@@ -21611,8 +21600,28 @@ function stripedRule(mode) {
     { layer: "primitives", autocomplete: "striped" }
   ];
 }
+function wrapRule(mode) {
+  const table = `${claim(mode, "table")}.wrap`;
+  return [
+    /^wrap$/,
+    function* (_m, ctx) {
+      yield {
+        [ctx.symbols.selector]: () => table,
+        "min-width": "0",
+        "table-layout": "fixed"
+      };
+      yield {
+        [ctx.symbols.selector]: () => `${table} :is(td, th)`,
+        "white-space": "normal",
+        "vertical-align": "top",
+        "overflow-wrap": "anywhere"
+      };
+    },
+    { layer: "primitives", autocomplete: "wrap" }
+  ];
+}
 
-// packages/spin/src/preset/rules/primitives/tooltip.ts
+// ../../packages/spin/src/compiler/rules/primitives/tooltip.ts
 function tooltipRule(mode) {
   return [
     /^tooltip$/,
@@ -21654,7 +21663,7 @@ function tooltipRules(roots, mode) {
   return [tooltipRule(mode)];
 }
 
-// packages/spin/src/preset/rules/primitives/textarea.ts
+// ../../packages/spin/src/compiler/rules/primitives/textarea.ts
 function textareaRules(roots) {
   if (!roots.includes("field"))
     return [];
@@ -21676,7 +21685,7 @@ function textareaRules(roots) {
   ];
 }
 
-// packages/spin/src/preset/rules/primitives/index.ts
+// ../../packages/spin/src/compiler/rules/primitives/index.ts
 function primitiveRules(roots, mode) {
   return [
     ...roots.includes("field") ? [fieldBox()] : [],
@@ -21699,6 +21708,7 @@ function primitiveRules(roots, mode) {
     ...meterRules(roots, mode),
     ...panelRules(roots, mode),
     ...statRules(roots, mode),
+    ...skeletonRules(roots, mode),
     ...swatchRules(roots, mode),
     ...tableRules(roots, mode),
     ...textareaRules(roots),
@@ -21708,7 +21718,7 @@ function primitiveRules(roots, mode) {
   ];
 }
 
-// packages/spin/src/preset/utils/vocabulary.ts
+// ../../packages/spin/src/compiler/utils/vocabulary.ts
 var COLOR_KEYWORDS = CSS_WIDE_COLORS;
 var STATIC_UTILITIES = ["flex", "w-full", "top-1/2"];
 var DISPLAY_VALUES = {
@@ -21794,7 +21804,8 @@ var WIDTH_KEYWORDS = {
   screen: "100vw",
   min: "min-content",
   max: "max-content",
-  fit: "fit-content"
+  fit: "fit-content",
+  prose: "65ch"
 };
 var HEIGHT_KEYWORDS = {
   full: "100%",
@@ -21934,6 +21945,14 @@ var VISIBILITY = {
   invisible: "hidden",
   collapse: "collapse"
 };
+var BACKDROP_BLUR = {
+  "backdrop-blur-none": "none",
+  "backdrop-blur-xs": "blur(2px)",
+  "backdrop-blur-sm": "blur(4px)",
+  "backdrop-blur": "blur(8px)",
+  "backdrop-blur-md": "blur(12px)",
+  "backdrop-blur-lg": "blur(16px)"
+};
 var INSET_KEYWORDS = {
   "0": "0",
   full: "100%",
@@ -22067,7 +22086,7 @@ var BORDER_STYLES = {
   "border-none": "none"
 };
 
-// packages/spin/src/preset/utils/declarations.ts
+// ../../packages/spin/src/compiler/utils/declarations.ts
 function cssDecl(css) {
   const out = {};
   for (const part of css.split(";")) {
@@ -22151,6 +22170,10 @@ var STATIC_DECLS = {
   ...Object.fromEntries(Object.entries(VISIBILITY).map(([name, value]) => [
     name,
     { visibility: value }
+  ])),
+  ...Object.fromEntries(Object.entries(BACKDROP_BLUR).map(([name, value]) => [
+    name,
+    { "backdrop-filter": value, "-webkit-backdrop-filter": value }
   ])),
   ...Object.fromEntries(Object.entries(TEXT_ALIGN).map(([name, value]) => [
     name,
@@ -22241,7 +22264,7 @@ function gridDeclarations() {
   return decls;
 }
 
-// packages/spin/src/preset/utils/color.ts
+// ../../packages/spin/src/compiler/utils/color.ts
 var COLOR_FUNCTIONS = [
   "rgb",
   "rgba",
@@ -22310,7 +22333,7 @@ function hasRawColor(token) {
   return false;
 }
 
-// packages/spin/src/preset/utils/factories.ts
+// ../../packages/spin/src/compiler/utils/factories.ts
 function orGroup(theme, family) {
   return "(" + namesIn(theme, family).join("|") + ")";
 }
@@ -22423,7 +22446,7 @@ function divideChildren(selector) {
   return `${selector} > :not([hidden]) ~ :not([hidden])`;
 }
 
-// packages/spin/src/preset/rules/border.ts
+// ../../packages/spin/src/compiler/rules/border.ts
 var BORDER_STYLE_NAMES = Object.keys(BORDER_STYLES);
 var SIDE_ALTERNATION = Object.keys(BORDER_SIDES).filter((side) => side !== "").join("");
 var WIDTH_ALTERNATION = Object.keys(BORDER_WIDTHS).filter((width) => width !== "").join("|");
@@ -22457,10 +22480,21 @@ function borderRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/color.ts
+// ../../packages/spin/src/compiler/rules/color.ts
 function colorOf(ctx, name, property) {
   if (hasRawColor(name))
     return;
+  const slash = name.lastIndexOf("/");
+  if (slash !== -1) {
+    const base = name.slice(0, slash);
+    const pct = Number(name.slice(slash + 1));
+    if (base !== "" && Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+      const path = named(ctx, "color", base);
+      if (path)
+        return { [property]: `color-mix(in srgb, ${path} ${pct}%, transparent)` };
+    }
+    return;
+  }
   const path = named(ctx, "color", name);
   if (path)
     return { [property]: path };
@@ -22497,7 +22531,7 @@ function colorRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/component.ts
+// ../../packages/spin/src/compiler/rules/component.ts
 function componentRules(roots) {
   return roots.flatMap((root) => {
     const component = primitiveContracts[root]?.component ?? [];
@@ -22566,7 +22600,7 @@ function valueFor(type, step, value) {
   return value;
 }
 
-// packages/spin/src/preset/rules/primitives/icon.ts
+// ../../packages/spin/src/compiler/rules/primitives/icon.ts
 var STEPS = ["sm", "md", "lg"];
 var ICON_FALLBACK = {
   sm: "font.size.sm",
@@ -22593,17 +22627,20 @@ function iconRules(roots) {
   ]).flat();
 }
 
-// packages/spin/src/preset/rules/display.ts
+// ../../packages/spin/src/compiler/rules/display.ts
 var DISPLAY_NAMES = Object.keys(DISPLAY_VALUES);
 var VISIBILITY_NAMES = Object.keys(VISIBILITY);
+var BACKDROP_BLUR_NAMES = Object.keys(BACKDROP_BLUR);
 function displayRules() {
   return staticRules([
     ...DISPLAY_NAMES.filter((name) => !STATIC_UTILITIES.includes(name)),
-    ...VISIBILITY_NAMES
+    ...VISIBILITY_NAMES,
+    ...BACKDROP_BLUR_NAMES
   ], STATIC_DECLS);
 }
 
-// packages/spin/src/preset/rules/divide.ts
+// ../../packages/spin/src/compiler/rules/divide.ts
+import { symbols } from "@unocss/core";
 var WIDTHS = Object.keys(DIVIDE_WIDTHS).filter((w) => w !== "");
 function divideNames(colors = []) {
   return [
@@ -22643,7 +22680,7 @@ function divideRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/grid.ts
+// ../../packages/spin/src/compiler/rules/grid.ts
 var GRID_NAMES = [
   ...GRID_TRACKS,
   ...GRID_SPANS,
@@ -22661,7 +22698,7 @@ function gridRules() {
   return staticRules(GRID_NAMES, GRID_DECLS);
 }
 
-// packages/spin/src/preset/rules/interactivity.ts
+// ../../packages/spin/src/compiler/rules/interactivity.ts
 var INTERACTIVITY_NAMES = INTERACTIVITY_UTILITIES;
 function interactivityRules() {
   return [
@@ -22679,7 +22716,7 @@ function interactivityRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/layout.ts
+// ../../packages/spin/src/compiler/rules/layout.ts
 var LAYOUT_NAMES = [
   ...STATIC_UTILITIES,
   ...FLEX_UTILITIES,
@@ -22689,7 +22726,7 @@ function layoutRules() {
   return staticRules(LAYOUT_NAMES, STATIC_DECLS);
 }
 
-// packages/spin/src/preset/rules/list.ts
+// ../../packages/spin/src/compiler/rules/list.ts
 function listRules() {
   return [
     [
@@ -22723,7 +22760,7 @@ function listRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/opacity.ts
+// ../../packages/spin/src/compiler/rules/opacity.ts
 var OPACITY_NAMES = OPACITY_UTILITIES;
 function opacityRules() {
   return OPACITY_STEPS.map((step) => [
@@ -22734,13 +22771,13 @@ function opacityRules() {
   ]);
 }
 
-// packages/spin/src/preset/rules/overflow.ts
+// ../../packages/spin/src/compiler/rules/overflow.ts
 var OVERFLOW_NAMES = OVERFLOW_UTILITIES;
 function overflowRules() {
   return staticRules([...OVERFLOW_NAMES], STATIC_DECLS);
 }
 
-// packages/spin/src/preset/rules/position.ts
+// ../../packages/spin/src/compiler/rules/position.ts
 var POSITION_NAMES = Object.keys(POSITION_UTILITIES);
 function positionRules() {
   return [
@@ -22784,7 +22821,7 @@ function positionRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/radius.ts
+// ../../packages/spin/src/compiler/rules/radius.ts
 function radiusRules() {
   return [
     [
@@ -22814,7 +22851,7 @@ function radiusOf(name, ctx) {
   return named(ctx, "radius", name);
 }
 
-// packages/spin/src/preset/rules/shadow.ts
+// ../../packages/spin/src/compiler/rules/shadow.ts
 var SHADOW_NAMES = Object.keys(SHADOW).map((name) => `shadow-${name}`);
 function shadowRules() {
   return [
@@ -22832,7 +22869,7 @@ function shadowRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/sizing.ts
+// ../../packages/spin/src/compiler/rules/sizing.ts
 var SIZING_NAMES = [
   ...Object.keys(FRACTIONS).map((fraction) => `w-${fraction}`),
   ...Object.keys(WIDTH_KEYWORDS).map((keyword) => `w-${keyword}`),
@@ -22921,7 +22958,7 @@ function sizingRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/spacing.ts
+// ../../packages/spin/src/compiler/rules/spacing.ts
 var AUTO_AXES = [
   ["m-auto", "margin"],
   ["mx-auto", "margin-left|margin-right"],
@@ -22977,7 +23014,7 @@ function gutterRules() {
   ]);
 }
 
-// packages/spin/src/preset/rules/stacking.ts
+// ../../packages/spin/src/compiler/rules/stacking.ts
 var STACKING = ["base", "dropdown", "modal", "toast"];
 function stackingRules() {
   const steps = STACKING.map((step) => [
@@ -23005,7 +23042,7 @@ var STACKING_NAMES = [
   "static"
 ];
 
-// packages/spin/src/preset/rules/text.ts
+// ../../packages/spin/src/compiler/rules/text.ts
 var TEXT_ALIGN_NAMES = Object.keys(TEXT_ALIGN);
 var TEXT_DECORATION_NAMES = Object.keys(TEXT_DECORATION);
 var WHITESPACE_NAMES = Object.keys(WHITESPACE);
@@ -23021,7 +23058,7 @@ function textRules() {
   return staticRules([...TEXT_NAMES], STATIC_DECLS);
 }
 
-// packages/spin/src/preset/rules/transitions.ts
+// ../../packages/spin/src/compiler/rules/transitions.ts
 var TRANSITION_NAMES = Object.keys(TRANSITION_PROPERTY);
 function transitionDurations(theme) {
   return namesIn(theme, "motion-duration").filter((name) => name !== LOOP_STEP);
@@ -23054,7 +23091,7 @@ function transitionRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/typography.ts
+// ../../packages/spin/src/compiler/rules/typography.ts
 var TYPOGRAPHY_NAMES = [
   ...Object.keys(TEXT_TRANSFORMS),
   ...Object.keys(TRACKING).map((name) => `tracking-${name}`),
@@ -23109,7 +23146,7 @@ function typographyRules() {
   ];
 }
 
-// packages/spin/src/preset/rules/index.ts
+// ../../packages/spin/src/compiler/rules/index.ts
 function spinRules(roots, mode) {
   return [
     ...layoutRules(),
@@ -23137,7 +23174,7 @@ function spinRules(roots, mode) {
   ];
 }
 
-// packages/spin/src/preset/shortcuts.ts
+// ../../packages/spin/src/compiler/shortcuts.ts
 var spinShortcuts = {
   cluster: "flex flex-wrap items-center gap-2",
   "cluster-sm": "flex flex-wrap items-center gap-1",
@@ -23154,7 +23191,7 @@ var spinShortcuts = {
   overline: "text-xs font-semibold uppercase tracking-wider text-text-muted"
 };
 
-// packages/spin/src/preset/extractors.ts
+// ../../packages/spin/src/compiler/extractors.ts
 var classObjectExtractor = {
   name: "spin/class-object",
   order: 0,
@@ -23277,10 +23314,13 @@ var variantExtractor = {
   }
 };
 
-// packages/spin/src/theme/themes/index.ts
-var silkTheme = silk_default;
+// ../../packages/spin/src/compiler/wind4.ts
+import { symbols as symbols4, toArray as toArray6 } from "@unocss/core";
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/postprocess.mjs
+// ../../packages/spin/src/theme/themes/index.ts
+var silkTheme2 = silk_default;
+
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/postprocess.mjs
 function important({ important: option }) {
   if (option == null || option === false)
     return [];
@@ -23319,7 +23359,7 @@ function postprocessors(options) {
   return [important, varPrefix].flatMap((i) => i(options));
 }
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/rolldown-runtime-BBjsoOtd.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/rolldown-runtime-BBjsoOtd.mjs
 var __defProp2 = Object.defineProperty;
 var __exportAll = (all, no_symbols) => {
   let target = {};
@@ -23333,7 +23373,8 @@ var __exportAll = (all, no_symbols) => {
   return target;
 };
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/utils-C185UPwI.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/utils-C185UPwI.mjs
+import { escapeSelector as escapeSelector2, symbols as symbols2, toArray as toArray3 } from "@unocss/core";
 var PRESET_NAME = "@unocss/preset-wind4";
 var CONTROL_NO_NEGATIVE = "$$mini-no-negative";
 var SpecialColorKey = {
@@ -23725,7 +23766,7 @@ function cssvar(str) {
     const separator = body.indexOf(",");
     const name = separator === -1 ? body : body.slice(0, separator);
     const defaultValue = separator === -1 ? "" : body.slice(separator + 1);
-    return `var(--${escapeSelector(name)}${defaultValue ? `, ${defaultValue}` : ""})`;
+    return `var(--${escapeSelector2(name)}${defaultValue ? `, ${defaultValue}` : ""})`;
   }
 }
 function time2(str) {
@@ -23798,7 +23839,7 @@ function directionSize(property, map = directionMap, formatter = (p, d) => `${p}
         return map[direction].map((i) => [formatter(property, i), `calc(var(--spacing) * ${isNegative ? "-" : ""}${v})`]);
       } else if (theme.spacing && size in theme.spacing) {
         themeTracking("spacing", size);
-        return map[direction].map((i) => [formatter(property, i), isNegative ? `calc(var(--${escapeSelector(`spacing-${size}`)}) * -1)` : `var(--${escapeSelector(`spacing-${size}`)})`]);
+        return map[direction].map((i) => [formatter(property, i), isNegative ? `calc(var(--${escapeSelector2(`spacing-${size}`)}) * -1)` : `var(--${escapeSelector2(`spacing-${size}`)})`]);
       }
       v = h.bracket.cssvar.global.auto.fraction.rem(isNegative ? `-${size}` : size, theme);
       if (v != null)
@@ -23938,8 +23979,8 @@ function colorCSSGenerator(data, property, varName, ctx) {
             "drop-shadow"
           ].includes(varName) ? `${alpha ? `color-mix(in oklab, ${value} ${alpha}, transparent)` : `${value}`} var(${alphaKey})` : `${value} ${alpha ?? `var(${alphaKey})`}`;
           result.push({
-            [symbols.parent]: "@supports (color: color-mix(in lab, red, red))",
-            [symbols.noMerge]: true,
+            [symbols2.parent]: "@supports (color: color-mix(in lab, red, red))",
+            [symbols2.noMerge]: true,
             [property]: `color-mix(in oklab, ${colorValue}, transparent)${rawColorComment}`
           });
         }
@@ -23960,7 +24001,7 @@ function colorResolver(property, varName) {
 }
 function colorableShadows(shadows, colorVar, alpha) {
   const colored = [];
-  shadows = toArray(shadows);
+  shadows = toArray3(shadows);
   for (let i = 0;i < shadows.length; i++) {
     const components = getStringComponents(shadows[i], " ", 6);
     if (!components || components.length < 3)
@@ -24019,10 +24060,10 @@ function makeGlobalStaticRules(prefix, property) {
 function defineProperty(property, options = {}) {
   const { syntax = "*", inherits = false, initialValue } = options;
   const value = {
-    [symbols.shortcutsNoMerge]: true,
-    [symbols.noMerge]: true,
-    [symbols.noScope]: true,
-    [symbols.variants]: () => [{
+    [symbols2.shortcutsNoMerge]: true,
+    [symbols2.noMerge]: true,
+    [symbols2.noScope]: true,
+    [symbols2.variants]: () => [{
       parent: "",
       layer: "properties",
       selector: () => `@property ${property}`
@@ -24050,12 +24091,12 @@ function compressCSS(css, isDev = false) {
 }
 var trackedTheme = /* @__PURE__ */ new Set([]);
 function themeTracking(key, props = "DEFAULT") {
-  const k = `${key}:${toArray(props).join("-")}`;
+  const k = `${key}:${toArray3(props).join("-")}`;
   if (!trackedTheme.has(k))
     trackedTheme.add(k);
 }
 function generateThemeVariable(key, props) {
-  return `var(--${key}-${toArray(props).join("-")})`;
+  return `var(--${key}-${toArray3(props).join("-")})`;
 }
 function detectThemeValue(value, theme) {
   if (value.startsWith("var(")) {
@@ -24076,7 +24117,8 @@ function propertyTracking(property, value) {
     trackedProperties.set(property, value);
 }
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/container-BNtA3wqG.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/container-BNtA3wqG.mjs
+import { isString as isString2 } from "@unocss/core";
 var containerParent = [[/^@container(?:\/(\w+))?(?:-(normal))?$/, ([, l, v]) => {
   return {
     "container-type": v ?? "inline-size",
@@ -24090,7 +24132,7 @@ var container = [[
     const { theme, variantHandlers } = context;
     const themePadding = theme.containers?.padding;
     let padding;
-    if (isString(themePadding))
+    if (isString2(themePadding))
       padding = themePadding;
     else
       padding = themePadding?.DEFAULT;
@@ -24098,7 +24140,7 @@ var container = [[
     let maxWidth;
     for (const v of variantHandlers) {
       const query = v.handle?.({}, (x) => x)?.parent;
-      if (isString(query)) {
+      if (isString2(query)) {
         const match = query.match(queryMatcher)?.[1];
         if (match) {
           const matchBp = (resolveBreakpoints(context) ?? []).find((i) => i.size === match)?.point;
@@ -24106,7 +24148,7 @@ var container = [[
             maxWidth = match;
           else if (matchBp)
             maxWidth = themeMaxWidth?.[matchBp];
-          if (matchBp && !isString(themePadding))
+          if (matchBp && !isString2(themePadding))
             padding = themePadding?.[matchBp] ?? padding;
         }
       }
@@ -24139,7 +24181,8 @@ var containerShortcuts = [[/^(?:(\w+)[:-])?container$/, ([, bp], context) => {
   return shortcuts;
 }]];
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/rules.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/rules.mjs
+import { notNull as notNull2, symbols as symbols3 } from "@unocss/core";
 var verticalAlignAlias = {
   mid: "middle",
   base: "baseline",
@@ -24496,7 +24539,7 @@ var outline = [
     "outline-width": "1px"
   }, defineProperty("--un-outline-style", { initialValue: "solid" })]],
   ["outline-hidden", [{ "outline-style": "none" }, {
-    [symbols.parent]: `@media (forced-colors: active)`,
+    [symbols3.parent]: `@media (forced-colors: active)`,
     outline: `2px solid transparent`,
     "outline-offset": `2px`
   }]],
@@ -24757,7 +24800,7 @@ function handlerBorderColorOrSize([, a = "", b], ctx) {
       const directions = directionMap[a].map((i) => borderColorResolver(i)(["", b], ctx) ?? colorCSSGenerator({
         color: b,
         name: "_"
-      }, `border${i}-color`, `border${i}`, ctx)).filter(notNull);
+      }, `border${i}-color`, `border${i}`, ctx)).filter(notNull2);
       return [directions.map((d) => d[0]).reduce((acc, item) => {
         Object.assign(acc, item);
         return acc;
@@ -24961,9 +25004,9 @@ var spaces = [[
     "space-(x|y)-reverse",
     "space-(x|y)-$spacing"
   ] }
-], [/^space-([xy])-reverse$/, function* ([m, d], { symbols: symbols2 }) {
+], [/^space-([xy])-reverse$/, function* ([m, d], { symbols }) {
   yield {
-    [symbols2.variants]: [notLastChildSelectorVariant(m)],
+    [symbols.variants]: [notLastChildSelectorVariant(m)],
     [`--un-space-${d}-reverse`]: "1"
   };
   yield defineProperty(`--un-space-${d}-reverse`, { initialValue: 0 });
@@ -24979,7 +25022,7 @@ function notLastChildSelectorVariant(s) {
     })
   };
 }
-function* handlerSpace([m, d, s], { theme, symbols: symbols2 }) {
+function* handlerSpace([m, d, s], { theme, symbols }) {
   let v;
   const num = numberResolver(s);
   if (num != null) {
@@ -24993,7 +25036,7 @@ function* handlerSpace([m, d, s], { theme, symbols: symbols2 }) {
     });
     if (results) {
       yield {
-        [symbols2.variants]: [notLastChildSelectorVariant(m)],
+        [symbols.variants]: [notLastChildSelectorVariant(m)],
         [`--un-space-${d}-reverse`]: "0",
         ...Object.fromEntries(results)
       };
@@ -25018,9 +25061,9 @@ var divides = [
   ],
   [
     /^divide-op(?:acity)?-?(.+)$/,
-    function* ([match, opacity], { symbols: symbols2, theme }) {
+    function* ([match, opacity], { symbols, theme }) {
       yield {
-        [symbols2.variants]: [notLastChildSelectorVariant(match)],
+        [symbols.variants]: [notLastChildSelectorVariant(match)],
         "--un-divide-opacity": h.bracket.percent(opacity, theme)
       };
     },
@@ -25032,25 +25075,25 @@ var divides = [
     { autocomplete: ["divide-(x|y)", "divide-(x|y)-reverse"] }
   ],
   [/^divide-?([xy])-?(.+)$/, handlerDivide],
-  [/^divide-?([xy])-reverse$/, function* ([m, d], { symbols: symbols2 }) {
+  [/^divide-?([xy])-reverse$/, function* ([m, d], { symbols }) {
     yield {
-      [symbols2.variants]: [notLastChildSelectorVariant(m)],
+      [symbols.variants]: [notLastChildSelectorVariant(m)],
       [`--un-divide-${d}-reverse`]: "1"
     };
     yield defineProperty(`--un-divide-${d}-reverse`, { initialValue: 0 });
   }],
   [
     new RegExp(`^divide-(${borderStyles.join("|")})$`),
-    function* ([match, style], { symbols: symbols2 }) {
+    function* ([match, style], { symbols }) {
       yield {
-        [symbols2.variants]: [notLastChildSelectorVariant(match)],
+        [symbols.variants]: [notLastChildSelectorVariant(match)],
         "border-style": style
       };
     },
     { autocomplete: borderStyles.map((i) => `divide-${i}`) }
   ]
 ];
-function* handlerDivide([m, d, s], { symbols: symbols2, theme }) {
+function* handlerDivide([m, d, s], { symbols, theme }) {
   let v = h.bracket.cssvar.px(s || "1", theme);
   if (v != null) {
     if (v === "0")
@@ -25064,7 +25107,7 @@ function* handlerDivide([m, d, s], { symbols: symbols2, theme }) {
     });
     if (results) {
       yield {
-        [symbols2.variants]: [notLastChildSelectorVariant(m)],
+        [symbols.variants]: [notLastChildSelectorVariant(m)],
         [`--un-divide-${d}-reverse`]: 0,
         ...Object.fromEntries(results.flat())
       };
@@ -27392,10 +27435,10 @@ var rules = [
   questionMark
 ].flat();
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/shortcuts.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/shortcuts.mjs
 var shortcuts = [...containerShortcuts];
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/colors-LrxJAP6O.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/colors-LrxJAP6O.mjs
 var colors = {
   black: "#000",
   white: "#fff",
@@ -27769,7 +27812,7 @@ Object.values(colors).forEach((color) => {
     color.DEFAULT = color.DEFAULT || color[400];
 });
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/theme.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/theme.mjs
 var animation = {
   keyframes: {
     pulse: "{0%, 100% {opacity:1} 50% {opacity:.5}}",
@@ -28386,7 +28429,8 @@ var theme = {
   supports
 };
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/variants-BCMFMAbD.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/variants-BCMFMAbD.mjs
+import { toArray as toArray4 } from "@unocss/core";
 var variantAria = {
   name: "aria",
   match(matcher, ctx) {
@@ -28915,7 +28959,7 @@ var variantNegative = {
           const [prop, rawValue, meta] = v;
           if (typeof rawValue === "object")
             continue;
-          if (meta && toArray(meta).includes("$$mini-no-negative"))
+          if (meta && toArray4(meta).includes("$$mini-no-negative"))
             continue;
           const value = rawValue?.toString();
           if (!value || value === "0" || ignoreProps.some((i) => i.test(prop)))
@@ -29053,7 +29097,11 @@ function variants(options) {
   ].flat();
 }
 
-// node_modules/.bun/@unocss+extractor-arbitrary-variants@66.10.5/node_modules/@unocss/extractor-arbitrary-variants/dist/index.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/index.mjs
+import { definePreset, escapeSelector as escapeSelector3, toArray as toArray5, uniq } from "@unocss/core";
+
+// ../../node_modules/.bun/@unocss+extractor-arbitrary-variants@66.10.5/node_modules/@unocss/extractor-arbitrary-variants/dist/index.mjs
+import { defaultSplitRE, isValidSelector } from "@unocss/core";
 function hash(str) {
   let i;
   let l;
@@ -29120,7 +29168,7 @@ function extractorArbitraryVariants() {
   };
 }
 
-// node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/index.mjs
+// ../../node_modules/.bun/@unocss+preset-wind4@66.10.5/node_modules/@unocss/preset-wind4/dist/index.mjs
 function property3(options) {
   if (options.preflights?.property === false)
     return;
@@ -29615,9 +29663,9 @@ function theme$1(options) {
       const generateCSS = (deps) => {
         if (process)
           for (const utility of deps)
-            for (const p of toArray(process))
+            for (const p of toArray5(process))
               p(utility, ctx);
-        const resolvedDeps = deps.map(([key, value]) => key && value ? `${escapeSelector(key)}: ${value};` : undefined).filter(Boolean);
+        const resolvedDeps = deps.map(([key, value]) => key && value ? `${escapeSelector3(key)}: ${value};` : undefined).filter(Boolean);
         if (resolvedDeps.length === 0)
           return;
         const depCSS = resolvedDeps.join(`
@@ -29695,7 +29743,7 @@ var presetWind4 = definePreset((options = {}) => {
   };
 });
 
-// packages/spin/src/preset/wind4.ts
+// ../../packages/spin/src/compiler/wind4.ts
 var WIND4_FAMILIES = [
   ["colors", "color"],
   ["spacing", "spacing"],
@@ -29809,7 +29857,7 @@ function covered(rule, claim) {
   return exactName(rule) === claim;
 }
 var definedNamespaces = (() => {
-  const parsed = parseTokens(silkTheme);
+  const parsed = parseTokens(silkTheme2);
   if (!parsed.ok)
     throw new Error(`silk theme: ${parsed.error}`);
   const groups = new Set(["--grid-gutter"]);
@@ -29871,10 +29919,10 @@ function registered(objects) {
   for (const object of objects) {
     if (!("syntax" in object) || !("initial-value" in object))
       continue;
-    const variants = object[symbols.variants];
+    const variants = object[symbols4.variants];
     if (typeof variants !== "function")
       continue;
-    for (const variant of toArray(variants())) {
+    for (const variant of toArray6(variants())) {
       if (variant === null || typeof variant !== "object")
         continue;
       if (!("selector" in variant))
@@ -29998,13 +30046,8 @@ function wind4Layers(options = {}) {
   }
   return { rules: builtRules, variants: buildVariants(options.dark) };
 }
-function wind4Exclusions() {
-  if (!builtRules)
-    wind4Layers();
-  return audit;
-}
 
-// packages/spin/src/preset/utils/variant.ts
+// ../../packages/spin/src/compiler/utils/variant.ts
 function prefixVariant(name, prefix, selector) {
   return {
     name,
@@ -30016,15 +30059,15 @@ function prefixVariant(name, prefix, selector) {
   };
 }
 
-// packages/spin/src/preset/variants/focus.ts
+// ../../packages/spin/src/compiler/variants/focus.ts
 var FOCUS_PREFIX = "focus:";
 var focusVariant = prefixVariant("spin-focus", FOCUS_PREFIX, (s) => `${s}:focus`);
 
-// packages/spin/src/preset/variants/hover.ts
+// ../../packages/spin/src/compiler/variants/hover.ts
 var HOVER_PREFIX = "hover:";
 var hoverVariant = prefixVariant("spin-hover", HOVER_PREFIX, (s) => `${s}:hover`);
 
-// packages/spin/src/preset/variants/breakpoint.ts
+// ../../packages/spin/src/compiler/variants/breakpoint.ts
 function breakpointVariant(edges) {
   return {
     name: "spin-breakpoint",
@@ -30052,7 +30095,7 @@ function breakpointVariant(edges) {
   };
 }
 
-// packages/spin/src/preset/variants/index.ts
+// ../../packages/spin/src/compiler/variants/index.ts
 function spinVariants(options = {}) {
   return [
     hoverVariant,
@@ -30086,7 +30129,96 @@ function breakpointEdges(trees) {
   return out;
 }
 
-// packages/spin/src/preset/catalog.ts
+// ../../packages/spin/src/compiler/factory.ts
+function defaultDocument() {
+  return scaffoldDocument();
+}
+function assertComplete(name, tree, required) {
+  const report = validateTokens(tree, { required: [...required] });
+  const issues = [...report.issues, ...validateLegibility(tree)];
+  if (issues.length > 0) {
+    const details = issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ");
+    throw new Error(`spinPreset: theme "${name}" is incomplete: ${details}`);
+  }
+}
+function createSpinFactory(layerWind4) {
+  const factory = definePreset2((options = {}) => {
+    const enabled = Array.isArray(options.primitives) ? options.primitives : options.primitives === false ? [] : undefined;
+    const documents = resolveThemes(options.themes ?? { light: options.theme ?? defaultDocument() });
+    const trees = {};
+    for (const [name, doc] of Object.entries(documents)) {
+      const parsed = parseTokens(doc);
+      if (!parsed.ok) {
+        throw new Error(`spinPreset: theme "${name}" is invalid: ${parsed.error}`);
+      }
+      assertComplete(name, parsed.tree, requiredRolesFor());
+      trees[name] = parsed.tree;
+    }
+    const componentRoots = enabled ?? Object.keys(primitiveContracts);
+    const vars = themeRef(Object.values(trees).reduce((all, t) => [...all, ...t], []));
+    const theme = { ...vars, ...wind4Theme(vars) };
+    const edges = breakpointEdges(Object.values(trees));
+    const wind4 = layerWind4 ? wind4Layers() : { rules: [], variants: [] };
+    return {
+      name: "spin",
+      theme,
+      variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
+      shortcuts: { ...spinShortcuts, ...options.shortcuts },
+      extractors: [
+        classObjectExtractor,
+        elementExtractor,
+        typeExtractor,
+        variantExtractor
+      ],
+      rules: [
+        ...spinRules(componentRoots, {
+          classless: options.classless !== false
+        }),
+        ...wind4.rules
+      ],
+      preflights: buildPreflights({ trees, documents }),
+      transformers: [transformerDirectives(), transformerVariantGroup()],
+      layers: { reset: -100, theme: -90, primitives: -50 },
+      autocomplete: {
+        templates: [
+          "bg-$colors",
+          "border-$colors",
+          "p-$spacing",
+          "m-$spacing",
+          "gap-$spacing",
+          "w-$spacing",
+          "h-$spacing",
+          "inset-$spacing",
+          "z-$zIndex",
+          "duration-$motionDuration",
+          "ease-$motionEasing",
+          "text-$fontSize",
+          "font-$fontFamily",
+          "rounded-$radius",
+          "shadow-$shadow"
+        ],
+        shorthands: {
+          colors: orGroup(theme, "color"),
+          spacing: orGroup(theme, "spacing"),
+          opacity: orGroup(theme, "opacity"),
+          letterSpacing: orGroup(theme, "font-letter-spacing"),
+          breakpoint: orGroup(theme, "breakpoint"),
+          zIndex: orGroup(theme, "z-index"),
+          motionDuration: "(" + transitionDurations(theme).join("|") + ")",
+          motionEasing: orGroup(theme, "motion-easing"),
+          fontSize: orGroup(theme, "font-size"),
+          fontFamily: orGroup(theme, "font-family"),
+          fontWeight: orGroup(theme, "font-weight"),
+          radius: orGroup(theme, "radius"),
+          shadow: orGroup(theme, "shadow")
+        }
+      }
+    };
+  });
+  return (options) => factory(options);
+}
+
+// ../../packages/spin/src/compiler/catalog.ts
 function prefixed(prefixes, keys) {
   const names = [...keys];
   const out = [];
@@ -30185,7 +30317,7 @@ function describeCatalog(tree) {
     {
       id: "display",
       title: "Display",
-      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES]
+      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES, ...BACKDROP_BLUR_NAMES]
     },
     {
       id: "text",
@@ -30259,7 +30391,7 @@ function describeCatalog(tree) {
     }
   ];
 }
-// packages/spin/src/preset/uno.ts
+// ../../packages/spin/src/compiler/uno.ts
 function textValue(value) {
   if (typeof value === "string" || typeof value === "number") {
     return String(value);
@@ -30338,11 +30470,11 @@ function walk4(nodes) {
   }
   return out;
 }
-// node_modules/.bun/@orpc+shared@1.16.1/node_modules/@orpc/shared/dist/index.mjs
+// ../../node_modules/.bun/@orpc+shared@1.16.1/node_modules/@orpc/shared/dist/index.mjs
 function resolveMaybeOptionalOptions(rest) {
   return rest[0] ?? {};
 }
-function toArray2(value) {
+function toArray7(value) {
   return Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
 }
 var ORPC_SHARED_PACKAGE_NAME = "@orpc/shared";
@@ -30561,7 +30693,7 @@ function overlayProxy(target, partial) {
   return proxy;
 }
 
-// node_modules/.bun/@orpc+client@1.16.1/node_modules/@orpc/client/dist/shared/client.D_0j2fRr.mjs
+// ../../node_modules/.bun/@orpc+client@1.16.1/node_modules/@orpc/client/dist/shared/client.D_0j2fRr.mjs
 var ORPC_CLIENT_PACKAGE_NAME = "@orpc/client";
 var ORPC_CLIENT_PACKAGE_VERSION = "1.16.1";
 var COMMON_ORPC_ERROR_DEFS = {
@@ -30701,7 +30833,7 @@ function toORPCError(error) {
 function isORPCErrorStatus(status) {
   return status < 200 || status >= 400;
 }
-// node_modules/.bun/@orpc+standard-server@1.16.1/node_modules/@orpc/standard-server/dist/index.mjs
+// ../../node_modules/.bun/@orpc+standard-server@1.16.1/node_modules/@orpc/standard-server/dist/index.mjs
 class EventEncoderError extends TypeError {
 }
 
@@ -30893,7 +31025,7 @@ class HibernationEventIterator extends AsyncIteratorClass {
   }
 }
 
-// node_modules/.bun/@orpc+client@1.16.1/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
+// ../../node_modules/.bun/@orpc+client@1.16.1/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
 function mapEventIterator(iterator, maps) {
   const mapError = async (error) => {
     let mappedError = await maps.error(error);
@@ -30929,7 +31061,7 @@ function mapEventIterator(iterator, maps) {
     }
   });
 }
-// node_modules/.bun/@orpc+contract@1.16.1/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
+// ../../node_modules/.bun/@orpc+contract@1.16.1/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
 class ValidationError extends Error {
   issues;
   data;
@@ -30976,7 +31108,7 @@ function isContractProcedure(item) {
   }
   return (typeof item === "object" || typeof item === "function") && item !== null && "~orpc" in item && typeof item["~orpc"] === "object" && item["~orpc"] !== null && "errorMap" in item["~orpc"] && "route" in item["~orpc"] && "meta" in item["~orpc"];
 }
-// node_modules/.bun/@orpc+contract@1.16.1/node_modules/@orpc/contract/dist/index.mjs
+// ../../node_modules/.bun/@orpc+contract@1.16.1/node_modules/@orpc/contract/dist/index.mjs
 function mergeMeta(meta1, meta2) {
   return { ...meta1, ...meta2 };
 }
@@ -31126,7 +31258,7 @@ var oc = new ContractBuilder({
 });
 var EVENT_ITERATOR_DETAILS_SYMBOL = Symbol("ORPC_EVENT_ITERATOR_DETAILS");
 
-// node_modules/.bun/@orpc+server@1.16.1+db9ee694945d86be/node_modules/@orpc/server/dist/shared/server.DEBcqOjg.mjs
+// ../../node_modules/.bun/@orpc+server@1.16.1+db9ee694945d86be/node_modules/@orpc/server/dist/shared/server.DEBcqOjg.mjs
 var LAZY_SYMBOL = Symbol("ORPC_LAZY_SYMBOL");
 function lazy(loader, meta = {}) {
   return {
@@ -31212,7 +31344,7 @@ function middlewareOutputFn(output) {
 function createProcedureClient(lazyableProcedure, ...rest) {
   const options = resolveMaybeOptionalOptions(rest);
   return async (...[input, callerOptions]) => {
-    const path = toArray2(options.path);
+    const path = toArray7(options.path);
     const { default: procedure } = await unlazy(lazyableProcedure);
     const clientContext = callerOptions?.context ?? {};
     const context = await value(options.context ?? {}, clientContext);
@@ -31226,7 +31358,7 @@ function createProcedureClient(lazyableProcedure, ...rest) {
     try {
       const output = await runWithSpan({ name: "call_procedure", signal: callerOptions?.signal }, (span) => {
         span?.setAttribute("procedure.path", [...path]);
-        return intercept(toArray2(options.interceptors), {
+        return intercept(toArray7(options.interceptors), {
           context,
           input,
           errors,
@@ -31415,7 +31547,7 @@ function enhanceRouter(router, options) {
   return enhanced;
 }
 
-// node_modules/.bun/@orpc+server@1.16.1+db9ee694945d86be/node_modules/@orpc/server/dist/index.mjs
+// ../../node_modules/.bun/@orpc+server@1.16.1+db9ee694945d86be/node_modules/@orpc/server/dist/index.mjs
 var DEFAULT_CONFIG2 = {
   initialInputValidationIndex: 0,
   initialOutputValidationIndex: 0,
@@ -31724,7 +31856,7 @@ function implement(contract, config = {}) {
   return impl;
 }
 
-// packages/spin/src/preset/organization.ts
+// ../../packages/spin/src/compiler/organization.ts
 var SAMPLES = ["box", "swatch", "text", "stack"];
 var SECTIONS = [
   {
@@ -31801,7 +31933,7 @@ function utilitiesFor(section, catalog) {
   return out;
 }
 
-// packages/spin/src/preset/contract.ts
+// ../../packages/spin/src/compiler/contract.ts
 var ThemeText = pipe(string(), description("A DTCG theme document as JSON text."));
 var catalog = oc.input(object({ text: ThemeText })).output(object({
   error: nullable(string()),
@@ -31872,7 +32004,7 @@ var presetRouter = os2.router({
     organization: organizationHandler
   }
 });
-// packages/spin/src/preset/overlay.ts
+// ../../packages/spin/src/compiler/overlay.ts
 var ThemeDocuments = record(string(), unknown());
 var OpenState = object({
   open: boolean()
@@ -31906,7 +32038,7 @@ var overlayRouter = os3.router({
     }))
   }
 });
-// packages/spin/src/preset/reference/scale.ts
+// ../../packages/spin/src/compiler/reference/scale.ts
 var EDGES = [
   { key: "", label: "all" },
   { key: "x", label: "inline" },
@@ -31917,7 +32049,7 @@ var EDGES = [
   { key: "l", label: "left" }
 ];
 
-// packages/spin/src/preset/reference/build.ts
+// ../../packages/spin/src/compiler/reference/build.ts
 var EDGE_AXES = EDGES;
 function split(name, prefix) {
   if (!name.startsWith(`${prefix}-`))
@@ -31977,7 +32109,7 @@ function buildScale(group, shape, meta) {
 function scaleClass(prefix, axis, step) {
   return axis === "" ? `${prefix}-${step}` : `${prefix}${axis}-${step}`;
 }
-// packages/spin/src/preset/rules/primitives/sample-copy.ts
+// ../../packages/spin/src/compiler/rules/primitives/sample-copy.ts
 var sample = {
   name: "Lodestar",
   established: "2021",
@@ -32031,7 +32163,7 @@ var sample = {
   }
 };
 
-// packages/spin/src/preset/rules/primitives/alert.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/alert.examples.ts
 var ALERT_CLASSES = [
   {
     name: "<alert>",
@@ -32059,7 +32191,7 @@ var ALERT_CLASSES = [
     description: "Quieter tone that tints the surface instead"
   }
 ];
-var row = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var alertFixtureNote = "A surface with a strong edge in its tone — the tone marks the alert, the surface stays the surface. `role=alert` takes a heavier edge than `role=status`.";
@@ -32105,7 +32237,7 @@ var ALERT_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/badge.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/badge.examples.ts
 var BADGE_CLASSES = [
   {
     name: "<badge>",
@@ -32138,7 +32270,7 @@ var BADGE_CLASSES = [
     description: "Dismiss control inside a badge"
   }
 ];
-var row2 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row2 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var badgeFixtureNote = "The smallest component: a tag that carries the base and spends a tone. Tones are variants or classes, `-muted` suffixes are quieter, sm and lg change the size.";
@@ -32214,7 +32346,7 @@ var BADGE_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/breadcrumbs.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/breadcrumbs.examples.ts
 var breadcrumbsFixtureNote = "A trail of links; the last step is `aria-current`, not a link. The separator is content, not a component.";
 var BREADCRUMBS_CLASSES = [
   {
@@ -32284,8 +32416,8 @@ ${trail("  ", link("/", "Lodestar"), link("/services/checkout-api", "checkout-ap
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/button.examples.ts
-var row3 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+// ../../packages/spin/src/compiler/rules/primitives/button.examples.ts
+var row3 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
 </div>`;
 var buttonFixtureNote = "Buttons allow the user to take actions or make choices. The <button> tag carries the base style with no class required.";
@@ -32293,12 +32425,17 @@ var BUTTON_CLASSES = [
   {
     name: "<button>",
     kind: "Component",
-    description: 'Primary action button (also matches [type="button"], [type="submit"], [type="reset"], [role="button"])'
+    description: 'Neutral surface action button (also matches [type="button"], [type="submit"], [type="reset"], [role="button"])'
+  },
+  {
+    name: ".primary",
+    kind: "Color",
+    description: "Primary brand fill with on-primary foreground ink"
   },
   {
     name: ".secondary",
     kind: "Color",
-    description: "Raised surface fill with border for secondary actions"
+    description: "Secondary fill with border and on-secondary foreground ink"
   },
   {
     name: ".contrast",
@@ -32354,7 +32491,8 @@ var BUTTON_EXAMPLES = [
   },
   {
     name: "Button colors",
-    html: row3(`  <button>Primary</button>
+    html: row3(`  <button>Default</button>
+  <button class="primary">Primary</button>
   <button class="secondary">Secondary</button>
   <button class="contrast">Contrast</button>
   <button class="danger">Danger</button>`)
@@ -32373,8 +32511,8 @@ var BUTTON_EXAMPLES = [
   },
   {
     name: "Button with icon",
-    html: row3(`  <button><i class="i-lucide-plus button-icon" aria-hidden="true"></i>New service</button>
-  <button class="secondary">Continue<i class="i-lucide-arrow-right button-icon" aria-hidden="true"></i></button>
+    html: row3(`  <button class="primary"><i class="i-lucide-plus button-icon" aria-hidden="true"></i>New service</button>
+  <button>Continue<i class="i-lucide-arrow-right button-icon" aria-hidden="true"></i></button>
   <button class="outline s-sm"><i class="i-lucide-download button-icon" aria-hidden="true"></i>Export</button>`)
   },
   {
@@ -32394,14 +32532,14 @@ var BUTTON_EXAMPLES = [
   {
     name: "Joined button group",
     html: `<span role="group" data-toggle-group>
-  <button class="secondary" aria-pressed="true">All</button>
-  <button class="secondary">Running</button>
-  <button class="secondary">Failed</button>
+  <button aria-pressed="true">All</button>
+  <button>Running</button>
+  <button>Failed</button>
 </span>`
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/card.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/card.examples.ts
 var CARD_CLASSES = [
   {
     name: "<card>",
@@ -32459,7 +32597,7 @@ var CARD_CLASSES = [
     description: "Drops the chrome; keeps the parts"
   }
 ];
-var row4 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row4 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var cardFixtureNote = "A surface with eight parts, each its own tag. Sizes are classes on the tag; `card-ghost` drops the chrome.";
@@ -32562,7 +32700,7 @@ var CARD_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/control.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/control.examples.ts
 var CHECKBOX_CLASSES = [
   {
     name: ".checkbox",
@@ -32607,7 +32745,7 @@ var SWITCH_CLASSES = [
     description: "Dead posture on track and thumb"
   }
 ];
-var row5 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row5 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var inputCheckbox = (attrs, label) => `<label><input type="checkbox"${attrs ? ` ${attrs}` : ""}> ${label}</label>`;
@@ -32653,7 +32791,7 @@ var CONTROL_EXAMPLES = [
   ...SWITCH_EXAMPLES
 ];
 
-// packages/spin/src/preset/rules/primitives/details.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/details.examples.ts
 var detailsFixtureNote = "A working disclosure with no class: the tag carries the base and open is the state. A stack of details with a shared name is an exclusive accordion; the platform closes the others.";
 var DETAILS_CLASSES = [
   {
@@ -32736,8 +32874,8 @@ var DETAILS_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/dialog.examples.ts
-var row6 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+// ../../packages/spin/src/compiler/rules/primitives/dialog.examples.ts
+var row6 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var close = `<button class="icon" aria-label="Close" onclick="this.closest('dialog').close()"><i class="i-lucide-x button-icon"></i></button>`;
@@ -32814,7 +32952,7 @@ var DIALOG_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/field.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/field.examples.ts
 var INPUT_CLASSES = [
   {
     name: "<input>",
@@ -32914,7 +33052,7 @@ var TEXTAREA_CLASSES = [
     description: "Disabled posture: theme's disabled fill and ink, not-allowed cursor"
   }
 ];
-var row7 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row7 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var fieldFixtureNote = "A text field works with no class: the tag carries the box and states are attributes. `aria-invalid` carries validity — unjudged, passed, failed.";
@@ -32962,7 +33100,7 @@ var FIELD_EXAMPLES = [
   ...TEXTAREA_EXAMPLES
 ];
 
-// packages/spin/src/preset/rules/primitives/fieldset.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/fieldset.examples.ts
 var fieldsetFixtureNote = "A fieldset groups related fields and disables them at once; the legend reads as the group's name.";
 var FIELDSET_CLASSES = [
   {
@@ -33010,7 +33148,7 @@ var FIELDSET_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/hr.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/hr.examples.ts
 var hrFixtureNote = "A bare `<hr>` drawn from the theme's border token — thicken the borders and the divider thickens with them. `divider-vertical` turns the rule on its side; `divider-dashed` breaks it.";
 var HR_CLASSES = [
   {
@@ -33059,7 +33197,7 @@ var HR_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/icon.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/icon.examples.ts
 var ICON_CLASSES = [
   {
     name: ".icon-sm",
@@ -33077,7 +33215,7 @@ var ICON_CLASSES = [
     description: "Large icon step; font-size from the theme's icon.lg (em-scaled)"
   }
 ];
-var row8 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row8 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var iconFixtureNote = "Glyph sizes from the theme's icon ladder. The step is set against the root, so it is a jump you can see rather than two pixels of prose.";
@@ -33120,8 +33258,8 @@ var ICON_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/join.examples.ts
-var row9 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+// ../../packages/spin/src/compiler/rules/primitives/join.examples.ts
+var row9 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
 </div>`;
 var joinFixtureNote = "A join merges adjacent controls into one object: shared edges square off, the seam collapses to one border. Geometry only — each child keeps its own paint.";
@@ -33162,7 +33300,7 @@ var JOIN_EXAMPLES = [
   },
   {
     name: "Join · beside a caption",
-    html: `<div class="flex flex-wrap items-center gap-2">
+    html: `<div class="flex flex-wrap items-center justify-center gap-2">
   <div class="join">
     <button class="join-item" type="button">Deploy</button>
     <button class="join-item secondary" type="button">Deploy and watch</button>
@@ -33172,7 +33310,7 @@ var JOIN_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/kbd.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/kbd.examples.ts
 var KBD_CLASSES = [
   {
     name: "<kbd>",
@@ -33184,7 +33322,7 @@ var kbdFixtureNote = "A keycap for keyboard input — what to press, not what th
 var KBD_EXAMPLES = [
   {
     name: "Kbd · single & modifier keys",
-    html: `<div class="flex flex-wrap items-center gap-2">
+    html: `<div class="flex flex-wrap items-center justify-center gap-2">
   <kbd>⌘</kbd>
   <kbd>⇧</kbd>
   <kbd>⌥</kbd>
@@ -33211,8 +33349,8 @@ var KBD_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/label.examples.ts
-var row10 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+// ../../packages/spin/src/compiler/rules/primitives/label.examples.ts
+var row10 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var labelFixtureNote = "A working label with no class: the caption above the control it names.";
@@ -33242,7 +33380,7 @@ var LABEL_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/meter.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/meter.examples.ts
 var METER_CLASSES = [
   {
     name: "<meter>",
@@ -33268,7 +33406,7 @@ var METER_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/panel.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/panel.examples.ts
 var PANEL_CLASSES = [
   {
     name: "<panel>",
@@ -33294,7 +33432,7 @@ var PANEL_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/progress.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/progress.examples.ts
 var PROGRESS_CLASSES = [
   {
     name: "<progress>",
@@ -33307,7 +33445,7 @@ var PROGRESS_CLASSES = [
     description: "Sweeping bar for work with no measurable end"
   }
 ];
-var row11 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row11 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var progressFixtureNote = "A native bar with a real value and a real indeterminate state. An indeterminate bar sweeps, because a static empty bar reads as a failure to load.";
@@ -33326,7 +33464,7 @@ var PROGRESS_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/radio.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/radio.examples.ts
 var RADIO_CLASSES = [
   {
     name: ".radio",
@@ -33349,7 +33487,7 @@ var RADIO_CLASSES = [
     description: "Disables the control and its dot together, so a dead radio is dead all the way through"
   }
 ];
-var row12 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+var row12 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var radioFixtureNote = "A working radio with no class: the input carries the base. A group is labelled inputs sharing a name.";
@@ -33383,7 +33521,7 @@ var RADIO_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/prose.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/prose.examples.ts
 var PROSE_CLASSES = [
   {
     name: ".prose",
@@ -33503,7 +33641,7 @@ var PROSE_EXAMPLES = [
   ...PROSE_DOC_EXAMPLES
 ];
 
-// packages/spin/src/preset/rules/primitives/skeleton.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/skeleton.examples.ts
 var SKELETON_CLASSES = [
   {
     name: ".skeleton",
@@ -33552,7 +33690,7 @@ var SKELETON_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/stat.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/stat.examples.ts
 var statFixtureNote = "A labelled number: title, value and description as part classes on a `stat` container. A row of them is a `stat-row`, and a row wraps.";
 var STAT_CLASSES = [
   {
@@ -33630,8 +33768,8 @@ var STAT_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/swatch.examples.ts
-var row13 = (inner) => `<div class="flex flex-wrap items-center gap-2">
+// ../../packages/spin/src/compiler/rules/primitives/swatch.examples.ts
+var row13 = (inner) => `<div class="flex flex-wrap items-center justify-center gap-2">
 ${inner}
         </div>`;
 var swatchFixtureNote = "A bordered dot painted from --swatch; size via s-sm/s-md/s-lg.";
@@ -33679,7 +33817,7 @@ var SWATCH_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/tooltip.examples.ts
+// ../../packages/spin/src/compiler/rules/primitives/tooltip.examples.ts
 var TOOLTIP_CLASSES = [
   {
     name: "<tooltip>",
@@ -33690,7 +33828,14 @@ var TOOLTIP_CLASSES = [
 var tooltipFixtureNote = "A hover chip for one-line notes — hidden until its anchor is hovered or focused, never body copy.";
 var TOOLTIP_EXAMPLES = [
   {
-    name: "Tooltip · beside a control",
+    name: "Tooltip · the chip",
+    html: `<span class="relative inline-flex items-center">
+  <button type="button" class="bare peer inline-flex items-center">Deploy</button>
+  <tooltip class="visible start-0 top-full whitespace-nowrap">Ships the canary to one region</tooltip>
+</span>`
+  },
+  {
+    name: "Tooltip · revealed on hover",
     html: `<span class="relative inline-flex items-center">
   <button type="button" class="bare peer inline-flex items-center">Deploy</button>
   <tooltip class="start-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Ships the canary to one region</tooltip>
@@ -33705,8 +33850,8 @@ var TOOLTIP_EXAMPLES = [
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/table.examples.ts
-var tableFixtureNote = "A document, not a spreadsheet: figures align on the digit, cells are separated by a rule. `striped` is the only class.";
+// ../../packages/spin/src/compiler/rules/primitives/table.examples.ts
+var tableFixtureNote = "A document, not a spreadsheet: figures align on the digit, cells are separated by a rule. `striped` stripes rows, `wrap` wraps prose cells.";
 var TABLE_CLASSES = [
   {
     name: "<table>",
@@ -33727,12 +33872,17 @@ var TABLE_CLASSES = [
     name: ".striped",
     kind: "Modifier",
     description: "Zebra fill on every other body row for long tables"
+  },
+  {
+    name: ".wrap",
+    kind: "Modifier",
+    description: "Cells re-wrap and top-align, for reference tables that carry sentences"
   }
 ];
 var TABLE_EXAMPLES = [
   {
     name: "Figures align",
-    html: `<table>
+    html: `<div class="max-w-full overflow-x-auto"><table>
           <caption>Deploys by service, last 7 days</caption>
           <thead>
             <tr>
@@ -33748,7 +33898,7 @@ var TABLE_EXAMPLES = [
             <tr><td>search-indexer</td><td>61</td><td>176</td><td><badge variant="danger">-3%</badge></td></tr>
             <tr><td>webhooks-relay</td><td>24</td><td>203</td><td><badge variant="warning">+21%</badge></td></tr>
           </tbody>
-        </table>`
+        </table></div>`
   },
   {
     name: "A sticky header in a scroller",
@@ -33782,10 +33932,22 @@ var TABLE_EXAMPLES = [
             <tr><td>webhooks-relay</td><td>24</td></tr>
           </tbody>
         </table>`
+  },
+  {
+    name: "Wrapping prose cells",
+    html: `<table class="wrap">
+          <thead>
+            <tr><th scope="col">Command</th><th scope="col">What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>spin init</code></td><td>Makes a project: detects the bundler, writes the first theme, and wires the plugin into the bundler config.</td></tr>
+            <tr><td><code>spin studio</code></td><td>Opens the standalone theme editor: the API at <code>/rpc</code> and the Studio at <code>/studio/</code>.</td></tr>
+          </tbody>
+        </table>`
   }
 ];
 
-// packages/spin/src/preset/rules/primitives/examples-index.ts
+// ../../packages/spin/src/compiler/rules/primitives/examples-index.ts
 var componentExamples = {
   alert: { id: "alert", note: alertFixtureNote, classes: ALERT_CLASSES, rows: ALERT_EXAMPLES },
   badge: { id: "badge", note: badgeFixtureNote, classes: BADGE_CLASSES, rows: BADGE_EXAMPLES },
@@ -33902,100 +34064,12 @@ function examplesFor(id) {
   return componentExamples[id];
 }
 
-// packages/spin/src/preset/index.ts
-function wind4Layer(option) {
-  if (option === false)
-    return { rules: [], variants: [] };
-  return wind4Layers(typeof option === "object" ? option : {});
-}
-function defaultDocument() {
-  return scaffoldDocument();
-}
-function assertComplete(name, tree, required) {
-  const report = validateTokens(tree, { required: [...required] });
-  const issues = [...report.issues, ...validateLegibility(tree)];
-  if (issues.length > 0) {
-    const details = issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ");
-    throw new Error(`spinPreset: theme "${name}" is incomplete: ${details}`);
-  }
-}
-var factory = definePreset((options = {}) => {
-  const enabled = Array.isArray(options.primitives) ? options.primitives : options.primitives === false ? [] : undefined;
-  const documents = resolveThemes(options.themes ?? { light: options.theme ?? defaultDocument() });
-  const trees = {};
-  for (const [name, doc] of Object.entries(documents)) {
-    const parsed = parseTokens(doc);
-    if (!parsed.ok) {
-      throw new Error(`spinPreset: theme "${name}" is invalid: ${parsed.error}`);
-    }
-    assertComplete(name, parsed.tree, requiredRolesFor());
-    trees[name] = parsed.tree;
-  }
-  const componentRoots = enabled ?? Object.keys(primitiveContracts);
-  const vars = themeRef(Object.values(trees).reduce((all, t) => [...all, ...t], []));
-  const theme = { ...vars, ...wind4Theme(vars) };
-  const edges = breakpointEdges(Object.values(trees));
-  const wind4 = wind4Layer(options.wind4);
-  return {
-    name: "spin",
-    theme,
-    variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
-    shortcuts: { ...spinShortcuts, ...options.shortcuts },
-    extractors: [
-      classObjectExtractor,
-      elementExtractor,
-      typeExtractor,
-      variantExtractor
-    ],
-    rules: [
-      ...spinRules(componentRoots, {
-        classless: options.classless !== false
-      }),
-      ...wind4.rules
-    ],
-    preflights: buildPreflights({ trees, documents }),
-    transformers: [transformerDirectives(), transformerVariantGroup()],
-    layers: { reset: -100, theme: -90, primitives: -50 },
-    autocomplete: {
-      templates: [
-        "bg-$colors",
-        "border-$colors",
-        "p-$spacing",
-        "m-$spacing",
-        "gap-$spacing",
-        "w-$spacing",
-        "h-$spacing",
-        "inset-$spacing",
-        "z-$zIndex",
-        "duration-$motionDuration",
-        "ease-$motionEasing",
-        "text-$fontSize",
-        "font-$fontFamily",
-        "rounded-$radius",
-        "shadow-$shadow"
-      ],
-      shorthands: {
-        colors: orGroup(theme, "color"),
-        spacing: orGroup(theme, "spacing"),
-        opacity: orGroup(theme, "opacity"),
-        letterSpacing: orGroup(theme, "font-letter-spacing"),
-        breakpoint: orGroup(theme, "breakpoint"),
-        zIndex: orGroup(theme, "z-index"),
-        motionDuration: "(" + transitionDurations(theme).join("|") + ")",
-        motionEasing: orGroup(theme, "motion-easing"),
-        fontSize: orGroup(theme, "font-size"),
-        fontFamily: orGroup(theme, "font-family"),
-        fontWeight: orGroup(theme, "font-weight"),
-        radius: orGroup(theme, "radius"),
-        shadow: orGroup(theme, "shadow")
-      }
-    }
-  };
-});
+// ../../packages/spin/src/compiler/index.ts
+var factory = createSpinFactory(true);
 function spinPreset(options) {
   return factory(options);
 }
-var preset_default = spinPreset;
+var compiler_default = spinPreset;
 export {
   EDGES,
   EDGE_AXES,
@@ -34006,7 +34080,7 @@ export {
   claimedGroups,
   clearOverlay,
   componentExamples,
-  preset_default as default,
+  compiler_default as default,
   describeCatalog,
   examplesFor,
   hasOverlay,
@@ -34036,7 +34110,5 @@ export {
   spinPreset,
   spinShortcuts,
   toUnoTheme,
-  utilitiesFor,
-  wind4Exclusions,
-  wind4Layers
+  utilitiesFor
 };

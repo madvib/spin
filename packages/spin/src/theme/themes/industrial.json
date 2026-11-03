@@ -479,6 +479,18 @@
         "$value": "0.1em",
         "$description": "A single word carrying a whole section. Past this the word stops being a word."
       }
+    },
+    "typography": {
+      "$type": "typography",
+      "$description": "The type the theme sets in one token: a face, a size, a weight and a tracking.",
+      "body": {
+        "$value": "400 1.125rem Space Grotesk, ui-sans-serif, system-ui, sans-serif 0em",
+        "$description": "The body voice, in one value."
+      },
+      "display": {
+        "$value": "700 1.875rem Chakra Petch, Space Grotesk, sans-serif -0.025em",
+        "$description": "The display voice, in one value."
+      }
     }
   },
   "radius": {

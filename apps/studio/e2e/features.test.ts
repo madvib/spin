@@ -650,7 +650,7 @@ async function pickStep(
 test("a composite token opens an editor of the theme's own steps, and one part written back leaves the rest", async () => {
   await withPage(async (page) => {
     await openStudio(page);
-    const seated = await seatTheme(page, "synthwave");
+    const seated = await seatTheme(page, "industrial");
     deepStrictEqual(
       seated,
       "seated",
@@ -661,10 +661,10 @@ test("a composite token opens an editor of the theme's own steps, and one part w
 
     // the theme under edit, and the value it declares for the token
     const themes = await listedThemes(page);
-    const theme = themes.find((candidate) => candidate.name === "synthwave");
-    assert(theme !== undefined, "the registry lists no synthwave");
+    const theme = themes.find((candidate) => candidate.name === "industrial");
+    assert(theme !== undefined, "the registry lists no industrial");
     const declared = declaredValue(theme.text, ["font", "typography", "body"]);
-    assert(declared !== null, "synthwave declares no font.typography.body");
+    assert(declared !== null, "industrial declares no font.typography.body");
 
     // the row shows the theme's own value
     const row = await compositeRow(page, "font.typography.body");
@@ -1080,21 +1080,21 @@ const errs: string[] = [];
 async function rowBackground(page: StudioPage): Promise<string | null> {
   return await page.eval<string | null>(
     `(() => {
-      const row = [...document.querySelectorAll("nav a")].find((a) => (a.getAttribute("href") ?? "").split("?")[0].endsWith("/findings"));
+      const row = document.querySelector('studio-nav [role="menuitem"][data-value="/findings"]');
       if (!row) return null;
       return getComputedStyle(row).backgroundColor;
     })()`,
   );
 }
 
-/** The colour the studio's own surface paints, as the browser resolves it. */
+/** The colour the studio's own sunken surface paints, as the browser resolves it. */
 async function chromeSurface(page: StudioPage): Promise<string | null> {
   return await page.eval<string | null>(
     `(() => {
       const chrome = document.querySelector('[data-theme="studio"]');
       if (!chrome) return null;
       const probe = document.createElement("div");
-      probe.style.background = "var(--color-surface)";
+      probe.style.background = "var(--color-surface-sunken)";
       chrome.appendChild(probe);
       const painted = getComputedStyle(probe).backgroundColor;
       probe.remove();
@@ -1106,23 +1106,25 @@ async function chromeSurface(page: StudioPage): Promise<string | null> {
 test("the rail marks the row the pointer is on, and lets it go when the pointer parks", async () => {
   await withPage(async (page) => {
     await openStudio(page);
+    await page.page.locator('[data-testid="studio-nav"]').click();
+    await page.settle(300);
     const resting = await rowBackground(page);
-    assert(resting !== null, "the rail draws no row for the findings page");
+    assert(resting !== null, "the nav draws no row for the findings page");
     deepStrictEqual(
       resting,
       "rgba(0, 0, 0, 0)",
-      "the rail row wears a paint of its own at rest",
+      "the nav row wears a paint of its own at rest",
     );
 
-    const hovered = await page.hover('nav a[href$="/findings"]');
-    deepStrictEqual(hovered === "hovered" ? "hovered" : await page.hover('nav a[href*="/findings?"]'), "hovered", "the rail row could not be hovered");
+    const hovered = await page.hover('studio-nav [role="menuitem"][data-value="/findings"]');
+    deepStrictEqual(hovered, "hovered", "the nav row could not be hovered");
     const marked = await rowBackground(page);
     const surface = await chromeSurface(page);
     assert(surface !== null, "the studio's chrome wears no surface of its own");
     deepStrictEqual(
       marked,
       surface,
-      "the hovered rail row does not wear the theme's surface",
+      "the hovered nav row does not wear the theme's surface",
     );
 
     await page.parkPointer();
@@ -1130,7 +1132,7 @@ test("the rail marks the row the pointer is on, and lets it go when the pointer 
     deepStrictEqual(
       await rowBackground(page),
       resting,
-      "the rail row keeps the hover mark after the pointer parks",
+      "the nav row keeps the hover mark after the pointer parks",
     );
   });
 });

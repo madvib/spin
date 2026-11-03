@@ -235,7 +235,7 @@ test("a slider paints its groove and fill from the seated theme", async () => {
     assert(seated2 === "seated", `silk never seated: ${seated2}`);
     const lit2 = await page.chooseMode("light");
     assert(lit2 === "pressed", `light never chose: ${lit2}`);
-    for (const theme of ["silk", "synthwave"] as const) {
+    for (const theme of ["silk", "industrial"] as const) {
       const seated = await page.chooseTheme(theme);
       assert(seated === "seated", `seating ${theme} stopped at ${seated}`);
       const probe = await page.eval<{
@@ -782,17 +782,17 @@ test("the theme and mode panels take the keyboard", async () => {
 test("the theme and mode survive a reload", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
-    const seated = await page.chooseTheme("synthwave");
-    assert(seated === "seated", `seating synthwave stopped at ${seated}`);
+    const seated = await page.chooseTheme("industrial");
+    assert(seated === "seated", `seating industrial stopped at ${seated}`);
     const flipped = await page.chooseMode("dark");
     assert(flipped === "pressed", `the dark control is ${flipped}`);
     const before = await state(page);
-    deepStrictEqual(before.name, "synthwave", "the wrong theme was seated");
+    deepStrictEqual(before.name, "industrial", "the wrong theme was seated");
     deepStrictEqual(before.mode, "dark", "the wrong mode was chosen");
 
     await page.reload();
     const after = await state(page);
-    deepStrictEqual(after.name, "synthwave", "the reload lost the seated theme");
+    deepStrictEqual(after.name, "industrial", "the reload lost the seated theme");
     deepStrictEqual(after.mode, "dark", "the reload lost the chosen mode");
   });
 });

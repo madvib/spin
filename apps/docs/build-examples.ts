@@ -126,7 +126,7 @@ async function writeCss(): Promise<void> {
   const [{ createGenerator }, { spinPreset }, { starterThemes }, list] =
     await Promise.all([
       import("@unocss/core"),
-      import("../../packages/spin/src/preset/index.ts"),
+      import("../../packages/spin/src/compiler/index.ts"),
       import("../../packages/spin/src/theme/themes/index.ts"),
       candidates(),
     ]);

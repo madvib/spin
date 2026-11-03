@@ -188,7 +188,7 @@ Commands:
 
 Options for init:
   --name <name>          the first theme's file stem (default: default)
-  --starter <starter>    spin | swiss-grid | paper-ink | nordic | synthwave (default: spin)
+  --starter <starter>    spin | silk | material | neobrut | industrial (default: spin)
   --bundler <bundler>    vite | rspack | webpack | rollup | rolldown | esbuild | bun (default: detected)
   --themes-dir <dir>     themes directory (default: spin)
   --components-dir <dir> components directory (default: lib/components)

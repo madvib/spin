@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
+import { mountSpinApp } from "@spinjs/spin/api";
 import { spin } from "@spinjs/spin/vite";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import studioTheme from "./theme.json" with { type: "json" };
@@ -91,10 +92,9 @@ export default defineConfig(({ command }) => ({
       // and the lint reads them from this file, so a class the studio
       // declares is a class the lint knows.
       shortcuts: studioShortcuts,
-      // The studio is the tool, not its own target: no mount, no
-      // launcher — a FAB opening the studio over the studio helps no
-      // one. Its API comes from its own dev entry, not the plugin.
-      studio: false,
+      // The studio mounts its own API for dev, and must not then inject a
+      // launcher into itself: that is a FAB opening the studio over the studio.
+      launcher: false,
       // The lucide collection the chrome spends glyphs from: `i-lucide-*`
       // is the only icon utility the scanned chrome uses. The other four
       // collections the daemon serves reach the icons page over RPC as
@@ -108,11 +108,11 @@ export default defineConfig(({ command }) => ({
           } as never,
         }),
       ],
-      // The project under edit — the reference app, a real spin app
-      // with `spin/*.json` on disk — is named by the dev entry's own
-      // mount, not the plugin: `studio: false` above disables this
-      // mount, so what the studio edits is what the app shows without
-      // the plugin injecting a launcher into its own tool.
+      // The project under edit. In development that is the reference
+      // app: a real spin app with `spin/*.json` on disk, which is the
+      // same themes it renders — so what the studio edits is what the
+      // app shows.
+      mount: mountSpinApp(resolve(import.meta.dirname, "../reference")),
       content: {
         filesystem: [
           // The file the compositions are declared in. A class written down

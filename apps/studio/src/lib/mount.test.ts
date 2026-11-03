@@ -16,9 +16,9 @@ test("the standalone mount supplies the api and router base", () => {
   deepStrictEqual(studioBase("/studio/colors"), "/studio");
 });
 
-test("the studio's own dev server keeps the host api path", () => {
+test("the studio's own dev server keeps the host api path and routes from root", () => {
   deepStrictEqual(studioMount("/"), "/__spin/");
   deepStrictEqual(studioRpc("/"), "/__spin/rpc");
-  deepStrictEqual(studioBase("/"), "/__spin/studio");
-  deepStrictEqual(studioBase("/colors"), "/__spin/studio");
+  deepStrictEqual(studioBase("/"), "");
+  deepStrictEqual(studioBase("/colors"), "");
 });
