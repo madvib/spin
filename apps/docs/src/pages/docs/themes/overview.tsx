@@ -22,7 +22,7 @@ const STUDIO_STEPS: readonly PropEntry[] = [
     name: "2. Fork a starter or create a theme",
     badge: "New theme",
     description:
-      "Pick one of the five starter palettes (spin, silk, neobrut, console, synthwave) or start from a clean scaffold, then tune colors, typefaces, spacing, and radii against your live page.",
+      "Pick one of the five starter archetypes (spin, silk, material, neobrut, industrial) or start from a clean scaffold, then tune colors, typefaces, spacing, and radii against your live page.",
   },
   {
     name: "3. Check live contrast & scale checks",

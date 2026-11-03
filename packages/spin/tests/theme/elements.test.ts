@@ -104,15 +104,18 @@ test("the ink the danger surfaces wear is a role the contract asks for", () => {
 });
 
 test("a theme that serves a mode it does not override is valid", () => {
-  // The modes a theme serves are a claim, not a promise to restate
-  // everything: a mode it serves but does not override falls back to the
-  // base values. So a theme that serves dark and overrides nothing is a
-  // complete theme — which is exactly what a dark-only theme is.
-  const parsed = parseTokens({
-    ...starterThemes.console,
-  });
+  const darkOnly = structuredClone(starterThemes.industrial) as Record<string, unknown>;
+  for (const group of Object.values(darkOnly)) {
+    if (group && typeof group === "object") {
+      for (const leaf of Object.values(group as Record<string, unknown>)) {
+        if (leaf && typeof leaf === "object") delete (leaf as Record<string, unknown>)["$modes"];
+      }
+    }
+  }
+  darkOnly["modes"] = ["dark"];
+  const parsed = parseTokens(darkOnly);
   if (!parsed.ok) throw new Error(parsed.error);
-  const modes = themeModes(starterThemes.console);
+  const modes = themeModes(darkOnly);
   deepStrictEqual([...modes], ["dark"]);
   const report = validateTokens(parsed.tree, {
     required: requiredPaths(),
@@ -122,11 +125,9 @@ test("a theme that serves a mode it does not override is valid", () => {
 });
 
 test("a value written for a mode the theme does not serve is reported", () => {
-  // The other side of the same rule: a `$modes.dark` value on a theme that
-  // serves only light is never shown, so the declaration is a promise nothing
-  // keeps — and the author should hear about it.
   const parsed = parseTokens({
     ...starterThemes.neobrut,
+    modes: ["light"],
     color: {
       ...(starterThemes.neobrut["color"] as Record<string, unknown>),
       primary: {

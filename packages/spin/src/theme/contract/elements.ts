@@ -129,6 +129,15 @@ export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
     fallback: "color.border",
   },
   {
+    group: "button",
+    element: "button",
+    path: "button.radius",
+    type: "dimension",
+    value: "0.375rem",
+    doc: "The corner rounding of a button.",
+    fallback: "radius.md",
+  },
+  {
     group: "checkbox",
     element: "checkbox",
     path: "checkbox.depth",

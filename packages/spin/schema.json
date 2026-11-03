@@ -5894,6 +5894,40 @@
               "type": "string"
             }
           }
+        },
+        "radius": {
+          "type": "object",
+          "description": "The corner rounding of a button.",
+          "additionalProperties": true,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
         }
       }
     },

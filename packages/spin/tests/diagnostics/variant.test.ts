@@ -105,13 +105,13 @@ test("a class the variant cleared is not dead weight", () => {
 });
 
 test("the variant's own answer is dead weight", () => {
-  // The secondary button wears the page's ink, so `text-text` says what it
+  // The secondary button wears `on-secondary`, so `text-on-secondary` says what it
   // already says.
-  const [finding] = redundant("button", "secondary text-text");
+  const [finding] = redundant("button", "secondary text-on-secondary");
   deepStrictEqual(finding?.messageId, "redundant");
   deepStrictEqual(finding?.data, {
     tag: "button",
-    cls: "text-text",
+    cls: "text-on-secondary",
     properties: "color",
   });
 });
@@ -128,10 +128,10 @@ test("the remedy names only the variants that carry the decision", () => {
   // The remedy has to be a way out. A variant that says nothing about the
   // decision the class overrode is not one, and offering it sends the author
   // to a door that does not open.
-  const [fill] = override("button", "bg-surface-raised");
+  const [fill] = override("button", "bg-primary");
   deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, fill!),
-    "`<button>` sets its own fill; `bg-surface-raised` fights it. " +
+    "`<button>` sets its own fill; `bg-primary` fights it. " +
       "Use a variant (`bare`, `contrast`, …) or the theme's value.",
   );
   // `bare` carries the corner — it zeroes the radius — so it is offered

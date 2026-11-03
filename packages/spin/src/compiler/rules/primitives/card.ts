@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode, withFallback } from "./shared.ts";
+import { claim, type Mode, proseTokens, withFallback } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -202,10 +202,14 @@ function cardTitle(mode: Mode): Rule {
     /^card-title$/,
     function* (_m, ctx) {
       const { sizeLg, weightSemibold, text } = cardTokens(ctx);
+      const headingFamily = proseTokens(ctx).heading;
       yield {
         [ctx.symbols.selector]: () => claim(mode, "card-title"),
         "grid-column": "1",
         "min-width": "0",
+        ...(headingFamily !== undefined
+          ? { "font-family": headingFamily }
+          : {}),
         ...(sizeLg !== undefined ? { "font-size": sizeLg } : {}),
         ...(weightSemibold !== undefined
           ? { "font-weight": weightSemibold }

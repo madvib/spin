@@ -42,8 +42,7 @@ const MODE_RULES: readonly PropEntry[] = [
 
 export default function ThemesModes(): JSX.Element {
   const oppositeMode = () => (mode() === "dark" ? "light" : "dark");
-  const demoTheme = () =>
-    theme() === "console" || theme() === "synthwave" ? "silk" : theme();
+  const demoTheme = () => theme();
   return (
     <main class="flex flex-col">
       <PageHeader

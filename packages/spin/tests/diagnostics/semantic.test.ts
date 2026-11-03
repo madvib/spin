@@ -280,7 +280,7 @@ test("the strictness dial chooses which tiers count", () => {
   };
   deepStrictEqual(redundant("h1", "text-sm", balanced), []);
   deepStrictEqual(override("h1", "text-sm", balanced), []);
-  deepStrictEqual(override("button", "bg-surface-raised", balanced).length, 1);
+  deepStrictEqual(override("button", "bg-primary", balanced).length, 1);
 });
 
 test("the semantic tags dial chooses which elements count", () => {
@@ -296,8 +296,8 @@ test("the semantic tags dial chooses which elements count", () => {
   };
   deepStrictEqual(override("card", "bg-surface", native), []);
   deepStrictEqual(override("card", "bg-surface", spin).length, 1);
-  deepStrictEqual(override("button", "bg-surface-raised", native).length, 1);
-  deepStrictEqual(override("button", "bg-surface-raised", spin), []);
+  deepStrictEqual(override("button", "bg-primary", native).length, 1);
+  deepStrictEqual(override("button", "bg-primary", spin), []);
 });
 
 test("a component's tag is not the browser's, and the default says so", () => {
@@ -324,7 +324,7 @@ test("the default speaks about the browser's elements only", () => {
   // component, and the lint knows nothing about what a component renders.
   deepStrictEqual(DEFAULT_SEMANTIC_OPTIONS.semanticTags, "native");
   deepStrictEqual(override("card", "bg-surface"), []);
-  deepStrictEqual(override("button", "bg-surface-raised").length, 1);
+  deepStrictEqual(override("button", "bg-primary").length, 1);
 });
 
 test("the decoration family is not the element rule's business", () => {
@@ -443,11 +443,11 @@ test("the plugin reads the dial from the linter's context", () => {
   visit?.({
     type: "JSXAttribute",
     name: { name: "class" },
-    value: { value: "text-sm bg-surface-raised" },
+    value: { value: "text-sm bg-primary" },
     parent: { type: "JSXOpeningElement", name: { name: "button" } },
   });
   deepStrictEqual(seen.map((report) => report.data?.["cls"]), [
-    "bg-surface-raised",
+    "bg-primary",
   ]);
 });
 

@@ -641,6 +641,12 @@
       "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
       "$value": "0 4px 12px -2px rgb(15 19 30 / 0.14)"
     }
+    ,
+    "radius": {
+      "$type": "dimension",
+      "$description": "The corner rounding of a button.",
+      "$value": "{radius.md}"
+    }
   },
   "border": {
     "$type": "dimension",

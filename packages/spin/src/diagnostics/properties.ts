@@ -336,7 +336,7 @@ export function resolve(
     (whole, name: string, fallback?: string) => {
       const resolved = values.get(name);
       if (resolved !== undefined) return resolve(resolved, values, depth - 1);
-      if (fallback !== undefined) return fallback.trim();
+      if (fallback !== undefined) return resolve(fallback.trim(), values, depth - 1);
       return whole;
     },
   );

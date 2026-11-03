@@ -77,7 +77,7 @@ test("schema.json matches the derived builder output", async () => {
   deepStrictEqual(artifact, derived);
 });
 for (
-  const name of ["silk.json", "neobrut.json", "console.json"]
+  const name of ["silk.json", "spin.json", "material.json", "neobrut.json", "industrial.json"]
 ) {
   test(`${name} meets every legibility floor`, () => {
     const parsed = parseTokens(example(name));

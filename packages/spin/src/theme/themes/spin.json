@@ -3,16 +3,16 @@
     "spin": {
       "fonts": [
         {
-          "family": "Inter",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "100 900",
+          "family": "Fraunces",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/fraunces:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 900",
           "style": "normal",
           "display": "swap"
         },
         {
-          "family": "Bricolage Grotesque",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/bricolage-grotesque:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "200 800",
+          "family": "Plus Jakarta Sans",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/plus-jakarta-sans:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 800",
           "style": "normal",
           "display": "swap"
         },
@@ -22,18 +22,11 @@
           "weight": "100 800",
           "style": "normal",
           "display": "swap"
-        },
-        {
-          "family": "Space Grotesk",
-          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
-          "weight": "300 700",
-          "style": "normal",
-          "display": "swap"
         }
       ]
     }
   },
-  "$description": "The theme spin wears: a technical tool set like a printed journal — warm paper, a didone for display, one red ink, and rules where other systems have shadows.",
+  "$description": "Editorial & print: warm stone paper, Fraunces display serif paired with Plus Jakarta Sans, 1px hairline rules, flat cards, and crimson + cobalt inks.",
   "color": {
     "$type": "color",
     "$description": "Warm paper and warm charcoal, one red ink and one press blue. The neutrals carry the weight; the red is the spot colour, spent on marks and on the destructive action, never on a large surface.",
@@ -52,10 +45,10 @@
       }
     },
     "accent": {
-      "$value": "#c8102e",
-      "$description": "The spot colour. A printed page spends one ink on marks — a rule's end, a figure's number, the dangerous word — and the rest of the sheet stays black.",
+      "$type": "color",
+      "$value": "#1d4ed8",
       "$modes": {
-        "dark": "#ff5a63"
+        "dark": "#60a5fa"
       }
     },
     "neutral": {
@@ -234,9 +227,8 @@
     "on-accent": {
       "$type": "color",
       "$value": "#ffffff",
-      "$description": "The ink on the spot colour: paper on the day press, and the red's own near-black on the night one.",
       "$modes": {
-        "dark": "#1a0e10"
+        "dark": "#0c1326"
       }
     },
     "selected": {
@@ -389,11 +381,11 @@
     "family": {
       "$type": "fontFamily",
       "sans": {
-        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$value": "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
         "$description": "The working voice: quiet, even, and everywhere a tool has to be read."
       },
       "heading": {
-        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$value": "Fraunces, Georgia, serif",
         "$description": "The display voice: an expressive, ink-trapped technical grotesque with architectural poise."
       },
       "body": {
@@ -401,7 +393,7 @@
         "$description": "The body face: the sans under another name, so the surface reads whole."
       },
       "serif": {
-        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$value": "Fraunces, Georgia, Cambria, serif",
         "$description": "Long-form editorial text. The didone is too sharp to read for pages, so the book serif takes the long reads."
       },
       "mono": {
@@ -505,13 +497,13 @@
       "$value": "0"
     },
     "sm": {
-      "$value": "0.25rem"
+      "$value": "0.125rem"
     },
     "md": {
-      "$value": "0.375rem"
+      "$value": "0.25rem"
     },
     "lg": {
-      "$value": "0.5rem"
+      "$value": "0.375rem"
     },
     "full": {
       "$value": "9999px"
@@ -696,6 +688,10 @@
       "$modes": {
         "dark": "2px 2px 0 0 rgb(0 0 0 / 0.6)"
       }
+    },
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}"
     }
   },
   "border": {
@@ -804,7 +800,7 @@
     },
     "padding": {
       "$type": "dimension",
-      "$value": "{spacing.4}",
+      "$value": "{spacing.5}",
       "$description": "The air inside the card, between its parts and around its edge."
     },
     "border": {

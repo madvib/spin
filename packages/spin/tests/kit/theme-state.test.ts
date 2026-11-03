@@ -19,7 +19,7 @@ function storage(name: string) {
 
 test("a stored theme the app does not hold falls back to one it does", () => {
   const state = createThemeState({
-    documents: { console: starterThemes.console, silk: starterThemes.silk },
+    documents: { industrial: starterThemes.industrial, silk: starterThemes.silk },
     initialTheme: "silk",
     storage: storage("unknown"),
     followSystem: false,
@@ -32,14 +32,15 @@ test("a stored theme the app does not hold falls back to one it does", () => {
 test("a mode the theme does not serve is clamped to one it does", () => {
   // Console's own face is dark and it serves no light rendering; a reader
   // arriving from a light theme must not be shown a mode it does not have.
+  const darkOnly = { ...starterThemes.industrial, modes: ["dark"] };
   const state = createThemeState({
-    documents: { console: starterThemes.console },
-    initialTheme: "console",
+    documents: { industrial: darkOnly },
+    initialTheme: "industrial",
     initialMode: "light",
     storage: storage("clamp"),
     followSystem: false,
   });
-  deepStrictEqual(state.theme(), "console");
+  deepStrictEqual(state.theme(), "industrial");
   deepStrictEqual(state.modes(), ["dark"]);
   deepStrictEqual(state.mode(), "dark");
 });

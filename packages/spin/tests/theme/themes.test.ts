@@ -327,10 +327,10 @@ test("the example theme's light document validates on its own", async () => {
  */
 const DECLARED_MODES = {
   silk: ["light", "dark"],
-  neobrut: ["light"],
-  console: ["dark"],
   spin: ["light", "dark"],
-  synthwave: ["light", "dark"],
+  material: ["light", "dark"],
+  neobrut: ["light", "dark"],
+  industrial: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
 test("a theme states its modes at the root", async () => {
@@ -365,15 +365,18 @@ test("a theme that serves a mode it does not override is valid", async () => {
   );
   deepStrictEqual(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
 
-  const darkless = treeOf(
-    parseTokens({
-      ...JSON.parse(
-        await readFile(new URL("console.json", THEMES_DIR), "utf8"),
-      ),
-      modes: ["dark"],
-    }),
-    "console.json",
-  );
+  const darkOnlyDoc = structuredClone(
+    JSON.parse(await readFile(new URL("industrial.json", THEMES_DIR), "utf8")),
+  ) as Record<string, unknown>;
+  for (const group of Object.values(darkOnlyDoc)) {
+    if (group && typeof group === "object") {
+      for (const leaf of Object.values(group as Record<string, unknown>)) {
+        if (leaf && typeof leaf === "object") delete (leaf as Record<string, unknown>)["$modes"];
+      }
+    }
+  }
+  darkOnlyDoc["modes"] = ["dark"];
+  const darkless = treeOf(parseTokens(darkOnlyDoc), "industrial.json");
   deepStrictEqual(validateTokens(darkless, { modes: ["dark"] }).issues, []);
 });
 
@@ -1053,7 +1056,7 @@ test("@spinjs/spin/theme re-exports starterThemes and individual starters", asyn
   assert.strictEqual(rootExports.starterGroups, subpathExports.starterGroups);
   assert.strictEqual(rootExports.spinTheme, subpathExports.spinTheme);
   assert.strictEqual(rootExports.silkTheme, subpathExports.silkTheme);
+  assert.strictEqual(rootExports.materialTheme, subpathExports.materialTheme);
   assert.strictEqual(rootExports.neobrutTheme, subpathExports.neobrutTheme);
-  assert.strictEqual(rootExports.consoleTheme, subpathExports.consoleTheme);
-  assert.strictEqual(rootExports.synthwaveTheme, subpathExports.synthwaveTheme);
+  assert.strictEqual(rootExports.industrialTheme, subpathExports.industrialTheme);
 });

@@ -58,7 +58,7 @@ test("the dial reaches the rule through the linter's options", () => {
   // `strict` reads a type size as the element's own decision; `balanced`
   // reads it as a decision about content. The options travel the way ESLint
   // delivers them: as the rule's first option.
-  const code = `<button className="text-sm bg-surface-raised" />`;
+  const code = `<button className="text-sm bg-primary" />`;
   const strict = linter().verify(
     code,
     config({
@@ -75,10 +75,10 @@ test("the dial reaches the rule through the linter's options", () => {
   );
   deepStrictEqual(strict.map((message) => message.message), [
     "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
-    "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
+    "`<button>` sets its own fill; `bg-primary` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
   deepStrictEqual(balanced.map((message) => message.message), [
-    "`<button>` sets its own fill; `bg-surface-raised` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
+    "`<button>` sets its own fill; `bg-primary` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
 });
 

@@ -73,6 +73,7 @@ const COMPONENT_PROPERTY: Record<string, string> = {
   shadow: "box-shadow",
   "shadow-hover": "box-shadow",
   edge: "border-color",
+  radius: "border-radius",
 };
 
 /**
@@ -99,7 +100,8 @@ type ComponentStep =
   | "tracking"
   | "shadow"
   | "shadow-hover"
-  | "edge";
+  | "edge"
+  | "radius";
 
 const COMPONENT_STEPS: readonly ComponentStep[] = [
   "weight",
@@ -108,6 +110,7 @@ const COMPONENT_STEPS: readonly ComponentStep[] = [
   "shadow",
   "shadow-hover",
   "edge",
+  "radius",
 ];
 
 /** The component step the base rule spends — all but the hover shadow. */
@@ -137,6 +140,7 @@ const SHADOW_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
 const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
   weight: "font.weight.semibold",
   edge: "color.border",
+  radius: "radius.md",
 };
 
 /**
@@ -149,6 +153,7 @@ const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
  */
 const VARIANT_NAMES = [
   "bare",
+  "primary",
   "secondary",
   "outline",
   "ghost",
@@ -229,16 +234,24 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       "min-height": "0",
     }),
   },
+  primary: {
+    group: BUTTON,
+    name: "primary",
+    inked: true,
+    body: (ctx) => ({
+      "background-color": token(ctx, "color.primary"),
+      "border-color": token(ctx, "color.primary"),
+      color: token(ctx, "color.on-primary"),
+    }),
+  },
   secondary: {
     group: BUTTON,
     name: "secondary",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.surface-raised"),
-      // The divider edge, matching the base: both controls frame in the
-      // same ink, so the pair reads as one size with one shadow.
+      "background-color": token(ctx, "color.secondary"),
       "border-color": token(ctx, "color.border"),
-      color: token(ctx, "color.text"),
+      color: token(ctx, "color.on-secondary"),
     }),
   },
   ghost: {
@@ -443,10 +456,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const spacing4 = token(ctx, "spacing.4");
         const fontFamily = token(ctx, "font.family.sans");
         const fontSize = token(ctx, "font.size.md");
-        const radius = token(ctx, "radius.md");
         const borderWidth = token(ctx, "border.width");
-        const primary = token(ctx, "color.primary");
-        const onPrimary = token(ctx, "color.on-primary");
+        const surfaceRaised = token(ctx, "color.surface-raised");
+        const text = token(ctx, "color.text");
         const duration = token(ctx, "motion.duration.fast");
         const easing = token(ctx, "motion.easing.standard");
         // The base. An array body because the rule states longhand border and
@@ -470,7 +482,6 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["gap", spacing2],
           ["font-family", fontFamily],
           ["font-size", fontSize],
-          ["border-radius", radius],
           ["line-height", "1"],
           ...(fontSize !== undefined && spacing2 !== undefined &&
               borderWidth !== undefined
@@ -496,8 +507,8 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ...(borderWidth !== undefined
             ? ([["border-width", borderWidth], ["border-style", "solid"]] as Entry[])
             : []),
-          ["background-color", primary],
-          ["color", onPrimary],
+          ["background-color", surfaceRaised],
+          ["color", text],
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           // One transition list for everything the states animate: the same

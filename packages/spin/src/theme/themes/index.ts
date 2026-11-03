@@ -18,11 +18,11 @@
  * That is console's case exactly — a terminal palette whose base is already
  * dark, serving dark and restating nothing.
  */
-import console_ from "./console.json" with { type: "json" };
+import industrial from "./industrial.json" with { type: "json" };
+import material from "./material.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
 import silk from "./silk.json" with { type: "json" };
 import spin from "./spin.json" with { type: "json" };
-import synthwave from "./synthwave.json" with { type: "json" };
 import { themeGroups } from "../contract/groups.ts";
 import type { ThemeDocument } from "../index.ts";
 
@@ -36,14 +36,14 @@ export const silkTheme = silk as ThemeDocument;
 /** A second direction: flat, high-chroma, heavy borders, hard shadows. */
 export const neobrutTheme = neobrut as ThemeDocument;
 
-/** A third: a terminal palette, where a field is sunk rather than raised. */
-export const consoleTheme = console_ as ThemeDocument;
+/** Tonal & pill: indigo-tinted containers, pill controls, and 20px cards. */
+export const materialTheme = material as ThemeDocument;
 
-/** The brand: monochrome with one red thread; a didone speaks. */
+/** Editorial & print: warm stone paper, Fraunces display serif, and crimson + cobalt inks. */
 export const spinTheme = spin as ThemeDocument;
 
-/** Dark glass and lit figures by night; lavender lamp by day. */
-export const synthwaveTheme = synthwave as ThemeDocument;
+/** Tactile hardware & neumorphic: anodized aluminum by day, gunmetal by night, dual bevel shadows. */
+export const industrialTheme = industrial as ThemeDocument;
 
 /**
  * The themes a consumer can start from, by name.
@@ -56,18 +56,18 @@ export { supportsDark, themeModes } from "../modes.ts";
 
 export const starterThemes: Record<string, ThemeDocument> = {
   silk: silkTheme,
+  material: materialTheme,
   neobrut: neobrutTheme,
-  console: consoleTheme,
-  synthwave: synthwaveTheme,
+  industrial: industrialTheme,
   spin: spinTheme,
 };
 
 export type StarterThemeName =
   | "silk"
+  | "spin"
+  | "material"
   | "neobrut"
-  | "console"
-  | "synthwave"
-  | "spin";
+  | "industrial";
 
 /**
  * The groups the starters declare, in the order a document reads them.

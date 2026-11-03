@@ -17,12 +17,12 @@ async function matchedIn(
 
 test("attributify resolves theme attributes in both modes", async () => {
   deepStrictEqual(
-    await matchedIn('<div bg="primary"></div>', true),
-    ['[bg~="primary"]'],
+    await matchedIn('<div bg="surface"></div>', true),
+    ['[bg~="surface"]'],
   );
   deepStrictEqual(
-    await matchedIn('<div bg="primary"></div>', false),
-    ['[bg~="primary"]'],
+    await matchedIn('<div bg="surface"></div>', false),
+    ['[bg~="surface"]'],
   );
 });
 

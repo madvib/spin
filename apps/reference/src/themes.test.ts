@@ -30,23 +30,13 @@ test("a theme renders its own face, and its dark restatement when it has one", (
 });
 
 test("a rendering is named by the mode the reader sees", () => {
-  // console's base IS its dark face: it has no light rendering to show, and
-  // showing its base twice would be a theme pretending to have a second one.
-  deepStrictEqual(
-    renderingsFor("console").map((r) => r.label),
-    ["dark"],
-    "console's label",
-  );
-  deepStrictEqual(
-    renderingsFor("neobrut").map((r) => r.label),
-    ["light"],
-    "neobrut's label",
-  );
-  deepStrictEqual(
-    renderingsFor("silk").map((r) => r.label),
-    ["light", "dark"],
-    "silk's labels",
-  );
+  for (const name of ["silk", "spin", "material", "neobrut", "industrial"] as const) {
+    deepStrictEqual(
+      renderingsFor(name).map((r) => r.label),
+      ["light", "dark"],
+      `${name}'s labels`,
+    );
+  }
 });
 
 test("a theme that is not one of ours renders nothing", () => {

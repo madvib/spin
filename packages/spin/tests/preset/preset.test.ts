@@ -366,15 +366,17 @@ test("gap-4 resolves to the spacing token variable", async () => {
 });
 
 test("preflight emits dark overrides for the dark axis", async () => {
-  const base = workingTree();
-  const dark = parseTokens({
-    dark: { color: { $type: "color", primary: { $value: "#60a5fa" } } },
-  });
-  if (!dark.ok) throw new Error(`dark: ${dark.error}`);
+  const baseDoc = JSON.parse(treeToJson(workingTree())) as Record<string, unknown>;
+  const darkDoc = structuredClone(baseDoc);
+  const darkColor = darkDoc["color"] as Record<string, Record<string, unknown>>;
+  darkColor["primary"] = {
+    ...darkColor["primary"],
+    $modes: { dark: "#60a5fa" },
+  };
   const uno = await generatorFor({
     themes: {
-      light: JSON.parse(treeToJson(base)),
-      dark: JSON.parse(treeToJson([...base, ...dark.tree])),
+      light: baseDoc,
+      dark: darkDoc,
     },
   });
   const { css } = await uno.generate("bg-primary");

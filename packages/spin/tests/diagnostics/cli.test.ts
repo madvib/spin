@@ -85,16 +85,16 @@ test("the dials are the rule's own", async () => {
   try {
     await writeFile(
       `${directory}/app.tsx`,
-      `export const App = () => <button className="text-sm bg-primary" />;\n`,
+      `export const App = () => <button className="text-sm bg-surface-raised" />;\n`,
     );
     const strict = await findingsOf(directory, ["--strictness", "strict"]);
     const balanced = await findingsOf(directory, ["--strictness", "balanced"]);
     deepStrictEqual(strict.map((finding) => finding.message), [
-      "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
+      "`bg-surface-raised` sets `background-color` to what `<button>` already sets. Drop the class.",
       "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
     ]);
     deepStrictEqual(balanced.map((finding) => finding.message), [
-      "`bg-primary` sets `background-color` to what `<button>` already sets. Drop the class.",
+      "`bg-surface-raised` sets `background-color` to what `<button>` already sets. Drop the class.",
     ]);
   } finally {
     await rm(directory, { recursive: true });

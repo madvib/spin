@@ -31,12 +31,17 @@ export const BUTTON_CLASSES: readonly ClassDoc[] = [
     name: "<button>",
     kind: "Component",
     description:
-      "Primary action button (also matches [type=\"button\"], [type=\"submit\"], [type=\"reset\"], [role=\"button\"])",
+      "Neutral surface action button (also matches [type=\"button\"], [type=\"submit\"], [type=\"reset\"], [role=\"button\"])",
+  },
+  {
+    name: ".primary",
+    kind: "Color",
+    description: "Primary brand fill with on-primary foreground ink",
   },
   {
     name: ".secondary",
     kind: "Color",
-    description: "Raised surface fill with border for secondary actions",
+    description: "Secondary fill with border and on-secondary foreground ink",
   },
   {
     name: ".contrast",
@@ -96,7 +101,8 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Button colors",
     html: row(
-      `  <button>Primary</button>
+      `  <button>Default</button>
+  <button class="primary">Primary</button>
   <button class="secondary">Secondary</button>
   <button class="contrast">Contrast</button>
   <button class="danger">Danger</button>`,
@@ -121,8 +127,8 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Button with icon",
     html: row(
-      `  <button><i class="i-lucide-plus button-icon" aria-hidden="true"></i>New service</button>
-  <button class="secondary">Continue<i class="i-lucide-arrow-right button-icon" aria-hidden="true"></i></button>
+      `  <button class="primary"><i class="i-lucide-plus button-icon" aria-hidden="true"></i>New service</button>
+  <button>Continue<i class="i-lucide-arrow-right button-icon" aria-hidden="true"></i></button>
   <button class="outline s-sm"><i class="i-lucide-download button-icon" aria-hidden="true"></i>Export</button>`,
     ),
   },
@@ -147,9 +153,9 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
   {
     name: "Joined button group",
     html: `<span role="group" data-toggle-group>
-  <button class="secondary" aria-pressed="true">All</button>
-  <button class="secondary">Running</button>
-  <button class="secondary">Failed</button>
+  <button aria-pressed="true">All</button>
+  <button>Running</button>
+  <button>Failed</button>
 </span>`,
   },
 ];

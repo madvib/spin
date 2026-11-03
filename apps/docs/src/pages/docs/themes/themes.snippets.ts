@@ -4,7 +4,7 @@
 export const THEMES_SNIPPETS = {
   studioConfig: `{
   "activeTheme": "silk",
-  "themeOrder": ["silk", "spin", "neobrut", "console", "synthwave"]
+  "themeOrder": ["spin", "silk", "material", "neobrut", "industrial"]
 }`,
   viteSharedBrand: `import { defineConfig } from "vite";
 import { spin } from "@spinjs/spin/vite";
