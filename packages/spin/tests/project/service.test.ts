@@ -152,6 +152,13 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   const config = await readFile(join(dir, "vite.config.ts"), "utf8");
   deepStrictEqual(isWired(config), true);
   deepStrictEqual(config.includes("spin.vite()"), true);
+
+  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme.json"), "utf8")) as {
+    modes?: unknown;
+    $extensions?: { spin?: { fonts?: readonly { family?: string }[] } };
+  };
+  deepStrictEqual(writtenTheme.modes, ["light", "dark"]);
+  deepStrictEqual(writtenTheme.$extensions?.spin?.fonts?.[0]?.family, "Inter");
 });
 
 test("init refuses a root it cannot make a project in", async () => {
@@ -439,7 +446,7 @@ test("init codemods an existing unwired vite.config.ts in place", async () => {
   const config = await readFile(join(dir, "vite.config.ts"), "utf8");
   deepStrictEqual(isWired(config), true);
   deepStrictEqual(config.includes("solid()"), true);
-  deepStrictEqual(config.includes("spin()"), true);
+  deepStrictEqual(config.includes("spin.vite()"), true);
 });
 
 test("init codemods an existing vite.config.js without a plugins array in place", async () => {

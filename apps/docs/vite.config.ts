@@ -19,6 +19,7 @@ import {
   TYPES,
 } from "./src/theme-docs.ts";
 import { THEMES_SNIPPETS } from "./src/pages/docs/themes/themes.snippets.ts";
+import { GETTING_STARTED_SNIPPETS } from "./src/pages/docs/getting-started/getting-started.snippets.ts";
 
 const here = import.meta.dirname!;
 const STUDIO_ROOT = resolve(here, "../studio/dist");
@@ -138,6 +139,167 @@ function buildLlmsTxt(): string {
     lines.push("");
   }
   return lines.join("\n");
+}
+
+function buildGettingStartedMarkdown(routePath: string): string | undefined {
+  switch (routePath) {
+    case "/docs/getting-started/quickstart":
+      return [
+        "## 1. Install and initialize",
+        "",
+        "```bash",
+        GETTING_STARTED_SNIPPETS.install,
+        GETTING_STARTED_SNIPPETS.init,
+        "```",
+        "",
+        "## 2. Import the stylesheet and component registry",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.entry,
+        "```",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.declareCss,
+        "```",
+        "",
+        "## 3. Write classless markup and vendor a component",
+        "",
+        "```html",
+        GETTING_STARTED_SNIPPETS.firstMarkup,
+        "```",
+        "",
+        "```bash",
+        "npx spin component copy select basic",
+        "```",
+        "",
+        "## 4. Open the Studio",
+        "",
+        "On Vite, the Studio is mounted automatically at `http://localhost:5173/__spin/studio/`. On non-Vite bundlers, run:",
+        "",
+        "```bash",
+        GETTING_STARTED_SNIPPETS.studioServe,
+        "```",
+      ].join("\n");
+    case "/docs/getting-started/install":
+      return [
+        "## Packages",
+        "",
+        "```bash",
+        GETTING_STARTED_SNIPPETS.install,
+        "```",
+        "",
+        "- **`@spinjs/spin`** (devDependency): Build toolchain, bundler plugins, UnoCSS preset, theme engine, `.html` component compiler, CLI, MCP server, and Studio.",
+        "- **`@spinjs/components`** (dependency): Headless state-machine components with React, Solid, Vue, and Svelte adapters.",
+        "- **`@spinjs/runtime`** (dependency): Reactive signals, custom-element bridges, and finite-state machines.",
+        "",
+        "## `spin init` flags",
+        "",
+        "- `--root` (default `.`): Project root directory to scaffold in.",
+        "- `--name` (default `default`): First theme name written to `spin/<name>.json`.",
+        "- `--starter` (default `spin`): Shipped starter theme to seed from (`spin`, `silk`, `material`, `neobrut`, `industrial`).",
+        "- `--bundler` (default `auto-detected`): Target bundler config (`vite`, `rspack`, `webpack`, `rollup`, `rolldown`, `esbuild`, `bun`).",
+        "- `--themes-dir` (default `spin/`): Directory where DTCG theme JSON documents live.",
+        "- `--components-dir` (default `lib/components/`): Directory where project `.html` components live.",
+        "- `--prefix` (default `derived` from `package.json` name, fallback `app`): Custom-element tag prefix.",
+        "- `--url` (default `in-process`): Connect to a running Studio daemon instead of running in-process.",
+        "- `-y, --yes`: Skip interactive prompts and accept defaults.",
+        "",
+        "## Wire your bundler",
+        "",
+        "### Vite (`vite.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.vite,
+        "```",
+        "",
+        "### Rspack (`rspack.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.rspack,
+        "```",
+        "",
+        "### webpack (`webpack.config.mjs`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.webpack,
+        "```",
+        "",
+        "### Rollup (`rollup.config.mjs`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.rollup,
+        "```",
+        "",
+        "### Rolldown (`rolldown.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.rolldown,
+        "```",
+        "",
+        "### esbuild (`spin.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.esbuild,
+        "```",
+        "",
+        "### Bun (`spin.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.bun,
+        "```",
+        "",
+        "### UnoCSS (`uno.config.ts`)",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.unocss,
+        "```",
+        "",
+        "## Project layout",
+        "",
+        "- `spin/*.json`: DTCG theme documents declaring your palette, scales, modes, and element overrides.",
+        "- `spin/config.json`: Optional project seating configuration (`activeTheme` and `themeOrder`) written by the Studio.",
+        "- `lib/components/*.html`: Vendored and custom HTML components compiled into `<prefix>-<name>` custom elements.",
+        "- `src/spin-components.d.ts`: Auto-generated DOM and JSX type declarations for your project components.",
+      ].join("\n");
+    case "/docs/getting-started/paths":
+      return [
+        "## Entry points at a glance",
+        "",
+        "- **`spin.vite()` / `spin.<bundler>()`** (Full app + Studio): Token stylesheet, classless primitives, `spin/*.json` discovery, `lib/components/*.html` compiler and types, plus live Studio overlay on Vite.",
+        "- **`spin.vite({ extends: brand })`** (Multi-app brand): Layers a shared brand package's themes and components beneath local `spin/*.json` and `lib/components/*.html` overrides.",
+        "- **`spinPreset({ themes })`** (Stylesheet only): Drops into an existing `uno.config.ts` for token CSS, utilities, and element rules from explicit theme objects.",
+        "- **`npx spin studio`** (Standalone daemon): Serves the visual theme editor at `/studio/` and RPC daemon at `/rpc` without running an application bundler.",
+        "- **`spin lint / theme / component / mcp`** (CLI & Agent tools): Source lints, theme validation gates, component scaffolding, and the stdio MCP server.",
+        "",
+        "## Full bundler plugin",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.vite,
+        "```",
+        "",
+        "## Shared brand packages (`extends`)",
+        "",
+        "Multi-app teams can publish a shared brand package exporting `{ themes, componentsDir }` and pass it via `extends`. Local `spin/<name>.json` and `lib/components/<name>.html` override brand entries by name:",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.brandExport,
+        "```",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.viteExtends,
+        "```",
+        "",
+        "## Stylesheet only (`spinPreset`)",
+        "",
+        "```ts",
+        GETTING_STARTED_SNIPPETS.unocss,
+        "```",
+      ].join("\n");
+    case "/docs/getting-started/architecture":
+      return [
+        "## Ownership & verification by layer",
+        "",
+        "1. **Theme (`spin/*.json`)** — `themeGates`: Owns every visual value (palette, typography scale, spacing steps, radii, shadows, motion curves). Verified by the six contract gates.",
+        "2. **Classless Elements (`@spinjs/spin/preset`)** — `prefer-theme-value`: Styles native HTML tags and Spin custom elements directly from theme CSS variables.",
+        "3. **Closed-Scale Utilities (`uno.css`)** — `spin lint`: Handles layout and composition using only steps declared in your theme.",
+        "4. **State Machines (`@spinjs/components`)** — `machine tests`: Headless statecharts wiring ARIA attributes, keyboard navigation, and focus management.",
+        "5. **Rendered Verification (`spin check`)** — `spin check`: Drives a real browser against your routes and themes to verify contrast, hit targets, and clipping.",
+      ].join("\n");
+    default:
+      return undefined;
+  }
 }
 
 function buildThemeMarkdown(routePath: string): string | undefined {
@@ -295,6 +457,17 @@ function buildMarkdownForRoute(routePath: string): string | undefined {
     `# ${page.title}`,
     "",
   ];
+
+  const gettingStartedMd = buildGettingStartedMarkdown(routePath);
+  if (gettingStartedMd !== undefined) {
+    return [
+      ...frontmatter,
+      page.summary ?? "",
+      "",
+      gettingStartedMd,
+      "",
+    ].join("\n");
+  }
 
   const themeMd = buildThemeMarkdown(routePath);
   if (themeMd !== undefined) {

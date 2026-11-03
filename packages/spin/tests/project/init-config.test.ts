@@ -44,6 +44,30 @@ test("the generated vite config imports a plugin the package exports", async () 
   );
 });
 
+test("a codemodded existing vite.config.ts imports and invokes spin.vite()", async () => {
+  const dir = await root();
+  await writeFile(
+    join(dir, "vite.config.ts"),
+    "export default {\n  plugins: [],\n};\n",
+    "utf8",
+  );
+  const made = await initProject({ root: dir, name: "acme", starter: "silk" });
+  deepStrictEqual(made.error, null);
+  const module = await load(join(dir, "vite.config.ts"));
+  const config = module.default as { plugins?: unknown };
+  const plugins = flatten(config.plugins);
+  assert(
+    plugins.some(
+      (plugin) =>
+        typeof plugin === "object" &&
+        plugin !== null &&
+        "name" in plugin &&
+        plugin.name === "spin",
+    ),
+    "the codemodded config's plugin list contains the stylesheet plugin",
+  );
+});
+
 test("the generated esbuild config imports a plugin with a setup hook", async () => {
   const dir = await root();
   const made = await initProject({

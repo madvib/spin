@@ -17,6 +17,12 @@ const ENTRY_PATHS: readonly PropEntry[] = [
       "Provides the token stylesheet, classless primitives, spin/*.json discovery, project lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
   },
   {
+    name: "spin.vite({ extends: brand })",
+    badge: "Multi-app brand",
+    description:
+      "Layers a shared brand package's themes and components beneath local spin/*.json and lib/components/*.html overrides.",
+  },
+  {
     name: "spinPreset({ themes })",
     badge: "Stylesheet only",
     description:
@@ -41,7 +47,7 @@ export default function Paths(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Ways to Use Spin"
-        lede="Spin is one token contract with four entry points. Choose the full bundler plugin for new apps, or adopt individual layers in existing projects."
+        lede="Spin is one token contract with five entry points. Choose the full bundler plugin for single apps, layer a shared brand package across a monorepo, or adopt individual layers in existing projects."
       />
 
       <Section id="matrix" title="Entry points at a glance">
@@ -76,6 +82,32 @@ export default function Paths(): JSX.Element {
           See <A href="/docs/tooling/cli#plugin">CLI &amp; Plugin Options</A>{" "}
           for every field on <code>SpinPluginOptions</code>.
         </p>
+      </Section>
+
+      <Section id="extends" title="Shared brand packages (extends)">
+        <p class="max-w-prose">
+          Multi-app teams can publish a shared brand package that exports{" "}
+          <code>{"{ themes, componentsDir }"}</code> and pass it to{" "}
+          <code>{"spin.vite({ extends: brand })"}</code> (or any{" "}
+          <code>{"spin.<bundler>({ extends: brand })"}</code>). Local{" "}
+          <code>spin/&lt;name&gt;.json</code> themes and{" "}
+          <code>lib/components/&lt;name&gt;.html</code> components take
+          precedence over brand entries of the same name, and un-forked brand
+          themes open read-only in the Studio with a one-click copy into local{" "}
+          <code>spin/</code>:
+        </p>
+        <div class="my-3 grid gap-3 sm:grid-cols-2">
+          <Code
+            code={GETTING_STARTED_SNIPPETS.brandExport}
+            lang="ts"
+            title="packages/brand/src/spin.ts"
+          />
+          <Code
+            code={GETTING_STARTED_SNIPPETS.viteExtends}
+            lang="ts"
+            title="apps/web/vite.config.ts"
+          />
+        </div>
       </Section>
 
       <Section id="preset" title="Stylesheet only in an existing UnoCSS app">

@@ -76,7 +76,7 @@ const SIGNATURE: readonly { readonly axis: string; readonly path: string }[] = [
   { axis: "type", path: "font.family.heading" },
   { axis: "shape", path: "radius.md" },
   { axis: "shape", path: "border.width" },
-  { axis: "depth", path: "checkbox.depth" },
+  { axis: "shape", path: "button.radius" },
   { axis: "depth", path: "shadow.md" },
   { axis: "motion", path: "motion.duration.base" },
   { axis: "motion", path: "motion.easing.standard" },

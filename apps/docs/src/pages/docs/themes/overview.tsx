@@ -222,7 +222,7 @@ export default function ThemesOverview(): JSX.Element {
             </div>
 
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <For each={selected().signature.slice(0, 4)}>
+              <For each={selected().signature}>
                 {(entry) => (
                   <div class="flex flex-col gap-1 rounded-sm border border-border bg-surface p-2">
                     <span class="font-mono text-xs text-text-muted">

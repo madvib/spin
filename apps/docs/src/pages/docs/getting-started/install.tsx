@@ -49,7 +49,7 @@ const initFlags = (): readonly PropEntry[] => [
     name: "--starter",
     defaultValue: "spin",
     description:
-      "The shipped starter theme to seed from (spin, silk, brutalist, console, bloom).",
+      "The shipped starter theme to seed from (spin, silk, material, neobrut, industrial).",
   },
   {
     name: "--bundler",
@@ -74,13 +74,19 @@ const initFlags = (): readonly PropEntry[] => [
   },
   {
     name: "--prefix",
-    defaultValue: "app",
+    defaultValue: "derived",
     description: (
       <>
-        Custom-element tag prefix for compiled project components (e.g.{" "}
-        <code>&lt;app-select&gt;</code>).
+        Custom-element tag prefix derived from <code>package.json</code> name
+        (fallback: <code>app</code>), e.g. <code>&lt;app-select&gt;</code>.
       </>
     ),
+  },
+  {
+    name: "--url",
+    defaultValue: "in-process",
+    description:
+      "Connect to a running Studio daemon instead of running in-process.",
   },
   {
     name: "-y, --yes",
@@ -140,25 +146,10 @@ export default function Install(): JSX.Element {
           <Code
             code={GETTING_STARTED_SNIPPETS.declareCss}
             lang="ts"
-            title="src/uno.d.ts"
+            title="src/spin-virtual.d.ts"
           />
         </div>
       </Section>
-
-      <Section id="first-markup" title="First markup">
-        <p class="max-w-prose">
-          Native elements are styled by the theme. Utilities are for the
-          layout decisions the element leaves open.
-        </p>
-        <div class="mt-3">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.firstMarkup}
-            lang="html"
-            title="App.tsx"
-          />
-        </div>
-      </Section>
-
       <Section id="layout" title="Project layout">
         <PropList
           items={[
@@ -166,7 +157,13 @@ export default function Install(): JSX.Element {
               name: "spin/*.json",
               badge: "themes",
               description:
-                "DTCG theme documents and spin/config.json seating configuration.",
+                "DTCG theme documents declaring your palette, scales, modes, and element overrides.",
+            },
+            {
+              name: "spin/config.json",
+              badge: "config",
+              description:
+                "Optional project seating configuration (activeTheme and themeOrder) written by the Studio.",
             },
             {
               name: "lib/components/*.html",

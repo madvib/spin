@@ -82,7 +82,7 @@ export default function ThemesModes(): JSX.Element {
                   Inherits the page's current mode.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
-                  <button type="button">Primary</button>
+                  <button type="button" class="primary">Primary</button>
                   <span class="badge">Badge</span>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function ThemesModes(): JSX.Element {
                   Scoped to the opposite mode on this container.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
-                  <button type="button">Primary</button>
+                  <button type="button" class="primary">Primary</button>
                   <span class="badge">Badge</span>
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function ThemesModes(): JSX.Element {
           <li>
             <strong>Allowed to vary by mode:</strong> <code>color.*</code>,{" "}
             <code>shadow.*</code>, per-element color or shadow tokens (such as{" "}
-            <code>button.edge</code> or <code>card.shadow</code>), and focus
+            <code>button.edge</code> or <code>card.elevation</code>), and focus
             ring geometry (<code>focus.width</code>, <code>focus.offset</code>
             ).
           </li>

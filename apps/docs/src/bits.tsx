@@ -137,7 +137,7 @@ const BUNDLER_TABS: Readonly<
   },
   rspack: {
     name: "Rspack",
-    file: "rspack.config.mjs",
+    file: "rspack.config.ts",
     code: GETTING_STARTED_SNIPPETS.rspack,
     note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
   },
@@ -155,19 +155,19 @@ const BUNDLER_TABS: Readonly<
   },
   rolldown: {
     name: "Rolldown",
-    file: "rolldown.config.mjs",
+    file: "rolldown.config.ts",
     code: GETTING_STARTED_SNIPPETS.rolldown,
     note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
   },
   esbuild: {
     name: "esbuild",
-    file: "esbuild.config.mjs",
+    file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.esbuild,
     note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
   },
   bun: {
     name: "Bun",
-    file: "build.ts",
+    file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.bun,
     note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
   },

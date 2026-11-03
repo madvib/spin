@@ -126,7 +126,7 @@ export function wireConfigText(
   }
   const suffix = scaffoldArg(options);
   const importLine = 'import { spin } from "@spinjs/spin/vite";';
-  const call = bundler === "vite" ? `spin${suffix}` : `spin.${bundler}${suffix}`;
+  const call = `spin.${bundler}${suffix}`;
   let result = source;
   const importRegex = /^import\b[\s\S]*?;\s*$/gm;
   let lastEnd = 0;

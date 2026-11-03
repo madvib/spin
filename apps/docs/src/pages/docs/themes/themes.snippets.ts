@@ -51,13 +51,13 @@ export const plugins = [
   <article class="card" data-theme="silk" data-mode="light">
     <h3>Light Container</h3>
     <p class="text-sm text-text-muted">Rendered with data-mode="light".</p>
-    <button>Primary Action</button>
+    <button class="primary">Primary Action</button>
   </article>
 
   <article class="card" data-theme="silk" data-mode="dark">
     <h3>Dark Subtree</h3>
     <p class="text-sm text-text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
-    <button>Primary Action</button>
+    <button class="primary">Primary Action</button>
   </article>
 </div>`,
   pickers: `<!-- Copy a ready-made control into your app: -->
@@ -98,14 +98,15 @@ export const plugins = [
 }`,
   elementOverride: `{
   "button": {
+    "radius": { "$type": "dimension", "$value": "{radius.full}" },
     "weight": { "$type": "fontWeight", "$value": "{font.weight.semibold}" },
-    "case": { "$type": "string", "$value": "uppercase" },
+    "case": { "$type": "textTransform", "$value": "uppercase" },
     "tracking": { "$type": "dimension", "$value": "{font.letter-spacing.wide}" },
     "edge": { "$type": "color", "$value": "{color.border-strong}" }
   },
   "card": {
     "radius": { "$type": "dimension", "$value": "{radius.lg}" },
-    "shadow": { "$type": "shadow", "$value": "{shadow.md}" }
+    "elevation": { "$type": "shadow", "$value": "{shadow.md}" }
   }
 }`,
   cliAnalyze: `# Lint source files AND spin/*.json themes together

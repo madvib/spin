@@ -3,21 +3,30 @@
  */
 export const GETTING_STARTED_SNIPPETS = {
   install: `npm install -D @spinjs/spin\nnpm install @spinjs/components @spinjs/runtime`,
+  init: `npx spin init`,
   vite: `import { spin } from "@spinjs/spin/vite";
 
 export default {
   plugins: [spin.vite()],
 };`,
   entry: `// src/main.ts — the entry your bundler reads
-import "uno.css";`,
-  declareCss: `// uno.d.ts — the virtual module's type
-declare module "uno.css";`,
-  viteThemes: `import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/spin/theme/themes";
-import myTheme from "./theme.json" with { type: "json" };
+import "uno.css";
+import "spin/components";`,
+  declareCss: `// src/spin-virtual.d.ts — virtual module declarations
+declare module "uno.css";
+declare module "spin/components";`,
+  brandExport: `// packages/brand/src/spin.ts
+import acme from "../spin/acme.json" with { type: "json" };
+
+export const acmeBrand = {
+  themes: { acme },
+  componentsDir: new URL("../lib/components", import.meta.url).pathname,
+};`,
+  viteExtends: `import { spin } from "@spinjs/spin/vite";
+import { acmeBrand } from "@acme/brand/spin";
 
 export default {
-  plugins: [spin.vite({ themes: { myTheme, ...starterThemes } })],
+  plugins: [spin.vite({ extends: acmeBrand })],
 };`,
   studio: `import { spin } from "@spinjs/spin/vite";
 
@@ -61,7 +70,7 @@ export default defineConfig({
   firstMarkup: `<main class="stack">
   <h1>Settings</h1>
   <p>Changes save automatically.</p>
-  <button>Save now</button>
+  <button class="primary">Save now</button>
 </main>`,
   dev: `npm run dev`,
 } as const;

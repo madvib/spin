@@ -7,7 +7,7 @@
  * are asks this package; it does not keep its own copy of the answer.
  */
 
-import { parseTokens, scaffoldTheme, treeToJson } from "../theme/index.ts";
+import { scaffoldTheme, treeToJson } from "../theme/index.ts";
 import { starterThemes } from "../theme/themes/index.ts";
 import { configScaffoldText } from "../plugin/config.ts";
 
@@ -148,7 +148,5 @@ export function initFiles(
 function themeText(starter: string): string {
   const document = starterThemes[starter];
   if (document === undefined) return treeToJson(scaffoldTheme());
-  const parsed = parseTokens(document);
-  if (!parsed.ok) return treeToJson(scaffoldTheme());
-  return treeToJson(parsed.tree);
+  return JSON.stringify(document, null, 2) + "\n";
 }
