@@ -5,9 +5,8 @@
 import { createSignal } from "solid-js";
 import type { JSX } from "solid-js";
 import { computed, effect, signal } from "@spinjs/runtime";
-import { Section } from "../../../bits.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { PageHeader, Section } from "../../../ui/index.ts";
 import machinesMd from "../../../content/machines.md?raw";
 
 function SignalDemo(): JSX.Element {

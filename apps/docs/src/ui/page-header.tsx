@@ -6,6 +6,8 @@ import { A, useLocation } from "@solidjs/router";
 import { createSignal, onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { docsPageContext } from "../nav.ts";
+import { mode, Section as SharedSection, theme } from "@spinjs/kit";
+import { starterThemes } from "@spinjs/spin/theme";
 
 export function serializeMainToMarkdown(
   main: HTMLElement,
@@ -146,4 +148,56 @@ export function PageHeader(props: {
       </Show>
     </header>
   );
+}
+
+export function Section(props: {
+  title: string;
+  id?: string;
+  fact?: string;
+  note?: string;
+  children: JSX.Element;
+}): JSX.Element {
+  return (
+    <SharedSection
+      title={props.title}
+      id={props.id}
+      fact={props.fact}
+      note={props.note}
+      class="mb-10 w-full scroll-mt-20"
+      muted
+    >
+      {props.children}
+    </SharedSection>
+  );
+}
+
+export function Chip(props: { children: JSX.Element }): JSX.Element {
+  return (
+    <span class="rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+      {props.children}
+    </span>
+  );
+}
+
+export function Probe(props: { children: JSX.Element }): JSX.Element {
+  return (
+    <div
+      class="rounded-sm bg-surface p-3 text-text"
+      data-theme={theme()}
+      data-mode={mode() === "dark" ? "light" : "dark"}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+export interface ThemeDocument {
+  color?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export function starterDoc(): ThemeDocument {
+  return starterThemes[
+    theme() as keyof typeof starterThemes
+  ] as ThemeDocument;
 }

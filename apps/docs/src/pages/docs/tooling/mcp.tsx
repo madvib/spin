@@ -2,9 +2,8 @@
  * MCP Server: the eight tools and two resources for coding agents.
  */
 import type { JSX } from "solid-js";
-import { Code, Section } from "../../../bits.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { TOOLING_SNIPPETS } from "./tooling.snippets.ts";
 import mcpMd from "../../../content/mcp.md?raw";
 

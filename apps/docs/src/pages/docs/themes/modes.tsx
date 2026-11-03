@@ -4,10 +4,11 @@
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
-import { Code, Section } from "../../../bits.tsx";
 import {
+  Code,
   PageHeader,
   PropList,
+  Section,
   SplitExample,
   type PropEntry,
 } from "../../../ui/index.ts";

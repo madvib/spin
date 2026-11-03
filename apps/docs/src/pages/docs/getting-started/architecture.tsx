@@ -3,8 +3,7 @@
  */
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 
 const layerItems = (): readonly PropEntry[] => [
   {

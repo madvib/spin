@@ -5,7 +5,7 @@
  */
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { Code, Section } from "../bits.tsx";
+import { Code, Section } from "../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./docs/getting-started/getting-started.snippets.ts";
 
 export default function Studio(): JSX.Element {

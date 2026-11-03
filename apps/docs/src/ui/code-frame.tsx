@@ -95,3 +95,19 @@ export function CodeFrame(props: {
     </div>
   );
 }
+
+export function Code(props: {
+  code: string;
+  class?: string;
+  lang?: "html" | "json" | "ts" | "bash" | "md";
+  title?: string;
+}): JSX.Element {
+  return (
+    <CodeFrame
+      code={props.code}
+      class={props.class}
+      lang={props.lang}
+      title={props.title}
+    />
+  );
+}

@@ -3,8 +3,14 @@
  */
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { Chip, Section, starterDoc } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import {
+  Chip,
+  PageHeader,
+  PropList,
+  Section,
+  starterDoc,
+  type PropEntry,
+} from "../../../ui/index.ts";
 import {
   elementGroups,
   elementTokens,

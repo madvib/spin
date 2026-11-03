@@ -3,9 +3,8 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Chip, Section } from "../../../bits.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { Chip, PageHeader, Section } from "../../../ui/index.ts";
 import checkMd from "../../../content/check.md?raw";
 
 const STATES: readonly string[] = [

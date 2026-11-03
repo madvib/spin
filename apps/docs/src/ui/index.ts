@@ -1,5 +1,13 @@
-export { CodeFrame } from "./code-frame.tsx";
-export { PageHeader, serializeMainToMarkdown } from "./page-header.tsx";
+export { Code, CodeFrame } from "./code-frame.tsx";
+export {
+  Chip,
+  PageHeader,
+  Probe,
+  Section,
+  serializeMainToMarkdown,
+  starterDoc,
+  type ThemeDocument,
+} from "./page-header.tsx";
 export { PropList, type PropEntry } from "./prop-list.tsx";
 export { SplitExample } from "./split-example.tsx";
 export {

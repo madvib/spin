@@ -4,8 +4,7 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Chip, Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Chip, Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { elementGroups, elementTokens } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 

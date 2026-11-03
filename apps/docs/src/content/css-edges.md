@@ -6,13 +6,14 @@ Any class whose token step does not exist in your theme emits **no CSS rule at a
 
 > **Warning:** A class outside the theme vocabulary produces no CSS rule in the stylesheet. When a utility has no effect, check your theme's declared steps first.
 
-## The three cascade layers
+## The cascade layers
 
-Spin emits styles into three ordered CSS `@layer` blocks so utilities always override element defaults without specificity wars:
+Spin emits styles into four ordered CSS layers so utilities always override element defaults without specificity wars:
 
-1. **`preflights`** — box-sizing reset, `prefers-reduced-motion: reduce` clamp, `@font-face` rules from `$extensions.spin.fonts`, and `body` defaults.
-2. **`primitives`** — classless HTML element rules and `@spinjs/spin/animation` keyframes.
-3. **`utilities`** — token-backed utility classes (`p-*`, `bg-*`, `text-*`, `rounded-*`, `shadow-*`) and structural layout utilities (`flex`, `grid`, `items-*`, `justify-*`).
+1. **`reset`** (`-100`) — `box-sizing: border-box`, `border-width: 0`, and `[hidden] { display: none !important }`.
+2. **`theme`** (`-90`) — `:root`, `[data-theme]`, and `[data-mode]` CSS custom properties, `@font-face` rules from `$extensions.spin.fonts`, `body` defaults, and the `prefers-reduced-motion: reduce` clamp.
+3. **`primitives`** (`-50`) — classless HTML and Spin element rules plus `@spinjs/spin/animation` keyframes.
+4. **`default` (utilities)** (`0`) — token-backed utility classes (`p-*`, `bg-*`, `text-*`, `rounded-*`, `shadow-*`), layout shortcuts (`stack`, `row`, `split`, `cluster`), and structural layout utilities (`flex`, `grid`, `items-*`, `justify-*`).
 
 Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or any container subtree. There is no `dark:` class prefix — `bg-surface` and `text-text` automatically resolve to the dark palette inside a dark subtree.
 
@@ -23,8 +24,7 @@ Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or an
 
 ## Layout shortcuts
 
-Shortcuts compose common flex and grid patterns under a single class name (`stack`, `stack-sm`, `row`, `split`, `panel`). Declare project-specific shortcuts in `spin.vite({ shortcuts: { ... } })` so both the stylesheet compiler and `spin lint` recognize them.
-
+Shortcuts compose common flex and typography patterns under a single class name (`stack`, `stack-xs`, `stack-sm`, `stack-lg`, `row`, `row-sm`, `row-lg`, `split`, `cluster`, `cluster-sm`, `cluster-lg`, `inline`, `overline`). Declare project-specific shortcuts in `spin.vite({ shortcuts: { ... } })` so both the stylesheet compiler and `spin lint` recognize them.
 ## Motion and animations
 
 The `animate-*` utilities from `@spinjs/spin/animation` spend your theme's `motion.duration.*` and `motion.easing.*` tokens. Pair them with transition utilities (`transition-colors duration-fast ease-standard`) for state changes.

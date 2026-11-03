@@ -6,7 +6,14 @@ import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/spin/theme";
+import { parseTokens, starterThemes } from "@spinjs/spin/theme";
+import {
+  describeCatalog,
+  SECTIONS,
+  spinShortcuts,
+  utilitiesFor,
+} from "@spinjs/spin/preset";
+import { animationContract } from "@spinjs/spin/animation";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { ALL_DOCS_PAGES, DOCS_GROUPS } from "./src/nav.ts";
 import {
@@ -127,7 +134,7 @@ function buildLlmsTxt(): string {
     "## Core Rules for Coding Agents",
     "",
     "1. **Theme owns every visual value (`spin/*.json`).** Never write `.css` files, `<style>` blocks, inline `style={{}}`, or arbitrary bracket utilities (`w-[320px]`, `bg-[#fff]`).",
-    "2. **Classless elements first.** Use `<button>` (neutral), `<button class=\"primary\">` (CTA), `.secondary`, `.ghost`, `.destructive`, `.bare`, `<input>`, `<select>`, `<textarea>`, `<label>`, `<field>`, `<card>` (`<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`), `<panel>`, `<dialog>`, `<table>`, `<badge variant=\"primary\">`, `<alert variant=\"info\">`. Never re-declare styles the element already owns (`spin/no-redundant-class`, `spin/prefer-theme-value`).",
+    "2. **Classless elements first.** Use `<button>` (neutral), `<button class=\"primary\">` (CTA), `.secondary`, `.outline`, `.ghost`, `.danger`, `.bare`, `<input>`, `<select>`, `<textarea>`, `<label>`, `<field>`, `<card>` (`<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`), `<panel>`, `<dialog>`, `<table>`, `<badge variant=\"primary\">`, `<alert variant=\"info\">`. Never re-declare styles the element already owns (`spin/no-redundant-class`, `spin/prefer-theme-value`).",
     "3. **Layout shortcuts & paired inks.** Use `stack`, `stack-xs`, `stack-sm`, `stack-lg`, `row`, `split`, `cluster`, `inline`, `overline`. Pair every fill with its semantic ink (`bg-primary text-on-primary`, `bg-success text-on-semantic-success`). Dark mode is automatic via `[data-mode=\"dark\"]` — never write `dark:*` classes.",
     "4. **Interactive widgets via `@spinjs/components`.** Never hand-roll custom select, combobox, tabs, dialog, menu, popover, or date-picker widgets. Run `npx spin component list` and `npx spin component copy <name> <example>`, then bind with `createSpinComponent` / `useSpinComponent`.",
     "5. **Verify before finishing.** Run `npx spin lint .` and `npx spin theme analyze` (or use the `spin` MCP server tools in `.mcp.json`).",
@@ -454,6 +461,45 @@ function buildThemeMarkdown(routePath: string): string | undefined {
   }
 }
 
+function buildStylingMarkdown(routePath: string): string | undefined {
+  if (routePath !== "/docs/styling/catalog") return undefined;
+  const parsed = parseTokens(
+    starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+  );
+  if (!parsed.ok) return undefined;
+  const catalog = describeCatalog(parsed.tree);
+  const sections = SECTIONS.map((section) => {
+    const utils = utilitiesFor(section, catalog);
+    return [
+      `### ${section.title} (${utils.length})`,
+      "",
+      section.blurb,
+      "",
+      utils.map((u) => `\`${u}\``).join(", "),
+    ].join("\n");
+  }).join("\n\n");
+  const shortcuts = Object.entries(spinShortcuts as Record<string, string>)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, expansion]) => `- \`${name}\` → \`${expansion}\``)
+    .join("\n");
+  const animations = animationContract.variants
+    .map((v) => `\`${v}\``)
+    .join(", ");
+  return [
+    "## Utility Catalog by Intent",
+    "",
+    sections,
+    "",
+    "## Shipped Layout & Typography Shortcuts",
+    "",
+    shortcuts,
+    "",
+    "## Animation Utilities (`@spinjs/spin/animation`)",
+    "",
+    animations,
+  ].join("\n");
+}
+
 function buildMarkdownForRoute(routePath: string): string | undefined {
   const page = ALL_DOCS_PAGES.find((p) => p.href === routePath);
   if (!page) return undefined;
@@ -487,6 +533,11 @@ function buildMarkdownForRoute(routePath: string): string | undefined {
     return [...frontmatter, page.summary ?? "", "", themeMd, ""].join("\n");
   }
 
+
+  const stylingMd = buildStylingMarkdown(routePath);
+  if (stylingMd !== undefined) {
+    return [...frontmatter, page.summary ?? "", "", stylingMd, ""].join("\n");
+  }
   const mdFile = CONTENT_MD_FOR_ROUTE[routePath];
   if (mdFile) {
     const full = resolve(here, "src/content", mdFile);

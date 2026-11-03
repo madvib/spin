@@ -5,9 +5,8 @@ import { createEffect, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { select } from "@spinjs/components";
-import { Code, Section } from "../../../bits.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import { AUTHORING_SNIPPETS } from "./authoring.snippets.ts";
 import componentsMd from "../../../content/components.md?raw";
 

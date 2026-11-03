@@ -8,14 +8,12 @@ import { parseArgs } from "../../../packages/spin/src/diagnostics/cli.ts";
 import { mountSpinApp } from "../../../packages/spin/src/api/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./pages/docs/getting-started/getting-started.snippets.ts";
 import { THEMES_SNIPPETS } from "./pages/docs/themes/themes.snippets.ts";
-import { STYLING_SNIPPETS } from "./pages/docs/styling/styling.snippets.ts";
 import { AUTHORING_SNIPPETS } from "./pages/docs/authoring/authoring.snippets.ts";
 import { TOOLING_SNIPPETS } from "./pages/docs/tooling/tooling.snippets.ts";
 
 const ALL_SNIPPETS = {
   ...GETTING_STARTED_SNIPPETS,
   ...THEMES_SNIPPETS,
-  ...STYLING_SNIPPETS,
   ...AUTHORING_SNIPPETS,
   ...TOOLING_SNIPPETS,
 } as const;

@@ -3,8 +3,7 @@
  */
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { Code, Section } from "../../../bits.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
 
 export default function Quickstart(): JSX.Element {

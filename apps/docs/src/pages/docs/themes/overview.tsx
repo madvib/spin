@@ -6,8 +6,7 @@ import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { setTheme, theme } from "@spinjs/kit";
-import { Chip, Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Chip, Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { themeSummaries, type ThemeSummary } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 

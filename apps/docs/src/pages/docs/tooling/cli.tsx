@@ -3,8 +3,7 @@
  * field, and published package subpath rendered as structured PropList cards.
  */
 import type { JSX } from "solid-js";
-import { Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "../getting-started/getting-started.snippets.ts";
 
 const commandItems = (): readonly PropEntry[] => [

@@ -4,14 +4,17 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { spinShortcuts } from "@spinjs/preset";
-import { animationContract } from "@spinjs/animation";
-import { Chip, Code, Section, starterDoc } from "../../../bits.tsx";
+import { spinShortcuts } from "@spinjs/spin/preset";
+import { animationContract } from "@spinjs/spin/animation";
 import { Markdown } from "../../../markdown.tsx";
 import {
+  Chip,
+  Code,
   PageHeader,
   PlaygroundEmbed,
   PropList,
+  Section,
+  starterDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 import cssMd from "../../../content/css-edges.md?raw";

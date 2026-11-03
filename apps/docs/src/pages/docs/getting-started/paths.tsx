@@ -4,8 +4,7 @@
  */
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
 import { TOOLING_SNIPPETS } from "../tooling/tooling.snippets.ts";
 

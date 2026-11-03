@@ -3,9 +3,8 @@
  */
 import type { JSX } from "solid-js";
 import { For } from "solid-js";
-import { Code, Section } from "../../../bits.tsx";
 import { Markdown } from "../../../markdown.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import lintsMd from "../../../content/lints.md?raw";
 
 function Pair(props: {

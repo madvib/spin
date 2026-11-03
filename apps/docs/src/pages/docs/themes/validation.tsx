@@ -3,8 +3,7 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { FLOORS } from "../../../theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 

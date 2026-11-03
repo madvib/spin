@@ -168,7 +168,7 @@ export default function ComponentsIndex(): JSX.Element {
                       class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border border-solid border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
                     >
                     <span class="flex w-24 shrink-0 flex-col items-start gap-1">
-                      <span class="flex items-center gap-2 font-heading text-lg text-text">
+                      <span class="flex items-center gap-2 font-semibold text-sm text-text">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-text-muted`}
                           aria-hidden="true"

@@ -19,7 +19,7 @@ import * as library from "@spinjs/components";
 import { A, Navigate, useParams } from "@solidjs/router";
 import { EXAMPLE_ONLOAD, Specimen } from "@spinjs/kit";
 import { COMPONENT_ALIASES, COMPONENT_GROUPS } from "../../nav.ts";
-import { Chip, Code, Section } from "../../bits.tsx";
+import { Chip, Code, Section } from "../../ui/index.ts";
 import { ExampleRow } from "../../example-row.tsx";
 
 /** A machine or controller export, read off the library namespace. */

@@ -5,6 +5,9 @@
  */
 export {};
 
+declare module "spin/styles.css";
+declare module "spin.css";
+declare module "uno.css";
 declare module "spin/components";
 
 /** What every project component accepts: a ref, common attributes, and machine props. */

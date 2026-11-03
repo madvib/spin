@@ -2,11 +2,114 @@
  * Install & Bundlers: package split, `spin init` flags, bundler configs,
  * and project layout.
  */
+import { createEffect, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { BundlerPicker, Code, Section } from "../../../bits.tsx";
-import { PageHeader, PropList, type PropEntry } from "../../../ui/index.ts";
+import { createSpinComponent } from "@spinjs/components/solid";
+import { tabs } from "@spinjs/components/tabs";
+import {
+  Code,
+  CodeFrame,
+  PageHeader,
+  PropList,
+  Section,
+  type PropEntry,
+} from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
+
+const BUNDLER_TABS: Readonly<
+  Record<
+    string,
+    {
+      readonly name: string;
+      readonly file: string;
+      readonly code: string;
+      readonly note: string;
+    }
+  >
+> = {
+  vite: {
+    name: "Vite",
+    file: "vite.config.ts",
+    code: GETTING_STARTED_SNIPPETS.vite,
+    note: "Compiles spin/styles.css, transforms lib/components/**/*.html, and mounts the Studio at /__spin/studio/.",
+  },
+  rspack: {
+    name: "Rspack",
+    file: "rspack.config.ts",
+    code: GETTING_STARTED_SNIPPETS.rspack,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  webpack: {
+    name: "webpack",
+    file: "webpack.config.mjs",
+    code: GETTING_STARTED_SNIPPETS.webpack,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  rollup: {
+    name: "Rollup",
+    file: "rollup.config.mjs",
+    code: GETTING_STARTED_SNIPPETS.rollup,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  rolldown: {
+    name: "Rolldown",
+    file: "rolldown.config.ts",
+    code: GETTING_STARTED_SNIPPETS.rolldown,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  esbuild: {
+    name: "esbuild",
+    file: "spin.config.ts",
+    code: GETTING_STARTED_SNIPPETS.esbuild,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  bun: {
+    name: "Bun",
+    file: "spin.config.ts",
+    code: GETTING_STARTED_SNIPPETS.bun,
+    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+  },
+  unocss: {
+    name: "UnoCSS",
+    file: "uno.config.ts",
+    code: GETTING_STARTED_SNIPPETS.unocss,
+    note: "Stylesheet only: `spinPreset` in an existing UnoCSS app, with explicit theme documents.",
+  },
+};
+
+function BundlerPicker(): JSX.Element {
+  const [tabsEl, setTabsEl] = createSignal<HTMLElement>();
+  const tabsCtl = createSpinComponent(tabsEl, tabs);
+  const [selected, setSelected] = createSignal("vite");
+
+  createEffect(() => {
+    tabsCtl.bind(
+      { value: selected() },
+      {
+        "value-change": (event: CustomEvent<{ value: string }>) => {
+          if (event.detail.value in BUNDLER_TABS) {
+            setSelected(event.detail.value);
+          }
+        },
+      },
+    );
+  });
+
+  const current = () => BUNDLER_TABS[selected()] ?? BUNDLER_TABS.vite!;
+
+  return (
+    <div class="flex flex-col gap-3">
+      <docs-bundler-tabs ref={setTabsEl} />
+      <CodeFrame
+        code={current().code}
+        lang="ts"
+        title={current().file}
+      />
+      <p class="text-xs text-text-muted">{current().note}</p>
+    </div>
+  );
+}
 
 const PACKAGE_ITEMS: readonly PropEntry[] = [
   {

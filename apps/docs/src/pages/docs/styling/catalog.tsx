@@ -12,11 +12,10 @@ import {
   SECTIONS,
   spinShortcuts,
   utilitiesFor,
-} from "@spinjs/preset";
-import { animationContract } from "@spinjs/animation";
+} from "@spinjs/spin/preset";
+import { animationContract } from "@spinjs/spin/animation";
 import { mode, starterList, theme } from "@spinjs/kit";
-import { Chip, Probe, Section, starterDoc } from "../../../bits.tsx";
-import { PageHeader } from "../../../ui/index.ts";
+import { Chip, PageHeader, Probe, Section, starterDoc } from "../../../ui/index.ts";
 
 type Cell = Record<string, unknown>;
 const leaf = (root: unknown, path: string): unknown => {
@@ -68,9 +67,9 @@ function SwatchToken(props: { name: string; doc: unknown }): JSX.Element {
       <div
         class={`h-7 w-12 shrink-0 rounded-sm border border-border-strong bg-${props.name}`}
       />
-      <div class="min-w-0 text-sm">
+      <div class="flex min-w-0 flex-col">
         <span class="font-mono text-xs text-text">{props.name}</span>
-        <span class="ml-2 font-mono text-xs text-text-muted break-all">
+        <span class="truncate font-mono text-xs text-text-muted">
           {value}
         </span>
       </div>
@@ -82,15 +81,15 @@ const CHARACTER_ROWS: readonly {
   label: string;
   read: (doc: unknown) => string;
 }[] = [
+  { label: "button radius", read: (d) => stated(d, "button.radius") },
   { label: "button case", read: (d) => stated(d, "button.case") },
   { label: "button tracking", read: (d) => stated(d, "button.tracking") },
-  { label: "badge pill", read: (d) => stated(d, "badge.pill") },
-  { label: "checkbox depth", read: (d) => stated(d, "checkbox.depth") },
+  { label: "card elevation", read: (d) => stated(d, "card.elevation") },
+  { label: "border width", read: (d) => stated(d, "border.width") },
   { label: "radius md", read: (d) => stated(d, "radius.md") },
   { label: "motion base", read: (d) => stated(d, "motion.duration.base") },
-  { label: "motion loop", read: (d) => stated(d, "motion.duration.loop") },
+  { label: "sans face", read: (d) => stated(d, "font.family.sans") },
   { label: "heading face", read: (d) => stated(d, "font.family.heading") },
-  { label: "brand face", read: (d) => stated(d, "font.family.brand") },
 ];
 
 export default function Catalog(): JSX.Element {
@@ -137,23 +136,23 @@ export default function Catalog(): JSX.Element {
 
       <Section id="character" title="Where the starters disagree">
         <div class="mt-3 overflow-x-auto rounded-lg border border-border">
-          <table class="w-full border-collapse wrap">
+          <table class="w-full wrap">
             <thead>
-              <tr class="border-b border-border text-left">
-                <th class="py-2 pr-4">decision</th>
+              <tr>
+                <th>decision</th>
                 <For each={starterList}>
-                  {(name) => <th class="py-2 pr-4 font-mono">{name}</th>}
+                  {(name) => <th class="font-mono">{name}</th>}
                 </For>
               </tr>
             </thead>
             <tbody>
               <For each={CHARACTER_ROWS}>
                 {(row) => (
-                  <tr class="border-b border-border">
+                  <tr>
                     <td class="text-text-muted">{row.label}</td>
                     <For each={starterList}>
                       {(name) => (
-                        <td class="font-mono text-xs break-all">
+                        <td class="font-mono text-xs">
                           {row.read(
                             starterThemes[
                               name as keyof typeof starterThemes
