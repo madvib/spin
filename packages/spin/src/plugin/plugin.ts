@@ -853,7 +853,9 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     name: "spin",
     enforce: "post",
     resolveId(id: string) {
-      return id === "uno.css" ? VIRTUAL_ID : null;
+      return id === "uno.css" || id === "spin/styles.css" || id === "spin.css"
+        ? VIRTUAL_ID
+        : null;
     },
     load(id: string) {
       if (id !== VIRTUAL_ID && id.split("?")[0] !== VIRTUAL_ID) return null;

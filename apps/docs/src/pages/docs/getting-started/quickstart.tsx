@@ -12,7 +12,7 @@ export default function Quickstart(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Quickstart"
-        lede="Four steps: install and initialize, import the stylesheet and component registry, write classless markup and vendor a component, then open the Studio."
+        lede="Five steps: install and initialize, import the stylesheet and component registry, write classless markup and vendor a component, open the Studio, and onboard your coding agent."
       />
 
       <Section id="init" title="1. Install and initialize">
@@ -20,9 +20,9 @@ export default function Quickstart(): JSX.Element {
           Install the toolchain as a devDependency alongside the stateful
           components and their runtime, then run <code>npx spin init</code>.
           Spin detects your bundler, writes <code>spin/default.json</code>{" "}
-          (complete with light + dark modes and web fonts), and wires{" "}
-          <code>spin.vite()</code> into <code>vite.config.ts</code> (or your
-          detected bundler config — see{" "}
+          (complete with light + dark modes and web fonts), wires{" "}
+          <code>spin.vite()</code> into <code>vite.config.ts</code>, and writes{" "}
+          <code>.mcp.json</code> plus <code>src/spin-components.d.ts</code> (see{" "}
           <A href="/docs/getting-started/install#wire">Install &amp; Bundlers</A>{" "}
           for Rspack, webpack, Rollup, Rolldown, esbuild, Bun, and UnoCSS).
         </p>
@@ -35,7 +35,7 @@ export default function Quickstart(): JSX.Element {
           <Code
             code={GETTING_STARTED_SNIPPETS.init}
             lang="bash"
-            title="2. Scaffold spin/default.json & bundler config"
+            title="2. Scaffold spin/default.json, bundler & MCP config"
           />
         </div>
       </Section>
@@ -45,10 +45,12 @@ export default function Quickstart(): JSX.Element {
         title="2. Import the stylesheet and component registry"
       >
         <p class="max-w-prose">
-          The plugin serves <code>uno.css</code> as the token + utility
+          The plugin serves <code>spin/styles.css</code> as the token + utility
           stylesheet and <code>spin/components</code> as the registry of your
           project's compiled custom elements. Import both once in your app's
-          entry file, and declare the two virtual modules for TypeScript:
+          entry file — <code>src/spin-components.d.ts</code> is generated
+          automatically so TypeScript knows both virtual modules with zero
+          manual <code>.d.ts</code> files:
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
           <Code
@@ -59,7 +61,7 @@ export default function Quickstart(): JSX.Element {
           <Code
             code={GETTING_STARTED_SNIPPETS.declareCss}
             lang="ts"
-            title="src/spin-virtual.d.ts"
+            title="src/spin-components.d.ts (auto-generated)"
           />
         </div>
       </Section>
@@ -83,14 +85,17 @@ export default function Quickstart(): JSX.Element {
           <Code
             code="npx spin component copy select basic"
             lang="bash"
-            title="Vendor <app-select> into lib/components/select.html"
+            title="Vendor select/basic.html into lib/components/"
           />
         </div>
         <p class="max-w-prose">
-          Copying a recipe writes <code>lib/components/select.html</code>, which
-          the plugin compiles into a custom element you mount as{" "}
-          <code>&lt;app-select&gt;</code> with generated DOM and JSX types in{" "}
-          <code>src/spin-components.d.ts</code>.
+          Copying a recipe writes{" "}
+          <code>lib/components/select/basic.html</code>, updates{" "}
+          <code>src/spin-components.d.ts</code>, and compiles it into a custom
+          element you mount as <code>&lt;app-select-basic&gt;</code> (using your{" "}
+          <code>package.json</code> prefix, or move it to{" "}
+          <code>lib/components/select.html</code> to mount as{" "}
+          <code>&lt;app-select&gt;</code>).
         </p>
       </Section>
 
@@ -114,6 +119,25 @@ export default function Quickstart(): JSX.Element {
           spacing, components, and findings — is on{" "}
           <A href="/studio">Using the Studio</A>.
         </p>
+      </Section>
+
+      <Section id="agents" title="5. Onboard your coding agent">
+        <p class="max-w-prose">
+          <code>npx spin init</code> automatically writes{" "}
+          <code>.mcp.json</code> at your project root so Claude Code, Cursor,
+          and MCP-compatible agents can call <code>npx spin mcp</code> to
+          inspect tokens, copy components, and run diagnostics. Paste the
+          instructions below into your project's <code>AGENTS.md</code> or{" "}
+          <code>CLAUDE.md</code> (or send it directly to your agent) so it
+          writes idiomatic classless Spin markup instead of ad-hoc CSS:
+        </p>
+        <div class="my-3">
+          <Code
+            code={GETTING_STARTED_SNIPPETS.agentPrompt}
+            lang="md"
+            title="AGENTS.md / Copy for your coding agent"
+          />
+        </div>
       </Section>
     </main>
   );

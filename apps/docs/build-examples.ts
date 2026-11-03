@@ -17,6 +17,7 @@ import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { build } from "vite";
+import { SUBJECT_HTML } from "./examples/shared.ts";
 
 const docs = import.meta.dirname;
 const repo = resolve(docs, "../..");
@@ -109,17 +110,9 @@ async function buildFramework(name: Framework): Promise<void> {
   }
 }
 
-/** Every class name the subjects ask for. */
-async function candidates(): Promise<string[]> {
-  const { SUBJECT_HTML } = await import("./examples/shared.ts");
-  const html = Object.values(SUBJECT_HTML).join("\n");
-  const names = new Set<string>();
-  for (const match of html.matchAll(/class="([^"]*)"/g)) {
-    for (const name of match[1]!.split(/\s+/)) {
-      if (name !== "") names.add(name);
-    }
-  }
-  return [...names];
+/** Raw markup across all subjects so element, attribute, and class extractors all run. */
+function candidates(): string {
+  return Object.values(SUBJECT_HTML).join("\n");
 }
 
 async function writeCss(): Promise<void> {
@@ -133,7 +126,7 @@ async function writeCss(): Promise<void> {
   const generator = await createGenerator({
     presets: [spinPreset({ themes: starterThemes })],
   });
-  const generated = await generator.generate(list.join(" "), {
+  const generated = await generator.generate(list, {
     preflights: true,
   });
   await writeFile(resolve(out, "examples.css"), generated.css);

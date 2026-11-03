@@ -12,6 +12,7 @@
 
 import { configurationIn } from "./configuration.ts";
 import { configScaffoldText, wireConfigText } from "../plugin/config.ts";
+import { writeProjectComponentsDts } from "../plugin/components-compiler.ts";
 import {
   COMPONENTS_DIR,
   CONFIG_FILES,
@@ -414,6 +415,33 @@ export async function initProject(
       const scaffold = configScaffoldText(bundler, opts);
       await writeFile(join(options.root, scaffold.filename), scaffold.text, "utf8");
     }
+    const mcpPath = join(options.root, ".mcp.json");
+    if (!(await exists(mcpPath))) {
+      await writeFile(
+        mcpPath,
+        JSON.stringify(
+          {
+            mcpServers: {
+              spin: {
+                command: "npx",
+                args: ["spin", "mcp"],
+              },
+            },
+          },
+          null,
+          2,
+        ) + "\n",
+        "utf8",
+      );
+    }
+    await writeProjectComponentsDts(
+      options.root,
+      {
+        componentsDir,
+        ...(prefix === undefined ? {} : { prefix }),
+      },
+      { onlyIfSrcExists: true },
+    );
     return { error: null };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };

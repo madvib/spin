@@ -152,6 +152,9 @@ test("the generated types name every tag in both the DOM map and Solid JSX", () 
     deepStrictEqual(dts.includes(`"${tag}": HTMLElement & SpinProjectComponentAttributes;`), true);
     deepStrictEqual(dts.includes(`"${tag}": SpinProjectComponentAttributes;`), true);
   }
+  deepStrictEqual(dts.includes('declare module "spin/styles.css";'), true);
+  deepStrictEqual(dts.includes('declare module "spin.css";'), true);
+  deepStrictEqual(dts.includes('declare module "uno.css";'), true);
   deepStrictEqual(dts.includes('declare module "spin/components";'), true);
 });
 

@@ -107,6 +107,9 @@ export function renderComponentsDts(tags: readonly string[]): string {
     " */",
     "export {};",
     "",
+    'declare module "spin/styles.css";',
+    'declare module "spin.css";',
+    'declare module "uno.css";',
     'declare module "spin/components";',
     "",
     "/** What every project component accepts: a ref, common attributes, and machine props. */",
@@ -136,6 +139,77 @@ export function renderComponentsDts(tags: readonly string[]): string {
     "",
   ].join("\n");
 }
+const resolvePrefixForFile = async (
+  file: string,
+  options: SpinComponentsOptions = {},
+): Promise<string> => {
+  if (options.prefix !== undefined) return options.prefix;
+  if (options.fallbackPrefix !== undefined) return options.fallbackPrefix;
+  try {
+    const path = await import("node:path");
+    const fs = await import("node:fs/promises");
+    let dir = path.dirname(file);
+    for (let depth = 0; depth < 6; depth++) {
+      try {
+        const raw = await fs.readFile(path.join(dir, "package.json"), "utf8");
+        const name = (JSON.parse(raw) as { name?: unknown }).name;
+        if (typeof name === "string" && name.length > 0) {
+          return sanitizePrefix(name);
+        }
+      } catch {
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  } catch {
+  }
+  return "app";
+};
+
+/** Write or refresh `src/spin-components.d.ts` (or `lib/components/components.d.ts` during build). */
+export async function writeProjectComponentsDts(
+  projectRoot: string,
+  options: SpinComponentsOptions = {},
+  mode: { readonly onlyIfSrcExists?: boolean } = {},
+): Promise<void> {
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
+  const { resolveProjectDir } = await import("../project/resolve-dir.ts");
+  const componentsDir = options.componentsDir ?? "lib/components";
+  let srcIsDir = false;
+  try {
+    srcIsDir = (await fs.stat(path.join(projectRoot, "src"))).isDirectory();
+  } catch {
+    srcIsDir = false;
+  }
+  if (mode.onlyIfSrcExists && !srcIsDir) return;
+  const files = await projectComponentFiles(projectRoot, componentsDir);
+  const probe = files.length > 0
+    ? `${projectRoot}/${files[0]}`
+    : `${projectRoot}/package.json`;
+  const prefix = await resolvePrefixForFile(probe, options);
+  const resolved = (await resolveProjectDir(projectRoot, componentsDir, "components")).path;
+  const tags = files.map((file) =>
+    tagForProjectFile(`${projectRoot}/${file}`, resolved, prefix)
+  );
+  const body = renderComponentsDts(tags);
+  const same = async (file: string): Promise<boolean> => {
+    try {
+      return (await fs.readFile(file, "utf8")) === body;
+    } catch {
+      return false;
+    }
+  };
+  if (srcIsDir) {
+    const out = path.join(projectRoot, "src", "spin-components.d.ts");
+    if (!(await same(out))) await fs.writeFile(out, body);
+    return;
+  }
+  const out = path.join(resolved, "components.d.ts");
+  if (!(await same(out))) await fs.writeFile(out, body);
+}
+
 export function spinComponentsStage(options: SpinComponentsOptions = {}): UnpluginOptions {
   const actionsDir = "actions";
   const componentsDir = options.componentsDir ?? "lib/components";
@@ -188,29 +262,7 @@ export function spinComponentsStage(options: SpinComponentsOptions = {}): Unplug
     );
   };
   const writeDts = async (): Promise<void> => {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const tags = await tagsForDts();
-    const body = renderComponentsDts(tags);
-    const same = async (file: string): Promise<boolean> => {
-      try {
-        return (await fs.readFile(file, "utf8")) === body;
-      } catch {
-        return false;
-      }
-    };
-    try {
-      const stat = await fs.stat(path.join(projectRoot, "src"));
-      if (stat.isDirectory()) {
-        const out = path.join(projectRoot, "src", "spin-components.d.ts");
-        if (!(await same(out))) await fs.writeFile(out, body);
-        return;
-      }
-    } catch {
-    }
-    const resolved = await resolvedDirOf();
-    const out = path.join(resolved, "components.d.ts");
-    if (!(await same(out))) await fs.writeFile(out, body);
+    await writeProjectComponentsDts(projectRoot, options);
   };
   return {
     name: "spin-components",

@@ -159,6 +159,14 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   };
   deepStrictEqual(writtenTheme.modes, ["light", "dark"]);
   deepStrictEqual(writtenTheme.$extensions?.spin?.fonts?.[0]?.family, "Inter");
+
+  const mcpConfig = JSON.parse(await readFile(join(dir, ".mcp.json"), "utf8")) as {
+    mcpServers?: { spin?: { command?: string; args?: readonly string[] } };
+  };
+  deepStrictEqual(mcpConfig.mcpServers?.spin, {
+    command: "npx",
+    args: ["spin", "mcp"],
+  });
 });
 
 test("init refuses a root it cannot make a project in", async () => {

@@ -16,7 +16,10 @@ import { componentExamples } from "../compiler/rules/primitives/examples-index.t
 import { EXAMPLE_ONLOAD } from "../kit/mount-glue.ts";
 import { componentsContract } from "./components-contract.ts";
 import { prefixOf, readConfiguration } from "../project/index.ts";
-import { tagForProjectFile } from "../plugin/components-compiler.ts";
+import {
+  tagForProjectFile,
+  writeProjectComponentsDts,
+} from "../plugin/components-compiler.ts";
 import { rootFor } from "./project-procedures.ts";
 import * as catalog from "@spinjs/components";
 
@@ -465,6 +468,14 @@ const copy = os.components.copy.handler(async ({ input }) => {
       join(root, file),
       componentsDir,
       moniker,
+    );
+    await writeProjectComponentsDts(
+      root,
+      {
+        componentsDir,
+        ...(moniker !== "*" ? { prefix: moniker } : {}),
+      },
+      { onlyIfSrcExists: true },
     );
     return { file, tag, error: null };
   } catch (err) {

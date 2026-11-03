@@ -134,8 +134,9 @@ export default function Install(): JSX.Element {
           <BundlerPicker />
         </div>
         <p class="max-w-prose">
-          Import the generated stylesheet once in your entry file, and declare
-          the virtual module for TypeScript:
+          Import <code>spin/styles.css</code> and <code>spin/components</code>{" "}
+          once in your entry file. The Spin plugin and <code>spin init</code>{" "}
+          generate <code>src/spin-components.d.ts</code> automatically:
         </p>
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
           <Code
@@ -146,7 +147,7 @@ export default function Install(): JSX.Element {
           <Code
             code={GETTING_STARTED_SNIPPETS.declareCss}
             lang="ts"
-            title="src/spin-virtual.d.ts"
+            title="src/spin-components.d.ts (auto-generated)"
           />
         </div>
       </Section>
@@ -166,7 +167,7 @@ export default function Install(): JSX.Element {
                 "Optional project seating configuration (activeTheme and themeOrder) written by the Studio.",
             },
             {
-              name: "lib/components/*.html",
+              name: "lib/components/**/*.html",
               badge: "components",
               description: (
                 <>
@@ -179,7 +180,13 @@ export default function Install(): JSX.Element {
               name: "src/spin-components.d.ts",
               badge: "generated",
               description:
-                "Auto-generated DOM and JSX type declarations for your project components.",
+                "Auto-generated virtual module declarations (spin/styles.css, spin/components) and DOM/JSX types for your project components.",
+            },
+            {
+              name: ".mcp.json",
+              badge: "agents",
+              description:
+                "Written by spin init so coding agents automatically connect to the npx spin mcp stdio server.",
             },
           ]}
         />

@@ -24,8 +24,9 @@ the same brand, across all eight supported bundlers (`Vite`, `Rspack`,
 ## Compiled components, fine-grained runtime
 
 Interactive components are authored once in clean HTML plus TypeScript —
-`lib/components/select.html` — and compiled into fast, zero-framework custom
-elements (`<app-select>`) backed by signals and statecharts. There is no
+`lib/components/select/basic.html` (or `lib/components/select.html`) — and
+compiled into fast, zero-framework custom elements (`<app-select-basic>` or
+`<app-select>`) backed by signals and statecharts. There is no
 framework runtime in the middle: the component is a DOM element any host can
 mount, driven from React, Solid, or vanilla DOM through typed controllers.
 

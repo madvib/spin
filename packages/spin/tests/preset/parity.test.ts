@@ -66,6 +66,8 @@ async function referencePlugin(): Promise<ViteOptions> {
 test("the id the app imports resolves to the plugin's own module", async () => {
   const plugin = await referencePlugin();
   deepStrictEqual(await plugin.resolveId!("uno.css"), "/__uno.css");
+  deepStrictEqual(await plugin.resolveId!("spin/styles.css"), "/__uno.css");
+  deepStrictEqual(await plugin.resolveId!("spin.css"), "/__uno.css");
 });
 
 test("an id the app does not import is left to someone else", async () => {

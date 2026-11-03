@@ -79,7 +79,7 @@ export function Eyebrow(props: { children: JSX.Element }): JSX.Element {
 export function Code(props: {
   code: string;
   class?: string;
-  lang?: "html" | "json" | "ts" | "bash";
+  lang?: "html" | "json" | "ts" | "bash" | "md";
   title?: string;
 }): JSX.Element {
   return (
@@ -133,43 +133,43 @@ const BUNDLER_TABS: Readonly<
     name: "Vite",
     file: "vite.config.ts",
     code: GETTING_STARTED_SNIPPETS.vite,
-    note: "Compiles uno.css, transforms lib/components/*.html, and mounts the Studio on your dev server.",
+    note: "Compiles spin/styles.css, transforms lib/components/**/*.html, and mounts the Studio on your dev server.",
   },
   rspack: {
     name: "Rspack",
     file: "rspack.config.ts",
     code: GETTING_STARTED_SNIPPETS.rspack,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   webpack: {
     name: "webpack",
     file: "webpack.config.mjs",
     code: GETTING_STARTED_SNIPPETS.webpack,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   rollup: {
     name: "Rollup",
     file: "rollup.config.mjs",
     code: GETTING_STARTED_SNIPPETS.rollup,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   rolldown: {
     name: "Rolldown",
     file: "rolldown.config.ts",
     code: GETTING_STARTED_SNIPPETS.rolldown,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   esbuild: {
     name: "esbuild",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.esbuild,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   bun: {
     name: "Bun",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.bun,
-    note: "Compiles uno.css and lib/components/*.html; run `npx spin studio` alongside the dev server.",
+    note: "Compiles spin/styles.css and lib/components/**/*.html; run `npx spin studio` alongside the dev server.",
   },
   unocss: {
     name: "UnoCSS",
