@@ -242,29 +242,22 @@ test("a primitives list enables only the components it names", async () => {
   );
 });
 
-test("classless: false makes a primitive claim its class, not its tag", async () => {
-  // Breaks if claim() ignores the mode, or returns the tag when classless
-  // is off — either way the wrong element matches the rule.
+test("a primitive claims its bare tag", async () => {
+  // Breaks if the rule stops claiming the tag: the bare element is the
+  // only subject a primitive paints.
   const markup = "<details><summary>More</summary></details>";
   const bare = fakeElement("details");
   const classed = fakeElement("details", ["details"]);
 
-  const byDefault = await generate(markup);
-  const defaultSelectors = selectorsFor(byDefault, "details");
+  const result = await generate(markup);
+  const selectors = selectorsFor(result, "details");
   assert(
-    defaultSelectors.some((selector) => bare.matches(selector)),
-    "the bare element must be claimed while classless",
-  );
-
-  const byClass = await generate(markup, { classless: false });
-  const classSelectors = selectorsFor(byClass, "details");
-  assert(
-    classSelectors.some((selector) => classed.matches(selector)),
-    "the classed element must be claimed with classless off",
+    selectors.some((selector) => bare.matches(selector)),
+    "the bare element must be claimed",
   );
   assert(
-    !classSelectors.some((selector) => bare.matches(selector)),
-    "the bare element must not be claimed with classless off",
+    !selectors.some((selector) => classed.matches(selector) && !bare.matches(selector)),
+    "no class-only selector may claim the element",
   );
 });
 

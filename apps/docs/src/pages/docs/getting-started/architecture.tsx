@@ -33,15 +33,14 @@ const layerItems = (): readonly PropEntry[] => [
   },
   {
     name: "3. Elements (primitives)",
-    badge: "classless: true",
     description: (
       <>
         Styles native HTML tags (<code>&lt;button&gt;</code>,{" "}
         <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>,{" "}
         <code>&lt;table&gt;</code>) and Spin elements (<code>&lt;card&gt;</code>
         , <code>&lt;badge&gt;</code>, <code>&lt;alert&gt;</code>) from theme CSS
-        variables. Enabled by default (<code>classless: true</code>), or opt-in
-        by class with <code>classless: false</code>. Explore{" "}
+        variables. Elements style their bare tags — write{" "}
+        <code>&lt;button&gt;</code>, get a finished control. Explore{" "}
         <A href="/docs/styling/elements">Primitives</A>.
       </>
     ),

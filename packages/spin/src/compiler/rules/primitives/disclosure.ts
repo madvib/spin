@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Disclosure — `<details>` and `<summary>`.
@@ -33,11 +33,10 @@ import { claim, type Mode } from "./shared.ts";
  */
 export function disclosureRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("details")) return [];
-  const details = claim(mode, "details");
-  const summary = claim(mode, "summary");
+  const details = "details";
+  const summary = "summary";
   return [detailsRule(details, summary), summaryRule(summary, details)];
 }
 

@@ -51,9 +51,7 @@ test("the chain holds the elements above, nearest first", () => {
 });
 
 test("the chain holds the classes of each element above", () => {
-  // The scope of a primitive is named by a class as often as by a tag: the
-  // same primitive in its classless form claims `<card>` and in its class
-  // form claims `.card`.
+  // The classes ride along the chain; a scope matches tags, not classes.
   const found = chains().map((entry) => entry.classes.join(" > ")).sort();
   deepStrictEqual(found, ["", "body > column", "column"]);
 });

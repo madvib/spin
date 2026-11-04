@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Progress — the `<progress>` element.
@@ -40,10 +40,9 @@ import { claim, type Mode } from "./shared.ts";
  */
 export function progressRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("progress")) return [];
-  const progress = claim(mode, "progress");
+  const progress = "progress";
   return [
     barRule(progress),
     ...indeterminateRule(progress),

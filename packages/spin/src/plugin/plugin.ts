@@ -492,12 +492,6 @@ export interface SpinPluginOptions {
    */
   readonly primitives?: string[] | boolean;
   /**
-   * Whether custom elements claim their bare tags. Default true; forwarded
-   * to the preset. Setting false makes custom-element classes explicit
-   * (`class="button"`); reset and prose type stay on their tags either way.
-   */
-  readonly classless?: boolean;
-  /**
    * Fail the build on classes the theme cannot produce. Default: a
    * production build throws and lists every unknown class with the file
    * that names it; the dev server logs the same payload and keeps
@@ -795,6 +789,11 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
   let cachedIcons: Preset | null | undefined;
 
   async function generate(): Promise<string> {
+    if ("classless" in options) {
+      throw new Error(
+        "spin.vite: `classless` was removed — primitives always claim their bare tags. Narrow with `primitives: [...]` instead.",
+      );
+    }
     // No `themes` option means the project's own: the brand layer,
     // forked by the configured directory at the root. Reading disk on
     // every generate is cheap — a handful of small files — and means a
@@ -852,7 +851,6 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
           themes,
           shortcuts: options.shortcuts,
           primitives: options.primitives,
-          classless: options.classless,
         }),
       ],
       safelist: options.safelist === false ? undefined : safelist,

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Swatch — a small color dot/box painted from a `--swatch` CSS variable.
@@ -11,10 +11,9 @@ import { claim, type Mode } from "./shared.ts";
  */
 export function swatchRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("swatch")) return [];
-  const base = claim(mode, "swatch");
+  const base = "swatch";
   return [swatchBase(base), ...swatchSizes(base)];
 }
 

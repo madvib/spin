@@ -1,14 +1,14 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens } from "./shared.ts";
+import { proseTokens } from "./shared.ts";
 
 /** Keyboard input: a keycap for a key on the keyboard. */
-function kbdRule(mode: Mode): Rule {
+function kbdRule(): Rule {
   return [
     /^kbd$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "kbd"),
+        [ctx.symbols.selector]: () => "kbd",
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
         ...(t.spacing1 !== undefined
@@ -34,7 +34,7 @@ function kbdRule(mode: Mode): Rule {
   ];
 }
 
-export function kbdRules(roots: readonly string[], mode: Mode): Rule[] {
+export function kbdRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("kbd")) return [];
-  return [kbdRule(mode)];
+  return [kbdRule()];
 }

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode, proseTokens } from "./shared.ts";
+import { proseTokens } from "./shared.ts";
 
 /**
  * Hr — a rule between content, drawn from the border tokens, not a heavy
@@ -26,9 +26,9 @@ import { claim, type Mode, proseTokens } from "./shared.ts";
  * long list of sections or a run of metadata asks for. The weight is still the
  * theme's — the variant changes the style and nothing else.
  */
-export function hrRules(roots: readonly string[], mode: Mode): Rule[] {
+export function hrRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("hr")) return [];
-  const base = claim(mode, "hr");
+  const base = "hr";
   return [hrRule(base), dividerVertical(base), dividerDashed(base)];
 }
 

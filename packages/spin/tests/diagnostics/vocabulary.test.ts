@@ -168,3 +168,15 @@ test("text-text is unknown and carries the edit that drops it", () => {
   deepStrictEqual(finding?.messageId, "unknown");
   deepStrictEqual(finding?.fix, { range: [0, 9], text: "" });
 });
+
+test("an arbitrary type size is unknown while the named step stays known", () => {
+  // T2 (remove the type hatch): no rule emits `text-[14px]`, and the catalog
+  // never names it, so the closed vocabulary reports it like any dead class —
+  // while the named steps stay known.
+  const facts = factsFor(Object.values(starterThemes));
+  deepStrictEqual(reported(facts, "text-[14px] text-[15px]"), [
+    "text-[14px]",
+    "text-[15px]",
+  ]);
+  deepStrictEqual(reported(facts, "text-xs text-lg text-2xs"), []);
+});

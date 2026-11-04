@@ -3,12 +3,10 @@ import type { Rule } from "@unocss/core";
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.
  *
- * Prose is BASE, not a toggleable component: document type ships
- * unconditionally and never gates on the classless toggle. Type and reset
- * are document furniture, not a toggleable component — turning `classless`
- * off unstyles custom elements (`button`, `card`) but leaves `h1`–`h6`,
- * `p`, lists, quotations, code, rules and media styled by their tags,
- * everywhere they are written. There are no `.h1` classes.
+ * Prose is BASE, not a component: document type ships unconditionally.
+ * Type and reset are document furniture — `h1`–`h6`, `p`, lists,
+ * quotations, code, rules and media are styled by their tags, everywhere
+ * they are written. There are no `.h1` classes.
  *
  * The element vocabulary of a document — headings, paragraphs, lists,
  * quotations, code, rules, media — each styled by the rule keyed on its tag.

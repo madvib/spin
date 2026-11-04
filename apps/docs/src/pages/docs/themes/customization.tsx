@@ -135,7 +135,7 @@ export default function ThemesCustomization(): JSX.Element {
         <p class="max-w-prose">
           Instead of scattering raw color scales (<code>blue-500</code>,{" "}
           <code>gray-200</code>) across components, Spin components and
-          classless elements read semantic color roles. You can define raw hex
+          elements read semantic color roles. You can define raw hex
           ramps under{" "}
           <code>color.neutral.*</code> or <code>color.brand.*</code> and point
           your semantic roles at them using <code>{"{color.neutral.50}"}</code>{" "}
@@ -177,7 +177,7 @@ export default function ThemesCustomization(): JSX.Element {
 
       <Section id="elements" title="Per-element overrides">
         <p class="max-w-prose">
-          By default, classless elements derive their appearance from the
+          By default, elements derive their appearance from the
           global token groups (<code>button</code> uses <code>radius.md</code>,{" "}
           <code>font.weight.medium</code>, and <code>color.border</code>). When
           you want to give a specific element its own

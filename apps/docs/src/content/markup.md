@@ -11,17 +11,19 @@ Importing `spin/styles.css` compiles your `spin/*.json` theme into four ordered 
 
 Because `default` (`0`) sits above `primitives` (`-50`) in the cascade, **any utility class cleanly overrides a primitive's default styling** (`<card class="p-6 bg-surface-sunken">`) without specificity wars, `!important`, or runtime class-merging utilities like `twMerge`.
 
-## Tag or class (`classless` toggles custom elements, never prose)
+## Custom elements claim their bare tags
 
 Three layers, from unconditional to opted-in: the reset is tokenless and
 always ships; the base carries the document type (`h1`–`h6`, `p`, lists,
-quotations, code) on its tags whatever the toggle says; the toggleable
-custom elements (`button`, `table`, `card`) claim their bare tags by default
-and only their classes with `classless: false`.
+quotations, code) on its tags; custom elements (`button`, `table`, `card`)
+claim their bare tags.
 
-- **`classless: true` (default):** Bare semantic HTML tags and Spin custom elements carry their styling automatically.
-- **`classless: false`:** Custom elements stay unstyled until you name them with `class="button"`, `class="table"`, `class="card"` — useful when adopting Spin inside an existing application. Prose (`h1`, `p`, `ul`, `blockquote`, `code`) keeps its tags: document type is base, not a preference.
-- **`primitives: [...]` or `false`:** Ship only a subset of custom-element rules, or pass `false` for a utility-only stylesheet that still carries the base type.
+- **Bare tags, always:** Semantic HTML tags and Spin custom elements carry
+  their styling automatically — `<button>`, `<card>`, `<table>` need no
+  classes to read finished.
+- **`primitives: [...]` or `false`:** Ship only a subset of custom-element
+  rules — the incremental-adoption tool — or pass `false` for a
+  utility-only stylesheet that still carries the base type.
 
 ```ts
 // vite.config.ts
@@ -31,9 +33,7 @@ import { spin } from "@spinjs/spin/vite";
 export default defineConfig({
   plugins: [
     spin.vite({
-      // Custom elements only — prose keeps its tags either way:
-      classless: false,
-      // Or restrict which custom-element rules are emitted:
+      // Restrict which custom-element rules are emitted:
       primitives: ["button", "card", "field", "table"],
     }),
   ],

@@ -5,7 +5,6 @@ import { badgeRules } from "./badge.ts";
 import { breadcrumbsRules } from "./breadcrumbs.ts";
 import { buttonRules } from "./button.ts";
 import { cardRules } from "./card.ts";
-import type { Mode } from "./shared.ts";
 import { controlRules } from "./control.ts";
 import { dialogRules } from "./dialog.ts";
 import { disclosureRules } from "./disclosure.ts";
@@ -45,39 +44,36 @@ import { textareaRules } from "./textarea.ts";
  * Shortcuts still have a place, for utility bundles a caller opts into by
  * name. They are not for components.
  */
-export function primitiveRules(
-  roots: readonly string[],
-  mode: Mode,
-): Rule[] {
+export function primitiveRules(roots: readonly string[]): Rule[] {
   return [
     // The shared box is one component: `field` covers input and textarea,
     // because they are one box with two contents.
     ...(roots.includes("field") ? [fieldBox()] : []),
     ...a11yRules(roots),
-    ...alertRules(roots, mode),
-    ...badgeRules(roots, mode),
-    ...breadcrumbsRules(roots, mode),
+    ...alertRules(roots),
+    ...badgeRules(roots),
+    ...breadcrumbsRules(roots),
     ...buttonRules(roots),
-    ...cardRules(roots, mode),
+    ...cardRules(roots),
     ...controlRules(roots),
-    ...dialogRules(roots, mode),
-    ...disclosureRules(roots, mode),
-    ...fieldsetRules(roots, mode),
-    ...progressRules(roots, mode),
+    ...dialogRules(roots),
+    ...disclosureRules(roots),
+    ...fieldsetRules(roots),
+    ...progressRules(roots),
     ...proseRules(),
-    ...joinRules(roots, mode),
-    ...hrRules(roots, mode),
-    ...kbdRules(roots, mode),
-    ...labelRules(roots, mode),
-    ...meterRules(roots, mode),
-    ...panelRules(roots, mode),
-    ...statRules(roots, mode),
-    ...skeletonRules(roots, mode),
-    ...swatchRules(roots, mode),
-    ...tableRules(roots, mode),
+    ...joinRules(roots),
+    ...hrRules(roots),
+    ...kbdRules(roots),
+    ...labelRules(roots),
+    ...meterRules(roots),
+    ...panelRules(roots),
+    ...statRules(roots),
+    ...skeletonRules(roots),
+    ...swatchRules(roots),
+    ...tableRules(roots),
     ...textareaRules(roots),
     ...radioRules(roots),
     ...rangeRules(roots),
-    ...tooltipRules(roots, mode),
+    ...tooltipRules(roots),
   ];
 }

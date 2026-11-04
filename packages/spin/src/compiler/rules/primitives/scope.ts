@@ -25,7 +25,7 @@
  * outside what its primitive declared is a failure, not a widening.
  */
 
-import { claim, type Mode } from "./shared.ts";
+// (Tag-only: primitives always claim their bare tags; see shared.ts.)
 
 /**
  * Where a primitive's painting lands.
@@ -155,20 +155,18 @@ export function paintKeyOf(property: string): PaintKey | undefined {
  * quietly change which of two rules wins.
  */
 export function painted(
-  mode: Mode,
   self: string,
   where: Placement,
   tag: string,
 ): string {
-  const subject = claim(mode, tag);
-  if (where !== "descendant") return `:is(${subject})`;
-  return `:where(${claim(mode, self)}) :is(${subject})`;
+  if (where !== "descendant") return `:is(${tag})`;
+  return `:where(${self}) :is(${tag})`;
 }
 
 /**
  * The base claim: prose is base, not a toggleable component, so its selectors
  * are always tags. Same shaping as {@link painted} — the `:where()` keeps the
- * descendant reach from adding weight — without the classless toggle.
+ * descendant reach from adding weight.
  */
 export function paintedTag(
   self: string,

@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode } from "./shared.ts";
+
 import { token } from "../../utils/lookup.ts";
 
 /**
@@ -12,13 +12,13 @@ import { token } from "../../utils/lookup.ts";
  * The control fills the label's width; the label itself is a block, so it
  * takes the width its parent gives it.
  */
-export function labelRules(roots: readonly string[], mode: Mode): Rule[] {
+export function labelRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("label")) return [];
-  return [labelRule(mode)];
+  return [labelRule()];
 }
 
-function labelRule(mode: Mode): Rule {
-  const label = claim(mode, "label");
+function labelRule(): Rule {
+  const label = "label";
   return [
     /^label$/,
     function* (_m, ctx) {

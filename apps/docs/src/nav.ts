@@ -59,7 +59,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Overview",
         href: "/docs/getting-started/overview",
-        summary: "How themes, classless HTML elements, utilities, and state machines fit together.",
+        summary: "How themes, bare-tag HTML elements, utilities, and state machines fit together.",
       },
       {
         title: "Quickstart",

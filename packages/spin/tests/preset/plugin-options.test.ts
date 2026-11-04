@@ -20,28 +20,32 @@ async function stylesheetStage(
   return stages[0]!;
 }
 
-test("the plugin forwards classless to the preset", async () => {
+test("classless: false is a loud error, not a silent option", async () => {
+  // The toggle is removed, not deprecated: passing it must fail loudly
+  // rather than silently switching the build to class selectors.
   const root = await mkdtemp(join(import.meta.dir, ".tmp-"));
   try {
     await mkdir(join(root, "src"));
     await writeFile(
       join(root, "src", "index.html"),
-      '<button class="button">Ship</button>\n',
+      "<button>Ship</button>\n",
       "utf8",
     );
     const stages = spin.vite({
       themes: { brand: starterThemes.spin },
       classless: false,
       content: { filesystem: [`${root}/src/**/*.html`] },
-    }) as unknown as ViteOptions[];
+    } as never) as unknown as ViteOptions[];
     const plugin = await stylesheetStage(stages);
     plugin.configResolved?.({ root, command: "serve" });
     const id = await plugin.resolveId!("uno.css");
     assert(id);
-    const css = await plugin.load!(id);
-    assert(
-      typeof css === "string" && css.includes(".button"),
-      "classless: false emits the primitive's class selector",
+    await assert.rejects(
+      async () => {
+        await plugin.load!(id);
+      },
+      /classless.*removed/,
+      "passing the removed toggle must fail with the removal message",
     );
   } finally {
     await rm(root, { recursive: true, force: true });

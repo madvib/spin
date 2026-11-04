@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Meter — the native `<meter>` gauge.
@@ -18,13 +18,13 @@ import { claim, type Mode } from "./shared.ts";
  * pseudo with `:-moz-meter-*` on the element, so each band gets its own
  * selector chain rather than its own pseudo.
  */
-export function meterRules(roots: readonly string[], mode: Mode): Rule[] {
+export function meterRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("meter")) return [];
-  return [meterRule(mode)];
+  return [meterRule()];
 }
 
-function meterRule(mode: Mode): Rule {
-  const meter = claim(mode, "meter");
+function meterRule(): Rule {
+  const meter = "meter";
   return [
     /^meter$/,
     function* (_m, ctx) {

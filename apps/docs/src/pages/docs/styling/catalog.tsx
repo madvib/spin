@@ -239,7 +239,8 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
         description: (
           <>
             Sets <code>font-size: var(--font-size-&lt;step&gt;)</code> from your
-            theme's monotonic <code>font.size</code> ramp.
+            theme&apos;s monotonic <code>font.size</code> ramp — type sizes come
+            from the scale, and <code>text-[…]</code> renders nothing.
           </>
         ),
       },

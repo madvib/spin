@@ -259,9 +259,9 @@ function exactName(rule: Rule): string | undefined {
 /**
  * Every namespace our own rules claim, read off the rules themselves.
  *
- * Built from `spinRules` with the full primitive set and the classless
- * default — the shape a spin preset has when nobody has narrowed it — so a
- * family the primitives claim stays ours even when a caller opts them out.
+ * Built from `spinRules` with the full primitive set — the shape a spin
+ * preset has when nobody has narrowed it — so a family the primitives
+ * claim stays ours even when a caller opts them out.
  * Opting out of a component should not hand its namespaces to wind4.
  *
  * Exact names are kept apart: an element rule for one tag must never read as
@@ -269,11 +269,7 @@ function exactName(rule: Rule): string | undefined {
  */
 const ownedExact: ReadonlySet<string> = (() => {
   const owned = new Set<string>();
-  for (
-    const rule of spinRules(Object.keys(primitiveContracts), {
-      classless: true,
-    })
-  ) {
+  for (const rule of spinRules(Object.keys(primitiveContracts))) {
     const exact = exactName(rule);
     if (exact !== undefined) owned.add(exact);
   }
@@ -289,11 +285,7 @@ const ownedExact: ReadonlySet<string> = (() => {
  */
 const ownedNamespaces: ReadonlySet<string> = (() => {
   const owned = new Set<string>();
-  for (
-    const rule of spinRules(Object.keys(primitiveContracts), {
-      classless: true,
-    })
-  ) {
+  for (const rule of spinRules(Object.keys(primitiveContracts))) {
     if (exactName(rule) !== undefined) continue;
     for (const claim of claimsOf(rule)) owned.add(claim);
   }

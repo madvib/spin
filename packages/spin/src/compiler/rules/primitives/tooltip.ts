@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode } from "./shared.ts";
+
 import { token } from "../../utils/lookup.ts";
 
 /**
@@ -14,7 +14,7 @@ import { token } from "../../utils/lookup.ts";
  * The reads are narrow on purpose: the derivation records every token the
  * rule touches, so a shared helper would file sizes the chip never sets.
  */
-function tooltipRule(mode: Mode): Rule {
+function tooltipRule(): Rule {
   return [
     /^tooltip$/,
     function* (_m, ctx) {
@@ -28,7 +28,7 @@ function tooltipRule(mode: Mode): Rule {
       const spacing1 = token(ctx, "spacing.1");
       const spacing2 = token(ctx, "spacing.2");
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "tooltip"),
+        [ctx.symbols.selector]: () => "tooltip",
         visibility: "hidden",
         position: "absolute",
         ...(stack !== undefined ? { "z-index": stack } : {}),
@@ -49,7 +49,7 @@ function tooltipRule(mode: Mode): Rule {
       // state wins over the resting hide, or the measured component
       // grounds correctly and paints nothing.
       yield {
-        [ctx.symbols.selector]: () => `${claim(mode, "tooltip")}:popover-open`,
+        [ctx.symbols.selector]: () => `${"tooltip"}:popover-open`,
         visibility: "visible",
       };
     },
@@ -57,7 +57,7 @@ function tooltipRule(mode: Mode): Rule {
   ];
 }
 
-export function tooltipRules(roots: readonly string[], mode: Mode): Rule[] {
+export function tooltipRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("tooltip")) return [];
-  return [tooltipRule(mode)];
+  return [tooltipRule()];
 }

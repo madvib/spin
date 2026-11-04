@@ -1,6 +1,5 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
 
 /**
  * Breadcrumbs — the trail home, claimed as a class on the `<nav>`.
@@ -9,17 +8,14 @@ import type { Mode } from "./shared.ts";
  * `<nav>` or `<ol>` — is the wrong one: both are generic elements, and a
  * build tool that restyles every ordered list on a page is a hazard. The
  * honest entry is a class: `breadcrumbs` on the `<nav>`, `breadcrumbs-list`
- * on its `<ol>`. That is why `mode` is unused — there is no tag that
- * genuinely means "breadcrumb trail", so classless has nothing to claim.
+ * on its `<ol>`. There is no tag that genuinely means "breadcrumb trail",
+ * so there is nothing for a tag to claim.
  *
  * The separator is content, not a design value: "/" is what a trail has
  * always looked like, so it is a literal typed beside the muted colour it
  * wears rather than a token the theme is asked to choose.
  */
-export function breadcrumbsRules(
-  roots: readonly string[],
-  _mode: Mode,
-): Rule[] {
+export function breadcrumbsRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("breadcrumbs")) return [];
   return [trailRule(), listRule(), boxRule(), arrowRule()];
 }

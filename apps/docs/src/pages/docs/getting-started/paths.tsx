@@ -13,7 +13,7 @@ const ENTRY_PATHS: readonly PropEntry[] = [
     name: "spin.vite() / spin.<bundler>()",
     badge: "Full app + Studio",
     description:
-      "Provides the token stylesheet, classless primitives, spin/*.json discovery, project lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
+      "Provides the token stylesheet, bare-tag primitives, spin/*.json discovery, project lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
   },
   {
     name: "spin.vite({ extends: brand })",

@@ -189,11 +189,14 @@ test("an arbitrary colour produces no rule at all", async () => {
 });
 
 /**
- * The refusal is on the COLOUR, not on the arbitrary value.
+ * The refusal is on the COLOUR, not on the arbitrary value — with one family
+ * excepted.
  *
  * A size and a position are numbers the caller supplies, and the theme has
  * no opinion about them — which is exactly why they are allowed to be
- * written by hand. Each one still lands in the sheet.
+ * written by hand. Each one still lands in the sheet. TYPE is the exception
+ * (T2): type sizes come from the scale, so `text-[15px]` matches no rule and
+ * emits nothing — dead on arrival, like a raw colour.
  */
 test("an arbitrary size still produces a rule", async () => {
   deepStrictEqual(
@@ -205,16 +208,31 @@ test("an arbitrary size still produces a rule", async () => {
     "3px",
   );
   deepStrictEqual(
-    valueFor(await sheetFor("text-[15px]"), "text-[15px]", "font-size"),
-    "15px",
-  );
-  deepStrictEqual(
     valueFor(
       await sheetFor("w-[calc(100%-1rem)]"),
       "w-[calc(100%-1rem)]",
       "width",
     ),
     "calc(100%-1rem)",
+  );
+});
+
+test("an arbitrary type size produces no rule at all", async () => {
+  const uno = await generator();
+  const alive: string[] = [];
+  for (const cls of ["text-[14px]", "text-[15px]", "text-[0.4rem]"]) {
+    const { css } = await uno.generate(cls, { preflights: false });
+    if (css.trim() !== "") alive.push(cls);
+  }
+  deepStrictEqual(
+    alive,
+    [],
+    `these type sizes carry a number written by hand and still produce a rule: ${alive.join(", ")}`,
+  );
+  deepStrictEqual(
+    valueFor(await sheetFor("text-lg"), "text-lg", "font-size"),
+    "var(--font-size-lg)",
+    "the named step still sizes type",
   );
 });
 

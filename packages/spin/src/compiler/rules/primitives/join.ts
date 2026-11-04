@@ -1,12 +1,10 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import type { Mode } from "./shared.ts";
 
 /** Join — adjacent controls merged into one object, by class. */
 export function joinRules(
   roots: readonly string[],
-  _mode: Mode,
-): Rule[] {
+  ): Rule[] {
   if (!roots.includes("join")) return [];
   return [joinContainer(), joinItem()];
 }

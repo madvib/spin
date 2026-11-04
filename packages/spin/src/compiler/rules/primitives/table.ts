@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /**
  * Table — the first primitive with a strong opinion, and deliberately so.
@@ -36,18 +36,18 @@ import { claim, type Mode, withFallback } from "./shared.ts";
  * Scope stays `<th>` rather than `<thead>` for the sticky rule so a table
  * without a header block still gets header cells styled.
  */
-export function tableRules(roots: readonly string[], mode: Mode): Rule[] {
+export function tableRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("table")) return [];
   // `td` and `th` are claimed together by one rule and then split: uno keeps
   // only the first rule matching a token, so a separate rule per tag would
   // leave the second one unreachable.
   return [
-    tableRule(mode),
-    cellRule(mode),
-    headerRule(mode),
-    captionRule(mode),
-    stripedRule(mode),
-    wrapRule(mode),
+    tableRule(),
+    cellRule(),
+    headerRule(),
+    captionRule(),
+    stripedRule(),
+    wrapRule(),
   ];
 }
 
@@ -85,13 +85,13 @@ function tableTokens(ctx: ThemeContext | undefined) {
  * between cells that the row rules then have to cross, and a collapsed model
  * lets one rule run the full width of the table.
  */
-function tableRule(mode: Mode): Rule {
+function tableRule(): Rule {
   return [
     /^table$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "table"),
+        [ctx.symbols.selector]: () => "table",
         ...(t.fontFamily !== undefined ? { "font-family": t.fontFamily } : {}),
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
@@ -124,9 +124,8 @@ function tableRule(mode: Mode): Rule {
  * with the row — a `border-bottom` on `<tr>` survives a collapsed model
  * inconsistently when cells have their own padding.
  */
-function cellRule(mode: Mode): Rule {
-  // A cell is either element or class, and the rule states both tags at once.
-  const cell = mode.classless ? ":is(td, th)" : ":is(.td, .th)";
+function cellRule(): Rule {
+  const cell = ":is(td, th)";
   return [
     /^(?:td|th)$/,
     function* (_m, ctx) {
@@ -190,13 +189,13 @@ function cellRule(mode: Mode): Rule {
  * Sticky is the opinion that pays for itself. A header that scrolls away turns
  * a twenty-row table into a guessing game about what each column holds.
  */
-function headerRule(mode: Mode): Rule {
+function headerRule(): Rule {
   return [
     /^th$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "th"),
+        [ctx.symbols.selector]: () => "th",
         ...(t.fontSize !== undefined ? { "font-size": t.fontSize } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         ...(t.headerWeight !== undefined
@@ -216,7 +215,7 @@ function headerRule(mode: Mode): Rule {
       // the cell rule already gave it one. Stated again here at the header's
       // own weight so it reads stronger than the row rules beneath it.
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "th"),
+        [ctx.symbols.selector]: () => "th",
         ...(t.borderWidth !== undefined && t.rule !== undefined
           ? {
             "border-bottom": `${t.borderWidth} solid ${t.rule}`,
@@ -240,13 +239,13 @@ function headerRule(mode: Mode): Rule {
  * A caption: quiet, above the table, and the only element allowed to sit
  * outside it.
  */
-function captionRule(mode: Mode): Rule {
+function captionRule(): Rule {
   return [
     /^caption$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "caption"),
+        [ctx.symbols.selector]: () => "caption",
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "start",
@@ -271,14 +270,14 @@ function captionRule(mode: Mode): Rule {
  * theme's notion of depth under a surface (`surface-sunken`) — one step
  * below the page, which a raised card or a field cannot supply.
  */
-function stripedRule(mode: Mode): Rule {
+function stripedRule(): Rule {
   return [
     /^striped$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
       yield {
         [ctx.symbols.selector]: () =>
-          `${claim(mode, "table")}.striped tbody > tr:nth-of-type(odd) > *`,
+          `${"table"}.striped tbody > tr:nth-of-type(odd) > *`,
         ...(t.zebra !== undefined ? { "background-color": t.zebra } : {}),
       };
     },
@@ -296,8 +295,8 @@ function stripedRule(mode: Mode): Rule {
  * opt-in: the table fits its container with fixed columns, cells wrap and
  * top-align, and long tokens break rather than forcing a scroller.
  */
-function wrapRule(mode: Mode): Rule {
-  const table = `${claim(mode, "table")}.wrap`;
+function wrapRule(): Rule {
+  const table = `${"table"}.wrap`;
   return [
     /^wrap$/,
     function* (_m, ctx) {

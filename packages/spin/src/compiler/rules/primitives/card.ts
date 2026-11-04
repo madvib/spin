@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -20,9 +20,9 @@ import { claim, type Mode, withFallback } from "./shared.ts";
  * rather than emitted as a dangling `var()`, and a shorthand whose parts all
  * resolve is stated only when every one of them does.
  */
-export function cardRules(roots: readonly string[], mode: Mode): Rule[] {
+export function cardRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("card")) return [];
-  const card = claim(mode, "card");
+  const card = "card";
   return [
     cardSurface(card),
     // Sizes are the card's own variants, not a layout attribute: a card that
@@ -30,13 +30,13 @@ export function cardRules(roots: readonly string[], mode: Mode): Rule[] {
     // belongs where a consumer would look for it.
     ...CARD_SIZES.map((size) => cardSize(card, size)),
     cardGhost(card),
-    cardFigure(mode),
-    cardHeader(mode),
-    cardTitle(mode),
-    cardDescription(mode),
-    cardAction(mode),
-    cardContent(mode),
-    cardFooter(mode),
+    cardFigure(),
+    cardHeader(),
+    cardTitle(),
+    cardDescription(),
+    cardAction(),
+    cardContent(),
+    cardFooter(),
   ];
 }
 
@@ -135,11 +135,7 @@ function cardSurface(card: string): Rule {
   return [
     /^card$/,
     function* (_m, ctx) {
-      if (
-        ctx.rawSelector !== undefined &&
-        ctx.rawSelector !== "card" &&
-        ctx.rawSelector !== ".card"
-      ) {
+      if (ctx.rawSelector !== undefined && ctx.rawSelector !== "card") {
         return;
       }
       const { spacing, radius, borderWidth, border, raised, shadow } =
@@ -159,7 +155,7 @@ function cardSurface(card: string): Rule {
       if (spacing !== undefined) {
         yield {
           [ctx.symbols.selector]: () =>
-            `${card}:not(:has(> :is(card-header, card-content, card-footer, card-figure, .card-header, .card-content, .card-footer, .card-figure)))`,
+            `${card}:not(:has(> :is(card-header, card-content, card-footer, card-figure)))`,
           padding: spacing,
         };
       }
@@ -180,13 +176,13 @@ function cardSurface(card: string): Rule {
  * the title's line. A header with no action leaves the second column empty;
  * a header with no description leaves the second row empty.
  */
-function cardHeader(mode: Mode): Rule {
+function cardHeader(): Rule {
   return [
     /^card-header$/,
     function* (_m, ctx) {
       const { spacing } = cardTokens(ctx);
       const rowGap = token(ctx, "spacing.1");
-      const header = claim(mode, "card-header");
+      const header = "card-header";
       yield {
         [ctx.symbols.selector]: () => header,
         display: "grid",
@@ -213,14 +209,14 @@ function cardHeader(mode: Mode): Rule {
   ];
 }
 
-function cardTitle(mode: Mode): Rule {
+function cardTitle(): Rule {
   return [
     /^card-title$/,
     function* (_m, ctx) {
       const { sizeLg, weightSemibold, text } = cardTokens(ctx);
       const headingFamily = withFallback(ctx, "font.family.heading", "font.family.sans");
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-title"),
+        [ctx.symbols.selector]: () => "card-title",
         "grid-column": "1",
         "min-width": "0",
         ...(headingFamily !== undefined
@@ -237,13 +233,13 @@ function cardTitle(mode: Mode): Rule {
   ];
 }
 
-function cardDescription(mode: Mode): Rule {
+function cardDescription(): Rule {
   return [
     /^card-description$/,
     function* (_m, ctx) {
       const { sizeSm, muted } = cardTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-description"),
+        [ctx.symbols.selector]: () => "card-description",
         "grid-column": "1",
         "min-width": "0",
         ...(sizeSm !== undefined ? { "font-size": sizeSm } : {}),
@@ -262,13 +258,13 @@ function cardDescription(mode: Mode): Rule {
  * of controls that is wider than the card pushes them out of it. A card that
  * cannot hold its own action is a card that is broken.
  */
-function cardAction(mode: Mode): Rule {
+function cardAction(): Rule {
   return [
     /^card-action$/,
     function* (_m, ctx) {
       const { spacing } = cardTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-action"),
+        [ctx.symbols.selector]: () => "card-action",
         "grid-column": "2",
         "grid-row": "1",
         display: "flex",
@@ -282,12 +278,12 @@ function cardAction(mode: Mode): Rule {
 }
 
 /** The body. Inline padding only — the surface owns the block spacing. */
-function cardContent(mode: Mode): Rule {
+function cardContent(): Rule {
   return [
     /^card-content$/,
     function* (_m, ctx) {
       const { spacing, text } = cardTokens(ctx);
-      const content = claim(mode, "card-content");
+      const content = "card-content";
       yield {
         [ctx.symbols.selector]: () => content,
         ...(spacing !== undefined
@@ -323,13 +319,13 @@ function cardContent(mode: Mode): Rule {
  * scale, so a theme with a wider scale would break every card in a narrow
  * column — the row that wraps is what keeps the card whole in all of them.
  */
-function cardFooter(mode: Mode): Rule {
+function cardFooter(): Rule {
   return [
     /^card-footer$/,
     function* (_m, ctx) {
       const { spacing } = cardTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-footer"),
+        [ctx.symbols.selector]: () => "card-footer",
         display: "flex",
         "flex-wrap": "wrap",
         "align-items": "center",
@@ -376,13 +372,13 @@ function cardGhost(card: string): Rule {
  * block`); the figure owns only the bleed and the corners, so it claims no
  * element it does not own.
  */
-function cardFigure(mode: Mode): Rule {
+function cardFigure(): Rule {
   return [
     /^card-figure$/,
     function* (_m, ctx) {
       const { radius } = cardTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "card-figure"),
+        [ctx.symbols.selector]: () => "card-figure",
         display: "block",
         overflow: "hidden",
         ...(radius !== undefined

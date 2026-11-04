@@ -68,82 +68,58 @@ function hasClassSelector(
   );
 }
 
-test("prose selectors stay tags with classless on and off", async () => {
-  const byDefault = await generate(PROSE_MARKUP);
-  const byClass = await generate(PROSE_MARKUP, { classless: false });
+test("prose selectors stay tags", async () => {
+  const result = await generate(PROSE_MARKUP);
   for (const token of PROSE_TOKENS) {
-    const tagged = selectorsFor(byDefault, token);
+    const selectors = selectorsFor(result, token);
     assert(
-      tagged.length > 0,
-      `${token} must emit its rules with classless on`,
+      selectors.length > 0,
+      `${token} must emit its rules`,
     );
     assert(
-      hasTagSelector(tagged, token),
-      `${token} must claim its tag with classless on`,
-    );
-    const classed = selectorsFor(byClass, token);
-    assert(
-      classed.length > 0,
-      `${token} must emit its rules with classless off`,
+      hasTagSelector(selectors, token),
+      `${token} must claim its tag`,
     );
     assert(
-      hasTagSelector(classed, token),
-      `${token} must still claim its tag with classless off (prose is base)`,
-    );
-    assert(
-      !hasClassSelector(classed, token),
+      !hasClassSelector(selectors, token),
       `.${token} must never be emitted (no .h1 classes)`,
     );
   }
 });
 
-test("a custom element still flips to its class with classless off", async () => {
-  // `details` is the mode-aware primitive the existing classless test uses:
-  // `button` is attribute-matched (type/role selectors) and classless-blind
-  // by design (C3b territory), while `details` routes through `claim()`.
+test("a custom element claims its tag", async () => {
   const markup = "<details><summary>More</summary></details>";
-  const byDefault = await generate(markup);
+  const result = await generate(markup);
+  const selectors = selectorsFor(result, "details");
   assert(
-    hasTagSelector(selectorsFor(byDefault, "details"), "details"),
-    "details must claim its tag with classless on",
-  );
-  const byClass = await generate(markup, { classless: false });
-  const selectors = selectorsFor(byClass, "details");
-  assert(
-    hasClassSelector(selectors, "details"),
-    "details must claim its class with classless off",
+    hasTagSelector(selectors, "details"),
+    "details must claim its tag",
   );
   assert(
-    !hasTagSelector(selectors, "details"),
-    "details must not claim its tag with classless off",
+    !hasClassSelector(selectors, "details"),
+    "details must not claim a class",
   );
 });
 
-test("no .h1-style class selectors are emittable for prose in either mode", async () => {
-  for (const classless of [true, false]) {
-    const extra: Options = classless ? {} : { classless: false };
-    const result = await generate(
-      `<h1 class="h1">T</h1><p class="p">B</p><ul class="ul"><li class="li">I</li></ul><blockquote class="blockquote">Q</blockquote><code class="code">C</code>`,
-      extra,
-    );
-    const css = [...result.css].join("\n");
-    for (const tag of PROSE_TOKENS) {
-      assert(
-        !new RegExp(`\\.${tag}(?![a-zA-Z0-9_-])`).test(css),
-        `.${tag} must not appear in the sheet (classless=${classless})`,
-      );
-    }
-  }
-});
-
-test("the column stays a tag in both modes", async () => {
-  for (const extra of [{}, { classless: false }] as const) {
-    const result = await generate("<prose><p>Body</p></prose>", extra);
+test("no .h1-style class selectors are emittable for prose", async () => {
+  const result = await generate(
+    `<h1 class="h1">T</h1><p class="p">B</p><ul class="ul"><li class="li">I</li></ul><blockquote class="blockquote">Q</blockquote><code class="code">C</code>`,
+  );
+  const css = [...result.css].join("\n");
+  for (const tag of PROSE_TOKENS) {
     assert(
-      hasTagSelector(selectorsFor(result, "prose"), "prose"),
-      "prose must claim its tag whatever classless says",
+      !new RegExp(`\\.${tag}(?![a-zA-Z0-9_-])`).test(css),
+      `.${tag} must not appear in the sheet`,
     );
   }
+});
+
+test("the column stays a tag", async () => {
+  const result = await generate("<prose><p>Body</p></prose>");
+  assert(
+    hasTagSelector(selectorsFor(result, "prose"), "prose"),
+    "prose must claim its tag",
+  );
 });
 
 test("primitives: false still ships base type", async () => {

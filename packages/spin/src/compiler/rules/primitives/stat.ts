@@ -1,9 +1,9 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /** Stat — a labelled number, sized and coloured by the type ladder. */
-export function statRules(roots: readonly string[], _mode: Mode): Rule[] {
+export function statRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("stat")) return [];
   return [statRow(), statContainer(), statTitle(), statValue(), statDesc()];
 }

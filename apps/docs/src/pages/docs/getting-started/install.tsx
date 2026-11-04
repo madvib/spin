@@ -166,13 +166,7 @@ const PLUGIN_OPTIONS: readonly PropEntry[] = [
     name: "primitives",
     badge: "string[] | boolean",
     defaultValue: "true",
-    description: "Subset of element rules to include, or false for a utility-only build.",
-  },
-  {
-    name: "classless",
-    badge: "boolean",
-    defaultValue: "true",
-    description: "When true, custom elements style bare tags (<button>, <table>); when false, they require explicit classes (.button, .table). Prose (h1, p, lists) keeps its tags either way.",
+    description: "Subset of element rules to include — custom elements always style their bare tags — or false for a utility-only build.",
   },
   {
     name: "strictClasses",

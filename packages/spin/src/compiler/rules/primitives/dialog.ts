@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Dialog — the native `<dialog>` and its backdrop.
@@ -51,10 +51,9 @@ import { claim, type Mode } from "./shared.ts";
  */
 export function dialogRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("dialog")) return [];
-  const dialog = claim(mode, "dialog");
+  const dialog = "dialog";
   return [
     [
       /^dialog$/,

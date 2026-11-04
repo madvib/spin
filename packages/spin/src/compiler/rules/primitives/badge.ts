@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
-import { claim, type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /**
  * Badge — a small status label.
@@ -18,20 +18,19 @@ import { claim, type Mode, withFallback } from "./shared.ts";
  */
 export function badgeRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("badge")) return [];
   return [
-    badgeBase(mode),
-    ...badgeTones(mode),
-    ...badgeSizes(mode),
-    ...badgeClose(mode),
+    badgeBase(),
+    ...badgeTones(),
+    ...badgeSizes(),
+    ...badgeClose(),
   ];
 }
 
 /** The shared shape every tone keeps: a small inline pill. */
-function badgeBase(mode: Mode): Rule {
-  const badge = claim(mode, "badge");
+function badgeBase(): Rule {
+  const badge = "badge";
   return [
     /^badge$/,
     function* (_m, ctx) {
@@ -111,8 +110,8 @@ const TONES: ReadonlyArray<{
   { name: "info", fill: "semantic-info", on: "on-semantic-info" },
 ];
 
-function badgeTones(mode: Mode): Rule[] {
-  const badge = claim(mode, "badge");
+function badgeTones(): Rule[] {
+  const badge = "badge";
   return TONES.flatMap((tone) => {
     const { name, fill, on, edge } = tone;
     return [
@@ -180,8 +179,8 @@ function badgeTones(mode: Mode): Rule[] {
  * and the padding steps that go with it, plus a min-height that accounts
  * for the border so the pill's height is its content plus its edge.
  */
-function badgeSizes(mode: Mode): Rule[] {
-  const badge = claim(mode, "badge");
+function badgeSizes(): Rule[] {
+  const badge = "badge";
   const SIZES: ReadonlyArray<{
     name: string;
     short: string;
@@ -242,8 +241,8 @@ function badgeSizes(mode: Mode): Rule[] {
  * awareness needed, because the tone is already on the badge and this only
  * carries the glyph.
  */
-function badgeClose(mode: Mode): Rule[] {
-  const badge = claim(mode, "badge");
+function badgeClose(): Rule[] {
+  const badge = "badge";
   return [
     [
       /^badge-close$/,

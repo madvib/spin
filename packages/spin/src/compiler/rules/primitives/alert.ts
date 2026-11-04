@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /**
  * Alert — `<alert role="status">` and `<alert role="alert">`.
@@ -28,9 +28,9 @@ import { claim, type Mode, withFallback } from "./shared.ts";
  * behaviour, not decoration: a rule can draw an × but cannot remove the
  * message, and an × that does nothing is worse than none.
  */
-export function alertRules(roots: readonly string[], mode: Mode): Rule[] {
+export function alertRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("alert")) return [];
-  return [alertBase(mode), ...alertTones(mode)];
+  return [alertBase(), ...alertTones()];
 }
 
 function alertTokens(ctx: ThemeContext | undefined) {
@@ -57,8 +57,8 @@ function alertTokens(ctx: ThemeContext | undefined) {
  * component, not tokens a document writes: uno keeps only the first rule
  * matching a token, so a separate rule keyed on a role would never be reached.
  */
-function alertBase(mode: Mode): Rule {
-  const alert = claim(mode, "alert");
+function alertBase(): Rule {
+  const alert = "alert";
   return [
     /^alert$/,
     function* (_m, ctx) {
@@ -151,8 +151,8 @@ const ALERT_TONES: ReadonlyArray<{
   { name: "neutral", fill: "surface-raised", edge: "border" },
 ];
 
-function alertTones(mode: Mode): Rule[] {
-  const alert = claim(mode, "alert");
+function alertTones(): Rule[] {
+  const alert = "alert";
   return ALERT_TONES.flatMap((tone) => {
     const { name, fill, edge } = tone;
     return [

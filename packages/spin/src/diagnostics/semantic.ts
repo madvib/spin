@@ -247,30 +247,20 @@ export function ownersOf(facts: Facts, node: ClassFacts): ScopeFact[] {
 /**
  * Whether the element is the one the scope paints.
  *
- * Prose is base, not a toggleable component: prose scopes match by tag
- * only. There are no `.h1` classes — a `class="h1"` on any element is
- * content, never a subject claim. Custom-element dual matching (tag or
- * the primitive's own class) stays until C3b makes mode-awareness
- * deliberate.
+ * Tag-only: classless is the whole premise, so a scope matches the
+ * element's tag and nothing else. `class="card"` on any element is
+ * content, never a subject claim.
  */
 export function isSubject(scope: ScopeFact, node: ClassFacts): boolean {
-  if (scope.primitive === "prose") {
-    return node.tag !== undefined && node.tag === scope.tag;
-  }
-  if (node.tag !== undefined && node.tag === scope.tag) return true;
-  return node.classes.includes(scope.tag);
+  return node.tag !== undefined && node.tag === scope.tag;
 }
 
 /**
  * Whether the element sits inside the primitive's own element.
- *
- * Prose is base: the column is `<prose>`, never `.prose` (see `isSubject`).
  */
 function insideScope(scope: ScopeFact, node: ClassFacts): boolean {
   for (const ancestor of node.ancestors ?? []) {
     if (ancestor.tag !== undefined && ancestor.tag === scope.self) return true;
-    if (scope.primitive === "prose") continue;
-    if (ancestor.classes.includes(scope.self)) return true;
   }
   return false;
 }

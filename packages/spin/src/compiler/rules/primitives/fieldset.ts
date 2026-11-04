@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode } from "./shared.ts";
+
 import { token } from "../../utils/lookup.ts";
 
 /**
@@ -20,14 +20,14 @@ import { token } from "../../utils/lookup.ts";
  * A theme that omits a token gets no declaration rather than a fallback the
  * theme did not choose — the drop-missing pattern every primitive follows.
  */
-export function fieldsetRules(roots: readonly string[], mode: Mode): Rule[] {
+export function fieldsetRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("fieldset")) return [];
-  return [fieldsetRule(mode)];
+  return [fieldsetRule()];
 }
 
-function fieldsetRule(mode: Mode): Rule {
-  const fieldset = claim(mode, "fieldset");
-  const legend = claim(mode, "legend");
+function fieldsetRule(): Rule {
+  const fieldset = "fieldset";
+  const legend = "legend";
   return [
     /^fieldset$/,
     function* (_m, ctx) {

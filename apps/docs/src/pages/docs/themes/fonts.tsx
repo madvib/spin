@@ -47,7 +47,7 @@ export default function ThemesFonts(): JSX.Element {
           named roles. Three roles ship with every theme —{" "}
           <code>sans</code>, <code>heading</code>, and <code>mono</code> — and{" "}
           <code>body</code>, <code>serif</code>, and <code>brand</code> are
-          available when a design needs them. Classless elements spend the
+          available when a design needs them. Elements spend the
           roles for you: <code>&lt;body&gt;</code> renders in{" "}
           <code>sans</code>, <code>&lt;h1&gt;</code>–<code>&lt;h6&gt;</code>{" "}
           render in <code>heading</code>, and <code>&lt;code&gt;</code> and{" "}

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { claim, type Mode } from "./shared.ts";
+
 
 /**
  * Panel — the floating surface every dropdown, menu, and popover shares.
@@ -19,11 +19,10 @@ import { claim, type Mode } from "./shared.ts";
  */
 export function panelRules(
   roots: readonly string[],
-  mode: Mode,
 ): Rule[] {
   if (!roots.includes("panel")) return [];
-  const panel = claim(mode, "panel");
-  const list = claim(mode, "panel-list");
+  const panel = "panel";
+  const list = "panel-list";
   return [
     [
       /^panel$/,

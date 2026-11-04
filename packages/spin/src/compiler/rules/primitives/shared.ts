@@ -11,30 +11,12 @@ import {
   type GlobalTypePath,
 } from "../../../theme/index.ts";
 import type { ThemeTokenPath } from "../../../theme/theme-types.d.ts";
-
 /**
- * How a primitive claims its element.
+ * Primitives always claim their bare tags: `<button>` is a button and
+ * `<card>` is a card. Classless is the whole premise, not an option —
+ * incremental adoption is served by `primitives: [...]` narrowing, not by
+ * a mode flip.
  *
- * `classless` is the default and the whole premise: `<button>` is a button.
- * With it off, a primitive claims only its own class, which is what a consumer
- * needs when they do not control the markup — a CMS, a third-party embed, a
- * codebase mid-migration — and cannot have every table in the page restyled by
- * their build tool.
- *
- * The claim is per component rather than global because a consumer's own
- * `<button>` is nearly always the one they want styled, while a `<table>` in
- * pasted content nearly always is not.
- */
-export interface Mode {
-  readonly classless: boolean;
-}
-
-/** The claim a component makes on its element: the tag, or its class. */
-export function claim(mode: Mode, tag: string): string {
-  return mode.classless ? tag : `.${tag}`;
-}
-
-/**
  * Spend a component's own tokens, reading each from the theme.
  *
  * A token the theme does not declare is omitted rather than emitted as an

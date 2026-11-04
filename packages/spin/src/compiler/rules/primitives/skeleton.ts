@@ -1,15 +1,14 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { type Mode, withFallback } from "./shared.ts";
+import { withFallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
  *
- * `_mode` is accepted for the shared rule shape and unused: a skeleton is
- * class-entry, and no bare element means "the content has not arrived yet",
- * so there is no classless claim for a classless build to make.
+ * A skeleton is class-entry, and no bare element means "the content has not
+ * arrived yet", so there is no tag claim to make.
  */
-export function skeletonRules(roots: readonly string[], _mode: Mode): Rule[] {
+export function skeletonRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("skeleton")) return [];
   return [block(), textLine(), circle()];
 }

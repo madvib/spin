@@ -133,18 +133,6 @@ const pluginOptions = (): readonly PropEntry[] => [
     ),
   },
   {
-    name: "classless",
-    badge: "boolean",
-    defaultValue: "true",
-    description: (
-      <>
-        Whether custom elements style bare tags directly. Set{" "}
-        <code>false</code> to require explicit classes — prose keeps its
-        tags either way.
-      </>
-    ),
-  },
-  {
     name: "safelist",
     badge: "string[]",
     description:

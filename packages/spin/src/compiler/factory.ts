@@ -64,23 +64,6 @@ export interface SpinPresetOptions {
    */
   primitives?: string[] | boolean;
   /**
-   * Whether a custom element may claim its bare tag, or only its class.
-   *
-   * Three layers, from unconditional to opted-in: the reset is tokenless and
-   * always ships; the base carries the document type (`h1`–`h6`, `p`, lists,
-   * quotations, code) on its tags whatever this says; the toggleable custom
-   * elements (`button`, `card`, `field`, `table`) claim their bare tags by
-   * default and only their classes with `classless: false`.
-   *
-   * The toggle is for someone else's markup — a CMS, a third-party embed, a
-   * codebase mid-migration — where every `<table>` restyled by the build
-   * tool is a surprise. Setting `classless: false` leaves prose styled by
-   * its tags and makes each custom element ask to be named
-   * (`class="button"`, `class="table"`). The components are still available
-   * and still shaken; they simply ask to be named.
-   */
-  classless?: boolean;
-  /**
    * The project's own compositions — Uno's `shortcuts` option, unchanged.
    *
    * A composition is a named bundle of utilities: one class that stands for
@@ -119,6 +102,11 @@ export function createSpinFactory(
 ): (options?: SpinPresetOptions) => Preset {
   const factory = definePreset(
     (options: SpinPresetOptions = {}) => {
+      if ("classless" in options) {
+        throw new Error(
+          "spinPreset: `classless` was removed — primitives always claim their bare tags. Narrow with `primitives: [...]` instead.",
+        );
+      }
       const enabled: string[] | undefined = Array.isArray(options.primitives)
         ? options.primitives
         : options.primitives === false
@@ -181,9 +169,7 @@ export function createSpinFactory(
         // token we own resolves against our theme, and one we do not own falls
         // through.
         rules: [
-          ...spinRules(componentRoots, {
-            classless: options.classless !== false,
-          }),
+          ...spinRules(componentRoots),
           ...wind4.rules,
         ],
         preflights: buildPreflights(

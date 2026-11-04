@@ -88,6 +88,34 @@ test("text-text fails the production build as a dead class", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+test("an arbitrary type size fails the production build as a dead class", async () => {
+  // T2 (remove the type hatch): no rule emits `text-[14px]`, so the build
+  // error treats it like any dead class — while `text-lg` stays producible
+  // and clean.
+  const root = await fixture({
+    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "src/index.html": '<p class="text-lg text-[14px]">hi</p>\n',
+  });
+  try {
+    const stages = spin.vite({
+      content: { filesystem: [`${root}/src/**/*.html`] },
+    }) as unknown as ViteOptions[];
+    const plugin = await stylesheetStage(stages);
+    plugin.configResolved?.({ root, command: "build" });
+    const id = await plugin.resolveId!("uno.css");
+    assert(id);
+    let message = "";
+    try {
+      await plugin.load!(id);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert.match(message, /text-\[14px\]/);
+    assert.match(message, /src\/index\.html/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 test("a dead class fails the production build with file, class, and suggestion", async () => {
   const root = await fixture({
     "spin/local.json": JSON.stringify(starterThemes.silk),
