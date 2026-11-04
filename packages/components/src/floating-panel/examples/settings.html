@@ -11,51 +11,51 @@
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium text-text">Preferences</span>
+          <span class="truncate text-sm font-medium">Preferences</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
 <div class="grid min-h-0 flex-1 content-start gap-5 overflow-y-auto p-4">
         <div>
-          <p class="flex items-center gap-2 text-sm font-medium text-text"><span class="i-lucide-palette text-sm" aria-hidden="true"></span>Appearance</p>
+          <p class="flex items-center gap-2 text-sm font-medium"><span class="i-lucide-palette text-sm" aria-hidden="true"></span>Appearance</p>
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
-            <div><p class="text-sm text-text">Dark Mode</p><p class="text-xs text-text-muted">Switch to dark theme</p></div>
+            <div><p class="text-sm">Dark Mode</p><p class="text-xs text-text-muted">Switch to dark theme</p></div>
             <input type="checkbox" role="switch" data-toggle="dark" aria-label="Dark Mode" />
           </div>
           </div>
         </div>
         <div>
-          <p class="flex items-center gap-2 text-sm font-medium text-text"><span class="i-lucide-bell text-sm" aria-hidden="true"></span>Notifications</p>
+          <p class="flex items-center gap-2 text-sm font-medium"><span class="i-lucide-bell text-sm" aria-hidden="true"></span>Notifications</p>
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
-            <div><p class="text-sm text-text">Push Notifications</p><p class="text-xs text-text-muted">Receive notifications on your device</p></div>
+            <div><p class="text-sm">Push Notifications</p><p class="text-xs text-text-muted">Receive notifications on your device</p></div>
             <input type="checkbox" role="switch" data-toggle="notifications" aria-label="Push Notifications" checked />
           </div>
           </div>
         </div>
         <div>
-          <p class="flex items-center gap-2 text-sm font-medium text-text"><span class="i-lucide-shield text-sm" aria-hidden="true"></span>Privacy & Security</p>
+          <p class="flex items-center gap-2 text-sm font-medium"><span class="i-lucide-shield text-sm" aria-hidden="true"></span>Privacy & Security</p>
           <div class="grid gap-3">
             <div class="flex items-center justify-between gap-2">
-            <div><p class="text-sm text-text">Auto-save</p><p class="text-xs text-text-muted">Automatically save your work</p></div>
+            <div><p class="text-sm">Auto-save</p><p class="text-xs text-text-muted">Automatically save your work</p></div>
             <input type="checkbox" role="switch" data-toggle="autosave" aria-label="Auto-save" checked />
           </div>
             <button type="button" data-clear class="bare secondary grid w-full justify-items-start gap-1 rounded-lg text-left hover:bg-surface">
-              <p class="text-sm text-text">Clear Cache</p>
+              <p class="text-sm">Clear Cache</p>
               <p class="text-xs text-text-muted">Free up storage space</p>
             </button>
             <p data-freed class="hidden text-xs text-semantic-success">Cache cleared — 1.2 GB freed.</p>
           </div>
         </div>
         <div>
-          <p class="flex items-center gap-2 text-sm font-medium text-text"><span class="i-lucide-info text-sm" aria-hidden="true"></span>About</p>
+          <p class="flex items-center gap-2 text-sm font-medium"><span class="i-lucide-info text-sm" aria-hidden="true"></span>About</p>
           <div class="grid gap-2 text-xs">
-            <div class="flex justify-between"><span class="text-text-muted">Version</span><span class="text-text">2.1.0</span></div>
-            <div class="flex justify-between"><span class="text-text-muted">Storage Used</span><span data-storage class="text-text">1.2 GB</span></div>
+            <div class="flex justify-between"><span class="text-text-muted">Version</span><span>2.1.0</span></div>
+            <div class="flex justify-between"><span class="text-text-muted">Storage Used</span><span data-storage>1.2 GB</span></div>
           </div>
         </div>
       </div>

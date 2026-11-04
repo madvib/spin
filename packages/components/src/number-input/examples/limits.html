@@ -13,7 +13,7 @@ const machine = numberInput({
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
-      class={["text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+      class={["text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
       {...machine.getLabelProps()}>Rating (0-10)</label>
     <span
       class="text-xs text-text-muted tabular-nums transition-colors duration-fast"

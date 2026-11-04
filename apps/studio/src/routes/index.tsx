@@ -381,8 +381,8 @@ export default function OverviewPage() {
 
 
   return (
-    // The pane's paper is the project's, because its ink is: a header reading
-    // `text-text` on the chrome's surface only agrees by luck.
+    // The pane's paper is the project's, because its ink is: the default ink
+    // needs no naming, so a header that only agrees with the chrome's surface by luck is a bug.
     <div
       class={inDrawer()
         ? "drawer-flow bg-surface p-4 sm:p-6"
@@ -513,7 +513,7 @@ export default function OverviewPage() {
                   <div class="row-sm flex-wrap">
                     <button
                       type="button"
-                      class="bare min-w-0 flex-1 justify-start text-left font-medium text-text"
+                      class="bare min-w-0 flex-1 justify-start text-left font-medium"
                       style={{
                         "font-family": seedToken(seed(summary.name) ?? "", "font.family.heading", "inherit"),
                         color: cardText(),

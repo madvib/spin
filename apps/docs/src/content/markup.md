@@ -57,10 +57,9 @@ Primitives keep everyday markup terse by expressing emphasis, tone, and size dir
 <div class="flex items-center gap-4">
   <button type="button" class="primary s-sm">Small</button>
   <button type="button" class="primary s-lg">Large</button>
-  <button type="button" class="bare inline-flex items-center gap-1 text-sm text-text-muted hover:text-text">
+  <button type="button" class="bare inline-flex items-center gap-1 text-sm text-text-muted">
     Chrome-free button (.bare)
   </button>
-</div>
 ```
 
 

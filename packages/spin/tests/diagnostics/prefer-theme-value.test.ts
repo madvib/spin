@@ -1,131 +1,12 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "../../src/theme/themes/index.ts";
-import {
-  type AncestorFacts,
-  checkNoRedundantClass,
-  checkPreferElement,
-  checkPreferThemeValue,
-  type ClassFacts,
-  DEFAULT_SEMANTIC_OPTIONS,
-  type Facts,
-  type SemanticOptions,
-} from "../../src/diagnostics/core.ts";
-import { factsFor } from "../../src/diagnostics/facts.ts";
+import type { AncestorFacts, SemanticOptions } from "../../src/diagnostics/core.ts";
+import { element, facts, other, override, redundant } from "./semantic-helpers.ts";
 import plugin from "../../src/diagnostics/index.ts";
 import { renderMessage, RULES } from "../../src/diagnostics/rules.ts";
 
-/**
- * What a class does to an element decides what is reported about it.
- *
- * Three questions, three rules:
- *
- * - Does the class say what the element ALREADY says? Then it is dead
- *   weight, and the rule drops it.
- * - Does the class say something ELSE where the theme has already said? Then
- *   it is a second opinion about a decision the theme owns, and the theme is
- *   where that decision belongs.
- * - Does the class carry a decision the theme gave to ANOTHER element? Then
- *   the markup is reaching for something the theme answered elsewhere, and
- *   the element that carries it is named.
- *
- * And the tier is CONTEXTUAL: where a box sits is the author's, but on an
- * element the theme types the space between blocks is the theme's.
- */
-
-const facts: Facts = factsFor(Object.values(starterThemes));
-
 /** The override rule's own words, as a message is rendered. */
 const OVERRIDE = RULES["prefer-theme-value"].meta;
-
-/** The classes of an element, as the core reads them. */
-function element(
-  tag: string,
-  classes: string,
-  ancestors: readonly AncestorFacts[] = [],
-): ClassFacts {
-  const names = classes.split(/\s+/).filter(Boolean);
-  let at = 0;
-  return {
-    tag,
-    classes: names,
-    // Where each class sits, so the findings that drop one can say which
-    // text to remove.
-    tokens: names.map((name) => {
-      const start = at;
-      at += name.length + 1;
-      return {
-        name,
-        range: [start, start + name.length] as [number, number],
-        spaceBefore: start > 0,
-        spaceAfter: true,
-      };
-    }),
-    ancestors,
-    position: { line: 1, column: 1 },
-  };
-}
-
-/** What the redundancy rule reports for one element. */
-function redundant(
-  tag: string,
-  classes: string,
-  options?: SemanticOptions,
-  ancestors: readonly AncestorFacts[] = [],
-) {
-  return checkNoRedundantClass(
-    facts,
-    element(tag, classes, ancestors),
-    options,
-  );
-}
-
-/** What the theme-value rule reports for one element. */
-function override(
-  tag: string,
-  classes: string,
-  options?: SemanticOptions,
-  ancestors: readonly AncestorFacts[] = [],
-) {
-  return checkPreferThemeValue(
-    facts,
-    element(tag, classes, ancestors),
-    options,
-  );
-}
-
-/** What the element rule reports for one element. */
-function other(
-  tag: string,
-  classes: string,
-  options?: SemanticOptions,
-  ancestors: readonly AncestorFacts[] = [],
-) {
-  return checkPreferElement(
-    facts,
-    element(tag, classes, ancestors),
-    options,
-  );
-}
-
-test("a class that says what the element says is dead weight", () => {
-  // The heading's own size is the theme's ladder step, and `text-xl` is
-  // that same step. The class changes nothing.
-  const [finding] = redundant("h3", "text-xl");
-  deepStrictEqual(finding?.messageId, "redundant");
-  deepStrictEqual(finding?.data, {
-    tag: "h3",
-    cls: "text-xl",
-    properties: "font-size",
-  });
-});
-
-test("a dead weight class carries the edit that drops it", () => {
-  // The class is dead weight, so dropping it is the whole of the fix — and
-  // the fix is part of the finding, so every front end can apply it.
-  const [finding] = redundant("code", "font-mono");
-  deepStrictEqual(finding?.fix, { range: [0, 10], text: "" });
-});
 
 test("a class that says something else overrides the theme", () => {
   // The heading takes its size from the theme's ladder; `text-sm` is a
@@ -194,12 +75,17 @@ const SPIN: SemanticOptions = {
   semanticTags: "spin",
 };
 
-test("an override is an error and the wrong element is advisory", () => {
-  // The stance: a one-off override of a decision the system made is banned,
-  // and the wrong element cannot be banned — a span inside a heading may be
-  // deliberate.
+test("an override is an error and the single owner is an error", () => {
+  // The stance: a one-off override of a decision the system made is banned —
+  // and so is a class that reaches for a decision exactly one element
+  // carries for the text's own shape. The rule stays a suggestion at the
+  // rule level (several owners stay advisory); the single-owner error
+  // travels on the finding, where the deliveries read it.
   deepStrictEqual(plugin.rules["prefer-theme-value"].meta.type, "problem");
   deepStrictEqual(plugin.rules["prefer-element"].meta.type, "suggestion");
+  const [finding] = other("span", "text-3xl");
+  deepStrictEqual(finding?.messageId, "error");
+  deepStrictEqual(finding?.severity, "error");
 });
 
 test("a class that changes nothing is not an override", () => {
@@ -247,15 +133,15 @@ test("a class under a state is not compared with the resting value", () => {
 
 test("the spacing on a typed element is the theme's", () => {
   // A paragraph's gap under it is the theme's rhythm, not the author's
-  // layout: `mb-2` says what the theme already says.
-  const [finding] = redundant("p", "mb-2");
+  // layout: `mb-4` says what the theme already says.
+  const [finding] = redundant("p", "mb-4");
   deepStrictEqual(finding?.messageId, "redundant");
   deepStrictEqual(finding?.data["properties"], "margin-bottom");
 });
 
 test("a spacing class that differs from the theme's is an override", () => {
-  // The theme's rhythm under a paragraph is one step; `mb-4` is another.
-  const [finding] = override("p", "mb-4");
+  // The theme's rhythm under a paragraph is one step; `mb-2` is another.
+  const [finding] = override("p", "mb-2");
   deepStrictEqual(finding?.messageId, "override");
   deepStrictEqual(finding?.data["family"], "spacing");
   deepStrictEqual(
@@ -322,7 +208,6 @@ test("a component's tag is not the browser's, and the default says so", () => {
 test("the default speaks about the browser's elements only", () => {
   // The dial's default is `native`: a tag the browser does not own is a
   // component, and the lint knows nothing about what a component renders.
-  deepStrictEqual(DEFAULT_SEMANTIC_OPTIONS.semanticTags, "native");
   deepStrictEqual(override("card", "bg-surface"), []);
   deepStrictEqual(override("button", "bg-primary").length, 1);
 });
@@ -355,31 +240,68 @@ test("a control's spacing is answered by its size variant", () => {
   deepStrictEqual(block?.data["remedy"], "Use the theme's value.");
 });
 
-test("a paragraph outside a document column is the author's", () => {
-  // The document surface paints the column it owns. A paragraph anywhere
-  // else is not painted by it, so a utility on one is the author's call —
-  // which is the whole difference between painting inside a scope and
-  // painting by tag.
+test("a paragraph states the type it renders", () => {
+  // The paragraph states the body's face, size and weight, so a class that
+  // says otherwise is a second opinion the theme-value rule reports: the
+  // size, the face, the weight — and the message names the theme's decision.
+  const [size] = override("p", "text-lg");
+  deepStrictEqual(size?.messageId, "override");
+  deepStrictEqual(size?.data["family"], "typography");
+  deepStrictEqual(size?.data["claim"], "the theme sets the size of `<p>`");
+  const [face] = override("p", "font-mono");
+  deepStrictEqual(face?.messageId, "override");
+  deepStrictEqual(face?.data["claim"], "the theme sets the typeface of `<p>`");
+  const [weight] = override("p", "font-semibold");
+  deepStrictEqual(weight?.messageId, "override");
+  deepStrictEqual(weight?.data["claim"], "the theme sets the weight of `<p>`");
+  // A paragraph wearing `bare` has opted out of its primitive's paint: a
+  // utility there is the author's own decision, not a fight with the theme.
+  deepStrictEqual(override("p", "bare text-lg"), []);
+});
+
+test("a list states the type its rows read in", () => {
+  // The list states the body's face, size and weight, so overrides fire on
+  // the list and on its items — and the same class that matches the stated
+  // value is dead weight the redundancy rule drops.
+  for (const tag of ["ul", "ol", "li"]) {
+    const [finding] = override(tag, "text-lg");
+    deepStrictEqual(finding?.messageId, "override");
+    deepStrictEqual(finding?.data["family"], "typography");
+    deepStrictEqual(
+      finding?.data["claim"],
+      `the theme sets the size of \`<${tag}>\``,
+    );
+  }
+  const [face] = override("ul", "font-mono");
+  deepStrictEqual(face?.messageId, "override");
   deepStrictEqual(
-    override("p", "text-sm bg-primary text-text-muted"),
-    [],
+    face?.data["claim"],
+    "the theme sets the typeface of `<ul>`",
   );
+  const [dead] = redundant("p", "text-md");
+  deepStrictEqual(dead?.messageId, "redundant");
+  deepStrictEqual(dead?.data, {
+    tag: "p",
+    cls: "text-md",
+    properties: "font-size",
+  });
+  deepStrictEqual(override("li", "flex gap-2"), []);
 });
 
 test("an element inside a document column is the column's", () => {
   // The same element, inside the prose column: the document surface owns
-  // it there, and a utility over the document's own treatment is a second
-  // opinion.
+  // the muted ink of the quotation's treatment there, so a class that says
+  // otherwise is a second opinion about the column's ink.
   const column: AncestorFacts[] = [{ tag: "prose", classes: [] }];
-  const findings = override(
-    "blockquote",
-    "text-text",
-    undefined,
-    column,
-  );
-  deepStrictEqual(findings.map((finding) => finding.data["cls"]), [
-    "text-text",
-  ]);
+  const [finding] = override("blockquote", "text-link", undefined, column);
+  deepStrictEqual(finding?.messageId, "override");
+  deepStrictEqual(finding?.data["family"], "skin");
+  deepStrictEqual(finding?.data["cls"], "text-link");
+  // The muted ink the column states is what the element already says, so
+  // naming it changes nothing: the redundancy rule reports it instead.
+  const [dead] = redundant("blockquote", "text-text-muted", undefined, column);
+  deepStrictEqual(dead?.messageId, "redundant");
+  deepStrictEqual(dead?.data["properties"], "color");
 });
 
 test("an element inside a column that does not own it is free", () => {
@@ -387,7 +309,7 @@ test("an element inside a column that does not own it is free", () => {
   // ordinary box is not inside a document column.
   const column: AncestorFacts[] = [{ tag: "div", classes: [] }];
   deepStrictEqual(
-    override("blockquote", "text-text", undefined, column),
+    override("blockquote", "text-text-muted", undefined, column),
     [],
   );
 });
@@ -399,74 +321,3 @@ test("an element a primitive only lays out is not painted", () => {
   deepStrictEqual(override("span", "rounded-sm border text-text-muted"), []);
 });
 
-test("a class that reaches for another element's decision names it", () => {
-  // The theme gave the level-one size to the heading; a span carrying that
-  // size is the markup reaching for what the theme answered elsewhere.
-  const [finding] = other("span", "text-3xl");
-  deepStrictEqual(finding?.messageId, "element");
-  deepStrictEqual(finding?.data, {
-    tag: "span",
-    cls: "text-3xl",
-    element: "h1",
-    decision: "size",
-  });
-});
-
-test("an element that owns the decision is not another element's", () => {
-  // The heading owns its size, so a class over it is a second opinion
-  // about the theme's own value — the theme-value rule's business, not the
-  // element rule's.
-  deepStrictEqual(other("h3", "text-sm"), []);
-});
-
-test("a decision the theme gave to several elements names none", () => {
-  // The theme offers more than one element at that size, and which one the
-  // author meant is a question the lint cannot answer. It says nothing
-  // rather than point at the wrong element.
-  deepStrictEqual(other("span", "text-sm"), []);
-});
-
-test("the plugin reads the dial from the linter's context", () => {
-  // The option travels through the plugin API the way a linter delivers
-  // it: as the rule's first option.
-  const rule = plugin.rules["prefer-theme-value"];
-  const seen: { messageId: string; data?: Record<string, string> }[] = [];
-  const visit = rule.create({
-    options: [{ strictness: "balanced" }],
-    report(descriptor) {
-      seen.push({
-        messageId: descriptor.messageId,
-        data: descriptor.data,
-      });
-    },
-  }).JSXAttribute;
-  visit?.({
-    type: "JSXAttribute",
-    name: { name: "class" },
-    value: { value: "text-sm bg-primary" },
-    parent: { type: "JSXOpeningElement", name: { name: "button" } },
-  });
-  deepStrictEqual(seen.map((report) => report.data?.["cls"]), [
-    "bg-primary",
-  ]);
-});
-
-test("the plugin's rules carry a schema for their options", () => {
-  // A linter validates the options against the schema before the rule
-  // runs, so the schema is the rule's public contract.
-  for (
-    const name of ["no-redundant-class", "prefer-theme-value", "prefer-element"]
-  ) {
-    const rule = plugin.rules[name as keyof typeof plugin.rules];
-    deepStrictEqual(rule.meta.schema.length, 1);
-  }
-});
-
-test("the rules that drop a class say they can", () => {
-  // A linter that is told a rule fixes nothing will not apply the edits it
-  // is given, so the flag travels with the rule.
-  deepStrictEqual(plugin.rules["no-redundant-class"].meta.fixable, "code");
-  deepStrictEqual(plugin.rules["closed-vocabulary"].meta.fixable, "code");
-  deepStrictEqual(plugin.rules["prefer-theme-value"].meta.fixable, undefined);
-  deepStrictEqual(plugin.rules["prefer-element"].meta.fixable, undefined);
-});

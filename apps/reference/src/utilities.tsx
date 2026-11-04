@@ -444,7 +444,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center font-mono text-xs leading-4 text-text ${
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center font-mono text-xs leading-4 ${
             props.cls?.[i] ?? ""
           }`}
         >
@@ -1308,12 +1308,12 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       );
 
     /* A run of prose. Type is read, not seen. The text-color group drops the
-       base `text-text`: both set `color`, and the base would win on sheet
+       base ink: both set `color`, and the base would win on sheet
        order and every row would render the same ink. */
     case "prose": {
       const base = props.group === "text-color"
         ? "m-0 block w-1/2 text-md"
-        : "m-0 block w-1/2 text-md text-text";
+        : "m-0 block w-1/2 text-md";
       return (
         <UnderTest base={base} cls={cls()} tag="p">
           {"Handgloves & 0123 — the quick brown fox jumps over the lazy dog, and the measure is what type is for."}
@@ -1457,7 +1457,7 @@ const KIND = "font-mono text-xs text-text-muted";
 const BADGE =
   "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
 const SECTION = "mb-8";
-const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
+const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal first:mt-0";
 const PROSE = "max-w-screen-md text-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
@@ -1475,7 +1475,7 @@ const SCALE_GROUP = "flex flex-col items-start gap-2";
 const SCALE_BUTTONS = "flex flex-wrap gap-1";
 const DECL =
   "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted";
-const DECL_NAME = "font-mono text-xs text-text";
+const DECL_NAME = "font-mono text-xs";
 const NAME_LIST = "grid grid-cols-4 gap-2";
 const SWATCH_GRID = "mt-4 grid grid-cols-4 gap-2";
 const NOTE_BOX =
@@ -1485,7 +1485,7 @@ const PANEL =
 const MONO_MUTED = "font-mono text-xs text-text-muted";
 const RAIL_COUNT = "shrink-0 font-mono text-xs text-text-muted";
 const CHIP =
-  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong aria-[current]:text-text";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1644,7 +1644,7 @@ function VariantsBench() {
         </div>
         <button
           type="button"
-          class={`bare ${CHIP} transition hover:border-primary focus:border-accent hover:text-text active:scale-95`}
+          class={`bare ${CHIP} transition hover:border-primary focus:border-accent active:scale-95`}
         >
           hover, focus and press me
         </button>
@@ -1667,7 +1667,7 @@ function InteractivityBench() {
           <span class={MONO_MUTED}>grab · scroll · resize</span>
           <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>
             {(i) => (
-              <span class="shrink-0 rounded-sm bg-surface px-2 py-1 font-mono text-xs text-text">
+              <span class="shrink-0 rounded-sm bg-surface px-2 py-1 font-mono text-xs">
                 row {i}
               </span>
             )}
@@ -2121,7 +2121,7 @@ const SPECIMEN_PANEL =
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
 
 /** The fills the palette is made of, each with the foreground it is paired
  *  with by the theme — the label is the class, so the tile is also the name. */
@@ -2189,7 +2189,7 @@ function TypeSpecimen() {
       <For each={TYPE_STEPS}>
         {(cls) => (
           <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span class={`min-w-0 text-text ${cls}`}>
+            <span class={`min-w-0 ${cls}`}>
               Handgloves &amp; 0123
             </span>
             <code>{cls}</code>
@@ -2266,7 +2266,7 @@ function SectionSpecimen(props: { id: string }) {
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <h4 class="text-text">{section.title}</h4>
+        <h4>{section.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
         <div class="w-full">
@@ -2294,7 +2294,7 @@ function SectionCard(props: { section: Section; count: number }) {
       class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-border-strong"
     >
       <span class="flex w-full items-center gap-2">
-        <span class="text-sm font-semibold text-text">
+          <span class="text-sm font-semibold">
           {props.section.title}
         </span>
         <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">

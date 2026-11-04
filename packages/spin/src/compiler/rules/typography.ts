@@ -67,6 +67,10 @@ export function typographyRules(): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
+        // T5 (remove `text-text`): the twin carve-out to `color.ts` — the
+        // later-registered color branch is tried first, so this branch also
+        // refuses the exact name rather than resolving the bare token.
+        if (name === "text") return undefined;
         const size = named(ctx, "font-size", name);
         if (size) return { "font-size": size };
         const color = named(ctx, "color", name);

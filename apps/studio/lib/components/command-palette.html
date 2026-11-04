@@ -34,7 +34,7 @@ const machine = combobox({});
               <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
-                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm text-text"
+                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm"
                   data-command={row.value}
                   {...machine.getItemProps(row)}
                 >

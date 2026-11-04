@@ -828,7 +828,7 @@ export function Mark(props: {
       fill="none"
       role="img"
       aria-label="Interactive outside-in orb-weaver web across Spin architecture layers"
-      class={props.class ?? "h-full w-full text-text"}
+      class={props.class ?? "h-full w-full text-text-muted"}
     >
       <defs>
         <radialGradient id="spin-orb-glow" cx="56%" cy="50%" r="58%">

@@ -38,12 +38,12 @@ function reportsFor(cls: string): Report[] {
 
 test("ink on a paired fill must be the ink the palette pairs with it", () => {
   // The mistake this catches: body ink painted on a filled control. The
-  // fill's floor is on `on-primary`, so `text-text` is a pairing nobody
+  // fill's floor is on `on-primary`, so `text-primary` is a pairing nobody
   // validated while the ink the theme measured goes unused.
-  const [report] = reportsFor("bg-primary text-text");
+  const [report] = reportsFor("bg-primary text-primary");
   deepStrictEqual(report?.messageId, "mismatch");
   deepStrictEqual(report?.data, {
-    ink: "text-text",
+    ink: "text-primary",
     fill: "primary",
     expected: "text-on-primary",
   });
@@ -60,24 +60,24 @@ test("an alias is not the ink the palette declares", () => {
 
 test("a fill that declares no ink flags the ink painted on it", () => {
   // The ramp is steps without foregrounds: a step does not flip with the
-  // mode while `text-text` does, so a label on a ramp step is legible in one
+  // mode while body ink does, so a label on a ramp step is legible in one
   // mode and unreadable in the other, and nothing in the theme said either
   // way.
-  const [report] = reportsFor("bg-neutral-700 text-text");
+  const [report] = reportsFor("bg-neutral-700 text-primary");
   deepStrictEqual(report?.messageId, "undeclared");
-  deepStrictEqual(report?.data, { ink: "text-text", fill: "neutral-700" });
+  deepStrictEqual(report?.data, { ink: "text-primary", fill: "neutral-700" });
 });
 
 test("a fill constrains the ink of its own state", () => {
   // A chip brightens its resting ink on the surface, and the fill that
   // arrives under a pointer is the hover state's business: `hover:bg-accent`
   // does not make the resting `text-text-muted` an unpaired ink, and
-  // `hover:text-text` under the same hover fill does.
+  // `hover:text-primary` under the same hover fill does.
   deepStrictEqual(
     reportsFor("bg-surface-raised text-text-muted hover:bg-accent"),
     [],
   );
-  const [report] = reportsFor("hover:bg-accent hover:text-text");
+  const [report] = reportsFor("hover:bg-accent hover:text-primary");
   deepStrictEqual(report?.messageId, "mismatch");
   deepStrictEqual(report?.data?.["expected"], "text-on-accent");
 });

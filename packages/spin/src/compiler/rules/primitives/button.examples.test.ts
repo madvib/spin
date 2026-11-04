@@ -19,9 +19,6 @@ const STRUCTURAL = new Set([
   "items-center",
   "justify-center",
   "gap-2",
-  // The ink a bare button asks for: `bare` opts out of the paint, so the
-  // example spells the page's ink itself. A utility, not a variant.
-  "text-text",
 ]);
 
 const isKnown = (cls: string, known: Set<string>): boolean =>

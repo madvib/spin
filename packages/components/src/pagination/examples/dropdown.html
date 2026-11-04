@@ -17,7 +17,7 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
       {...machine.getPrevTriggerProps()}
     ><span aria-hidden="true">‹</span></button>
     <select
-      class="h-7 min-w-20 rounded-md border border-solid border-border bg-surface px-2 text-sm text-text"
+      class="h-7 min-w-20 rounded-md border border-solid border-border bg-surface px-2 text-sm"
       aria-label="Go to page"
       on:change={(event) => machine.setPage(event.target.value)}
     >

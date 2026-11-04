@@ -6,7 +6,7 @@ const machine = menu({});
 
 <div class="relative shrink-0">
   <button
-    class="bare inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-sm text-text-muted hover:bg-surface hover:text-text"
+    class="bare inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-sm text-text-muted hover:bg-surface"
     aria-label="Navigate"
     data-testid="studio-nav"
     {...machine.getTriggerProps()}
@@ -24,7 +24,7 @@ const machine = menu({});
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default hover:bg-surface-sunken"
+              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default hover:bg-surface-sunken"
               data-value={row.value}
               {...machine.getItemProps(row)}
             >
@@ -38,7 +38,7 @@ const machine = menu({});
                   <div class="py-1" {...machine.getItemGroupProps(sub)}>
                     <template for={machine.getRows(sub)} as={child} key={child.value}>
                       <div
-                        class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default hover:bg-surface-sunken"
+                        class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default hover:bg-surface-sunken"
                         data-value={child.value}
                         {...machine.getSubmenuItemProps(child)}>
                         <span class="min-w-0 flex-1 truncate"

@@ -64,7 +64,7 @@ export function Section(props: {
           <Marker tone={props.tone} />
           <Show when={props.id} fallback={<span class="min-w-0">{props.title}</span>}>
             {(id) => (
-              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 text-text no-underline hover:text-text hover:underline"><span class="min-w-0">{props.title}</span><span class="font-mono text-sm text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
+              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="font-mono text-sm text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
             )}
           </Show>
           <Show when={props.info}>
@@ -72,7 +72,7 @@ export function Section(props: {
               <span class="relative inline-flex items-center">
                 <button
                   type="button"
-                  class="bare peer inline-flex items-center text-text-muted hover:text-text"
+                  class="bare peer inline-flex items-center text-text-muted"
                   aria-label={info()}
                 >
                   <span
@@ -149,7 +149,7 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 font-mono text-sm leading-relaxed text-text ${
+        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 font-mono text-sm leading-relaxed text-text-muted ${
           props.class ? ` ${props.class}` : ""
         }`}
       >

@@ -67,7 +67,12 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "text-color",
       title: "Text color",
       utilities: [
-        ...prefixed(["text-"], namesIn(theme, "color")),
+        // T5 (remove `text-text`): the catalog never names it, so the
+        // vocabulary built from the catalog cannot produce it — while
+        // `color.text` stays a token and `text-text-muted` stays a utility.
+        ...prefixed(["text-"], namesIn(theme, "color")).filter(
+          (utility) => utility !== "text-text",
+        ),
         "text-transparent",
         "text-current",
         "text-currentColor",

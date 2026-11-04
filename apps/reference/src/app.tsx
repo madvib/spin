@@ -87,7 +87,7 @@ function useTheme(): ThemeState {
  * taller than its labels.
  */
 const SURFACE_LINK =
-  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:font-medium";
 
 /** The group either switch or toggle is drawn in. */
 const SEGMENT_GROUP =
@@ -113,7 +113,7 @@ const SEGMENT_GROUP =
  * the whole tile; only where the glyph sits changes.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised hover:text-text aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:text-text aria-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:font-medium";
 
 /**
  * The band a run of rows is bucketed into.
@@ -130,7 +130,7 @@ const RAIL_LINK =
  * far as its rows does not read as their title.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal text-text first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal first:mt-0";
 
 /**
  * The heading over the rail's list.
@@ -141,7 +141,7 @@ const RAIL_BAND =
  * flat is a rail you have to read end to end.
  */
 const RAIL_HEAD =
-  "mb-2 flex items-center gap-2 px-2 pt-3 text-lg font-bold normal-case tracking-normal text-text first:mt-0";
+  "mb-2 flex items-center gap-2 px-2 pt-3 text-lg font-bold normal-case tracking-normal first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
 const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
@@ -158,7 +158,7 @@ const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
  * never smaller than the items under it — and it is the theme's own step, so
  * the ladder does the sizing and the weight and the ink carry the rest.
  */
-const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal text-text first:mt-0";
+const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal first:mt-0";
 
 /**
  * The search field the rail is filtered through, and the input in it: one
@@ -170,11 +170,11 @@ const SEARCH_FIELD =
 // control inside a chrome of its own is a box within a box: the input spends
 // its border and its padding here, and the field it sits in supplies both.
 const SEARCH_INPUT =
-  "w-full border-transparent bg-transparent p-0 text-xs text-text";
+  "w-full border-transparent bg-transparent p-0 text-xs";
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong hover:text-text";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
 
 /**
  * The panel every specimen sits in: ONE box, one surface, and only as much
@@ -345,7 +345,7 @@ function FeaturedSpecimen(props: { id: string }) {
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
         <i class={`${ICONS[props.id]} icon-md text-text-muted`} />
-        <h4 class="text-text">{page.title}</h4>
+        <h4>{page.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
         <div class={SPECIMEN_MEASURE} innerHTML={page.examples[0].html} />
@@ -380,7 +380,7 @@ function IndexRow(props: { id: string }) {
       <i
         class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
       />
-      <span class="min-w-0 flex-1 truncate text-sm text-text">
+      <span class="min-w-0 flex-1 truncate text-sm">
         {page.title}
       </span>
       <span class="shrink-0 font-mono text-xs text-text-muted">
@@ -640,7 +640,7 @@ function Rail(props: {
                   type="button"
                   aria-pressed={kindFilter() === kind}
                   onClick={() => setKindFilter(kind)}
-                  class="bare rounded-sm px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+                  class="bare rounded-sm px-2 py-1 text-xs text-text-muted aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
                 >
                   {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
                 </button>

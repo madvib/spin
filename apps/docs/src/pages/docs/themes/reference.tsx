@@ -228,7 +228,7 @@ export default function ThemesReference(): JSX.Element {
             {(entry) => (
               <div class="flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <span class="font-mono text-sm font-semibold text-text">
+                  <span class="font-mono text-sm font-semibold">
                     {entry.name}
                   </span>
                   <Show when={entry.badge}>
@@ -277,7 +277,7 @@ export default function ThemesReference(): JSX.Element {
             {(group) => (
               <div class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4">
                 <div class="flex items-baseline justify-between gap-2">
-                  <span class="font-mono text-sm font-semibold text-text">
+                  <span class="font-mono text-sm font-semibold">
                     {group}
                   </span>
                   <span class="font-mono text-xs text-text-muted">

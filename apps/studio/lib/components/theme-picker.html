@@ -6,7 +6,7 @@ const machine = themePicker({ syncDocument: false });
 
 <div class="relative shrink-0" {...machine.getRootProps()}>
   <button
-    class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface hover:text-text"
+    class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface"
     data-testid="theme-picker"
     {...machine.getTriggerProps()}
   >
@@ -26,7 +26,7 @@ const machine = themePicker({ syncDocument: false });
       <div {...machine.getListProps()}>
         <template for={machine.getItems()} as={row} key={row.value}>
           <div
-            class={["bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-surface-sunken", { "bg-surface-sunken text-primary font-medium": machine.getItemState(row).selected, "text-text": !machine.getItemState(row).selected }]}
+            class={["bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-surface-sunken", { "bg-surface-sunken text-primary font-medium": machine.getItemState(row).selected }]}
             role="option"
             data-theme-option={row.value}
             {...machine.getItemProps(row)}

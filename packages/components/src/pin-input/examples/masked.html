@@ -8,7 +8,7 @@ const machine = pinInput({
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["block text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getLabelProps()}>Enter secure PIN</label>
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>

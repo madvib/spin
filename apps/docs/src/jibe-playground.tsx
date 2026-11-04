@@ -510,7 +510,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       "index.html": `<!doctype html>
 <html lang="en" data-theme="${themeName}" data-mode="${modeName}">
   <body>
-    <div id="app" class="min-h-dvh bg-surface p-6 text-text font-sans">${inner}</div>
+    <div id="app" class="min-h-dvh bg-surface p-6 font-sans">${inner}</div>
     <script type="module" src="/src/main.${wiring.ext}"></script>
   </body>
 </html>
@@ -641,7 +641,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       <Show when={props.studio === true && ready()}>
         <button
           type="button"
-          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border border-border bg-surface-raised px-3 py-1 text-sm text-text shadow-sm"
+          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border border-border bg-surface-raised px-3 py-1 text-sm shadow-sm"
           onClick={() => {
             studioConnected = false;
             setStudioOpen((open) => !open);

@@ -113,7 +113,7 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
     html: row(
       `  <button class="outline">Outline</button>
   <button class="ghost">Ghost</button>
-  <button class="bare text-text">Bare reset</button>`,
+  <button class="bare">Bare reset</button>`,
     ),
   },
   {

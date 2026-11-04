@@ -200,7 +200,7 @@ export default function App() {
             // Declared, not inherited: <html> is stamped light in index.html
             // and never changes, so a themed host that stays quiet inherits
             // the document root's ink instead of its own.
-            class="flex flex-col bg-surface text-text"
+            class="flex flex-col bg-surface"
             // Modal: the shell is exactly one viewport and clips, so the
             // DOCUMENT never scrolls. Drawer: the shell grows with the page
             // and the host's frame scrolls it, which is the only scroll that
@@ -231,7 +231,7 @@ export default function App() {
                   <div
                     data-theme={activeName()}
                     data-mode={activeMode()}
-                    class="spin-preview flex min-w-0 flex-1 flex-col bg-surface text-text"
+                    class="spin-preview flex min-w-0 flex-1 flex-col bg-surface"
                     classList={{
                       "min-h-0": !inDrawer(),
                       "overflow-y-auto": !inDrawer(),

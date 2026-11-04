@@ -98,8 +98,8 @@ const PAIRED_ROLES: readonly {
   {
     label: "surface-raised",
     fill: "bg-surface-raised",
-    ink: "text-text",
-    classes: "border border-border bg-surface-raised text-text",
+    ink: "text-text-muted",
+    classes: "border border-border bg-surface-raised text-text-muted",
   },
 ];
 

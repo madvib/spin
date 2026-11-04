@@ -498,7 +498,7 @@ function EasingChart(props: {
               <li class="min-w-0">
                 <button
                   type="button"
-                  class="bare w-full min-w-0 text-left text-text"
+                  class="bare w-full min-w-0 text-left"
                   aria-pressed={active()?.path === lane.path}
                   onClick={() => setSelected(lane.path)}
                 >
@@ -525,7 +525,7 @@ function EasingChart(props: {
                           stroke-width="2"
                         />
                       </svg>
-                      <span class="font-mono text-xs font-semibold text-text">
+                      <span class="font-mono text-xs font-semibold">
                         {lane.path.split(".").pop()}
                       </span>
                       <code class="text-xs text-text-muted">{lane.utility}</code>
@@ -572,7 +572,7 @@ function LoopButton(props: {
       class={`bare rounded-md border px-2 py-1 text-xs ${
         props.running
           ? `border-transparent ${props.paint}`
-          : "ghost border-border text-text-muted hover:text-text"
+          : "ghost border-border text-text-muted"
       }`}
       onClick={props.onToggle}
     >

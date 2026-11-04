@@ -27,7 +27,7 @@ const machine = menu({
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": row.disabled }]}
+              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": row.disabled }]}
               {...machine.getItemProps(row)}>
               <span class="min-w-0 flex-1 truncate"
                 {...machine.getItemTextProps(row)}>{row.label}</span>
@@ -47,7 +47,7 @@ const machine = menu({
                       {...machine.getItemGroupLabelProps(sub)}>{sub.label}</span>
                     <template for={machine.getRows(sub)} as={child} key={child.value}>
                       <div
-                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
+                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
                         {...machine.getSubmenuItemProps(child)}>
                         <span class="min-w-0 flex-1 truncate"
                           {...machine.getItemTextProps(child)}>{child.label}</span>

@@ -7,7 +7,7 @@
 <div class="w-full max-w-md" {...machine.getRootProps()}>
   <span class="sr-only" {...machine.getLabelProps()}>Document title</span>
   <div class="rounded-lg border border-solid border-border bg-surface-raised px-3 py-2" {...machine.getAreaProps()}>
-    <span show={!machine.editing} class="block cursor-text text-lg font-semibold text-text hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <span show={!machine.editing} class="block cursor-text text-lg font-semibold hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
     <input show={machine.editing} class="w-full bg-transparent text-lg font-semibold outline-none" {...machine.getInputProps()} />
   </div>
 </div>

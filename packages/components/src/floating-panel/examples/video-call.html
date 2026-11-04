@@ -11,7 +11,7 @@
 <div class={["flex items-center justify-between gap-2 bg-surface-sunken p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="h-2 w-2 shrink-0 rounded-full bg-semantic-success" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium text-text">Sarah Johnson</span>
+          <span class="truncate text-sm font-medium">Sarah Johnson</span>
           <span data-timer class="shrink-0 font-mono text-xs text-text-muted">00:12:34</span>
         </div>
         <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
@@ -21,7 +21,7 @@
       </div>
       <div class="relative min-h-0 flex-1 overflow-hidden bg-surface-sunken">
         <div class="absolute inset-0 flex items-center justify-center">
-          <span class="flex h-[8rem] w-[8rem] items-center justify-center rounded-full bg-surface-raised"><span class="flex h-20 w-20 items-center justify-center rounded-full bg-surface"><span class="text-lg font-semibold text-text">SJ</span></span></span>
+          <span class="flex h-[8rem] w-[8rem] items-center justify-center rounded-full bg-surface-raised"><span class="flex h-20 w-20 items-center justify-center rounded-full bg-surface"><span class="text-lg font-semibold">SJ</span></span></span>
         </div>
         <badge class="absolute right-2 top-2 flex h-12 w-16 items-center justify-center" variant="neutral">You</badge>
         <badge class="absolute left-2 top-2 font-mono" variant="neutral">12:41</badge>

@@ -76,7 +76,7 @@ export function PlaygroundEmbed(props: {
             <button
               type="button"
               onClick={() => setShowCode((v) => !v)}
-              class="bare cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text hover:border-border-strong"
+              class="bare cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs hover:border-border-strong"
             >
               {showCode() ? "Hide markup" : "Show markup"}
             </button>

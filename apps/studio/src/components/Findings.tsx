@@ -94,7 +94,7 @@ export function FindingRow(props: {
           {props.finding.severity}
         </span>
       </div>
-      <p class="text-sm text-text">{props.finding.message}</p>
+      <p class="text-sm">{props.finding.message}</p>
       <Show
         when={props.finding.remedy}
         fallback={
@@ -115,7 +115,7 @@ export function FindingRow(props: {
             <div class="row-sm">
               <button
                 type="button"
-                class="bare s-sm flex min-h-0 shrink-0 items-center justify-start gap-2 text-left text-text hover:bg-surface-sunken"
+                class="bare s-sm flex min-h-0 shrink-0 items-center justify-start gap-2 text-left hover:bg-surface-sunken"
                 title={remedy()}
                 disabled={props.busy}
                 onClick={() => props.onFix()}
@@ -243,7 +243,7 @@ export function ClassOrders(props: {
                       {attribute.classes.join(" ")}
                     </span>
                     <span aria-hidden="true" class="text-text-muted">→</span>
-                    <span class="text-text">{attribute.ordered.join(" ")}</span>
+                    <span>{attribute.ordered.join(" ")}</span>
                   </li>
                 )}
               </For>

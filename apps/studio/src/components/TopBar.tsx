@@ -92,7 +92,7 @@ const BAR =
  * one smudge.
  */
 const ICON_BUTTON =
-  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-text-muted hover:bg-surface hover:text-text disabled:opacity-50";
+  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-text-muted hover:bg-surface disabled:opacity-50";
 
 /**
  * The three verbs, and the air between them.
@@ -251,7 +251,7 @@ export default function TopBar() {
       >
         <p class="min-w-0 truncate text-center text-sm text-text-muted">
           <span class="whitespace-nowrap">
-            Editing <strong class="text-text">{theme()}</strong>
+            Editing <strong>{theme()}</strong>
           </span>
           {" · "}
           <span class="whitespace-nowrap">{activeMode()}</span>

@@ -150,7 +150,7 @@ const GRID =
 
 /** One theme's column: the name, and the renderings under it. */
 const COLUMN = "flex min-w-0 flex-col gap-2";
-const THEME_NAME = "m-0 truncate text-sm font-semibold text-text";
+const THEME_NAME = "m-0 truncate text-sm font-semibold";
 const MODE_LABEL = "font-mono text-xs text-text-muted";
 
 /**
@@ -158,12 +158,12 @@ const MODE_LABEL = "font-mono text-xs text-text-muted";
  *
  * The padding is the page's step and not a measure of it: a screen is a
  * stage, and a stage the size of a page turns every part into a slab of
- * nothing. The surface and the ink are the THEME's own — `text-text` reads
- * the custom property the column declares, so the text that nothing else
- * painted is the theme's ink and not the app's.
+ * nothing. The surface and the ink are the THEME's own — the default ink needs
+ * no naming: the column declares its own custom property, so the text that
+ * nothing else painted is the theme's ink and not the app's.
  */
 const SCREEN =
-  "rounded-md border border-solid border-border bg-surface p-2 text-text";
+  "rounded-md border border-solid border-border bg-surface p-2";
 
 /** What a column says when its theme never reached the page. */
 const NOT_RENDERED =

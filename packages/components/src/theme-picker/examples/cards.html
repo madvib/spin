@@ -16,11 +16,11 @@ const machine = themePicker({
 <div class="grid w-full grid-cols-2 gap-3" {...machine.getRootProps()}>
   <template for={machine.getItems()} as={row} key={row.value}>
     <button
-      class={["bare flex flex-col items-stretch justify-between gap-0 p-0 overflow-hidden rounded-lg border border-solid bg-surface text-left text-text transition-all", { "border-border": machine.getItemState(row).selected === false, "border-primary ring-1 ring-primary": machine.getItemState(row).selected }]}
+      class={["bare flex flex-col items-stretch justify-between gap-0 p-0 overflow-hidden rounded-lg border border-solid bg-surface text-left transition-all", { "border-border": machine.getItemState(row).selected === false, "border-primary ring-1 ring-primary": machine.getItemState(row).selected }]}
       {...machine.getItemProps(row)}
     >
       <span class="block w-full bg-surface px-3 py-2" {...machine.getItemSwatchProps(row)}>
-        <span class="block text-sm font-medium text-text" {...machine.getItemLabelProps(row)}>{row.label}</span>
+        <span class="block text-sm font-medium" {...machine.getItemLabelProps(row)}>{row.label}</span>
         <span class="mt-1 inline-block rounded-sm bg-primary px-2 py-1 text-xs text-on-primary">Aa</span>
       </span>
       <span class="flex w-full items-center justify-between bg-surface-raised px-3 py-1 text-xs text-text-muted">

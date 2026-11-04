@@ -93,9 +93,13 @@ export const ruleNames = RULE_NAMES;
  * The plugin.
  *
  * `configs.recommended` is the preset: the rules, as errors, over the files
- * the rules can read — except the advisory one, which is a warning: the
- * wrong element cannot be banned, so it does not fail a run. A configuration
- * that wants a different set writes the rules out by name instead.
+ * the rules can read — except `prefer-element`, which stays a warning at
+ * the rule level. Its teeth travel on the finding instead: a single-owner
+ * typographic reach is an error the CLI and CI fail on, while several
+ * owners stay advisory everywhere. Editors show the soft stance (a linter
+ * cannot escalate one report above its rule); committed code is judged by
+ * the finding. A configuration that wants a different set writes the rules
+ * out by name instead.
  */
 export const plugin: EslintPlugin = {
   meta: { name: "spin", version: "0.1.0" },

@@ -149,7 +149,7 @@ export default function ThemesCustomization(): JSX.Element {
                 <span
                   class={`h-5 w-5 shrink-0 rounded-sm border border-border ${item.bg}`}
                 />
-                <span class="truncate font-mono text-xs text-text">
+                <span class="truncate font-mono text-xs">
                   {item.label}
                 </span>
               </div>

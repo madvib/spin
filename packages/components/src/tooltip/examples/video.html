@@ -6,13 +6,13 @@ const ctl = tooltip();
 
 <button {...ctl.getTriggerProps()}
   class="bare relative grid h-36 w-64 place-items-center overflow-hidden rounded-lg border-border bg-surface-sunken">
-  <span class="i-lucide-play icon-lg text-text" aria-hidden="true"></span>
+  <span class="i-lucide-play icon-lg" aria-hidden="true"></span>
 </button>
 
 <tooltip {...ctl.getContentProps()}
   class="fixed m-0 max-w-[16rem]">
   <div class="flex flex-col gap-1">
-    <p class="text-xs font-medium text-text">Product Demo</p>
+    <p class="text-xs font-medium">Product Demo</p>
     <p
       class="text-xs text-text-muted">Learn platform features in this walkthrough.</p>
     <div class="flex items-center gap-2 text-xs text-text-muted">

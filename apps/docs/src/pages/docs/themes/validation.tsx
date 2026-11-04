@@ -91,7 +91,7 @@ export default function ThemesValidation(): JSX.Element {
           <For each={FLOORS}>
             {(floor) => (
               <div class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-raised px-3 py-2 font-mono text-xs">
-                <span class="truncate text-text">
+                <span class="truncate">
                   {floor.fg}{" "}
                   <span class="text-text-muted">on</span> {floor.bg}
                 </span>

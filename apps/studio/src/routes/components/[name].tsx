@@ -290,7 +290,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
                       showApi()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised text-text"
+                        : "border-border bg-surface-raised"
                     }`}
                     onClick={() => setShowApi((v) => !v)}
                   >
@@ -309,7 +309,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
                       showTokens()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised text-text"
+                        : "border-border bg-surface-raised"
                     }`}
                     onClick={() => setShowTokens((v) => !v)}
                   >
@@ -323,7 +323,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
                       showClasses()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised text-text"
+                        : "border-border bg-surface-raised"
                     }`}
                     onClick={() => setShowClasses((v) => !v)}
                   >
@@ -392,7 +392,7 @@ export default function ComponentPage() {
                   <h2>Machine API</h2>
                   <button
                     type="button"
-                    class="bare p-0 text-text-muted hover:text-text"
+                    class="bare p-0 text-text-muted"
                     onClick={() => setShowApi(false)}
                   >
                     close
@@ -414,7 +414,7 @@ export default function ComponentPage() {
                           <div class="flex flex-wrap gap-1">
                             <For each={names}>
                               {(name) => (
-                                <code class="rounded-sm border border-border bg-surface px-1 py-0 font-mono text-xs text-text">
+                                <code class="rounded-sm border border-border bg-surface px-1 py-0 font-mono text-xs">
                                   {name}
                                 </code>
                               )}
@@ -438,7 +438,7 @@ export default function ComponentPage() {
                     // loudest action in it. Without it the theme's own
                     // primary fill and hard shadow reach a control that
                     // meant to read as a link.
-                    class="bare p-0 text-text-muted hover:text-text"
+                    class="bare p-0 text-text-muted"
                     onClick={() => setShowTokens(false)}
                   >
                     close

@@ -65,7 +65,7 @@ const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
  * nothing at all, which is what the row used to be.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised hover:text-text data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:text-text data-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:font-medium";
 
 /**
  * The band a run of rows is bucketed into.
@@ -84,7 +84,7 @@ const RAIL_LINK =
  * than a column and the groups are read across rather than down.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-sm font-semibold normal-case tracking-normal text-text first:mt-0 lg:text-md";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-sm font-semibold normal-case tracking-normal first:mt-0 lg:text-md";
 
 /**
  * The row, as the drawer wears it.
@@ -95,7 +95,7 @@ const RAIL_BAND =
  * strong edge, full ink — so a reader who knows the rail knows it collapsed.
  */
 const DRAWER_LINK =
-  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:border-primary hover:bg-surface-raised hover:text-text data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:text-text data-[current]:font-medium";
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:font-medium";
 
 /**
  * The group heading, as the drawer wears it.
@@ -107,7 +107,7 @@ const DRAWER_LINK =
  * the reader loses the one thing the group was there to say.
  */
 const DRAWER_BAND =
-  "text-sm font-semibold normal-case tracking-normal text-text";
+  "text-sm font-semibold normal-case tracking-normal";
 
 /** One row of the list: the component it names, and the glyph it wears. */
 interface Row {
@@ -146,7 +146,7 @@ function NavBody(props: {
               type="button"
               aria-pressed={props.kindFilter() === kind}
               onClick={() => props.setKindFilter(kind)}
-              class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+              class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
             >
               {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
             </button>

@@ -174,7 +174,7 @@ function TopNav(props: {
     >
       <div class="flex min-w-0 items-center gap-4">
         <A href="/" end class="shrink-0 no-underline" aria-label="spin home">
-          <Logo size="md" class="text-text" />
+          <Logo size="md" />
         </A>
         <nav class="hidden items-center gap-1 md:flex" aria-label="sections">
           <For each={TOP_SECTIONS}>
@@ -183,8 +183,8 @@ function TopNav(props: {
                 href={section.href}
                 class={`block rounded-sm px-3 py-1 text-sm no-underline transition-colors duration-fast ${
                   current(section.active)
-                    ? "bg-surface-raised text-text font-semibold"
-                    : "text-text-muted hover:text-text"
+                    ? "bg-surface-raised font-semibold"
+                    : "text-text-muted"
                 }`}
               >
                 {section.title}
@@ -198,7 +198,7 @@ function TopNav(props: {
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
-          class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+          class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised"
         >
           <span>Search...</span>
           <kbd>⌘K</kbd>
@@ -210,7 +210,7 @@ function TopNav(props: {
         onClick={props.onToggleMobileNav}
         aria-expanded={props.mobileNavOpen}
         aria-label="Toggle navigation menu"
-        class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 text-text transition-colors hover:bg-surface-raised md:hidden"
+        class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised md:hidden"
       >
         <span
           class={
@@ -306,7 +306,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
   };
 
   return (
-    <div class="flex h-dvh flex-col overflow-hidden bg-surface text-text font-sans text-md">
+    <div class="flex h-dvh flex-col overflow-hidden bg-surface font-sans text-md">
       <BrandFavicon getPrimary={activePrimary} />
       <SearchDialog
         open={searchOpen()}
@@ -331,7 +331,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   setMobileNavOpen(false);
                   setSearchOpen(true);
                 }}
-                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised"
               >
                 <span class="i-lucide-search icon-sm" aria-hidden="true" />
                 <span>Search...</span>
@@ -344,7 +344,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   <A
                     href={section.href}
                     onClick={() => setMobileNavOpen(false)}
-                    class="block rounded-sm bg-surface-raised px-3 py-1 text-sm font-semibold text-text no-underline"
+                    class="block rounded-sm bg-surface-raised px-3 py-1 text-sm font-semibold no-underline"
                   >
                     {section.title}
                   </A>

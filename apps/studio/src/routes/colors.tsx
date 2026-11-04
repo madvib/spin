@@ -282,8 +282,8 @@ function RolePicker(props: {
                       type="button"
                       class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
                       classList={{
-                        "bg-surface-raised text-text shadow-sm": onFill(),
-                        "text-text-muted hover:text-text": !onFill(),
+                        "bg-surface-raised shadow-sm": onFill(),
+                        "text-text-muted": !onFill(),
                       }}
                       onClick={() => props.onSelectRole(pair().fill.path)}
                     >
@@ -294,8 +294,8 @@ function RolePicker(props: {
                       type="button"
                       class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
                       classList={{
-                        "bg-surface-raised text-text shadow-sm": !onFill(),
-                        "text-text-muted hover:text-text": onFill(),
+                        "bg-surface-raised shadow-sm": !onFill(),
+                        "text-text-muted": onFill(),
                       }}
                       onClick={() => props.onSelectRole(pair().ink.path)}
                     >
@@ -540,7 +540,7 @@ function CopyValue(props: { value: string; label: string }) {
   return (
     <button
       type="button"
-      class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 font-mono text-xs text-text hover:bg-surface-sunken"
+      class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 font-mono text-xs hover:bg-surface-sunken"
       title={`Copy ${props.value}`}
       aria-label={props.label}
       onClick={(e) => {
@@ -955,7 +955,7 @@ function FloorFix(props: {
 }) {
   const slot = (): "light" | "dark" => props.mode === "dark" ? "dark" : "light";
   return (
-    <div class="stack-sm rounded-md border border-border bg-surface p-3 text-text">
+    <div class="stack-sm rounded-md border border-border bg-surface p-3">
       <div class="split text-xs">
         <span>
           {humanName(props.floor.fg)} on {humanName(props.floor.bg)} is {props.floor.ratio.toFixed(2)}:1 — needs {props.floor.min}:1.
@@ -980,7 +980,7 @@ function FloorFix(props: {
       >
         <button
           type="button"
-          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left text-xs font-medium text-text"
+          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left text-xs font-medium"
           title={`Set ${props.floor.fg} to ${props.floor.remedy}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -1055,7 +1055,7 @@ function Ramp() {
                       style={{ background: valueInMode(step) ?? "" }}
                     />
                     <div class="split px-1">
-                      <span class="font-mono text-xs font-semibold text-text">
+                      <span class="font-mono text-xs font-semibold">
                         {step.step}
                       </span>
                       <span class="truncate text-xs text-text-muted">

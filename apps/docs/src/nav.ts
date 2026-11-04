@@ -134,14 +134,19 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Element-owned typography (h1-h6, p, code, blockquote, <prose>) and list primitives (ul/ol reset, row-list, flow-list).",
       },
       {
+        title: "Color & Dark Mode",
+        href: "/docs/styling/color",
+        summary: "Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values.",
+      },
+      {
         title: "Utilities",
         href: "/docs/styling/utilities",
         summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and project compositions.",
       },
       {
-        title: "Animations",
+        title: "Motion",
         href: "/docs/styling/animation",
-        summary: "Theme-driven transition utilities, @spinjs/spin/animation keyframes, reduced-motion clamping, and the 250ms loop floor.",
+        summary: "Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion.",
       },
       {
         title: "Utility Reference",

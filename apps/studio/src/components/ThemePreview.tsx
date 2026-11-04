@@ -74,7 +74,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
             <div class="flex gap-1">
               <button
                 type="button"
-                class="bare text-xs hover:text-text"
+                class="bare text-xs"
                 style={{ color: muted() ?? "inherit" }}
                 onClick={() => setMode("light")}
               >
@@ -82,7 +82,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
               </button>
               <button
                 type="button"
-                class="bare text-xs hover:text-text"
+                class="bare text-xs"
                 style={{ color: muted() ?? "inherit" }}
                 onClick={() => setMode("dark")}
               >

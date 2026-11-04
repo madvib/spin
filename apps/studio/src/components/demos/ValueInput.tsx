@@ -527,7 +527,7 @@ function TextTransformControl(props: {
               class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none ${
                 active()
                   ? "border-transparent bg-primary text-on-primary"
-                  : "bare border-transparent text-text-muted hover:text-text"
+                  : "bare border-transparent text-text-muted"
               }`}
               onClick={() => {
                 if (!active()) props.onCommit(option);

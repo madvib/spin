@@ -25,7 +25,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare grid h-10 w-10 place-items-center rounded-md transition-all aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
+    class="bare grid h-10 w-10 place-items-center rounded-md transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    ><span class="i-lucide-chart-bar text-sm" aria-hidden="true" show={row.value === "tab1"}></span><span class="i-lucide-users text-sm" aria-hidden="true" show={row.value === "tab2"}></span><span class="i-lucide-settings text-sm" aria-hidden="true" show={row.value === "tab3"}></span><span class="sr-only">{row.label}</span></button>
   </template>

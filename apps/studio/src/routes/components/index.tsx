@@ -71,7 +71,7 @@ export default function ComponentsIndex() {
                   type="button"
                   aria-pressed={kindFilter() === kind}
                   onClick={() => setKindFilter(kind)}
-                  class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted hover:text-text aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:text-text aria-[pressed=true]:font-medium"
+                  class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
                 >
                   {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
                 </button>
@@ -107,7 +107,7 @@ export default function ComponentsIndex() {
                               class={`${row.icon} icon-md shrink-0 text-primary`}
                               aria-hidden="true"
                             />
-                            <strong class="capitalize text-text">
+                            <strong class="capitalize">
                               {displayComponentName(row.name)}
                             </strong>
                           </span>

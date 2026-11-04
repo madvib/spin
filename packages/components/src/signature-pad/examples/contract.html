@@ -7,11 +7,11 @@ const machine = signaturePad({});
   class="mx-auto w-full max-w-md rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 border-b border-solid border-border pb-3">
-    <strong class="text-sm text-text">Service Level Agreement</strong>
+    <strong class="text-sm">Service Level Agreement</strong>
     <p
       class="text-xs text-text-muted">By signing below, you accept the enterprise platform terms and uptime guarantees.</p>
   </div>
-  <label class="mb-1 block text-xs font-medium text-text"
+  <label class="mb-1 block text-xs font-medium"
     {...machine.getLabelProps()}>Authorized Signature</label>
   <div
     class={["relative h-40 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}

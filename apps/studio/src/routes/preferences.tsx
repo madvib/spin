@@ -59,7 +59,7 @@ export default function PreferencesPage() {
             </div>
             <div class="stack-xs">
               <span class="text-xs text-text-muted">Themes</span>
-              <span class="text-sm text-text">
+              <span class="text-sm">
                 {registry()?.filter((t) => t.file !== null).length ?? 0} project
                 {" · "}
                 {registry()?.filter((t) => t.file === null).length ?? 0}{" "}

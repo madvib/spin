@@ -270,8 +270,8 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                     onClick={() => props.onNavigate(item.entry.href)}
                     class={`flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-3 py-2 text-sm ${
                       item.idx === clampedActive()
-                        ? "bg-surface-raised text-text"
-                        : "text-text-muted hover:text-text"
+                        ? "bg-surface-raised"
+                        : "text-text-muted"
                     }`}
                   >
                     <span class="min-w-0">

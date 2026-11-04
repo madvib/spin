@@ -14,11 +14,11 @@ const machine = colorPicker({
 >
   <div class="mb-3 flex items-center justify-between gap-2">
     <span
-      class="text-sm font-medium text-text"
+      class="text-sm font-medium"
       {...machine.getLabelProps()}
     ><slot name="label">Colour</slot></span>
     <span
-      class="rounded-md border border-solid border-border bg-surface px-2 py-1 font-mono text-xs text-text"
+      class="rounded-md border border-solid border-border bg-surface px-2 py-1 font-mono text-xs"
       {...machine.getValueTextProps()}
     >{machine.valueAsString}</span>
   </div>

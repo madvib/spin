@@ -60,7 +60,7 @@ const machine = asyncList({
       ></div>
       <template for={machine.getRows()} as={row} key={row.value}>
         <div
-          class="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate"
+          class="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast ease-decelerate"
           {...machine.getItemProps(row)}
         >
           <span class="min-w-0 flex-1 truncate">{row.label}</span>
@@ -82,7 +82,7 @@ const machine = asyncList({
   </div>
 
   <div
-    class={["mt-2 rounded-md border border-solid border-border bg-surface px-3 py-2 text-sm text-text transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
+    class={["mt-2 rounded-md border border-solid border-border bg-surface px-3 py-2 text-sm transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
     {...machine.getErrorProps()}
   >Something went wrong.</div>
 </div>

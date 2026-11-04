@@ -7,7 +7,7 @@
 <div class="w-full max-w-md" {...machine.getRootProps()}>
   <label class="mb-1 block text-xs font-medium text-text-muted" {...machine.getLabelProps()}>Inline Note</label>
   <div class="relative rounded-md border border-solid border-border bg-surface-raised" {...machine.getAreaProps()}>
-    <span show={!machine.editing} class="block min-w-0 cursor-text px-3 py-1 text-sm text-text hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <span show={!machine.editing} class="block min-w-0 cursor-text px-3 py-1 text-sm hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
     <input show={machine.editing} class="w-full bg-transparent px-3 py-1 outline-none" {...machine.getInputProps()} />
   </div>
 </div>

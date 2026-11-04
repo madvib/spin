@@ -103,7 +103,7 @@ export default function GradientEditor(props: {
               />
               <button
                 type="button"
-                class="secondary s-sm shrink-0 text-text-muted hover:border-primary hover:text-text"
+                class="secondary s-sm shrink-0 text-text-muted hover:border-primary"
                 title="Remove this stop"
                 aria-label={`Remove stop ${index() + 1}`}
                 onClick={() => removeStop(index())}
@@ -117,7 +117,7 @@ export default function GradientEditor(props: {
       <div class="row-sm items-center gap-3">
         <button
           type="button"
-          class="secondary s-sm shrink-0 text-text-muted hover:border-primary hover:text-text"
+          class="secondary s-sm shrink-0 text-text-muted hover:border-primary"
           onClick={() => addStop()}
         >
           add a stop

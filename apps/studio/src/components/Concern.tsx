@@ -50,8 +50,9 @@ export { Marker, Section } from "@spinjs/kit";
  *
  * The overview's frame: the page's own scroll rail, a column that is
  * centred and padded, and a measure wide enough for a table of tokens to
- * sit in. The pane's paper is the project's, because its ink is — a header
- * reading `text-text` on the chrome's surface only agrees by luck.
+ * sit in. The pane's paper is the project's, because its ink is — the
+ * default ink needs no naming, so a header that only agrees with the
+ * chrome's surface by luck is a bug in the page, not the chrome.
  */
 export function ConcernPage(props: {
   title: string;
@@ -256,7 +257,7 @@ export function TokenChip(props: { path: string; value: string }) {
       <span class="truncate font-mono text-xs text-text-muted">
         {props.path}
       </span>
-      <span class="shrink-0 font-mono text-xs text-text">{props.value}</span>
+      <span class="shrink-0 font-mono text-xs">{props.value}</span>
     </span>
   );
 }

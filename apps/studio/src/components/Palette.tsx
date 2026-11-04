@@ -161,7 +161,7 @@ export function Hex(props: { value: string; pill?: boolean; ink?: string }) {
       class={
         props.pill
           ? "bare relative z-10 h-4 cursor-pointer truncate rounded-md p-0 font-mono text-xs opacity-70 hover:opacity-100"
-          : "bare h-4 w-16 shrink-0 cursor-pointer overflow-hidden p-0 text-right font-mono text-xs tabular-nums text-text-muted hover:text-text"
+          : "bare h-4 w-16 shrink-0 cursor-pointer overflow-hidden p-0 text-right font-mono text-xs tabular-nums text-text-muted"
       }
       style={props.ink ? { color: props.ink } : undefined}
       title={props.value}

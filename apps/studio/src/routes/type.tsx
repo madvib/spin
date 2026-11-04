@@ -423,7 +423,7 @@ export default function TypePage() {
                       data-studio-specimen=""
                       class="rounded-md border border-border bg-surface p-3"
                     >
-                      <p class="m-0 truncate text-text" style={specimenStyle()}>
+                      <p class="m-0 truncate" style={specimenStyle()}>
                         {SENTENCE}
                       </p>
                     </div>
@@ -501,7 +501,7 @@ function FaceCard(props: { slot: string }) {
         classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}
       >
         <div class="row-sm flex-wrap">
-          <span class="text-md font-semibold text-text">
+          <span class="text-md font-semibold">
             {humanFaceName(props.slot)}
           </span>
           <span class="rounded-md bg-surface-sunken px-2 py-0 text-xs text-text-muted">
@@ -535,12 +535,12 @@ function FaceCard(props: { slot: string }) {
         style={{ "font-family": row()?.value ?? "inherit" }}
       >
         <div class="split items-baseline">
-          <span class="text-3xl font-bold text-text">Aa</span>
-          <span class="truncate text-md font-semibold text-text">
+          <span class="text-3xl font-bold">Aa</span>
+          <span class="truncate text-md font-semibold">
             {family() || "—"}
           </span>
         </div>
-        <p class="m-0 mt-1 text-sm text-text">
+        <p class="m-0 mt-1 text-sm">
           {SPECIMENS[role()] ?? SENTENCE}
         </p>
       </div>
@@ -569,7 +569,7 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
   return (
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border py-4 last:border-b-0">
       <div data-studio-chrome="" class="w-24 shrink-0 stack-xs">
-        <span class="text-sm font-semibold text-text">{props.step}</span>
+        <span class="text-sm font-semibold">{props.step}</span>
         <code class="text-xs text-text-muted">{`font.size.${props.step}`}</code>
       </div>
       <div
@@ -623,7 +623,7 @@ function TypeStepItem(props: {
     >
       <div class="split flex-wrap gap-2">
         <div class="row-sm min-w-0">
-          <span class="text-sm font-semibold text-text">{props.step}</span>
+          <span class="text-sm font-semibold">{props.step}</span>
           <span class="inline-flex items-center">
             <code tabIndex={0} class="text-xs text-text-muted">
               {props.utility}
@@ -641,7 +641,7 @@ function TypeStepItem(props: {
         />
       </div>
       <div data-studio-specimen="" class="min-w-0 overflow-hidden">
-        <p class="m-0 truncate text-md text-text" style={props.specimenStyle}>
+        <p class="m-0 truncate text-md" style={props.specimenStyle}>
           {HEADING}
         </p>
       </div>

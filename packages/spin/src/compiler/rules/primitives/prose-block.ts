@@ -52,16 +52,19 @@ function bodyRule(): Rule {
 }
 
 /**
- * Body copy: the spacing below it.
+ * Body copy: the spacing below it, and the type it reads in.
  *
  * The paragraph's TYPE is the body's — it inherits the floor — and the
- * paragraph's own decision is the gap it leaves under itself. Both are the
- * theme's, and both are spent wherever a paragraph is written.
- *
- * The theme may set the paragraph's type for itself: `font.element.p.family`,
- * `font.element.p.size` and `font.element.p.weight` are the paragraph's own
- * answer, and where the theme gives one it replaces what the paragraph would
- * otherwise read. What it leaves out, the paragraph reads as it always has.
+ * paragraph states what it inherits, so a class that says otherwise is a
+ * second opinion the lint can see. The theme may set the paragraph's type
+ * for itself: `font.element.p.family`, `font.element.p.size` and
+ * `font.element.p.weight` are the paragraph's own answer, and where the
+ * theme gives one it replaces what the paragraph would otherwise read.
+ * What it leaves out, the paragraph takes from the body chain — the face
+ * the body reads in, the size the body reads at, the weight unemphasised
+ * text carries — and states that too, so rules and lint read one answer.
+ * Nothing here changes rendered output for themes that state nothing: the
+ * values stated are the values already inherited, now written down.
  */
 function paragraphRule(): Rule {
   return [
@@ -69,12 +72,15 @@ function paragraphRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const own = statedType(ctx, "p");
+      const family = own.family ?? t.body;
+      const size = own.size ?? t.sizeMd;
+      const weight = own.weight ?? t.weightRegular;
       yield {
         [ctx.symbols.selector]: () => "p",
         "line-height": "1.65",
-        ...(own.family !== undefined ? { "font-family": own.family } : {}),
-        ...(own.size !== undefined ? { "font-size": own.size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
         ...spacing(t),
       };
     },
@@ -82,16 +88,34 @@ function paragraphRule(): Rule {
   ];
 }
 
-/** A list: the shared spacing, and an indent the markers hang off. */
+/** A list: the shared spacing, its indent, and the type its rows read in.
+ *
+ * A list's TYPE is the body's, as the paragraph's is: the rows read the
+ * same face, size and weight a paragraph would, and the list states what
+ * it inherits so spacing/type overrides have an owner. The theme may set
+ * the list's type for itself per element (`font.element.ul.*`,
+ * `font.element.ol.*`); where the theme gives one it replaces what the
+ * list would otherwise read. What it leaves out, the list takes from the
+ * body chain and states too. Nothing here changes rendered output for
+ * themes that state nothing: the values stated are the values already
+ * inherited, now written down.
+ */
 function listRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, tag);
+      const family = own.family ?? t.body;
+      const size = own.size ?? t.sizeMd;
+      const weight = own.weight ?? t.weightRegular;
       yield {
         [ctx.symbols.selector]: () => tag,
-        ...spacing(t),
         "line-height": "1.65",
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...spacing(t),
         "list-style-type": tag === "ol" ? "decimal" : "disc",
         ...(t.spacing4 !== undefined
           ? { "padding-inline-start": `calc(${t.spacing4} * 1.5)` }
@@ -103,11 +127,15 @@ function listRule(tag: string): Rule {
 }
 
 /**
- * Items breathe a step apart, so a long list stays scannable.
+ * Items breathe a step apart, so a long list stays scannable — and they
+ * read in the list's type, now stated on the item too.
  *
  * The second item is the one the rule reaches: the first is the anchor it
  * follows, so the reach is written once. A sibling is not an ancestor, so the
- * rule paints list items wherever they are — the spacing is the theme's.
+ * rule paints list items wherever they are — the spacing is the theme's, and
+ * the type is the body's, stated so overrides on an item have an owner.
+ * Nothing here changes rendered output for themes that state nothing: the
+ * values stated are the values already inherited, now written down.
  */
 function listItemRule(): Rule {
   const li = "li";
@@ -115,6 +143,16 @@ function listItemRule(): Rule {
     /^li$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const own = statedType(ctx, "li");
+      const family = own.family ?? t.body;
+      const size = own.size ?? t.sizeMd;
+      const weight = own.weight ?? t.weightRegular;
+      yield {
+        [ctx.symbols.selector]: () => li,
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+      };
       yield {
         [ctx.symbols.selector]: () => `${li} + ${li}`,
         ...(t.spacing2 !== undefined

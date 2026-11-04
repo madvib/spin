@@ -265,7 +265,7 @@ export default function ComponentPage(): JSX.Element {
               {(name) => (
                 <A
                   href={`/components/${name()}`}
-                  class="text-text-muted no-underline hover:text-text"
+                  class="text-text-muted no-underline"
                 >
                   ← {name()}
                 </A>
@@ -278,7 +278,7 @@ export default function ComponentPage(): JSX.Element {
               {(name) => (
                 <A
                   href={`/components/${name()}`}
-                  class="text-text-muted no-underline hover:text-text"
+                  class="text-text-muted no-underline"
                 >
                   {name()} →
                 </A>

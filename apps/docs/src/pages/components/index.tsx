@@ -98,7 +98,7 @@ function GroupNav(props: { groups: readonly Group[] }): JSX.Element {
     >
       <For each={props.groups}>
         {(group) => (
-          <a href={`#${group.id}`} class="hover:text-text">
+          <a href={`#${group.id}`}>
             {group.label}
           </a>
         )}
@@ -142,7 +142,7 @@ export default function ComponentsIndex(): JSX.Element {
               class={`rounded-md px-3 py-1 text-sm no-underline transition-colors duration-fast ${
                 kind() === entry.id
                   ? "bg-primary font-semibold text-on-primary"
-                  : "text-text-muted hover:bg-surface hover:text-text"
+                  : "text-text-muted hover:bg-surface"
               }`}
             >
               {entry.label}{" "}
@@ -157,7 +157,7 @@ export default function ComponentsIndex(): JSX.Element {
       <For each={groups()}>
         {(group) => (
           <section class="mt-10 scroll-mt-20" id={group.id}>
-            <h2 class="text-text">
+            <h2>
               {group.label}
             </h2>
             <div class="mt-4 grid gap-4 md:grid-cols-2">
@@ -168,7 +168,7 @@ export default function ComponentsIndex(): JSX.Element {
                       class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border border-solid border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
                     >
                     <span class="flex w-24 shrink-0 flex-col items-start gap-1">
-                      <span class="flex items-center gap-2 font-semibold text-sm text-text">
+                      <span class="flex items-center gap-2 font-semibold text-sm">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-text-muted`}
                           aria-hidden="true"

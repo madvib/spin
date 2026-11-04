@@ -151,9 +151,10 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
         description: (
           <>
             Sets foreground <code>color: var(--color-&lt;role&gt;)</code> (for
-            example <code>text-text</code>, <code>text-text-muted</code>,{" "}
+            example <code>text-text-muted</code>,{" "}
             <code>text-on-primary</code>,{" "}
-            <code>text-on-semantic-success</code>).
+            <code>text-on-semantic-success</code> — the default ink needs
+            no naming).
           </>
         ),
       },

@@ -28,7 +28,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare relative flex items-center gap-2 rounded-ss-md rounded-se-md border border-b-0 border-solid px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:border-border aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
+    class="bare relative flex items-center gap-2 rounded-ss-md rounded-se-md border border-b-0 border-solid px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:border-border aria-[selected=true]:bg-surface aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
     <span class="i-lucide-user text-sm" aria-hidden="true"

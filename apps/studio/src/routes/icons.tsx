@@ -95,9 +95,9 @@ function GridSwitch(props: {
               <li class="m-0">
                 <button
                   type="button"
-                  class="secondary s-sm stack-sm w-full items-center py-2 text-text-muted hover:border-primary hover:text-text"
+                  class="secondary s-sm stack-sm w-full items-center py-2 text-text-muted hover:border-primary"
                   classList={{
-                    "border-primary text-text": props.copied ===
+                    "border-primary": props.copied ===
                         iconUtility(entry) ||
                       (props.chosen?.collection === entry.collection &&
                         props.chosen?.name === entry.name),
@@ -165,7 +165,7 @@ function LibraryBrowser(props: {
                     class="bare row-sm min-w-0 flex-1 items-center gap-3 text-left"
                     onClick={() => props.onSelect(icon)}
                   >
-                    <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2 text-text">
+                    <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2">
                       <span
                         class="block [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
                         style={{ width: props.box, height: props.box }}
@@ -174,7 +174,7 @@ function LibraryBrowser(props: {
                       />
                     </span>
                     <span class="stack-xs min-w-0 flex-1">
-                      <span class="block truncate text-sm font-semibold text-text">
+                      <span class="block truncate text-sm font-semibold">
                         {icon.name}
                       </span>
                       <span class="block truncate text-xs text-text-muted">
@@ -184,7 +184,7 @@ function LibraryBrowser(props: {
                   </button>
                   <button
                     type="button"
-                    class="secondary s-sm shrink-0 text-xs text-text-muted hover:text-text"
+                    class="secondary s-sm shrink-0 text-xs text-text-muted"
                     aria-label={`Remove ${icon.name} from the library`}
                     onClick={() => props.onUnkeep(icon.name)}
                   >
@@ -202,7 +202,7 @@ function LibraryBrowser(props: {
       </Match>
       <Match when={(props.saved ?? []).length === 0}>
         <card class="stack-xs p-5">
-          <p class="m-0 text-sm font-semibold text-text">
+          <p class="m-0 text-sm font-semibold">
             No saved icons in this project yet
           </p>
           <p class="m-0 text-xs text-text-muted">
@@ -286,7 +286,7 @@ function InspectorAside(props: {
           <section class="stack rounded-lg border border-border bg-surface p-4">
             <div class="split flex-wrap items-start gap-3">
               <div class="stack-xs min-w-0">
-                <p class="m-0 truncate text-md font-semibold text-text">
+                <p class="m-0 truncate text-md font-semibold">
                   {entry().collection} · {entry().name}
                 </p>
                 <code class="truncate text-xs text-text-muted">
@@ -316,12 +316,12 @@ function InspectorAside(props: {
                   const currentVal = () =>
                     props.sizes.shown(`icon.${step.step}`, step.value);
                   return (
-                    <div class="stack-xs items-center justify-end rounded-md border border-border bg-surface-sunken p-3 text-text">
+                    <div class="stack-xs items-center justify-end rounded-md border border-border bg-surface-sunken p-3">
                       <Glyph
                         entry={entry()}
                         box={cssLength(currentVal())}
                       />
-                      <span class="text-xs font-semibold text-text">
+                      <span class="text-xs font-semibold">
                         {step.step}
                       </span>
                       <code class="text-xs text-text-muted">
@@ -364,7 +364,7 @@ function InspectorAside(props: {
                     <div class="row-sm items-center gap-3">
                       <Show when={props.chosen}>
                         {(entry) => (
-                          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface p-2 text-text">
+                          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface p-2">
                             <Glyph
                               entry={entry()}
                               box={cssLength(liveVal())}
@@ -373,7 +373,7 @@ function InspectorAside(props: {
                         )}
                       </Show>
                       <div class="stack-xs">
-                        <span class="text-sm font-semibold text-text">
+                        <span class="text-sm font-semibold">
                           {stepName()}
                         </span>
                         <code class="text-xs text-text-muted">{row.path}</code>
@@ -411,7 +411,7 @@ function InspectorAside(props: {
             <Show when={(props.saved?.length ?? 0) > 0}>
               <button
                 type="button"
-                class="bare text-xs font-medium text-text-muted hover:text-text"
+                class="bare text-xs font-medium text-text-muted"
                 onClick={props.onOpenLibrary}
               >
                 Open library
@@ -426,7 +426,7 @@ function InspectorAside(props: {
                 {(icon) => (
                   <li class="split items-center gap-3 rounded-md border border-border bg-surface p-3">
                     <div class="row-sm min-w-0 flex-1 items-center gap-3">
-                      <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2 text-text">
+                      <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2">
                         <span
                           class="block [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
                           style={{ width: props.box, height: props.box }}
@@ -435,7 +435,7 @@ function InspectorAside(props: {
                         />
                       </span>
                       <span class="stack-xs min-w-0 flex-1">
-                        <span class="block truncate text-sm font-medium text-text">
+                        <span class="block truncate text-sm font-medium">
                           {icon.name}
                         </span>
                         <span class="block truncate text-xs text-text-muted">
@@ -445,7 +445,7 @@ function InspectorAside(props: {
                     </div>
                     <button
                       type="button"
-                      class="secondary s-sm shrink-0 text-xs text-text-muted hover:text-text"
+                      class="secondary s-sm shrink-0 text-xs text-text-muted"
                       aria-label={`Remove ${icon.name} from the library`}
                       onClick={() => props.onUnkeep(icon.name)}
                     >
@@ -614,8 +614,8 @@ export default function IconsPage() {
                 aria-selected={tab() === "available"}
                 class="bare rounded-sm px-3 py-1 text-xs font-semibold transition-colors"
                 classList={{
-                  "bg-surface text-text shadow-sm": tab() === "available",
-                  "text-text-muted hover:text-text": tab() !== "available",
+                  "bg-surface shadow-sm": tab() === "available",
+                  "text-text-muted": tab() !== "available",
                 }}
                 onClick={() => setTab("available")}
               >
@@ -627,8 +627,8 @@ export default function IconsPage() {
                 aria-selected={tab() === "library"}
                 class="bare rounded-sm px-3 py-1 text-xs font-semibold transition-colors"
                 classList={{
-                  "bg-surface text-text shadow-sm": tab() === "library",
-                  "text-text-muted hover:text-text": tab() !== "library",
+                  "bg-surface shadow-sm": tab() === "library",
+                  "text-text-muted": tab() !== "library",
                 }}
                 onClick={() => setTab("library")}
               >
@@ -654,7 +654,7 @@ export default function IconsPage() {
                     class="secondary s-sm"
                     aria-pressed={size() === step.step}
                     classList={{
-                      "border-primary font-semibold text-text": size() ===
+                      "border-primary font-semibold": size() ===
                         step.step,
                       "border-border text-text-muted": size() !== step.step,
                     }}
@@ -674,7 +674,7 @@ export default function IconsPage() {
               class="secondary s-sm"
               aria-pressed={picked() === ""}
               classList={{
-                "border-primary font-semibold text-text": picked() === "",
+                "border-primary font-semibold": picked() === "",
                 "border-border text-text-muted": picked() !== "",
               }}
               onClick={() => setPicked("")}
@@ -688,7 +688,7 @@ export default function IconsPage() {
                   class="secondary s-sm"
                   aria-pressed={picked() === collection}
                   classList={{
-                    "border-primary font-semibold text-text": picked() ===
+                    "border-primary font-semibold": picked() ===
                       collection,
                     "border-border text-text-muted": picked() !== collection,
                   }}

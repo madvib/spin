@@ -48,7 +48,7 @@ const machine = navigationMenu({
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
-          class={["bare inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-text no-underline transition-colors duration-fast ease-decelerate hover:bg-surface-raised", { "bg-surface-raised text-primary shadow-sm": machine.value === row.value }]}
+          class={["bare inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium no-underline transition-colors duration-fast ease-decelerate hover:bg-surface-raised", { "bg-surface-raised text-primary shadow-sm": machine.value === row.value }]}
           {...machine.getLinkProps(row)}
         >
           <span>{row.label}</span>
@@ -66,18 +66,18 @@ const machine = navigationMenu({
             <span class="text-xs font-semibold uppercase tracking-wider text-text-muted">{row.category}</span>
             <badge variant="info">{row.badge}</badge>
           </div>
-          <p class="mt-1 text-sm font-semibold text-text">{row.label}</p>
+          <p class="mt-1 text-sm font-semibold">{row.label}</p>
           <p class="mt-1 text-xs text-text-muted">{row.description}</p>
           <div class="mt-3 flex flex-col gap-1 border-t border-solid border-border pt-2">
             <a
-              class="bare flex items-center justify-between rounded-md px-2 py-1 text-xs font-medium text-text no-underline transition-colors hover:bg-surface"
+              class="bare flex items-center justify-between rounded-md px-2 py-1 text-xs font-medium no-underline transition-colors hover:bg-surface"
               href={row.primaryHref}
             >
               <span>{row.primaryLabel}</span>
               <span aria-hidden="true" class="i-lucide-arrow-up-right text-xs text-text-muted"></span>
             </a>
             <a
-              class="bare flex items-center justify-between rounded-md px-2 py-1 text-xs font-medium text-text no-underline transition-colors hover:bg-surface"
+              class="bare flex items-center justify-between rounded-md px-2 py-1 text-xs font-medium no-underline transition-colors hover:bg-surface"
               href={row.secondaryHref}
             >
               <span>{row.secondaryLabel}</span>

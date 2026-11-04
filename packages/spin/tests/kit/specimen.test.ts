@@ -20,12 +20,12 @@ test("formatting strips the template literal's air and keeps the markup", () => 
 
 test("formatting normalizes template literals whose first line starts at column 0", () => {
   const source = `<div class="flex flex-wrap items-center gap-2">
-          <button class="bare text-text">View logs</button>
+          <button class="bare">View logs</button>
           <button>Deploy</button>
         </div>`;
   deepStrictEqual(
     formatExampleHtml(source),
-    '<div class="flex flex-wrap items-center gap-2">\n  <button class="bare text-text">View logs</button>\n  <button>Deploy</button>\n</div>',
+    '<div class="flex flex-wrap items-center gap-2">\n  <button class="bare">View logs</button>\n  <button>Deploy</button>\n</div>',
   );
 });
 

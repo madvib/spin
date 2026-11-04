@@ -57,14 +57,14 @@ const PAIRS: readonly {
     bad: `<span class="text-3xl">Revenue</span>`,
     good: `<h1>Revenue</h1>`,
     note:
-      "The typographic scale step belongs to a heading element.",
+      "The level-one size belongs to exactly one element, so this is an error. A size several elements share stays a suggestion.",
   },
   {
     rule: "spin/no-unpaired-ink",
-    bad: `<badge variant="primary" class="text-text">new</badge>`,
+    bad: `<badge variant="primary" class="text-primary">new</badge>`,
     good: `<badge variant="primary" class="text-on-primary">new</badge>`,
     note:
-      "The primary fill pairs with text-on-primary. Surfaces are the exception — text-text belongs there.",
+      "The primary fill pairs with text-on-primary. Surfaces are the exception — the default ink belongs there.",
   },
   {
     rule: "spin/no-handwritten-tokens",

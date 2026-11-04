@@ -11,11 +11,11 @@
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium text-text">Media Player</span>
+          <span class="truncate text-sm font-medium">Media Player</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
-      <div class="grid flex-1 content-start gap-4 overflow-y-auto bg-surface-sunken p-4 text-text">
+      <div class="grid flex-1 content-start gap-4 overflow-y-auto bg-surface-sunken p-4">
         <div class="flex items-center gap-3">
           <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-secondary text-on-secondary shadow-lg"><span class="i-lucide-volume-2 text-lg" aria-hidden="true"></span></span>
           <div class="min-w-0 flex-1">

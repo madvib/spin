@@ -29,7 +29,7 @@ const machine = menu({
   <div {...machine.getPositionerProps()}>
     <panel {...machine.getContentProps()}>
       <div class="px-3 py-2 border-b border-solid border-border">
-        <div class="text-sm font-medium text-text">Priya Raman</div>
+        <div class="text-sm font-medium">Priya Raman</div>
         <div class="text-xs text-text-muted">priya@lodestar.dev</div>
       </div>
       <template for={machine.getBlocks()} as={block} key={block.id}>
@@ -38,7 +38,7 @@ const machine = menu({
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": row.disabled, "text-text": row.value !== "logout", "text-semantic-error": row.value === "logout" }]}
+              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": row.disabled, "": row.value !== "logout", "text-semantic-error": row.value === "logout" }]}
               {...machine.getItemProps(row)}>
               <span class="shrink-0 text-xs text-text-muted"
                 aria-hidden="true"><span class="inline-block i-lucide-circle-user-round text-xs" aria-hidden="true" show={row.value === "profile"}></span><span class="inline-block i-lucide-key-round text-xs" aria-hidden="true" show={row.value === "tokens"}></span><span class="inline-block i-lucide-credit-card text-xs" aria-hidden="true" show={row.value === "billing"}></span><span class="inline-block i-lucide-circle-question-mark text-xs" aria-hidden="true" show={row.value === "help"}></span><span class="inline-block i-lucide-log-out text-xs text-semantic-error" aria-hidden="true" show={row.value === "logout"}></span></span>
@@ -60,7 +60,7 @@ const machine = menu({
                       {...machine.getItemGroupLabelProps(sub)}>{sub.label}</span>
                     <template for={machine.getRows(sub)} as={child} key={child.value}>
                       <div
-                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
+                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
                         {...machine.getSubmenuItemProps(child)}>
                         <span class="min-w-0 flex-1 truncate"
                           {...machine.getItemTextProps(child)}>{child.label}</span>

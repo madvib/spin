@@ -1666,6 +1666,5 @@ button:focus:not(:disabled):not([aria-disabled="true"]){outline:var(--focus-widt
 .text-on-semantic-success{color:var(--color-on-semantic-success);}
 .text-on-semantic-warning{color:var(--color-on-semantic-warning);}
 .text-sm{font-size:var(--font-size-sm);}
-.text-text{color:var(--color-text);}
 .text-text-muted{color:var(--color-text-muted);}
 .rounded-md{border-radius:var(--radius-md);}

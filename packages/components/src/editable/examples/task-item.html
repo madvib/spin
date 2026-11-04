@@ -8,7 +8,7 @@
   <span class="i-lucide-check-circle-2 shrink-0 text-sm text-primary" aria-hidden="true"></span>
   <span class="sr-only" {...machine.getLabelProps()}>Task</span>
   <div class="min-w-0 flex-1" {...machine.getAreaProps()}>
-    <span show={!machine.editing} class="block truncate cursor-text text-sm text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <span show={!machine.editing} class="block truncate cursor-text text-sm" {...machine.getPreviewProps()}>{machine.valueText}</span>
     <input show={machine.editing} class="w-full bg-transparent outline-none" {...machine.getInputProps()} />
   </div>
   <div class="flex shrink-0 items-center gap-1" {...machine.getControlProps()}>

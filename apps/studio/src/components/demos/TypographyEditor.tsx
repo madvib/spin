@@ -74,7 +74,7 @@ export default function TypographyEditor(props: {
           onPick={(value) => change({ tracking: value })}
         />
       </div>
-      <p class="max-w-[32rem] text-text" style={specimen()}>
+      <p class="max-w-[32rem]" style={specimen()}>
         {PANGRAM}
       </p>
     </div>

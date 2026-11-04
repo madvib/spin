@@ -17,7 +17,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:bg-surface aria-[selected=true]:text-text aria-[selected=false]:text-text-muted"
+    class="bare px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>

@@ -31,7 +31,7 @@ const machine = menu({
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": row.disabled }]}
+              class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": row.disabled }]}
               {...machine.getItemProps(row)}>
               <span class="shrink-0 text-xs text-text-muted"
                 aria-hidden="true"><span class="inline-block i-lucide-rocket text-xs" aria-hidden="true" show={row.value === "deploy"}></span><span class="inline-block i-lucide-scroll-text text-xs" aria-hidden="true" show={row.value === "logs"}></span><span class="inline-block i-lucide-undo-2 text-xs" aria-hidden="true" show={row.value === "rollback"}></span><span class="inline-block i-lucide-copy text-xs" aria-hidden="true" show={row.value === "copy"}></span><span class="inline-block i-lucide-pause text-xs" aria-hidden="true" show={row.value === "pause"}></span><span class="inline-block i-lucide-trash-2 text-xs" aria-hidden="true" show={row.value === "delete"}></span></span>
@@ -53,7 +53,7 @@ const machine = menu({
                       {...machine.getItemGroupLabelProps(sub)}>{sub.label}</span>
                     <template for={machine.getRows(sub)} as={child} key={child.value}>
                       <div
-                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
+                        class={["bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default", { "opacity-50": child.disabled }]}
                         {...machine.getSubmenuItemProps(child)}>
                         <span class="min-w-0 flex-1 truncate"
                           {...machine.getItemTextProps(child)}>{child.label}</span>

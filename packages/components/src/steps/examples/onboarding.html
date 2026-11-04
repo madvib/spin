@@ -10,7 +10,7 @@ const machine = steps({
 
 <div class="w-full" {...machine.getRootProps()}>
  <div class="mb-3 flex items-center justify-between gap-2">
-  <span class="text-sm font-medium text-text">Onboarding</span>
+  <span class="text-sm font-medium">Onboarding</span>
   <span
    class="text-xs text-text-muted">Step {machine.value + 1} of {machine.count}</span>
  </div>
@@ -25,7 +25,7 @@ const machine = steps({
     ><span
       class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid text-sm font-semibold", { "border-border bg-surface-raised text-text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
       {...machine.getIndicatorProps(row)}
-     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="flex flex-col"><span class="text-sm font-medium text-text">{machine.getItemTitle(row)}</span><span class="text-xs text-text-muted" show={row === 0}>Personal details</span><span class="text-xs text-text-muted" show={row === 1}>Account prefs</span><span class="text-xs text-text-muted" show={row === 2}>Sync data</span><span class="text-xs text-text-muted" show={row === 3}>All done</span></span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 flex-1 border-t-2 border-solid", { "border-border": machine.getItemState(row).completed === false, "border-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
+     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check text-sm"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="flex flex-col"><span class="text-sm font-medium">{machine.getItemTitle(row)}</span><span class="text-xs text-text-muted" show={row === 0}>Personal details</span><span class="text-xs text-text-muted" show={row === 1}>Account prefs</span><span class="text-xs text-text-muted" show={row === 2}>Sync data</span><span class="text-xs text-text-muted" show={row === 3}>All done</span></span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 flex-1 border-t-2 border-solid", { "border-border": machine.getItemState(row).completed === false, "border-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
    </li>
   </template>
  </ol>

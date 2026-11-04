@@ -4,7 +4,7 @@ import { signaturePad } from "../signature-pad.presentation.ts";
 const machine = signaturePad({});
 </script>
 <div class="w-full" {...machine.getRootProps()}>
-  <label class="block text-sm font-medium text-text"
+  <label class="block text-sm font-medium"
     {...machine.getLabelProps()}>Sign below</label>
   <div
     class={["relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}

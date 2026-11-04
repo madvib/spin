@@ -17,7 +17,7 @@ const machine = toggleGroup({
   >
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["bare flex items-center gap-2 rounded-md px-3 py-1 text-sm font-medium transition-all hover:bg-surface hover:text-text", { "bg-surface text-text shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["bare flex items-center gap-2 rounded-md px-3 py-1 text-sm font-medium transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
       ><span class="text-md" aria-hidden="true"><span show={row.value === "grid"} class="inline-block i-lucide-layout-grid"></span><span show={row.value === "list"} class="inline-block i-lucide-list"></span><span show={row.value === "calendar"} class="inline-block i-lucide-calendar"></span></span>{row.label}</button>
     </template>

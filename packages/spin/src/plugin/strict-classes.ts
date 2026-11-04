@@ -349,11 +349,13 @@ const CLASS_ATTRIBUTE =
 
 /** A template literal apart from its expressions. */
 function staticText(text: string): string {
-  // Depth-aware: `${…${…}…}` nests (a ternary choosing between two
-  // templates), and a flat `[^}]*` split would leak identifiers like
-  // `props.running` out of the hole as phantom classes. String
-  // literals inside the hole are still worn (`cond ? "a b" : "c d"`),
-  // so they are kept; anything else in the hole is code, not classes.
+  // Depth-aware holes, kept silent: `${…}` nests (a ternary choosing
+  // between two templates), and a flat split would leak identifiers
+  // like `props.running` out as phantom classes. String literals
+  // inside a hole are NOT extracted — a comparand (`x === "disabled"`)
+  // is indistinguishable from a worn arm (`c ? "p-4" : "p-2"`) without
+  // parsing the expression, and guessing punishes honest code. Holes
+  // are code; computed names stay silent by the documented boundary.
   let out = "";
   let i = 0;
   while (i < text.length) {
@@ -369,10 +371,6 @@ function staticText(text: string): string {
       if (text[j] === "{") depth++;
       else if (text[j] === "}") depth--;
       j++;
-    }
-    const inner = text.slice(hole + 2, j - 1);
-    for (const lit of inner.matchAll(/"([^"]*)"|'([^']*)'|`([^`]*)`/g)) {
-      out += ` ${lit[1] ?? lit[2] ?? lit[3] ?? ""}`;
     }
     out += " ";
     i = j;

@@ -357,14 +357,15 @@ export const CODE_INK: Readonly<Record<CodeTokenType, string>> = {
   string: "text-semantic-success",
   comment: "text-text-muted",
   punct: "text-text-muted",
-  text: "text-text",
+  // T5 (remove `text-text`): code-ink roles read the muted secondary ink.
+  text: "text-text-muted",
   keyword: "text-primary",
   "code-string": "text-semantic-success",
   number: "text-link",
   boolean: "text-link",
   function: "text-link",
   type: "text-link",
-  property: "text-text",
+  property: "text-text-muted",
   operator: "text-text-muted",
-  plain: "text-text",
+  plain: "text-text-muted",
 };

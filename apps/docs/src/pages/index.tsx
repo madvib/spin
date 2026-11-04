@@ -155,7 +155,7 @@ const ORACLE_FINDINGS: readonly OracleFinding[] = [
   {
     id: "ink",
     rule: "spin/unpaired-ink",
-    badCode: 'class="bg-primary text-text"',
+    badCode: 'class="bg-primary text-primary"',
     fixedCode: 'class="bg-primary text-on-primary"',
   },
 ] as const;
@@ -396,12 +396,12 @@ export default function Home(): JSX.Element {
   return (
     <main
       style={{ height: "calc(100dvh - 3.5rem)" }}
-      class="relative w-full overflow-hidden text-text font-sans text-md"
+      class="relative w-full overflow-hidden font-sans text-md"
     >
       {/* FULL-PAGE ORB-WEAVER CANVAS (Spans the entire 1440x900 window including behind TopNav) */}
       <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <Mark
-          class="h-full w-full text-text select-none"
+          class="h-full w-full select-none"
           stage={stage()}
           reweaveKey={reweaveKey()}
           activeToken={pluckedToken()}
@@ -430,7 +430,7 @@ export default function Home(): JSX.Element {
                 <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={tile().mountHtml} />
               </div>
               <div class="flex items-center justify-between gap-2 px-4 py-2">
-                <span class="flex min-w-0 items-center gap-2 font-brand text-md text-text">
+                <span class="flex min-w-0 items-center gap-2 font-brand text-md">
                   <span
                     class={`inline-block h-4 w-4 ${tile().icon} shrink-0 text-text-muted`}
                     aria-hidden="true"
@@ -454,7 +454,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => selectStage(1)}
-              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text shadow-md transition-colors duration-fast hover:border-primary"
+              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs shadow-md transition-colors duration-fast hover:border-primary"
             >
               <span class="h-2 w-2 rounded-full bg-primary" />
               <span>Scroll</span>
@@ -471,7 +471,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === 0}
               onClick={() => selectStage(stage() - 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text hover:bg-surface disabled:opacity-40"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs hover:bg-surface disabled:opacity-40"
               title="Previous stage"
               aria-label="Previous stage"
             >
@@ -504,7 +504,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === STAGE_COUNT - 1}
               onClick={() => selectStage(stage() + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text hover:bg-surface disabled:opacity-40"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs hover:bg-surface disabled:opacity-40"
               title="Next stage"
               aria-label="Next stage"
             >
@@ -520,7 +520,7 @@ export default function Home(): JSX.Element {
               class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs transition-colors duration-fast ${
                 autoPlay()
                   ? "bg-primary text-on-primary"
-                  : "text-text-muted hover:bg-surface hover:text-text"
+                  : "text-text-muted hover:bg-surface"
               }`}
               title={autoPlay() ? "Pause auto-play" : "Auto-play stages"}
               aria-label="Toggle auto-play"
@@ -561,7 +561,7 @@ export default function Home(): JSX.Element {
               </span>
 
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h1 class="text-text">
+                <h1>
                   UI that holds together.
                 </h1>
 
@@ -595,7 +595,7 @@ export default function Home(): JSX.Element {
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs text-text hover:bg-surface"
+                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs hover:bg-surface"
                 >
                   <span class="shrink-0 text-text-muted">$</span>
                   <span class="min-w-0 flex-1 truncate text-left">
@@ -624,7 +624,7 @@ export default function Home(): JSX.Element {
                       class={`bare rounded-full border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
                         theme() === name
                           ? "border-primary bg-primary font-semibold text-on-primary"
-                          : "border-border bg-surface-raised text-text-muted hover:border-border-strong hover:text-text"
+                          : "border-border bg-surface-raised text-text-muted hover:border-border-strong"
                       }`}
                     >
                       {name}
@@ -648,7 +648,7 @@ export default function Home(): JSX.Element {
                 01 · Themes · Multi-Brand &amp; Dark Mode
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Restyle your app without touching markup.
                 </h2>
                 <p class="text-sm text-text-muted">
@@ -670,7 +670,7 @@ export default function Home(): JSX.Element {
                           class={`bare rounded-md border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
                             active()
                               ? "border-primary bg-primary font-semibold text-on-primary"
-                              : "border-border bg-surface text-text hover:border-border-strong"
+                              : "border-border bg-surface hover:border-border-strong"
                           }`}
                         >
                           {sample.path}
@@ -685,7 +685,7 @@ export default function Home(): JSX.Element {
                     when={currentDtcg().sample === "color"}
                     fallback={
                       <span
-                        class={`flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-surface text-text ${currentDtcg().sampleClass}`}
+                        class={`flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-surface ${currentDtcg().sampleClass}`}
                       >
                         {currentDtcg().sample === "font" ? "Aa" : ""}
                       </span>
@@ -700,7 +700,7 @@ export default function Home(): JSX.Element {
                     <span class="text-text-muted">
                       {cssVarOf(currentDtcg().path)}
                     </span>
-                    <strong class="truncate text-text">
+                    <strong class="truncate">
                       {liveTokenValue(currentDtcg().path) || "—"}
                     </strong>
                   </div>
@@ -734,7 +734,7 @@ export default function Home(): JSX.Element {
                 02 · Styling · Token-Bound Utilities
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Tailwind syntax, locked to your tokens.
                 </h2>
                 <p class="text-sm text-text-muted">
@@ -787,7 +787,7 @@ export default function Home(): JSX.Element {
                     class={`bare rounded-md border px-2 py-1 font-mono text-xs ${
                       utilTryInvalid()
                         ? "border-primary bg-primary text-on-primary"
-                        : "border-border bg-surface text-text-muted hover:text-text"
+                        : "border-border bg-surface text-text-muted"
                     }`}
                   >
                     + p-13
@@ -798,7 +798,7 @@ export default function Home(): JSX.Element {
                   class={`flex max-w-full flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
                 >
                   <div class="flex items-center justify-between gap-3">
-                    <strong class="font-brand text-sm text-text">
+                    <strong class="font-brand text-sm">
                       Brand-true surface
                     </strong>
                     <badge
@@ -844,7 +844,7 @@ export default function Home(): JSX.Element {
                 03 · Elements · Styled HTML
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Write standard HTML. Skip the class soup.
                 </h2>
                 <p class="text-sm text-text-muted">
@@ -936,7 +936,7 @@ export default function Home(): JSX.Element {
                 04 · Components · {MACHINE_COUNT} Interactive Widgets
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Interactive components for any framework.
                 </h2>
                 <p class="text-sm text-text-muted">
@@ -957,13 +957,13 @@ export default function Home(): JSX.Element {
                       onPointerLeave={scheduleCloseTileHoverCard}
                       onFocus={(e) => openTileHoverCard(tile, e.currentTarget)}
                       onBlur={scheduleCloseTileHoverCard}
-                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 text-xs text-text no-underline shadow-sm transition-colors duration-fast hover:border-primary"
+                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 text-xs no-underline shadow-sm transition-colors duration-fast hover:border-primary"
                     >
                       <span
                         class={`inline-block h-4 w-4 ${tile.icon} text-primary`}
                         aria-hidden="true"
                       />
-                      <span class="font-mono font-semibold text-text">
+                      <span class="font-mono font-semibold">
                         {tile.name}
                       </span>
                       <span
@@ -997,7 +997,7 @@ export default function Home(): JSX.Element {
                 05 · Verification · Lints, CLI &amp; MCP
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Guardrails for humans and coding agents.
                 </h2>
                 <p class="text-sm text-text-muted">
@@ -1086,7 +1086,7 @@ export default function Home(): JSX.Element {
                 06 · Workbench · Spin Studio
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
-                <h2 class="text-text">
+                <h2>
                   Edit your theme against the live app.
                 </h2>
                 <p class="text-sm text-text-muted">

@@ -73,6 +73,13 @@ export function colorRules(): Rule[] {
     [
       /^text-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
+        // T5 (remove `text-text`): the `color.text` token stays — body reads
+        // it — but no rule emits a `text-text` utility for it. The default
+        // ink needs no naming; a `bare` box names an explicit paired ink.
+        // `text-text-muted` (`color.text-muted`) is unaffected. The alpha
+        // form (`text-text/80`) is refused with it — it names the same ink
+        // through the opacity suffix.
+        if (name === "text" || name.startsWith("text/")) return undefined;
         // `text-lg` is a size; only a colour name reaches this branch. A theme
         // may name a colour after the utility itself — the baseline theme's
         // `text-muted` is `color.text-muted` — so the prefixed name is tried

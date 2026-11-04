@@ -366,7 +366,7 @@ function RadiusFigure(props: {
                 />
               </div>
               <figcaption class="stack-xs items-center text-center">
-                <span class="font-mono text-xs font-semibold text-text">
+                <span class="font-mono text-xs font-semibold">
                   {stepOf(row.path)}
                 </span>
                 <code class="text-xs text-text-muted tabular-nums">
@@ -394,7 +394,7 @@ function LiftFigure(props: { rows: readonly TokenRow[] }) {
                 "box-shadow": `var(${row.variable})`,
               }}
             >
-              <span class="font-mono text-xs font-semibold text-text">
+              <span class="font-mono text-xs font-semibold">
                 {stepOf(row.path)}
               </span>
               <code class="text-xs text-text-muted">
@@ -454,7 +454,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
                 <span
                   class={`
                     font-mono text-xs font-semibold truncate
-                    ${isWinner() ? "text-on-primary" : "text-text"}
+                    ${isWinner() ? "text-on-primary" : ""}
                   `}
                 >
                   {stepOf(row.path)}
@@ -506,7 +506,7 @@ function OpacityFigure(props: {
                 />
               </div>
               <figcaption class="stack-xs items-center text-center">
-                <span class="font-mono text-xs font-semibold text-text">
+                <span class="font-mono text-xs font-semibold">
                   {stepOf(row.path)}
                 </span>
                 <code class="text-xs text-text-muted tabular-nums">
@@ -543,7 +543,7 @@ function BorderFigure(props: {
               }}
             />
             <figcaption class="stack-xs items-center text-center">
-              <span class="font-mono text-xs font-semibold text-text">
+              <span class="font-mono text-xs font-semibold">
                 {stepOf(row.path)}
               </span>
               <code class="text-xs text-text-muted tabular-nums">
@@ -589,7 +589,7 @@ function FocusFigure(props: {
               </button>
             </div>
             <figcaption class="stack-xs items-center text-center">
-              <span class="font-mono text-xs font-semibold text-text">
+              <span class="font-mono text-xs font-semibold">
                 {stepOf(row.path)}
               </span>
               <code class="text-xs text-text-muted tabular-nums">

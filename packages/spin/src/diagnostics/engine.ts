@@ -21,18 +21,18 @@ import {
   type Node as SyntaxNode,
   parse,
 } from "@spinjs/runtime";
-import {
-  type AncestorFacts,
-  checkClosedVocabulary,
-  checkNoRedundantClass,
-  checkNoUnpairedInk,
-  checkPreferElement,
-  checkPreferThemeValue,
-  type ClassFacts,
-  type Position,
-  type SemanticOptions,
-  type TextEdit,
+import { checkClosedVocabulary } from "./closed-vocabulary.ts";
+import type {
+  AncestorFacts,
+  ClassFacts,
+  Position,
+  SemanticOptions,
+  TextEdit,
 } from "./core.ts";
+import { checkNoUnpairedInk } from "./pairing.ts";
+import { checkNoRedundantClass } from "./no-redundant-class.ts";
+import { checkPreferElement } from "./prefer-element.ts";
+import { checkPreferThemeValue } from "./prefer-theme-value.ts";
 import { factsForFile } from "./provider.ts";
 import {
   type GateContext,
@@ -181,7 +181,9 @@ export function lintTree(
         };
         // The remedy is the rule's own sentence about what to do: a rule
         // that says what is wrong and what to do about it says both in the
-        // same vocabulary.
+        // same vocabulary. The severity is the finding's when the finding
+        // knows better than the rule — `prefer-element` names an error
+        // where one element owns the value, a warning where several do.
         const remedy = descriptor.remedy;
         findings.push({
           file: filename,
@@ -195,7 +197,8 @@ export function lintTree(
             position,
           }),
           ...(remedy === undefined ? {} : { remedy }),
-          severity: rule.meta.type === "problem" ? "error" : "warning",
+          severity: descriptor.severity ??
+            (rule.meta.type === "problem" ? "error" : "warning"),
           ...(fix === undefined ? {} : { fix }),
         });
       },
@@ -265,6 +268,7 @@ function pushFindings(
     messageId: string;
     data: Record<string, string>;
     remedy?: string;
+    severity?: "error" | "warning";
   }[],
 ): void {
   const meta = RULES[ruleId].meta;
@@ -282,7 +286,8 @@ function pushFindings(
         position,
       }),
       ...(remedy === undefined ? {} : { remedy }),
-      severity: meta.type === "problem" ? "error" : "warning",
+      severity: finding.severity ??
+        (meta.type === "problem" ? "error" : "warning"),
     });
   }
 }
@@ -425,7 +430,8 @@ function lintMarkupText(
           position,
         }),
         ...(remedy === undefined ? {} : { remedy }),
-        severity: meta.type === "problem" ? "error" : "warning",
+        severity: finding.severity ??
+          (meta.type === "problem" ? "error" : "warning"),
       });
     }
   }

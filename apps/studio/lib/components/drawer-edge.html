@@ -14,7 +14,7 @@ const machine = toggleGroup({
   <span class="text-sm text-text-muted">Drawer</span>
   <template for={machine.getItems()} as={row} key={row.value}>
     <button
-      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary text-text font-semibold": machine.value.includes(row.value), "text-text-muted": !machine.value.includes(row.value) }]}
+      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary font-semibold": machine.value.includes(row.value), "text-text-muted": !machine.value.includes(row.value) }]}
       data-edge={row.value}
       {...machine.getItemProps(row)}
     >

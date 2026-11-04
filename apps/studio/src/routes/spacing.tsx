@@ -132,7 +132,7 @@ export default function SpacingPage() {
                       <li>
                         <button
                           type="button"
-                          class="bare w-full select-none text-text"
+                          class="bare w-full select-none"
                           aria-pressed={
                             selected()?.row.path === entry.row.path
                           }
@@ -152,7 +152,7 @@ export default function SpacingPage() {
                           >
                             <span
                               data-studio-chrome=""
-                              class="w-8 shrink-0 font-mono text-xs font-semibold text-text"
+                              class="w-8 shrink-0 font-mono text-xs font-semibold"
                             >
                               {stepOf(entry.row.path)}
                             </span>
@@ -225,7 +225,7 @@ export default function SpacingPage() {
                         class="split items-baseline gap-2"
                       >
                         <div class="row-sm items-baseline">
-                          <span class="text-md font-semibold text-text">
+                          <span class="text-md font-semibold">
                             Step {stepOf(entry().row.path)}
                           </span>
                           <code class="text-xs text-text-muted">
@@ -301,7 +301,7 @@ export default function SpacingPage() {
                     Math.max(8, ((toPx(shown()) ?? 0) / widest()) * 100);
                   return (
                     <div class="row-sm items-center gap-3">
-                      <span class="w-10 shrink-0 font-mono text-xs font-semibold text-text">
+                      <span class="w-10 shrink-0 font-mono text-xs font-semibold">
                         {row.path.split(".").pop()}
                       </span>
                       <div class="h-4 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface">
@@ -365,7 +365,7 @@ function StepFigures(props: {
     <div class="stack-sm">
       <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="text-xs font-semibold text-text">Container padding</span>
+          <span class="text-xs font-semibold">Container padding</span>
           <code class="text-xs text-text-muted">{`p-${step()}`}</code>
         </div>
         <div
@@ -383,7 +383,7 @@ function StepFigures(props: {
       </div>
       <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="text-xs font-semibold text-text">Stack / row gap</span>
+          <span class="text-xs font-semibold">Stack / row gap</span>
           <code class="text-xs text-text-muted">{`gap-${step()}`}</code>
         </div>
         <div

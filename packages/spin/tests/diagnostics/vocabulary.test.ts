@@ -144,3 +144,27 @@ test("a class the project declares is known beside the starters", () => {
   deepStrictEqual(reported(facts, "p-72 text-xs"), []);
   deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });
+
+test("text-text is unknown and carries the edit that drops it", () => {
+  // T5 (remove `text-text`): the catalog no longer names it and no rule
+  // emits it, so the closed vocabulary reports it like any dead class —
+  // while the sibling `text-text-muted` and the `color.text` token's other
+  // spellings stay known.
+  const facts = factsFor(Object.values(starterThemes));
+  deepStrictEqual(reported(facts, "text-text"), ["text-text"]);
+  deepStrictEqual(reported(facts, "text-text-muted"), []);
+  const node: ClassFacts = {
+    tag: "div",
+    classes: ["text-text"],
+    tokens: [{
+      name: "text-text",
+      range: [0, 9],
+      spaceBefore: false,
+      spaceAfter: false,
+    }],
+    position: { line: 1, column: 1 },
+  };
+  const [finding] = checkClosedVocabulary(facts, node);
+  deepStrictEqual(finding?.messageId, "unknown");
+  deepStrictEqual(finding?.fix, { range: [0, 9], text: "" });
+});

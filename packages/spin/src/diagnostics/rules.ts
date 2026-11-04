@@ -12,19 +12,18 @@
  * them can drift from the others: the rules are shared, not copied.
  */
 
+import { checkClosedVocabulary } from "./closed-vocabulary.ts";
 import {
-  checkClosedVocabulary,
-  checkNoHandwrittenTokens,
-  checkNoRedundantClass,
-  checkNoUnpairedInk,
-  checkPreferElement,
-  checkPreferThemeValue,
   DEFAULT_SEMANTIC_OPTIONS,
   type Finding,
   type SemanticOptions,
   type SemanticTags,
   type Strictness,
 } from "./core.ts";
+import { checkNoHandwrittenTokens, checkNoUnpairedInk } from "./pairing.ts";
+import { checkNoRedundantClass } from "./no-redundant-class.ts";
+import { checkPreferElement } from "./prefer-element.ts";
+import { checkPreferThemeValue } from "./prefer-theme-value.ts";
 import { factsForFile } from "./provider.ts";
 import { ancestorsOf } from "./scope.ts";
 
@@ -69,6 +68,15 @@ export interface GateContext {
     fix?: GateFix;
     /** What to do about the finding, in the rule's own words. */
     remedy?: string;
+    /**
+     * How bad the finding is, when the finding knows better than the rule.
+     *
+     * The rule's stance is the default — a problem is an error, a
+     * suggestion a warning — and a finding that carries its own stance
+     * overrides it. `prefer-element` is the one rule that needs this: a
+     * single owner is an error, several owners a suggestion.
+     */
+    severity?: "error" | "warning";
   }): void;
 }
 
@@ -755,7 +763,7 @@ function literalValue(node: GateNode): string | undefined {
 function report(
   context: GateContext,
   node: GateNode,
-  findings: readonly Finding[],
+  findings: readonly (Finding & { severity?: "error" | "warning" })[],
 ): void {
   for (const finding of findings) {
     const edit = finding.fix;
@@ -764,6 +772,7 @@ function report(
       messageId: finding.messageId,
       data: finding.data,
       ...(finding.remedy === undefined ? {} : { remedy: finding.remedy }),
+      ...(finding.severity === undefined ? {} : { severity: finding.severity }),
       ...(edit === undefined ? {} : {
         fix: () => ({ range: edit.range, text: edit.text }),
       }),
@@ -926,10 +935,12 @@ const preferThemeValue: GateRule = {
  * class that carries that decision on an element the theme does not type is
  * the markup asking for something the theme already answered elsewhere.
  *
- * This one is ADVISORY: the wrong element cannot be banned, because a span
- * inside a heading may be deliberate. So the rule says what the theme gave
- * the size to and which element carries it, and leaves the choice to the
- * author.
+ * The stance is split, and the line is drawn by ownership: exactly one
+ * element carrying the value for the text's own decisions (size, typeface,
+ * tracking, ink) is an error naming that element; several elements carrying
+ * it stay advisory, because which one the author meant is a question the
+ * lint cannot answer. Inline text stays silent: a span inside prose is
+ * already typed by the column, so there is no reach.
  */
 const preferElement: GateRule = {
   meta: {
@@ -940,6 +951,8 @@ const preferElement: GateRule = {
     },
     schema: SEMANTIC_SCHEMA,
     messages: {
+      error:
+        "the theme gives `<{{element}}>` that {{decision}}; `<{{tag}}>` is not the element that carries it. Put the class on `<{{element}}>`.",
       element:
         "the theme gives `<{{element}}>` that {{decision}}; `<{{tag}}>` is not the element that carries it.",
     },

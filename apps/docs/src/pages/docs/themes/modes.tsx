@@ -54,7 +54,7 @@ export default function ThemesModes(): JSX.Element {
       <Section id="modes" title="How modes work">
         <p class="max-w-prose">
           In Spin, you write your markup once using semantic roles (
-          <code>bg-surface</code>, <code>text-text</code>,{" "}
+          <code>bg-surface</code>, <code>text-text-muted</code>,{" "}
           <code>border-border</code>). You never write{" "}
           <code>dark:bg-slate-900 dark:text-slate-100</code> in templates.
           When <code>data-mode="dark"</code> is set on{" "}
@@ -74,12 +74,12 @@ export default function ThemesModes(): JSX.Element {
               <div
                 data-theme={demoTheme()}
                 data-mode={mode()}
-                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4 text-text"
+                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
               >
                 <span class="font-mono text-xs text-text-muted">
                   data-mode="{mode()}" (page)
                 </span>
-                <p class="text-sm text-text">
+                <p class="text-sm text-text-muted">
                   Inherits the page's current mode.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
@@ -90,12 +90,12 @@ export default function ThemesModes(): JSX.Element {
               <div
                 data-theme={demoTheme()}
                 data-mode={oppositeMode()}
-                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4 text-text"
+                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
               >
                 <span class="font-mono text-xs text-text-muted">
                   data-mode="{oppositeMode()}" (subtree)
                 </span>
-                <p class="text-sm text-text">
+                <p class="text-sm text-text-muted">
                   Scoped to the opposite mode on this container.
                 </p>
                 <div class="flex items-center gap-2 pt-1">

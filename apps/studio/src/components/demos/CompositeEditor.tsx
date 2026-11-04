@@ -63,7 +63,7 @@ import { createSpinComponent } from "@spinjs/components/solid";
  * without the row shouting.
  */
 const ROW =
-  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken hover:text-text aria-selected:bg-surface-sunken aria-selected:text-text";
+  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken aria-selected:bg-surface-sunken";
 
 /**
  * The panel's own frame.
@@ -184,7 +184,7 @@ function Panel(props: {
         aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
-        class="secondary s-sm row-sm min-w-0 gap-2 text-text-muted hover:border-primary hover:text-text"
+        class="secondary s-sm row-sm min-w-0 gap-2 text-text-muted hover:border-primary"
         onClick={() => {
           if (open()) hide();
           else show();

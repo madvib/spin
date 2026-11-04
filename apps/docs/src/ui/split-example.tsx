@@ -36,7 +36,7 @@ export function SplitExample(props: {
     <div class="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2">
         <div class="flex flex-col">
-          <span class="text-sm font-semibold text-text">{props.title}</span>
+          <span class="text-sm font-semibold">{props.title}</span>
           <Show when={props.description}>
             <span class="text-xs text-text-muted">{props.description}</span>
           </Show>

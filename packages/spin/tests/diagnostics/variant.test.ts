@@ -3,13 +3,13 @@ import { deepStrictEqual } from "node:assert/strict";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import {
   type AncestorFacts,
-  checkNoRedundantClass,
-  checkPreferElement,
-  checkPreferThemeValue,
   type ClassFacts,
   type Facts,
   type SemanticOptions,
 } from "../../src/diagnostics/core.ts";
+import { checkNoRedundantClass } from "../../src/diagnostics/no-redundant-class.ts";
+import { checkPreferElement } from "../../src/diagnostics/prefer-element.ts";
+import { checkPreferThemeValue } from "../../src/diagnostics/prefer-theme-value.ts";
 import { factsFor } from "../../src/diagnostics/facts.ts";
 import { renderMessage, RULES } from "../../src/diagnostics/rules.ts";
 
@@ -80,9 +80,8 @@ function other(tag: string, classes: string) {
 
 test("a variant that clears the fill leaves the ink to the author", () => {
   // The bare button has no fill, so the ink the base declares — the ink on
-  // the primary fill — is not the button's ink. `text-text` is the author's
-  // own answer, and the rule says nothing about it.
-  deepStrictEqual(override("button", "bare text-text"), []);
+  // the primary fill — is not the button's ink. `text-text-muted` is the
+  // author's own answer, and the rule says nothing about it.
   deepStrictEqual(override("button", "bare text-text-muted"), []);
 });
 

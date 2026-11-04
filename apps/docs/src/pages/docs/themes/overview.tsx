@@ -157,7 +157,7 @@ export default function ThemesOverview(): JSX.Element {
                       class={`bare cursor-pointer rounded-md border px-3 py-1 font-mono text-xs transition-colors duration-fast ${
                         isSelected()
                           ? "border-primary bg-primary text-on-primary font-semibold"
-                          : "border-border bg-surface text-text-muted hover:border-border-strong hover:text-text"
+                          : "border-border bg-surface text-text-muted hover:border-border-strong"
                       }`}
                     >
                       {item.name}
@@ -179,7 +179,7 @@ export default function ThemesOverview(): JSX.Element {
 
           <div class="flex flex-col gap-3">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <span class="font-mono text-sm font-semibold text-text">
+              <span class="font-mono text-sm font-semibold">
                 {selected().name}
               </span>
               <div class="flex flex-wrap items-center gap-1">
@@ -208,7 +208,7 @@ export default function ThemesOverview(): JSX.Element {
                       <div
                         class={`h-8 w-full rounded-sm border border-border ${role.bgClass}`}
                       />
-                      <span class="font-mono text-xs font-semibold text-text">
+                      <span class="font-mono text-xs font-semibold">
                         {role.label}
                       </span>
                       <span class="truncate font-mono text-xs text-text-muted">
@@ -227,7 +227,7 @@ export default function ThemesOverview(): JSX.Element {
                     <span class="font-mono text-xs text-text-muted">
                       {entry.path}
                     </span>
-                    <span class="truncate font-mono text-xs font-semibold text-text">
+                    <span class="truncate font-mono text-xs font-semibold">
                       {entry.value}
                     </span>
                   </div>

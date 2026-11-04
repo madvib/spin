@@ -14,7 +14,7 @@
     </div>
   </div>
   <div class="mt-1 rounded-md border border-solid border-transparent" {...machine.getAreaProps()}>
-    <span show={!machine.editing} class="block cursor-text py-1 font-medium text-text" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <span show={!machine.editing} class="block cursor-text py-1 font-medium" {...machine.getPreviewProps()}>{machine.valueText}</span>
     <input show={machine.editing} class="w-full bg-transparent py-1 font-medium" {...machine.getInputProps()} />
   </div>
 </div>

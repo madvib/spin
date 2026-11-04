@@ -4,6 +4,7 @@ import { createGenerator, escapeRegExp, toEscapedSelector } from "@unocss/core";
 import { parseTokens, treeToJson } from "../../src/theme/index.ts";
 import type { TokenTree } from "../../src/theme/index.ts";
 import { scaffold, spinPreset } from "../../src/compiler/index.ts";
+import { createSpinFactory } from "../../src/compiler/factory.ts";
 import type { ThemeDocument } from "../../src/compiler/index.ts";
 import { carriesRawColor, hasRawColor } from "../../src/compiler/utils/color.ts";
 
@@ -416,4 +417,34 @@ test("a class carries a colour only inside its brackets", () => {
   assert(!hasRawColor("w-[13px]"));
   assert(!hasRawColor("bg-primary"));
   assert(!hasRawColor("text-currentColor"));
+});
+
+/**
+ * T5 (remove `text-text`): the `color.text` token stays, but no rule emits
+ * a `text-text` utility for it. The token still resolves in its surviving
+ * spellings — `text-text-muted` names `color.text-muted`, and body reads
+ * `color.text` through the theme, not through a class.
+ */
+test("text-text emits no rule while the text token and its sibling stay", async () => {
+  const uno = await createGenerator({
+    presets: [createSpinFactory(false)({ themes: { default: workingDocument() } })],
+  });
+  const dead = await uno.generate("text-text", { preflights: false });
+  assert.ok(
+    !dead.css.includes(".text-text"),
+    "text-text must match no utility rule",
+  );
+  const alpha = await uno.generate("text-text/80", { preflights: false });
+  assert.ok(
+    !alpha.css.includes(".text-text"),
+    "text-text/80 names the same removed ink through the alpha suffix",
+  );
+  const muted = await uno.generate("text-text-muted", { preflights: false });
+  assert.match(
+    muted.css,
+    /color:\s*var\(--color-text-muted\)/,
+    "text-text-muted still paints the muted ink",
+  );
+  const sized = await uno.generate("text-lg", { preflights: false });
+  assert.match(sized.css, /font-size/, "text-lg still sizes type");
 });

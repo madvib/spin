@@ -40,7 +40,7 @@ export default function StylingElements(): JSX.Element {
                 <button type="button" class="primary s-lg">Large</button>
                 <button
                   type="button"
-                  class="bare inline-flex items-center gap-1 text-sm text-text-muted hover:text-text"
+                  class="bare inline-flex items-center gap-1 text-sm text-text-muted"
                 >
                   <span>Chrome-free (.bare)</span>
                 </button>

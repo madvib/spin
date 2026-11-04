@@ -136,7 +136,7 @@ export default function FindingsPage() {
       <Show when={notice() !== null}>
         <div
           role="status"
-          class="rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text"
+          class="rounded-md border border-border bg-surface-raised px-3 py-2 text-sm"
         >
           {notice()}
         </div>
@@ -156,7 +156,7 @@ export default function FindingsPage() {
                 : `${themeChecks().length} issues`}
             </Badge>
           </div>
-          <p class="m-0 text-sm font-medium text-text">{activeName()}</p>
+          <p class="m-0 text-sm font-medium">{activeName()}</p>
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
@@ -167,7 +167,7 @@ export default function FindingsPage() {
               {findings().length === 0 ? "clean" : `${findings().length} rules`}
             </Badge>
           </div>
-          <p class="m-0 text-sm font-medium text-text">
+          <p class="m-0 text-sm font-medium">
             {report()?.files ?? 0} files scanned
           </p>
         </Frame>
@@ -176,7 +176,7 @@ export default function FindingsPage() {
             <span class="text-xs font-medium text-text-muted">Repetition</span>
             <Badge tone="info">{repetition().length}</Badge>
           </div>
-          <p class="m-0 text-sm font-medium text-text">
+          <p class="m-0 text-sm font-medium">
             repeated class lists
           </p>
         </Frame>
@@ -187,7 +187,7 @@ export default function FindingsPage() {
             </span>
             <Badge tone="info">{order().length}</Badge>
           </div>
-          <p class="m-0 text-sm font-medium text-text">files out of order</p>
+          <p class="m-0 text-sm font-medium">files out of order</p>
         </Frame>
       </div>
 

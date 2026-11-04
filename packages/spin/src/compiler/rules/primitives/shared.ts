@@ -324,6 +324,7 @@ export interface Tokens {
   readonly sizeXl: string | undefined;
   readonly size2xl: string | undefined;
   readonly size3xl: string | undefined;
+  readonly weightRegular: string | undefined;
   readonly weightSemibold: string | undefined;
   readonly weightBold: string | undefined;
   readonly mono: string | undefined;
@@ -362,6 +363,7 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
     sizeXl: token(ctx, "font.size.xl"),
     size2xl: token(ctx, "font.size.2xl"),
     size3xl: token(ctx, "font.size.3xl"),
+    weightRegular: token(ctx, "font.weight.regular"),
     weightSemibold: token(ctx, "font.weight.semibold"),
     weightBold: token(ctx, "font.weight.bold"),
     mono: token(ctx, "font.family.mono"),

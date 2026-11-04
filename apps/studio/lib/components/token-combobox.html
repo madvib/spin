@@ -7,7 +7,7 @@ const machine = combobox({});
 <div class="relative w-full" {...machine.getRootProps()}>
   <div class="relative" {...machine.getControlProps()}>
     <button
-      class="bare flex w-full cursor-pointer items-center gap-2 rounded-md border border-dashed border-border bg-surface px-2 py-1 text-left text-sm text-text shadow-none hover:border-primary"
+      class="bare flex w-full cursor-pointer items-center gap-2 rounded-md border border-dashed border-border bg-surface px-2 py-1 text-left text-sm shadow-none hover:border-primary"
       data-testid="token-combobox-trigger"
       {...machine.getTriggerProps({ focusable: true })}
     >
@@ -37,7 +37,7 @@ const machine = combobox({});
               <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
-                  class="relative flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-1 text-sm text-text hover:bg-surface-sunken"
+                  class="relative flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-1 text-sm hover:bg-surface-sunken"
                   {...machine.getItemProps(row)}
                 >
                   <swatch class="s-md shrink-0" aria-hidden="true" style={'--swatch: ' + (row.meta?.swatch ?? 'transparent')}></swatch>

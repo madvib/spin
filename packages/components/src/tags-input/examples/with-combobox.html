@@ -6,7 +6,7 @@ const machine_tags = tags({});
 const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"value":"solid","label":"Solid"},{"value":"svelte","label":"Svelte"},{"value":"vue","label":"Vue"}]});
 </script>
 <div class="w-full">
- <label class="mb-1 block text-xs font-medium text-text"
+ <label class="mb-1 block text-xs font-medium"
   {...machine_tags.getLabelProps()}>Frameworks</label>
  <div
   class="flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1"
@@ -14,14 +14,14 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
   <template for={machine_tags.getTags()} as={row}
    key={row.value + ":" + row.occurrence}>
    <span
-    class={["inline-flex items-center gap-1 rounded-sm border border-solid border-border bg-surface py-1 pl-2 pr-1 text-xs text-text", { "border-primary text-primary": machine_tags.getItemState(row).highlighted }]}
+    class={["inline-flex items-center gap-1 rounded-sm border border-solid border-border bg-surface py-1 pl-2 pr-1 text-xs", { "border-primary text-primary": machine_tags.getItemState(row).highlighted }]}
     {...machine_tags.getItemProps(row)}>
     <span class="inline-flex items-center gap-1"
      {...machine_tags.getItemPreviewProps(row)}>
      <span class="truncate"
       {...machine_tags.getItemTextProps(row)}>{row.value}</span>
      <button
-      class="bare inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-text-muted hover:text-text"
+      class="bare inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-text-muted"
       {...machine_tags.getItemDeleteTriggerProps(row)}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
     </span>
     <input
@@ -47,7 +47,7 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
        <template for={machine_combobox.getRows(block)} as={brow}
         key={brow.value}>
         <div
-         class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-xs text-text", { "bg-surface": machine_combobox.getItemState(brow).highlighted }]}
+         class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-xs", { "bg-surface": machine_combobox.getItemState(brow).highlighted }]}
          show={brow.label.toLowerCase().indexOf(machine_combobox.inputValue.toLowerCase()) !== -1}
          {...machine_combobox.getItemProps(brow)}>{brow.label}</div>
        </template>
@@ -57,7 +57,7 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
    </div>
   </div>
   <button aria-label="Clear tags"
-   class="bare inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-text-muted hover:text-text"
+   class="bare inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-text-muted"
    {...machine_tags.getClearTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
  </div>
  <input {...machine_tags.getHiddenInputProps()} />

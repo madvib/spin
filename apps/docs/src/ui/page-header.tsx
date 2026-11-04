@@ -110,7 +110,7 @@ export function PageHeader(props: {
             {(ex) => (
               <A
                 href={`/playground?example=${ex()}`}
-                class="inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
+                class="inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
               >
                 <span class="i-lucide-play icon-sm" aria-hidden="true" />
                 <span>Playground</span>
@@ -120,7 +120,7 @@ export function PageHeader(props: {
           <button
             type="button"
             onClick={onCopyMarkdown}
-            class="bare inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:border-border-strong hover:text-text"
+            class="bare inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:border-border-strong"
           >
             <span
               class={
@@ -142,7 +142,7 @@ export function PageHeader(props: {
           </a>
         </div>
       </div>
-      <h1 class="text-text">{props.title}</h1>
+      <h1>{props.title}</h1>
       <Show when={props.lede}>
         <p class="max-w-prose text-text-muted">{props.lede}</p>
       </Show>
@@ -182,7 +182,7 @@ export function Chip(props: { children: JSX.Element }): JSX.Element {
 export function Probe(props: { children: JSX.Element }): JSX.Element {
   return (
     <div
-      class="rounded-sm bg-surface p-3 text-text"
+      class="rounded-sm bg-surface p-3"
       data-theme={theme()}
       data-mode={mode() === "dark" ? "light" : "dark"}
     >

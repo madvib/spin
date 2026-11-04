@@ -19,7 +19,7 @@ export default function LinkToggle(
         class="secondary s-sm row-sm shrink-0 text-xs text-text-muted"
         classList={{
           "bg-transparent": !linked(),
-          "border-primary text-text": linked(),
+          "border-primary": linked(),
         }}
         aria-pressed={linked()}
         onClick={() => setLinked(props.group, !linked())}

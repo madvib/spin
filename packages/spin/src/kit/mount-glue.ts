@@ -375,7 +375,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           const inner = document.createElement("div");
           inner.className = mine
             ? "rounded-lg rounded-tr-sm bg-info px-3 py-2 text-white"
-            : "rounded-lg rounded-tl-sm bg-surface px-3 py-2 text-text";
+            : "rounded-lg rounded-tl-sm bg-surface px-3 py-2 text-text-muted";
           inner.textContent = text;
           wrap.appendChild(inner);
           if (mine) {
@@ -533,7 +533,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           btn.setAttribute("data-note", String(index));
           btn.className = "grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
           const t = document.createElement("p");
-          t.className = "m-0 text-sm font-medium text-text";
+          t.className = "m-0 text-sm font-medium text-text-muted";
           t.textContent = "Untitled Note";
           const pv = document.createElement("p");
           pv.className = "m-0 text-xs text-muted";
@@ -637,7 +637,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           btn.classList.toggle("bg-semantic-error", !pressed);
           btn.classList.toggle("text-on-primary", !pressed);
           btn.classList.toggle("bg-surface-raised", pressed);
-          btn.classList.toggle("text-text", pressed);
+          btn.classList.toggle("text-text-muted", pressed);
           if (icon) icon.className = "i-lucide-" + (pressed ? onIcon : offIcon) + " text-sm";
         };
         const mute = root.querySelector("[data-mute]");

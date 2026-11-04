@@ -163,7 +163,7 @@ export default function CommandPalette() {
       <button
         type="button"
         data-testid="command-palette-trigger"
-        class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface hover:text-text"
+        class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface"
         aria-label="Command palette"
         title="Command palette (Cmd+K)"
         onClick={() => setOpen(true)}

@@ -160,7 +160,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                   style={{ background: toHex(shownFor(r)) ?? shownFor(r) }}
                 />
                 <span class="min-w-0">
-                  <span class="block truncate text-sm font-medium text-text">
+                  <span class="block truncate text-sm font-medium">
                     {labelOf(r)}
                   </span>
                 </span>
@@ -190,7 +190,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
   }) {
     return (
       <div class="stack-sm">
-        <span class="text-sm font-medium text-text">{p.label}</span>
+        <span class="text-sm font-medium">{p.label}</span>
         <FamilyField
           value={p.value()}
           label={p.label}
@@ -217,7 +217,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                 >
                   {index() + 1}
                 </span>
-                <span class="truncate text-xs font-medium text-text">{title}</span>
+                <span class="truncate text-xs font-medium">{title}</span>
               </li>
             )}
           </For>

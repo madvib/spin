@@ -43,8 +43,8 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
                     end
                     onClick={() => props.onSelect?.()}
                     class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
-                    activeClass="bg-surface-raised text-text font-semibold"
-                    inactiveClass="text-text-muted hover:text-text"
+                    activeClass="bg-surface-raised font-semibold"
+                    inactiveClass="text-text-muted"
                   >
                     {item.title}
                   </A>
@@ -173,7 +173,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
   return (
     <div
       ref={scrollEl}
-      class="flex h-full min-h-0 w-full items-start overflow-y-auto bg-surface text-text font-sans text-md"
+      class="flex h-full min-h-0 w-full items-start overflow-y-auto bg-surface font-sans text-md"
     >
       <nav
         class="sticky top-0 hidden h-full w-60 shrink-0 flex-col overflow-y-auto border-e border-border px-4 py-8 md:flex"
@@ -200,7 +200,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     <span class="text-xs font-mono uppercase tracking-wider text-text-muted">
                       ← {prev().groupLabel}
                     </span>
-                    <span class="font-semibold text-text">{prev().title}</span>
+                    <span class="font-semibold">{prev().title}</span>
                   </A>
                 )}
               </Show>
@@ -213,7 +213,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     <span class="text-xs font-mono uppercase tracking-wider text-text-muted">
                       {next().groupLabel} →
                     </span>
-                    <span class="font-semibold text-text">{next().title}</span>
+                    <span class="font-semibold">{next().title}</span>
                   </A>
                 )}
               </Show>

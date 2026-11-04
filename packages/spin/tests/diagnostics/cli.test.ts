@@ -221,9 +221,33 @@ test("a file that does not parse is reported, not swallowed", async () => {
 });
 
 test("an advisory is reported and does not fail the run", async () => {
-  // The wrong element cannot be banned: a span carrying the size the theme
-  // gives the heading may be deliberate. So the rule is a suggestion, the
-  // finding is a warning, and the run still passes.
+  // Several elements carry that size, so which one the author meant is a
+  // question the lint cannot answer. The rule names one and stays advisory:
+  // a warning, and the run still passes.
+  const directory = await mkdtemp(join(tmpdir(), "spin-"));
+  try {
+    const file = `${directory}/app.tsx`;
+    await writeFile(
+      file,
+      `export const App = () => <span className="text-sm" />;\n`,
+    );
+    const findings = await findingsOf(directory);
+    deepStrictEqual(
+      findings.map((finding) => [finding.ruleId, finding.severity]),
+      [
+        ["spin/prefer-element", "warning"],
+      ],
+    );
+    const lines: string[] = [];
+    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 0);
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
+
+test("a single owner is reported and fails the run", async () => {
+  // The level-one size belongs to the heading alone, so a span carrying it
+  // is an error — and an error fails the run, the same as an override.
   const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
@@ -235,11 +259,11 @@ test("an advisory is reported and does not fail the run", async () => {
     deepStrictEqual(
       findings.map((finding) => [finding.ruleId, finding.severity]),
       [
-        ["spin/prefer-element", "warning"],
+        ["spin/prefer-element", "error"],
       ],
     );
     const lines: string[] = [];
-    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 0);
+    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 1);
   } finally {
     await rm(directory, { recursive: true });
   }

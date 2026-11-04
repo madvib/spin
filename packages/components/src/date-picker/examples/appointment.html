@@ -4,7 +4,7 @@
   const machine = datePicker({});
 </script>
 <div class="relative w-full max-w-[20rem]">
-  <label class="block text-sm font-medium text-text transition-opacity duration-fast ease-decelerate" for={machine.getTriggerProps()["id"]}>Date</label>
+  <label class="block text-sm font-medium transition-opacity duration-fast ease-decelerate" for={machine.getTriggerProps()["id"]}>Date</label>
 
   <button class={["secondary s-sm w-full items-center justify-between gap-2", { "border-primary": machine.isOpen }]} {...machine.getTriggerProps()}>
     <span class="flex min-w-0 items-center gap-1">
@@ -37,7 +37,7 @@
           <span class="text-center text-xs font-medium text-text-muted">{day_}</span>
         </template>
         <template for={machine.getCells()} as={cell} key={cell.key}>
-          <button class="bare h-7 rounded-sm text-xs tabular-nums text-text transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:outline-none data-[selected]:bg-selected data-[selected]:font-semibold data-[selected]:text-on-selected data-[in-range]:bg-surface-sunken aria-[disabled=true]:pointer-events-none aria-[disabled=true]:opacity-40 data-[outside]:opacity-60" {...machine.getCellProps(cell)}>{machine.getCellProps(cell).text}</button>
+          <button class="bare h-7 rounded-sm text-xs tabular-nums transition-colors duration-fast ease-decelerate hover:bg-surface focus-visible:outline-none data-[selected]:bg-selected data-[selected]:font-semibold data-[selected]:text-on-selected data-[in-range]:bg-surface-sunken aria-[disabled=true]:pointer-events-none aria-[disabled=true]:opacity-40 data-[outside]:opacity-60" {...machine.getCellProps(cell)}>{machine.getCellProps(cell).text}</button>
         </template>
       </div>
 

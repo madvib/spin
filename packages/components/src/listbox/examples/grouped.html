@@ -21,7 +21,7 @@ const machine = listbox({
 
 <div class="w-64 max-w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium text-text transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
+    class={["block text-sm font-medium transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
     {...machine.getLabelProps()}
   >Technologies</label>
 
@@ -40,7 +40,7 @@ const machine = listbox({
           {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
         <template for={machine.getRows(block)} as={row} key={row.value}>
           <div
-            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
+            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
             {...machine.getItemProps(row)}
           >
             <span class="min-w-0 flex-1 truncate"

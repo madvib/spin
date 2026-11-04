@@ -11,34 +11,34 @@
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium text-text">Calculator</span>
+          <span class="truncate text-sm font-medium">Calculator</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-3 p-4">
-        <output data-display class="rounded-lg border border-solid border-border bg-surface-sunken p-4 text-right font-mono text-2xl font-bold text-text tabular-nums">0</output>
+        <output data-display class="rounded-lg border border-solid border-border bg-surface-sunken p-4 text-right font-mono text-2xl font-bold tabular-nums">0</output>
         <div class="grid grid-cols-4 gap-2">
           <button type="button" data-key="C" data-act="clear" class="danger flex h-12 min-h-0 items-center justify-center">C</button>
-          <button type="button" data-key="±" data-act="negate" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">±</button>
-          <button type="button" data-key="%" data-act="percent" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">%</button>
+          <button type="button" data-key="±" data-act="negate" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">±</button>
+          <button type="button" data-key="%" data-act="percent" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">%</button>
           <button type="button" data-key="÷" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning font-medium text-on-semantic-warning hover:bg-semantic-warning">÷</button>
-          <button type="button" data-key="7" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">7</button>
-          <button type="button" data-key="8" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">8</button>
-          <button type="button" data-key="9" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">9</button>
+          <button type="button" data-key="7" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">7</button>
+          <button type="button" data-key="8" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">8</button>
+          <button type="button" data-key="9" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">9</button>
           <button type="button" data-key="×" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning font-medium text-on-semantic-warning hover:bg-semantic-warning">×</button>
-          <button type="button" data-key="4" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">4</button>
-          <button type="button" data-key="5" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">5</button>
-          <button type="button" data-key="6" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">6</button>
+          <button type="button" data-key="4" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">4</button>
+          <button type="button" data-key="5" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">5</button>
+          <button type="button" data-key="6" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">6</button>
           <button type="button" data-key="−" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning font-medium text-on-semantic-warning hover:bg-semantic-warning">−</button>
-          <button type="button" data-key="1" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">1</button>
-          <button type="button" data-key="2" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">2</button>
-          <button type="button" data-key="3" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">3</button>
+          <button type="button" data-key="1" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">1</button>
+          <button type="button" data-key="2" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">2</button>
+          <button type="button" data-key="3" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">3</button>
           <button type="button" data-key="+" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning font-medium text-on-semantic-warning hover:bg-semantic-warning">+</button>
-          <button data-key="0" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">0</button>
-          <button data-key="." data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium text-text hover:bg-surface-sunken">.</button>
+          <button data-key="0" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">0</button>
+          <button data-key="." data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border border-solid border-border bg-surface p-0 font-medium hover:bg-surface-sunken">.</button>
           <button data-key="=" data-act="eq" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning font-medium text-on-semantic-warning hover:bg-semantic-warning">=</button>
         </div>
       </div>

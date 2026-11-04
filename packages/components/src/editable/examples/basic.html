@@ -7,7 +7,7 @@
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
-      class="text-sm font-medium text-text transition-colors duration-fast ease-decelerate"
+      class="text-sm font-medium transition-colors duration-fast ease-decelerate"
       {...machine.getLabelProps()}
     >Display name</label>
   </div>
@@ -17,7 +17,7 @@
     {...machine.getAreaProps()}
   >
     <span show={!machine.editing}
-      class="block min-w-0 cursor-text px-2 py-1 text-sm text-text transition-colors duration-fast ease-decelerate hover:text-primary"
+      class="block min-w-0 cursor-text px-2 py-1 text-sm transition-colors duration-fast ease-decelerate hover:text-primary"
       {...machine.getPreviewProps()}
     >{machine.valueText}</span>
     <input show={machine.editing}

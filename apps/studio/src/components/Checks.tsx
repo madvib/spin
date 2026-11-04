@@ -99,7 +99,7 @@ function severityOf(found: readonly Check[]): Severity | undefined {
  * badge is what says how bad it is.
  */
 const BUTTON =
-  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface hover:text-text";
+  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface";
 
 export default function Checks() {
   /**
@@ -152,9 +152,7 @@ export default function Checks() {
       <button
         type="button"
         data-testid="checks"
-        class={`${BUTTON} ${
-          severity() === undefined ? "text-text" : INK[severity()!]
-        }`}
+        class={`${BUTTON} ${severity() === undefined ? "" : INK[severity()!]}`}
         aria-expanded={checksOpen()}
         aria-haspopup="dialog"
         aria-label={findings().length === 0
@@ -257,7 +255,7 @@ export default function Checks() {
                           </span>
                           <button
                             type="button"
-                            class="bare s-sm flex min-h-0 shrink-0 items-center justify-start gap-2 text-left text-text hover:bg-surface-sunken"
+                            class="bare s-sm flex min-h-0 shrink-0 items-center justify-start gap-2 text-left hover:bg-surface-sunken"
                             title={`Write ${remedy().value} into ${remedy().path}`}
                             onClick={() => apply(remedy())}
                           >

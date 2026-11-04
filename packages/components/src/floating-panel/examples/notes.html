@@ -11,12 +11,12 @@
       <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-grip-vertical shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium text-text">Notes</span>
+          <span class="truncate text-sm font-medium">Notes</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface hover:text-text" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
       </div>
 <div class="grid min-h-0 flex-1 grid-cols-[13rem_1fr] overflow-hidden">
         <div class="grid min-h-0 content-start gap-2 overflow-y-auto border-r border-border bg-surface p-3">
@@ -24,17 +24,17 @@
           <button type="button" data-new class="bare s-sm flex min-h-0 items-center justify-center gap-1 font-medium hover:bg-primary"><span class="i-lucide-plus text-sm" aria-hidden="true"></span>New Note</button>
           <div data-notes class="grid content-start gap-1">
             <button type="button" data-note="0" class="bare secondary grid justify-items-start gap-1 whitespace-normal text-left">
-              <p class="text-sm font-medium text-text">Meeting Notes</p>
+              <p class="text-sm font-medium">Meeting Notes</p>
               <p class="text-xs text-text-muted">Discussed project timeline and deliverables…</p>
               <p class="text-xs text-text-muted">Today</p>
             </button>
             <button type="button" data-note="1" class="bare grid justify-items-start gap-1 whitespace-normal p-3 text-left hover:bg-surface">
-              <p class="text-sm font-medium text-text">Ideas</p>
+              <p class="text-sm font-medium">Ideas</p>
               <p class="text-xs text-text-muted">New feature ideas for the dashboard…</p>
               <p class="text-xs text-text-muted">Yesterday</p>
             </button>
             <button type="button" data-note="2" class="bare grid justify-items-start gap-1 whitespace-normal p-3 text-left hover:bg-surface">
-              <p class="text-sm font-medium text-text">Shopping List</p>
+              <p class="text-sm font-medium">Shopping List</p>
               <p class="text-xs text-text-muted">Milk, Bread, Eggs, Coffee beans…</p>
               <p class="text-xs text-text-muted">2 days ago</p>
             </button>
