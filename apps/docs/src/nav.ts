@@ -139,6 +139,11 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values.",
       },
       {
+        title: "Space, Layout & Responsive",
+        href: "/docs/styling/space",
+        summary: "Pad, gap, and size elements from your theme's spacing scale, name the flex and grid compositions your project repeats, and reflow across your theme's breakpoints. Pin floating panels to their triggers in the top layer and strip default control chrome when a custom trigger needs button semantics without button paint.",
+      },
+      {
         title: "Utilities",
         href: "/docs/styling/utilities",
         summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and project compositions.",
