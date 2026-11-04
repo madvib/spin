@@ -1258,6 +1258,7 @@ export function Logo(props: {
   const word = () => LOGO_WORD[size()];
   return (
     <span
+      data-spin-escape
       class={`inline-flex items-center font-brand font-bold tracking-tight ${word().gap} ${
         props.class ?? ""
       }`}

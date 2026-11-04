@@ -92,6 +92,13 @@ export interface McpCommand {
   readonly url?: string;
 }
 
+/** What the CLI was asked to do: run the language server over stdio. */
+export interface LspCommand {
+  readonly kind: "lsp";
+  /** The project root the server was started in. */
+  readonly root?: string;
+}
+
 /** What the CLI was asked to do: read the themes. */
 export interface ThemeCommand {
   readonly kind: "theme";
@@ -157,6 +164,7 @@ export type Command =
   | InitCommand
   | StudioCommand
   | McpCommand
+  | LspCommand
   | ThemeCommand
   | ComponentCommand
   | HelpCommand;
@@ -172,6 +180,7 @@ Usage:
   spin init [options]
   spin studio [options]
   spin mcp [options]
+  spin lsp [options]
   spin theme <list|analyze|scaffold> [name] [options]
   spin component <list|contract|copy> [name] [example] [options]
   spin lint [options] <path...>
@@ -181,6 +190,7 @@ Commands:
   init        make a project: a theme, and a build config that wires spin
   studio      open the standalone theme editor: the API, and the studio beside it
   mcp         run the agent server over stdio
+  lsp         run the language server over stdio
   theme       read the themes: list, analyze, or scaffold one
   component   read the components: list, contract, or copy an example
   lint        the rules, over a path
@@ -207,6 +217,10 @@ Options for studio:
 Options for mcp:
   --root <dir>           the project root (default: the current directory)
   --url <url>            the daemon to dial (default: in-process)
+  -h, --help             this text
+
+Options for lsp:
+  --root <dir>           the project root (default: the current directory)
   -h, --help             this text
 
 Options for theme:
@@ -258,7 +272,7 @@ export function parseArgs(argv: readonly string[]): Command {
   const [command, ...rest] = argv[0] === "--" ? argv.slice(1) : argv;
   if (command === undefined) {
     throw new CliUsageError(
-      "Name a command: init, studio, mcp, theme, component, lint, or check.",
+      "Name a command: init, studio, mcp, lsp, theme, component, lint, or check.",
     );
   }
   if (command === "-h" || command === "--help" || command === "help") {
@@ -269,6 +283,7 @@ export function parseArgs(argv: readonly string[]): Command {
   if (command === "init") return parseInit(rest);
   if (command === "studio") return parseStudio(rest);
   if (command === "mcp") return parseMcp(rest);
+  if (command === "lsp") return parseLsp(rest);
   if (command === "theme") return parseTheme(rest);
   if (command === "component") return parseComponent(rest);
   throw new CliUsageError(`Unknown command "${command}".`);
@@ -408,6 +423,31 @@ function parseMcp(argv: readonly string[]): Command {
     kind: "mcp",
     ...(root === undefined ? {} : { root }),
     ...(url === undefined ? {} : { url }),
+  };
+}
+
+/** Run the language server over stdio. */
+function parseLsp(argv: readonly string[]): Command {
+  let root: string | undefined;
+
+  for (const argument of read(argv)) {
+    switch (argument.name) {
+      case "help":
+        return { kind: "help" };
+      case "root":
+        root = argument.value as string;
+        break;
+      default:
+        throw new CliUsageError(
+          argument.option
+            ? `Unknown option "${argument.raw}".`
+            : `Unexpected argument "${argument.raw}".`,
+        );
+    }
+  }
+  return {
+    kind: "lsp",
+    ...(root === undefined ? {} : { root }),
   };
 }
 
@@ -843,6 +883,8 @@ export async function run(
       return await runStudio(command, write, warn);
     case "mcp":
       return await runMcp(command, write, warn);
+    case "lsp":
+      return await runLsp(command, write, warn);
     case "theme":
       return await runTheme(command, write, warn);
     case "component":
@@ -1068,6 +1110,27 @@ async function runStudio(
   write(`${new URL("/studio/", daemon.url)} — studio`);
   // The process stays up serving: never resolve while the daemon lives.
   return await new Promise<never>(() => {});
+}
+
+/** Run the language server over stdio. */
+async function runLsp(
+  command: LspCommand,
+  _write: (line: string) => void,
+  _warn: (line: string) => void,
+): Promise<number> {
+  const { handleMessage, createState } = await import("../lsp/server.ts");
+  const { encodeFrame, readFrames } = await import("../lsp/protocol.ts");
+  const state = createState(command.root ?? process.cwd());
+  let shutdown = false;
+  process.stdin.on("end", () => process.exit(shutdown ? 0 : 1));
+  for await (const message of readFrames(process.stdin)) {
+    for (const reply of await handleMessage(state, message)) {
+      process.stdout.write(encodeFrame(reply));
+    }
+    if (message.method === "shutdown") shutdown = true;
+    if (message.method === "exit") process.exit(shutdown ? 0 : 1);
+  }
+  return 0;
 }
 
 /** Run the agent server over stdio. */

@@ -149,6 +149,20 @@ export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
           <p><mark>Canary</mark>, <ins>eu-west-1</ins>, and <del>us-east-2</del>.</p>
         </prose>`,
   },
+  {
+    name: "Paragraphs in a flex row",
+    html: `<div class="flex gap-2">
+          <p>Every instance returns to the previous release.</p>
+          <p>The failed one stays in the history.</p>
+        </div>`,
+  },
+  {
+    name: "Paragraphs in a grid",
+    html: `<div class="grid gap-2">
+          <p>Every instance returns to the previous release.</p>
+          <p>The failed one stays in the history.</p>
+        </div>`,
+  },
 ];
 
 export const PROSE_EXAMPLES: readonly ProseExample[] = [

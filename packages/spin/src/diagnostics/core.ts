@@ -185,6 +185,17 @@ export interface ClassFacts {
   /** The classes, split. */
   readonly classes: readonly string[];
   /**
+   * Whether the element carries the blessed escape.
+   *
+   * The escape is an author's explicit word: this element's classes are
+   * deliberate — a third-party override or one-off display type the theme
+   * cannot name. The ownership rules read it and stand down; the rules
+   * that keep dead classes out do not, because deliberate code still
+   * names nothing dead. An adapter that cannot see attributes reports
+   * the finding, which is why this is opt-out rather than default.
+   */
+  readonly escaped?: boolean;
+  /**
    * Where each class sits in the source.
    *
    * A fix has to say WHICH text to remove, and the offsets are the only

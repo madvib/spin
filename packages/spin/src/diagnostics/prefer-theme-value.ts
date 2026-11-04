@@ -51,6 +51,10 @@ export function checkPreferThemeValue(
 ): Finding[] {
   const tag = node.tag;
   if (tag === undefined) return [];
+  // The escape excuses one-off display type the theme cannot name: the
+  // author said so on the element, so an override here is the escape's
+  // business, not a second opinion about the element's own value.
+  if (node.escaped === true) return [];
   const owners = ownersOf(facts, node);
   const claimed = claimedBy(facts, node);
   const out: Finding[] = [];

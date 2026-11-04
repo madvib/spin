@@ -76,6 +76,18 @@ const commandItems = (): readonly PropEntry[] => [
     detail: "Flags: --root, --url",
   },
   {
+    name: "spin lsp",
+    badge: "editor",
+    description: (
+      <>
+        Starts the language server over stdio: the same lint findings as{" "}
+        <code>spin lint</code>, plus hover and completion from your theme.
+        Point any LSP client at it — no config file required.
+      </>
+    ),
+    detail: "Flags: --root",
+  },
+  {
     name: "spin check",
     badge: "browser harness",
     description:

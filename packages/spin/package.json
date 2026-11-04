@@ -147,6 +147,10 @@
     },
     "./elements": {
       "types": "./src/compiler/elements.d.ts"
+    },
+    "./lsp": {
+      "types": "./src/lsp/main.ts",
+      "default": "./src/lsp/main.ts"
     }
   },
   "files": [
@@ -329,6 +333,10 @@
       },
       "./elements": {
         "types": "./dist/compiler/elements.d.ts"
+      },
+      "./lsp": {
+        "types": "./dist/lsp/main.d.ts",
+        "default": "./dist/lsp/main.js"
       }
     }
   },

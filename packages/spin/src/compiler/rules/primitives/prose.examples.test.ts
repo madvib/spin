@@ -18,6 +18,7 @@ const STRUCTURAL = new Set([
   "flex-wrap",
   "items-center",
   "gap-2",
+  "grid",
 ]);
 
 const isKnown = (cls: string, known: Set<string>): boolean =>

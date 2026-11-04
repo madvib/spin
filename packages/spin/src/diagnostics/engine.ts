@@ -317,6 +317,7 @@ function lintComponentIr(
         const factsNode: ClassFacts = {
           tag: node.tag,
           classes,
+          escaped: node.attrs.some((attr) => attr.name === "data-spin-escape"),
           position,
           ancestors: ancestors.map((frame): AncestorFacts => ({
             tag: frame.tag,

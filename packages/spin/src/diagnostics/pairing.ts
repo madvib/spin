@@ -24,6 +24,10 @@ export function checkNoUnpairedInk(
   node: ClassFacts,
 ): Finding[] {
   if (!facts.readable) return [];
+  // A third-party override paints fills the palette never paired: the
+  // palette has no answer for them, so absence here is the escape's
+  // business, not a missing ink.
+  if (node.escaped === true) return [];
   const fills = new Map<string, string[]>();
   const inks = new Map<string, string[]>();
   for (const cls of node.classes) {

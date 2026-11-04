@@ -82,4 +82,26 @@ Project discovery walks up from each linted file: the nearest ancestor
 containing `spin/` or `vite.config.ts` is the project root whose themes and
 shortcuts the rules read.
 
+## The one escape
+
+Some marks sit outside what a theme can name: a third-party widget you
+restyle from the outside, a brand lockup set in the brand face at one
+deliberate size. Write `data-spin-escape` on that element and the ownership
+rules stand down for its classes — `prefer-element`, `prefer-theme-value`,
+`no-redundant-class`, and `no-unpaired-ink` stay quiet there. The vocabulary
+rule does not: `closed-vocabulary` still fires inside the escape, because
+deliberate code still names nothing dead. The escape covers the element that
+carries it, never its children, so reach for it per element — and if you find
+yourself reaching for it twice, the theme is missing something worth naming.
+
+## The editor reads the same rules
+
+Write a class your theme cannot make and your editor tells you before you
+save: `spin lsp` serves the same six rules over stdio, so the finding under
+your cursor and the `spin lint` finding in CI are one finding. Hover a class
+to see the CSS your theme puts behind it, with the nearest name it can make
+when you misspell one; complete from the vocabulary your theme produces, so
+the name you pick is a name that builds. Point any LSP client at `spin lsp`
+— no config file, no daemon, just the project beside the file.
+
 <!-- USER COPY SLOT: lints-close — team policy notes (which dial you run, where). -->

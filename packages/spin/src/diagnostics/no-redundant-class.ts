@@ -30,6 +30,10 @@ export function checkNoRedundantClass(
 ): Finding[] {
   const tag = node.tag;
   if (tag === undefined) return [];
+  // The escape owns the element's whole list: naming what the element
+  // already sets is part of the deliberate lockup (or the override the
+  // escape exists to hold), not dead weight to drop.
+  if (node.escaped === true) return [];
   // A decision the element's own variant has claimed is the VARIANT's answer,
   // not the scope's — with one exception: when the class says EXACTLY what
   // the variant says, it is still dead weight. `secondary` wears the page's

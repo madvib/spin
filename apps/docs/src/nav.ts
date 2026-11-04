@@ -124,9 +124,15 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Styling",
     items: [
       {
+        title: "Spin & Tailwind",
+        href: "/docs/styling/tailwind",
+        summary:
+          "Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags.",
+      },
+      {
         title: "Primitives",
         href: "/docs/styling/elements",
-        summary: "Stylesheet cascade layers, HTML and custom element primitives (tag or class mode), variants, .bare, and compound parts.",
+        summary: "Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time.",
       },
       {
         title: "Typography & Lists",

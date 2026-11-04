@@ -154,6 +154,35 @@ function isClassAttribute(node: GateNode): boolean {
 }
 
 /**
+ * Whether the element opted into the blessed escape.
+ *
+ * The shape is a bare `data-spin-escape` attribute on the element itself —
+ * no value to spell, so there is nothing to misspell into silence. A
+ * `data-spin-escape="anything"` still escapes (the value is ignored, like
+ * `hidden`), but the escape never inherits: each element opts in for its
+ * own classes, so a blessed lockup cannot launder a whole subtree.
+ */
+function carriesEscape(node: GateNode): boolean {
+  const holder = node.parent;
+  if (holder === undefined || holder === null) return false;
+  const siblings: unknown = (holder as GateNode & { attributes?: unknown }).attributes;
+  if (!Array.isArray(siblings)) return false;
+  return siblings.some((sibling) => attrName(sibling) === "data-spin-escape");
+}
+
+/** The attribute name a JSX attribute node carries, in either AST shape. */
+function attrName(sibling: unknown): string | undefined {
+  if (typeof sibling !== "object" || sibling === null) return undefined;
+  if (!("name" in sibling)) return undefined;
+  const name: unknown = sibling.name;
+  if (typeof name === "string") return name;
+  if (typeof name === "object" && name !== null && "name" in name) {
+    return typeof name.name === "string" ? name.name : undefined;
+  }
+  return undefined;
+}
+
+/**
  * The string a JSX attribute carries.
  *
  * An attribute holds a node, and the string it carries is that node's own
@@ -561,6 +590,7 @@ function classFacts(node: GateNode) {
   return {
     tag: tagOf(node),
     classes: branches.all,
+    escaped: carriesEscape(node),
     resting: branches.resting,
     conditional: branches.conditional,
     // Where each class sits, so a finding that drops one can say which text

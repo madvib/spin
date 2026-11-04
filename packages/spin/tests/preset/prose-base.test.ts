@@ -122,6 +122,39 @@ test("the column stays a tag", async () => {
   );
 });
 
+test("the column caps the measure and nothing else does", async () => {
+  const result = await generate(
+    "<prose><h2>Head</h2><p>Body</p><ul><li>One</li></ul><blockquote>Q</blockquote><pre><code>x</code></pre></prose>",
+  );
+  const css = result.css;
+  // Exactly one 65ch in the sheet: the column rule. Any second hit is the
+  // bare-p footgun returning and must be removed, not preserved.
+  const hits = css.match(/max-width:\s*65ch/g) ?? [];
+  assert.equal(hits.length, 1, `expected exactly one 65ch measure rule, found ${hits.length}`);
+  assert(
+    /prose\{[^}]*max-width:65ch/.test(css.replace(/\s+/g, "")),
+    "the 65ch measure must live on the prose container rule",
+  );
+});
+
+test("p inside flex/grid rows takes no measure", async () => {
+  const result = await generate(
+    `<div class="flex gap-2"><p>One</p><p>Two</p></div><div class="grid gap-2"><p>Three</p></div>`,
+  );
+  const css = result.css;
+  // Assert the emitted declarations, not class presence: the p rule must
+  // set no max-width, so a paragraph used as a flex/grid child renders at
+  // container width instead of clamping to the reading measure.
+  const blocks = [...css.matchAll(/(?:^|[}])\s*p\{([^}]*)\}/g)].map((m) => m[1] as string);
+  assert(blocks.length > 0, "expected a p rule in the sheet");
+  for (const block of blocks) {
+    assert(
+      !block.includes("max-width"),
+      `p inside flex/grid must not take a measure: p{${block}}`,
+    );
+  }
+});
+
 test("primitives: false still ships base type", async () => {
   // Matches documentDefaults' unconditional posture: utility-only is a
   // component switch, not a type switch.

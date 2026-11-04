@@ -46,6 +46,11 @@ export function checkPreferElement(
 ): Finding[] {
   const tag = node.tag;
   if (tag === undefined) return [];
+  // The escape is an author's explicit word that this element's classes are
+  // deliberate: one-off display type or a third-party override the theme
+  // cannot name. The element has said what it means, so the element rule
+  // stands down rather than name another element.
+  if (node.escaped === true) return [];
   const owners = ownersOf(facts, node);
   const claimed = claimedBy(facts, node);
   const out: Finding[] = [];
