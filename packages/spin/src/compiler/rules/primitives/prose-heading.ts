@@ -41,10 +41,12 @@ function headingRule(
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(family !== undefined ? { "font-family": family } : {}),
+        // Single-sided rhythm: the gap above a heading is the previous block's
+        // block-end, never the heading's own block-start (DEF A1) — a heading
+        // that spent its own start doubled the rhythm unit above every headed
+        // section. The h1 same-value end restatement below converges with
+        // spacing() and is left as-is.
         ...spacing(t),
-        ...(t.spacing4 !== undefined
-          ? { "margin-block-start": t.spacing4 }
-          : {}),
         ...type(t),
         // The theme's own decision, where it has one: the level's step and
         // weight are the ladder's until the theme says otherwise.

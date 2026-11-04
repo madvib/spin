@@ -1,26 +1,10 @@
 <!-- USER COPY SLOT: css-intro — your own mental model of the cascade, or the default below. -->
 
-## The closed vocabulary & how Spin's linter enforces it
+## The closed vocabulary
 
-Every utility class in Spin maps to a declared token in your `spin/*.json` theme (`p-4` → `var(--spacing-4)`, `bg-surface-raised` → `var(--color-surface-raised)`, `rounded-md` → `var(--radius-md)`). If a token step is not declared in your theme — or if you write an arbitrary bracket value (`w-[320px]`, `bg-[#ff0000]`) or a misspelled role (`bg-success` instead of `bg-semantic-success`) — the preset emits **no CSS rule**.
+Every utility class in Spin maps to a declared token in your `spin/*.json` theme (`p-4` → `var(--spacing-4)`, `bg-surface-raised` → `var(--color-surface-raised)`, `rounded-md` → `var(--radius-md)`). If a token step is not declared in your theme — or if you write an arbitrary bracket value (`w-[320px]`, `bg-[#ff0000]`) or a misspelled role (`bg-success` instead of `bg-semantic-success`) — the preset emits **no CSS rule**, and the build fails telling you which class, in which file, and what to write instead.
 
-Because UnoCSS silently drops unmatched classes at build time, Spin ships a **linter-neutral diagnostics core** (`@spinjs/spin/eslint`, `@spinjs/spin/oxlint`, and `npx spin lint`) that reads your project's `spin/*.json` themes directly from disk — with **no `uno.config.ts` required** — and flags issues in your editor and CI:
-
-- **`spin/closed-vocabulary` (error):** Flags any class your project's theme cannot generate (`p-13`, `bg-success`, `w-[320px]`), including unknown classes inside custom `shortcuts`, with a quick-fix.
-- **`spin/no-unpaired-ink` (error):** Flags a background fill whose foreground ink does not match the theme's paired role (`bg-primary` without `text-on-primary`).
-- **`spin/no-redundant-class` (error):** Flags a utility that sets a CSS property to the exact value the enclosing element already owns (`py-2` on `<td>`, `font-semibold` on `<h3>`).
-- **`spin/prefer-theme-value` (error):** Flags a utility that overrides a design decision the enclosing element owns (`font-mono` or `text-xs` on `<h3>`, `px-3` on `<td>`).
-- **`spin/prefer-element` (error when one element carries it, warning when several do):** Flags a `<div>` or `<span>` wearing typography classes that belong to a semantic element (`<card-title>`, `<h2>`, `<p>`).
-- **`spin/no-handwritten-tokens` (error):** Flags raw `var(--*)` CSS custom properties written in markup instead of token utilities.
-
-```ts
-// eslint.config.js — runs in VS Code / Cursor / Neovim via the ESLint extension, and in Bun's built-in linter
-import spin from "@spinjs/spin/eslint";
-
-export default [
-  spin.configs.recommended,
-];
-```
+The lint reads your project's themes and enforces the closed vocabulary in your editor and CI — the same rules everywhere, no `uno.config.ts` required. See [Lints & Verification](/docs/tooling/lints) for the rule table and setup.
 
 ## Paired fills, semantic inks, and dark mode
 

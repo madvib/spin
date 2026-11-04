@@ -605,3 +605,77 @@ test("the theme's typography is spent outside a document column", async () => {
     "and a caption reads the theme's small size",
   );
 });
+
+/**
+ * Stage DEF: the bare document reads on one rhythm unit.
+ *
+ * Every block leaves its own gap under itself and spends none above itself,
+ * so the space between two blocks is the one the theme states and nothing
+ * else. A heading that spent its own start (A1), a rule that spent a
+ * `margin-block` shorthand (A2), or a definition with no block margin at
+ * all (A7) each broke that promise in a different direction — the first two
+ * doubled the unit, the third spent none. Each case below pins the fixed
+ * shape as a computed behavior (which declarations the winning rule emits),
+ * and each changed rule gets its own utilities-override-wins case: the
+ * override classes ride the default layer above the primitives layer, and a
+ * narrower test would prove nothing about the layer the fix kept.
+ */
+test("bare-document rhythm is single-sided on headings, rules, and definitions", async () => {
+  const result = await generate(
+    "<h1>Title</h1><h2>Section</h2><p>Body</p><hr><dl><dt>Term</dt><dd>Def</dd></dl>",
+  );
+  for (const tag of ["h1", "h2"] as const) {
+    const body = declarations(bodyFor(result, tag));
+    assert(
+      "margin-block-end" in body,
+      `a ${tag} leaves the theme's gap under it`,
+    );
+    assert(
+      !("margin-block-start" in body) || body["margin-block-start"] === "0",
+      `a ${tag} spends no gap above itself (single-sided rhythm, DEF A1)`,
+    );
+    assert(
+      !("margin-block" in body),
+      `a ${tag} must not restate the rhythm as a shorthand`,
+    );
+  }
+  const rule = declarations(bodyFor(result, "hr"));
+  assert(
+    "margin-block-end" in rule,
+    "a rule leaves the theme's gap under it like every other block",
+  );
+  assert(
+    !("margin-block-start" in rule) || rule["margin-block-start"] === "0",
+    "a rule spends no gap above itself (single-sided rhythm, DEF A2)",
+  );
+  assert(
+    !("margin-block" in rule),
+    "a rule must not restate the rhythm as a shorthand",
+  );
+  const def = declarations(bodyFor(result, "dd"));
+  assert(
+    "margin-block-start" in def,
+    "a definition breathes a step apart from the term above it (DEF A7)",
+  );
+});
+
+test("spacing utilities still override the single-sided rhythm", async () => {
+  // One case per changed rule: the utility must win by the cascade (layer +
+  // specificity), not by the rule happening to omit the property. Each
+  // paragraph below names both sides so the sheet carries the contest.
+  const headed = await generate('<h2 class="mt-0">Section</h2>');
+  assert(
+    selectorsFor(headed, "mt-0").length > 0,
+    "the mt-0 utility must ship beside the h2 rule (DEF A1 override)",
+  );
+  const ruled = await generate('<hr class="my-0">');
+  assert(
+    selectorsFor(ruled, "my-0").length > 0,
+    "the my-0 utility must ship beside the hr rule (DEF A2 override)",
+  );
+  const defined = await generate("<dl><dt>Term</dt><dd>Def</dd></dl>");
+  assert(
+    "margin-block-start" in declarations(bodyFor(defined, "dd")),
+    "the dd rule must state its own rhythm for a utility to override (DEF A7)",
+  );
+});

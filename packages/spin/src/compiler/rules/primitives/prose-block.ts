@@ -200,6 +200,14 @@ function definitionRule(): Rule {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () => "dd",
+        // The definition breathes a step apart from the term (or the
+        // definition) above it (DEF A7): without a block-start the entries
+        // stacked flush while every sibling block leaves the shared end gap.
+        // The rhythm-half of that sibling; the second `dd` in a run reads the
+        // same reach, exactly as `li + li` does.
+        ...(t.spacing2 !== undefined
+          ? { "margin-block-start": t.spacing2 }
+          : {}),
         ...(t.spacing4 !== undefined
           ? { "margin-inline-start": t.spacing4 }
           : {}),

@@ -337,9 +337,16 @@ export default function StylingTailwind(): JSX.Element {
           size repaints the system without telling the theme; thin a declared
           color role with an alpha suffix like <code>bg-surface/80</code> and
           pick type sizes from your <code>font.size.*</code> scale (
-          <code>text-2xs</code> through <code>text-3xl</code>):
+          <code>text-2xs</code> through <code>text-3xl</code>).
         </p>
-
+        <p class="max-w-prose">
+          A bracketed measurement carries no scale promise, so switching
+          themes never silently unstyles it — the cross-theme report covers
+          declared steps. Reach for the scale first and the bracket only for
+          the geometry the scale has no name for; the authoring skill and the
+          agent guidance point the same way. No build fails for measuring one
+          element past the scale.
+        </p>
         <div class="my-2 grid gap-4 md:grid-cols-2">
           <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
             <div class="relative rounded-md border border-border bg-surface/80 p-3 w-[13rem]">

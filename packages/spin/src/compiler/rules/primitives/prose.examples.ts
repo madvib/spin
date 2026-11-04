@@ -165,7 +165,42 @@ export const PROSE_DOC_EXAMPLES: readonly ProseExample[] = [
   },
 ];
 
+/**
+ * The bare-document rhythm pair (Stage DEF): the same unclassed article
+ * rendered against the old double-sided rhythm and the fixed single-sided
+ * one. Read the two side by side — the after document keeps one rhythm unit
+ * between every block, the before one doubles it above every heading and at
+ * every rule.
+ */
+export const BARE_DOCUMENT_BEFORE_HTML = `<article>
+  <h1>Rolling back a release</h1>
+  <p>A rollback sends every instance back to the previous release. It takes under two minutes.</p>
+  <h2>What changes</h2>
+  <p>Every instance returns to the previous release. The failed one stays in the history.</p>
+  <hr>
+  <dl><dt>Rollback</dt><dd>Return to the previous release.</dd><dd>Keep the failed one in the history.</dd></dl>
+  <p>The definitions above stacked flush before the fix: no block margin at all.</p>
+</article>`;
+
+export const BARE_DOCUMENT_AFTER_HTML = `<article>
+  <h1>Rolling back a release</h1>
+  <p>A rollback sends every instance back to the previous release. It takes under two minutes.</p>
+  <h2>What changes</h2>
+  <p>Every instance returns to the previous release. The failed one stays in the history.</p>
+  <hr>
+  <dl><dt>Rollback</dt><dd>Return to the previous release.</dd><dd>Keep the failed one in the history.</dd></dl>
+  <p>The definitions above breathe a step apart now: the same reach as <code>li + li</code>.</p>
+</article>`;
+
 export const PROSE_EXAMPLES: readonly ProseExample[] = [
   ...TYPOGRAPHY_EXAMPLES,
   ...PROSE_DOC_EXAMPLES,
+  {
+    name: "Bare-document rhythm, before (double-sided)",
+    html: BARE_DOCUMENT_BEFORE_HTML,
+  },
+  {
+    name: "Bare-document rhythm, after (single-sided)",
+    html: BARE_DOCUMENT_AFTER_HTML,
+  },
 ];

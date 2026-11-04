@@ -511,32 +511,59 @@ test("the theme analyze judges one theme and fails on an invalid one", async () 
   }
 });
 
-test("the theme analyze without a name judges every theme", async () => {
-  // No name means every project theme; one invalid theme fails the run,
-  // and a project of valid themes passes with `<name>: valid`.
-  const { scaffoldTheme } = await import("../../src/theme/index.ts");
-  const { treeToJson } = await import("../../src/theme/index.ts");
-  const bad = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
+test("the theme analyze without a name compares the corpus across themes", async () => {
+  // No name means the cross-theme report: every shipped theme must resolve
+  // every class the project wears. One theme with a missing step fails the
+  // run with the class, the wearing file, and the theme that drops it; a
+  // project whose themes agree passes with the clean line.
+  const { scaffoldTheme, treeToJson } = await import("../../src/theme/index.ts");
+  const split = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
   try {
-    const doc = JSON.parse(treeToJson(scaffoldTheme())) as Record<string, unknown>;
-    delete (doc["color"] as Record<string, unknown>)["text"];
-    await import("node:fs/promises").then((fs) => fs.mkdir(join(bad, "spin"), { recursive: true }));
-    await writeFile(join(bad, "spin", "broken.json"), JSON.stringify(doc, null, 2));
+    const full = JSON.parse(treeToJson(scaffoldTheme())) as Record<string, unknown>;
+    const narrow = structuredClone(full) as Record<string, Record<string, unknown>>;
+    (full["spacing"] as Record<string, unknown>)["32"] = { $value: "8rem", $type: "dimension" };
+    await import("node:fs/promises").then((fs) => fs.mkdir(join(split, "spin"), { recursive: true }));
+    await writeFile(join(split, "spin", "full.json"), JSON.stringify(full, null, 2));
+    await writeFile(join(split, "spin", "narrow.json"), JSON.stringify(narrow, null, 2));
+    await writeFile(join(split, "app.tsx"), `export function App() {\n  return <div className="p-32">hi</div>;\n}\n`);
     const lines: string[] = [];
     const code = await run(
-      ["theme", "analyze", "--root", bad],
+      ["theme", "analyze", "--root", split],
       (line) => lines.push(line),
       () => {},
     );
     deepStrictEqual(code, 1);
-    deepStrictEqual(lines.some((line) => line.includes("color.text")), true);
+    deepStrictEqual(lines[0], "Cross-theme: every class your project wears must resolve under every shipped theme — switching themes never unstyles markup.");
+    deepStrictEqual(lines.some((line) => line.includes("p-32") && line.includes("narrow")), true);
+    deepStrictEqual(lines.some((line) => line.includes("full")), true);
+    const json: string[] = [];
+    const jsonCode = await run(
+      ["theme", "analyze", "--root", split, "--format", "json"],
+      (line) => json.push(line),
+      () => {},
+    );
+    deepStrictEqual(jsonCode, 1);
+    const report = JSON.parse(json.join("\n")) as {
+      clean: boolean;
+      themes: string[];
+      gaps: Array<{ file: string; class: string; resolves: string[]; missing: string[] }>;
+    };
+    deepStrictEqual(report.clean, false);
+    deepStrictEqual(report.themes, ["full", "narrow"]);
+    deepStrictEqual(report.gaps.length, 1);
+    deepStrictEqual(report.gaps[0]?.class, "p-32");
+    deepStrictEqual(report.gaps[0]?.missing, ["narrow"]);
+    deepStrictEqual(report.gaps[0]?.resolves, ["full"]);
+    deepStrictEqual(report.gaps[0]?.file.endsWith("app.tsx"), true);
   } finally {
-    await rm(bad, { recursive: true, force: true });
+    await rm(split, { recursive: true, force: true });
   }
   const good = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
   try {
+    const { scaffoldTheme: scaffold, treeToJson: toJson } = await import("../../src/theme/index.ts");
     await import("node:fs/promises").then((fs) => fs.mkdir(join(good, "spin"), { recursive: true }));
-    await writeFile(join(good, "spin", "fine.json"), treeToJson(scaffoldTheme()));
+    await writeFile(join(good, "spin", "fine.json"), toJson(scaffold()));
+    await writeFile(join(good, "app.tsx"), `export function App() {\n  return <div className="flex gap-2">hi</div>;\n}\n`);
     const lines: string[] = [];
     const code = await run(
       ["theme", "analyze", "--root", good],
@@ -544,17 +571,8 @@ test("the theme analyze without a name judges every theme", async () => {
       () => {},
     );
     deepStrictEqual(code, 0);
-    deepStrictEqual(lines, ["fine: valid"]);
-    const json: string[] = [];
-    const jsonCode = await run(
-      ["theme", "analyze", "--root", good, "--format", "json"],
-      (line) => json.push(line),
-      () => {},
-    );
-    deepStrictEqual(jsonCode, 0);
-    const parsed = JSON.parse(json.join("\n")) as Array<{ name: string; valid: boolean; tree?: unknown }>;
-    deepStrictEqual(parsed[0]?.valid, true);
-    deepStrictEqual("tree" in (parsed[0] ?? {}), false);
+    deepStrictEqual(lines.length, 2);
+    deepStrictEqual(lines[0], "Cross-theme: every class your project wears must resolve under every shipped theme — switching themes never unstyles markup.");
   } finally {
     await rm(good, { recursive: true, force: true });
   }

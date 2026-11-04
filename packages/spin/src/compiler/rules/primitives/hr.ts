@@ -40,7 +40,15 @@ function hrRule(base: string): Rule {
       yield {
         [ctx.symbols.selector]: () => base,
         height: "0",
-        ...(t.spacing4 !== undefined ? { "margin-block": t.spacing4 } : {}),
+        // Single-sided rhythm (DEF A2): the rule leaves the shared block-end
+        // gap under itself like every other block, and spends no block-start
+        // of its own — the `margin-block` shorthand doubled the rhythm unit
+        // at every section break and disagreed with the vertical variant,
+        // which already zeroes the block axis and spends inline room instead.
+        "margin-block-start": "0",
+        ...(t.spacing4 !== undefined
+          ? { "margin-block-end": t.spacing4 }
+          : {}),
         border: "0",
         ...(t.borderWidth !== undefined && t.border !== undefined
           ? { "border-block-start": `${t.borderWidth} solid ${t.border}` }

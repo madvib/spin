@@ -185,13 +185,10 @@ Usage:
   spin component <list|contract|copy> [name] [example] [options]
   spin lint [options] <path...>
   spin check [options] [url]
-
-Commands:
-  init        make a project: a theme, and a build config that wires spin
   studio      open the standalone theme editor: the API, and the studio beside it
   mcp         run the agent server over stdio
   lsp         run the language server over stdio
-  theme       read the themes: list, analyze, or scaffold one
+  theme       read the themes: list; analyze one document, or the corpus across all
   component   read the components: list, contract, or copy an example
   lint        the rules, over a path
   check       the rendered checks, over a running app
@@ -1151,6 +1148,59 @@ async function runMcp(
   return 0;
 }
 
+/** The cross-theme report: every worn class, under every shipped theme. */
+async function runCrossTheme(
+  command: ThemeCommand,
+  entries: Array<{ name: string; text?: string | null }>,
+  write: (line: string) => void,
+  warn: (line: string) => void,
+): Promise<number> {
+  const {
+    analyzeCrossTheme,
+    crossThemeJson,
+    formatCrossThemeText,
+  } = await import("./cross-theme.ts");
+  const { readConfiguration } = await import("../project/service.ts");
+  const root = command.root ?? process.cwd();
+  const themes: Record<string, unknown> = {};
+  for (const entry of entries) {
+    const text = entry.text !== undefined && entry.text !== null
+      ? entry.text
+      : null;
+    if (text === null) {
+      warn(`no theme named "${entry.name}" in this project.`);
+      return 2;
+    }
+    try {
+      themes[entry.name] = JSON.parse(text);
+    } catch {
+      warn(`${entry.name}: not a JSON document this run can compare.`);
+      return 2;
+    }
+  }
+  let shortcuts: Record<string, readonly string[]> = {};
+  try {
+    shortcuts = (await readConfiguration(root)).shortcuts;
+  } catch {
+    // No configuration: no project compositions to judge.
+  }
+  let report;
+  try {
+    report = await analyzeCrossTheme({ root, themes, shortcuts });
+  } catch (error) {
+    warn(error instanceof Error ? error.message : String(error));
+    return 2;
+  }
+  if (command.format === "json") {
+    write(JSON.stringify(crossThemeJson(report), null, 2));
+  } else {
+    for (const line of formatCrossThemeText(report)) write(line);
+    if (!report.clean) write(`${report.gaps.length} cross-theme gap${report.gaps.length === 1 ? "" : "s"} — switching themes unstyles these classes.`);
+  }
+  return report.clean ? 0 : 1;
+}
+
+
 /** Read the themes: list, analyze, or scaffold one. */
 async function runTheme(
   command: ThemeCommand,
@@ -1177,8 +1227,10 @@ async function runTheme(
       write(scaffolded.text);
       return 0;
     }
-    // Analyze one theme by name, or every theme the project holds. The
-    // listing carries the text, so no second read is needed.
+    // A name answers the single-theme question: whether that document
+    // validates. No name answers the cross-theme one: whether the corpus
+    // the project wears survives every shipped theme. The listing carries
+    // the text, so no second read is needed.
     const entries = command.name === undefined
       ? await client.project.themes.list({
         ...(command.root === undefined ? {} : { root: command.root }),
@@ -1193,6 +1245,9 @@ async function runTheme(
     if (command.name !== undefined && entries.length === 0) {
       warn(`no theme named "${command.name}" in this project.`);
       return 2;
+    }
+    if (command.name === undefined) {
+      return await runCrossTheme(command, entries, write, warn);
     }
     const results: Array<{
       name: string;
@@ -1220,20 +1275,13 @@ async function runTheme(
     if (command.format === "json") {
       write(
         JSON.stringify(
-          command.name === undefined
-            ? results.map(({ name, error, issues }) => ({
-              name,
-              valid: error === null && issues.length === 0,
-              error,
-              issues,
-            }))
-            : {
-              name: results[0]?.name,
-              valid: (results[0]?.error ?? null) === null &&
-                (results[0]?.issues.length ?? 1) === 0,
-              error: results[0]?.error ?? null,
-              issues: results[0]?.issues ?? [],
-            },
+          {
+            name: results[0]?.name,
+            valid: (results[0]?.error ?? null) === null &&
+              (results[0]?.issues.length ?? 1) === 0,
+            error: results[0]?.error ?? null,
+            issues: results[0]?.issues ?? [],
+          },
           null,
           2,
         ),
