@@ -6,7 +6,6 @@
 import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { spinShortcuts } from "@spinjs/spin/preset";
 import { animationContract } from "@spinjs/spin/animation";
 import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 
@@ -22,45 +21,10 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
   const groups: readonly UtilityGroupSpec[] = [
   {
     id: "layout",
-    title: "Layout & Shipped Shortcuts",
+    title: "Layout",
     summary:
-      "Flexbox, CSS Grid, and the named layout shortcuts in spinShortcuts.",
+      "Flexbox, CSS Grid, and the list layout utilities. Stacks and split bars are not utilities the preset ships — declare them in your project's shortcuts and read more on Utilities & Layout.",
     rules: [
-      {
-        name: "stack / stack-xs / stack-sm / stack-lg",
-        badge: "spinShortcuts",
-        description: (
-          <>
-            Vertical flex column (<code>flex flex-col</code>) with{" "}
-            <code>gap-4</code> (<code>stack</code>), <code>gap-1</code> (
-            <code>stack-xs</code>), <code>gap-2</code> (<code>stack-sm</code>),
-            or <code>gap-8</code> (<code>stack-lg</code>).
-          </>
-        ),
-      },
-      {
-        name: "row / row-sm / row-lg / split",
-        badge: "spinShortcuts",
-        description: (
-          <>
-            Centered horizontal flex row (<code>flex items-center</code>) with{" "}
-            <code>gap-4</code>, <code>gap-2</code>, or <code>gap-8</code>;{" "}
-            <code>split</code> adds <code>justify-between</code>.
-          </>
-        ),
-      },
-      {
-        name: "cluster / cluster-sm / cluster-lg / inline",
-        badge: "spinShortcuts",
-        description: (
-          <>
-            Wrapping horizontal flex row (<code>flex flex-wrap items-center</code>
-            ) with <code>gap-2</code>, <code>gap-1</code>, or{" "}
-            <code>gap-4</code>; <code>inline</code> is{" "}
-            <code>inline-flex items-center gap-1</code>.
-          </>
-        ),
-      },
       {
         name: "row-list / flow-list",
         badge: "list rules",
@@ -83,6 +47,18 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
             <code>items-*</code>, <code>justify-*</code>, <code>self-*</code>),
             and grid column/span utilities (<code>grid-cols-1</code>–
             <code>grid-cols-12</code>, <code>col-span-*</code>).
+          </>
+        ),
+      },
+      {
+        name: "project shortcuts (stack, row, split)",
+        badge: "project vocabulary",
+        description: (
+          <>
+            Not preset utilities — a project declares its own compositions
+            in <code>spin.vite({"{"} shortcuts {"}"})</code> (the worked
+            example lives on <A href="/docs/getting-started/install#config">Install</A>),
+            and <code>spin/closed-vocabulary</code> flags any undeclared name.
           </>
         ),
       },
@@ -267,13 +243,14 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
         ),
       },
       {
-        name: "font-<weight> / tracking-<step> / overline",
+        name: "font-<weight> / tracking-<step>",
         badge: "weight & tracking",
         description: (
           <>
             Spends <code>font.weight.*</code> and{" "}
-            <code>font.letter-spacing.*</code>; <code>overline</code> composes{" "}
-            <code>text-xs font-semibold uppercase tracking-wider text-text-muted</code>.
+            <code>font.letter-spacing.*</code>. (<code>overline</code> is the
+            static <code>text-decoration: overline</code> utility — Tailwind
+            vocabulary, not a caption composition.)
           </>
         ),
       },
@@ -459,11 +436,18 @@ export default function Catalog(): JSX.Element {
     }).filter((g) => g.rules.length > 0);
   });
 
-  const shortcutEntries = createMemo(() =>
-    Object.entries(spinShortcuts as Record<string, string>).sort(([a], [b]) =>
-      a.localeCompare(b),
-    ),
-  );
+  const projectShortcuts: readonly PropEntry[] = [
+    {
+      name: "stack / stack-xs / stack-sm / stack-lg",
+      badge: "project shortcut",
+      description: <code>flex flex-col</code>,
+    },
+    {
+      name: "row / row-sm / split",
+      badge: "project shortcut",
+      description: <code>flex items-center (+ justify-between on split)</code>,
+    },
+  ];
 
   return (
     <main class="flex flex-col">
@@ -492,18 +476,15 @@ export default function Catalog(): JSX.Element {
         )}
       </For>
 
-      <Section id="shortcuts-table" title="Complete spinShortcuts expansions">
+      <Section id="shortcuts-table" title="Project shortcuts, not preset utilities">
         <p class="max-w-prose">
-          Exact utility expansion for every shortcut exported by{" "}
-          <code>spinShortcuts</code> in <code>@spinjs/spin/preset</code>:
+          Spin ships no compositions of its own. The rows below are the ones
+          this docs site declares in its own <code>vite.config.ts</code> via{" "}
+          <code>spin.vite({"{"} shortcuts {"}"})</code> — the worked example
+          on <A href="/docs/getting-started/install#config">Install</A>. Your
+          project declares its own the same way.
         </p>
-        <PropList
-          items={shortcutEntries().map(([name, expansion]) => ({
-            name,
-            badge: "shortcut",
-            description: <code>{expansion}</code>,
-          }))}
-        />
+        <PropList items={projectShortcuts} />
       </Section>
     </main>
   );

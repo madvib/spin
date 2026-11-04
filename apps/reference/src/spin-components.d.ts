@@ -5,8 +5,10 @@
  */
 export {};
 
+declare module "spin/styles.css";
+declare module "spin.css";
+declare module "uno.css";
 declare module "spin/components";
-
 /** What every project component accepts: a ref, common attributes, and machine props. */
 interface SpinProjectComponentAttributes {
   ref?: HTMLElement | ((el: HTMLElement) => void);
@@ -20,16 +22,64 @@ interface SpinProjectComponentAttributes {
 
 declare global {
   interface HTMLElementTagNameMap {
+    "alert": HTMLElement & SpinProjectComponentAttributes;
+    "badge": HTMLElement & SpinProjectComponentAttributes;
+    "breadcrumbs": HTMLElement & SpinProjectComponentAttributes;
+    "card": HTMLElement & SpinProjectComponentAttributes;
+    "card-action": HTMLElement & SpinProjectComponentAttributes;
+    "card-content": HTMLElement & SpinProjectComponentAttributes;
+    "card-description": HTMLElement & SpinProjectComponentAttributes;
+    "card-figure": HTMLElement & SpinProjectComponentAttributes;
+    "card-footer": HTMLElement & SpinProjectComponentAttributes;
+    "card-header": HTMLElement & SpinProjectComponentAttributes;
+    "card-title": HTMLElement & SpinProjectComponentAttributes;
+    "checkbox": HTMLElement & SpinProjectComponentAttributes;
+    "field": HTMLElement & SpinProjectComponentAttributes;
+    "icon": HTMLElement & SpinProjectComponentAttributes;
+    "join": HTMLElement & SpinProjectComponentAttributes;
+    "panel": HTMLElement & SpinProjectComponentAttributes;
+    "panel-list": HTMLElement & SpinProjectComponentAttributes;
+    "prose": HTMLElement & SpinProjectComponentAttributes;
+    "radio": HTMLElement & SpinProjectComponentAttributes;
+    "range": HTMLElement & SpinProjectComponentAttributes;
     "reference-angle-slider-basic": HTMLElement & SpinProjectComponentAttributes;
     "reference-navigation-menu-basic": HTMLElement & SpinProjectComponentAttributes;
+    "skeleton": HTMLElement & SpinProjectComponentAttributes;
+    "stat": HTMLElement & SpinProjectComponentAttributes;
+    "swatch": HTMLElement & SpinProjectComponentAttributes;
+    "tooltip": HTMLElement & SpinProjectComponentAttributes;
   }
 }
 
 declare module "solid-js" {
   namespace JSX {
     interface IntrinsicElements {
+      "alert": SpinProjectComponentAttributes;
+      "badge": SpinProjectComponentAttributes;
+      "breadcrumbs": SpinProjectComponentAttributes;
+      "card": SpinProjectComponentAttributes;
+      "card-action": SpinProjectComponentAttributes;
+      "card-content": SpinProjectComponentAttributes;
+      "card-description": SpinProjectComponentAttributes;
+      "card-figure": SpinProjectComponentAttributes;
+      "card-footer": SpinProjectComponentAttributes;
+      "card-header": SpinProjectComponentAttributes;
+      "card-title": SpinProjectComponentAttributes;
+      "checkbox": SpinProjectComponentAttributes;
+      "field": SpinProjectComponentAttributes;
+      "icon": SpinProjectComponentAttributes;
+      "join": SpinProjectComponentAttributes;
+      "panel": SpinProjectComponentAttributes;
+      "panel-list": SpinProjectComponentAttributes;
+      "prose": SpinProjectComponentAttributes;
+      "radio": SpinProjectComponentAttributes;
+      "range": SpinProjectComponentAttributes;
       "reference-angle-slider-basic": SpinProjectComponentAttributes;
       "reference-navigation-menu-basic": SpinProjectComponentAttributes;
+      "skeleton": SpinProjectComponentAttributes;
+      "stat": SpinProjectComponentAttributes;
+      "swatch": SpinProjectComponentAttributes;
+      "tooltip": SpinProjectComponentAttributes;
     }
   }
 }

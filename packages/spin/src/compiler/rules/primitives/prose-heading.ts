@@ -7,14 +7,7 @@
  * document.
  */
 
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  spacing,
-  statedType,
-  type Tokens,
-} from "./shared.ts";
+import { proseTokens, spacing, statedType, type Tokens } from "./shared.ts";
 import type { Rule } from "@unocss/core";
 
 /**
@@ -36,7 +29,6 @@ import type { Rule } from "@unocss/core";
  * it takes it at, and the face the six share.
  */
 function headingRule(
-  mode: Mode,
   tag: string,
   type: (t: Tokens) => Record<string, string | undefined>,
 ): Rule {
@@ -47,7 +39,7 @@ function headingRule(
       const own = statedType(ctx, tag);
       const family = own.family ?? t.heading;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => tag,
         ...(family !== undefined ? { "font-family": family } : {}),
         ...spacing(t),
         ...(t.spacing4 !== undefined
@@ -64,9 +56,9 @@ function headingRule(
   ];
 }
 
-function headingRules(mode: Mode): Rule[] {
+function headingRules(): Rule[] {
   return [
-    headingRule(mode, "h1", (t) => ({
+    headingRule("h1", (t) => ({
       ...(t.size3xl !== undefined ? { "font-size": t.size3xl } : {}),
       ...(t.weightBold !== undefined ? { "font-weight": t.weightBold } : {}),
       "line-height": "1.2",
@@ -75,7 +67,7 @@ function headingRules(mode: Mode): Rule[] {
       // larger than the shared spacing.
       ...(t.spacing4 !== undefined ? { "margin-block-end": t.spacing4 } : {}),
     })),
-    headingRule(mode, "h2", (t) => ({
+    headingRule("h2", (t) => ({
       ...(t.size2xl !== undefined ? { "font-size": t.size2xl } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
@@ -83,28 +75,28 @@ function headingRules(mode: Mode): Rule[] {
       "line-height": "1.3",
       "letter-spacing": "-0.01em",
     })),
-    headingRule(mode, "h3", (t) => ({
+    headingRule("h3", (t) => ({
       ...(t.sizeXl !== undefined ? { "font-size": t.sizeXl } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
       "line-height": "1.4",
     })),
-    headingRule(mode, "h4", (t) => ({
+    headingRule("h4", (t) => ({
       ...(t.sizeLg !== undefined ? { "font-size": t.sizeLg } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
       "line-height": "1.4",
     })),
-    headingRule(mode, "h5", (t) => ({
+    headingRule("h5", (t) => ({
       ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
       "line-height": "1.5",
     })),
-    headingRule(mode, "h6", (t) => ({
+    headingRule("h6", (t) => ({
       ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }

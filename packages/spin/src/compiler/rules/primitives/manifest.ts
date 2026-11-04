@@ -1168,25 +1168,6 @@ export const primitiveContracts: Record<string, PrimitiveContract> = {
     component: [],
   },
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* --------------------------------------------------------------- readers --
 
 /**

@@ -10,7 +10,6 @@ import { parseTokens, starterThemes } from "@spinjs/spin/theme";
 import {
   describeCatalog,
   SECTIONS,
-  spinShortcuts,
   utilitiesFor,
 } from "@spinjs/spin/preset";
 import { animationContract } from "@spinjs/spin/animation";
@@ -135,7 +134,7 @@ function buildLlmsTxt(): string {
     "",
     "1. **Theme owns every visual value (`spin/*.json`).** Never write `.css` files, `<style>` blocks, inline `style={{}}`, or arbitrary bracket utilities (`w-[320px]`, `bg-[#fff]`).",
     "2. **Classless elements first.** Use `<button>` (neutral), `<button class=\"primary\">` (CTA), `.secondary`, `.outline`, `.ghost`, `.danger`, `.bare`, `<input>`, `<select>`, `<textarea>`, `<label>`, `<field>`, `<card>` (`<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`), `<panel>`, `<dialog>`, `<table>`, `<badge variant=\"primary\">`, `<alert variant=\"info\">`. Never re-declare styles the element already owns (`spin/no-redundant-class`, `spin/prefer-theme-value`).",
-    "3. **Layout shortcuts & paired inks.** Use `stack`, `stack-xs`, `stack-sm`, `stack-lg`, `row`, `split`, `cluster`, `inline`, `overline`. Pair every fill with its semantic ink (`bg-primary text-on-primary`, `bg-semantic-success text-on-semantic-success`). Dark mode is automatic via `[data-mode=\"dark\"]` — never write `dark:*` classes.",
+    "3. **Layout compositions & paired inks.** Declare the compositions your app repeats in `spin.vite({ shortcuts: { ... } })` (the worked example lives on `/docs/getting-started/install#config`) — the preset ships none. Pair every fill with its semantic ink (`bg-primary text-on-primary`, `bg-semantic-success text-on-semantic-success`). Dark mode is automatic via `[data-mode=\"dark\"]` — never write `dark:*` classes.",
     "4. **Interactive widgets via `@spinjs/components`.** Never hand-roll custom select, combobox, tabs, dialog, menu, popover, or date-picker widgets. Run `npx spin component list` and `npx spin component copy <name> <example>`, then bind with `createSpinComponent` / `useSpinComponent`.",
     "5. **Verify before finishing.** Run `npx spin lint .` and `npx spin theme analyze` (or use the `spin` MCP server tools in `.mcp.json`).",
     "",
@@ -518,10 +517,6 @@ function buildStylingMarkdown(routePath: string): string | undefined {
       utils.map((u) => `\`${u}\``).join(", "),
     ].join("\n");
   }).join("\n\n");
-  const shortcuts = Object.entries(spinShortcuts as Record<string, string>)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([name, expansion]) => `- \`${name}\` → \`${expansion}\``)
-    .join("\n");
   const animations = animationContract.variants
     .map((v) => `\`${v}\``)
     .join(", ");
@@ -530,9 +525,15 @@ function buildStylingMarkdown(routePath: string): string | undefined {
     "",
     sections,
     "",
-    "## Shipped Layout & Typography Shortcuts",
+    "## Project Shortcuts (Not Shipped)",
     "",
-    shortcuts,
+    "Spin ships no shortcuts of its own. Declare compositions in your",
+    "project's `spin.vite({ shortcuts: { ... } })` — the worked example lives",
+    "on `/docs/getting-started/install#config`. The docs site declares:",
+    "",
+    ...Object.entries(docsShortcuts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, expansion]) => `- \`${name}\` → \`${expansion}\``),
     "",
     "## Animation Utilities (`@spinjs/spin/animation`)",
     "",
@@ -657,6 +658,26 @@ function markdownForAgents(): Plugin {
   };
 }
 
+/**
+ * The docs' own compositions.
+ *
+ * Spin ships none of its own, so the docs declare the compositions their
+ * pages repeat: the vertical stacks and the horizontal rows their examples
+ * lay out in. The lint reads this file, so a class the docs declare is a
+ * class the lint knows.
+ */
+const docsShortcuts: Record<string, string> = {
+  /** A column of items with a consistent gap. */
+  "stack-sm": "flex flex-col gap-2",
+  "stack-xs": "flex flex-col gap-1",
+  stack: "flex flex-col gap-4",
+  /** A horizontal row of items. */
+  "row-sm": "flex items-center gap-2",
+  row: "flex items-center gap-4",
+  /** A row that gives its ends to their owners. */
+  split: "flex items-center justify-between gap-4",
+};
+
 export default defineConfig({
   plugins: [
     jibeIsolation(),
@@ -665,6 +686,7 @@ export default defineConfig({
     markdownForAgents(),
     spin.vite({
       extends: { themes: starterThemes },
+      shortcuts: docsShortcuts,
       presets: [presetIcons({ collections: { lucide } as never })],
       content: {
         filesystem: [

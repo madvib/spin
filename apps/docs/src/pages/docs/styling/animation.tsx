@@ -27,7 +27,7 @@ const TRANSITION_SNIPPET = `<!-- State transitions spend motion.duration.* and m
 
 <!-- Entry and loop keyframes from @spinjs/spin/animation -->
 <card class="animate-fade-in">
-  <div class="row">
+  <div class="flex items-center gap-4">
     <span class="i-lucide-loader icon-sm animate-spin text-primary" aria-hidden="true"></span>
     <span>Deploying preview...</span>
   </div>
@@ -156,7 +156,7 @@ export default function StylingAnimation(): JSX.Element {
         </p>
         <div class="grid gap-4 md:grid-cols-2">
           <div class="flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <p class="overline">Available animate-* classes</p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">Available animate-* classes</p>
             <div class="flex flex-wrap gap-2">
               <For each={animationContract.variants}>
                 {(variant) => (
@@ -175,7 +175,7 @@ export default function StylingAnimation(): JSX.Element {
               </For>
             </div>
             <div class="border-t border-border pt-3">
-              <p class="overline">CSS custom properties read</p>
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">CSS custom properties read</p>
               <div class="mt-2 flex flex-wrap gap-1">
                 <For each={animationContract.reads}>
                   {(token) => <Chip>--{token}</Chip>}

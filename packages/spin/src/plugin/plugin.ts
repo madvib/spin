@@ -491,8 +491,9 @@ export interface SpinPluginOptions {
    */
   readonly primitives?: string[] | boolean;
   /**
-   * Whether primitives claim their elements by tag. Default true; forwarded
-   * to the preset. Setting false makes the primitive classes explicit.
+   * Whether custom elements claim their bare tags. Default true; forwarded
+   * to the preset. Setting false makes custom-element classes explicit
+   * (`class="button"`); reset and prose type stay on their tags either way.
    */
   readonly classless?: boolean;
   /** Safelist the catalog so a utility named only as data still resolves. */

@@ -67,6 +67,9 @@ export default defineConfig({
   themesDir: "spin",
   componentsDir: "lib/components",
   prefix: "app",
+  shortcuts: {
+    "page-shell": "mx-auto w-full max-w-screen-lg px-6 py-10",
+  },
   classless: true,
   studio: true,
 });`,
@@ -88,5 +91,5 @@ export default defineConfig({
     }
   }
 }`,
-  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/*.json tokens, classless elements (<card>, <button class="primary">, <input>), and layout shortcuts (stack, row, split); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
+  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/*.json tokens, classless elements (<card>, <button class="primary">, <input>), and project-declared compositions (spin.vite({ shortcuts })); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
 } as const;

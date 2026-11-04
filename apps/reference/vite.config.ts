@@ -14,6 +14,25 @@ const here = import.meta.dirname!;
  * specifier table — no app keeps a copy of the resolution.
  */
 
+/**
+ * The reference's own compositions.
+ *
+ * Spin ships none of its own, so the reference declares the compositions
+ * its surfaces repeat. The lint reads this file, so a class the reference
+ * declares is a class the lint knows.
+ */
+const referenceShortcuts: Record<string, string> = {
+  /** A column of items with a consistent gap. */
+  "stack-sm": "flex flex-col gap-2",
+  "stack-xs": "flex flex-col gap-1",
+  stack: "flex flex-col gap-4",
+  /** A horizontal row of items. */
+  "row-sm": "flex items-center gap-2",
+  row: "flex items-center gap-4",
+  /** A row that gives its ends to their owners. */
+  split: "flex items-center justify-between gap-4",
+};
+
 export default defineConfig({
   plugins: [
     solid(),
@@ -23,6 +42,7 @@ export default defineConfig({
       // in the studio re-themes this app. Starters arrive as values
       // through `extends`, never by silent merge.
       extends: { themes: starterThemes },
+      shortcuts: referenceShortcuts,
       presets: [presetIcons({ collections: { lucide } as never })],
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the

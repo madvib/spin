@@ -21,6 +21,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { classTokens, expandVariantGroups, parse } from "../packages/runtime/src/syntax/index.ts";
 import { spinPreset } from "../packages/spin/src/compiler/index.ts";
 import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
+import { spinCompositions } from "../packages/spin/src/compositions.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [
@@ -88,7 +89,7 @@ const ANIMATED = animationVariants();
 const SCOPED = new Set(["spin-preview"]);
 const uno = await createGenerator({
   presets: [
-    spinPreset({ themes: starterThemes }),
+    spinPreset({ themes: starterThemes, shortcuts: { ...spinCompositions } }),
     presetIcons({ collections: { lucide } as never }),
   ],
 });

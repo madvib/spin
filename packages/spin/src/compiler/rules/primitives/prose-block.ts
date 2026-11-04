@@ -16,14 +16,8 @@
  * neither wins by source order.
  */
 
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  spacing,
-  statedType,
-} from "./shared.ts";
-import { painted } from "./scope.ts";
+import { proseTokens, spacing, statedType } from "./shared.ts";
+import { paintedTag } from "./scope.ts";
 import type { Rule } from "@unocss/core";
 
 /**
@@ -34,17 +28,17 @@ import type { Rule } from "@unocss/core";
  * unchanged by where it sits, so scoping the document does not quietly
  * change which of two rules wins.
  */
-function block(mode: Mode, tag: string): string {
-  return painted(mode, "prose", "descendant", tag);
+function block(tag: string): string {
+  return paintedTag("prose", "descendant", tag);
 }
 
-function bodyRule(mode: Mode): Rule {
+function bodyRule(): Rule {
   return [
     /^body$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => painted(mode, "body", "global", "body"),
+        [ctx.symbols.selector]: () => paintedTag("body", "global", "body"),
         ...(t.body !== undefined ? { "font-family": t.body } : {}),
         ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
         "line-height": "1.5",
@@ -69,14 +63,14 @@ function bodyRule(mode: Mode): Rule {
  * answer, and where the theme gives one it replaces what the paragraph would
  * otherwise read. What it leaves out, the paragraph reads as it always has.
  */
-function paragraphRule(mode: Mode): Rule {
+function paragraphRule(): Rule {
   return [
     /^p$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const own = statedType(ctx, "p");
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "p"),
+        [ctx.symbols.selector]: () => "p",
         "line-height": "1.65",
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
@@ -89,13 +83,13 @@ function paragraphRule(mode: Mode): Rule {
 }
 
 /** A list: the shared spacing, and an indent the markers hang off. */
-function listRule(mode: Mode, tag: string): Rule {
+function listRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => tag,
         ...spacing(t),
         "line-height": "1.65",
         "list-style-type": tag === "ol" ? "decimal" : "disc",
@@ -115,8 +109,8 @@ function listRule(mode: Mode, tag: string): Rule {
  * follows, so the reach is written once. A sibling is not an ancestor, so the
  * rule paints list items wherever they are — the spacing is the theme's.
  */
-function listItemRule(mode: Mode): Rule {
-  const li = claim(mode, "li");
+function listItemRule(): Rule {
+  const li = "li";
   return [
     /^li$/,
     function* (_m, ctx) {
@@ -132,12 +126,12 @@ function listItemRule(mode: Mode): Rule {
   ];
 }
 
-function definitionListRule(mode: Mode): Rule {
+function definitionListRule(): Rule {
   return [
     /^dl$/,
     function* (_m, ctx) {
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "dl"),
+        [ctx.symbols.selector]: () => "dl",
         ...spacing(proseTokens(ctx)),
       };
     },
@@ -145,13 +139,13 @@ function definitionListRule(mode: Mode): Rule {
   ];
 }
 
-function termRule(mode: Mode): Rule {
+function termRule(): Rule {
   return [
     /^dt$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "dt"),
+        [ctx.symbols.selector]: () => "dt",
         ...(t.weightSemibold !== undefined
           ? { "font-weight": t.weightSemibold }
           : {}),
@@ -161,13 +155,13 @@ function termRule(mode: Mode): Rule {
   ];
 }
 
-function definitionRule(mode: Mode): Rule {
+function definitionRule(): Rule {
   return [
     /^dd$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "dd"),
+        [ctx.symbols.selector]: () => "dd",
         ...(t.spacing4 !== undefined
           ? { "margin-inline-start": t.spacing4 }
           : {}),
@@ -196,8 +190,8 @@ function definitionRule(mode: Mode): Rule {
  * The footer that carries the attribution is reached through the quotation,
  * so an ordinary `<footer>` elsewhere is not styled as one.
  */
-function blockquoteRule(mode: Mode): Rule {
-  const inset = block(mode, "blockquote");
+function blockquoteRule(): Rule {
+  const inset = block("blockquote");
   return [
     /^blockquote$/,
     function* (_m, ctx) {
@@ -205,7 +199,7 @@ function blockquoteRule(mode: Mode): Rule {
       const own = statedType(ctx, "blockquote");
       const family = own.family ?? t.serif;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "blockquote"),
+        [ctx.symbols.selector]: () => "blockquote",
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
@@ -222,7 +216,7 @@ function blockquoteRule(mode: Mode): Rule {
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {
-        [ctx.symbols.selector]: () => `${inset} :is(${claim(mode, "footer")})`,
+        [ctx.symbols.selector]: () => `${inset} :is(footer)`,
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
@@ -234,16 +228,16 @@ function blockquoteRule(mode: Mode): Rule {
 }
 
 /** The block family, in emission order. See `proseRules` on why. */
-export function blockRules(mode: Mode): Rule[] {
+export function blockRules(): Rule[] {
   return [
-    paragraphRule(mode),
-    listRule(mode, "ul"),
-    listRule(mode, "ol"),
-    listItemRule(mode),
-    definitionListRule(mode),
-    termRule(mode),
-    definitionRule(mode),
-    blockquoteRule(mode),
+    paragraphRule(),
+    listRule("ul"),
+    listRule("ol"),
+    listItemRule(),
+    definitionListRule(),
+    termRule(),
+    definitionRule(),
+    blockquoteRule(),
   ];
 }
 

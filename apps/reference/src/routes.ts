@@ -33,5 +33,6 @@ export const MONTAGE_ROUTE = "/themes";
 export const APP_ROUTES: readonly AppRoute[] = [
   { hash: "/components", expectHeading: "Primitives" },
   { hash: "/utilities", expectHeading: null },
+  { hash: "/classless-off", expectHeading: "Classless off" },
   { hash: MONTAGE_ROUTE, expectHeading: "Themes" },
 ];

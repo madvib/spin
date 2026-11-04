@@ -164,3 +164,17 @@ export function painted(
   if (where !== "descendant") return `:is(${subject})`;
   return `:where(${claim(mode, self)}) :is(${subject})`;
 }
+
+/**
+ * The base claim: prose is base, not a toggleable component, so its selectors
+ * are always tags. Same shaping as {@link painted} — the `:where()` keeps the
+ * descendant reach from adding weight — without the classless toggle.
+ */
+export function paintedTag(
+  self: string,
+  where: Placement,
+  tag: string,
+): string {
+  if (where !== "descendant") return `:is(${tag})`;
+  return `:where(${self}) :is(${tag})`;
+}

@@ -76,6 +76,30 @@ test("a class the project does not declare is still reported", () => {
   deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
 });
 
+test("a bare composition name the project does not declare is unknown", () => {
+  // The preset ships no compositions: `stack` in a project that declares no
+  // shortcuts is an unknown class, and the rule carries the removal edit
+  // when the adapter supplies token offsets.
+  const facts = factsFor(
+    Object.values(starterThemes),
+    new Set(),
+    shortcutsIn(`export default { plugins: [] };`),
+  );
+  const findings = checkClosedVocabulary(facts, {
+    tag: "div",
+    classes: ["stack"],
+    position: { line: 1, column: 1 },
+    tokens: [
+      { name: "stack", range: [13, 18], spaceAfter: false, spaceBefore: false },
+    ],
+  });
+  deepStrictEqual(
+    findings.map((finding) => finding.data["cls"] ?? ""),
+    ["stack"],
+  );
+  deepStrictEqual(findings[0]?.fix, { range: [13, 18], text: "" });
+});
+
 test("a shortcut that spends a class the theme cannot make is reported", () => {
   // `gap-72` is a step no theme carries: the shortcut would style nothing,
   // and that is worth saying where the shortcut is used.
@@ -130,7 +154,7 @@ spin.vite({ shortcuts: studioShortcuts });`,
   }
 });
 
-test("a project that declares no shortcuts adds nothing to the product's set", async () => {
+test("a project that declares no shortcuts adds no vocabulary", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     await mkdir(`${root}/src`);
@@ -140,8 +164,8 @@ test("a project that declares no shortcuts adds nothing to the product's set", a
     );
     deepStrictEqual(Object.keys(readProjectShortcuts(root).shortcuts).length, 0);
     const facts = factsForFile(`${root}/src/page.tsx`);
-    // The standard compositions ship with the preset; the project added none.
-    deepStrictEqual(reported(facts, "stack panel"), []);
+    // Nothing declared, nothing added: a composition name is unknown.
+    deepStrictEqual(reported(facts, "stack"), ["stack"]);
     deepStrictEqual(reported(facts, "not-a-shortcut"), ["not-a-shortcut"]);
   } finally {
     await rm(root, { recursive: true });

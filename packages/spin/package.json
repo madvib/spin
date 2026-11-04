@@ -27,6 +27,10 @@
       "types": "./src/diagnostics/index.ts",
       "default": "./src/diagnostics/index.ts"
     },
+    "./compositions": {
+      "types": "./src/compositions.ts",
+      "default": "./src/compositions.ts"
+    },
     "./cli": {
       "types": "./src/diagnostics/cli.ts",
       "default": "./src/diagnostics/cli.ts"
@@ -215,6 +219,10 @@
       "./oxlint": {
         "types": "./dist/diagnostics/index.d.ts",
         "default": "./dist/diagnostics/index.js"
+      },
+      "./compositions": {
+        "types": "./dist/compositions.d.ts",
+        "default": "./dist/compositions.js"
       },
       "./cli": {
         "types": "./dist/diagnostics/cli.d.ts",

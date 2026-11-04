@@ -7,17 +7,21 @@ Importing `spin/styles.css` compiles your `spin/*.json` theme into four ordered 
 1. **`reset`** (`-100`) — `box-sizing: border-box`, `border-width: 0`, and `[hidden] { display: none !important }`.
 2. **`theme`** (`-90`) — `:root`, `[data-theme]`, and `[data-mode]` CSS custom properties, `@font-face` declarations from `$extensions.spin.fonts`, `body` defaults, and the `prefers-reduced-motion: reduce` clamp.
 3. **`primitives`** (`-50`) — element rules for interactive controls, containers, feedback, and typography (`<button>`, `<card>`, `<field>`, `<table>`, `<prose>`).
-4. **`default` (utilities)** (`0`) — closed-scale utility classes (`p-4`, `bg-surface-raised`, `rounded-md`) and layout shortcuts (`stack`, `row`, `split`, `cluster`).
+4. **`default` (utilities)** (`0`) — closed-scale utility classes (`p-4`, `bg-surface-raised`, `rounded-md`). Your project's own compositions (`spin.vite({ shortcuts: { ... } })`) compile into this layer too.
 
 Because `default` (`0`) sits above `primitives` (`-50`) in the cascade, **any utility class cleanly overrides a primitive's default styling** (`<card class="p-6 bg-surface-sunken">`) without specificity wars, `!important`, or runtime class-merging utilities like `twMerge`.
 
-## Tag or class (`classless` is a preference)
+## Tag or class (`classless` toggles custom elements, never prose)
 
-Every primitive rule can match either the **element tag** (`<button>`, `<table>`, `<card>`) or an **explicit class** (`.button`, `.table`, `.card`):
+Three layers, from unconditional to opted-in: the reset is tokenless and
+always ships; the base carries the document type (`h1`–`h6`, `p`, lists,
+quotations, code) on its tags whatever the toggle says; the toggleable
+custom elements (`button`, `table`, `card`) claim their bare tags by default
+and only their classes with `classless: false`.
 
-- **`classless: true` (default):** Bare semantic HTML tags and Spin custom elements carry their primitive styling automatically.
-- **`classless: false`:** Bare HTML tags remain unstyled until you opt in with `class="button"`, `class="table"`, `class="card"` — useful when adopting Spin incrementally inside an existing application.
-- **`primitives: [...]` or `false`:** Ship only a subset of primitive rules, or pass `false` for a utility-only stylesheet.
+- **`classless: true` (default):** Bare semantic HTML tags and Spin custom elements carry their styling automatically.
+- **`classless: false`:** Custom elements stay unstyled until you name them with `class="button"`, `class="table"`, `class="card"` — useful when adopting Spin inside an existing application. Prose (`h1`, `p`, `ul`, `blockquote`, `code`) keeps its tags: document type is base, not a preference.
+- **`primitives: [...]` or `false`:** Ship only a subset of custom-element rules, or pass `false` for a utility-only stylesheet that still carries the base type.
 
 ```ts
 // vite.config.ts
@@ -27,9 +31,9 @@ import { spin } from "@spinjs/spin/vite";
 export default defineConfig({
   plugins: [
     spin.vite({
-      // Default is true (<button>, <table>). Set false to require .button, .table:
+      // Custom elements only — prose keeps its tags either way:
       classless: false,
-      // Or restrict which primitive rules are emitted:
+      // Or restrict which custom-element rules are emitted:
       primitives: ["button", "card", "field", "table"],
     }),
   ],
@@ -40,12 +44,8 @@ export default defineConfig({
 
 Primitives keep everyday markup terse by expressing emphasis, tone, and size directly on the element:
 
-- **Neutral default `<button>`:** A bare `<button>` renders with a neutral raised surface (`bg-surface-raised`) so toolbar and secondary actions never compete with your primary call to action. Add `.primary`, `.secondary`, `.contrast`, `.outline`, `.ghost`, or `.danger` to set emphasis, and `.s-sm` or `.s-lg` to change size.
-- **Status tones (`variant="..."`):** Feedback primitives (`<badge>`, `<alert>`) take a `variant` attribute (`variant="primary"`, `variant="success"`, `variant="warning-muted"`, `variant="error"`) or the matching class (`.badge-primary`, `.alert-info`).
-- **Stripping chrome with `.bare`:** When a `<button>` serves as a custom interactive trigger (such as a tab, accordion header, or unstyled icon button) that needs native `<button>` semantics and keyboard handling without button paint, border, shadow, or minimum height, add `class="bare"`.
-
 ```html
-<div class="row">
+<div class="flex items-center gap-4">
   <button type="button" class="primary">Save changes</button>
   <button type="button">Neutral default</button>
   <button type="button" class="secondary">Secondary</button>
@@ -54,7 +54,7 @@ Primitives keep everyday markup terse by expressing emphasis, tone, and size dir
   <button type="button" class="danger">Delete</button>
 </div>
 
-<div class="row">
+<div class="flex items-center gap-4">
   <button type="button" class="primary s-sm">Small</button>
   <button type="button" class="primary s-lg">Large</button>
   <button type="button" class="bare inline-flex items-center gap-1 text-sm text-text-muted hover:text-text">
@@ -63,11 +63,12 @@ Primitives keep everyday markup terse by expressing emphasis, tone, and size dir
 </div>
 ```
 
+
 ## Compound element anatomy
 
 Container primitives coordinate spacing, borders, and typography across their child parts so you don't have to wire utility classes on every wrapper:
 
-- **`<card>`:** Works standalone as a padded surface (`<card class="stack">...</card>`) or structured with `<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`, and `<card-figure>`.
+- **`<card>`:** Works standalone as a padded surface or structured with `<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`, and `<card-figure>`.
 - **`<field>` (preventing double-boxed inputs):** Native `<input>`, `<select>`, and `<textarea>` elements already carry their own border, padding, and `bg-field` background. When grouping an input with a leading icon, prefix, or inline button, wrap them in `<field>` — the outer `<field>` claims the single border and focus ring instead of drawing a box inside a box.
 - **`<prose>`:** Opt-in typographic measure and vertical rhythm (`<prose>` or `.prose`) for long-form copy and rendered Markdown (`<h1>`–`<h6>`, `<p>`, `<ul>`, `<ol>`, `<blockquote>`, `<code>`, `<pre>`).
 
@@ -80,7 +81,7 @@ Container primitives coordinate spacing, borders, and typography across their ch
       <badge variant="success">Active</badge>
     </card-action>
   </card-header>
-  <card-content class="stack-sm">
+  <card-content class="flex flex-col gap-2">
     <label for="webhook-url">Webhook endpoint</label>
     <field>
       <span class="i-lucide-webhook icon-sm text-text-muted" aria-hidden="true"></span>

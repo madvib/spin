@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
-import { claim, type Mode, proseTokens, statedType } from "./shared.ts";
-import { painted } from "./scope.ts";
+import { proseTokens, statedType } from "./shared.ts";
+import { paintedTag } from "./scope.ts";
 import { token } from "../../utils/lookup.ts";
 
 /**
@@ -25,8 +25,8 @@ import { token } from "../../utils/lookup.ts";
  * nothing gets the browser's own underline; a theme that writes zero marks
  * the link by colour alone, and the hover brings the underline back.
  */
-function linkRule(mode: Mode): Rule {
-  const a = claim(mode, "a");
+function linkRule(): Rule {
+  const a = "a";
   return [
     /^a$/,
     function* (_m, ctx) {
@@ -75,7 +75,7 @@ function linkRule(mode: Mode): Rule {
   ];
 }
 
-function weightRule(mode: Mode, tag: string): Rule {
+function weightRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
@@ -83,7 +83,7 @@ function weightRule(mode: Mode, tag: string): Rule {
       const own = statedType(ctx, tag);
       const weight = own.weight ?? t.weightBold;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => tag,
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
@@ -93,7 +93,7 @@ function weightRule(mode: Mode, tag: string): Rule {
   ];
 }
 
-function smallRule(mode: Mode): Rule {
+function smallRule(): Rule {
   return [
     /^small$/,
     function* (_m, ctx) {
@@ -101,7 +101,7 @@ function smallRule(mode: Mode): Rule {
       const own = statedType(ctx, "small");
       const size = own.size ?? t.sizeXs;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "small"),
+        [ctx.symbols.selector]: () => "small",
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
@@ -112,13 +112,13 @@ function smallRule(mode: Mode): Rule {
   ];
 }
 
-function subRule(mode: Mode, tag: string): Rule {
+function subRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, tag),
+        [ctx.symbols.selector]: () => tag,
         ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
       };
     },
@@ -127,12 +127,12 @@ function subRule(mode: Mode, tag: string): Rule {
 }
 
 /** An abbreviation: the dotted underline is what says "there is an expansion". */
-function abbrRule(mode: Mode): Rule {
+function abbrRule(): Rule {
   return [
     /^abbr$/,
     function* (_m, ctx) {
       yield {
-        [ctx.symbols.selector]: () => `${claim(mode, "abbr")}[title]`,
+        [ctx.symbols.selector]: () => "abbr[title]",
         "text-decoration": "underline dotted",
         cursor: "help",
       };
@@ -141,14 +141,14 @@ function abbrRule(mode: Mode): Rule {
   ];
 }
 
-function markRule(mode: Mode): Rule {
+function markRule(): Rule {
   return [
     /^mark$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () =>
-          painted(mode, "prose", "descendant", "mark"),
+          paintedTag("prose", "descendant", "mark"),
         ...(t.spacing1 !== undefined
           ? { padding: `0 calc(${t.spacing1} / 2)` }
           : {}),
@@ -163,14 +163,14 @@ function markRule(mode: Mode): Rule {
   ];
 }
 
-function insRule(mode: Mode): Rule {
+function insRule(): Rule {
   return [
     /^ins$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () =>
-          painted(mode, "prose", "descendant", "ins"),
+          paintedTag("prose", "descendant", "ins"),
         "text-decoration": "underline",
         // The hue marks the insertion in the underline; the TEXT keeps the
         // ink. A semantic colour as text is a fill's pairing worn on a
@@ -186,14 +186,14 @@ function insRule(mode: Mode): Rule {
   ];
 }
 
-function delRule(mode: Mode): Rule {
+function delRule(): Rule {
   return [
     /^del$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
         [ctx.symbols.selector]: () =>
-          painted(mode, "prose", "descendant", "del"),
+          paintedTag("prose", "descendant", "del"),
         "text-decoration": "line-through",
         ...(t.error !== undefined ? { "text-decoration-color": t.error } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
@@ -203,18 +203,17 @@ function delRule(mode: Mode): Rule {
   ];
 }
 
-export function inlineRules(roots: readonly string[], mode: Mode): Rule[] {
-  if (!roots.includes("prose")) return [];
+export function inlineRules(): Rule[] {
   return [
-    linkRule(mode),
-    weightRule(mode, "strong"),
-    weightRule(mode, "b"),
-    smallRule(mode),
-    subRule(mode, "sub"),
-    subRule(mode, "sup"),
-    abbrRule(mode),
-    markRule(mode),
-    insRule(mode),
-    delRule(mode),
+    linkRule(),
+    weightRule("strong"),
+    weightRule("b"),
+    smallRule(),
+    subRule("sub"),
+    subRule("sup"),
+    abbrRule(),
+    markRule(),
+    insRule(),
+    delRule(),
   ];
 }

@@ -159,7 +159,8 @@ const PLUGIN_OPTIONS: readonly PropEntry[] = [
   {
     name: "shortcuts",
     badge: "Record<string, string>",
-    description: "Project-specific utility compositions layered on top of spinShortcuts.",
+    description:
+      "Your project's own utility compositions, e.g. { \"page-shell\": \"mx-auto w-full max-w-screen-lg px-6 py-10\" }. The preset ships none.",
   },
   {
     name: "primitives",
@@ -171,7 +172,7 @@ const PLUGIN_OPTIONS: readonly PropEntry[] = [
     name: "classless",
     badge: "boolean",
     defaultValue: "true",
-    description: "When true, element rules style bare tags (<button>, <table>); when false, they require explicit classes (.button, .table).",
+    description: "When true, custom elements style bare tags (<button>, <table>); when false, they require explicit classes (.button, .table). Prose (h1, p, lists) keeps its tags either way.",
   },
   {
     name: "icons",

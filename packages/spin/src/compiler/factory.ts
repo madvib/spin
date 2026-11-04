@@ -23,7 +23,6 @@ import { resolveThemes } from "../plugin/session.ts";
 import { buildPreflights } from "./preflights.ts";
 import { spinRules } from "./rules/index.ts";
 import { transitionDurations } from "./rules/transitions.ts";
-import { spinShortcuts } from "./shortcuts.ts";
 import {
   classObjectExtractor,
   elementExtractor,
@@ -59,41 +58,39 @@ export interface SpinPresetOptions {
    * `<button>` a finished control instead of a raw element.
    *
    * Pass `false` for a utility-only build, or a list to opt in per component.
+   * `false` drops the toggleable custom elements but keeps the base: reset
+   * (tokenless, unconditional) and type (`h1`–`h6`, `p`, lists, quotations,
+   * code) still ship, matching `documentDefaults`.
    */
   primitives?: string[] | boolean;
   /**
-   * Whether a primitive may claim a bare element, or only a classed one.
+   * Whether a custom element may claim its bare tag, or only its class.
    *
-   * The primitives are classless by default: `<button>` is a button, and a
-   * `<table>` is styled without a class. That is the whole premise, and it is
-   * what makes the surface pleasant to write.
+   * Three layers, from unconditional to opted-in: the reset is tokenless and
+   * always ships; the base carries the document type (`h1`–`h6`, `p`, lists,
+   * quotations, code) on its tags whatever this says; the toggleable custom
+   * elements (`button`, `card`, `field`, `table`) claim their bare tags by
+   * default and only their classes with `classless: false`.
    *
-   * It is also a strong claim on someone else's markup. A consumer with a
-   * document they do not control — a CMS, a third-party embed, a codebase
-   * mid-migration — cannot afford every `<table>` in the page being restyled
-   * by their build tool. Setting `classless: false` makes each primitive claim
-   * only its own class: `class="button"`, `class="table"`. The components are
-   * still available and still shaken; they simply ask to be named.
-   *
-   * This is the escape hatch for a primitive's opinions, and it is one option
-   * rather than a class per component — a consumer opts out of the classless
-   * claim once, not once per opinion they disagree with.
+   * The toggle is for someone else's markup — a CMS, a third-party embed, a
+   * codebase mid-migration — where every `<table>` restyled by the build
+   * tool is a surprise. Setting `classless: false` leaves prose styled by
+   * its tags and makes each custom element ask to be named
+   * (`class="button"`, `class="table"`). The components are still available
+   * and still shaken; they simply ask to be named.
    */
   classless?: boolean;
   /**
-   * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
+   * The project's own compositions — Uno's `shortcuts` option, unchanged.
    *
-   * A shortcut is a named composition: one class that stands for a set of
-   * utilities. Spin does not forbid a project from composing its own
-   * vocabulary — the layout an app repeats is the app's decision, not the
-   * framework's — and the VALUES still come from the theme: a shortcut that
-   * spends `gap-4` spends the theme's spacing step, so a theme that prefers
-   * roomier sections sets it once and every shortcut follows.
-   *
-   * The product's own compositions — `stack`, `row`, `split`, `panel`,
-   * `overline` and their steps — ship with the preset. A project's shortcuts
-   * are layered on top, so a name can be specialised but never has to be
-   * restated.
+   * A composition is a named bundle of utilities: one class that stands for
+   * a set the app repeats. Spin ships none of its own — the compositions an
+   * app repeats are the app's decision, so they live in the app's build
+   * configuration (`spin.vite({ shortcuts: { ... } })`; the install page
+   * shows the worked example) — and the VALUES still come from the theme: a
+   * composition that spends `gap-4` spends the theme's spacing step, so a
+   * theme that prefers roomier sections sets it once and every composition
+   * follows.
    */
   readonly shortcuts?: UserShortcuts;
 }
@@ -163,12 +160,11 @@ export function createSpinFactory(
         name: "spin",
         theme,
         variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
-        // The product's own compositions, and the project's on top. The
-        // standard ones — `stack`, `row`, `split`, `panel`, `overline` — are
-        // the preset's vocabulary, so every app that draws a page reads the
-        // same set whether or not its config names them. A project's own ride
-        // the preset too, so everything that wires spin carries them.
-        shortcuts: { ...spinShortcuts, ...options.shortcuts },
+        // The project's own compositions, and only those. Spin ships no
+        // shortcuts of its own: a class the project's config declares is a
+        // class the project produces, and uno's `shortcuts` option is how
+        // the project declares them.
+        shortcuts: { ...options.shortcuts },
         // The element extractor turns `<button>` into the token `button`, so a
         // classless primitive is styled by its tag. It ships with the preset
         // because a classless primitive needs it; it never touches classes.

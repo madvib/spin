@@ -113,7 +113,7 @@ const pluginOptions = (): readonly PropEntry[] => [
     name: "shortcuts",
     badge: "Record<string, string>",
     description:
-      "Project-level utility compositions read by both UnoCSS and spin lint.",
+      "Your project's own utility compositions — the preset ships none. The worked example lives on Install & Bundlers.",
   },
   {
     name: "content",
@@ -138,8 +138,9 @@ const pluginOptions = (): readonly PropEntry[] => [
     defaultValue: "true",
     description: (
       <>
-        Whether primitives style native HTML tags directly. Set{" "}
-        <code>false</code> to require explicit classes.
+        Whether custom elements style bare tags directly. Set{" "}
+        <code>false</code> to require explicit classes — prose keeps its
+        tags either way.
       </>
     ),
   },

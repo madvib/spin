@@ -199,6 +199,89 @@ const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
  */
 const FEATURED: readonly string[] = ["button", "card", "alert"];
 
+/**
+ * The `classless: false` probe page (`#/classless-off`).
+ *
+ * Renders the prose specimen and one custom-element specimen side by side,
+ * with the classless-off sheet injected beside the app sheet. The probe
+ * reads both served stylesheets (`document.styleSheets`): prose selectors
+ * must match between them (tags in both), while the custom elements render
+ * unstyled until named. The specimens carry `data-probe` hooks so the
+ * check asserts presence, not pixels.
+ */
+function ClasslessOffPage() {
+  const [offCss, setOffCss] = createSignal<string | null>(null);
+  createEffect(() => {
+    let alive = true;
+    import("./classless-sheet.ts").then(async ({ classlessOffSheet }) => {
+      const css = await classlessOffSheet();
+      if (!alive) return;
+      const style = document.createElement("style");
+      style.dataset.probe = "classless-off";
+      style.textContent = css;
+      document.head.appendChild(style);
+      setOffCss(css);
+      return () => style.remove();
+    });
+    return () => {
+      alive = false;
+      document
+        .querySelectorAll('style[data-probe="classless-off"]')
+        .forEach((node) => node.remove());
+    };
+  });
+  return (
+    <>
+      <header class="mb-8">
+        <h2>Classless off</h2>
+        <p class="max-w-screen-md text-md text-text-muted">
+          Prose keeps its tags; custom elements ask to be named.
+        </p>
+      </header>
+      <div data-probe="prose-specimen">
+        <h1>Column title</h1>
+        <p>Column body: prose reads the same with the toggle off.</p>
+        <ul>
+          <li>One</li>
+          <li>Two</li>
+        </ul>
+        <blockquote>
+          <p>A quotation keeps its voice and its inset.</p>
+        </blockquote>
+        <pre>
+          <code>code()</code>
+        </pre>
+      </div>
+      <div data-probe="custom-specimen">
+        <button type="button">Unnamed button (unstyled)</button>
+        <button type="button" class="button primary">
+          Named button (styled)
+        </button>
+      </div>
+      <div data-probe="sheet-status" style="display:none">{offCss() === null ? "loading" : "ready"}</div>
+      <div data-probe="sheet-report" style="display:none">{offCss() === null ? "" : reportFor(offCss()!)}</div>
+    </>
+  );
+}
+
+/**
+ * The per-sheet report the browser check reads: prose tags present, no
+ * `.h1`-style classes, card flipped to its class — for THIS sheet alone
+ * (the app sheet beside it still carries the bare-tag rules).
+ */
+function reportFor(css: string): string {
+  const prose = ["h1", "p", "ul", "blockquote", "code", "prose"].map((tag) => {
+    const tagOk = new RegExp(`(^|[\\s,{])${tag}\\{`).test(css);
+    const classBad = new RegExp(`\\.${tag}(?![a-zA-Z0-9_-])`).test(css);
+    return `${tag}:${tagOk && !classBad ? "ok" : "BAD"}`;
+  });
+  const card = /\.card(?![a-zA-Z0-9_-])/.test(css) &&
+      !/(^|[\s,{])card\{/.test(css)
+    ? "card:ok"
+    : "card:BAD";
+  return [...prose, card].join(" ");
+}
+
 function PrimitivePage(props: { id: string; onLoad?: string }) {
   const fixture = createMemo(() =>
     PRIMITIVES.find((r) => r.id === props.id) ??
@@ -690,8 +773,11 @@ export default function App() {
   const utilities = createMemo(() => route().startsWith("/utilities"));
   const sectionId = createMemo(() => routeSection(route()));
   const montage = createMemo(() => route().startsWith(MONTAGE_ROUTE));
+  const classlessOff = createMemo(() => route() === "/classless-off");
   const landing = createMemo(
-    () => primitiveId() === undefined && !utilities() && !montage(),
+    () =>
+      primitiveId() === undefined && !utilities() && !montage() &&
+      !classlessOff(),
   );
 
   return (
@@ -726,6 +812,9 @@ export default function App() {
           </Show>
           <Show when={montage()}>
             <MontagePage />
+          </Show>
+          <Show when={classlessOff()}>
+            <ClasslessOffPage />
           </Show>
         </main>
       </div>

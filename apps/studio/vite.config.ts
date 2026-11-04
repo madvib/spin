@@ -10,11 +10,23 @@ import studioTheme from "./theme.json" with { type: "json" };
 /**
  * The studio's own compositions.
  *
- * The standard ones — `stack`, `row`, `split`, `panel`, `overline` — ship
- * with the preset, so every app that draws a page reads the same set. What is
- * here is the studio's own: the two drawer regions and the preview's scope.
+ * Spin ships none of its own, so the studio declares the compositions its
+ * chrome repeats: the vertical stacks, the compact rows, the split bars, and
+ * the two drawer regions plus the preview's scope. The lint reads this file,
+ * so a class the studio declares is a class the lint knows.
  */
 const studioShortcuts = {
+  /** A column of items with a consistent gap (roomiest step). */
+  "stack-lg": "flex flex-col gap-8",
+  /** A column of items with a consistent gap. */
+  "stack-sm": "flex flex-col gap-2",
+  "stack-xs": "flex flex-col gap-1",
+  stack: "flex flex-col gap-4",
+  /** A horizontal row of items. */
+  "row-sm": "flex items-center gap-2",
+  row: "flex items-center gap-4",
+  /** A row that gives its ends to their owners. */
+  split: "flex items-center justify-between gap-4",
   /**
    * The page's region: the room the shell gives it.
    *
@@ -87,10 +99,11 @@ export default defineConfig(({ command }) => ({
       // themes are injected at runtime by the preview surface, so editing one
       // cannot restyle the tool doing the editing.
       themes: { studio: studioTheme },
-      // The compositions the studio's own pages share. They are the
-      // studio's vocabulary, so they are declared here and nowhere else —
-      // and the lint reads them from this file, so a class the studio
-      // declares is a class the lint knows.
+      // The compositions the studio's own pages share (plus two drawer
+      // regions and the preview's scope). They are the studio's vocabulary,
+      // so they are declared here and nowhere else — and the lint reads
+      // them from this file, so a class the studio declares is a class
+      // the lint knows.
       shortcuts: studioShortcuts,
       // The studio mounts its own API for dev, and must not then inject a
       // launcher into itself: that is a FAB opening the studio over the studio.

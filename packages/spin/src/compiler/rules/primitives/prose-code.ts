@@ -1,12 +1,6 @@
 import type { Rule } from "@unocss/core";
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  spacing,
-  statedType,
-} from "./shared.ts";
-import { painted } from "./scope.ts";
+import { proseTokens, spacing, statedType } from "./shared.ts";
+import { paintedTag } from "./scope.ts";
 
 /**
  * The code family: `code`, `samp`, `pre`.
@@ -23,7 +17,7 @@ import { painted } from "./scope.ts";
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
-function codeRule(mode: Mode): Rule {
+function codeRule(): Rule {
   return [
     /^code$/,
     function* (_m, ctx) {
@@ -32,7 +26,7 @@ function codeRule(mode: Mode): Rule {
       const family = own.family ?? t.mono;
       const size = own.size ?? t.sizeSm;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "code"),
+        [ctx.symbols.selector]: () => "code",
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
@@ -49,13 +43,13 @@ function codeRule(mode: Mode): Rule {
 }
 
 /** Program output: the mono face, no chip — it is a run of text, not a token. */
-function sampRule(mode: Mode): Rule {
+function sampRule(): Rule {
   return [
     /^samp$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "samp"),
+        [ctx.symbols.selector]: () => "samp",
         ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
         ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
       };
@@ -77,14 +71,14 @@ function sampRule(mode: Mode): Rule {
  * document's furniture, and the inline chip is undone inside it: a block is
  * not a stack of chips.
  */
-function preRule(mode: Mode): Rule {
-  const chrome = painted(mode, "prose", "descendant", "pre");
+function preRule(): Rule {
+  const chrome = paintedTag("prose", "descendant", "pre");
   return [
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "pre"),
+        [ctx.symbols.selector]: () => "pre",
         // The mono face is what makes a block code; the SIZE is the author's.
         // A pinned font-size here beat every text utility on the same element
         // at equal specificity, so a consumer could not size their own code
@@ -108,7 +102,7 @@ function preRule(mode: Mode): Rule {
       };
       // A block is not a stack of inline chips.
       yield {
-        [ctx.symbols.selector]: () => `${chrome} :is(${claim(mode, "code")})`,
+        [ctx.symbols.selector]: () => `${chrome} :is(code)`,
         padding: "0",
         "background-color": "transparent",
       };
@@ -117,11 +111,6 @@ function preRule(mode: Mode): Rule {
   ];
 }
 
-export function codeRules(roots: readonly string[], mode: Mode): Rule[] {
-  if (!roots.includes("prose")) return [];
-  return [
-    codeRule(mode),
-    sampRule(mode),
-    preRule(mode),
-  ];
+export function codeRules(): Rule[] {
+  return [codeRule(), sampRule(), preRule()];
 }

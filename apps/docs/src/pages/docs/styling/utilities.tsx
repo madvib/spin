@@ -1,11 +1,10 @@
 /**
  * Utilities & Layout: closed-scale utility classes, editor/linter tooling,
- * paired semantic fills & inks, layout shortcuts, and spacing scale.
+ * paired semantic fills & inks, project compositions, and spacing scale.
  */
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { spinShortcuts } from "@spinjs/spin/preset";
 import { Markdown } from "../../../markdown.tsx";
 import {
   Chip,
@@ -16,6 +15,37 @@ import {
   type PropEntry,
 } from "../../../ui/index.ts";
 import cssMd from "../../../content/css-edges.md?raw";
+
+/**
+ * The compositions the docs declare in `vite.config.ts` — the worked
+ * example the install page shows, kept beside the pages that use it.
+ */
+const PROJECT_COMPOSITIONS: readonly PropEntry[] = [
+  {
+    name: "stack / stack-xs / stack-sm / stack-lg",
+    badge: "project shortcut",
+    description: (
+      <>
+        Vertical flex column (<code>flex flex-col</code>) with{" "}
+        <code>gap-4</code> (<code>stack</code>), <code>gap-1</code> (
+        <code>stack-xs</code>), <code>gap-2</code> (<code>stack-sm</code>),
+        or <code>gap-8</code> (<code>stack-lg</code>).
+      </>
+    ),
+  },
+  {
+    name: "row / row-sm / split",
+    badge: "project shortcut",
+    description: (
+      <>
+        Centered horizontal flex row (<code>flex items-center</code>) with{" "}
+        <code>gap-4</code> (<code>row</code>) or <code>gap-2</code> (
+        <code>row-sm</code>); <code>split</code> adds{" "}
+        <code>justify-between</code>.
+      </>
+    ),
+  },
+];
 
 const PAIRED_ROLES: readonly {
   readonly label: string;
@@ -74,18 +104,6 @@ const PAIRED_ROLES: readonly {
 ];
 
 export default function StylingUtilities(): JSX.Element {
-  const shortcutItems = (): readonly PropEntry[] =>
-    Object.entries(spinShortcuts as Record<string, string>)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([name, expansion]) => ({
-        name,
-        badge: "shortcut",
-        description: (
-          <>
-            Expands to <code>{expansion}</code>
-          </>
-        ),
-      }));
 
   const spacing = (): readonly string[] =>
     Object.keys(
@@ -104,7 +122,7 @@ export default function StylingUtilities(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Utilities & Layout"
-        lede="Token-backed utility classes, paired fills and inks, layout shortcuts, and how Spin's editor tooling catches unknown classes before you leave your editor."
+        lede="Token-backed utility classes, paired fills and inks, project compositions, and how Spin's editor tooling catches unknown classes before you leave your editor."
       />
       <Markdown text={cssMd} />
 
@@ -133,12 +151,17 @@ export default function StylingUtilities(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="shortcuts" title="Shipped shortcuts, live">
+      <Section id="shortcuts" title="Project shortcuts, live">
         <p class="max-w-prose">
-          Every entry in <code>spinShortcuts</code>, read directly from{" "}
-          <code>@spinjs/spin/preset</code>:
+          Spin ships no shortcuts of its own. The compositions below are the
+          ones this docs site declares in its own <code>vite.config.ts</code>{" "}
+          via <code>spin.vite({"{"} shortcuts {"}"})</code> — the worked
+          example on <A href="/docs/getting-started/install#config">Install</A>.
+          Your project declares its own the same way, and{" "}
+          <code>spin/closed-vocabulary</code> flags any other composition
+          name as unknown.
         </p>
-        <PropList items={shortcutItems()} />
+        <PropList items={PROJECT_COMPOSITIONS} />
       </Section>
 
       <Section id="spacing" title="Active theme spacing scale">

@@ -741,6 +741,13 @@ function appliesToOne(
   if (guard.combinator === "+" || guard.combinator === "~") return false;
   const guards = subjects(guard.text);
   if (guards.length === 0) return true;
+  // Prose is base: the column is `<prose>`, never `.prose`. A classed
+  // ancestor guards nothing for prose selectors (custom elements keep dual
+  // matching until C3b).
+  const inProseScope = guards.some((name) => name.tag === "prose");
+  if (inProseScope) {
+    return ancestors.some((ancestor) => ancestor.tag === "prose");
+  }
   return guards.some((name) =>
     ancestors.some((ancestor) =>
       ancestor.tag === name.tag || ancestor.classes.includes(name.tag)

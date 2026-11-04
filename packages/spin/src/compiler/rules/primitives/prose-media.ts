@@ -1,12 +1,6 @@
 import type { Rule } from "@unocss/core";
-import {
-  claim,
-  type Mode,
-  proseTokens,
-  spacing,
-  statedType,
-} from "./shared.ts";
-import { painted } from "./scope.ts";
+import { proseTokens, spacing, statedType } from "./shared.ts";
+import { paintedTag } from "./scope.ts";
 
 /**
  * Embedded media: `figure`, `figcaption`, the raster and vector elements, and
@@ -29,17 +23,17 @@ import { painted } from "./scope.ts";
  * document's furniture: the document says how a figure is set, and a figure
  * outside a document column is only a block of flow.
  */
-function figureRule(mode: Mode): Rule {
+function figureRule(): Rule {
   return [
     /^figure$/,
     function* (_m, ctx) {
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "figure"),
+        [ctx.symbols.selector]: () => "figure",
         ...spacing(proseTokens(ctx)),
       };
       yield {
         [ctx.symbols.selector]: () =>
-          painted(mode, "prose", "descendant", "figure"),
+          paintedTag("prose", "descendant", "figure"),
         "margin-inline": "0",
       };
     },
@@ -56,7 +50,7 @@ function figureRule(mode: Mode): Rule {
  * Its PLACE — centred under the figure it belongs to — is the document's
  * furniture, because a caption is centred in a column and nowhere else.
  */
-function figcaptionRule(mode: Mode): Rule {
+function figcaptionRule(): Rule {
   return [
     /^figcaption$/,
     function* (_m, ctx) {
@@ -64,7 +58,7 @@ function figcaptionRule(mode: Mode): Rule {
       const own = statedType(ctx, "figcaption");
       const size = own.size ?? t.sizeSm;
       yield {
-        [ctx.symbols.selector]: () => claim(mode, "figcaption"),
+        [ctx.symbols.selector]: () => "figcaption",
         // The gap the caption leaves under the figure it belongs to: the
         // caption's own spacing, and the theme's.
         ...(t.spacing1 !== undefined
@@ -77,7 +71,7 @@ function figcaptionRule(mode: Mode): Rule {
       };
       yield {
         [ctx.symbols.selector]: () =>
-          painted(mode, "prose", "descendant", "figcaption"),
+          paintedTag("prose", "descendant", "figcaption"),
         "text-align": "center",
       };
     },
@@ -86,13 +80,13 @@ function figcaptionRule(mode: Mode): Rule {
 }
 
 /** Media never overflows its column, and raster/video carry the card's corner. */
-function mediaRule(mode: Mode, tag: string): Rule {
+function mediaRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => painted(mode, "prose", "descendant", tag),
+        [ctx.symbols.selector]: () => paintedTag("prose", "descendant", tag),
         display: "block",
         "max-width": "100%",
         height: "auto",
@@ -105,13 +99,13 @@ function mediaRule(mode: Mode, tag: string): Rule {
   ];
 }
 
-function embeddedRule(mode: Mode, tag: string): Rule {
+function embeddedRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       yield {
-        [ctx.symbols.selector]: () => painted(mode, "prose", "descendant", tag),
+        [ctx.symbols.selector]: () => paintedTag("prose", "descendant", tag),
         display: "block",
         "max-width": "100%",
         ...(t.borderWidth !== undefined && t.border !== undefined
@@ -124,17 +118,16 @@ function embeddedRule(mode: Mode, tag: string): Rule {
   ];
 }
 
-export function mediaRules(roots: readonly string[], mode: Mode): Rule[] {
-  if (!roots.includes("prose")) return [];
+export function mediaRules(): Rule[] {
   return [
-    figureRule(mode),
-    figcaptionRule(mode),
-    mediaRule(mode, "img"),
-    mediaRule(mode, "video"),
-    mediaRule(mode, "canvas"),
-    mediaRule(mode, "svg"),
-    embeddedRule(mode, "iframe"),
-    embeddedRule(mode, "embed"),
-    embeddedRule(mode, "object"),
+    figureRule(),
+    figcaptionRule(),
+    mediaRule("img"),
+    mediaRule("video"),
+    mediaRule("canvas"),
+    mediaRule("svg"),
+    embeddedRule("iframe"),
+    embeddedRule("embed"),
+    embeddedRule("object"),
   ];
 }

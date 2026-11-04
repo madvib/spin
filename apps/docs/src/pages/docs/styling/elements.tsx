@@ -25,8 +25,8 @@ export default function StylingElements(): JSX.Element {
         </p>
         <div class="grid gap-6 md:grid-cols-2">
           <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="stack-sm">
-              <p class="overline">Button variants &amp; .bare</p>
+            <div class="flex flex-col gap-2">
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">Button variants &amp; .bare</p>
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" class="primary">Save changes</button>
                 <button type="button">Neutral</button>
@@ -46,8 +46,8 @@ export default function StylingElements(): JSX.Element {
                 </button>
               </div>
             </div>
-            <div class="stack-xs border-t border-border pt-3">
-              <p class="overline">Status tones</p>
+            <div class="flex flex-col gap-1 border-t border-border pt-3">
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">Status tones</p>
               <div class="flex flex-wrap items-center gap-2">
                 <badge variant="primary">primary</badge>
                 <badge variant="success">success</badge>
@@ -67,7 +67,7 @@ export default function StylingElements(): JSX.Element {
                 <badge variant="success">Active</badge>
               </card-action>
             </card-header>
-            <card-content class="stack-sm">
+            <card-content class="flex flex-col gap-2">
               <label for="demo-webhook-url">Webhook endpoint</label>
               <field>
                 <span

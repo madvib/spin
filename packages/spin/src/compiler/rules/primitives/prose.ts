@@ -1,7 +1,14 @@
-import { claim, type Mode } from "./shared.ts";
+import type { Rule } from "@unocss/core";
 
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.
+ *
+ * Prose is BASE, not a toggleable component: document type ships
+ * unconditionally and never gates on the classless toggle. Type and reset
+ * are document furniture, not a toggleable component — turning `classless`
+ * off unstyles custom elements (`button`, `card`) but leaves `h1`–`h6`,
+ * `p`, lists, quotations, code, rules and media styled by their tags,
+ * everywhere they are written. There are no `.h1` classes.
  *
  * The element vocabulary of a document — headings, paragraphs, lists,
  * quotations, code, rules, media — each styled by the rule keyed on its tag.
@@ -39,7 +46,6 @@ import { headingRules } from "./prose-heading.ts";
 import { inlineRules } from "./prose-inline.ts";
 import { mediaRules } from "./prose-media.ts";
 import { codeRules } from "./prose-code.ts";
-import type { Rule } from "@unocss/core";
 
 /**
  * The prose component's rules, in emission order.
@@ -48,28 +54,30 @@ import type { Rule } from "@unocss/core";
  * overlapping selectors, and the sheet's order decides which wins when
  * specificity ties. Splitting the rule bodies out by family kept this
  * composition — and therefore that order — exactly as it was.
+ *
+ * Unconditional: prose is base. Callers always include it; the shake (a
+ * document with only `<p>` emits only the paragraph rule) is per-tag, not
+ * per-component, so unused elements still emit nothing.
  */
-export function proseRules(roots: readonly string[], mode: Mode): Rule[] {
-  if (!roots.includes("prose")) return [];
+export function proseRules(): Rule[] {
   return [
-    bodyRule(mode),
-    proseContainerRule(mode),
-    ...headingRules(mode),
-    ...blockRules(mode),
-    ...codeRules(roots, mode),
-    ...inlineRules(roots, mode),
-    ...mediaRules(roots, mode),
+    bodyRule(),
+    proseContainerRule(),
+    ...headingRules(),
+    ...blockRules(),
+    ...codeRules(),
+    ...inlineRules(),
+    ...mediaRules(),
   ];
 }
 
 /** The opt-in column: a measure, and a spacing that sits flush at its edges. */
-function proseContainerRule(mode: Mode): Rule {
-  const prose = claim(mode, "prose");
+function proseContainerRule(): Rule {
   return [
     /^prose$/,
     function* (_m, ctx) {
       yield {
-        [ctx.symbols.selector]: () => prose,
+        [ctx.symbols.selector]: () => "prose",
         display: "block",
         // The measure. `ch` scales with the face, so a theme that changes the
         // body face keeps the line length it meant.
@@ -78,11 +86,11 @@ function proseContainerRule(mode: Mode): Rule {
       // The spacing is stated between blocks, not around them: the first block
       // starts flush with the container and the last ends flush with it.
       yield {
-        [ctx.symbols.selector]: () => `${prose} > :first-child`,
+        [ctx.symbols.selector]: () => "prose > :first-child",
         "margin-block-start": "0",
       };
       yield {
-        [ctx.symbols.selector]: () => `${prose} > :last-child`,
+        [ctx.symbols.selector]: () => "prose > :last-child",
         "margin-block-end": "0",
       };
     },

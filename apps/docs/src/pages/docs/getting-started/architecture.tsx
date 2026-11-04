@@ -22,10 +22,11 @@ const layerItems = (): readonly PropEntry[] => [
     badge: "spin lint",
     description: (
       <>
-        Handles layout and composition using only steps declared in your theme (
-        <code>stack</code>, <code>row</code>, <code>split</code>,{" "}
-        <code>p-4</code>, <code>gap-2</code>). Unrecognized classes and
-        arbitrary brackets emit zero CSS and fail <code>spin lint</code>. See{" "}
+        The compositions your project declares in{" "}
+        <code>spin.vite({"{"} shortcuts {"}"})</code> handle layout repetition
+        using only steps declared in your theme (<code>p-4</code>,{" "}
+        <code>gap-2</code>). Unrecognized classes and arbitrary brackets emit
+        zero CSS and fail <code>spin lint</code>. See{" "}
         <A href="/docs/styling/utilities">Utilities &amp; Layout</A>.
       </>
     ),

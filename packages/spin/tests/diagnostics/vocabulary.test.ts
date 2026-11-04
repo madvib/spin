@@ -2,6 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import type { ThemeDocument } from "../../src/theme/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
+import { shortcutsIn } from "../../src/project/index.ts";
 import {
   checkClosedVocabulary,
   type ClassFacts,
@@ -89,18 +90,25 @@ test("a scale step the starters declare is part of the vocabulary", () => {
   );
 });
 
-test("the product's own compositions are vocabulary without a project declaration", () => {
-  // `stack`, `row`, `split` and `overline` ship with the preset, so a
-  // project writes them without declaring them. A lint that called them
-  // unknown would flag the product's own pages.
-  const facts = factsFor(Object.values(starterThemes));
-  deepStrictEqual(
-    reported(
-      facts,
-      "stack stack-sm stack-lg row row-sm split overline cluster",
-    ),
-    [],
+test("a composition the project does not declare is unknown", () => {
+  // The preset ships no compositions, so `stack` is unknown unless the
+  // project declares it — and what the project declares is what is known.
+  // `overline` stays known regardless: it is a static text-decoration
+  // utility (Tailwind vocabulary), not a composition.
+  const declared = projectFacts(
+    { acme: projectTheme() },
+    new Set(),
+    shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-4" } })`),
   );
+  deepStrictEqual(reported(declared, "stack"), []);
+  const bare = projectFacts({ acme: projectTheme() }, new Set());
+  deepStrictEqual(reported(bare, "stack row split cluster"), [
+    "stack",
+    "row",
+    "split",
+    "cluster",
+  ]);
+  deepStrictEqual(reported(bare, "overline"), []);
 });
 
 test("with no project theme, the starters' vocabulary applies", () => {

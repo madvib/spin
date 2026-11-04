@@ -23,8 +23,8 @@ const CARD = `
       <badge variant="primary">Admin</badge>
     </card-action>
   </card-header>
-  <card-content class="stack-sm">
-    <div class="stack-xs">
+  <card-content class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
       <label for="guest">Work email</label>
       <input id="guest" type="email" placeholder="ada@acme.dev" />
     </div>
@@ -75,7 +75,7 @@ const DIALOG = `
     </button>
   </card-footer>
   <dialog>
-    <form method="dialog" class="stack">
+    <form method="dialog" class="flex flex-col gap-4">
       <header>
         <h2>Confirm deployment</h2>
       </header>

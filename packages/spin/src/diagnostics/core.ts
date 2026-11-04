@@ -982,21 +982,29 @@ function ownersOf(facts: Facts, node: ClassFacts): ScopeFact[] {
 /**
  * Whether the element is the one the scope paints.
  *
- * By tag, or by the class the primitive claims it with: the same primitive
- * in its classless form claims `<card>` and in its class form claims
- * `.card`, and the lint does not know which mode a project runs.
+ * Prose is base, not a toggleable component: prose scopes match by tag
+ * only. There are no `.h1` classes — a `class="h1"` on any element is
+ * content, never a subject claim. Custom-element dual matching (tag or
+ * the primitive's own class) stays until C3b makes mode-awareness
+ * deliberate.
  */
 function isSubject(scope: ScopeFact, node: ClassFacts): boolean {
+  if (scope.primitive === "prose") {
+    return node.tag !== undefined && node.tag === scope.tag;
+  }
   if (node.tag !== undefined && node.tag === scope.tag) return true;
   return node.classes.includes(scope.tag);
 }
 
 /**
  * Whether the element sits inside the primitive's own element.
+ *
+ * Prose is base: the column is `<prose>`, never `.prose` (see `isSubject`).
  */
 function insideScope(scope: ScopeFact, node: ClassFacts): boolean {
   for (const ancestor of node.ancestors ?? []) {
     if (ancestor.tag !== undefined && ancestor.tag === scope.self) return true;
+    if (scope.primitive === "prose") continue;
     if (ancestor.classes.includes(scope.self)) return true;
   }
   return false;

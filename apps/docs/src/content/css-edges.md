@@ -38,14 +38,14 @@ Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or an
 - **Interactive states:** `hover:`, `focus:`, `focus-visible:`, `active:`, `disabled:`, `aria-[current]:`, `data-[state=open]:`, `group-hover:`, `peer-hover:`
 - **Responsive breakpoints:** `sm:`, `md:`, `lg:`, `xl:` — generated directly from your theme's `breakpoint.*` tokens (`@media (min-width: ...)`).
 
-## Custom project shortcuts
+## Project shortcuts
 
-In addition to the shipped `spinShortcuts` listed below, you can declare project-specific utility compositions in `spin.vite({ shortcuts: { ... } })`. Both the stylesheet compiler and `spin/closed-vocabulary` read `shortcuts` from your bundler config, and `spin lint` verifies that every utility inside your custom shortcut exists in your theme:
+Spin ships no shortcuts of its own. Declare the compositions your app repeats in `spin.vite({ shortcuts: { ... } })` — the worked example lives on [Install &amp; Bundlers](/docs/getting-started/install#config). Both the stylesheet compiler and `spin/closed-vocabulary` read `shortcuts` from your bundler config, and `spin lint` verifies that every utility inside your custom shortcut exists in your theme:
 
 ```ts
 spin.vite({
   shortcuts: {
-    "page-shell": "mx-auto w-full max-w-screen-lg px-6 py-10 stack-lg",
+    "page-shell": "mx-auto w-full max-w-screen-lg px-6 py-10",
   },
 });
 ```

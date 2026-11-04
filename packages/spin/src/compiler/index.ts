@@ -49,7 +49,6 @@ export {
   setOverlay,
 } from "../plugin/session.ts";
 export { toUnoTheme, type UnoTheme } from "./uno.ts";
-export { spinShortcuts } from "./shortcuts.ts";
 export { requiredRolesFor, scaffold, scaffoldDocument } from "./roles.ts";
 export { presetContract, presetRouter } from "./contract.ts";
 export { overlayContract, overlayRouter } from "./overlay.ts";

@@ -95,14 +95,30 @@ test("a project without shortcuts composes nothing of its own", async () => {
   );
 });
 
-test("the standard compositions ship with the preset", async () => {
+test("the preset ships no compositions of its own", async () => {
   const css = await sheet(
     { themes: { light: theme } },
-    '<div class="stack-sm split overline"></div>',
+    '<div class="stack-sm split"></div>',
   );
-  assert(declarationsOf(css, ".stack-sm").includes("gap:var(--spacing-2)"));
-  assert(
-    declarationsOf(css, ".split").includes("justify-content:space-between"),
+  deepStrictEqual(
+    css.includes(".stack-sm{"),
+    false,
+    "an undeclared composition generated a rule",
   );
-  assert(declarationsOf(css, ".overline").includes("text-transform:uppercase"));
+  deepStrictEqual(
+    css.includes(".split{"),
+    false,
+    "an undeclared composition generated a rule",
+  );
+});
+
+test("a name the project declares wins over nothing shipped", async () => {
+  const css = await sheet(
+    {
+      themes: { light: theme },
+      shortcuts: { stack: "flex flex-col gap-8" },
+    },
+    '<div class="stack"></div>',
+  );
+  assert(declarationsOf(css, ".stack").includes("gap:var(--spacing-8)"));
 });

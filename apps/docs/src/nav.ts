@@ -136,7 +136,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Utilities",
         href: "/docs/styling/utilities",
-        summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and layout shortcuts.",
+        summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and project compositions.",
       },
       {
         title: "Animations",

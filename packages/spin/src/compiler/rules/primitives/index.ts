@@ -64,7 +64,7 @@ export function primitiveRules(
     ...disclosureRules(roots, mode),
     ...fieldsetRules(roots, mode),
     ...progressRules(roots, mode),
-    ...proseRules(roots, mode),
+    ...proseRules(),
     ...joinRules(roots, mode),
     ...hrRules(roots, mode),
     ...kbdRules(roots, mode),

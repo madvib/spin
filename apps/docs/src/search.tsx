@@ -4,9 +4,8 @@
  *
  * The index is built once at module load from the same sources the pages
  * read — the nav groups, the preset's manifest and examples, the
- * organization sections and shortcuts, and the theme's role declarations —
- * so a result cannot name a page, component, or token the site does not
- * have.
+ * organization sections, and the theme's role declarations — so a result
+ * cannot name a page, component, or token the site does not have.
  */
 import {
   createEffect,
@@ -21,7 +20,6 @@ import {
   examplesFor,
   primitiveContracts,
   SECTIONS,
-  spinShortcuts,
 } from "@spinjs/preset";
 import { BASE_ROLES } from "@spinjs/spin/theme";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
@@ -90,9 +88,6 @@ function buildIndex(): readonly SearchEntry[] {
       href: "/docs/styling/catalog",
       category: "Utility",
     });
-  }
-  for (const name of Object.keys(spinShortcuts)) {
-    out.push({ title: name, href: "/docs/styling/catalog", category: "Utility" });
   }
   for (const role of BASE_ROLES) {
     out.push({
