@@ -31,6 +31,7 @@ import {
   TEXT_DECORATION,
   TEXT_TRANSFORMS,
   TRACKING,
+  LEADING,
   TRANSITION_PROPERTY,
   USER_SELECT,
   VISIBILITY,
@@ -192,6 +193,12 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
     Object.entries(TEXT_ALIGN).map(([name, value]) => [
       name,
       { "text-align": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(LEADING).map(([name, value]) => [
+      name,
+      { "line-height": value },
     ]),
   ),
   ...Object.fromEntries(

@@ -11,7 +11,7 @@ const machine = treeView({
   <span class="mb-4 block text-md font-semibold text-text"
     {...machine.getLabelProps()}>Project Files</span>
   <div
-    class="stack-xs rounded-lg border border-solid border-border bg-surface-raised p-3"
+    class="flex flex-col gap-1 rounded-lg border border-solid border-border bg-surface-raised p-3"
     {...machine.getTreeProps()}>
     <template for={machine.getVisibleRows()} as={row} key={row.node.value}>
       <div class="relative" {...machine.getItemProps(row)}>

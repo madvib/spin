@@ -414,7 +414,7 @@ export default function ComponentPage() {
                           <div class="flex flex-wrap gap-1">
                             <For each={names}>
                               {(name) => (
-                                <code class="rounded-sm border border-border bg-surface px-1 py-0.5 font-mono text-xs text-text">
+                                <code class="rounded-sm border border-border bg-surface px-1 py-0 font-mono text-xs text-text">
                                   {name}
                                 </code>
                               )}

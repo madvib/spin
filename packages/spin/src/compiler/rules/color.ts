@@ -35,7 +35,9 @@ function colorOf(
     const base = name.slice(0, slash);
     const pct = Number(name.slice(slash + 1));
     if (base !== "" && Number.isFinite(pct) && pct >= 0 && pct <= 100) {
-      const path = named(ctx, "color", base);
+      const path = base === "current"
+        ? "currentColor"
+        : named(ctx, "color", base);
       if (path) return { [property]: `color-mix(in srgb, ${path} ${pct}%, transparent)` };
     }
     return undefined;
@@ -44,6 +46,12 @@ function colorOf(
   if (path) return { [property]: path };
   if ((COLOR_KEYWORDS as readonly string[]).includes(name)) {
     return { [property]: name };
+  }
+  // The kebab spelling Tailwind authors reach for: `border-current`
+  // is `currentColor`, and `border-current/20` thins it the way any
+  // alpha suffix thins a color.
+  if (name === "current") {
+    return { [property]: "currentColor" };
   }
   return undefined;
 }

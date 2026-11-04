@@ -515,7 +515,7 @@ function TextTransformControl(props: {
       id={props.id}
       role="group"
       aria-label={props.label ?? "Text transform"}
-      class="row-xs items-center rounded-md border border-border bg-surface p-1"
+      class="row-sm items-center rounded-md border border-border bg-surface p-1"
     >
       <For each={TEXT_TRANSFORM_OPTIONS}>
         {(option) => {
@@ -658,7 +658,7 @@ function RangeControl(props: {
             }}
           />
         </Show>
-        <div class="row-xs shrink-0 items-center">
+        <div class="row-sm shrink-0 items-center">
           <button
             id={props.id === undefined ? undefined : `${props.id}-dec`}
             type="button"

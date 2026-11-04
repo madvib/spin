@@ -503,7 +503,7 @@ function EasingChart(props: {
                   onClick={() => setSelected(lane.path)}
                 >
                   <span
-                    class="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border px-2.5 py-1.5"
+                    class="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border px-2 py-2"
                     classList={{
                       "border-accent bg-surface": active()?.path === lane.path,
                       "border-transparent": active()?.path !== lane.path,

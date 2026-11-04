@@ -37,6 +37,10 @@ const OPTIONS: SpinPluginOptions = {
   prefix: "acme",
   themesDir: "spin-nonexistent",
   safelist: false,
+  // These builds assert sheet content, not class discipline: they run
+  // with a fixture theme over the whole monorepo, so the class gate
+  // would judge every surface by one fixture's vocabulary.
+  strictClasses: false,
 };
 
 interface Stage {
@@ -141,6 +145,7 @@ describe("every bundler shape", () => {
       extends: { themes: {} },
       themesDir: "spin-nonexistent",
       safelist: false,
+      strictClasses: false,
     }));
     const sheet = stages.find((stage) =>
       stage.name === "spin"

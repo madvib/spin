@@ -439,7 +439,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
           return (
             <div
               class={`
-                absolute rounded-md border border-border px-3 py-1.5 shadow-sm
+                absolute rounded-md border border-border px-3 py-2 shadow-sm
                 ${isWinner() ? "bg-primary" : "bg-surface-raised"}
               `}
               style={{

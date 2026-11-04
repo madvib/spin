@@ -136,6 +136,7 @@ export const WIDTH_KEYWORDS: Record<string, string> = {
   "min": "min-content",
   "max": "max-content",
   "fit": "fit-content",
+  "auto": "auto",
   // The prose measure: the same 65ch the `<prose>` container caps at, so a
   // page's own lede and the markdown beside it share one column.
   "prose": "65ch",
@@ -147,6 +148,7 @@ export const HEIGHT_KEYWORDS: Record<string, string> = {
   "min": "min-content",
   "max": "max-content",
   "fit": "fit-content",
+  "auto": "auto",
 };
 
 export const FLEX_DIRECTIONS: Record<string, string> = {
@@ -255,6 +257,15 @@ export const TEXT_ALIGN: Record<string, string> = {
   "text-center": "center",
   "text-right": "right",
   "text-justify": "justify",
+};
+
+export const LEADING: Record<string, string> = {
+  "leading-none": "1",
+  "leading-tight": "1.25",
+  "leading-snug": "1.375",
+  "leading-normal": "1.5",
+  "leading-relaxed": "1.625",
+  "leading-loose": "2",
 };
 
 export const WHITESPACE: Record<string, string> = {

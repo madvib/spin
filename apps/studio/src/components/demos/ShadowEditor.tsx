@@ -72,7 +72,7 @@ export default function ShadowEditor(props: {
           </>
         }
       >
-        <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
           <span>x</span>
           <input
             type="text"
@@ -82,7 +82,7 @@ export default function ShadowEditor(props: {
             onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
           />
         </label>
-        <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
           <span>y</span>
           <input
             type="text"
@@ -92,7 +92,7 @@ export default function ShadowEditor(props: {
             onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
           />
         </label>
-        <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
           <span>blur</span>
           <input
             type="text"
@@ -104,7 +104,7 @@ export default function ShadowEditor(props: {
             }
           />
         </label>
-        <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
           <span>spread</span>
           <input
             type="text"
@@ -120,7 +120,7 @@ export default function ShadowEditor(props: {
           value={draft().hex}
           onCommit={(hex) => commit({ ...draft(), hex })}
         />
-        <label class="row-xs items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
           <span>α</span>
           <input
             type="text"

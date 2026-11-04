@@ -2,7 +2,8 @@ import { createGenerator, type Preset, type UserShortcuts } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import { createUnplugin, type UnpluginOptions } from "unplugin";
 import { createRequire } from "node:module";
-import { type ContentOptions, joinContent, scanContent } from "./content.ts";
+import { type ContentMap, type ContentOptions, joinContent, scanContent } from "./content.ts";
+import { checkStrictClasses } from "./strict-classes.ts";
 import { describeCatalog } from "../compiler/catalog.ts";
 import { parseTokens, type ThemeDocument } from "../theme/index.ts";
 import {
@@ -496,6 +497,16 @@ export interface SpinPluginOptions {
    * (`class="button"`); reset and prose type stay on their tags either way.
    */
   readonly classless?: boolean;
+  /**
+   * Fail the build on classes the theme cannot produce. Default: a
+   * production build throws and lists every unknown class with the file
+   * that names it; the dev server logs the same payload and keeps
+   * serving. Pass `false` to restore silence exactly. Computed class
+   * names the scanner cannot see are out of scope: only extractor-visible
+   * literals (class attributes, ternary arms, class-list keys) are
+   * checked.
+   */
+  readonly strictClasses?: boolean;
   /** Safelist the catalog so a utility named only as data still resolves. */
   readonly safelist?: boolean;
   /**
@@ -776,6 +787,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
   // is cached and the stylesheet regenerates from it. An overlay change
   // regenerates from the same scan — the content is unchanged, the theme
   // documents behind the rules are not.
+  let cachedFiles: ContentMap | null = null;
   let cachedSources: string | null = null;
   // The default icons preset, built once and shared across generates: the
   // collections are parsed lazily per glyph, so holding one instance costs
@@ -824,9 +836,8 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
       `${componentsDir}/**/*.{html,ts,tsx}`,
     ];
     const include = [...(content.pipeline?.include ?? []), /\.html($|\?)/];
-    cachedSources ??= joinContent(
-      await scanContent({ ...content, filesystem, pipeline: { ...content.pipeline, include } }, root),
-    );
+    cachedFiles ??= await scanContent({ ...content, filesystem, pipeline: { ...content.pipeline, include } }, root);
+    cachedSources ??= joinContent(cachedFiles);
     const safelist = catalogUtilities(resolveThemes(themes));
     // Static: index.ts never imports plugin.ts, so this edge runs one way —
     // the browser graph stays clean because index.ts carries no `node:`.
@@ -847,6 +858,16 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
       safelist: options.safelist === false ? undefined : safelist,
     });
     const scanned = await generator.generate(cachedSources);
+    checkStrictClasses({
+      files: cachedFiles,
+      matched: scanned.matched,
+      themes,
+      shortcuts: options.shortcuts,
+      strict: options.strictClasses,
+      envMode,
+      root,
+      report: (message) => console.warn(message),
+    });
     return scanned.css;
   }
 

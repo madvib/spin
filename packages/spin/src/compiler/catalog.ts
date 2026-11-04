@@ -56,18 +56,31 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "background",
       title: "Background",
-      utilities: prefixed(["bg-"], namesIn(theme, "color")),
+      utilities: [
+        ...prefixed(["bg-"], namesIn(theme, "color")),
+        "bg-transparent",
+        "bg-current",
+        "bg-currentColor",
+      ],
     },
     {
       id: "text-color",
       title: "Text color",
-      utilities: prefixed(["text-"], namesIn(theme, "color")),
+      utilities: [
+        ...prefixed(["text-"], namesIn(theme, "color")),
+        "text-transparent",
+        "text-current",
+        "text-currentColor",
+      ],
     },
     {
       id: "border",
       title: "Border",
       utilities: [
         ...prefixed(["border-"], namesIn(theme, "color")),
+        "border-transparent",
+        "border-current",
+        "border-currentColor",
         ...BORDER_NAMES,
       ],
     },

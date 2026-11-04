@@ -89,13 +89,13 @@ function GridSwitch(props: {
   return (
     <Switch
       fallback={
-        <ul class="grid grid-cols-[repeat(auto-fill,minmax(5.75rem,1fr))] gap-2.5">
+        <ul class="grid grid-cols-[repeat(auto-fill,minmax(5.75rem,1fr))] gap-2">
           <For each={props.results}>
             {(entry) => (
               <li class="m-0">
                 <button
                   type="button"
-                  class="secondary s-sm stack-sm w-full items-center py-2.5 text-text-muted hover:border-primary hover:text-text"
+                  class="secondary s-sm stack-sm w-full items-center py-2 text-text-muted hover:border-primary hover:text-text"
                   classList={{
                     "border-primary text-text": props.copied ===
                         iconUtility(entry) ||
@@ -165,7 +165,7 @@ function LibraryBrowser(props: {
                     class="bare row-sm min-w-0 flex-1 items-center gap-3 text-left"
                     onClick={() => props.onSelect(icon)}
                   >
-                    <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2.5 text-text">
+                    <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2 text-text">
                       <span
                         class="block [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
                         style={{ width: props.box, height: props.box }}
@@ -286,7 +286,7 @@ function InspectorAside(props: {
           <section class="stack rounded-lg border border-border bg-surface p-4">
             <div class="split flex-wrap items-start gap-3">
               <div class="stack-xs min-w-0">
-                <p class="m-0 truncate text-base font-semibold text-text">
+                <p class="m-0 truncate text-md font-semibold text-text">
                   {entry().collection} · {entry().name}
                 </p>
                 <code class="truncate text-xs text-text-muted">
@@ -359,7 +359,7 @@ function InspectorAside(props: {
               const stepName = () => row.path.slice("icon.".length);
               const liveVal = () => props.sizes.shown(row.path, row.value);
               return (
-                <card class="p-3.5">
+                <card class="p-4">
                   <div class="split flex-wrap items-center gap-3">
                     <div class="row-sm items-center gap-3">
                       <Show when={props.chosen}>
@@ -606,7 +606,7 @@ export default function IconsPage() {
             <div
               role="tablist"
               aria-label="Icon view"
-              class="row-xs shrink-0 rounded-md border border-border bg-surface-sunken p-1"
+              class="row-sm shrink-0 rounded-md border border-border bg-surface-sunken p-1"
             >
               <button
                 type="button"
@@ -646,7 +646,7 @@ export default function IconsPage() {
               value={query()}
               onInput={(event) => setQuery(event.currentTarget.value)}
             />
-            <div class="row-xs shrink-0" role="group" aria-label="Glyph size">
+            <div class="row-sm shrink-0" role="group" aria-label="Glyph size">
               <For each={steps()}>
                 {(step) => (
                   <button
@@ -668,7 +668,7 @@ export default function IconsPage() {
           </div>
         </div>
         <Show when={tab() === "available"}>
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
               class="secondary s-sm"

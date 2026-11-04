@@ -501,10 +501,10 @@ function FaceCard(props: { slot: string }) {
         classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}
       >
         <div class="row-sm flex-wrap">
-          <span class="text-base font-semibold text-text">
+          <span class="text-md font-semibold text-text">
             {humanFaceName(props.slot)}
           </span>
-          <span class="rounded-md bg-surface-sunken px-2 py-0.5 text-xs text-text-muted">
+          <span class="rounded-md bg-surface-sunken px-2 py-0 text-xs text-text-muted">
             {role()}
           </span>
           <Show when={status().aliasOf}>
@@ -536,7 +536,7 @@ function FaceCard(props: { slot: string }) {
       >
         <div class="split items-baseline">
           <span class="text-3xl font-bold text-text">Aa</span>
-          <span class="truncate text-base font-semibold text-text">
+          <span class="truncate text-md font-semibold text-text">
             {family() || "—"}
           </span>
         </div>
@@ -568,7 +568,7 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
   const row = () => sizeOf(rows(), props.step);
   return (
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border py-4 last:border-b-0">
-      <div data-studio-chrome="" class="w-28 shrink-0 stack-xs">
+      <div data-studio-chrome="" class="w-24 shrink-0 stack-xs">
         <span class="text-sm font-semibold text-text">{props.step}</span>
         <code class="text-xs text-text-muted">{`font.size.${props.step}`}</code>
       </div>
@@ -641,7 +641,7 @@ function TypeStepItem(props: {
         />
       </div>
       <div data-studio-specimen="" class="min-w-0 overflow-hidden">
-        <p class="m-0 truncate text-base text-text" style={props.specimenStyle}>
+        <p class="m-0 truncate text-md text-text" style={props.specimenStyle}>
           {HEADING}
         </p>
       </div>

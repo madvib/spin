@@ -28,7 +28,7 @@ const machine = signaturePad({});
   <input {...machine.getHiddenInputProps()} />
 </div>
 
-<div show={!machine.empty} class="mt-4 stack-sm">
+<div show={!machine.empty} class="mt-4 flex flex-col gap-2">
   <strong class="text-sm text-text">Signature Preview</strong>
   <div class="relative h-24 w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
     <svg {...machine.getPreviewProps()}>

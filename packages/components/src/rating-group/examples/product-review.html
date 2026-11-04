@@ -12,7 +12,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
     <p
       class="text-xs text-text-muted">Share your experience with this product</p>
   </div>
-  <div class="stack p-4">
+  <div class="flex flex-col gap-4 p-4">
     <div>
       <div class="mb-2 block text-xs font-medium"
         {...machine.getLabelProps()}>Overall Rating</div>
@@ -46,7 +46,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
     </div>
   </div>
   <div class="border-t border-solid border-border p-4">
-    <button type="button" variant="filled" id="rv-submit">Submit Review</button>
+    <button type="button" variant="primary" id="rv-submit">Submit Review</button>
     <p class="text-xs text-text-muted" id="rv-note"></p>
   </div>
 </div>

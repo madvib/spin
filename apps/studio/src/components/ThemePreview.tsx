@@ -65,7 +65,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
       >
         <div class="flex items-center justify-between gap-2">
           <span
-            class="truncate text-base font-semibold"
+            class="truncate text-md font-semibold"
             style={{ "font-family": headingStack() ?? "inherit", color: text() ?? "inherit" }}
           >
             {props.name}

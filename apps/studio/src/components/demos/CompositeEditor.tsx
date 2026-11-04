@@ -450,7 +450,7 @@ export function TextField(props: {
       {props.label}
       <input
         type="text"
-        class="w-32"
+        class="w-36"
         placeholder={props.placeholder}
         value={props.value}
         onChange={(event) => {

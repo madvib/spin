@@ -123,7 +123,7 @@ export default function GradientEditor(props: {
           add a stop
         </button>
         <span
-          class="block h-10 w-32 rounded-md border border-border"
+          class="block h-10 w-36 rounded-md border border-border"
           style={specimen()}
           aria-hidden="true"
         />

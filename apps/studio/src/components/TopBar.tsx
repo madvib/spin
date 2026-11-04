@@ -429,7 +429,7 @@ export default function TopBar() {
               This theme is read-only here. Save your edits as a project
               theme in <code>spin/</code>.
             </p>
-            <div class="field">
+            <div class="flex flex-col gap-1">
               <label for="save-copy-name">Theme name</label>
               <input
                 id="save-copy-name"

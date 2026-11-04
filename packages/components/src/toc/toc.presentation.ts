@@ -93,6 +93,11 @@ export const def = {
           "aria-current": st.active ? "location" : undefined,
           "data-value": row.value,
           "data-depth": String(row.depth),
+          // Nested rows indent via `data-[deep]:ps-6`: a numeric
+          // `data-[depth=3]` never survives both the extractor (which
+          // splits on quotes) and the minifier (which rejects unquoted
+          // numbers), so depth past the top level gets its own flag.
+          "data-deep": st.depth > 2 ? "" : undefined,
           "data-active": st.active ? "" : undefined,
           onClick: (event: MouseEvent) => {
             if (event.defaultPrevented) return;

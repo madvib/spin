@@ -16,7 +16,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
       <p class="text-xs text-text-muted">Action • Adventure • 2024</p>
     </div>
   </div>
-  <div class="stack p-4">
+  <div class="flex flex-col gap-4 p-4">
     <div>
       <div class="mb-2 block text-xs font-medium"
         {...machine.getLabelProps()}>Rate this movie</div>
@@ -36,7 +36,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
         show={machine.value > 0}>You rated this {machine.value} out of 5 stars</p>
     </div>
     <div class="flex gap-2">
-      <button type="button" variant="filled"
+      <button type="button" variant="primary"
         id="rt-trailer">Watch Trailer</button>
       <button type="button" id="rt-list">Add to List</button>
     </div>

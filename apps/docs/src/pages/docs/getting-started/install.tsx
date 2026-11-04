@@ -175,6 +175,12 @@ const PLUGIN_OPTIONS: readonly PropEntry[] = [
     description: "When true, custom elements style bare tags (<button>, <table>); when false, they require explicit classes (.button, .table). Prose (h1, p, lists) keeps its tags either way.",
   },
   {
+    name: "strictClasses",
+    badge: "boolean",
+    description:
+      "Fail the build when markup names a class the theme cannot produce — reported with the file, the class, and what to write instead. Warns in dev, errors in builds; pass false to restore silence. Only literal class text is checked: computed names stay silent.",
+  },
+  {
     name: "icons",
     badge: "boolean",
     defaultValue: "true",

@@ -109,7 +109,7 @@ export default function Paths(): JSX.Element {
       </Section>
 
       <Section id="preset" title="Stylesheet only in an existing UnoCSS app">
-        <alert variant="info" class="my-3">
+        <alert variant="accent" class="my-3">
           <p>
             <strong>Stylesheet-only mode:</strong> <code>spinPreset</code> is
             for projects that already own <code>uno.config.ts</code> and want

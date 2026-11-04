@@ -52,7 +52,7 @@ export default function StylingElements(): JSX.Element {
                 <badge variant="primary">primary</badge>
                 <badge variant="success">success</badge>
                 <badge variant="warning-muted">warning-muted</badge>
-                <badge variant="error">error</badge>
+                <badge variant="danger">danger</badge>
               </div>
             </div>
           </div>

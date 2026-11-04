@@ -4,8 +4,8 @@ import { hoverCard } from "../hover-card.controller-def.ts";
 const ctl = hoverCard();
 </script>
 
-<div class="w-full stack-lg p-6">
-  <div class="stack-sm">
+<div class="w-full flex flex-col gap-8 p-6">
+  <div class="flex flex-col gap-2">
     <strong class="text-sm text-text">Select Position</strong>
     <div class="flex flex-wrap gap-2" data-positions>
       <button class="secondary s-sm" data-placement-choice="top">Top</button>
@@ -19,7 +19,7 @@ const ctl = hoverCard();
 
     <div {...ctl.getContentProps()}
       class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
-      <div class="stack-sm">
+      <div class="flex flex-col gap-2">
         <strong class="text-sm text-text">Custom Positioning</strong>
         <p
           class="text-sm text-text-muted">The card prefers the bottom side and flips when the viewport vetoes it.</p>

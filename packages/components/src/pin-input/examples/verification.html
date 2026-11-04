@@ -24,7 +24,7 @@ const machine = pinInput({
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
-  <div class="stack-sm">
+  <div class="flex flex-col gap-2">
     <div class="text-sm text-text-muted">Didn't receive the code?</div>
     <button type="button"
       class="bare text-sm font-medium text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>

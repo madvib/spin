@@ -499,7 +499,7 @@ export default function OverviewPage() {
                 return (
                 <article
                   data-testid="theme-card"
-                  class="flex min-h-44 flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3"
+                  class="flex min-h-40 flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3"
                   classList={{
                     "border-primary border-2": summary.name === activeName(),
                   }}

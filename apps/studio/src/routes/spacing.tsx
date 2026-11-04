@@ -139,7 +139,7 @@ export default function SpacingPage() {
                           onClick={() => setSelectedPath(entry.row.path)}
                         >
                           <span
-                            class="row-sm w-full gap-3 rounded-md border border-transparent px-3 py-2.5 data-[current]:border-primary"
+                            class="row-sm w-full gap-3 rounded-md border border-transparent px-3 py-2 data-[current]:border-primary"
                             data-current={
                               selected()?.row.path === entry.row.path
                                 ? ""
@@ -225,14 +225,14 @@ export default function SpacingPage() {
                         class="split items-baseline gap-2"
                       >
                         <div class="row-sm items-baseline">
-                          <span class="text-base font-semibold text-text">
+                          <span class="text-md font-semibold text-text">
                             Step {stepOf(entry().row.path)}
                           </span>
                           <code class="text-xs text-text-muted">
                             {entry().row.path}
                           </code>
                         </div>
-                        <span class="rounded-md bg-surface-sunken px-2 py-0.5 font-mono text-xs text-text-muted tabular-nums">
+                        <span class="rounded-md bg-surface-sunken px-2 py-0 font-mono text-xs text-text-muted tabular-nums">
                           {Math.round(shownPx())}px
                         </span>
                       </div>

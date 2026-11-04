@@ -421,7 +421,7 @@ function InspectorSpecimen(props: {
       }}
     >
       <div class="row-sm min-w-0">
-        <span class="text-base font-bold">Aa</span>
+        <span class="text-md font-bold">Aa</span>
         <span class="truncate text-xs font-medium">
           {humanName(props.role.path)}
         </span>
@@ -698,7 +698,7 @@ function RoleCardView(props: {
               aria-hidden="true"
             />
           </Show>
-          <span class="truncate text-base font-semibold" title={role().path}>
+          <span class="truncate text-md font-semibold" title={role().path}>
             {name()}
           </span>
         </div>

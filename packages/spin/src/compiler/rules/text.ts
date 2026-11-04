@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import {
+  LEADING,
   LIST_STYLE,
   TEXT_ALIGN,
   TEXT_DECORATION,
@@ -22,6 +23,7 @@ export const TEXT_NAMES: readonly string[] = [
   ...WHITESPACE_NAMES,
   ...WORD_BREAK_NAMES,
   ...Object.keys(LIST_STYLE),
+  ...Object.keys(LEADING),
 ];
 
 export function textRules(): Rule[] {
