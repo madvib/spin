@@ -1071,14 +1071,16 @@ const noHandwrittenTokens: GateRule = {
 };
 
 /**
- * Disallow ink that the fill underneath never declared.
+ * Disallow a fill whose ink the palette never named.
  *
  * A fill's foreground is a fact of the palette, not a convention a call site
  * invents: the starters pair `bg-primary` with `text-on-primary` and give a
  * ramp step no foreground at all, because a step does not flip with the mode
- * while `text-text` does. Body ink on a filled control is legible in one
- * theme and a dark-on-dark box in the next — and it is a non-event to write,
- * which is why a gate has to read it.
+ * while body ink does. A filled element with NO ink inherits whatever the
+ * page says — legible in one theme and a dark-on-dark box in the next — and
+ * it is a non-event to write, which is why a gate has to read it. An
+ * explicitly unpainted box (`bg-transparent` in the same state) opts out;
+ * a surface is the page, not a fill, and stays exempt.
  */
 const noUnpairedInk: GateRule = {
   meta: {
@@ -1091,8 +1093,10 @@ const noUnpairedInk: GateRule = {
     messages: {
       mismatch:
         "`bg-{{fill}}` is paired with `{{expected}}`; `{{ink}}` is a different ink on the same fill.",
+      absence:
+        "`bg-{{fill}}` is paired with `{{expected}}`, and no ink on this element names it. Pair `bg-{{fill}}` with `{{expected}}`.",
       undeclared:
-        "`bg-{{fill}}` declares no ink, so nothing says `{{ink}}` reads on it. Paint a paired fill, or declare the pairing in the theme.",
+        "`bg-{{fill}}` declares no ink, so an element filled with it needs its ink named by hand. Paint a paired fill, or declare the pairing in the theme.",
     },
   },
   create(context) {
@@ -1103,7 +1107,15 @@ const noUnpairedInk: GateRule = {
         const seen = new Set<string>();
         const base = classFacts(node);
         const resting = restingFacts(base);
-        for (const branch of [resting.classes, ...base.conditional]) {
+        // A conditional branch is a state the element can be in, not a state
+        // it is in beside resting: an object key that only renders under a
+        // machine state is read WITH the resting classes, because the fill
+        // and the ink arrive together in that state.
+        const branches = [
+          resting.classes,
+          ...base.conditional.map((branch) => [...resting.classes, ...branch]),
+        ];
+        for (const branch of branches) {
           const probe = { ...resting, classes: branch };
           for (const finding of checkNoUnpairedInk(facts, probe)) {
             const key = `${finding.messageId}:${JSON.stringify(finding.data)}`;

@@ -5,6 +5,16 @@
  * hover state's pairing, and a chip that brightens its resting ink is not
  * painting that ink on the fill that arrives under a pointer. Inks are
  * collected per state for the same reason.
+ *
+ * A fill with NO ink is the same defect as a fill with the wrong one: the
+ * palette pairs `bg-primary` with `text-on-primary`, and a filled element
+ * wearing no ink inherits whatever the page says — legible in one theme,
+ * dark-on-dark in the next. Three shapes of silence are deliberate rather
+ * than missing: `bg-transparent` in the same state says the fill is not
+ * there (an overlay that opts out of the paint), `currentColor` inks are
+ * the author's own word (a glyph that takes the ink it sits beside), and a
+ * surface is the page rather than a fill (body ink sits on it by
+ * definition, which is where every floor is measured).
  */
 
 import type { ClassFacts, Facts, Finding, LiteralFacts } from "./core.ts";
@@ -21,23 +31,61 @@ export function checkNoUnpairedInk(
     const state = cut === -1 ? "" : cls.slice(0, cut);
     const core = cut === -1 ? cls : cls.slice(cut + 1);
     if (core.startsWith("bg-")) {
-      const fill = core.slice(3);
-      // A surface is the page rather than a fill: body ink sits on it by
-      // definition, which is where every floor is measured.
+      const fill = core.slice(3).split("/")[0] as string;
+      // An explicitly unpainted box opts out state by state: `bg-transparent`
+      // in the same state as a fill says the fill is not there, so the
+      // resting opt-out does not excuse a missing hover ink and a hover
+      // opt-out does not excuse a missing resting one.
+      if (fill === "transparent") {
+        fills.delete(state);
+        continue;
+      }
+      // `currentColor` fills take whatever ink they sit beside, and a surface
+      // is the page rather than a fill: body ink sits on it by definition,
+      // which is where every floor is measured.
+      if (fill === "current" || fill === "currentColor") continue;
       if (facts.colors.has(fill) && !fill.startsWith("surface")) {
         fills.set(state, [...(fills.get(state) ?? []), fill]);
       }
     } else if (core.startsWith("text-")) {
-      const ink = core.slice(5);
+      const ink = core.slice(5).split("/")[0] as string;
       if (facts.colors.has(ink)) {
         inks.set(state, [...(inks.get(state) ?? []), ink]);
       }
     }
   }
   const out: Finding[] = [];
-  for (const [state, stated] of inks) {
-    const painted = fills.get(state);
-    if (painted === undefined) continue;
+  for (const [state, painted] of fills) {
+    const stated = inks.get(state);
+    if (stated === undefined || stated.length === 0) {
+      // One fill, no ink: a legibility defect with a named remedy. Two fills
+      // in one state is a machine-state merge the rule cannot scope — either
+      // fill could be the one on screen — so the rule says nothing rather
+      // than name the wrong pairing.
+      if (painted.length !== 1) continue;
+      const fill = painted[0] as string;
+      const expected = `on-${fill}`;
+      if (!facts.inks.has(expected)) {
+        out.push({
+          messageId: "undeclared",
+          data: { ink: "none", fill },
+          position: node.position,
+          remedy: "Paint a paired fill, or declare the pairing in the theme.",
+        });
+      } else {
+        out.push({
+          messageId: "absence",
+          data: { fill, expected: `text-${expected}` },
+          position: node.position,
+          remedy: `Pair \`bg-${fill}\` with \`text-${expected}\`.`,
+        });
+      }
+      continue;
+    }
+    // Two fills in one state is a machine-state merge the rule cannot scope:
+    // an ink on screen could pair with either fill, so naming one pairing
+    // risks the wrong remedy. The rule stands down rather than guess.
+    if (painted.length !== 1) continue;
     for (const ink of stated) {
       for (const fill of painted) {
         const expected = `on-${fill}`;
@@ -53,7 +101,7 @@ export function checkNoUnpairedInk(
             messageId: "mismatch",
             data: { ink: `text-${ink}`, fill, expected: `text-${expected}` },
             position: node.position,
-            remedy: `Use \`${expected}\` on that fill`,
+            remedy: `Use \`text-${expected}\` on that fill.`,
           });
         }
       }
@@ -61,7 +109,6 @@ export function checkNoUnpairedInk(
   }
   return out;
 }
-
 /**
  * A token referenced by hand.
  *

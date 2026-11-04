@@ -196,7 +196,7 @@ export default function StylingAnimation(): JSX.Element {
           </div>
           <div class="row-sm">
             <span
-              class="inline-block h-3 w-3 rounded-full bg-primary animate-pulse"
+              class="inline-block h-3 w-3 rounded-full bg-primary text-on-primary animate-pulse"
               aria-hidden="true"
             />
             <code>animate-pulse</code>

@@ -44,7 +44,7 @@ export default function Sample(props: { section: string; utility: string }) {
       {/* Position needs a stage with room to move in. */}
       <Match when={props.section === "position"}>
         <div class="relative h-16 overflow-hidden border border-border">
-          <div class={`absolute h-8 w-16 bg-primary ${u()}`} />
+          <div class={`absolute h-8 w-16 bg-primary text-on-primary ${u()}`} />
         </div>
       </Match>
       {/* Layout internals: dividing, ordering, and flex need siblings. */}
@@ -56,7 +56,7 @@ export default function Sample(props: { section: string; utility: string }) {
       </Match>
       <Match when={u().startsWith("order-")}>
         <div class="flex">
-          <div class={`p-2 bg-primary ${u()}`}>{u()}</div>
+          <div class={`p-2 bg-primary text-on-primary ${u()}`}>{u()}</div>
           <div class="p-2">sibling</div>
         </div>
       </Match>
@@ -92,7 +92,7 @@ export default function Sample(props: { section: string; utility: string }) {
       <Match
         when={props.section === "opacity" || props.section === "interactivity"}
       >
-        <div class={`h-8 w-full bg-primary ${u()}`}>hover me</div>
+        <div class={`h-8 w-full bg-primary text-on-primary ${u()}`}>hover me</div>
       </Match>
       {/* Borders need a neutral edge so the utility's own edge shows. */}
       <Match when={props.section === "border"}>
@@ -100,7 +100,7 @@ export default function Sample(props: { section: string; utility: string }) {
       </Match>
       {/* Motion renders through the play rig on the motion page. */}
       <Match when={props.section === "transitions"}>
-        <div class={`h-8 w-16 bg-primary ${u()}`} />
+        <div class={`h-8 w-16 bg-primary text-on-primary ${u()}`} />
       </Match>
     </Switch>
   );

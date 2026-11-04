@@ -456,7 +456,7 @@ export default function Home(): JSX.Element {
               onClick={() => selectStage(1)}
               class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs shadow-md transition-colors duration-fast hover:border-primary"
             >
-              <span class="h-2 w-2 rounded-full bg-primary" />
+              <span class="h-2 w-2 rounded-full bg-primary text-on-primary" />
               <span>Scroll</span>
               <span aria-hidden="true" class="text-primary">↓</span>
             </button>
@@ -554,7 +554,7 @@ export default function Home(): JSX.Element {
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-4"
             >
               <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
-                <span class="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span class="h-2 w-2 shrink-0 rounded-full bg-primary text-on-primary" />
                 <span class="truncate">
                   Themes · Styled HTML · {MACHINE_COUNT} Components · Any Stack
                 </span>
