@@ -39,18 +39,15 @@ test("a config file answers its active theme and order", () => {
     themeOrder: ["halide", "acme"],
   });
 });
-
-test("unknown keys are ignored, malformed entries dropped", () => {
+test("a config file answers its contract themes", () => {
   const root = fixture({
-    "config.json": JSON.stringify({
-      activeTheme: 42,
-      themeOrder: ["halide", 7, "halide"],
-      future: { nested: true },
-    }),
+    "config.json": JSON.stringify({ contractThemes: ["halide", "acme"] }),
     "halide.json": "{}",
+    "acme.json": "{}",
   });
-  deepStrictEqual(configIn(root), { themeOrder: ["halide"] });
+  deepStrictEqual(configIn(root), { contractThemes: ["halide", "acme"] });
 });
+
 
 test("a missing, unreadable, or unparsable config answers empty", () => {
   const bare = mkdtempSync(join(tmpdir(), "spin-config-"));

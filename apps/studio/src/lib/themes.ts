@@ -97,7 +97,7 @@ export async function listProjectThemes(): Promise<StudioTheme[]> {
 /** What `spin/config.json` holds, and the file that holds it. */
 export interface StudioConfig {
   /** The parsed config; empty when no file is written. */
-  readonly config: { readonly activeTheme?: string; readonly themeOrder?: readonly string[] };
+  readonly config: { readonly activeTheme?: string; readonly themeOrder?: readonly string[]; readonly contractThemes?: readonly string[] };
   /** Project-relative path when the file exists, `null` while values are defaults. */
   readonly file: string | null;
 }
@@ -109,6 +109,7 @@ export async function readProjectConfig(): Promise<StudioConfig> {
     config: {
       activeTheme: read.config.activeTheme ?? undefined,
       themeOrder: read.config.themeOrder ?? undefined,
+      contractThemes: read.config.contractThemes ?? undefined,
     },
     file: read.file,
   };
@@ -118,11 +119,13 @@ export async function readProjectConfig(): Promise<StudioConfig> {
 export async function writeProjectConfig(config: {
   readonly activeTheme?: string;
   readonly themeOrder?: readonly string[];
+  readonly contractThemes?: readonly string[];
 }): Promise<{ error: string | null }> {
   const written = await (await spinClient()).project.config.write({
     config: {
       ...(config.activeTheme !== undefined ? { activeTheme: config.activeTheme } : {}),
       ...(config.themeOrder !== undefined ? { themeOrder: [...config.themeOrder] } : {}),
+      ...(config.contractThemes !== undefined ? { contractThemes: [...config.contractThemes] } : {}),
     },
   });
   return { error: written.error ?? null };

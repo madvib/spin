@@ -786,7 +786,7 @@ export async function copyTheme(
  */
 export async function readConfig(
   root: string,
-): Promise<{ readonly config: { readonly activeTheme?: string; readonly themeOrder?: string[] }; readonly file: string | null }> {
+): Promise<{ readonly config: { readonly activeTheme?: string; readonly themeOrder?: string[]; readonly contractThemes?: string[] }; readonly file: string | null }> {
   const { readFile } = await import("node:fs/promises");
   const { join } = await import("node:path");
   const path = join(root, PROJECT_DIR, CONFIG_FILENAME);
@@ -806,7 +806,7 @@ export async function readConfig(
     return { config: {}, file: join(PROJECT_DIR, CONFIG_FILENAME) };
   }
   const record = parsed as Record<string, unknown>;
-  const config: { activeTheme?: string; themeOrder?: string[] } = {};
+  const config: { activeTheme?: string; themeOrder?: string[]; contractThemes?: string[] } = {};
   if (typeof record["activeTheme"] === "string") config.activeTheme = record["activeTheme"];
   if (Array.isArray(record["themeOrder"])) {
     const seen = new Set<string>();
@@ -817,6 +817,16 @@ export async function readConfig(
       order.push(entry);
     }
     config.themeOrder = order;
+  }
+  if (Array.isArray(record["contractThemes"])) {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const entry of record["contractThemes"]) {
+      if (typeof entry !== "string" || seen.has(entry)) continue;
+      seen.add(entry);
+      names.push(entry);
+    }
+    config.contractThemes = names;
   }
   return { config, file: join(PROJECT_DIR, CONFIG_FILENAME) };
 }

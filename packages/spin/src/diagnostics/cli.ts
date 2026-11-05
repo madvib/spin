@@ -105,6 +105,12 @@ export interface ThemeCommand {
   readonly action: "list" | "analyze" | "scaffold";
   /** The theme the action reads, for `analyze`. */
   readonly name?: string;
+  /** Whether the scale-key contract was asked for, via `--contract`. */
+  readonly contract: boolean;
+  /** The shipped set the contract compares: positionals, or `--contract=a,b`. */
+  readonly contractThemes?: readonly string[];
+  /** Whether the missing scale keys are listed with their neighbors. */
+  readonly migrate: boolean;
   /** The project root to read. */
   readonly root?: string;
   /** The daemon to dial, when the procedures live elsewhere. */
@@ -224,6 +230,8 @@ Options for theme:
   --root <dir>           the project root (default: the current directory)
   --url <url>            the daemon to dial (default: in-process)
   --format <text|json>   how the answer is printed (default: text)
+  --contract[=a,b]       compare the scale keys across the shipped set (default: contractThemes in spin/config.json)
+  --migrate              list the missing scale keys with their neighbors (needs --contract)
   -h, --help             this text
 
 Options for component:
@@ -452,6 +460,10 @@ function parseLsp(argv: readonly string[]): Command {
 function parseTheme(argv: readonly string[]): Command {
   let action: ThemeCommand["action"] | undefined;
   let name: string | undefined;
+  let contract = false;
+  let contractThemes: string[] | undefined;
+  const positionals: string[] = [];
+  let migrate = false;
   let root: string | undefined;
   let url: string | undefined;
   let format: Format = "text";
@@ -476,6 +488,22 @@ function parseTheme(argv: readonly string[]): Command {
         format = value as Format;
         break;
       }
+      case "contract": {
+        // Bare `--contract` takes the shipped set from the project config;
+        // `--contract=a,b` names it on the line.
+        contract = true;
+        if (argument.value !== undefined) {
+          contractThemes ??= [];
+          for (const entry of (argument.value as string).split(",")) {
+            const theme = entry.trim();
+            if (theme !== "" && !contractThemes.includes(theme)) contractThemes.push(theme);
+          }
+        }
+        break;
+      }
+      case "migrate":
+        migrate = true;
+        break;
       default:
         if (argument.option) {
           throw new CliUsageError(`Unknown option "${argument.raw}".`);
@@ -490,22 +518,36 @@ function parseTheme(argv: readonly string[]): Command {
             );
           }
           action = argument.name;
-        } else if (name === undefined) {
-          name = argument.name;
         } else {
-          throw new CliUsageError(
-            `Unexpected argument "${argument.raw}".`,
-          );
+          positionals.push(argument.name);
         }
     }
   }
   if (action === undefined) {
     throw new CliUsageError("theme needs an action: list, analyze, or scaffold.");
   }
+  if (action === "analyze" && contract) {
+    for (const positional of positionals) {
+      contractThemes ??= [];
+      for (const entry of positional.split(",")) {
+        const theme = entry.trim();
+        if (theme !== "" && !contractThemes.includes(theme)) contractThemes.push(theme);
+      }
+    }
+  } else if (positionals.length === 1 && name === undefined) {
+    name = positionals[0];
+  } else if (positionals.length > 0) {
+    throw new CliUsageError(
+      `Unexpected argument "${positionals.length === 1 ? positionals[0] : positionals[positionals.length - 1]}".`,
+    );
+  }
   return {
     kind: "theme",
     action,
     ...(name === undefined ? {} : { name }),
+    contract,
+    ...(contractThemes === undefined || contractThemes.length === 0 ? {} : { contractThemes }),
+    migrate,
     ...(root === undefined ? {} : { root }),
     ...(url === undefined ? {} : { url }),
     format,
@@ -1200,6 +1242,63 @@ async function runCrossTheme(
   return report.clean ? 0 : 1;
 }
 
+/** The shared-scale key contract: the keys the shipped set owes each other. */
+async function runContract(
+  command: ThemeCommand,
+  entries: Array<{ name: string; text?: string | null }>,
+  names: readonly string[],
+  write: (line: string) => void,
+  warn: (line: string) => void,
+): Promise<number> {
+  const {
+    analyzeContract,
+    contractInsertions,
+    contractJson,
+    formatContractMigrate,
+    formatContractText,
+  } = await import("./contract-parity.ts");
+  const wanted = names.length > 0 ? names : entries.map((entry) => entry.name);
+  const themes: Record<string, unknown> = {};
+  for (const name of wanted) {
+    const entry = entries.find((candidate) => candidate.name === name);
+    const text = entry?.text !== undefined && entry?.text !== null
+      ? entry.text
+      : null;
+    if (text === null) {
+      warn(`no theme named "${name}" in this project.`);
+      return 2;
+    }
+    try {
+      themes[name] = JSON.parse(text);
+    } catch {
+      warn(`${name}: not a JSON document this run can compare.`);
+      return 2;
+    }
+  }
+  const report = analyzeContract({ themes });
+  if (command.format === "json") {
+    const base = contractJson(report);
+    if (!command.migrate) {
+      write(JSON.stringify(base, null, 2));
+    } else {
+      const migrate = contractInsertions({ report, themes }).map(
+        (insertion) => ({ ...insertion }),
+      );
+      write(JSON.stringify({ ...base, migrate }, null, 2));
+    }
+  } else {
+    for (const line of formatContractText(report)) write(line);
+    if (command.migrate && !report.clean) {
+      for (
+        const line of formatContractMigrate(
+          contractInsertions({ report, themes }),
+        )
+      ) write(line);
+    }
+  }
+  return report.clean ? 0 : 1;
+}
+
 
 /** Read the themes: list, analyze, or scaffold one. */
 async function runTheme(
@@ -1226,6 +1325,33 @@ async function runTheme(
       const scaffolded = await client.theme.scaffold({});
       write(scaffolded.text);
       return 0;
+    }
+    // `--contract` answers the per-pair question: whether the shipped set
+    // declares the same scale keys. `--migrate` needs that question asked:
+    // without it there is no gap to place.
+    if (command.migrate && !command.contract) {
+      warn("--migrate lists the contract's missing keys: pass --contract with it.");
+      return 2;
+    }
+    if (command.contract) {
+      const listed = await client.project.themes.list({
+        ...(command.root === undefined ? {} : { root: command.root }),
+      });
+      let names = [...(command.contractThemes ?? [])];
+      if (names.length === 0) {
+        try {
+          const { readConfig } = await import("../project/service.ts");
+          const root = command.root ?? process.cwd();
+          names = [...(await readConfig(root)).config.contractThemes ?? []];
+        } catch {
+          // No configuration: no shipped set to compare.
+        }
+      }
+      if (names.length === 0) {
+        warn("the contract compares a shipped set: name themes with --contract=a,b, or set contractThemes in spin/config.json.");
+        return 2;
+      }
+      return await runContract(command, listed, names, write, warn);
     }
     // A name answers the single-theme question: whether that document
     // validates. No name answers the cross-theme one: whether the corpus

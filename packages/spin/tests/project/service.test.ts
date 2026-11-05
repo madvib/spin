@@ -556,6 +556,17 @@ test("a half written config reads as the empty default, over its file", async ()
   deepStrictEqual(read.file, join("spin", "config.json"));
 });
 
+test("a written contract set reads back with the file that holds it", async () => {
+  const dir = await root();
+
+  const written = await writeConfig(dir, { contractThemes: ["halide", "acme"] });
+  deepStrictEqual(written.error, null);
+
+  const read = await readConfig(dir);
+  deepStrictEqual(read.config, { contractThemes: ["halide", "acme"] });
+  deepStrictEqual(read.file, join("spin", "config.json"));
+});
+
 test("a config write creates the spin directory the project did not have", async () => {
   const dir = await root();
 

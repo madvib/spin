@@ -60,6 +60,8 @@ export interface SpinConfigFile {
   readonly activeTheme?: string;
   /** Display order for the theme list; unknown names ignored, unlisted served names after, alphabetically. */
   readonly themeOrder?: readonly string[];
+  /** The shipped set the scale-key contract compares; absent until the project adopts the contract. */
+  readonly contractThemes?: readonly string[];
 }
 
 /**

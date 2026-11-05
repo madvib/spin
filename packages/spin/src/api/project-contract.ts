@@ -44,6 +44,8 @@ const SpinConfigFileSchema = v.object({
   activeTheme: v.optional(v.string()),
   /** Display order for the theme list. */
   themeOrder: v.optional(v.array(v.string())),
+  /** The shipped set the scale-key contract compares. */
+  contractThemes: v.optional(v.array(v.string())),
 });
 
 /**

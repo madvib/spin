@@ -411,6 +411,27 @@ test("the theme command reads its action and name", () => {
   if (command.kind !== "theme") return;
   deepStrictEqual(command.action, "analyze");
   deepStrictEqual(command.name, "brand");
+  deepStrictEqual(command.contract, false);
+  deepStrictEqual(command.migrate, false);
+});
+
+test("the theme command reads the contract set from positionals or the flag", () => {
+  const positional = parseArgs(["theme", "analyze", "--contract", "full", "narrow"]);
+  deepStrictEqual(positional.kind, "theme");
+  if (positional.kind !== "theme") return;
+  deepStrictEqual(positional.contract, true);
+  deepStrictEqual(positional.contractThemes, ["full", "narrow"]);
+  deepStrictEqual(positional.name, undefined);
+  const comma = parseArgs(["theme", "analyze", "--contract", "full,narrow"]);
+  deepStrictEqual(comma.kind, "theme");
+  if (comma.kind !== "theme") return;
+  deepStrictEqual(comma.contractThemes, ["full", "narrow"]);
+  const flagged = parseArgs(["theme", "analyze", "--contract=full,narrow", "--migrate"]);
+  deepStrictEqual(flagged.kind, "theme");
+  if (flagged.kind !== "theme") return;
+  deepStrictEqual(flagged.contract, true);
+  deepStrictEqual(flagged.contractThemes, ["full", "narrow"]);
+  deepStrictEqual(flagged.migrate, true);
 });
 
 test("the theme command needs an action it knows", () => {

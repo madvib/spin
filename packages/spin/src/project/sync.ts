@@ -127,7 +127,7 @@ export function configIn(root: string): SpinConfigFile {
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
   const record = parsed as Record<string, unknown>;
-  const out: { activeTheme?: string; themeOrder?: string[] } = {};
+  const out: { activeTheme?: string; themeOrder?: string[]; contractThemes?: string[] } = {};
   if (typeof record["activeTheme"] === "string") out.activeTheme = record["activeTheme"];
   if (Array.isArray(record["themeOrder"])) {
     const seen = new Set<string>();
@@ -138,6 +138,16 @@ export function configIn(root: string): SpinConfigFile {
       order.push(entry);
     }
     out.themeOrder = order;
+  }
+  if (Array.isArray(record["contractThemes"])) {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const entry of record["contractThemes"]) {
+      if (typeof entry !== "string" || seen.has(entry)) continue;
+      seen.add(entry);
+      names.push(entry);
+    }
+    out.contractThemes = names;
   }
   return out;
 }
