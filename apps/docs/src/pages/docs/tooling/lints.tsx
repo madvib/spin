@@ -16,7 +16,7 @@ function Pair(props: {
   return (
     <div class="mt-4 rounded-lg border border-border bg-surface-raised p-4">
       <code>{props.rule}</code>
-      <p class=" text-text-muted">{props.note}</p>
+      <p class="text-sm text-text-muted">{props.note}</p>
       <div class="grid gap-3 md:grid-cols-2">
         <Code code={props.bad} lang="html" title="Flagged" />
         <Code code={props.good} lang="html" title="Remedy" />

@@ -30,14 +30,14 @@ function SignalDemo(): JSX.Element {
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code type-caption"
+            class="bare rounded-md border border-border bg-surface px-3 py-1 font-mono text-xs"
             onClick={() => count(count() + 1)}
           >
             count(count() + 1)
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code type-caption"
+            class="bare rounded-md border border-border bg-surface px-3 py-1 font-mono text-xs"
             onClick={() => count(0)}
           >
             count(0)
@@ -45,7 +45,7 @@ function SignalDemo(): JSX.Element {
         </div>
       </div>
       <div>
-        <p class="  uppercase tracking-wider text-text-muted">
+        <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">
           Effect log (newest first)
         </p>
         <ul class="flow-list">

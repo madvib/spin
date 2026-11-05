@@ -245,7 +245,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
         <Show when={hits().length === 0}>
           <li
             role="presentation"
-            class="px-3 py-6 text-center text-text-muted type-code"
+            class="px-3 py-6 text-center text-sm text-text-muted"
           >
             No matches for “{query()}”.
           </li>
@@ -255,7 +255,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
             <>
               <li
                 role="presentation"
-                class="px-2 pt-2 pb-1 text-text-muted type-caption type-body-strong"
+                class="px-2 pt-2 pb-1 text-xs font-semibold text-text-muted"
               >
                 {group.label}
               </li>
@@ -268,23 +268,23 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                     onMouseMove={() => setActive(item.idx)}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => props.onNavigate(item.entry.href)}
-                    class={`flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-3 py-2  ${
+                    class={`flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-3 py-2 text-sm ${
                       item.idx === clampedActive()
                         ? "bg-surface-raised"
                         : "text-text-muted"
                     }`}
                   >
                     <span class="min-w-0">
-                      <span class="block truncate type-code">
+                      <span class="block truncate font-mono text-sm">
                         {item.entry.title}
                       </span>
                       <Show when={item.entry.subtitle}>
-                        <span class="block truncate type-caption">
+                        <span class="block truncate text-xs">
                           {item.entry.subtitle}
                         </span>
                       </Show>
                     </span>
-                    <span class="shrink-0 uppercase tracking-wide text-text-muted type-code type-caption">
+                    <span class="shrink-0 font-mono text-xs uppercase tracking-wide text-text-muted">
                       {item.entry.category}
                     </span>
                   </li>

@@ -48,7 +48,7 @@ export default function PlaygroundPage(): JSX.Element {
           role="group"
           aria-label="framework"
         >
-          <span class="me-1 uppercase tracking-wider text-text-muted type-code type-caption">
+          <span class="me-1 font-mono text-xs uppercase tracking-wider text-text-muted">
             runtime
           </span>
           <For each={FRAMEWORKS}>

@@ -641,7 +641,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       <Show when={props.studio === true && ready()}>
         <button
           type="button"
-          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border border-border bg-surface-raised px-3 py-1 shadow-sm type-code"
+          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border border-border bg-surface-raised px-3 py-1 text-sm shadow-sm"
           onClick={() => {
             studioConnected = false;
             setStudioOpen((open) => !open);

@@ -32,31 +32,31 @@ export function PropList(props: {
                 <code>{item.name}</code>
                 <Show when={item.badge}>
                   {(badge) => (
-                    <span class="rounded-sm border border-border bg-surface px-2 py-1 text-text-muted type-code type-caption">
+                    <span class="rounded-sm border border-border bg-surface px-2 py-1 font-mono text-xs text-text-muted">
                       {badge()}
                     </span>
                   )}
                 </Show>
                 <Show when={item.required}>
-                  <span class="text-semantic-warning type-code type-caption type-body-strong">
+                  <span class="font-mono text-xs font-semibold text-semantic-warning">
                     required
                   </span>
                 </Show>
               </div>
               <Show when={item.defaultValue}>
                 {(def) => (
-                  <span class="text-text-muted type-code type-caption">
+                  <span class="font-mono text-xs text-text-muted">
                     default: <code>{def()}</code>
                   </span>
                 )}
               </Show>
             </div>
-            <div class="text-text-muted type-code">
+            <div class="text-sm text-text-muted">
               {item.description}
             </div>
             <Show when={item.detail}>
               {(detail) => (
-                <div class="pt-1 text-text-muted type-code type-caption">
+                <div class="pt-1 font-mono text-xs text-text-muted">
                   {detail()}
                 </div>
               )}

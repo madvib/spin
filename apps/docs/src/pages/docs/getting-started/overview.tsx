@@ -64,7 +64,7 @@ export default function GettingStartedOverview(): JSX.Element {
                 href={item.href}
                 class="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
               >
-                <div class="type-body-strong">{item.title}</div>
+                <div class="font-semibold">{item.title}</div>
                 <small>{item.blurb}</small>
               </A>
             )}

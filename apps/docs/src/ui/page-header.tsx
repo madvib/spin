@@ -102,7 +102,7 @@ export function PageHeader(props: {
         data-md-ignore="true"
         class="flex flex-wrap items-center justify-between gap-2"
       >
-        <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
+        <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
           {groupLabel()}
         </span>
         <div class="flex flex-wrap items-center gap-2">
@@ -110,7 +110,7 @@ export function PageHeader(props: {
             {(ex) => (
               <A
                 href={`/playground?example=${ex()}`}
-                class="inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 no-underline transition-colors duration-fast hover:border-primary hover:text-primary type-code type-caption"
+                class="inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
               >
                 <span class="i-lucide-play icon-sm" aria-hidden="true" />
                 <span>Playground</span>
@@ -120,7 +120,7 @@ export function PageHeader(props: {
           <button
             type="button"
             onClick={onCopyMarkdown}
-            class="bare inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 text-text-muted transition-colors duration-fast hover:border-border-strong type-code type-caption"
+            class="bare inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:border-border-strong"
           >
             <span
               class={
@@ -136,7 +136,7 @@ export function PageHeader(props: {
             href={mdHref()}
             target="_blank"
             rel="noreferrer"
-            class=" "
+            class="font-mono text-xs"
           >
             View .md
           </a>
@@ -173,7 +173,7 @@ export function Section(props: {
 
 export function Chip(props: { children: JSX.Element }): JSX.Element {
   return (
-    <span class="rounded-sm border border-border bg-surface-raised px-2 py-1 text-text-muted type-code type-caption">
+    <span class="rounded-sm border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
       {props.children}
     </span>
   );
