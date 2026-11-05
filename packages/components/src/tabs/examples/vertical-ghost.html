@@ -29,7 +29,7 @@ const machine = tabs({
  <div class="flex shrink-0 flex-col gap-1" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare rounded-md px-4 py-2 text-left text-sm font-medium transition-colors hover:bg-surface-raised aria-[selected=true]:bg-surface-raised aria-[selected=false]:text-text-muted"
+    class="bare rounded-md px-4 py-2 text-left type-label transition-colors hover:bg-surface-raised aria-[selected=true]:bg-surface-raised aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>
@@ -37,7 +37,7 @@ const machine = tabs({
  <div
   class="flex-1 rounded-lg border border-solid border-border bg-surface p-4">
   <template for={machine.items} as={row} key={row.value}>
-   <p class=" text-sm text-text-muted"
+   <p class="text-text-muted"
     {...machine.getContentProps(row)}>{row.content}</p>
   </template>
  </div>

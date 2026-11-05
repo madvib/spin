@@ -31,13 +31,13 @@ const machine = tabs({
  <div class="mb-4 flex gap-2" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex flex-col items-center gap-1 rounded-md px-4 py-3 text-sm font-medium transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
+    class="bare flex flex-col items-center gap-1 rounded-md px-4 py-3 type-label transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
-   ><span class="bare grid h-6 w-6 place-items-center rounded-full text-xs font-semibold aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:bg-surface-sunken aria-[selected=false]:text-text-muted" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
+   ><span class="bare grid h-6 w-6 place-items-center rounded-full type-caption-strong aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:bg-surface-sunken aria-[selected=false]:text-text-muted" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class=" text-center text-sm text-text-muted"
+  <p class="text-center text-text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

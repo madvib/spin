@@ -28,14 +28,14 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare relative flex items-center gap-2 rounded-ss-md rounded-se-md border border-b-0 border-solid px-4 py-2 text-sm font-medium transition-colors aria-[selected=true]:border-border aria-[selected=true]:bg-surface aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
+    class="bare relative flex items-center gap-2 rounded-ss-md rounded-se-md border border-b-0 border-solid px-4 py-2 type-label transition-colors aria-[selected=true]:border-border aria-[selected=true]:bg-surface aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
-    <span class="i-lucide-user text-sm" aria-hidden="true"
+    <span class="i-lucide-user type-code" aria-hidden="true"
      show={row.value === "profile"}></span>
-    <span class="i-lucide-credit-card text-sm" aria-hidden="true"
+    <span class="i-lucide-credit-card type-code" aria-hidden="true"
      show={row.value === "billing"}></span>
-    <span class="i-lucide-bell text-sm" aria-hidden="true"
+    <span class="i-lucide-bell type-code" aria-hidden="true"
      show={row.value === "notifications"}></span>
     <span>{row.label}</span>
    </button>
@@ -44,7 +44,7 @@ const machine = tabs({
  <div
   class="rounded-lg border border-t-0 border-solid border-border bg-surface p-4">
   <template for={machine.items} as={row} key={row.value}>
-   <p class=" text-sm text-text-muted"
+   <p class="text-text-muted"
     {...machine.getContentProps(row)}>{row.content}</p>
   </template>
  </div>

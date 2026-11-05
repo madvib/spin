@@ -11,25 +11,25 @@
 <div class={["flex items-center justify-between gap-2 bg-surface-sunken p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="h-2 w-2 shrink-0 rounded-full bg-semantic-success" aria-hidden="true"></span>
-          <span class="truncate text-sm font-medium">Sarah Johnson</span>
-          <span data-timer class="shrink-0 font-mono text-xs text-text-muted">00:12:34</span>
+          <span class="truncate type-label">Sarah Johnson</span>
+          <span data-timer class="shrink-0 type-code text-text-muted">00:12:34</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy text-xs" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
       </div>
       <div class="relative min-h-0 flex-1 overflow-hidden bg-surface-sunken">
         <div class="absolute inset-0 flex items-center justify-center">
-          <span class="flex h-[8rem] w-[8rem] items-center justify-center rounded-full bg-surface-raised"><span class="flex h-20 w-20 items-center justify-center rounded-full bg-surface"><span class="text-lg font-semibold">SJ</span></span></span>
+          <span class="flex h-[8rem] w-[8rem] items-center justify-center rounded-full bg-surface-raised"><span class="flex h-20 w-20 items-center justify-center rounded-full bg-surface"><span class="type-lead">SJ</span></span></span>
         </div>
         <badge class="absolute right-2 top-2 flex h-12 w-16 items-center justify-center" variant="neutral">You</badge>
-        <badge class="absolute left-2 top-2 font-mono" variant="neutral">12:41</badge>
+        <badge class="absolute left-2 top-2 type-code" variant="neutral">12:41</badge>
         <div class="absolute inset-x-0 bottom-3 flex justify-center">
           <div class="flex items-center gap-3 rounded-full border border-solid border-border bg-surface px-4 py-2">
-            <button type="button" data-mute aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-mic text-sm" aria-hidden="true"></span></button>
-            <button data-video aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-video text-sm" aria-hidden="true"></span></button>
-            <button data-hangup class="danger icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-phone-off text-sm" aria-hidden="true"></span></button>
+            <button type="button" data-mute aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-mic type-code" aria-hidden="true"></span></button>
+            <button data-video aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-video type-code" aria-hidden="true"></span></button>
+            <button data-hangup class="danger icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-phone-off type-code" aria-hidden="true"></span></button>
           </div>
         </div>
       </div>

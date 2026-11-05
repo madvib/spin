@@ -7,20 +7,20 @@ const machine = numberInput({ defaultValue: "1", step: "1", min: "0" });
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
-      class={["text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+      class={["transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
       {...machine.getLabelProps()}>Amount</label>
     <span
-      class="text-xs text-text-muted tabular-nums transition-colors duration-fast"
+      class="type-caption text-text-muted tabular-nums transition-colors duration-fast"
       {...machine.getValueTextProps()}>{machine.value}</span>
   </div>
 
   <div
-    class={["relative inline-flex h-7 w-full items-center overflow-hidden rounded-md border border-solid border-border text-sm whitespace-nowrap transition-all duration-fast ease-decelerate focus-within:ring-2 focus-within:ring-border-strong", { "opacity-50": machine.disabled }]}
+    class={["relative inline-flex h-7 w-full items-center overflow-hidden rounded-md border border-solid border-border type-body whitespace-nowrap transition-all duration-fast ease-decelerate focus-within:ring-2 focus-within:ring-border-strong", { "opacity-50": machine.disabled }]}
     {...machine.getControlProps()}>
     <button
       class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getDecrementTriggerProps()}
-    ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
+    ><span aria-hidden="true"><span class="i-lucide-minus type-caption" aria-hidden="true"></span></span></button>
     <input
       class={["bare h-full w-full grow text-center tabular-nums", { "ring-0": machine.focused }]}
       {...machine.getInputProps()}
@@ -28,8 +28,8 @@ const machine = numberInput({ defaultValue: "1", step: "1", min: "0" });
     <button
       class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getIncrementTriggerProps()}
-    ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
+    ><span aria-hidden="true"><span class="i-lucide-plus type-caption" aria-hidden="true"></span></span></button>
   </div>
 
-  <div class="text-xs text-text-muted">Enter number of items</div>
+  <div class="type-caption text-text-muted">Enter number of items</div>
 </div>

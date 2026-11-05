@@ -30,21 +30,21 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex items-center gap-2 rounded-md px-4 py-1 text-sm font-medium transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-text-muted"
+    class="bare flex items-center gap-2 rounded-md px-4 py-1 type-label transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
-    <span class="i-lucide-inbox text-sm" aria-hidden="true"
+    <span class="i-lucide-inbox type-code" aria-hidden="true"
      show={row.value === "inbox"}></span>
-    <span class="i-lucide-file-text text-sm" aria-hidden="true"
+    <span class="i-lucide-file-text type-code" aria-hidden="true"
      show={row.value === "drafts"}></span>
-    <span class="i-lucide-send text-sm" aria-hidden="true"
+    <span class="i-lucide-send type-code" aria-hidden="true"
      show={row.value === "sent"}></span>
     <span>{row.label}</span>
    </button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class=" text-center text-sm text-text-muted"
+  <p class="text-center text-text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

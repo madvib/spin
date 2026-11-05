@@ -28,13 +28,13 @@ const machine = tabs({
  <div class="mb-4 flex gap-2" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare rounded-full border border-solid px-4 py-1 text-sm font-medium transition-all aria-[selected=true]:border-selected aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:border-border aria-[selected=false]:text-text-muted"
+    class="bare rounded-full border border-solid px-4 py-1 type-label transition-all aria-[selected=true]:border-selected aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:border-border aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class=" text-center text-sm text-text-muted"
+  <p class="text-center text-text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

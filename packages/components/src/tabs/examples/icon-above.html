@@ -30,21 +30,21 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex flex-col items-center gap-2 border-b-2 border-solid px-3 py-2 text-xs font-medium transition-colors aria-[selected=true]:border-primary aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
+    class="bare flex flex-col items-center gap-2 border-b-2 border-solid px-3 py-2 type-caption-strong transition-colors aria-[selected=true]:border-primary aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
     {...machine.getTriggerProps(row)}
    >
-    <span class="i-lucide-house text-md" aria-hidden="true"
+    <span class="i-lucide-house type-body" aria-hidden="true"
      show={row.value === "overview"}></span>
-    <span class="i-lucide-folder-open text-md" aria-hidden="true"
+    <span class="i-lucide-folder-open type-body" aria-hidden="true"
      show={row.value === "projects"}></span>
-    <span class="i-lucide-package text-md" aria-hidden="true"
+    <span class="i-lucide-package type-body" aria-hidden="true"
      show={row.value === "packages"}></span>
     <span>{row.label}</span>
    </button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class=" text-center text-sm text-text-muted"
+  <p class="text-center text-text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

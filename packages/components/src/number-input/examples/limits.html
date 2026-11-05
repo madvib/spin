@@ -13,10 +13,10 @@ const machine = numberInput({
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
-      class={["text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+      class={["transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
       {...machine.getLabelProps()}>Rating (0-10)</label>
     <span
-      class="text-xs text-text-muted tabular-nums transition-colors duration-fast"
+      class="type-caption text-text-muted tabular-nums transition-colors duration-fast"
       {...machine.getValueTextProps()}>{machine.value}</span>
   </div>
 
@@ -24,7 +24,7 @@ const machine = numberInput({
     <button
       class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getDecrementTriggerProps()}
-    ><span aria-hidden="true"><span class="i-lucide-minus text-xs" aria-hidden="true"></span></span></button>
+    ><span aria-hidden="true"><span class="i-lucide-minus type-caption" aria-hidden="true"></span></span></button>
     <input
       class={["w-[5rem] tabular-nums", { "ring-2 ring-border-strong": machine.focused, "border-border-strong text-primary": machine.invalid, "opacity-50": machine.disabled }]}
       {...machine.getInputProps()}
@@ -32,10 +32,10 @@ const machine = numberInput({
     <button
       class={["secondary icon s-sm", { "cursor-not-allowed opacity-50": machine.disabled }]}
       {...machine.getIncrementTriggerProps()}
-    ><span aria-hidden="true"><span class="i-lucide-plus text-xs" aria-hidden="true"></span></span></button>
+    ><span aria-hidden="true"><span class="i-lucide-plus type-caption" aria-hidden="true"></span></span></button>
   </div>
 
-  <div class="mt-2 flex justify-between text-xs text-text-muted">
+  <div class="mt-2 flex justify-between type-caption text-text-muted">
     <span>Min: 0</span>
     <span>Max: 10</span>
   </div>

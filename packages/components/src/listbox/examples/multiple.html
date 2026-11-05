@@ -19,12 +19,12 @@ const machine = listbox({
 
 <div class="w-64 max-w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
+    class={["block transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
     {...machine.getLabelProps()}
   >Languages</label>
 
   <span
-    class={["block text-sm text-text-muted transition-colors duration-fast ease-decelerate", { "hidden": machine.empty }]}
+    class={["block type-body text-text-muted transition-colors duration-fast ease-decelerate", { "hidden": machine.empty }]}
     {...machine.getValueTextProps()}
   >{machine.valueAsString}</span>
 
@@ -34,20 +34,20 @@ const machine = listbox({
   >
     <template for={machine.getBlocks()} as={block} key={block.id}>
       <div class="py-1" {...machine.getItemGroupProps(block)}>
-        <span class="block px-2 py-1 text-xs font-medium text-text-muted"
+        <span class="block px-2 py-1 type-caption-strong text-text-muted"
           {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
         <template for={machine.getRows(block)} as={row} key={row.value}>
           <div
-            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
+            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
             {...machine.getItemProps(row)}
           >
             <span class="min-w-0 flex-1 truncate"
               {...machine.getItemTextProps(row)}>{row.label}</span>
             <span
               aria-hidden="true"
-              class="shrink-0 text-xs text-primary"
+              class="shrink-0 type-caption text-primary"
               {...machine.getItemIndicatorProps(row)}
-            ><span class="i-lucide-check text-xs" aria-hidden="true"></span></span>
+            ><span class="i-lucide-check type-caption" aria-hidden="true"></span></span>
           </div>
         </template>
       </div>
