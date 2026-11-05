@@ -41,6 +41,7 @@ test("the tier of a family says what it does to an element", () => {
   deepStrictEqual(TIER_BY_GROUP["font"], "skin");
   deepStrictEqual(TIER_BY_GROUP["opacity"], "skin");
   deepStrictEqual(TIER_BY_GROUP["typography"], "skin");
+  deepStrictEqual(TIER_BY_GROUP["font-style"], "skin");
   deepStrictEqual(TIER_BY_GROUP["type-size"], "structure");
   deepStrictEqual(TIER_BY_GROUP["layout"], "layout");
   deepStrictEqual(TIER_BY_GROUP["sizing"], "layout");

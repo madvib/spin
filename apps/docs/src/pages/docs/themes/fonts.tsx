@@ -64,12 +64,13 @@ export default function ThemesFonts(): JSX.Element {
           <code>2xs</code> through <code>display</code>: every step must read
           larger than the last, and the validation checks enforce it.{" "}
           <code>font.weight.*</code> names the numeric steps,{" "}
-          <code>font.line-height.*</code> sets unitless ratios, and{" "}
-          <code>font.letter-spacing.*</code> sets tracking. When one element
+          <code>font.leading.*</code> sets unitless ratios, and{" "}
+          <code>font.tracking.*</code> sets tracking. When one element
           needs its own voice — uppercase tracked buttons, tight display
           headings — declare a per-element override such as{" "}
-          <code>font.element.h1.family</code> or <code>button.weight</code>{" "}
-          instead of forking the global scale. See{" "}
+          <code>font.element.h1.family</code> or a named style{" "}
+          <code>font.style.label</code> and spend it with{" "}
+          <code>type-label</code> instead of forking the global scale. See{" "}
           <A href="/docs/themes/customization#elements">Customization</A> for
           the full per-element story.
         </p>

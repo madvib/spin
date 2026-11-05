@@ -30,6 +30,8 @@ function codeRule(): Rule {
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),

@@ -79,7 +79,10 @@ export {
 } from "./contract/elements.ts";
 export type { ElementDeclaration } from "./contract/elements.ts";
 export {
+  ELEMENT_STYLE_DEFAULTS,
   ELEMENT_TYPE_ROLES,
+  elementStyleDefault,
+  elementStyleElements,
   elementTypeElements,
   elementTypeFallback,
   elementTypeFields,
@@ -93,6 +96,9 @@ export type {
   ElementTypeFields,
   ElementTypePath,
   GlobalTypePath,
+  NamedStyleDeclaration,
+  NamedStyleField,
+  StyleDefaultElement,
 } from "./contract/typography.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export {

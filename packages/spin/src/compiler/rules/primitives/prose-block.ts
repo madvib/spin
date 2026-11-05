@@ -75,9 +75,12 @@ function paragraphRule(): Rule {
       const family = own.family ?? t.body;
       const size = own.size ?? t.sizeMd;
       const weight = own.weight ?? t.weightRegular;
+      const tracking = own.tracking ?? t.trackingNormal;
+      const leading = own.leading ?? t.leadingRelaxed;
       yield {
         [ctx.symbols.selector]: () => "p",
-        "line-height": "1.65",
+        ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
@@ -109,9 +112,12 @@ function listRule(tag: string): Rule {
       const family = own.family ?? t.body;
       const size = own.size ?? t.sizeMd;
       const weight = own.weight ?? t.weightRegular;
+      const tracking = own.tracking ?? t.trackingNormal;
+      const leading = own.leading ?? t.leadingRelaxed;
       yield {
         [ctx.symbols.selector]: () => tag,
-        "line-height": "1.65",
+        ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
@@ -249,6 +255,8 @@ function blockquoteRule(): Rule {
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
         ...spacing(t),
       };
       yield {

@@ -31,6 +31,7 @@ import {
 } from "./extractors.ts";
 import { wind4Layers, wind4Theme } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
+import { styleNames } from "./utils/lookup.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
 
 /** Options for {@link spinPreset}. */
@@ -199,6 +200,7 @@ export function createSpinFactory(
             "ease-$motionEasing",
             "text-$fontSize",
             "font-$fontFamily",
+            "type-$fontStyle",
             "rounded-$radius",
             "shadow-$shadow",
           ],
@@ -206,14 +208,14 @@ export function createSpinFactory(
             colors: orGroup(theme, "color"),
             spacing: orGroup(theme, "spacing"),
             opacity: orGroup(theme, "opacity"),
-            letterSpacing: orGroup(theme, "font-letter-spacing"),
+            letterSpacing: orGroup(theme, "font-tracking"),
             breakpoint: orGroup(theme, "breakpoint"),
             zIndex: orGroup(theme, "z-index"),
             motionDuration: "(" + transitionDurations(theme).join("|") + ")",
-            motionEasing: orGroup(theme, "motion-easing"),
             fontSize: orGroup(theme, "font-size"),
             fontFamily: orGroup(theme, "font-family"),
             fontWeight: orGroup(theme, "font-weight"),
+            fontStyle: styleNames(theme),
             radius: orGroup(theme, "radius"),
             shadow: orGroup(theme, "shadow"),
           },

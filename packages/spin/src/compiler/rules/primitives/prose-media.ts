@@ -67,6 +67,8 @@ function figcaptionRule(): Rule {
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {

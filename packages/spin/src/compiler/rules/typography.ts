@@ -19,7 +19,7 @@ export function typographyRules(): Rule[] {
     [
       /^tracking-(.+)$/,
       ([, name]: string[], ctx?: ThemeContext) => {
-        const token = named(ctx, "font-letter-spacing", name);
+        const token = named(ctx, "font-tracking", name);
         if (token !== undefined) return { "letter-spacing": token };
         return STATIC_DECLS[`tracking-${name}`];
       },

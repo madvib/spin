@@ -65,7 +65,7 @@ export function editToken(
  * The one write that may ADD to the document rather than move something in
  * it: a component token belongs to the manifest's vocabulary, and an author
  * meets it on a component page whose theme has never had to spell
- * `button.weight`. The scaffold is the manifest's own value, so the token is
+ * `button.shadow`. The scaffold is the manifest's own value, so the token is
  * spendable the moment it lands.
  *
  * A refusal — the path exists, a segment stands where a token stands — is

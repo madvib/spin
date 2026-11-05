@@ -48,10 +48,13 @@ function headingRule(
         // spacing() and is left as-is.
         ...spacing(t),
         ...type(t),
-        // The theme's own decision, where it has one: the level's step and
-        // weight are the ladder's until the theme says otherwise.
+        // The theme's own decision, where it has one: the level's step,
+        // weight, tracking and leading are the ladder's until the theme
+        // says otherwise.
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -63,8 +66,8 @@ function headingRules(): Rule[] {
     headingRule("h1", (t) => ({
       ...(t.size3xl !== undefined ? { "font-size": t.size3xl } : {}),
       ...(t.weightBold !== undefined ? { "font-weight": t.weightBold } : {}),
-      "line-height": "1.2",
-      "letter-spacing": "-0.02em",
+      ...(t.leadingTight !== undefined ? { "line-height": t.leadingTight } : { "line-height": "1.2" }),
+      ...(t.trackingTight !== undefined ? { "letter-spacing": t.trackingTight } : { "letter-spacing": "-0.02em" }),
       // A heading level one leads the document, so its bottom gap is a step
       // larger than the shared spacing.
       ...(t.spacing4 !== undefined ? { "margin-block-end": t.spacing4 } : {}),
@@ -74,8 +77,8 @@ function headingRules(): Rule[] {
       ...(t.weightSemibold !== undefined
         ? { "font-weight": t.weightSemibold }
         : {}),
-      "line-height": "1.3",
-      "letter-spacing": "-0.01em",
+      ...(t.leadingSnug !== undefined ? { "line-height": t.leadingSnug } : { "line-height": "1.3" }),
+      ...(t.trackingNormal !== undefined ? { "letter-spacing": t.trackingNormal } : { "letter-spacing": "-0.01em" }),
     })),
     headingRule("h3", (t) => ({
       ...(t.sizeXl !== undefined ? { "font-size": t.sizeXl } : {}),

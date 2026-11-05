@@ -107,7 +107,7 @@ const WIND4_FAMILIES: ReadonlyArray<readonly [key: string, family: string]> = [
   ["breakpoint", "breakpoint"],
   ["zIndex", "z-index"],
   ["opacity", "opacity"],
-  ["letterSpacing", "font-letter-spacing"],
+  ["letterSpacing", "font-tracking"],
 ];
 
 /** wind4's nested view of the flat theme map, for the rules that read it. */

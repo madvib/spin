@@ -196,9 +196,19 @@ function compositeRows(): readonly TokenRow[] {
   );
 }
 
-/** The letter-spacing tokens the theme declares, for the tracking family. */
+/** The tracking tokens the theme declares, for the tracking family. */
 function trackingRows(): readonly TokenRow[] {
-  return rowsUnder("font.letter-spacing");
+  return rowsUnder("font.tracking");
+}
+
+/** The leading tokens the theme declares, for the leading family. */
+function leadingRows(): readonly TokenRow[] {
+  return rowsUnder("font.leading");
+}
+
+/** The named styles the theme declares, for trim/extend management. */
+function styleRows(): readonly TokenRow[] {
+  return rowsUnder("font.style");
 }
 
 function tokenFor(
@@ -393,6 +403,41 @@ export default function TypePage() {
         </Section>
       </div>
 
+      <Section
+        title="Styles"
+        fact={`${styleRows().length} styles`}
+        info="Named type styles: the theme's complete tuples, spent with type-<name>. Trim or extend the set; elements read their default style unless overridden below."
+      >
+        <Show
+          when={styleRows().length > 0}
+          fallback={
+            <p class="text-sm text-text-muted">
+              This theme declares no styles yet.
+            </p>
+          }
+        >
+          <ul class="stack-sm">
+            <For each={styleRows()}>
+              {(row) => (
+                <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
+                  <div class="row-sm flex-wrap items-center gap-2">
+                    <code>{row.path}</code>
+                    <code>{row.value}</code>
+                  </div>
+                  <ValueInput
+                    value={row.value}
+                    type={row.type}
+                    onCommit={(value) => editToken(row.path.split("."), value)}
+                    variable={row.variable}
+                    label={row.path}
+                  />
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </Section>
+
       <Show when={compositeRows().length > 0}>
         <Section
           title="Type in one token"
@@ -456,6 +501,8 @@ export default function TypePage() {
                 <th>Face</th>
                 <th>Size</th>
                 <th>Weight</th>
+                <th>Tracking</th>
+                <th>Leading</th>
               </tr>
             </thead>
             <tbody>
@@ -650,7 +697,7 @@ function TypeStepItem(props: {
 }
 
 /**
- * One element of the map: the specimen it draws, and the three decisions the
+ * One element of the map: the specimen it draws, and the five decisions the
  * theme may make about it.
  *
  * The specimen is the element itself, set in the theme's answer, so a row
@@ -663,9 +710,9 @@ function ElementRow(props: {
 }) {
   const fields = createMemo(() => elementTypeFields(props.element));
 
-  /** What the theme states for one of the three decisions. */
+  /** What the theme states for one of the five decisions. */
   const stated = (
-    field: "family" | "size" | "weight",
+    field: "family" | "size" | "weight" | "tracking" | "leading",
   ): TokenRow | undefined => {
     const path = fields()[field]?.path;
     if (path === undefined) return undefined;
@@ -674,7 +721,7 @@ function ElementRow(props: {
 
   /** What the element reads when the theme says nothing: the ladder's answer. */
   const inherited = (
-    field: "family" | "size" | "weight",
+    field: "family" | "size" | "weight" | "tracking" | "leading",
   ): TokenRow | undefined => {
     const fallback = fields()[field]?.fallback;
     if (fallback === undefined) return undefined;
@@ -689,9 +736,13 @@ function ElementRow(props: {
   const size = () => stated("size")?.value ?? inherited("size")?.value ?? "";
   const weight = () =>
     stated("weight")?.value ?? inherited("weight")?.value ?? "";
+  const tracking = () =>
+    stated("tracking")?.value ?? inherited("tracking")?.value ?? "";
+  const leading = () =>
+    stated("leading")?.value ?? inherited("leading")?.value ?? "";
 
   const commit = (
-    field: "family" | "size" | "weight",
+    field: "family" | "size" | "weight" | "tracking" | "leading",
     value: string,
   ): void => {
     const role = fields()[field];
@@ -704,16 +755,20 @@ function ElementRow(props: {
     if (family() !== "") out["font-family"] = family();
     if (size() !== "") out["font-size"] = size();
     if (weight() !== "") out["font-weight"] = weight();
+    if (tracking() !== "") out["letter-spacing"] = tracking();
+    if (leading() !== "") out["line-height"] = leading();
     return out;
   };
 
   const hasOverride = () =>
     stated("family") !== undefined ||
     stated("size") !== undefined ||
-    stated("weight") !== undefined;
+    stated("weight") !== undefined ||
+    stated("tracking") !== undefined ||
+    stated("leading") !== undefined;
 
   const resetElement = (): void => {
-    for (const field of ["family", "size", "weight"] as const) {
+    for (const field of ["family", "size", "weight", "tracking", "leading"] as const) {
       const path = fields()[field]?.path;
       if (path !== undefined) removeToken(path.split("."));
     }
@@ -775,6 +830,30 @@ function ElementRow(props: {
           }))}
           label={`font.element.${props.element}.weight`}
           onCommit={(value) => commit("weight", value)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={tracking()}
+          group="font.tracking"
+          steps={trackingRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.tracking`}
+          onCommit={(value) => commit("tracking", value)}
+        />
+      </td>
+      <td>
+        <StepChoice
+          value={leading()}
+          group="font.leading"
+          steps={leadingRows().map((row) => ({
+            name: row.path.split(".").pop() ?? "",
+            value: row.value,
+          }))}
+          label={`font.element.${props.element}.leading`}
+          onCommit={(value) => commit("leading", value)}
         />
       </td>
     </tr>

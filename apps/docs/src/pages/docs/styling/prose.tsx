@@ -25,7 +25,7 @@ const TYPOGRAPHY_ELEMENTS: readonly PropEntry[] = [
         Spend <code>font.family.heading</code>, the monotonic{" "}
         <code>font.size.*</code> ramp (<code>2xl</code> down to{" "}
         <code>sm</code>), <code>font.weight.bold</code> /{" "}
-        <code>semibold</code>, and <code>font.line-height.tight</code>. Never
+        <code>semibold</code>, and <code>font.leading.tight</code>. Never
         add <code>font-bold</code> or <code>text-*</code> to a heading —{" "}
         <code>spin/no-redundant-class</code> and{" "}
         <code>spin/prefer-theme-value</code> flag overrides.

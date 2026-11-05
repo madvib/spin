@@ -9,6 +9,7 @@ import {
   focusRing,
   spend,
   spentEntries,
+  withFallback,
 } from "./shared.ts";
 
 /**
@@ -67,9 +68,6 @@ const GROUP = 'span[role="group"]';
 
 /** The property each component token step sets. */
 const COMPONENT_PROPERTY: Record<string, string> = {
-  weight: "font-weight",
-  case: "text-transform",
-  tracking: "letter-spacing",
   shadow: "box-shadow",
   "shadow-hover": "box-shadow",
   edge: "border-color",
@@ -95,18 +93,12 @@ const COMPONENT_PROPERTY: Record<string, string> = {
  * is a compile error rather than a silent omission from the contract.
  */
 type ComponentStep =
-  | "weight"
-  | "case"
-  | "tracking"
   | "shadow"
   | "shadow-hover"
   | "edge"
   | "radius";
 
 const COMPONENT_STEPS: readonly ComponentStep[] = [
-  "weight",
-  "case",
-  "tracking",
   "shadow",
   "shadow-hover",
   "edge",
@@ -131,14 +123,11 @@ const SHADOW_COMPONENT_STEPS = COMPONENT_STEPS.filter((step) =>
 /**
  * The shared scale a component step falls back to when a theme omits it.
  *
- * The weight is the one that matters: a control that inherits the browser's
- * button weight is a control that reads as body copy, and the theme's own
- * type scale has the answer. The rest — the case, the tracking, the resting
- * elevation — are already the browser's defaults, so falling back to them
- * costs nothing and the theme's silence is honest.
+ * The label's type is the label style's business, so no type step needs a
+ * fallback here: the base reads the style outright. The rest — the edge,
+ * the corner — fall back to the shared scales they would otherwise wear.
  */
 const COMPONENT_FALLBACK: Partial<Record<ComponentStep, ThemeTokenPath>> = {
-  weight: "font.weight.semibold",
   edge: "color.border",
   radius: "radius.md",
 };
@@ -456,6 +445,10 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const spacing4 = token(ctx, "spacing.4");
         const fontFamily = token(ctx, "font.family.sans");
         const fontSize = token(ctx, "font.size.md");
+        // The label reads the label style outright: a control's type is a
+        // style attachment, not three atoms of its own.
+        const labelWeight = withFallback(ctx, "font.style.label.weight", "font.weight.semibold");
+        const labelTracking = withFallback(ctx, "font.style.label.tracking", "font.tracking.normal");
         const borderWidth = token(ctx, "border.width");
         const surfaceRaised = token(ctx, "color.surface-raised");
         const text = token(ctx, "color.text");
@@ -482,6 +475,8 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["gap", spacing2],
           ["font-family", fontFamily],
           ["font-size", fontSize],
+          ["font-weight", labelWeight],
+          ["letter-spacing", labelTracking],
           ["line-height", "1"],
           ...(fontSize !== undefined && spacing2 !== undefined &&
               borderWidth !== undefined

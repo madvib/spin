@@ -8,7 +8,7 @@
  * markup all arrive from `primitives.list`, so a change to a component's
  * examples is a change this page renders. The component tokens come from
  * `primitives.contract`: what the manifest says the component starts at, so a
- * theme that has never spelled `button.weight` meets the token HERE, on the
+ * theme that has never spelled `button.shadow` meets the token HERE, on the
  * component that spends it, and can create it scaffolded as authored.
  *
  * The markup is set with `innerHTML` because it is sourced markup the studio
@@ -186,8 +186,8 @@ export default function ComponentPage() {
   // A component token's slider ceiling is its FAMILY's — icon.sm beside
   // icon.md and icon.lg — so siblings share one track the way a scale's
   // steps do. Alone, the control takes headroom of its own. A family is
-  // same-root and same-KIND: `button.weight` is a number and
-  // `button.tracking` a length, and letting one rule the other's ceiling
+  // same-root and same-KIND: `icon.sm` is a length and `icon.md` a
+  // length beside it, and letting one rule the other's ceiling
   // turned a hundredth of an em into a seventy-five-em track.
   const siblingsFor = (path: string): readonly string[] | undefined => {
     const tree = parsedTree();

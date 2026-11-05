@@ -20,6 +20,7 @@ import { spacingRules } from "./spacing.ts";
 import { stackingRules } from "./stacking.ts";
 import { textRules } from "./text.ts";
 import { transitionRules } from "./transitions.ts";
+import { namedTypeRules } from "./type.ts";
 import { typographyRules } from "./typography.ts";
 
 export function spinRules(roots: readonly string[]): Rule[] {
@@ -41,6 +42,7 @@ export function spinRules(roots: readonly string[]): Rule[] {
     ...spacingRules(),
     ...sizingRules(),
     ...typographyRules(),
+    ...namedTypeRules(),
     ...radiusRules(),
     ...primitiveRules(roots),
     ...shadowRules(),

@@ -5,7 +5,7 @@
  * scales, and a typography token is a theme that has made all four at
  * once. So the editor offers the theme's own steps — the faces under
  * `font.family`, the sizes under `font.size`, the weights under
- * `font.weight` and the trackings under `font.letter-spacing` — and the
+ * `font.weight` and the trackings under `font.tracking` — and the
  * specimen is set in the result, because a typography is read rather than
  * measured.
  *

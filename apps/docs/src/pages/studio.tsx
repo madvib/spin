@@ -119,17 +119,18 @@ export default function Studio(): JSX.Element {
           matching <code>@font-face</code> blocks into the sheet.
         </p>
         <p>
-          The <strong>Scale</strong>, <strong>Weight</strong>, and{" "}
-          <strong>Tracking</strong> sections tune the <code>font.size.*</code>{" "}
-          ramp (<code>xs</code> through <code>4xl</code>), the{" "}
-          <code>font.weight.*</code> steps, and the{" "}
-          <code>font.letter-spacing.*</code> steps. The{" "}
-          <strong>Element map</strong> sets per-element overrides —{" "}
-          <code>font.element.h1.family</code>,{" "}
-          <code>font.element.button.weight</code>,{" "}
-          <code>font.element.code.size</code> — so a heading, a button, or a
-          code run carries its own voice where the theme means it to. Elements
-          inherit from the scale unless overridden.
+          The <strong>Scale</strong>, <strong>Weight</strong>,{" "}
+          <strong>Tracking</strong>, and <strong>Leading</strong> sections tune
+          the <code>font.size.*</code> ramp (<code>xs</code> through{" "}
+          <code>4xl</code>), the <code>font.weight.*</code> steps, the{" "}
+          <code>font.tracking.*</code> steps, and the{" "}
+          <code>font.leading.*</code> ratios. The <strong>Element map</strong>{" "}
+          sets per-element overrides — <code>font.element.h1.family</code>,{" "}
+          <code>font.element.code.size</code> — so a heading or a code run
+          carries its own voice where the theme means it to, and the{" "}
+          <strong>Styles</strong> section manages the named{" "}
+          <code>font.style.*</code> set the <code>type-&lt;name&gt;</code>{" "}
+          utilities spend. Elements inherit from the scale unless overridden.
         </p>
       </Section>
 
@@ -189,7 +190,7 @@ export default function Studio(): JSX.Element {
           under the active theme, grouped by what each is for, each row wearing
           its glyph. Open one to see its live specimens, the classes they
           read, and the tokens they spend — a theme that has never spelled{" "}
-          <code>button.weight</code> meets that token here, on the page for
+          <code>button.shadow</code> meets that token here, on the page for
           the button.
         </p>
         <p>

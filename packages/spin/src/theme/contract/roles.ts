@@ -419,6 +419,7 @@ export function baselineScales(): readonly BaselineScale[] {
         n.path.length > 0 &&
         (optionalRoots.has(n.path[0] as string) ||
           dotted.startsWith("font.element.") ||
+          dotted.startsWith("font.style.") ||
           n.path[0] === "opacity" ||
           dotted === "font.family.heading" ||
           dotted === "font.family.body")

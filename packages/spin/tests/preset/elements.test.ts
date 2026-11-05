@@ -79,7 +79,6 @@ const SPENDERS: Record<string, string> = {
   card: "card",
   alert: "alert",
   field: "field",
-  stat: "stat",
   table: "table",
   link: "prose",
 };
@@ -89,11 +88,13 @@ const SPENDERS: Record<string, string> = {
  *
  * The switch's depth is one: the switch's elevation comes from the shared
  * `shadow.sm` scale by the switch rule's own design, so the token the
- * starters and the manifest declare is spent by nothing. It is named here
- * rather than left out, because a group nothing spends is a lie and this one
- * is still a lie.
+ * starters and the manifest declare is spent by nothing. The stat's number
+ * is the stat style's business: the rule reads `font.style.stat` outright,
+ * so no atom of its own survives to spend. Each is named here rather than
+ * left out, because a group nothing spends is a lie and these are still
+ * lies.
  */
-const UNSPENT: readonly string[] = ["switch"];
+const UNSPENT: readonly string[] = ["switch", "stat"];
 
 test("each painted element spends the tokens of its own group", () => {
   // A group nothing spends is a lie, and a token spent by the wrong element

@@ -99,10 +99,15 @@ export const plugins = [
   elementOverride: `{
   "button": {
     "radius": { "$type": "dimension", "$value": "{radius.full}" },
-    "weight": { "$type": "fontWeight", "$value": "{font.weight.semibold}" },
-    "case": { "$type": "textTransform", "$value": "uppercase" },
-    "tracking": { "$type": "dimension", "$value": "{font.letter-spacing.wide}" },
     "edge": { "$type": "color", "$value": "{color.border-strong}" }
+  },
+  "font": {
+    "style": {
+      "label": {
+        "weight": { "$type": "fontWeight", "$value": "{font.weight.semibold}" },
+        "tracking": { "$type": "dimension", "$value": "{font.tracking.wide}" }
+      }
+    }
   },
   "card": {
     "radius": { "$type": "dimension", "$value": "{radius.lg}" },

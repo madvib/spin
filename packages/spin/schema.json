@@ -1451,7 +1451,8 @@
         "family",
         "size",
         "weight",
-        "letter-spacing"
+        "tracking",
+        "leading"
       ],
       "properties": {
         "family": {
@@ -2038,7 +2039,7 @@
             }
           }
         },
-        "letter-spacing": {
+        "tracking": {
           "type": "object",
           "additionalProperties": true,
           "required": [
@@ -2052,7 +2053,7 @@
           "properties": {
             "tighter": {
               "type": "object",
-              "description": "Display type only. Enough to pull a large headline back to the measure of the body it leads.",
+              "description": "font.tracking.tighter",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2086,7 +2087,7 @@
             },
             "tight": {
               "type": "object",
-              "description": "A heading at reading size, where the face's own sidebearings already crowd the word.",
+              "description": "font.tracking.tight",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2120,7 +2121,7 @@
             },
             "normal": {
               "type": "object",
-              "description": "Body copy and anything unlabelled. The ramp's middle is a decision, not its absence.",
+              "description": "font.tracking.normal",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2154,7 +2155,7 @@
             },
             "wide": {
               "type": "object",
-              "description": "The small uppercase label that reads as a clump of strokes at text size.",
+              "description": "font.tracking.wide",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2188,7 +2189,7 @@
             },
             "wider": {
               "type": "object",
-              "description": "An eyebrow or category mark set above the copy it introduces.",
+              "description": "font.tracking.wider",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2222,7 +2223,225 @@
             },
             "widest": {
               "type": "object",
-              "description": "A single word carrying a whole section. Past this the word stops being a word.",
+              "description": "font.tracking.widest",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "leading": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "none",
+            "tight",
+            "snug",
+            "normal",
+            "relaxed",
+            "loose"
+          ],
+          "properties": {
+            "none": {
+              "type": "object",
+              "description": "font.leading.none",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "tight": {
+              "type": "object",
+              "description": "font.leading.tight",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "snug": {
+              "type": "object",
+              "description": "font.leading.snug",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "normal": {
+              "type": "object",
+              "description": "font.leading.normal",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "relaxed": {
+              "type": "object",
+              "description": "font.leading.relaxed",
+              "additionalProperties": true,
+              "required": [
+                "$value"
+              ],
+              "properties": {
+                "$value": {},
+                "$type": {
+                  "type": "string",
+                  "enum": [
+                    "color",
+                    "boolean",
+                    "dimension",
+                    "fontFamily",
+                    "fontWeight",
+                    "duration",
+                    "cubicBezier",
+                    "number",
+                    "strokeStyle",
+                    "border",
+                    "transition",
+                    "shadow",
+                    "gradient",
+                    "typography",
+                    "textTransform"
+                  ]
+                },
+                "$description": {
+                  "type": "string"
+                }
+              }
+            },
+            "loose": {
+              "type": "object",
+              "description": "font.leading.loose",
               "additionalProperties": true,
               "required": [
                 "$value"
@@ -2473,6 +2692,74 @@
                       "type": "string"
                     }
                   }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a level-two heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a level-two heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -2551,6 +2838,74 @@
                 "weight": {
                   "type": "object",
                   "description": "The weight a level-three heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a level-three heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a level-three heading reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2689,6 +3044,74 @@
                       "type": "string"
                     }
                   }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a level-four heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a level-four heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -2797,6 +3220,74 @@
                       "type": "string"
                     }
                   }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a level-five heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a level-five heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -2875,6 +3366,74 @@
                 "weight": {
                   "type": "object",
                   "description": "The weight a level-six heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a level-six heading reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a level-six heading reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3091,6 +3650,74 @@
                 "weight": {
                   "type": "object",
                   "description": "The weight a quotation reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a quotation reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a quotation reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3445,6 +4072,74 @@
                       "type": "string"
                     }
                   }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a strong run reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a strong run reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -3553,6 +4248,74 @@
                       "type": "string"
                     }
                   }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a link reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a link reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -3631,6 +4394,74 @@
                 "weight": {
                   "type": "object",
                   "description": "The weight a caption reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking a caption reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading a caption reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -5691,108 +6522,6 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "weight": {
-          "type": "object",
-          "description": "The button's own weight: a control carries more than the prose around it.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "case": {
-          "type": "object",
-          "description": "The case a button's label is written in.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "tracking": {
-          "type": "object",
-          "description": "The tracking of a button's label.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
         "shadow": {
           "type": "object",
           "description": "The elevation a button rests at.",
@@ -6477,152 +7206,10 @@
         }
       }
     },
-    "stat": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "value-size": {
-          "type": "object",
-          "description": "The size of the number a stat shows.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "value-weight": {
-          "type": "object",
-          "description": "The weight of the number a stat shows.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "value-family": {
-          "type": "object",
-          "description": "The face the number a stat shows is set in: a figure is a figure, and the mono is the face that carries figures.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
     "table": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "header-weight": {
-          "type": "object",
-          "description": "The weight of a column's heading.",
-          "additionalProperties": true,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
         "rule": {
           "type": "object",
           "description": "The ink of the rule under a row.",

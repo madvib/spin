@@ -250,7 +250,7 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
         description: (
           <>
             Spends <code>font.weight.*</code> and{" "}
-            <code>font.letter-spacing.*</code>. (<code>overline</code> is the
+            <code>font.tracking.*</code>. (<code>overline</code> is the
             static <code>text-decoration: overline</code> utility — Tailwind
             vocabulary, not a caption composition.)
           </>

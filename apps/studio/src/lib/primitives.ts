@@ -129,7 +129,7 @@ export interface RpcContract {
 /**
  * A component's contract in one call — chiefly the component-token axis, which
  * `components.list` does not carry for machines: the manifest's authored idea
- * of what `button.weight` starts at, so the component page can offer to CREATE
+ * of what `button.shadow` starts at, so the component page can offer to CREATE
  * the token in themes that do not have it yet, scaffolded as authored.
  *
  * Undefined when the daemon knows no such component: the RPC spells that as

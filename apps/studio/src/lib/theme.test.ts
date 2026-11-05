@@ -81,14 +81,14 @@ test("applyEdits drops a dark override that says what the base says", () => {
 });
 
 test("createToken inserts a token the document does not have yet", () => {
-  // The path may stand on groups nobody wrote: a component token
-  // (`button.weight`) belongs to a vocabulary the manifest declares and the
-  // theme has never had to spell. Creation builds what the path needs and
-  // lands the type with the value, so the token is spendable at once.
+  // The path may stand on groups nobody wrote: a style leaf
+  // (`font.style.label.weight`) belongs to a vocabulary the contract declares
+  // and the theme has never had to spell. Creation builds what the path needs
+  // and lands the type with the value, so the token is spendable at once.
   const doc = JSON.parse(
-    createToken(fixture(), ["button", "weight"], "fontWeight", "600"),
-  ) as { button: Record<string, { $type: string; $value: string }> };
-  deepStrictEqual(doc.button.weight, { $type: "fontWeight", $value: "600" });
+    createToken(fixture(), ["font", "style", "label", "weight"], "fontWeight", "600"),
+  ) as { font: { style: { label: Record<string, { $type: string; $value: string }> } } };
+  deepStrictEqual(doc.font.style.label.weight, { $type: "fontWeight", $value: "600" });
 });
 
 test("createToken adds beside a token the theme already holds", () => {

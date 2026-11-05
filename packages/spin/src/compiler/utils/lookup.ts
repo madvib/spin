@@ -70,3 +70,21 @@ export function namesIn(theme: ThemeRef, family: string): string[] {
     .filter((key) => key.startsWith(prefix))
     .map((key) => key.slice(prefix.length));
 }
+
+/**
+ * The named type styles the theme declares.
+ *
+ * A style is five leaves under one name — `font-style-body-family` through
+ * `font-style-body-leading` — and the utility is the name alone, so the
+ * leaves fold back to the name. For autocomplete templates and the catalog.
+ */
+export function styleNames(theme: ThemeRef): string[] {
+  const names = new Set<string>();
+  for (const key of Object.keys(theme)) {
+    if (!key.startsWith("font-style-")) continue;
+    const rest = key.slice("font-style-".length);
+    const dash = rest.lastIndexOf("-");
+    if (dash > 0) names.add(rest.slice(0, dash));
+  }
+  return [...names];
+}

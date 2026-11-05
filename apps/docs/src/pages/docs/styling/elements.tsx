@@ -256,6 +256,32 @@ function readComponentToken(
   return defaultLiteral;
 }
 
+function readStyleToken(
+  style: string,
+  field: string,
+  fallbackGroup: string,
+  fallbackStep: string,
+  defaultLiteral: string,
+): string {
+  const doc = starterDoc() as Record<string, unknown>;
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  const styles = font?.["style"] as
+    | Record<string, Record<string, { $value?: unknown }>>
+    | undefined;
+  const direct = styles?.[style]?.[field]?.$value;
+  if (typeof direct === "string" || typeof direct === "number") {
+    return String(direct);
+  }
+  const fallbackTable = font?.[fallbackGroup] as
+    | Record<string, { $value?: unknown }>
+    | undefined;
+  const fb = fallbackTable?.[fallbackStep]?.$value;
+  if (typeof fb === "string" || typeof fb === "number") {
+    return String(fb);
+  }
+  return defaultLiteral;
+}
+
 export default function StylingElements(): JSX.Element {
   return (
     <main class="flex flex-col">
@@ -509,14 +535,8 @@ export default function StylingElements(): JSX.Element {
                   )}
                 </code>
                 <code>
-                  button.weight ={" "}
-                  {readComponentToken(
-                    "button",
-                    "weight",
-                    "font",
-                    "weight",
-                    "500",
-                  )}
+                  label.weight ={" "}
+                  {readStyleToken("label", "weight", "weight", "medium", "500")}
                 </code>
                 <code>
                   card.radius ={" "}
@@ -543,7 +563,6 @@ export default function StylingElements(): JSX.Element {
           Reach for a variant when one button on a screen plays a different
           role; reach for component tokens in{" "}
           <code>spin/&lt;name&gt;.json</code> (<code>button.radius</code>,{" "}
-          <code>button.weight</code>, <code>button.tracking</code>,{" "}
           <code>button.shadow</code>, <code>card.radius</code>,{" "}
           <code>card.padding</code>, <code>field.radius</code>) when you want
           to change what <em>your</em> button, card, or field looks like

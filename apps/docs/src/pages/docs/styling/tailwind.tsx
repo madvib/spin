@@ -97,10 +97,10 @@ const ADDITIONS_SNIPPET = `<!-- 1. Horizontal and vertical UI lists without bull
   </div>
 </div>
 
-<!-- 3. Component-token utilities spending the theme's button decisions -->
-<div class="inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 button-weight button-case button-tracking">
-  <span>Matches active button type tokens</span>
-</div>`;
+<!-- 3. Named type styles: one class spends the theme's whole tuple -->
+<alert role="status" class="type-label">
+  <span>Matches the active label style</span>
+</alert>`;
 
 interface AbsenceItem {
   readonly tailwindForm: string;
@@ -539,16 +539,14 @@ export default function StylingTailwind(): JSX.Element {
         </p>
 
         <p class="max-w-prose">
-          Apply a component-token utility such as <code>button-weight</code>,{" "}
-          <code>button-case</code>, <code>button-tracking</code>,{" "}
-          <code>table-header-weight</code>, or <code>stat-value-weight</code>{" "}
-          when a custom surface needs to spend the exact typographic decision
-          your theme made for that primitive. Instead of guessing whether the
-          active theme styles buttons in bold uppercase or medium sentence case,
-          your custom trigger reads the component token directly and follows
-          every theme change (see{" "}
-          <A href="/docs/themes/customization">Customization</A> and{" "}
-          <A href="/docs/themes/reference#elements">Token Reference</A>):
+          Apply a named type style such as <code>type-label</code>,{" "}
+          <code>type-caption</code>, or <code>type-code</code> when a custom
+          surface needs to spend the exact typographic decision your theme
+          made for that voice. Instead of guessing whether the active theme
+          styles labels in semibold wide or medium tight, your custom
+          trigger reads the named style directly and follows every theme
+          change (see <A href="/docs/themes/customization">Customization</A>{" "}
+          and <A href="/docs/themes/reference#elements">Token Reference</A>):
         </p>
 
         <div class="my-2 grid gap-4 md:grid-cols-2">
@@ -592,13 +590,13 @@ export default function StylingTailwind(): JSX.Element {
 
             <div class="rounded-md border border-border bg-surface p-3">
               <small class="block">
-                3. Component-token utilities (<code>button-weight</code> ·{" "}
-                <code>button-case</code> · <code>button-tracking</code>)
+                3. Named type styles (<code>type-label</code> ·{" "}
+                <code>type-caption</code> · <code>type-code</code>)
               </small>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <div class="inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 button-weight button-case button-tracking">
-                  <span>Matches active button type tokens</span>
-                </div>
+              <div class="mt-2">
+                <alert role="status" class="type-label">
+                  <span>Matches the active label style</span>
+                </alert>
               </div>
             </div>
           </div>
@@ -606,7 +604,7 @@ export default function StylingTailwind(): JSX.Element {
           <Code
             code={ADDITIONS_SNIPPET}
             lang="html"
-            title="List orientation, CSS anchor positioning, and component-token utilities"
+            title="List orientation, CSS anchor positioning, and named type styles"
           />
         </div>
       </Section>

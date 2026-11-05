@@ -192,7 +192,7 @@ export default function StylingColor(): JSX.Element {
                 <div
                   class={`flex min-h-24 flex-col justify-between rounded-md p-3 ${item.boxClass}`}
                 >
-                  <span class="text-xs font-semibold uppercase tracking-wide">
+                  <span class="type-caption-strong">
                     {item.job}
                   </span>
                   <div class="flex flex-col gap-1">

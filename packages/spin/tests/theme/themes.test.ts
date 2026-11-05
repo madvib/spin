@@ -191,11 +191,9 @@ const REQUIRED = [
   "color.on-primary",
   "color.on-semantic-error",
   "color.focus-ring",
-  // The button is the only component that owns component tokens. Everything
-  // else it reads is a scale step, already listed above.
-  "button.weight",
-  "button.case",
-  "button.tracking",
+  // The button owns component tokens for what only a control decides: its
+  // elevations. Its type is the label style's business, so no type atom is
+  // promised here. Everything else it reads is a scale step, listed above.
   "button.shadow",
   "button.shadow-hover",
   "focus.width",

@@ -589,7 +589,7 @@ test("tracking-wide spends the theme's ramp when the theme states one", async ()
   const uno = await generatorFor({
     themes: {
       default: withGroup("font", {
-        "letter-spacing": { $type: "dimension", wide: { $value: "0.4em" } },
+        "tracking": { $type: "dimension", wide: { $value: "0.4em" } },
       }),
     },
   });

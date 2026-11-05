@@ -1,24 +1,29 @@
 /**
- * The per-element typography: what one element's type is, when the theme says so.
+ * The named-type typography: the styles a theme declares, and the type the
+ * elements read.
  *
  * A shared scale is a decision the whole system shares — spacing, type,
- * radius, shadow. The type an ELEMENT reads is a decision the element owns: a
- * theme may set `<h1>` in a display face at the top of the ladder, put a
- * quotation in the body face, or take a link out of the body's size and set
- * it small.
+ * radius, shadow. A named STYLE is a complete tuple the theme declares under
+ * `font.style.<name>`: the face, the size, the weight, the tracking, the
+ * leading, and the ink. The type an ELEMENT reads is a decision the element
+ * owns: a theme may set `<h1>` in a display face at the top of the ladder,
+ * put a quotation in the body face, or take a link out of the body's size
+ * and set it small.
  *
- * The group is OPTIONAL, and the system has an answer for every one of its
- * tokens: the ladder's step for a heading's size, the role's face for its
- * family, the weight the level implies. A theme that says nothing about a
- * heading gets the system's answer; a theme that says something replaces it.
- * That is what makes the group safe to leave out, and what makes it worth
- * having — one heading's size can move without the other five moving with
- * it, and a theme that never mentions the group still reads as a complete
- * theme.
+ * The groups are OPTIONAL, and the system has an answer for every one of
+ * their tokens: the ladder's step for a heading's size, the role's face for
+ * its family, the weight the level implies. A theme that says nothing about
+ * a heading gets the system's answer; a theme that says something replaces
+ * it. That is what makes the groups safe to leave out, and what makes them
+ * worth having — one heading's size can move without the other five moving
+ * with it, and a theme that never mentions them still reads as complete.
  *
- * The paths are `font.element.<tag>.<field>`, and the fallback each one
- * carries is the system's answer, stated here rather than in a rule — so the
- * theme's own documentation and the rules that spend it cannot disagree.
+ * The per-element paths are `font.element.<tag>.<field>`, and the fallback
+ * each one carries is the system's answer, stated here rather than in a
+ * rule — so the theme's own documentation and the rules that spend it cannot
+ * disagree. The style paths are `font.style.<name>.<field>`; a style's
+ * fields are aliases into the scales the tuple is built from, so moving a
+ * step moves every style built from it.
  */
 
 import type { TokenType } from "../pipeline/types.ts";
@@ -26,19 +31,35 @@ import type { TokenType } from "../pipeline/types.ts";
 /**
  * What one element's type is made of.
  *
- * Three decisions, and no more: the face it reads in, the size it reads at,
- * and the weight it reads at. The leading is the system's — a heading's line
- * height and a heading's tracking are the scale's business, and a theme that
- * wants a different leading says so on the scale.
+ * Five decisions, and no more: the face it reads in, the size it reads at,
+ * the weight it reads at, and the tracking and leading it reads at. The
+ * tracking and leading are the scale's business, and a theme that wants a
+ * different leading says so on the scale.
  */
-export type ElementTypeField = "family" | "size" | "weight";
+export type ElementTypeField = "family" | "size" | "weight" | "tracking" | "leading";
+
+/**
+ * What one named style is made of.
+ *
+ * The complete tuple: the face, the size, the weight, the tracking, the
+ * leading, and the ink. Every field is an alias into the scale it is built
+ * from, so the tuple never drifts from the ladders.
+ */
+export type NamedStyleField =
+  | "family"
+  | "size"
+  | "weight"
+  | "tracking"
+  | "leading"
+  | "ink";
 
 /**
  * The global paths a per-element decision falls back to.
  *
- * The ladder's steps, the family's slots, and the weights — the vocabulary
- * the system already has. A fallback outside this set is a path the theme
- * language does not have, and the type says so at compile time.
+ * The ladder's steps, the family's slots, the weights, the tracking ramp
+ * and the leading ramp — the vocabulary the system already has. A fallback
+ * outside this set is a path the theme language does not have, and the type
+ * says so at compile time.
  */
 export type GlobalTypePath =
   | "font.family.sans"
@@ -56,7 +77,45 @@ export type GlobalTypePath =
   | "font.weight.regular"
   | "font.weight.medium"
   | "font.weight.semibold"
-  | "font.weight.bold";
+  | "font.weight.bold"
+  | "font.tracking.tighter"
+  | "font.tracking.tight"
+  | "font.tracking.normal"
+  | "font.tracking.wide"
+  | "font.tracking.wider"
+  | "font.tracking.widest"
+  | "font.leading.none"
+  | "font.leading.tight"
+  | "font.leading.snug"
+  | "font.leading.normal"
+  | "font.leading.relaxed"
+  | "font.leading.loose";
+
+/** The element a named style is the default for, when it is one. */
+export type StyleDefaultElement =
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "h5"
+  | "h6"
+  | "p"
+  | "blockquote"
+  | "code"
+  | "small"
+  | "strong"
+  | "a"
+  | "figcaption";
+
+/** One named style the starters ship, and the element it styles by default. */
+export interface NamedStyleDeclaration {
+  /** The style's name: `body`, `display`, `caption`. */
+  readonly name: string;
+  /** The element that reads this style unless the theme says otherwise. */
+  readonly element?: StyleDefaultElement;
+  /** What the style is for, in the words an editor shows. */
+  readonly doc: string;
+}
 
 /** One decision one element may state, and what it stands for when it does not. */
 export interface ElementTypeDeclaration {
@@ -428,7 +487,184 @@ export const ELEMENT_TYPE_ROLES = [
     doc: "The weight a caption reads at.",
     fallback: "font.weight.regular",
   },
+  {
+    element: "h2",
+    field: "tracking",
+    path: "font.element.h2.tracking",
+    type: "dimension",
+    doc: "The tracking a level-two heading reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "h2",
+    field: "leading",
+    path: "font.element.h2.leading",
+    type: "dimension",
+    doc: "The leading a level-two heading reads at.",
+    fallback: "font.leading.snug",
+  },
+  {
+    element: "h3",
+    field: "tracking",
+    path: "font.element.h3.tracking",
+    type: "dimension",
+    doc: "The tracking a level-three heading reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "h3",
+    field: "leading",
+    path: "font.element.h3.leading",
+    type: "dimension",
+    doc: "The leading a level-three heading reads at.",
+    fallback: "font.leading.normal",
+  },
+  {
+    element: "h4",
+    field: "tracking",
+    path: "font.element.h4.tracking",
+    type: "dimension",
+    doc: "The tracking a level-four heading reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "h4",
+    field: "leading",
+    path: "font.element.h4.leading",
+    type: "dimension",
+    doc: "The leading a level-four heading reads at.",
+    fallback: "font.leading.normal",
+  },
+  {
+    element: "h5",
+    field: "tracking",
+    path: "font.element.h5.tracking",
+    type: "dimension",
+    doc: "The tracking a level-five heading reads at.",
+    fallback: "font.tracking.wide",
+  },
+  {
+    element: "h5",
+    field: "leading",
+    path: "font.element.h5.leading",
+    type: "dimension",
+    doc: "The leading a level-five heading reads at.",
+    fallback: "font.leading.snug",
+  },
+  {
+    element: "h6",
+    field: "tracking",
+    path: "font.element.h6.tracking",
+    type: "dimension",
+    doc: "The tracking a level-six heading reads at.",
+    fallback: "font.tracking.wide",
+  },
+  {
+    element: "h6",
+    field: "leading",
+    path: "font.element.h6.leading",
+    type: "dimension",
+    doc: "The leading a level-six heading reads at.",
+    fallback: "font.leading.snug",
+  },
+  {
+    element: "blockquote",
+    field: "tracking",
+    path: "font.element.blockquote.tracking",
+    type: "dimension",
+    doc: "The tracking a quotation reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "blockquote",
+    field: "leading",
+    path: "font.element.blockquote.leading",
+    type: "dimension",
+    doc: "The leading a quotation reads at.",
+    fallback: "font.leading.relaxed",
+  },
+  {
+    element: "strong",
+    field: "tracking",
+    path: "font.element.strong.tracking",
+    type: "dimension",
+    doc: "The tracking a strong run reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "strong",
+    field: "leading",
+    path: "font.element.strong.leading",
+    type: "dimension",
+    doc: "The leading a strong run reads at.",
+    fallback: "font.leading.relaxed",
+  },
+  {
+    element: "a",
+    field: "tracking",
+    path: "font.element.a.tracking",
+    type: "dimension",
+    doc: "The tracking a link reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "a",
+    field: "leading",
+    path: "font.element.a.leading",
+    type: "dimension",
+    doc: "The leading a link reads at.",
+    fallback: "font.leading.relaxed",
+  },
+  {
+    element: "figcaption",
+    field: "tracking",
+    path: "font.element.figcaption.tracking",
+    type: "dimension",
+    doc: "The tracking a caption reads at.",
+    fallback: "font.tracking.normal",
+  },
+  {
+    element: "figcaption",
+    field: "leading",
+    path: "font.element.figcaption.leading",
+    type: "dimension",
+    doc: "The leading a caption reads at.",
+    fallback: "font.leading.snug",
+  },
 ] as const satisfies readonly ElementTypeDeclaration[];
+
+/** The style an element reads by default.
+ *
+ * Stated once so the guide, the rules and the lint cannot disagree: a
+ * heading reads the display style, a paragraph the body, code the code
+ * style, and the small label the caption. A theme moves an element by
+ * stating the element's own fields or by attaching a style.
+ */
+export const ELEMENT_STYLE_DEFAULTS: Readonly<Record<string, string>> = {
+  h1: "display",
+  h2: "title",
+  h3: "heading",
+  h4: "label",
+  h5: "overline",
+  h6: "overline",
+  p: "body",
+  blockquote: "quote",
+  code: "code",
+  small: "caption",
+  strong: "body-strong",
+  a: "link",
+  figcaption: "caption-strong",
+};
+
+/** The named style an element reads unless the theme says otherwise. */
+export function elementStyleDefault(element: string): string | undefined {
+  return ELEMENT_STYLE_DEFAULTS[element];
+}
+
+/** The elements that read a named style by default, in reading order. */
+export function elementStyleElements(): readonly string[] {
+  return Object.keys(ELEMENT_STYLE_DEFAULTS);
+}
 
 /** The paths of every per-element typography token. */
 export type ElementTypePath = (typeof ELEMENT_TYPE_ROLES)[number]["path"];
@@ -456,7 +692,7 @@ export function elementTypeFallback(path: string): string | undefined {
   return elementTypeRole(path)?.fallback;
 }
 
-/** The three decisions one element may state, keyed by field. */
+/** The five decisions one element may state, keyed by field. */
 export type ElementTypeFields = Readonly<
   Record<ElementTypeField, ElementTypeDeclaration | undefined>
 >;
@@ -471,6 +707,8 @@ export function elementTypeFields(element: string): ElementTypeFields {
     family: find("family"),
     size: find("size"),
     weight: find("weight"),
+    tracking: find("tracking"),
+    leading: find("leading"),
   };
 }
 

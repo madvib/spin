@@ -59,7 +59,7 @@ test("a single-owner typeface on a box is an error", () => {
 });
 
 test("a single-owner tracking on a box is an error", () => {
-  // The second-level heading owns that tracking step alone; a span carrying
+  // The first-level heading owns that tracking step alone; a span carrying
   // it reaches for the heading's treatment.
   const [finding] = other("span", "tracking-tight");
   deepStrictEqual(finding?.messageId, "error");
@@ -67,10 +67,10 @@ test("a single-owner tracking on a box is an error", () => {
   deepStrictEqual(finding?.data, {
     tag: "span",
     cls: "tracking-tight",
-    element: "h2",
+    element: "h1",
     decision: "tracking",
   });
-  deepStrictEqual(finding?.remedy, "Put the class on `<h2>.");
+  deepStrictEqual(finding?.remedy, "Put the class on `<h1>.");
 });
 
 test("a twice-owned ink stays a suggestion", () => {

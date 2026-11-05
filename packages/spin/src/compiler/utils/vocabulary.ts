@@ -463,7 +463,7 @@ export const TEXT_TRANSFORMS: Record<string, string> = {
 };
 
 /**
- * Letter spacing. A theme may declare its own scale under `font.letter-spacing`
+ * Letter spacing. A theme may declare its own scale under `font.tracking`
  * and these are the conventional steps it falls back to, so a silent theme
  * still gets a ramp rather than nothing.
  */

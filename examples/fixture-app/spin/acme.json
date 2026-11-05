@@ -400,7 +400,7 @@
         "$value": 700
       }
     },
-    "letter-spacing": {
+    "tracking": {
       "$type": "dimension",
       "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
       "tighter": {
@@ -426,6 +426,28 @@
       "widest": {
         "$value": "0.1em",
         "$description": "A single word carrying a whole section. Past this the word stops being a word."
+      }
+    },
+    "leading": {
+      "$type": "dimension",
+      "$description": "How far the lines sit from each other.",
+      "none": {
+        "$value": 1
+      },
+      "tight": {
+        "$value": 1.25
+      },
+      "snug": {
+        "$value": 1.375
+      },
+      "normal": {
+        "$value": 1.5
+      },
+      "relaxed": {
+        "$value": 1.625
+      },
+      "loose": {
+        "$value": 2
       }
     }
   },

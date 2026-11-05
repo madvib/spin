@@ -68,11 +68,12 @@ function tableTokens(ctx: ThemeContext | undefined) {
     sizeXs: token(ctx, "font.size.xs"),
     borderWidth: token(ctx, "border.width"),
     weightSemibold: token(ctx, "font.weight.semibold"),
-    // The weight of a column's heading: the table's own, because a heading
-    // that weighs like its rows is a heading nobody finds.
+    // The weight of a column's heading: the caption-strong style's weight,
+    // because a heading that weighs like its rows is a heading nobody
+    // finds. The style is the complete answer; the atom is gone.
     headerWeight: withFallback(
       ctx,
-      "table.header-weight",
+      "font.style.caption-strong.weight",
       "font.weight.semibold",
     ),
   };

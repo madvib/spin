@@ -1,6 +1,6 @@
 import type { TokenTree } from "../theme/index.ts";
 import { themeRef } from "../theme/index.ts";
-import { namesIn } from "./utils/lookup.ts";
+import { namesIn, styleNames } from "./utils/lookup.ts";
 import { BORDER_NAMES } from "./rules/border.ts";
 import { BACKDROP_BLUR_NAMES, DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
 import { divideNames } from "./rules/divide.ts";
@@ -37,6 +37,16 @@ function prefixed(prefixes: string[], keys: Iterable<string>): string[] {
     for (const key of names) out.push(`${prefix}${key}`);
   }
   return out;
+}
+/**
+ * The named styles the theme declares, as the utilities that spend them.
+ *
+ * A style is five leaves under one name — `font.style.body.family` through
+ * `font.style.body.leading` — and the utility is the name alone, so the
+ * shared helper folds the leaves back to the name before the prefix lands.
+ */
+function catalogStyleNames(theme: Record<string, string>): string[] {
+  return styleNames(theme).map((name) => `type-${name}`);
 }
 
 /**
@@ -123,6 +133,11 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "type-size",
       title: "Type size",
       utilities: prefixed(["text-"], namesIn(theme, "font-size")),
+    },
+    {
+      id: "font-style",
+      title: "Named type styles",
+      utilities: catalogStyleNames(theme),
     },
     {
       id: "font",

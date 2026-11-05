@@ -80,12 +80,88 @@ export interface ThemeTokens {
   "font.weight.medium": 500;
   "font.weight.semibold": 600;
   "font.weight.bold": 700;
-  "font.letter-spacing.tighter": "-0.05em";
-  "font.letter-spacing.tight": "-0.025em";
-  "font.letter-spacing.normal": "0em";
-  "font.letter-spacing.wide": "0.025em";
-  "font.letter-spacing.wider": "0.05em";
-  "font.letter-spacing.widest": "0.1em";
+  "font.tracking.tighter": "-0.05em";
+  "font.tracking.tight": "-0.025em";
+  "font.tracking.normal": "0em";
+  "font.tracking.wide": "0.025em";
+  "font.tracking.wider": "0.05em";
+  "font.tracking.widest": "0.1em";
+  "font.leading.none": 1;
+  "font.leading.tight": 1.25;
+  "font.leading.snug": 1.375;
+  "font.leading.normal": 1.5;
+  "font.leading.relaxed": 1.625;
+  "font.leading.loose": 2;
+  "font.style.display.family": "{font.family.sans}";
+  "font.style.display.size": "{font.size.3xl}";
+  "font.style.display.weight": "{font.weight.bold}";
+  "font.style.display.tracking": "{font.tracking.tight}";
+  "font.style.display.leading": "{font.leading.tight}";
+  "font.style.title.family": "{font.family.sans}";
+  "font.style.title.size": "{font.size.2xl}";
+  "font.style.title.weight": "{font.weight.semibold}";
+  "font.style.title.tracking": "{font.tracking.normal}";
+  "font.style.title.leading": "{font.leading.snug}";
+  "font.style.heading.family": "{font.family.sans}";
+  "font.style.heading.size": "{font.size.xl}";
+  "font.style.heading.weight": "{font.weight.semibold}";
+  "font.style.heading.tracking": "{font.tracking.normal}";
+  "font.style.heading.leading": "{font.leading.snug}";
+  "font.style.lead.family": "{font.family.sans}";
+  "font.style.lead.size": "{font.size.lg}";
+  "font.style.lead.weight": "{font.weight.regular}";
+  "font.style.lead.tracking": "{font.tracking.normal}";
+  "font.style.lead.leading": "{font.leading.relaxed}";
+  "font.style.body.family": "{font.family.sans}";
+  "font.style.body.size": "{font.size.md}";
+  "font.style.body.weight": "{font.weight.regular}";
+  "font.style.body.tracking": "{font.tracking.normal}";
+  "font.style.body.leading": "{font.leading.relaxed}";
+  "font.style.quote.family": "{font.family.serif}";
+  "font.style.quote.size": "{font.size.md}";
+  "font.style.quote.weight": "{font.weight.regular}";
+  "font.style.quote.tracking": "{font.tracking.normal}";
+  "font.style.quote.leading": "{font.leading.relaxed}";
+  "font.style.code.family": "{font.family.mono}";
+  "font.style.code.size": "{font.size.sm}";
+  "font.style.code.weight": "{font.weight.regular}";
+  "font.style.code.tracking": "{font.tracking.normal}";
+  "font.style.code.leading": "{font.leading.normal}";
+  "font.style.link.family": "{font.family.sans}";
+  "font.style.link.size": "{font.size.md}";
+  "font.style.link.weight": "{font.weight.regular}";
+  "font.style.link.tracking": "{font.tracking.normal}";
+  "font.style.link.leading": "{font.leading.relaxed}";
+  "font.style.label.family": "{font.family.sans}";
+  "font.style.label.size": "{font.size.sm}";
+  "font.style.label.weight": "{font.weight.medium}";
+  "font.style.label.tracking": "{font.tracking.wide}";
+  "font.style.label.leading": "{font.leading.snug}";
+  "font.style.caption.family": "{font.family.sans}";
+  "font.style.caption.size": "{font.size.xs}";
+  "font.style.caption.weight": "{font.weight.regular}";
+  "font.style.caption.tracking": "{font.tracking.normal}";
+  "font.style.caption.leading": "{font.leading.snug}";
+  "font.style.overline.family": "{font.family.sans}";
+  "font.style.overline.size": "{font.size.xs}";
+  "font.style.overline.weight": "{font.weight.semibold}";
+  "font.style.overline.tracking": "{font.tracking.wider}";
+  "font.style.overline.leading": "{font.leading.snug}";
+  "font.style.stat.family": "{font.family.mono}";
+  "font.style.stat.size": "{font.size.2xl}";
+  "font.style.stat.weight": "{font.weight.semibold}";
+  "font.style.stat.tracking": "{font.tracking.normal}";
+  "font.style.stat.leading": "{font.leading.tight}";
+  "font.style.body-strong.family": "{font.family.sans}";
+  "font.style.body-strong.size": "{font.size.md}";
+  "font.style.body-strong.weight": "{font.weight.semibold}";
+  "font.style.body-strong.tracking": "{font.tracking.normal}";
+  "font.style.body-strong.leading": "{font.leading.relaxed}";
+  "font.style.caption-strong.family": "{font.family.sans}";
+  "font.style.caption-strong.size": "{font.size.xs}";
+  "font.style.caption-strong.weight": "{font.weight.semibold}";
+  "font.style.caption-strong.tracking": "{font.tracking.wide}";
+  "font.style.caption-strong.leading": "{font.leading.snug}";
   "radius.none": "0";
   "radius.sm": "0.25rem";
   "radius.md": "0.5rem";
@@ -121,9 +197,6 @@ export interface ThemeTokens {
   "motion.easing.standard": "cubic-bezier(0.2, 0, 0, 1)";
   "motion.easing.decelerate": "cubic-bezier(0, 0, 0, 1)";
   "motion.easing.accelerate": "cubic-bezier(0.3, 0, 1, 1)";
-  "button.weight": "600";
-  "button.case": "none";
-  "button.tracking": "-0.01em";
   "button.edge": "{color.border}";
   "button.shadow": "0 1px 2px 0 rgb(15 19 30 / 0.08)";
   "button.shadow-hover": "0 4px 12px -2px rgb(15 19 30 / 0.14)";
@@ -154,10 +227,6 @@ export interface ThemeTokens {
   "alert.edge": "{color.border}";
   "field.radius": "{radius.md}";
   "field.border": "{color.border-strong}";
-  "stat.value-size": "{font.size.2xl}";
-  "stat.value-weight": "{font.weight.semibold}";
-  "stat.value-family": "{font.family.mono}";
-  "table.header-weight": "{font.weight.semibold}";
   "table.rule": "{color.border}";
   "table.zebra": "{color.surface-sunken}";
   "link.underline": "0.0625em";
@@ -170,7 +239,7 @@ export interface ThemeTokens {
  */
 
 /** DTCG paths of every token — the keys of `ThemeTokens`. */
-export type ThemeTokenPath = "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.letter-spacing.tighter" | "font.letter-spacing.tight" | "font.letter-spacing.normal" | "font.letter-spacing.wide" | "font.letter-spacing.wider" | "font.letter-spacing.widest" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "shadow.sm" | "shadow.md" | "shadow.lg" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "button.weight" | "button.case" | "button.tracking" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "focus.width" | "focus.offset" | "icon.sm" | "icon.md" | "icon.lg" | "badge.edge" | "badge.pill" | "checkbox.depth" | "switch.depth" | "avatar.sm" | "avatar.md" | "avatar.lg" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "field.radius" | "field.border" | "stat.value-size" | "stat.value-weight" | "stat.value-family" | "table.header-weight" | "table.rule" | "table.zebra" | "link.underline"
+export type ThemeTokenPath = "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.tracking.tighter" | "font.tracking.tight" | "font.tracking.normal" | "font.tracking.wide" | "font.tracking.wider" | "font.tracking.widest" | "font.leading.none" | "font.leading.tight" | "font.leading.snug" | "font.leading.normal" | "font.leading.relaxed" | "font.leading.loose" | "font.style.display.family" | "font.style.display.size" | "font.style.display.weight" | "font.style.display.tracking" | "font.style.display.leading" | "font.style.title.family" | "font.style.title.size" | "font.style.title.weight" | "font.style.title.tracking" | "font.style.title.leading" | "font.style.heading.family" | "font.style.heading.size" | "font.style.heading.weight" | "font.style.heading.tracking" | "font.style.heading.leading" | "font.style.lead.family" | "font.style.lead.size" | "font.style.lead.weight" | "font.style.lead.tracking" | "font.style.lead.leading" | "font.style.body.family" | "font.style.body.size" | "font.style.body.weight" | "font.style.body.tracking" | "font.style.body.leading" | "font.style.quote.family" | "font.style.quote.size" | "font.style.quote.weight" | "font.style.quote.tracking" | "font.style.quote.leading" | "font.style.code.family" | "font.style.code.size" | "font.style.code.weight" | "font.style.code.tracking" | "font.style.code.leading" | "font.style.link.family" | "font.style.link.size" | "font.style.link.weight" | "font.style.link.tracking" | "font.style.link.leading" | "font.style.label.family" | "font.style.label.size" | "font.style.label.weight" | "font.style.label.tracking" | "font.style.label.leading" | "font.style.caption.family" | "font.style.caption.size" | "font.style.caption.weight" | "font.style.caption.tracking" | "font.style.caption.leading" | "font.style.overline.family" | "font.style.overline.size" | "font.style.overline.weight" | "font.style.overline.tracking" | "font.style.overline.leading" | "font.style.stat.family" | "font.style.stat.size" | "font.style.stat.weight" | "font.style.stat.tracking" | "font.style.stat.leading" | "font.style.body-strong.family" | "font.style.body-strong.size" | "font.style.body-strong.weight" | "font.style.body-strong.tracking" | "font.style.body-strong.leading" | "font.style.caption-strong.family" | "font.style.caption-strong.size" | "font.style.caption-strong.weight" | "font.style.caption-strong.tracking" | "font.style.caption-strong.leading" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "shadow.sm" | "shadow.md" | "shadow.lg" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "focus.width" | "focus.offset" | "icon.sm" | "icon.md" | "icon.lg" | "badge.edge" | "badge.pill" | "checkbox.depth" | "switch.depth" | "avatar.sm" | "avatar.md" | "avatar.lg" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "field.radius" | "field.border" | "table.rule" | "table.zebra" | "link.underline"
 
 /** CSS custom properties every token is readable through. */
-export type ThemeCssVar = "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-letter-spacing-tighter" | "--font-letter-spacing-tight" | "--font-letter-spacing-normal" | "--font-letter-spacing-wide" | "--font-letter-spacing-wider" | "--font-letter-spacing-widest" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--shadow-sm" | "--shadow-md" | "--shadow-lg" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--button-weight" | "--button-case" | "--button-tracking" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--focus-width" | "--focus-offset" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--badge-edge" | "--badge-pill" | "--checkbox-depth" | "--switch-depth" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--field-radius" | "--field-border" | "--stat-value-size" | "--stat-value-weight" | "--stat-value-family" | "--table-header-weight" | "--table-rule" | "--table-zebra" | "--link-underline"
+export type ThemeCssVar = "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-tracking-tighter" | "--font-tracking-tight" | "--font-tracking-normal" | "--font-tracking-wide" | "--font-tracking-wider" | "--font-tracking-widest" | "--font-leading-none" | "--font-leading-tight" | "--font-leading-snug" | "--font-leading-normal" | "--font-leading-relaxed" | "--font-leading-loose" | "--font-style-display-family" | "--font-style-display-size" | "--font-style-display-weight" | "--font-style-display-tracking" | "--font-style-display-leading" | "--font-style-title-family" | "--font-style-title-size" | "--font-style-title-weight" | "--font-style-title-tracking" | "--font-style-title-leading" | "--font-style-heading-family" | "--font-style-heading-size" | "--font-style-heading-weight" | "--font-style-heading-tracking" | "--font-style-heading-leading" | "--font-style-lead-family" | "--font-style-lead-size" | "--font-style-lead-weight" | "--font-style-lead-tracking" | "--font-style-lead-leading" | "--font-style-body-family" | "--font-style-body-size" | "--font-style-body-weight" | "--font-style-body-tracking" | "--font-style-body-leading" | "--font-style-quote-family" | "--font-style-quote-size" | "--font-style-quote-weight" | "--font-style-quote-tracking" | "--font-style-quote-leading" | "--font-style-code-family" | "--font-style-code-size" | "--font-style-code-weight" | "--font-style-code-tracking" | "--font-style-code-leading" | "--font-style-link-family" | "--font-style-link-size" | "--font-style-link-weight" | "--font-style-link-tracking" | "--font-style-link-leading" | "--font-style-label-family" | "--font-style-label-size" | "--font-style-label-weight" | "--font-style-label-tracking" | "--font-style-label-leading" | "--font-style-caption-family" | "--font-style-caption-size" | "--font-style-caption-weight" | "--font-style-caption-tracking" | "--font-style-caption-leading" | "--font-style-overline-family" | "--font-style-overline-size" | "--font-style-overline-weight" | "--font-style-overline-tracking" | "--font-style-overline-leading" | "--font-style-stat-family" | "--font-style-stat-size" | "--font-style-stat-weight" | "--font-style-stat-tracking" | "--font-style-stat-leading" | "--font-style-body-strong-family" | "--font-style-body-strong-size" | "--font-style-body-strong-weight" | "--font-style-body-strong-tracking" | "--font-style-body-strong-leading" | "--font-style-caption-strong-family" | "--font-style-caption-strong-size" | "--font-style-caption-strong-weight" | "--font-style-caption-strong-tracking" | "--font-style-caption-strong-leading" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--shadow-sm" | "--shadow-md" | "--shadow-lg" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--focus-width" | "--focus-offset" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--badge-edge" | "--badge-pill" | "--checkbox-depth" | "--switch-depth" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--field-radius" | "--field-border" | "--table-rule" | "--table-zebra" | "--link-underline"

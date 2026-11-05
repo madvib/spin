@@ -27,30 +27,30 @@ type Tokens = {
 /**
  * The stat's own tokens, and the scales they fall back to.
  *
- * The number is the stat's: its size and its weight are the stat's own
- * decisions, because a figure set at the body's size is a caption and a
- * figure set like a poster is a lie. Each falls back to the step the stat
- * would otherwise wear, so a theme that says nothing about the number gets
- * the type scale's answer rather than the browser's. The label above it
- * keeps the scale's weight: a label is prose, and prose wears the prose
- * weight.
+ * The number reads the stat style outright: a figure set at the body's size
+ * is a caption and a figure set like a poster is a lie, and the style is
+ * the complete answer — face, size, weight — rather than three atoms of
+ * the stat's own. Each falls back to the step the style is built from, so
+ * a theme that says nothing about the number gets the type scale's answer
+ * rather than the browser's. The label above it keeps the scale's weight:
+ * a label is prose, and prose wears the prose weight.
  */
 function statTokens(ctx: ThemeContext | undefined): Tokens {
   return {
     spacing2: token(ctx, "spacing.2"),
     sizeXs: token(ctx, "font.size.xs"),
     sizeSm: token(ctx, "font.size.sm"),
-    size2xl: withFallback(ctx, "stat.value-size", "font.size.2xl"),
+    size2xl: withFallback(ctx, "font.style.stat.size", "font.size.2xl"),
     weightSemibold: token(ctx, "font.weight.semibold"),
-    valueWeight: withFallback(ctx, "stat.value-weight", "font.weight.semibold"),
-    // The face the number is set in: the stat's own decision, because a
+    valueWeight: withFallback(ctx, "font.style.stat.weight", "font.weight.semibold"),
+    // The face the number is set in: the stat style's face, because a
     // figure is a figure and the face it is set in belongs to the number
     // rather than to the page it sits on. The mono is the system's answer —
     // the face that carries figures, and whose digits line up.
-    valueFamily: withFallback(ctx, "stat.value-family", "font.family.mono"),
+    valueFamily: withFallback(ctx, "font.style.stat.family", "font.family.mono"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
-    trackingWide: token(ctx, "font.letter-spacing.wide"),
+    trackingWide: token(ctx, "font.tracking.wide"),
   };
 }
 

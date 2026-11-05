@@ -420,7 +420,7 @@ export function compositeLadders(
     families: stepsUnder(tree, mode, "font.family"),
     sizes: stepsUnder(tree, mode, "font.size"),
     weights: stepsUnder(tree, mode, "font.weight"),
-    trackings: stepsUnder(tree, mode, "font.letter-spacing"),
+    trackings: stepsUnder(tree, mode, "font.tracking"),
     widths: stepsUnder(tree, mode, "border").filter((step) =>
       step.name === "width" || step.name.startsWith("width-")
     ),

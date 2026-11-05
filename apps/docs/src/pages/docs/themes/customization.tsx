@@ -179,11 +179,11 @@ export default function ThemesCustomization(): JSX.Element {
         <p class="max-w-prose">
           By default, elements derive their appearance from the
           global token groups (<code>button</code> uses <code>radius.md</code>,{" "}
-          <code>font.weight.medium</code>, and <code>color.border</code>). When
-          you want to give a specific element its own
-          character — such as uppercase tracked buttons, pill badges, or deeper
+          the <code>label</code> named style, and <code>color.border</code>).
+          When you want to give a specific element its own
+          character — such as semibold tracked buttons, pill badges, or deeper
           card shadows — without altering the global scales, declare optional
-          per-element tokens:
+          per-element tokens (or tune the named style the element reads):
         </p>
         <div class="my-3">
           <Code

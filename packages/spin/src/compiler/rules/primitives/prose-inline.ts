@@ -43,6 +43,8 @@ function linkRule(): Rule {
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
         "text-decoration": "underline",
         "text-underline-offset": "0.2em",
         // The theme's own weight for the rule, or the browser's own
@@ -87,6 +89,8 @@ function weightRule(tag: string): Rule {
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(own.size !== undefined ? { "font-size": own.size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -105,6 +109,8 @@ function smallRule(): Rule {
         ...(own.family !== undefined ? { "font-family": own.family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
         ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
+        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
+        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
     },

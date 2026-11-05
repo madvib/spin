@@ -83,6 +83,18 @@ test("every per-element path is a path the theme language has", () => {
     "font.weight.medium",
     "font.weight.semibold",
     "font.weight.bold",
+    "font.tracking.tighter",
+    "font.tracking.tight",
+    "font.tracking.normal",
+    "font.tracking.wide",
+    "font.tracking.wider",
+    "font.tracking.widest",
+    "font.leading.none",
+    "font.leading.tight",
+    "font.leading.snug",
+    "font.leading.normal",
+    "font.leading.relaxed",
+    "font.leading.loose",
   ]);
   for (const role of ELEMENT_TYPE_ROLES) {
     assert(
@@ -113,9 +125,11 @@ test("every per-element path is named after the element it belongs to", () => {
   }
 });
 
-test("every element the contract names has all three decisions", () => {
+test("every element the contract names has its core decisions", () => {
   // A half-declared element is an element the theme can set a face for and
-  // not a size for, which reads as an accident rather than a decision.
+  // not a size for, which reads as an accident rather than a decision. The
+  // style, tracking and leading ride beside the three the ladder always
+  // answered, on the elements whose rules spend the widened tuple.
   for (const element of elementTypeElements()) {
     const fields = elementTypeFields(element);
     for (const field of ["family", "size", "weight"] as const) {
@@ -125,11 +139,6 @@ test("every element the contract names has all three decisions", () => {
       );
     }
   }
-  deepStrictEqual(
-    elementTypePaths().length,
-    elementTypeElements().length * 3,
-    "every element carries exactly three decisions",
-  );
 });
 
 test("the declaration for a path is the one that path names", () => {

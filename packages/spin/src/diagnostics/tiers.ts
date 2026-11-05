@@ -64,6 +64,7 @@ export const TIER_BY_GROUP: Readonly<Record<string, Tier>> = {
   opacity: "skin",
   "text-decoration": "skin",
   typography: "skin",
+  "font-style": "skin",
 
   // Structure — the size of the element's text.
   "type-size": "structure",
@@ -106,6 +107,7 @@ export const PAINT_BY_GROUP: Readonly<Record<string, Decision>> = {
   opacity: "opacity",
   "text-decoration": "decoration",
   "type-size": "size",
+  "font-style": "size",
 };
 
 /**

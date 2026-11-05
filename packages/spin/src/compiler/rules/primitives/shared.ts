@@ -111,29 +111,43 @@ export function face(
  * the role's face, the weight the level implies. That is what makes the
  * group safe to leave out, and what makes it worth having: a theme that
  * moves one heading's size moves that heading and nothing else.
+ *
+ * The tuple is wider than the three decisions the ladder answers: the
+ * tracking and leading join them, and a theme that states one step states
+ * that step while the ladder answers the rest.
  */
 export interface StatedType {
   readonly family: string | undefined;
   readonly size: string | undefined;
   readonly weight: string | undefined;
+  readonly tracking: string | undefined;
+  readonly leading: string | undefined;
 }
 
 /**
  * The type one element reads, as the theme states it.
  *
- * The three decisions are read together because a theme states them together:
+ * The five decisions are read together because a theme states them together:
  * `font.element.h1.family`, `font.element.h1.size` and
  * `font.element.h1.weight` are one element's answer, and the answer a theme
- * gives is the whole of it or none of it.
+ * gives is the whole of it or none of it. The tracking and the leading join
+ * the three the ladder always answered.
  */
 export function statedType(
   ctx: ThemeContext | undefined,
   element: string,
 ): StatedType {
+  const empty: StatedType = {
+    family: undefined,
+    size: undefined,
+    weight: undefined,
+    tracking: undefined,
+    leading: undefined,
+  };
   const theme = themeOf(ctx);
   const fields = elementTypeFields(element);
   if (theme === undefined) {
-    return { family: undefined, size: undefined, weight: undefined };
+    return empty;
   }
   const read = (path: string | undefined): string | undefined =>
     path === undefined ? undefined : theme[themeKey(path)];
@@ -141,6 +155,8 @@ export function statedType(
     family: read(fields.family?.path),
     size: read(fields.size?.path),
     weight: read(fields.weight?.path),
+    tracking: read(fields.tracking?.path),
+    leading: read(fields.leading?.path),
   };
 }
 
@@ -315,6 +331,13 @@ export interface Tokens {
   /** The editorial face: `font.family.serif`. */
   readonly serif: string | undefined;
   readonly heading: string | undefined;
+  readonly trackingTight: string | undefined;
+  readonly trackingNormal: string | undefined;
+  readonly trackingWide: string | undefined;
+  readonly leadingTight: string | undefined;
+  readonly leadingSnug: string | undefined;
+  readonly leadingNormal: string | undefined;
+  readonly leadingRelaxed: string | undefined;
 }
 
 export function proseTokens(ctx: ThemeContext | undefined): Tokens {
@@ -357,6 +380,13 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
     // chain is the contract's, and it is resolved here rather than spelled as
     // a nested `var()` because a rule reads values, not variable names.
     heading: face(ctx, "font.family.heading"),
+    trackingTight: token(ctx, "font.tracking.tight"),
+    trackingNormal: token(ctx, "font.tracking.normal"),
+    trackingWide: token(ctx, "font.tracking.wide"),
+    leadingTight: token(ctx, "font.leading.tight"),
+    leadingSnug: token(ctx, "font.leading.snug"),
+    leadingNormal: token(ctx, "font.leading.normal"),
+    leadingRelaxed: token(ctx, "font.leading.relaxed"),
   };
 }
 
