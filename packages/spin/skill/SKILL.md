@@ -391,20 +391,6 @@ field that is only as strong as a rule is a hole in the page.
 **Lazy.** The page's hairline, so the field reads as a row of text rather than
 as something you can put a cursor in.
 
-### stat
-
-**For.** The number that is the point.
-
-**Good.** A size a real step above the body, and a weight that makes the number
-readable at a glance without shouting. A face of its own: a figure is a figure,
-so it is set in the mono, where the digits line up and a column of readings can
-be scanned. The label under it stays in the body voice, so the two do not
-compete.
-
-**Lazy.** The body's own size in bold, so the number reads as a bold word rather
-than as a number. The page's own face, so the value is whatever the page
-happened to set.
-
 ### table
 
 **For.** The data grid, and the reading of it.
@@ -428,10 +414,6 @@ a sticker on it.
 
 **Lazy.** The browser's default underline, which is thicker than the theme's
 rules and in a colour the theme never chose.
-
-### gradient
-
-**For.** The contract knows this group; nothing here says what it is for yet.
 
 ## Filling the document
 
