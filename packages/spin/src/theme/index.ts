@@ -167,6 +167,8 @@ export type { Mode } from "./modes.ts";
 
 // Shipped starter themes.
 export {
+  catppuccinPalette,
+  compactSpacing,
   industrialTheme,
   materialTheme,
   neobrutTheme,
@@ -175,4 +177,3 @@ export {
   starterGroups,
   starterThemes,
 } from "./themes/index.ts";
-export type { StarterThemeName } from "./themes/index.ts";

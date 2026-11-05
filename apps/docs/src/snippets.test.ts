@@ -1,9 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { spin } from "../../../packages/spin/src/plugin/plugin.ts";
-import { spinPreset } from "../../../packages/spin/src/compiler/index.ts";
-import { starterThemes, themeGates } from "../../../packages/spin/src/theme/index.ts";
+import { describeCatalog, spinPreset } from "../../../packages/spin/src/compiler/index.ts";
+import {
+  FONT_MAP_DEFAULTS,
+  indexTree,
+  ownedStyleNames,
+  parseTokens,
+  resolveAliases,
+  starterThemes,
+  themeGates,
+} from "../../../packages/spin/src/theme/index.ts";
 import { parseArgs } from "../../../packages/spin/src/diagnostics/cli.ts";
 import { mountSpinApp } from "../../../packages/spin/src/api/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./pages/docs/getting-started/getting-started.snippets.ts";
@@ -114,5 +122,127 @@ describe("Per-subgroup docs snippets", () => {
 
   test("the starter themes are a non-empty document map", () => {
     expect(Object.keys(starterThemes).length).toBeGreaterThan(0);
+  });
+});
+
+const STYLING_DIR = resolve(import.meta.dir, "pages/docs/styling");
+
+/**
+ * The `type-<name>` classes the docs actually wear: `class="..."` and
+ * `class={\`...\`}` attributes plus backtick snippet literals. Prose that
+ * merely names a class (\"type-headline fails the build\") is not worn and
+ * is excluded — a doc may say a class fails without failing currency.
+ */
+function wornTypeClasses(sources: readonly string[]): ReadonlySet<string> {
+  const found = new Set<string>();
+  const attr = /class=(?:"([^"]*)"|\{`([\s\S]*?)`\}|"([^"]*)")/g;
+  const literal = /`([^`]*?)`/g;
+  const cls = /\btype-[a-z][a-z0-9-]*/g;
+  for (const text of sources) {
+    for (const m of text.matchAll(attr)) {
+      for (const part of [m[1], m[2], m[3]]) {
+        if (part === undefined) continue;
+        const clean = part.replace(/\$\{[^}]*\}/g, " ");
+        for (const c of clean.match(cls) ?? []) found.add(c);
+      }
+    }
+    for (const m of text.matchAll(literal)) {
+      const body = m[1] ?? "";
+      if (/\$\{/.test(body)) continue;
+      for (const c of body.match(cls) ?? []) found.add(c);
+    }
+  }
+  return found;
+}
+
+/**
+ * Token paths a snippet or page states: `group.name` dotted paths under a
+ * known theme group, inside backtick literals or `font.map`-style prose
+ * code. Bare words (`compact.spacing.json` filenames, `spin/<name>.json`
+ * paths) are excluded by requiring a real group root.
+ */
+function statedTokenPaths(sources: readonly string[]): ReadonlySet<string> {
+  const found = new Set<string>();
+  const roots =
+    "color|font|spacing|radius|shadow|motion|border|focus|icon|breakpoint|opacity|link|button|card|alert|field|table|stat|badge";
+  const path = new RegExp(
+    `(?:^|[^A-Za-z0-9_.-])((?:${roots})\\.[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_-]+)*)`,
+    "g",
+  );
+  for (const text of sources) {
+    for (const m of text.matchAll(path)) {
+      const candidate = (m[1] ?? "").replace(/\.+$/, "");
+      // `font.map` is a voice-assignment table, not tokens — the parser
+      // skips it deliberately, so its currency is the owned-voice check.
+      if (candidate === "font.map" || candidate.startsWith("font.map.")) {
+        continue;
+      }
+      if (candidate !== "") found.add(candidate);
+    }
+  }
+  return found;
+}
+
+describe("docs-to-catalog currency", () => {
+  test("every worn type-<name> is an owned voice in the live catalog", () => {
+    const pages = readdirSync(STYLING_DIR)
+      .filter((file) => file.endsWith(".tsx"))
+      .map((file) => readFileSync(join(STYLING_DIR, file), "utf8"));
+    const sources = [
+      ...pages,
+      ...Object.values(THEMES_SNIPPETS),
+    ];
+    const worn = wornTypeClasses(sources);
+    expect(worn.size).toBeGreaterThan(0);
+    const owned = new Set(ownedStyleNames());
+    const parsed = parseTokens(
+      starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+    );
+    if (!parsed.ok) throw new Error(parsed.error);
+    const catalog = new Set(
+      describeCatalog(parsed.tree).flatMap((section) => section.utilities),
+    );
+    for (const cls of worn) {
+      const name = cls.slice("type-".length);
+      if (!owned.has(name)) {
+        throw new Error(
+          `${cls} is worn by the docs but is not an owned voice (${[...owned].join(", ")})`,
+        );
+      }
+      expect(catalog.has(cls)).toBe(true);
+    }
+  });
+
+  test("every stated token path resolves in the live theme tree", () => {
+    const pages = readdirSync(STYLING_DIR)
+      .filter((file) => file.endsWith(".tsx"))
+      .map((file) => readFileSync(join(STYLING_DIR, file), "utf8"));
+    const sources = [
+      ...pages,
+      ...Object.values(THEMES_SNIPPETS),
+    ];
+    const stated = statedTokenPaths(sources);
+    expect(stated.size).toBeGreaterThan(0);
+    const parsed = parseTokens(
+      starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+    );
+    if (!parsed.ok) throw new Error(parsed.error);
+    const index = indexTree(resolveAliases(parsed.tree).tree);
+    for (const path of stated) {
+      // `font.map` target keys (`card.title`, `stat.value`) are voice
+      // assignment addresses, not token paths — the parser skips `font.map`
+      // deliberately, so they resolve against the map, not the tree.
+      if (Object.hasOwn(FONT_MAP_DEFAULTS, path)) continue;
+      // A stated prefix of a deeper leaf (color.neutral, font.size) counts:
+      // the docs name families as well as leaves.
+      const hit = Object.keys(index.nodes).some(
+        (known) => known === path || known.startsWith(`${path}.`),
+      );
+      if (!hit) {
+        throw new Error(
+          `${path} is stated by the docs but resolves in no starter tree node`,
+        );
+      }
+    }
   });
 });

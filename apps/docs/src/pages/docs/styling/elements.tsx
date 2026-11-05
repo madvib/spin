@@ -9,9 +9,11 @@ import type { JSX } from "solid-js";
 import {
   Code,
   PageHeader,
+  PropList,
   Section,
   Specimen,
   starterDoc,
+  type PropEntry,
 } from "../../../ui/index.ts";
 
 const BUTTONS_ROW_SNIPPET = `<div class="flex flex-wrap items-center gap-2">
@@ -56,6 +58,77 @@ const VARIANTS_SNIPPET = `<div class="flex flex-wrap items-center gap-2">
     <span>Chrome-free (.bare)</span>
   </button>
 </div>`;
+
+const LISTS_SNIPPET = `<!-- Long-form article or Markdown container -->
+<prose>
+  <h2>Incident postmortem</h2>
+  <p>
+    Traffic shifted away from <code>us-east-1</code> within 40 seconds. Follow-up
+    actions before the next release window:
+  </p>
+  <ul>
+    <li>Lower health-check interval to 5 seconds</li>
+    <li>Pin canary error budget in <code>spin/default.json</code></li>
+  </ul>
+</prose>
+
+<!-- Horizontal navigation list outside <prose>: use row-list -->
+<nav aria-label="Primary">
+  <ul class="row-list gap-4">
+    <li><a href="/overview">Overview</a></li>
+    <li><a href="/deployments">Deployments</a></li>
+    <li><a href="/settings">Settings</a></li>
+  </ul>
+</nav>`;
+
+const LIST_PATTERNS: readonly PropEntry[] = [
+  {
+    name: "Bare <ul> / <ol>",
+    badge: "reset layer",
+    description: (
+      <>
+        Reset to <code>margin: 0; padding: 0; list-style: none</code> in the
+        base stylesheet so navigation rails, menus, comboboxes, and tab bars
+        never have to strip browser bullets or indentation.
+      </>
+    ),
+  },
+  {
+    name: "<prose> <ul> / <ol>",
+    badge: "document lists",
+    description: (
+      <>
+        Inside <code>&lt;prose&gt;</code> (or <code>.prose</code>),{" "}
+        <code>&lt;ul&gt;</code> restores <code>list-style-type: disc</code> and{" "}
+        <code>&lt;ol&gt;</code> restores <code>list-style-type: decimal</code>{" "}
+        with inline-start padding and item spacing.
+      </>
+    ),
+  },
+  {
+    name: "class=\"row-list\"",
+    badge: "horizontal list",
+    description: (
+      <>
+        Expands to a horizontal flex row (<code>display: flex; align-items: center; list-style-type: none; margin: 0; padding: 0</code>) and zeroes{" "}
+        <code>li + li</code> top margin so the first item and subsequent items
+        align on the exact same baseline. Use on horizontal navs,
+        breadcrumbs, and steppers.
+      </>
+    ),
+  },
+  {
+    name: "class=\"flow-list\"",
+    badge: "vertical list",
+    description: (
+      <>
+        Vertical list with markers and indentation off and theme-spaced{" "}
+        <code>li + li</code> block gaps. Use for stacked sidebar links, feeds,
+        and settings lists outside <code>&lt;prose&gt;</code>.
+      </>
+    ),
+  },
+];
 
 const INCREMENTAL_ADOPTION_SNIPPET = `// vite.config.ts
 import { defineConfig } from "vite";
@@ -288,8 +361,8 @@ export default function StylingElements(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="What are primitives and how do I build with them?"
-        lede="Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time."
+        title="Classless Elements"
+        lede="What are primitives and how do I build with them? Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time."
       />
 
       <Section id="tags-arrive-finished" title="Tags arrive finished">
@@ -614,6 +687,24 @@ export default function StylingElements(): JSX.Element {
             )}
           </For>
         </div>
+      </Section>
+
+      <Section id="lists" title="Lists">
+        <p class="max-w-prose">
+          Most <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> elements in
+          an application are UI chrome (menus, nav rails, steppers, combobox
+          options), not bulleted prose. Spin resets bare lists to{" "}
+          <code>list-style: none; margin: 0; padding: 0</code> by default,
+          restores markers inside <code>&lt;prose&gt;</code>, and ships{" "}
+          <code>row-list</code> and <code>flow-list</code> for structured UI
+          lists:
+        </p>
+        <PropList items={LIST_PATTERNS} />
+        <Code
+          code={LISTS_SNIPPET}
+          lang="html"
+          title="Prose container vs. row-list navigation"
+        />
       </Section>
 
       <Section id="incremental-adoption" title="Incremental adoption">

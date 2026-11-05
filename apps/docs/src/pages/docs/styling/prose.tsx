@@ -1,276 +1,153 @@
 /**
- * Typography: the named type styles the theme declares, spent with
- * `type-<name>` or carried by elements by default — plus the list
- * primitives (`ul`/`ol` reset, `row-list`, `flow-list`).
+ * Typography: the scales the theme builds from, the 16 named voices spent
+ * with `type-<name>`, and `font.map` voice assignment — with `a` and
+ * `strong` as inline modifiers over inherited text.
  */
 import { A } from "@solidjs/router";
-import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Dynamic } from "solid-js/web";
-import {
-  ELEMENT_STYLE_DEFAULTS,
-  resolveTheme,
-  starterThemes,
-} from "@spinjs/spin/theme";
-import { mode, theme } from "@spinjs/kit";
 import {
   Code,
   PageHeader,
-  PropList,
   Section,
-  type PropEntry,
+  Specimen,
 } from "../../../ui/index.ts";
 
 const SAMPLE = "The quick brown fox jumps over the lazy dog";
 
-const DEFAULT_ELEMENTS: readonly string[] = Object.keys(
-  ELEMENT_STYLE_DEFAULTS,
-);
+const DISPLAY_SNIPPET = `<div class="type-display">The quick brown fox jumps over the lazy dog</div>`;
 
-/**
- * The classes the specimens wear, written out so the extractor and the lint
- * read them as the static strings they are: a specimen demonstrates
- * `type-<name>` by wearing it, not by rebuilding its declarations.
- */
-const SPECIMEN_CLASSES: Readonly<Record<string, string>> = {
-  display: "type-display",
-  title: "type-title",
-  heading: "type-heading",
-  lead: "type-lead",
-  body: "type-body",
-  "body-strong": "type-body-strong",
-  quote: "type-quote",
-  code: "type-code",
-  link: "type-link",
-  label: "type-label",
-  caption: "type-caption",
-  "caption-strong": "type-caption-strong",
-  overline: "type-overline",
-  stat: "type-stat",
-};
+const HEADING_SNIPPET = `<div class="type-heading">The quick brown fox jumps over the lazy dog</div>`;
 
-function declarationOf(name: string): string {
-  const doc = starterThemes[theme() as keyof typeof starterThemes];
-  const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
-  const read = (field: string): string => {
-    const value = resolved.values[`font.style.${name}.${field}`];
-    return typeof value === "string" || typeof value === "number"
-      ? String(value)
-      : "—";
-  };
-  return `${read("family")} · ${read("size")} · ${read("weight")}`;
-}
+const BODY_SNIPPET = `<div class="type-body">The quick brown fox jumps over the lazy dog</div>`;
 
-const LIST_PATTERNS: readonly PropEntry[] = [
-  {
-    name: "Bare <ul> / <ol>",
-    badge: "reset layer",
-    description: (
-      <>
-        Reset to <code>margin: 0; padding: 0; list-style: none</code> in the
-        base stylesheet so navigation rails, menus, comboboxes, and tab bars
-        never have to strip browser bullets or indentation.
-      </>
-    ),
-  },
-  {
-    name: "<prose> <ul> / <ol>",
-    badge: "document lists",
-    description: (
-      <>
-        Inside <code>&lt;prose&gt;</code> (or <code>.prose</code>),{" "}
-        <code>&lt;ul&gt;</code> restores <code>list-style-type: disc</code> and{" "}
-        <code>&lt;ol&gt;</code> restores <code>list-style-type: decimal</code>{" "}
-        with inline-start padding and item spacing.
-      </>
-    ),
-  },
-  {
-    name: "class=\"row-list\"",
-    badge: "horizontal list",
-    description: (
-      <>
-        Expands to a horizontal flex row (<code>display: flex; align-items: center; list-style-type: none; margin: 0; padding: 0</code>) and zeroes{" "}
-        <code>li + li</code> top margin so the first item and subsequent items
-        align on the exact same baseline. Use on horizontal navs,
-        breadcrumbs, and steppers.
-      </>
-    ),
-  },
-  {
-    name: "class=\"flow-list\"",
-    badge: "vertical list",
-    description: (
-      <>
-        Vertical list with markers and indentation off and theme-spaced{" "}
-        <code>li + li</code> block gaps. Use for stacked sidebar links, feeds,
-        and settings lists outside <code>&lt;prose&gt;</code>.
-      </>
-    ),
-  },
-];
+const CODE_SNIPPET = `<div class="type-body">Traffic shifted away from <span class="type-code">us-east-1</span> within 40 seconds.</div>`;
 
-const PROSE_AND_LIST_SNIPPET = `<!-- Long-form article or Markdown container -->
-<prose>
-  <h2>Incident postmortem</h2>
-  <p>
-    Traffic shifted away from <code>us-east-1</code> within 40 seconds. Follow-up
-    actions before the next release window:
-  </p>
-  <ul>
-    <li>Lower health-check interval to 5 seconds</li>
-    <li>Pin canary error budget in <code>spin/default.json</code></li>
-  </ul>
-</prose>
+const FONT_MAP_SNIPPET = `{
+  "font": {
+    "map": {
+      "h1": "title",
+      "card.title": "card-title",
+      "dt": null
+    }
+  }
+}`;
 
-<!-- Horizontal navigation list outside <prose>: use row-list -->
-<nav aria-label="Primary">
-  <ul class="row-list gap-4">
-    <li><a href="/overview">Overview</a></li>
-    <li><a href="/deployments">Deployments</a></li>
-    <li><a href="/settings">Settings</a></li>
-  </ul>
-</nav>`;
-
-const ATTACH_SNIPPET = `<!-- The caption voice, worn by a span inside a figure -->
-<figure>
-  <img src="/chart.svg" alt="Weekly error budget" />
-  <figcaption><span class="type-caption-strong">Figure 3.</span> Burn-down across regions.</figcaption>
-</figure>`;
+const INLINE_SNIPPET = `<div class="type-body">
+  Read the <a href="/docs/styling/prose">typography guide</a> before the
+  release window, and pin the <strong>canary error budget</strong> first.
+</div>`;
 
 export default function StylingProse(): JSX.Element {
-  const names = (): readonly string[] => {
-    const doc = starterThemes[theme() as keyof typeof starterThemes];
-    const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
-    const found = new Set<string>();
-    for (const key of Object.keys(resolved.values)) {
-      if (!key.startsWith("font.style.")) continue;
-      const rest = key.slice("font.style.".length);
-      const dot = rest.indexOf(".");
-      if (dot > 0) found.add(rest.slice(0, dot));
-    }
-    return [...found].sort();
-  };
-   return (
-     <main class="flex flex-col">
+  return (
+    <main class="flex flex-col">
       <PageHeader
         title="Typography"
         lede="Write semantic HTML and get finished type: every element arrives carrying a named style, and one type-<name> class changes the voice — the whole tuple at once, never letter by letter."
       />
 
-      <Section id="defaults" title="Elements arrive with their voice">
+      <Section id="scales" title="Scales are the building blocks">
         <p class="max-w-prose">
-          Write <code>&lt;h1&gt;</code> and get the page's loudest statement;{" "}
-          write <code>&lt;p&gt;</code> and get the reading voice; write{" "}
-          <code>&lt;small&gt;</code> and get the small print. Each element
-          carries one of your theme's named styles by default, so your markup
-          reads as a document instead of a pile of sizes:
+          Your theme&apos;s <code>font.size</code>,{" "}
+          <code>font.family</code>, <code>font.weight</code>,{" "}
+          <code>font.tracking</code>, and <code>font.leading</code> scales
+          are internal building blocks, not utilities. A theme aliases steps
+          from these scales into complete named voices under{" "}
+          <code>font.style.*</code>; nothing in your markup names a scale
+          step directly. Sizing or weighing by hand names no voice the theme
+          can remake, so the build fails and names the voice to write
+          instead. Move a scale step in <code>spin/&lt;name&gt;.json</code>{" "}
+          (or the <A href="/studio">Studio</A> Fonts section) and every voice
+          built on it moves together.
         </p>
-        <ul class="flex flex-col gap-4">
-          <For each={DEFAULT_ELEMENTS}>
-            {(element) => (
-              <li class="flex flex-col gap-2">
-                <card>
-                  <div class="flex flex-wrap items-baseline gap-x-2">
-                    <code>&lt;{element}&gt;</code>
-                    <small>reads</small>
-                    <code>type-{ELEMENT_STYLE_DEFAULTS[element]}</code>
-                    <small>
-                      from <code>font.style.{ELEMENT_STYLE_DEFAULTS[element]}</code>
-                    </small>
-                  </div>
-                  <div class="rounded-md border border-border bg-surface p-3">
-                    <Dynamic component={element}>
-                      {SAMPLE}
-                    </Dynamic>
-                  </div>
-                </card>
-              </li>
-            )}
-          </For>
-        </ul>
       </Section>
 
-      <Section id="restyle" title="One class changes the voice">
+      <Section id="voices" title="Sixteen voices, spent whole">
         <p class="max-w-prose">
-          To change how a run of text reads, write one{" "}
-          <code>type-&lt;name&gt;</code> class — it spends the whole tuple
-          (face, size, weight, tracking, leading) at once. Sizing and weighing
-          by hand with <code>text-sm</code> or <code>font-medium</code> names
-          nothing your theme can make, so the build fails and names the style
-          to write instead. Every style below renders live from your active
-          starter theme, beside the class that spends it and the theme
-          location that owns it:
+          Each entry under <code>font.style.*</code> is a complete tuple —
+          family, size, weight, tracking, and leading in one{" "}
+          <code>$type: &quot;typography&quot;</code> token — and one{" "}
+          <code>type-&lt;name&gt;</code> class spends the whole tuple at
+          once. The theme owns the set; these are the 16 voices every starter
+          theme declares: <code>display</code>, <code>title</code>,{" "}
+          <code>heading</code>, <code>subtitle</code>, <code>lead</code>,{" "}
+          <code>body</code>, <code>quote</code>, <code>code</code>,{" "}
+          <code>label</code>, <code>caption</code>, <code>overline</code>,{" "}
+          <code>stat</code>, <code>badge</code>,{" "}
+          <code>body-strong</code>, <code>caption-strong</code>, and{" "}
+          <code>card-title</code>. A style is a voice, not a seat: put a
+          theme-declared style on any element —{" "}
+          <code>&lt;span class=&quot;type-caption&quot;&gt;</code> captions a
+          figure from inside a paragraph — and the only constraint is the
+          vocabulary. Four representative voices render live below from your
+          active starter theme; the full 16-voice reference table lives in the{" "}
+          <A href="/docs/themes/reference#styles">token reference</A>.
         </p>
-        <ul class="flex flex-col gap-4">
-          <For each={names()}>
-            {(name) => (
-              <li class="flex flex-col gap-2">
-                <card>
-                  <div class="flex flex-wrap items-baseline gap-x-2">
-                    <code>type-{name}</code>
-                    <small>
-                      from <code>font.style.{name}</code>
-                    </small>
-                    <small>{declarationOf(name)}</small>
-                  </div>
-                  <div class="rounded-md border border-border bg-surface p-3">
-                    <div class={SPECIMEN_CLASSES[name] ?? "type-body"}>{SAMPLE}</div>
-                  </div>
-                </card>
-              </li>
-            )}
-          </For>
-        </ul>
+        <div class="my-2 flex flex-col gap-4">
+          <Specimen
+            title="type-display — the loudest statement"
+            description="from font.style.display"
+            code={DISPLAY_SNIPPET}
+            preview={<div class="type-display">{SAMPLE}</div>}
+          />
+          <Specimen
+            title="type-heading — a subsection head"
+            description="from font.style.heading"
+            code={HEADING_SNIPPET}
+            preview={<div class="type-heading">{SAMPLE}</div>}
+          />
+          <Specimen
+            title="type-body — the reading voice"
+            description="from font.style.body"
+            code={BODY_SNIPPET}
+            preview={<div class="type-body">{SAMPLE}</div>}
+          />
+          <Specimen
+            title="type-code — machine text beside prose"
+            description="from font.style.code"
+            code={CODE_SNIPPET}
+            preview={
+              <div class="type-body">
+                Traffic shifted away from{" "}
+                <span class="type-code">us-east-1</span> within 40 seconds.
+              </div>
+            }
+          />
+        </div>
       </Section>
 
-      <Section id="placement" title="Styles attach anywhere">
+      <Section id="map" title="font.map assigns voices; links and strong modify">
         <p class="max-w-prose">
-          A style is a voice, not a seat: put a theme-declared style on any
-          element — <code>&lt;span class="type-caption"&gt;</code> captions a
-          figure from inside a paragraph. The only constraint is the
-          vocabulary: the style must be one your theme declares, so{" "}
-          <code>type-headline</code> on a theme with no{" "}
-          <code>font.style.headline</code> fails the build and names the
-          nearest style that exists. Where a style sits is advice, never a
-          rule — no warning fires when a caption lands on a span.
+          Every element arrives carrying a voice because <code>font.map</code>{" "}
+          assigns one: <code>h1</code> reads <code>display</code>,{" "}
+          <code>p</code> reads <code>body</code>,{" "}
+          <code>card.title</code> reads <code>card-title</code>, and so on.
+          Re-point one target by stating <code>font.map.&lt;target&gt;</code>{" "}
+          in your theme — <code>&quot;h1&quot;: &quot;title&quot;</code> moves
+          first-level headings to the title voice without touching the
+          display voice itself — and state <code>null</code> to opt a target
+          out of Spin voicing entirely:
         </p>
         <Code
-          code={ATTACH_SNIPPET}
-          lang="html"
-          title="A declared style on any element"
+          code={FONT_MAP_SNIPPET}
+          lang="json"
+          title="Re-pointing voices in spin/<name>.json"
         />
-      </Section>
-
-      <Section id="theme" title="The theme owns the set">
         <p class="max-w-prose">
-          The styles above are not built into Spin — they are your theme's{" "}
-          <code>font.style.*</code> entries, read live on this page. A
-          designer trims or extends the set in{" "}
-          <code>spin/&lt;name&gt;.json</code> (or the{" "}
-          <A href="/studio">Studio</A> Styles section) and every specimen here
-          follows; the <code>font.size.*</code> steps are the ladder the
-          styles are built from, so moving a step moves every style that
-          stands on it. The full token surface lives in the{" "}
-          <A href="/docs/themes/reference">token reference</A>.
+          While elements carry a voice, <code>&lt;a&gt;</code> and{" "}
+          <code>&lt;strong&gt;</code> are inline modifiers over the text they
+          sit in. A link inherits its surrounding family, size, weight,
+          tracking, and leading, and adds only its paint: the{" "}
+          <code>link</code> color, an underline of{" "}
+          <code>link.underline</code> thickness at{" "}
+          <code>link.offset</code> distance, with transition and hover/focus
+          states. <code>&lt;strong&gt;</code> adds only weight (
+          <code>font.weight.bold</code>), so bolding inside a caption or a
+          heading never resets the size, family, or leading around it:
         </p>
-      </Section>
-
-      <Section id="lists" title="Lists: UI reset vs. document prose">
-        <p class="max-w-prose">
-          Most <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> elements in
-          an application are UI chrome (menus, nav rails, steppers, combobox
-          options), not bulleted prose. Spin resets bare lists to{" "}
-          <code>list-style: none; margin: 0; padding: 0</code> by default,
-          restores markers inside <code>&lt;prose&gt;</code>, and ships{" "}
-          <code>row-list</code> and <code>flow-list</code> for structured UI
-          lists:
-        </p>
-        <PropList items={LIST_PATTERNS} />
         <Code
-          code={PROSE_AND_LIST_SNIPPET}
+          code={INLINE_SNIPPET}
           lang="html"
-          title="Prose container vs. row-list navigation"
+          title="Inline modifiers inherit their surroundings"
         />
       </Section>
 
@@ -279,7 +156,7 @@ export default function StylingProse(): JSX.Element {
           One voice on this site is genuinely one-off: the Spin wordmark in
           the corner, set in the brand face at one deliberate size no theme
           scale has reason to name. That element carries{" "}
-          <code>data-spin-escape</code>, the author's explicit word that its
+          <code>data-spin-escape</code>, the author&apos;s explicit word that its
           classes are deliberate — so no warning fires about placement
           there — while the vocabulary rule still fires, because deliberate
           code still names nothing dead. Reach for

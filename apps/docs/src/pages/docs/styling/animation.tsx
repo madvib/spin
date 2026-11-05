@@ -50,8 +50,8 @@ export default function StylingAnimation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="How does motion work?"
-        lede="Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion."
+        title="Motion & Animation"
+        lede="How does motion work? Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion."
       />
 
       <Section id="theme-motion" title="Motion comes from the theme">

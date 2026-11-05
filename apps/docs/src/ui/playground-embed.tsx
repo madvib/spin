@@ -82,7 +82,7 @@ export function PlaygroundEmbed(props: {
             </button>
             <A
               href="/playground"
-              class="type-link text-primary no-underline hover:underline"
+              class="text-primary no-underline hover:underline"
             >
               Open in Playground →
             </A>

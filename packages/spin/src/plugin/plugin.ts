@@ -459,6 +459,8 @@ export interface SpinPluginOptions {
    */
   readonly extends?: {
     readonly themes?: Record<string, ThemeDocument>;
+    readonly palettes?: Record<string, ThemeDocument>;
+    readonly spacings?: Record<string, ThemeDocument>;
     readonly componentsDir?: string;
   };
   /** Presets to compose alongside ours — icons are the usual reason. */
@@ -859,6 +861,12 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
         options.extends?.themes ?? {},
         disk.themes,
       );
+    const palettes = options.themes === undefined
+      ? { ...options.extends?.palettes, ...disk.palettes }
+      : {};
+    const spacings = options.themes === undefined
+      ? { ...options.extends?.spacings, ...disk.spacings }
+      : {};
     noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens
@@ -904,8 +912,8 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
         ...(options.presets ?? []),
         spinPreset({
           themes,
-          palettes: disk.palettes,
-          spacings: disk.spacings,
+          palettes,
+          spacings,
           shortcuts: options.shortcuts,
           primitives: options.primitives,
         }),

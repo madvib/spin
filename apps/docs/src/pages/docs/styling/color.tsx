@@ -171,8 +171,8 @@ export default function StylingColor(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="How do color and dark mode work?"
-        lede="Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values."
+        title="Color & Dark Mode"
+        lede="How do color and dark mode work? Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values."
       />
 
       <Section id="roles" title="Roles, not colors">

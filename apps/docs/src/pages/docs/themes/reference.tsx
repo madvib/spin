@@ -69,7 +69,7 @@ const GROUP_DESCRIPTIONS: Readonly<Record<string, string>> = {
   color:
     "Surfaces, inks, primary/secondary/accent actions, semantic status pairs, borders, and raw palette ramps.",
   font:
-    "Font family stacks, named type styles (font.style.* — the voices type-<name> spends), the size ladder the styles are built from, weights, the font.tracking.* and font.leading.* ladders, and per-element defaults.",
+    "Font family stacks, the sixteen named type styles (font.style.* — the voices type-<name> spends, each a composite $type typography tuple), the size/weight/tracking/leading scales the styles alias, font.map voice assignment, and per-element defaults.",
   spacing:
     "Monotonic spatial scale (0, 1..64) consumed by padding, margin, and gap utilities.",
   radius:
@@ -304,11 +304,13 @@ export default function ThemesReference(): JSX.Element {
 
       <Section id="styles" title="Named type styles">
         <p class="max-w-prose">
-          Write <code>type-&lt;name&gt;</code> to spend one of these voices —
-          the face, the size, the weight, the tracking, the leading, all at
-          once. The table reads the active starter theme, so switching
-          starters rewrites it; every voice, its element default, and a live
-          specimen lives in the{" "}
+          Write <code>type-&lt;name&gt;</code> to spend one of these sixteen
+          voices — the face, the size, the weight, the tracking, the leading,
+          all at once, each declared as a composite{" "}
+          <code>$type: "typography"</code> tuple in{" "}
+          <code>font.style.&lt;name&gt;</code>. The table reads the active
+          starter theme, so switching starters rewrites it; every voice, its
+          element default, and a live specimen lives in the{" "}
           <A href="/docs/styling/prose">Typography guide</A>.
         </p>
         <PropList items={fontStyleEntries()} />

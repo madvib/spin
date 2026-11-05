@@ -6,6 +6,57 @@ export const THEMES_SNIPPETS = {
   "activeTheme": "silk",
   "themeOrder": ["spin", "silk", "material", "neobrut", "industrial"]
 }`,
+  sparseExtends: `{
+  "$extends": "silk",
+  "modes": ["light", "dark"],
+  "color": {
+    "primary": { "$value": "#2563eb" }
+  }
+}`,
+  composedAxes: `<html data-theme="silk" data-palette="catppuccin" data-spacing="compact" data-mode="dark">
+  <!-- base theme decides the look, palette swaps the ink,
+       spacing swaps the rhythm, mode picks the dark answer -->
+</html>`,
+  nestedFacets: `<div data-theme="silk" data-spacing="compact">
+  <!-- dense sidebar: page ink and type, tighter rhythm -->
+  <aside>…</aside>
+  <aside data-palette="catppuccin" data-mode="dark">
+    <!-- marketing panel: Catppuccin ink, dark answer -->
+  </aside>
+</div>`,
+  composedSubtree: `<div data-palette="catppuccin" data-spacing="compact" data-mode="dark" class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+  <strong>Release pipeline</strong>
+  <p class="text-text-muted">Ink from Catppuccin, rhythm from compact, mode scoped to this card.</p>
+  <div class="flex flex-wrap items-center gap-4">
+    <button type="button" class="primary">Promote build</button>
+    <button type="button">Compare diff</button>
+  </div>
+</div>`,
+  compositeVoice: `{
+  "font": {
+    "style": {
+      "heading": {
+        "$type": "typography",
+        "$value": {
+          "family": "{font.family.heading}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.snug}"
+        }
+      }
+    }
+  }
+}`,
+  fontMap: `{
+  "font": {
+    "map": {
+      "h1": "title",
+      "card.title": "card-title",
+      "dt": null
+    }
+  }
+}`,
   viteSharedBrand: `import { defineConfig } from "vite";
 import { spin } from "@spinjs/spin/vite";
 import { starterThemes } from "@spinjs/spin/theme";
@@ -100,14 +151,6 @@ export const plugins = [
   "button": {
     "radius": { "$type": "dimension", "$value": "{radius.full}" },
     "edge": { "$type": "color", "$value": "{color.border-strong}" }
-  },
-  "font": {
-    "style": {
-      "label": {
-        "weight": { "$type": "fontWeight", "$value": "{font.weight.semibold}" },
-        "tracking": { "$type": "dimension", "$value": "{font.tracking.wide}" }
-      }
-    }
   },
   "card": {
     "radius": { "$type": "dimension", "$value": "{radius.lg}" },

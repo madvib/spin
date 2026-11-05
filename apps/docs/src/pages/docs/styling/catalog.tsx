@@ -500,7 +500,7 @@ export default function Catalog(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Utility Reference"
+        title="Utility Catalog"
         lede="Grammar reference for every utility class family in @spinjs/spin/preset: the class pattern you write, the CSS declarations it emits, and the active theme token steps that back it."
       />
 

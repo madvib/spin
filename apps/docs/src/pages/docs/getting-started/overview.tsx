@@ -39,8 +39,8 @@ export default function GettingStartedOverview(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="What is Spin?"
-        lede="Your theme, styling, and component layer in one verifiable system — so humans and coding agents ship consistent UI with zero CSS drift or runtime bloat."
+        title="Overview"
+        lede="What is Spin? Your theme, styling, and component layer in one verifiable system — so humans and coding agents ship consistent UI with zero CSS drift or runtime bloat."
         playgroundExample="elements-form"
       />
       <Markdown text={startMd} />

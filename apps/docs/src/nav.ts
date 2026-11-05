@@ -62,17 +62,17 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "How themes, bare-tag HTML elements, utilities, and state machines fit together.",
       },
       {
-        title: "Quickstart",
-        href: "/docs/getting-started/quickstart",
-        summary: "Install the packages, wire your bundler, and open the Studio in two minutes.",
-      },
-      {
         title: "Installation",
         href: "/docs/getting-started/install",
         summary: "Project layout, spin init flags, and configurations for all seven bundlers.",
       },
       {
-        title: "Entry Points",
+        title: "Quickstart",
+        href: "/docs/getting-started/quickstart",
+        summary: "Install the packages, wire your bundler, and open the Studio in two minutes.",
+      },
+      {
+        title: "Adoption Paths",
         href: "/docs/getting-started/paths",
         summary: "Full bundler plugin, UnoCSS preset-only, or standalone Studio daemon.",
       },
@@ -93,27 +93,27 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Designing your brand theme in the Studio, previewing starters, and configuring spin/*.json.",
       },
       {
-        title: "Modes",
-        href: "/docs/themes/modes",
-        summary: "Light and dark mode resolution, subtree scoping with data-mode, mode invariance, and mode pickers.",
-      },
-      {
-        title: "Fonts",
-        href: "/docs/themes/fonts",
-        summary: "Loading web fonts with @font-face generation, font family roles, and the monotonic type scale.",
-      },
-      {
-        title: "Customization",
+        title: "Tokens & Customization",
         href: "/docs/themes/customization",
         summary: "How tokens map to utilities, semantic palette roles, spatial scales, and per-element overrides.",
       },
       {
-        title: "Validation",
+        title: "Modes, Palettes & Density",
+        href: "/docs/themes/modes",
+        summary: "Light and dark mode resolution, subtree scoping with data-mode, mode invariance, and mode pickers.",
+      },
+      {
+        title: "Fonts & Voices",
+        href: "/docs/themes/fonts",
+        summary: "Loading web fonts with @font-face generation, font family roles, and the monotonic type scale.",
+      },
+      {
+        title: "Validation & CLI",
         href: "/docs/themes/validation",
         summary: "Automatic theme checks in spin lint, CLI analysis, WCAG contrast floors, and validateTheme().",
       },
       {
-        title: "Token Reference",
+        title: "Theme Reference",
         href: "/docs/themes/reference",
         summary: "Complete reference of DTCG token groups, required roles, contrast pairs, and per-element tokens.",
       },
@@ -124,18 +124,13 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Styling",
     items: [
       {
-        title: "Spin & Tailwind",
+        title: "Spin vs Tailwind",
         href: "/docs/styling/tailwind",
         summary:
           "Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags.",
       },
       {
-        title: "Primitives",
-        href: "/docs/styling/elements",
-        summary: "Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time.",
-      },
-      {
-        title: "Typography & Lists",
+        title: "Typography",
         href: "/docs/styling/prose",
         summary: "Named type styles your theme declares (type-<name>), carried by elements by default — plus list primitives (ul/ol reset, row-list, flow-list).",
       },
@@ -145,22 +140,39 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values.",
       },
       {
-        title: "Space, Layout & Responsive",
+        title: "Space & Layout",
         href: "/docs/styling/space",
         summary: "Pad, gap, and size elements from your theme's spacing scale, name the flex and grid compositions your project repeats, and reflow across your theme's breakpoints. Pin floating panels to their triggers in the top layer and strip default control chrome when a custom trigger needs button semantics without button paint.",
       },
       {
-        title: "Utilities",
+        title: "Motion & Animation",
+        href: "/docs/styling/animation",
+        summary: "Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion.",
+      },
+    ],
+  },
+  {
+    id: "primitives",
+    label: "Primitives",
+    items: [
+      {
+        title: "Classless Elements",
+        href: "/docs/styling/elements",
+        summary: "Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time.",
+      },
+    ],
+  },
+  {
+    id: "utilities",
+    label: "Utilities",
+    items: [
+      {
+        title: "Utilities & Shortcuts",
         href: "/docs/styling/utilities",
         summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and project compositions.",
       },
       {
-        title: "Motion",
-        href: "/docs/styling/animation",
-        summary: "Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion.",
-      },
-      {
-        title: "Utility Reference",
+        title: "Utility Catalog",
         href: "/docs/styling/catalog",
         summary: "Grammar reference for every utility rule family, the CSS declarations it emits, and the active theme token scale it reads.",
       },
@@ -168,15 +180,15 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
   },
   {
     id: "authoring",
-    label: "Components & Runtime",
+    label: "Components & Machines",
     items: [
       {
-        title: "Components",
+        title: "HTML Components",
         href: "/docs/authoring/components",
         summary: "HTML component compiler and framework controllers for React, Solid, Vue, and Svelte.",
       },
       {
-        title: "Machines",
+        title: "State Machines",
         href: "/docs/authoring/machines",
         summary: "Authoring headless statecharts, reactive signals, and DOM directives.",
       },
@@ -187,9 +199,14 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Tooling",
     items: [
       {
-        title: "Lints",
+        title: "Lints & Diagnostics",
         href: "/docs/tooling/lints",
         summary: "Every spin/* lint rule, strictness dial, and autofix behavior.",
+      },
+      {
+        title: "Visual Check",
+        href: "/docs/tooling/check",
+        summary: "Running automated geometry, contrast, and interaction checks in a real browser.",
       },
       {
         title: "CLI Reference",
@@ -200,11 +217,6 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         title: "MCP Server",
         href: "/docs/tooling/mcp",
         summary: "Connecting coding agents to your live Spin project over MCP.",
-      },
-      {
-        title: "Browser Checks",
-        href: "/docs/tooling/check",
-        summary: "Running automated geometry, contrast, and interaction checks in a real browser.",
       },
     ],
   },

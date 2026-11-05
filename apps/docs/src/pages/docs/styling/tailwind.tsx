@@ -191,8 +191,8 @@ export default function StylingTailwind(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="I know Tailwind — what transfers, what doesn't, and why?"
-        lede="Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags."
+        title="Spin vs Tailwind"
+        lede="You know Tailwind — here's what transfers, what doesn't, and why. Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags."
       />
 
       <Section id="what-transfers" title="What transfers">

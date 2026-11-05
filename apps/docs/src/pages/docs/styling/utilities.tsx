@@ -8,13 +8,51 @@ import type { JSX } from "solid-js";
 import { Markdown } from "../../../markdown.tsx";
 import {
   Chip,
+  Code,
   PageHeader,
   PropList,
   Section,
+  Specimen,
   starterDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 import cssMd from "../../../content/css-edges.md?raw";
+
+const COMPOSITION_BEFORE_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+  <div class="flex items-center justify-between gap-4">
+    <strong>Release pipeline</strong>
+    <badge variant="success">Ready</badge>
+  </div>
+  <div class="flex items-center gap-4">
+    <button type="button" class="primary">Promote build</button>
+    <button type="button">Compare diff</button>
+  </div>
+</div>`;
+
+const COMPOSITION_AFTER_SNIPPET = `<div class="stack rounded-lg border border-border bg-surface p-4">
+  <div class="split">
+    <strong>Release pipeline</strong>
+    <badge variant="success">Ready</badge>
+  </div>
+  <div class="row">
+    <button type="button" class="primary">Promote build</button>
+    <button type="button">Compare diff</button>
+  </div>
+</div>`;
+
+const SHORTCUTS_CONFIG_SNIPPET = `import { spin } from "@spinjs/spin/vite";
+
+export default {
+  plugins: [
+    spin.vite({
+      shortcuts: {
+        stack: "flex flex-col gap-4",
+        row: "flex items-center gap-4",
+        split: "flex items-center justify-between gap-4",
+      },
+    }),
+  ],
+};`;
 
 /**
  * The compositions the docs declare in `vite.config.ts` — the worked
@@ -121,7 +159,7 @@ export default function StylingUtilities(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Utilities & Layout"
+        title="Utilities & Shortcuts"
         lede="Token-backed utility classes, paired fills and inks, project compositions, and how Spin's editor tooling catches unknown classes before you leave your editor."
       />
       <Markdown text={cssMd} />
@@ -153,6 +191,76 @@ export default function StylingUtilities(): JSX.Element {
 
       <Section id="shortcuts" title="Project shortcuts, live">
         <p class="max-w-prose">
+          Compose flex and grid utilities directly (<code>flex</code>,{" "}
+          <code>flex-col</code>, <code>items-center</code>,{" "}
+          <code>justify-between</code>, <code>gap-4</code>) while a layout is
+          taking shape, then name the arrangements your project repeats. Because
+          the preset ships no built-in layout shortcuts, every composition word
+          in your markup (<code>stack</code>, <code>row</code>,{" "}
+          <code>split</code>) is one your project chose:
+        </p>
+
+        <div class="my-2 flex flex-col gap-4">
+          <Specimen
+            title="Before — raw utilities on every container"
+            code={COMPOSITION_BEFORE_SNIPPET}
+            preview={
+              <div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+                <div class="flex items-center justify-between gap-4">
+                  <strong>Release pipeline</strong>
+                  <badge variant="success">Ready</badge>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                  <button type="button" class="primary">
+                    Promote build
+                  </button>
+                  <button type="button">Compare diff</button>
+                </div>
+              </div>
+            }
+          />
+
+          <Specimen
+            title="After — named compositions (stack, split, row)"
+            code={COMPOSITION_AFTER_SNIPPET}
+            preview={
+              <div class="stack rounded-lg border border-border bg-surface p-4">
+                <div class="split">
+                  <strong>Release pipeline</strong>
+                  <badge variant="success">Ready</badge>
+                </div>
+                <div class="row flex-wrap">
+                  <button type="button" class="primary">
+                    Promote build
+                  </button>
+                  <button type="button">Compare diff</button>
+                </div>
+              </div>
+            }
+          />
+        </div>
+
+        <p class="max-w-prose">
+          Promote a utility list to a named composition the third time you write
+          the same arrangement across your templates, and declare it under{" "}
+          <code>spin.vite({"{"} shortcuts {"}"})</code> in your bundler config
+          (see the full plugin setup on{" "}
+          <A href="/docs/getting-started/install#config">Install &amp; Bundlers</A>
+          ). Every composition still spends your theme&apos;s spacing scale —{" "}
+          <code>gap-4</code> inside <code>stack</code>, <code>row</code>, and{" "}
+          <code>split</code> rescales whenever the theme changes — and the build
+          verifies both the composition name and the utilities it expands to:
+        </p>
+
+        <div class="my-2">
+          <Code
+            code={SHORTCUTS_CONFIG_SNIPPET}
+            lang="ts"
+            title="vite.config.ts"
+          />
+        </div>
+
+        <p class="max-w-prose">
           Spin ships no shortcuts of its own. The compositions below are the
           ones this docs site declares in its own <code>vite.config.ts</code>{" "}
           via <code>spin.vite({"{"} shortcuts {"}"})</code> — the worked
@@ -163,6 +271,7 @@ export default function StylingUtilities(): JSX.Element {
         </p>
         <PropList items={PROJECT_COMPOSITIONS} />
       </Section>
+
 
       <Section id="spacing" title="Active theme spacing scale">
         <p class="max-w-prose">

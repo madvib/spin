@@ -237,13 +237,26 @@ export default function ThemesOverview(): JSX.Element {
           </div>
         </div>
 
-        <p class="max-w-prose text-text-muted">
-          Starters are templates: when your project has its own{" "}
-          <code>spin/*.json</code> files, Spin serves only your project's
-          themes unless you explicitly include starters via{" "}
-          <code>extends</code>. When you fork a starter in the Studio and hit{" "}
-          <strong>Save</strong>, it writes a copy into{" "}
-          <code>spin/&lt;name&gt;.json</code> that your project owns.
+        <p class="max-w-prose">
+          Starters are starting points, not copies to vendor. New projects
+          write a sparse document that names its starter in{" "}
+          <code>"$extends"</code> and states only their own overrides — the
+          starter stays shipped, so a starter fix reaches every theme that
+          layers over it:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.sparseExtends}
+            lang="json"
+            title="spin/acme.json"
+          />
+        </div>
+        <p class="max-w-prose">
+          Pass <code>--vendor</code> to <code>npx spin init</code> only when
+          you need a standalone snapshot you can edit in full. When you fork
+          a starter in the Studio and hit <strong>Save</strong>, it writes a
+          copy into <code>spin/&lt;name&gt;.json</code> that your project
+          owns.
         </p>
       </Section>
 
@@ -264,6 +277,52 @@ export default function ThemesOverview(): JSX.Element {
           />
         </div>
         <PropList items={SEATING_ITEMS} />
+      </Section>
+
+      <Section id="axes" title="Four axes that compose">
+        <p class="max-w-prose">
+          A Spin page wears four independent decisions, each set with its own
+          attribute on <code>&lt;html&gt;</code> or on any nested subtree.
+          The base theme decides the whole look (<code>data-theme</code>:{" "}
+          <code>spin/acme.json</code> registers{" "}
+          <code>data-theme="acme"</code>), a palette facet swaps only the ink
+          (<code>data-palette</code>, from{" "}
+          <code>catppuccin.palette.json</code>), a spacing facet swaps only
+          the rhythm (<code>data-spacing</code>, from{" "}
+          <code>compact.spacing.json</code>), and the mode picks the light or
+          dark answer for the ink (<code>data-mode="light|dark"</code>).
+          Because each axis writes its own CSS variables, they layer without
+          clashing — set all four on the page root:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.composedAxes}
+            lang="html"
+            title="Composing all four axes"
+          />
+        </div>
+        <p class="max-w-prose">
+          Axes nest too: a dense sidebar keeps the page's theme and ink while
+          tightening its own spacing, and a marketing panel previews another
+          palette inside the same page:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.nestedFacets}
+            lang="html"
+            title="Subtree facets"
+          />
+        </div>
+        <p class="max-w-prose">
+          Next, see <A href="/docs/themes/modes">Modes</A> for the palette,
+          density, and mode axes live,{" "}
+          <A href="/docs/themes/fonts">Fonts</A> for web fonts and the type
+          scale, <A href="/docs/themes/customization">Customization</A> for
+          palette roles and element overrides,{" "}
+          <A href="/docs/themes/validation">Validation</A> for the six
+          validation checks, or <A href="/docs/themes/reference">Token
+          Reference</A> for every token group and role.
+        </p>
       </Section>
 
       <Section id="extends" title="Optional skins and shared brands">
@@ -295,13 +354,8 @@ export default function ThemesOverview(): JSX.Element {
           />
         </div>
         <p class="max-w-prose">
-          Next, see <A href="/docs/themes/modes">Modes</A> for light and dark
-          mode scoping, <A href="/docs/themes/fonts">Fonts</A> for web fonts
-          and the type scale, <A href="/docs/themes/customization">Customization</A>{" "}
-          for palette roles and element overrides,{" "}
-          <A href="/docs/themes/validation">Validation</A> for the six
-          validation checks, or <A href="/docs/themes/reference">Token Reference</A> for
-          every token group and role.
+          Prefer the terminal? The same file is what{" "}
+          <code>npx spin init</code> writes by default — no flags needed.
         </p>
       </Section>
     </main>
