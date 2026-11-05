@@ -6,6 +6,7 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import {
   ELEMENT_STYLE_DEFAULTS,
   resolveTheme,
@@ -26,23 +27,27 @@ const DEFAULT_ELEMENTS: readonly string[] = Object.keys(
   ELEMENT_STYLE_DEFAULTS,
 );
 
-function styleInline(name: string): Record<string, string> {
-  const doc = starterThemes[theme() as keyof typeof starterThemes];
-  const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
-  const read = (field: string): string => {
-    const value = resolved.values[`font.style.${name}.${field}`];
-    return typeof value === "string" || typeof value === "number"
-      ? String(value)
-      : "inherit";
-  };
-  return {
-    "font-family": read("family"),
-    "font-size": read("size"),
-    "font-weight": read("weight"),
-    "letter-spacing": read("tracking"),
-    "line-height": read("leading"),
-  };
-}
+/**
+ * The classes the specimens wear, written out so the extractor and the lint
+ * read them as the static strings they are: a specimen demonstrates
+ * `type-<name>` by wearing it, not by rebuilding its declarations.
+ */
+const SPECIMEN_CLASSES: Readonly<Record<string, string>> = {
+  display: "type-display",
+  title: "type-title",
+  heading: "type-heading",
+  lead: "type-lead",
+  body: "type-body",
+  "body-strong": "type-body-strong",
+  quote: "type-quote",
+  code: "type-code",
+  link: "type-link",
+  label: "type-label",
+  caption: "type-caption",
+  "caption-strong": "type-caption-strong",
+  overline: "type-overline",
+  stat: "type-stat",
+};
 
 function declarationOf(name: string): string {
   const doc = starterThemes[theme() as keyof typeof starterThemes];
@@ -175,9 +180,9 @@ export default function StylingProse(): JSX.Element {
                     </small>
                   </div>
                   <div class="rounded-md border border-border bg-surface p-3">
-                    <p style={styleInline(ELEMENT_STYLE_DEFAULTS[element] ?? "body")}>
+                    <Dynamic component={element}>
                       {SAMPLE}
-                    </p>
+                    </Dynamic>
                   </div>
                 </card>
               </li>
@@ -210,7 +215,7 @@ export default function StylingProse(): JSX.Element {
                     <small>{declarationOf(name)}</small>
                   </div>
                   <div class="rounded-md border border-border bg-surface p-3">
-                    <p style={styleInline(name)}>{SAMPLE}</p>
+                    <div class={SPECIMEN_CLASSES[name] ?? "type-body"}>{SAMPLE}</div>
                   </div>
                 </card>
               </li>
