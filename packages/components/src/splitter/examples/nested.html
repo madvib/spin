@@ -18,7 +18,7 @@ const inner = splitter({
    <div
     class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus-visible:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": outer.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": outer.orientation === "vertical" && row.type === "handle" }]}
     {...outer.getItemProps(row)}
-   ><span class={["block p-2 text-xs text-text-muted", { "hidden": row.type === "handle" }]} {...outer.getItemLabelProps(row)}>{row.id}</span><span
+   ><span class={["block p-2 type-caption text-text-muted", { "hidden": row.type === "handle" }]} {...outer.getItemLabelProps(row)}>{row.id}</span><span
    class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": row.type === "handle", "h-8 w-1": outer.orientation === "horizontal" && row.type === "handle", "h-1 w-8": outer.orientation === "vertical" && row.type === "handle" }]}
    {...outer.getItemIndicatorProps(row)}
   ></span><div
@@ -30,7 +30,7 @@ const inner = splitter({
      <div
       class={["min-h-0 min-w-0 rounded-md border border-solid border-border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus-visible:bg-surface-sunken": cell.type === "handle", "w-2 cursor-col-resize": inner.orientation === "horizontal" && cell.type === "handle", "h-2 cursor-row-resize": inner.orientation === "vertical" && cell.type === "handle" }]}
       {...inner.getItemProps(cell)}
-     ><span class={["block p-2 text-xs text-text-muted", { "hidden": cell.type === "handle" }]} {...inner.getItemLabelProps(cell)}>{cell.id}</span><span
+     ><span class={["block p-2 type-caption text-text-muted", { "hidden": cell.type === "handle" }]} {...inner.getItemLabelProps(cell)}>{cell.id}</span><span
      class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": cell.type === "handle", "h-8 w-1": inner.orientation === "horizontal" && cell.type === "handle", "h-1 w-8": inner.orientation === "vertical" && cell.type === "handle" }]}
      {...inner.getItemIndicatorProps(cell)}
     ></span></div>

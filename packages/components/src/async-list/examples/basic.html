@@ -25,12 +25,12 @@ const machine = asyncList({
         class="secondary s-sm"
         aria-label="Sort ascending"
         {...machine.getSortTriggerProps({ column: "name", direction: "ascending" })}
-      ><span aria-hidden="true">A</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">Z</span></button>
+      ><span aria-hidden="true">A</span><span class="i-lucide-arrow-right type-caption" aria-hidden="true"></span><span aria-hidden="true">Z</span></button>
       <button
         class="secondary s-sm"
         aria-label="Sort descending"
         {...machine.getSortTriggerProps({ column: "name", direction: "descending" })}
-      ><span aria-hidden="true">Z</span><span class="i-lucide-arrow-right text-xs" aria-hidden="true"></span><span aria-hidden="true">A</span></button>
+      ><span aria-hidden="true">Z</span><span class="i-lucide-arrow-right type-caption" aria-hidden="true"></span><span aria-hidden="true">A</span></button>
     </div>
     <div class="flex items-center gap-2">
       <input
@@ -60,15 +60,15 @@ const machine = asyncList({
       ></div>
       <template for={machine.getRows()} as={row} key={row.value}>
         <div
-          class="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast ease-decelerate"
+          class="flex items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate"
           {...machine.getItemProps(row)}
         >
           <span class="min-w-0 flex-1 truncate">{row.label}</span>
-          <span class="text-xs text-text-muted tabular-nums">{row.value}</span>
+          <span class="type-caption text-text-muted tabular-nums">{row.value}</span>
         </div>
       </template>
       <span
-        class={["px-2 py-6 text-center text-sm text-text-muted transition-colors duration-fast ease-decelerate", { "block": machine.empty, "hidden": !machine.empty }]}
+        class={["px-2 py-6 text-center type-body text-text-muted transition-colors duration-fast ease-decelerate", { "block": machine.empty, "hidden": !machine.empty }]}
         {...machine.getEmptyProps()}>Nothing loaded yet</span>
       <div class="h-[1px]" {...machine.getSentinelProps()}></div>
     </div>
@@ -82,7 +82,7 @@ const machine = asyncList({
   </div>
 
   <div
-    class={["mt-2 rounded-md border border-solid border-border bg-surface px-3 py-2 text-sm transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
+    class={["mt-2 rounded-md border border-solid border-border bg-surface px-3 py-2 type-body transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
     {...machine.getErrorProps()}
   >Something went wrong.</div>
 </div>

@@ -6,26 +6,25 @@ const ctl = hoverCard();
 
 <div class="w-full flex flex-col gap-8 p-6">
   <div class="flex flex-col gap-2">
-    <strong class="text-sm">External Controls</strong>
+    <strong>External Controls</strong>
     <div class="flex gap-2">
       <button id="hc-show" class="s-sm">Show Hover Card</button>
       <button id="hc-hide" class="s-sm">Hide Hover Card</button>
     </div>
     <p
-      class="text-sm text-text-muted">Current state: <span class="font-medium" id="hc-state">Closed</span></p>
+      class="text-text-muted">Current state: <span class="type-label" id="hc-state">Closed</span></p>
   </div>
   <div class="flex items-center justify-center py-12"
     {...ctl.getRootProps()}>
     <span {...ctl.getTriggerProps()}
-      class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 text-sm transition-colors hover:bg-surface">Controlled Hover Card</span>
+      class="cursor-pointer rounded-lg border border-solid border-border bg-surface-raised px-4 py-2 type-body transition-colors hover:bg-surface">Controlled Hover Card</span>
 
     <div {...ctl.getContentProps()}
       class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
       <div class="flex flex-col gap-2">
-        <strong
-          class="text-sm">Controlled Hover Card</strong>
+        <strong>Controlled Hover Card</strong>
         <p
-          class="text-sm text-text-muted">This hover card's open state is controlled externally via the buttons above.</p>
+          class="text-text-muted">This hover card's open state is controlled externally via the buttons above.</p>
       </div>
     </div>
   </div>

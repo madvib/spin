@@ -21,12 +21,12 @@ const machine = toast({
     <span
      aria-hidden="true"
      data-type={row.type}
-     class="mt-1 shrink-0 text-sm text-text-muted transition-colors duration-fast ease-decelerate"
-    ><span class="i-lucide-circle text-2xs" aria-hidden="true"></span></span>
+     class="mt-1 shrink-0 text-text-muted transition-colors duration-fast ease-decelerate"
+    ><span class="i-lucide-circle type-caption" aria-hidden="true"></span></span>
     <div class="min-w-0 flex-1">
-     <div class="text-sm font-medium"
+     <div class="type-label"
       {...machine.getTitleProps(row)}>{row.title}</div>
-     <div class="text-sm text-text-muted"
+     <div class="type-body text-text-muted"
       {...machine.getDescriptionProps(row)}>{row.description}</div>
      <button
       class="secondary s-sm mt-2"
@@ -36,7 +36,7 @@ const machine = toast({
     <button
      class="ghost icon s-sm"
      {...machine.getCloseTriggerProps(row)}
-    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+    ><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
    </div>
   </div>
  </template>

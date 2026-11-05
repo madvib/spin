@@ -6,7 +6,7 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
 
 <nav class="flex w-full flex-wrap items-center gap-6"
   {...machine.getRootProps()}>
-  <div class="flex items-center gap-2 text-sm text-text-muted">
+  <div class="flex items-center gap-2 type-body text-text-muted">
     <label for="pg-size">Rows per page</label>
     <div class="flex items-center gap-1">
       <button class={["s-sm", { "secondary": machine.pageSize !== 10 }]} on:click={() => machine.setPageSize(10)}>10</button>
@@ -14,7 +14,7 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
       <button class={["s-sm", { "secondary": machine.pageSize !== 50 }]} on:click={() => machine.setPageSize(50)}>50</button>
     </div>
   </div>
-  <div class="text-sm text-text-muted"
+  <div class="type-body text-text-muted"
     data-range="">{machine.pageRange.start + 1}-{machine.pageRange.end} of {machine.count}</div>
   <div class="flex items-center gap-1">
     <button
@@ -30,7 +30,7 @@ const machine = pagination({ count: 100, pageSize: 10, siblingCount: 1 });
         class={["min-w-7 s-sm transition-colors duration-fast ease-decelerate", { "secondary hover:bg-surface": row.value !== machine.page, "hidden": row.type !== "page" }]}
         {...machine.getItemProps(row)}
       >{row.label}</button><span
-        class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-text-muted", { "hidden": row.type !== "ellipsis" }]}
+      class={["grid h-7 min-w-7 place-items-center px-1 type-caption text-text-muted", { "hidden": row.type !== "ellipsis" }]}
         {...machine.getEllipsisProps(row)}
       >{row.label}</span>
     </template>

@@ -17,7 +17,7 @@ const machine = toggleGroup({
   >
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["bare rounded-md px-3 py-1 text-sm font-medium transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["bare rounded-md px-3 py-1 transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>

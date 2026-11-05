@@ -6,12 +6,12 @@ const ctl = popover();
 
 <button {...ctl.getTriggerProps()}
   class="inline-flex items-center gap-2 secondary s-sm transition-colors hover:bg-surface">
-  <span class="i-lucide-message-square text-sm" aria-hidden="true"></span>
+  <span class="i-lucide-message-square icon-sm" aria-hidden="true"></span>
   Feedback
 </button>
 
 <popover {...ctl.getContentProps()}
   class="m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg position-area-bottom-span-right max-w-[20rem]">
-  <p class="text-sm font-medium">Send us feedback</p>
-  <p class="text-sm text-text-muted">Tell us what you think.</p>
+  <p>Send us feedback</p>
+  <p class="text-text-muted">Tell us what you think.</p>
 </popover>

@@ -6,14 +6,14 @@ const ctl = hoverCard();
 
 <div {...ctl.getRootProps()} class="inline-block">
   <span {...ctl.getTriggerProps()}
-    class="inline-block cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm transition-colors hover:bg-surface">Hover me</span>
+    class="inline-block cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 type-body transition-colors hover:bg-surface">Hover me</span>
 
   <div {...ctl.getContentProps()}
     class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
     <div class="flex flex-col gap-2">
-      <strong class="text-sm">Hover Card</strong>
+      <strong>Hover Card</strong>
       <p
-        class="text-sm text-text-muted">This is a basic hover card that appears when you hover over the trigger element.</p>
+        class="text-text-muted">This is a basic hover card that appears when you hover over the trigger element.</p>
     </div>
   </div>
 </div>

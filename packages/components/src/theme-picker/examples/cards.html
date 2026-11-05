@@ -20,10 +20,10 @@ const machine = themePicker({
       {...machine.getItemProps(row)}
     >
       <span class="block w-full bg-surface px-3 py-2" {...machine.getItemSwatchProps(row)}>
-        <span class="block text-sm font-medium" {...machine.getItemLabelProps(row)}>{row.label}</span>
-        <span class="mt-1 inline-block rounded-sm bg-primary px-2 py-1 text-xs text-on-primary">Aa</span>
+        <span class="block type-label" {...machine.getItemLabelProps(row)}>{row.label}</span>
+        <span class="mt-1 inline-block rounded-sm bg-primary px-2 py-1 type-caption text-on-primary">Aa</span>
       </span>
-      <span class="flex w-full items-center justify-between bg-surface-raised px-3 py-1 text-xs text-text-muted">
+      <span class="flex w-full items-center justify-between bg-surface-raised px-3 py-1 type-caption text-text-muted">
         <span>{row.value}</span>
         <span class="inline-block i-lucide-check h-3 w-3 text-primary" show={machine.getItemState(row).selected} {...machine.getItemIndicatorProps(row)}></span>
       </span>

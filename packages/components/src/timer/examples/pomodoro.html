@@ -11,7 +11,7 @@ const machine = timer({
   class="rounded-lg border-2 border-solid border-semantic-error bg-surface-raised p-4"
   {...machine.getAreaProps()}>
   <div
-   class="mb-3 flex items-center justify-center gap-2"><span class="grid h-8 w-8 place-items-center rounded-full bg-semantic-error text-on-semantic-error"><span class="i-lucide-coffee text-sm"></span></span><span class="font-semibold">Focus Time</span></div>
+   class="mb-3 flex items-center justify-center gap-2"><span class="grid h-8 w-8 place-items-center rounded-full bg-semantic-error text-on-semantic-error"><span class="i-lucide-coffee"></span></span><span class="type-body-strong">Focus Time</span></div>
   <div
    class="flex items-center justify-center stat-value tabular-nums">
    <template for={machine.getUnits()} as={unit} key={unit.type}>
@@ -20,12 +20,12 @@ const machine = timer({
      <span class="min-w-[2ch] text-center"
       {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
     </div>
-    <span aria-hidden="true" class="text-lg text-text-muted"
+    <span aria-hidden="true" class="stat-value text-text-muted"
      {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
    </template>
   </div>
   <div
-   class="mt-1 text-center text-xs text-text-muted">25 minutes of focused work</div>
+   class="mt-1 text-center type-caption text-text-muted">25 minutes of focused work</div>
   <div class="mt-3 flex items-center justify-center gap-2"
    {...machine.getControlProps()}>
    <button

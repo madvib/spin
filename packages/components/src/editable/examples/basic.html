@@ -7,7 +7,7 @@
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center justify-between gap-2">
     <label
-      class="text-sm font-medium transition-colors duration-fast ease-decelerate"
+      class="transition-colors duration-fast ease-decelerate"
       {...machine.getLabelProps()}
     >Display name</label>
   </div>
@@ -17,7 +17,7 @@
     {...machine.getAreaProps()}
   >
     <span show={!machine.editing}
-      class="block min-w-0 cursor-text px-2 py-1 text-sm transition-colors duration-fast ease-decelerate hover:text-primary"
+      class="block min-w-0 cursor-text px-2 py-1 type-body transition-colors duration-fast ease-decelerate hover:text-primary"
       {...machine.getPreviewProps()}
     >{machine.valueText}</span>
     <input show={machine.editing}
@@ -30,14 +30,14 @@
     <button
       class={["secondary icon s-sm", { "inline-flex": !machine.editing, "hidden": machine.editing }]}
       {...machine.getEditTriggerProps()}
-    ><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
+    ><span class="i-lucide-pencil type-caption" aria-hidden="true"></span></button>
     <button
       class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]}
       {...machine.getSubmitTriggerProps()}
-    ><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
+    ><span class="i-lucide-check type-caption" aria-hidden="true"></span></button>
     <button
       class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]}
       {...machine.getCancelTriggerProps()}
-    ><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+    ><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
   </div>
 </div>

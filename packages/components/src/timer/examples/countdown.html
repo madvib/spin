@@ -9,7 +9,7 @@ const machine = timer({
 <div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
  <div class="flex flex-col items-center" {...machine.getAreaProps()}>
   <span
-   class="mb-2 text-sm font-medium text-semantic-error">Flash Sale Ends In</span>
+   class="mb-2 type-label text-semantic-error">Flash Sale Ends In</span>
   <div
    class="flex items-start gap-2 stat-value tabular-nums">
    <template for={machine.getUnits()} as={unit} key={unit.type}>
@@ -18,7 +18,7 @@ const machine = timer({
       {...machine.getItemProps({ type: unit.type })}>
       <span class="min-w-[2ch] text-center"
        {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-      <span class="text-xs font-regular text-text-muted"
+      <span class="type-caption text-text-muted"
        {...machine.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
      </div>
      <span aria-hidden="true" class="text-text-muted"

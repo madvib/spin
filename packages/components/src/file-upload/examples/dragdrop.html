@@ -10,8 +10,8 @@
     {...machine.getDropzoneProps()}
   >
     <span class="i-lucide-folder-up icon-lg text-primary" aria-hidden="true"></span>
-    <span class="text-sm font-semibold" {...machine.getLabelProps()}>Drag and drop project archives</span>
-    <span class="text-xs text-text-muted">ZIP, TAR, or source bundles up to 10 files</span>
+    <span class="type-label" {...machine.getLabelProps()}>Drag and drop project archives</span>
+    <span class="type-caption text-text-muted">ZIP, TAR, or source bundles up to 10 files</span>
   </div>
 
   <input {...machine.getHiddenInputProps()} />
@@ -19,11 +19,11 @@
   <div class="mt-3 flex flex-col gap-2" {...machine.getItemGroupProps()}>
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
       <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface px-3 py-2" {...machine.getItemProps(row)}>
-        <span class="i-lucide-file-archive shrink-0 text-sm text-text-muted" aria-hidden="true"></span>
-        <span class="min-w-0 flex-1 truncate text-xs font-medium" {...machine.getItemNameProps(row)}>{row.value}</span>
-        <span class="shrink-0 text-xs text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <span class="i-lucide-file-archive shrink-0 text-text-muted" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 type-caption text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
-          <span class="i-lucide-x text-xs" aria-hidden="true"></span>
+          <span class="i-lucide-x type-caption" aria-hidden="true"></span>
         </button>
       </div>
     </template>

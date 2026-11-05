@@ -10,9 +10,9 @@ const machine = colorPicker({
   class="mx-auto w-full max-w-[16rem] rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
-    <label class="text-sm font-semibold"
+    <label
       {...machine.getLabelProps()}>Spectrum</label>
-    <span class="font-mono text-xs text-text-muted"
+    <span class="type-code text-text-muted"
       {...machine.getValueTextProps()}>{machine.valueAsString}</span>
   </div>
   <div class="flex flex-col gap-3" {...machine.getContentProps()}>
@@ -32,7 +32,7 @@ const machine = colorPicker({
     </div>
     <div class="flex items-center gap-2"
       {...machine.getChannelSliderProps({ channel: "hue" })}>
-      <span class="w-10 text-xs text-text-muted"
+      <span class="w-10 type-caption text-text-muted"
         {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
       <div
         class="relative h-3 flex-1 rounded-full border border-solid border-border"
@@ -41,7 +41,7 @@ const machine = colorPicker({
           class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
           {...machine.getChannelSliderThumbProps({ channel: "hue" })}></div>
       </div>
-      <span class="w-8 text-right font-mono text-xs text-text-muted"
+      <span class="w-8 text-right type-code text-text-muted"
         {...machine.getChannelSliderValueTextProps({ channel: "hue" })}>{machine.getChannelValue("hue")}</span>
     </div>
     <div class="flex items-center gap-2">
@@ -49,7 +49,7 @@ const machine = colorPicker({
         class="h-7 w-7 shrink-0 rounded-md border border-solid border-border"
         {...machine.getSwatchProps({ value: machine.valueAsString })}></span>
       <input
-        class="w-full font-mono text-xs"
+        class="w-full"
         {...machine.getChannelInputProps({ channel: "hex" })} />
     </div>
     <input type="hidden" {...machine.getHiddenInputProps()} />

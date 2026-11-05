@@ -6,25 +6,25 @@ const ctl = tooltip();
 
 <button {...ctl.getTriggerProps()}
   class="secondary s-sm inline-flex items-center gap-2">
-  <span class="i-lucide-bar-chart-3 text-sm" aria-hidden="true"></span>
+  <span class="i-lucide-bar-chart-3 type-code" aria-hidden="true"></span>
   Analytics
 </button>
 
 <tooltip {...ctl.getContentProps()}
   class="fixed m-0 max-w-[16rem]">
   <div class="flex flex-col gap-1">
-    <div class="text-xs font-medium text-text-muted">Today</div>
+    <div class="type-caption-strong text-text-muted">Today</div>
     <div class="flex items-center justify-between gap-4">
-      <span class="text-xs">Sales</span>
-      <span class="text-xs font-semibold">$2.8k</span>
+      <span class="type-caption">Sales</span>
+      <span class="type-caption-strong">$2.8k</span>
     </div>
     <div class="flex items-center justify-between gap-4">
-      <span class="text-xs">Revenue</span>
-      <span class="text-xs font-semibold">$4.3k</span>
+      <span class="type-caption">Revenue</span>
+      <span class="type-caption-strong">$4.3k</span>
     </div>
     <div class="flex items-center justify-between gap-4">
-      <span class="text-xs">Costs</span>
-      <span class="text-xs font-semibold">$1.6k</span>
+      <span class="type-caption">Costs</span>
+      <span class="type-caption-strong">$1.6k</span>
     </div>
   </div>
 </tooltip>

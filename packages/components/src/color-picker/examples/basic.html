@@ -10,7 +10,7 @@ const machine = colorPicker({
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled }]}
+    class={["block transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled }]}
     {...machine.getLabelProps()}
   >Color</label>
 
@@ -20,13 +20,13 @@ const machine = colorPicker({
       {...machine.getTriggerProps()}
     ><span aria-hidden="true" class="h-4 w-8 rounded-sm border border-solid border-border" {...machine.getSwatchProps({ value: machine.valueAsString })}> </span></button>
     <span
-      class="font-mono text-sm transition-colors duration-fast ease-decelerate"
+      class="type-code transition-colors duration-fast ease-decelerate"
       {...machine.getValueTextProps()}
     >{machine.valueAsString}</span>
     <button
       class="ghost icon s-sm grid h-7 w-7 place-items-center"
       {...machine.getEyeDropperTriggerProps()}
-    ><span class="i-lucide-pipette text-sm" aria-hidden="true"></span></button>
+    ><span class="i-lucide-pipette type-code" aria-hidden="true"></span></button>
     <div
       class={["absolute left-0 top-full z-dropdown mt-1 w-full max-w-[16rem] origin-top rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
       {...machine.getPositionerProps()}
@@ -54,7 +54,7 @@ const machine = colorPicker({
         </div>
         <div class="flex items-center gap-2"
           {...machine.getChannelSliderProps({ channel: "hue" })}>
-          <span class="w-12 text-xs text-text-muted"
+          <span class="w-12 type-caption text-text-muted"
             {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
           <div
             class="relative h-3 flex-1 rounded-full border border-solid border-border"
@@ -65,12 +65,12 @@ const machine = colorPicker({
               {...machine.getChannelSliderThumbProps({ channel: "hue" })}
             ></div>
           </div>
-          <span class="w-8 text-right font-mono text-xs text-text-muted"
+          <span class="w-8 text-right type-code text-text-muted"
             {...machine.getChannelSliderValueTextProps({ channel: "hue" })}>{machine.getChannelValue("hue")}</span>
         </div>
         <div class="flex items-center gap-2"
           {...machine.getChannelSliderProps({ channel: "alpha" })}>
-          <span class="w-12 text-xs text-text-muted"
+          <span class="w-12 type-caption text-text-muted"
             {...machine.getChannelSliderLabelProps({ channel: "alpha" })}>Alpha</span>
           <div
             class="relative h-3 flex-1 rounded-full border border-solid border-border"
@@ -81,16 +81,16 @@ const machine = colorPicker({
               {...machine.getChannelSliderThumbProps({ channel: "alpha" })}
             ></div>
           </div>
-          <span class="w-8 text-right font-mono text-xs text-text-muted"
+          <span class="w-8 text-right type-code text-text-muted"
             {...machine.getChannelSliderValueTextProps({ channel: "alpha" })}>{machine.getChannelValue("alpha")}</span>
         </div>
         <div class="flex items-center gap-2">
           <input
-            class="w-full font-mono"
+            class="w-full"
             {...machine.getChannelInputProps({ channel: "hex" })}
           />
           <select
-            class="h-7 rounded-md border border-solid border-border bg-surface-raised px-1 text-xs"
+            class="h-7 rounded-md border border-solid border-border bg-surface-raised px-1"
             {...machine.getFormatSelectProps()}
           >
             <option value="hex">hex</option>

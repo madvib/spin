@@ -6,7 +6,7 @@ const ctl = tooltip();
 
 <div class="w-full flex flex-col gap-8 p-6">
   <div class="flex flex-col gap-2">
-    <strong class="text-sm">Select Position</strong>
+    <strong>Select Position</strong>
     <div class="flex flex-wrap gap-2" data-positions>
       <button class="secondary s-sm" data-placement-choice="top">Top</button>
       <button class="secondary s-sm" data-placement-choice="bottom">Bottom</button>
@@ -16,7 +16,7 @@ const ctl = tooltip();
   </div>
   <div class="flex items-center justify-center py-12">
     <span {...ctl.getTriggerProps()}
-      class="bare cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-sm transition-colors hover:bg-surface">Hover for bottom placement</span>
+      class="bare cursor-pointer rounded-md border border-solid border-border bg-surface-raised px-3 py-1 type-body transition-colors hover:bg-surface">Hover for bottom placement</span>
 
     <tooltip {...ctl.getContentProps()}
   class="fixed m-0 max-w-[16rem]">

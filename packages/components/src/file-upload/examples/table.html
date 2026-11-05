@@ -14,10 +14,10 @@
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-2 flex items-center justify-between">
     <div
-      class={["inline-flex cursor-pointer items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1 text-xs font-medium hover:bg-surface", { "border-primary": machine.dragging }]}
+      class={["inline-flex cursor-pointer items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-1 type-label hover:bg-surface", { "border-primary": machine.dragging }]}
       {...machine.getDropzoneProps()}
     >
-      <span class="i-lucide-plus text-xs" aria-hidden="true"></span>
+      <span class="i-lucide-plus type-caption" aria-hidden="true"></span>
       <span {...machine.getLabelProps()}>Upload Artifacts</span>
     </div>
     <button class="secondary s-sm" {...machine.getClearTriggerProps()}>Clear all</button>
@@ -27,11 +27,11 @@
 
   <div class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised" {...machine.getItemGroupProps()}>
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
-      <div class="flex items-center justify-between gap-3 border-b border-solid border-border px-3 py-2 text-xs last:border-b-0" {...machine.getItemProps(row)}>
-        <span class="min-w-0 flex-1 truncate font-medium" {...machine.getItemNameProps(row)}>{row.value}</span>
-        <span class="shrink-0 font-mono text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+      <div class="flex items-center justify-between gap-3 border-b border-solid border-border px-3 py-2 last:border-b-0" {...machine.getItemProps(row)}>
+        <span class="min-w-0 flex-1 truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 type-code text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
-          <span class="i-lucide-x text-xs" aria-hidden="true"></span>
+          <span class="i-lucide-x type-caption" aria-hidden="true"></span>
         </button>
       </div>
     </template>

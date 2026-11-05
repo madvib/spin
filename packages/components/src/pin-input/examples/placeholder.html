@@ -8,17 +8,17 @@ const machine = pinInput({
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["block transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getLabelProps()}>Enter access code</label>
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-10 p-0 text-center text-lg tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
   <p
-    class="text-xs text-text-muted">Uses asterisk (*) as placeholder instead of default circle</p>
+    class="text-text-muted">Uses asterisk (*) as placeholder instead of default circle</p>
 </div>

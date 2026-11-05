@@ -10,23 +10,23 @@ const machine = pinInput({
 </script>
 <div class="w-full text-center" {...machine.getRootProps()}>
   <div class="mb-4">
-    <div class="text-lg font-semibold">Verify your phone</div>
+    <div class="type-lead">Verify your phone</div>
     <div
-      class="text-sm text-text-muted">We sent a verification code to <br /><span class="font-medium">+1 (555) 123-4567</span></div>
+      class="type-body text-text-muted">We sent a verification code to <br /><span>+1 (555) 123-4567</span></div>
   </div>
   <div class="mb-6 flex items-center justify-center gap-3"
     {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-10 p-0 text-center text-lg tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
   <div class="flex flex-col gap-2">
-    <div class="text-sm text-text-muted">Didn't receive the code?</div>
+    <div class="type-body text-text-muted">Didn't receive the code?</div>
     <button type="button"
-      class="bare text-sm font-medium text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>
+      class="bare text-primary transition-colors duration-fast ease-decelerate hover:text-primary">Resend code</button>
   </div>
 </div>

@@ -19,7 +19,7 @@ const machine = toggleGroup({
       <button
         class={["bare rounded-md p-2 transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed }]}
         {...machine.getItemProps(row)}
-      ><span class="text-md" aria-hidden="true"><span show={row.value === "bold"} class="inline-block i-lucide-bold"></span><span show={row.value === "italic"} class="inline-block i-lucide-italic"></span><span show={row.value === "underline"} class="inline-block i-lucide-underline"></span></span></button>
+      ><span aria-hidden="true"><span show={row.value === "bold"} class="inline-block i-lucide-bold type-body"></span><span show={row.value === "italic"} class="inline-block i-lucide-italic type-body"></span><span show={row.value === "underline"} class="inline-block i-lucide-underline type-body"></span></span></button>
     </template>
   </div>
 </div>

@@ -5,10 +5,10 @@
 </script>
 
 <div class="w-full max-w-md" {...machine.getRootProps()}>
-  <label class="block text-sm font-medium" {...machine.getLabelProps()}>Release Tag</label>
+  <label class="block" {...machine.getLabelProps()}>Release Tag</label>
   <div class="flex items-center gap-2">
     <div class="min-w-0 flex-1 rounded-md border border-solid border-border bg-surface-raised" {...machine.getAreaProps()}>
-      <span show={!machine.editing} class="block truncate cursor-text px-3 py-1 text-sm" {...machine.getPreviewProps()}>{machine.valueText}</span>
+      <span show={!machine.editing} class="block truncate cursor-text px-3 py-1 type-body" {...machine.getPreviewProps()}>{machine.valueText}</span>
       <input show={machine.editing} class="w-full bg-transparent px-3 py-1 outline-none" {...machine.getInputProps()} />
     </div>
     <div class="flex shrink-0 items-center gap-1" {...machine.getControlProps()}>

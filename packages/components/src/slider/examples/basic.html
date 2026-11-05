@@ -6,7 +6,7 @@ const machine = slider({ value: [50] });
 
 <div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
   <div
-    class={["mb-4 text-sm text-text-muted", { "text-primary": machine.state === "focus" }]}
+    class={["mb-4 type-code text-text-muted", { "text-primary": machine.state === "focus" }]}
     {...machine.getValueTextProps()}>{machine.valueText}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"

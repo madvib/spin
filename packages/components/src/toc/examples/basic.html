@@ -14,14 +14,14 @@ const machine = toc({
 
 <div class="mx-auto w-full max-w-[16rem]" {...machine.getRootProps()}>
   <nav class="flex flex-col gap-2" {...machine.getNavProps()}>
-    <h2 class="text-xs font-semibold uppercase tracking-wider text-text-muted" {...machine.getTitleProps()}>
+    <h2 class="uppercase tracking-wider text-text-muted" {...machine.getTitleProps()}>
       On this page
     </h2>
     <ul class="m-0 list-none border-s border-border p-0" {...machine.getListProps()}>
       <template for={machine.items} as={row} key={row.value}>
         <li class="m-0 p-0" {...machine.getItemProps(row)}>
           <a
-            class="block border-s-2 border-transparent py-1 ps-3 text-sm text-text-muted no-underline transition-colors duration-fast data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:font-medium aria-[current=location]:text-primary"
+            class="block border-s-2 border-transparent py-1 ps-3 text-text-muted no-underline transition-colors duration-fast data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:text-primary"
             {...machine.getLinkProps(row)}
           >{row.label}</a>
         </li>

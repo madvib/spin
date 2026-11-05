@@ -6,15 +6,15 @@
 
 <div class="w-full max-w-md rounded-lg border border-solid border-border bg-surface-raised p-4" {...machine.getRootProps()}>
   <div class="flex items-center justify-between gap-2">
-    <label class="text-xs font-semibold uppercase tracking-wide text-text-muted" {...machine.getLabelProps()}>Role Title</label>
+    <label class="uppercase tracking-wide text-text-muted" {...machine.getLabelProps()}>Role Title</label>
     <div class="flex items-center gap-1" {...machine.getControlProps()}>
-      <button class={["secondary icon s-sm", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}><span class="i-lucide-pencil text-xs" aria-hidden="true"></span></button>
-      <button class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}><span class="i-lucide-check text-xs" aria-hidden="true"></span></button>
-      <button class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}><span class="i-lucide-x text-xs" aria-hidden="true"></span></button>
+      <button class={["secondary icon s-sm", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}><span class="i-lucide-pencil type-caption" aria-hidden="true"></span></button>
+      <button class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getSubmitTriggerProps()}><span class="i-lucide-check type-caption" aria-hidden="true"></span></button>
+      <button class={["secondary icon s-sm", { "inline-flex": machine.editing, "hidden": !machine.editing }]} {...machine.getCancelTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
     </div>
   </div>
   <div class="mt-1 rounded-md border border-solid border-transparent" {...machine.getAreaProps()}>
-    <span show={!machine.editing} class="block cursor-text py-1 font-medium" {...machine.getPreviewProps()}>{machine.valueText}</span>
-    <input show={machine.editing} class="w-full bg-transparent py-1 font-medium" {...machine.getInputProps()} />
+    <span show={!machine.editing} class="block cursor-text py-1 type-body-strong" {...machine.getPreviewProps()}>{machine.valueText}</span>
+    <input show={machine.editing} class="w-full bg-transparent py-1" {...machine.getInputProps()} />
   </div>
 </div>

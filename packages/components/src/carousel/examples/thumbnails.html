@@ -25,9 +25,9 @@ const machine = carousel({
       >
         <div
           class="flex min-h-[8rem] flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-6 text-center">
-          <span class="font-mono text-xs text-primary">{row.tag}</span>
-          <div class="mt-1 text-md font-semibold">{row.label}</div>
-          <div class="mt-1 text-xs text-text-muted">{row.content}</div>
+          <span class="type-code text-primary">{row.tag}</span>
+          <div class="mt-1 type-body-strong">{row.label}</div>
+          <div class="mt-1 type-caption text-text-muted">{row.content}</div>
         </div>
       </div>
     </template>
@@ -49,7 +49,7 @@ const machine = carousel({
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["bare shrink-0 border-2 border-transparent px-2 py-1 text-xs text-text-muted transition-all hover:border-border", { "border-primary": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
+          class={["bare shrink-0 border-2 border-transparent px-2 py-1 text-text-muted transition-all hover:border-border", { "border-primary": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}>{row.label}</button>
       </template>
     </div>
@@ -57,7 +57,7 @@ const machine = carousel({
       class={["ghost icon s-sm", { "text-primary": machine.isPlaying, "ring-2 ring-border-strong": machine.focused }]}
       {...machine.getAutoplayTriggerProps()}>▶</button>
     <template for={machine.getProgressRows()} as={row} key={row.value}>
-      <span class="text-xs text-text-muted"
+      <span class="type-caption text-text-muted"
         {...machine.getProgressTextProps()}>{row.value}</span>
     </template>
     <button

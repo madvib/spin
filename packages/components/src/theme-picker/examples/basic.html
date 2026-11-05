@@ -15,7 +15,7 @@ const machine = themePicker({
 
 <div class="relative inline-block" {...machine.getRootProps()}>
   <button
-    class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm transition-colors hover:bg-surface-raised"
+    class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised"
     {...machine.getTriggerProps()}
   >
     <span class="inline-flex h-4 items-center gap-1" {...machine.getTriggerSwatchProps()}>
@@ -33,7 +33,7 @@ const machine = themePicker({
       <panel-list {...machine.getListProps()}>
         <template for={machine.getItems()} as={row} key={row.value}>
           <div
-            class="bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors"
+            class="bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 type-body transition-colors"
             {...machine.getItemProps(row)}
           >
             <span class="inline-flex h-4 items-center gap-1" {...machine.getItemSwatchProps(row)}>

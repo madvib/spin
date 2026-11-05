@@ -16,10 +16,10 @@
     {...machine.getDropzoneProps()}
   >
     <div class="flex items-center gap-2">
-      <span class="i-lucide-paperclip text-sm text-text-muted" aria-hidden="true"></span>
-      <span class="text-sm font-medium" {...machine.getLabelProps()}>Attached Documents</span>
+      <span class="i-lucide-paperclip text-text-muted" aria-hidden="true"></span>
+      <span class="type-label" {...machine.getLabelProps()}>Attached Documents</span>
     </div>
-    <span class="text-xs text-primary">Add files</span>
+    <span class="type-caption text-primary">Add files</span>
   </div>
 
   <input {...machine.getHiddenInputProps()} />
@@ -27,11 +27,11 @@
   <div class="mt-2 flex flex-col gap-2" {...machine.getItemGroupProps()}>
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
       <div class="flex items-center justify-between gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-2" {...machine.getItemProps(row)}>
-        <span class="i-lucide-file-text shrink-0 text-sm text-primary" aria-hidden="true"></span>
-        <span class="min-w-0 flex-1 truncate text-xs font-medium" {...machine.getItemNameProps(row)}>{row.value}</span>
-        <span class="shrink-0 text-xs text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
+        <span class="i-lucide-file-text shrink-0 text-primary" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="shrink-0 type-caption text-text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
-          <span class="i-lucide-trash-2 text-xs" aria-hidden="true"></span>
+          <span class="i-lucide-trash-2" aria-hidden="true"></span>
         </button>
       </div>
     </template>

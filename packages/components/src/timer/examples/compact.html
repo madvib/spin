@@ -7,7 +7,7 @@ const machine = timer({
 </script>
 <div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
  <div class="flex items-center gap-3" {...machine.getAreaProps()}>
-  <div class="flex items-center gap-1 text-sm tabular-nums">
+  <div class="flex items-center gap-1 type-code tabular-nums">
    <template for={machine.getUnits()} as={unit} key={unit.type}>
     <div class="flex items-center gap-1"
      show={unit.type === "minutes" || unit.type === "seconds"}>
@@ -20,13 +20,13 @@ const machine = timer({
   <div class="flex items-center gap-1" {...machine.getControlProps()}>
    <button aria-label="Start"
     class="ghost icon s-sm grid h-7 w-7 place-items-center"
-    {...machine.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play text-xs"></span></button>
+    {...machine.getActionTriggerProps({ action: "start" })}><span class="i-lucide-play type-caption"></span></button>
    <button aria-label="Pause"
     class="ghost icon s-sm grid h-7 w-7 place-items-center"
-    {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause text-xs"></span></button>
+    {...machine.getActionTriggerProps({ action: "pause" })}><span class="i-lucide-pause type-caption"></span></button>
    <button aria-label="Resume"
     class="ghost icon s-sm grid h-7 w-7 place-items-center"
-    {...machine.getActionTriggerProps({ action: "resume" })}><span class="i-lucide-play text-xs"></span></button>
+    {...machine.getActionTriggerProps({ action: "resume" })}><span class="i-lucide-play type-caption"></span></button>
   </div>
  </div>
 </div>

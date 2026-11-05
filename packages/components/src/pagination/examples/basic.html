@@ -24,7 +24,7 @@ const machine = pagination({
       class={["min-w-7 s-sm transition-colors duration-fast ease-decelerate", { "secondary hover:bg-surface": row.value !== machine.page, "hidden": row.type !== "page" }]}
       {...machine.getItemProps(row)}
     >{row.label}</button><span
-      class={["grid h-7 min-w-7 place-items-center px-1 text-xs text-text-muted", { "hidden": row.type !== "ellipsis" }]}
+      class={["grid h-7 min-w-7 place-items-center px-1 type-caption text-text-muted", { "hidden": row.type !== "ellipsis" }]}
       {...machine.getEllipsisProps(row)}
     >{row.label}</span>
   </template>

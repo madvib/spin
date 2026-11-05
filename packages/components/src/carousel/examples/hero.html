@@ -25,10 +25,10 @@ const machine = carousel({
       >
         <div
           class="relative flex min-h-[10rem] flex-col justify-between rounded-md border border-solid border-border bg-surface p-6">
-          <span class="w-fit rounded-full bg-surface-sunken px-2 py-1 font-mono text-xs text-primary">{row.tag}</span>
+          <span class="w-fit rounded-full bg-surface-sunken px-2 py-1 type-code text-primary">{row.tag}</span>
           <div class="mt-4">
-            <div class="text-lg font-semibold">{row.label}</div>
-            <div class="mt-1 text-sm text-text-muted">{row.content}</div>
+            <div class="type-lead">{row.label}</div>
+            <div class="mt-1 type-body text-text-muted">{row.content}</div>
           </div>
         </div>
       </div>

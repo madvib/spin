@@ -14,7 +14,7 @@ const machine = timer({
     <span class="stat-value tabular-nums"
      {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
    </div>
-   <span aria-hidden="true" class="text-lg text-text-muted"
+   <span aria-hidden="true" class="type-lead text-text-muted"
     {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
   </template>
  </div>

@@ -8,18 +8,18 @@ const machine = pinInput({
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <label
-    class={["block text-sm font-medium transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["block transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getLabelProps()}>Two-factor authentication code</label>
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-10 p-0 text-center text-lg tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
-      <span show={cell === 2} class="text-lg font-medium text-text-muted">-</span>
+      <span show={cell === 2} class="type-body text-text-muted">-</span>
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
   <p
-    class="text-xs text-text-muted">Enter the 6-digit code from your authenticator app</p>
+    class="text-text-muted">Enter the 6-digit code from your authenticator app</p>
 </div>
