@@ -154,7 +154,7 @@ export default function ThemesOverview(): JSX.Element {
                     <button
                       type="button"
                       onClick={() => setSelectedName(item.name)}
-                      class={`bare cursor-pointer rounded-md border px-3 py-1 font-mono text-xs transition-colors duration-fast ${
+                      class={`bare cursor-pointer rounded-md border px-3 py-1   transition-colors duration-fast ${
                         isSelected()
                           ? "border-primary bg-primary text-on-primary font-semibold"
                           : "border-border bg-surface text-text-muted hover:border-border-strong"
@@ -179,7 +179,7 @@ export default function ThemesOverview(): JSX.Element {
 
           <div class="flex flex-col gap-3">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <span class="font-mono text-sm font-semibold">
+              <span class="type-code type-body-strong">
                 {selected().name}
               </span>
               <div class="flex flex-wrap items-center gap-1">
@@ -189,7 +189,7 @@ export default function ThemesOverview(): JSX.Element {
               </div>
             </div>
             <Show when={selected().thesis}>
-              <p class="max-w-prose text-sm text-text-muted">
+              <p class="max-w-prose  text-text-muted">
                 {selected().thesis}
               </p>
             </Show>
@@ -208,10 +208,10 @@ export default function ThemesOverview(): JSX.Element {
                       <div
                         class={`h-8 w-full rounded-sm border border-border ${role.bgClass}`}
                       />
-                      <span class="font-mono text-xs font-semibold">
+                      <span class="type-code type-caption type-body-strong">
                         {role.label}
                       </span>
-                      <span class="truncate font-mono text-xs text-text-muted">
+                      <span class="truncate text-text-muted type-code type-caption">
                         {swatch()?.value ?? "—"}
                       </span>
                     </div>
@@ -224,10 +224,10 @@ export default function ThemesOverview(): JSX.Element {
               <For each={selected().signature}>
                 {(entry) => (
                   <div class="flex flex-col gap-1 rounded-sm border border-border bg-surface p-2">
-                    <span class="font-mono text-xs text-text-muted">
+                    <span class="text-text-muted type-code type-caption">
                       {entry.path}
                     </span>
-                    <span class="truncate font-mono text-xs font-semibold">
+                    <span class="truncate type-code type-caption type-body-strong">
                       {entry.value}
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export default function ThemesOverview(): JSX.Element {
           </div>
         </div>
 
-        <p class="max-w-prose text-sm text-text-muted">
+        <p class="max-w-prose  text-text-muted">
           Starters are templates: when your project has its own{" "}
           <code>spin/*.json</code> files, Spin serves only your project's
           themes unless you explicitly include starters via{" "}

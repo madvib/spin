@@ -363,8 +363,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     previewWidth() === "compact"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setPreviewWidth("compact")}
                 >
@@ -374,8 +374,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     previewWidth() === "sm"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setPreviewWidth("sm")}
                 >
@@ -385,8 +385,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     previewWidth() === "md"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setPreviewWidth("md")}
                 >
@@ -396,8 +396,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     previewWidth() === "lg"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setPreviewWidth("lg")}
                 >
@@ -514,8 +514,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     anchorArea() === "bottom"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => {
                     setAnchorArea("bottom");
@@ -528,8 +528,8 @@ export default function StylingSpace(): JSX.Element {
                   type="button"
                   class={
                     anchorArea() === "top"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => {
                     setAnchorArea("top");
@@ -656,7 +656,7 @@ export default function StylingSpace(): JSX.Element {
 
               <button
                 type="button"
-                class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-sm text-text-muted"
+                class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-text-muted type-code"
               >
                 <span>Command palette</span>
                 <kbd>⌘K</kbd>
@@ -664,7 +664,7 @@ export default function StylingSpace(): JSX.Element {
 
               <button
                 type="button"
-                class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-on-primary"
+                class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-on-primary type-caption type-body-strong"
               >
                 <span>Live filter</span>
               </button>

@@ -36,9 +36,9 @@ export function SplitExample(props: {
     <div class="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2">
         <div class="flex flex-col">
-          <span class="text-sm font-semibold">{props.title}</span>
+          <span class="type-code type-body-strong">{props.title}</span>
           <Show when={props.description}>
-            <span class="text-xs text-text-muted">{props.description}</span>
+            <span class="text-text-muted type-caption">{props.description}</span>
           </Show>
         </div>
         <div class="flex items-center gap-2">
@@ -46,7 +46,7 @@ export function SplitExample(props: {
             {(ex) => (
               <A
                 href={`/playground?example=${ex()}`}
-                class="font-mono text-xs text-primary no-underline hover:underline"
+                class="text-primary no-underline hover:underline type-code type-caption"
               >
                 Open in Playground →
               </A>

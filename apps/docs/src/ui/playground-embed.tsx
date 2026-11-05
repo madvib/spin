@@ -69,20 +69,20 @@ export function PlaygroundEmbed(props: {
         }
       >
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <span class="font-mono text-xs text-text-muted">
+          <span class="text-text-muted type-code type-caption">
             {props.title ?? recipe().title}
           </span>
           <div class="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setShowCode((v) => !v)}
-              class="bare cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs hover:border-border-strong"
+              class="bare cursor-pointer rounded-md border border-border bg-surface-raised px-2 py-1 hover:border-border-strong type-code type-caption"
             >
               {showCode() ? "Hide markup" : "Show markup"}
             </button>
             <A
               href="/playground"
-              class="font-mono text-xs text-primary no-underline hover:underline"
+              class="text-primary no-underline hover:underline type-code type-caption"
             >
               Open in Playground →
             </A>

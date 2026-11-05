@@ -396,7 +396,7 @@ export default function Home(): JSX.Element {
   return (
     <main
       style={{ height: "calc(100dvh - 3.5rem)" }}
-      class="relative w-full overflow-hidden font-sans text-md"
+      class="relative w-full overflow-hidden type-body"
     >
       {/* FULL-PAGE ORB-WEAVER CANVAS (Spans the entire 1440x900 window including behind TopNav) */}
       <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -430,14 +430,14 @@ export default function Home(): JSX.Element {
                 <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={tile().mountHtml} />
               </div>
               <div class="flex items-center justify-between gap-2 px-4 py-2">
-                <span class="flex min-w-0 items-center gap-2 font-brand text-md">
+                <span class="flex min-w-0 items-center gap-2 type-body">
                   <span
                     class={`inline-block h-4 w-4 ${tile().icon} shrink-0 text-text-muted`}
                     aria-hidden="true"
                   />
                   <span class="truncate">{tile().name}</span>
                 </span>
-                <span class="shrink-0 font-mono text-xs text-text-muted">
+                <span class="shrink-0 text-text-muted type-code type-caption">
                   {tile().meta}
                 </span>
               </div>
@@ -454,7 +454,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => selectStage(1)}
-              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs shadow-md transition-colors duration-fast hover:border-primary"
+              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 shadow-md transition-colors duration-fast hover:border-primary type-code type-caption"
             >
               <span class="h-2 w-2 rounded-full bg-primary text-on-primary" />
               <span>Scroll</span>
@@ -471,7 +471,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === 0}
               onClick={() => selectStage(stage() - 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs hover:bg-surface disabled:opacity-40"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 hover:bg-surface disabled:opacity-40 type-caption"
               title="Previous stage"
               aria-label="Previous stage"
             >
@@ -504,7 +504,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === STAGE_COUNT - 1}
               onClick={() => selectStage(stage() + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs hover:bg-surface disabled:opacity-40"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 hover:bg-surface disabled:opacity-40 type-caption"
               title="Next stage"
               aria-label="Next stage"
             >
@@ -517,7 +517,7 @@ export default function Home(): JSX.Element {
               type="button"
               aria-pressed={autoPlay()}
               onClick={() => setAutoPlay((v) => !v)}
-              class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs transition-colors duration-fast ${
+              class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0  transition-colors duration-fast ${
                 autoPlay()
                   ? "bg-primary text-on-primary"
                   : "text-text-muted hover:bg-surface"
@@ -531,7 +531,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => setReweaveKey((k) => k + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs text-text-muted hover:bg-surface hover:text-primary"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 text-text-muted hover:bg-surface hover:text-primary type-caption"
               title="Replay current ring weave"
               aria-label="Replay current ring weave"
             >
@@ -553,7 +553,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "42rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-4"
             >
-              <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 font-mono text-xs text-text-muted shadow-sm">
+              <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 text-text-muted shadow-sm type-code type-caption">
                 <span class="h-2 w-2 shrink-0 rounded-full bg-primary text-on-primary" />
                 <span class="truncate">
                   Themes · Styled HTML · {MACHINE_COUNT} Components · Any Stack
@@ -565,7 +565,7 @@ export default function Home(): JSX.Element {
                   UI that holds together.
                 </h1>
 
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Define your colors, type, and spacing once. Spin compiles your
                   theme into styled HTML elements, Tailwind-compatible utilities,
                   and {MACHINE_COUNT} interactive components for React, Solid,
@@ -595,7 +595,7 @@ export default function Home(): JSX.Element {
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 font-mono text-xs hover:bg-surface"
+                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 hover:bg-surface type-code type-caption"
                 >
                   <span class="shrink-0 text-text-muted">$</span>
                   <span class="min-w-0 flex-1 truncate text-left">
@@ -613,7 +613,7 @@ export default function Home(): JSX.Element {
               </div>
 
               <div class="hidden max-w-full flex-wrap items-center gap-1 sm:flex">
-                <span class="pr-1 font-mono text-xs text-text-muted">
+                <span class="pr-1 text-text-muted type-code type-caption">
                   Theme:
                 </span>
                 <For each={starterList}>
@@ -621,7 +621,7 @@ export default function Home(): JSX.Element {
                     <button
                       type="button"
                       onClick={() => setTheme(name)}
-                      class={`bare rounded-full border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                      class={`bare rounded-full border px-2 py-1   transition-colors duration-fast ${
                         theme() === name
                           ? "border-primary bg-primary font-semibold text-on-primary"
                           : "border-border bg-surface-raised text-text-muted hover:border-border-strong"
@@ -644,14 +644,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 01 · Themes · Multi-Brand &amp; Dark Mode
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Restyle your app without touching markup.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Swap palettes, typefaces, radii, or shadows in one place and
                   every element, utility, and component follows — with light
                   and dark contrast verified at build time.
@@ -667,7 +667,7 @@ export default function Home(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => setSelectedDtcgIdx(idx())}
-                          class={`bare rounded-md border px-2 py-1 font-mono text-xs transition-colors duration-fast ${
+                          class={`bare rounded-md border px-2 py-1   transition-colors duration-fast ${
                             active()
                               ? "border-primary bg-primary font-semibold text-on-primary"
                               : "border-border bg-surface hover:border-border-strong"
@@ -696,7 +696,7 @@ export default function Home(): JSX.Element {
                       aria-hidden="true"
                     />
                   </Show>
-                  <div class="flex min-w-0 flex-col gap-1 font-mono text-xs">
+                  <div class="flex min-w-0 flex-col gap-1 type-code type-caption">
                     <span class="text-text-muted">
                       {cssVarOf(currentDtcg().path)}
                     </span>
@@ -706,13 +706,13 @@ export default function Home(): JSX.Element {
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 border-t border-border pt-2 text-xs">
+                <div class="flex items-center justify-between gap-4 border-t border-border pt-2 type-caption">
                   <span class="truncate text-text-muted">
                     {currentDtcg().pairing}
                   </span>
                   <A
                     href="/docs/themes/overview"
-                    class="shrink-0 font-semibold text-primary no-underline hover:underline"
+                    class="shrink-0 text-primary no-underline hover:underline type-body-strong"
                   >
                     Themes →
                   </A>
@@ -730,14 +730,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 02 · Styling · Token-Bound Utilities
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Tailwind syntax, locked to your tokens.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Write the classes you already know — <code>p-4</code>,{" "}
                   <code>bg-surface-raised</code>, <code>rounded-lg</code> —
                   wired to your theme. Off-scale values and raw hex codes
@@ -752,7 +752,7 @@ export default function Home(): JSX.Element {
                     onClick={() =>
                       setUtilPad((p) => (p === "p-3" ? "p-5" : "p-3"))
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 text-primary hover:border-primary type-code type-caption"
                   >
                     {utilPad()}
                   </button>
@@ -763,7 +763,7 @@ export default function Home(): JSX.Element {
                         r === "rounded-lg" ? "rounded-sm" : "rounded-lg",
                       )
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 text-primary hover:border-primary type-code type-caption"
                   >
                     {utilRadius()}
                   </button>
@@ -776,7 +776,7 @@ export default function Home(): JSX.Element {
                           : "bg-surface-raised",
                       )
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-primary hover:border-primary"
+                    class="bare rounded-md border border-border bg-surface px-2 py-1 text-primary hover:border-primary type-code type-caption"
                   >
                     {utilSurface()}
                   </button>
@@ -784,7 +784,7 @@ export default function Home(): JSX.Element {
                     type="button"
                     aria-pressed={utilTryInvalid()}
                     onClick={() => setUtilTryInvalid((v) => !v)}
-                    class={`bare rounded-md border px-2 py-1 font-mono text-xs ${
+                    class={`bare rounded-md border px-2 py-1   ${
                       utilTryInvalid()
                         ? "border-primary bg-primary text-on-primary"
                         : "border-border bg-surface text-text-muted"
@@ -798,7 +798,7 @@ export default function Home(): JSX.Element {
                   class={`flex max-w-full flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
                 >
                   <div class="flex items-center justify-between gap-3">
-                    <strong class="font-brand text-sm">
+                    <strong class=" ">
                       Brand-true surface
                     </strong>
                     <badge
@@ -816,13 +816,13 @@ export default function Home(): JSX.Element {
                   </code>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 text-xs">
-                  <span class="font-mono text-text-muted">
+                <div class="flex items-center justify-between gap-4 type-caption">
+                  <span class="text-text-muted type-code">
                     Closed token scale
                   </span>
                   <A
                     href="/docs/styling/catalog"
-                    class="font-semibold text-primary no-underline hover:underline"
+                    class="text-primary no-underline hover:underline type-body-strong"
                   >
                     Utilities →
                   </A>
@@ -840,14 +840,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 03 · Elements · Styled HTML
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Write standard HTML. Skip the class soup.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Native tags like <code>&lt;button&gt;</code>,{" "}
                   <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>, and{" "}
                   <code>&lt;table&gt;</code> arrive styled by your theme —
@@ -891,7 +891,7 @@ export default function Home(): JSX.Element {
                       onClick={() =>
                         setProgressVal((v) => (v >= 100 ? 35 : v + 20))
                       }
-                      class="bare font-mono text-xs text-primary hover:underline"
+                      class="bare text-primary hover:underline type-code type-caption"
                     >
                       {progressVal()}%
                     </button>
@@ -908,13 +908,13 @@ export default function Home(): JSX.Element {
                   <code class="shrink-0">&lt;badge&gt; · &lt;kbd&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 text-xs">
-                  <span class="font-mono text-text-muted">
+                <div class="flex items-center justify-between gap-4 type-caption">
+                  <span class="text-text-muted type-code">
                     {ELEMENT_COUNT} styled elements
                   </span>
                   <A
                     href="/components?kind=elements"
-                    class="font-semibold text-primary no-underline hover:underline"
+                    class="text-primary no-underline hover:underline type-body-strong"
                   >
                     Explore elements →
                   </A>
@@ -932,14 +932,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 04 · Components · {MACHINE_COUNT} Interactive Widgets
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Interactive components for any framework.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Selects, comboboxes, dialogs, menus, tabs, and date pickers —
                   driven by statecharts, styled by your theme, and mounted in
                   React, Solid, Vue, Svelte, or HTML.
@@ -957,13 +957,13 @@ export default function Home(): JSX.Element {
                       onPointerLeave={scheduleCloseTileHoverCard}
                       onFocus={(e) => openTileHoverCard(tile, e.currentTarget)}
                       onBlur={scheduleCloseTileHoverCard}
-                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 text-xs no-underline shadow-sm transition-colors duration-fast hover:border-primary"
+                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 no-underline shadow-sm transition-colors duration-fast hover:border-primary type-caption"
                     >
                       <span
                         class={`inline-block h-4 w-4 ${tile.icon} text-primary`}
                         aria-hidden="true"
                       />
-                      <span class="font-mono font-semibold">
+                      <span class="type-code type-body-strong">
                         {tile.name}
                       </span>
                       <span
@@ -977,7 +977,7 @@ export default function Home(): JSX.Element {
 
               <A
                 href="/components?kind=machines"
-                class="font-mono text-xs font-semibold text-primary no-underline hover:underline"
+                class="text-primary no-underline hover:underline type-code type-caption type-body-strong"
               >
                 Browse all {MACHINE_COUNT} components →
               </A>
@@ -993,14 +993,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 05 · Verification · Lints, CLI &amp; MCP
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Guardrails for humans and coding agents.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Spin's linter, browser checks, and MCP server catch invalid
                   classes, hardcoded hex colors, and broken contrast
                   automatically.
@@ -1046,7 +1046,7 @@ export default function Home(): JSX.Element {
                           <code class="min-w-0 truncate">
                             {isFixed() ? item.fixedCode : item.badCode}
                           </code>
-                          <span class="shrink-0 font-mono text-xs text-primary">
+                          <span class="shrink-0 text-primary type-code type-caption">
                             {isFixed() ? "✓ Fixed" : "Fix →"}
                           </span>
                         </button>
@@ -1055,16 +1055,16 @@ export default function Home(): JSX.Element {
                   </For>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 text-xs">
+                <div class="flex items-center justify-between gap-4 type-caption">
                   <A
                     href="/docs/tooling/lints"
-                    class="font-semibold text-primary no-underline hover:underline"
+                    class="text-primary no-underline hover:underline type-body-strong"
                   >
                     Lint rules →
                   </A>
                   <A
                     href="/docs/tooling/mcp"
-                    class="font-semibold text-primary no-underline hover:underline"
+                    class="text-primary no-underline hover:underline type-body-strong"
                   >
                     MCP server →
                   </A>
@@ -1082,14 +1082,14 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
+              <span class="uppercase tracking-wider text-primary type-code type-caption type-body-strong">
                 06 · Workbench · Spin Studio
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>
                   Edit your theme against the live app.
                 </h2>
-                <p class="text-sm text-text-muted">
+                <p class=" text-text-muted">
                   Spin Studio mounts beside your dev server: tweak palettes,
                   type, icons, or spacing and watch real pages repaint before
                   saving to <code>spin/</code>.
@@ -1099,34 +1099,34 @@ export default function Home(): JSX.Element {
               <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="grid grid-cols-2 gap-2">
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
-                    <span class="font-mono text-xs font-semibold text-primary">
+                    <span class="text-primary type-code type-caption type-body-strong">
                       Theme &amp; Type
                     </span>
-                    <span class="text-xs text-text-muted">
+                    <span class="text-text-muted type-caption">
                       Palettes &amp; scales
                     </span>
                   </div>
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
-                    <span class="font-mono text-xs font-semibold text-primary">
+                    <span class="text-primary type-code type-caption type-body-strong">
                       Contrast Gate
                     </span>
-                    <span class="text-xs text-text-muted">
+                    <span class="text-text-muted type-caption">
                       AA / AAA matrix
                     </span>
                   </div>
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
-                    <span class="font-mono text-xs font-semibold text-primary">
+                    <span class="text-primary type-code type-caption type-body-strong">
                       Icons &amp; Motion
                     </span>
-                    <span class="text-xs text-text-muted">
+                    <span class="text-text-muted type-caption">
                       Glyphs &amp; easing
                     </span>
                   </div>
                   <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
-                    <span class="font-mono text-xs font-semibold text-primary">
+                    <span class="text-primary type-code type-caption type-body-strong">
                       Recipes
                     </span>
-                    <span class="text-xs text-text-muted">
+                    <span class="text-text-muted type-caption">
                       Copyable markup
                     </span>
                   </div>
