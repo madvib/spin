@@ -40,7 +40,7 @@ export function ComponentsRail(props: {
               type="button"
               aria-pressed={props.kind === kind}
               onClick={() => props.onKind(kind)}
-              class="bare rounded-sm px-2 py-1 text-xs text-text-muted aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
+              class="bare rounded-sm px-2 py-1 type-caption text-text-muted aria-[pressed=true]:bg-surface-raised"
             >
               {kind === "all"
                 ? "all"
@@ -55,7 +55,7 @@ export function ComponentsRail(props: {
         href="/components"
         end
         onClick={() => props.onSelect?.()}
-        class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+        class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
         activeClass="bg-surface-raised font-semibold"
         inactiveClass="text-text-muted"
       >
@@ -64,7 +64,7 @@ export function ComponentsRail(props: {
       <For each={groups()}>
         {(group) => (
           <>
-            <span class="pt-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+            <span class="pt-2 type-caption-strong uppercase tracking-wider text-text-muted">
               {group.label}
             </span>
             <For each={group.items}>
@@ -72,7 +72,7 @@ export function ComponentsRail(props: {
                 <A
                   href={item.href}
                   onClick={() => props.onSelect?.()}
-                  class="flex items-center gap-2 rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+                  class="flex items-center gap-2 rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
                   activeClass="bg-surface-raised font-semibold"
                   inactiveClass="text-text-muted"
                 >
@@ -95,7 +95,7 @@ export function ComponentsLayout(props: RouteSectionProps): JSX.Element {
   const [query, setQuery] = createSignal("");
   const [kind, setKind] = createSignal<ComponentKindFilter>("all");
   return (
-    <div class="flex h-full min-h-0 items-start overflow-y-auto bg-surface font-sans text-md">
+    <div class="flex h-full min-h-0 items-start overflow-y-auto bg-surface">
       <nav
         class="sticky top-0 hidden h-full w-60 shrink-0 flex-col gap-4 overflow-y-auto border-e border-border px-4 py-6 md:flex"
         aria-label="components"

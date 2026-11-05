@@ -98,7 +98,7 @@ export default function ComponentPage(): JSX.Element {
       >
         <main class="px-6 py-6">
           <Show when={category()}>
-            <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">{category()}</p>
+            <p class="uppercase tracking-wider text-text-muted">{category()}</p>
           </Show>
           <h1>{params.id}</h1>
           <Show when={examples()}>
@@ -107,7 +107,7 @@ export default function ComponentPage(): JSX.Element {
 
           <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+              <p class="uppercase tracking-widest text-text-muted">
                 tags
               </p>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -115,14 +115,14 @@ export default function ComponentPage(): JSX.Element {
                   {(tag) => <Chip>{tag}</Chip>}
                 </For>
                 <Show when={contract()!.tags.length === 0}>
-                  <span class="text-sm text-text-muted">
+                  <span class="type-body text-text-muted">
                     none — a utility family
                   </span>
                 </Show>
               </div>
             </div>
             <div>
-              <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">
+              <p class="uppercase tracking-widest text-text-muted">
                 variants
               </p>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function ComponentPage(): JSX.Element {
                   {(variant) => <Chip>{variant}</Chip>}
                 </For>
                 <Show when={contract()!.variants.length === 0}>
-                  <span class="text-sm text-text-muted">none</span>
+                  <span class="type-body text-text-muted">none</span>
                 </Show>
               </div>
             </div>
@@ -192,21 +192,21 @@ export default function ComponentPage(): JSX.Element {
                   <thead>
                     <tr class="border-b border-border text-left">
                       <th class="py-2 pr-4">element</th>
-                      <th class="py-2 pr-4 font-mono">where</th>
-                      <th class="py-2 pr-4 font-mono">owns</th>
+                      <th class="py-2 pr-4">where</th>
+                      <th class="py-2 pr-4">owns</th>
                     </tr>
                   </thead>
                   <tbody>
                     <For each={contract()!.scope.paints}>
                       {(paint) => (
                         <tr class="border-b border-border">
-                          <td class="font-mono text-xs">
+                          <td class="type-code">
                             {paint.tag}
                           </td>
-                          <td class="font-mono text-xs text-text-muted">
+                          <td class="type-code text-text-muted">
                             {paint.where}
                           </td>
-                          <td class="font-mono text-xs">
+                          <td class="type-code">
                             {paint.owns.join(" · ")}
                           </td>
                         </tr>
@@ -225,23 +225,21 @@ export default function ComponentPage(): JSX.Element {
                   <thead>
                     <tr class="border-b border-border text-left">
                       <th class="py-2 pr-4">token</th>
-                      <th class="py-2 pr-4 font-mono">type</th>
-                      <th class="py-2 pr-4 font-mono">
-                        scaffold placeholder
-                      </th>
+                      <th class="py-2 pr-4">type</th>
+                      <th class="py-2 pr-4">scaffold placeholder</th>
                     </tr>
                   </thead>
                   <tbody>
                     <For each={contract()!.component}>
                       {(token) => (
                         <tr class="border-b border-border">
-                          <td class="font-mono text-xs">
+                          <td class="type-code">
                             {token.path}
                           </td>
-                          <td class="font-mono text-xs text-text-muted">
+                          <td class="type-code text-text-muted">
                             {token.type}
                           </td>
-                          <td class="font-mono text-xs">
+                          <td class="type-code">
                             {token.value}
                           </td>
                         </tr>
@@ -301,26 +299,20 @@ function ClassTable(props: { classes: readonly ClassDoc[] }): JSX.Element {
     <table class="w-fit max-w-full border-collapse text-left wrap">
       <thead>
         <tr class="border-b border-border bg-surface-raised text-text-muted">
-          <th class="px-3 py-2 font-mono">
-            Class / Tag
-          </th>
-          <th class="px-3 py-2 font-mono">
-            Type
-          </th>
-          <th class="px-3 py-2">
-            Description
-          </th>
+          <th class="px-3 py-2">Class / Tag</th>
+          <th class="px-3 py-2">Type</th>
+          <th class="px-3 py-2">Description</th>
         </tr>
       </thead>
       <tbody>
         <For each={props.classes}>
           {(item) => (
             <tr class="border-b border-border last:border-b-0">
-              <td class="shrink-0 whitespace-nowrap font-mono text-primary">
+              <td class="shrink-0 whitespace-nowrap type-code text-primary">
                 <code>{item.name}</code>
               </td>
-              <td class="shrink-0 whitespace-nowrap font-mono text-text-muted">
-                <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 font-mono text-xs">
+              <td class="shrink-0 whitespace-nowrap type-code text-text-muted">
+                <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 type-code">
                   {item.kind}
                 </span>
               </td>
@@ -349,7 +341,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
   return (
     <main class="px-6 py-6">
       <Show when={category()}>
-        <p class="text-xs font-semibold uppercase tracking-wider text-text-muted">{category()}</p>
+        <p class="uppercase tracking-wider text-text-muted">{category()}</p>
       </Show>
       <h1>{props.name}</h1>
       <p>

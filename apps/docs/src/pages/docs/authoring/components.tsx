@@ -46,28 +46,28 @@ function ControllerDemo(): JSX.Element {
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 font-mono text-xs"
+            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.setOpen(true)}
           >
             ctl.commands.setOpen(true)
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 font-mono text-xs"
+            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.close()}
           >
             ctl.commands.close()
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 font-mono text-xs"
+            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.clearValue()}
           >
             ctl.commands.clearValue()
           </button>
         </div>
       </div>
-      <div class="flex flex-col gap-2 text-sm">
+      <div class="flex flex-col gap-2 type-body">
         <p>
           <code>ctl.state.value</code>: <code>{JSON.stringify(value())}</code>
         </p>

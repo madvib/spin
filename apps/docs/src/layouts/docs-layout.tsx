@@ -29,7 +29,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
         {(group) => (
           <div class="flex flex-col gap-1">
             <span
-              class={`px-2 pb-1 text-xs font-semibold uppercase tracking-wider ${
+              class={`px-2 pb-1 type-caption-strong uppercase tracking-wider ${
                 isGroupActive(group.items) ? "text-primary" : "text-text-muted"
               }`}
             >
@@ -42,7 +42,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
                     href={item.href}
                     end
                     onClick={() => props.onSelect?.()}
-                    class="block rounded-sm px-2 py-1 text-sm no-underline transition-colors duration-fast"
+                    class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
                     activeClass="bg-surface-raised font-semibold"
                     inactiveClass="text-text-muted"
                   >
@@ -173,7 +173,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
   return (
     <div
       ref={scrollEl}
-      class="flex h-full min-h-0 w-full items-start overflow-y-auto bg-surface font-sans text-md"
+      class="flex h-full min-h-0 w-full items-start overflow-y-auto bg-surface"
     >
       <nav
         class="sticky top-0 hidden h-full w-60 shrink-0 flex-col overflow-y-auto border-e border-border px-4 py-8 md:flex"
@@ -197,10 +197,10 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     href={prev().href}
                     class="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
                   >
-                    <span class="text-xs font-mono uppercase tracking-wider text-text-muted">
+                    <span class="type-caption uppercase tracking-wider text-text-muted">
                       ← {prev().groupLabel}
                     </span>
-                    <span class="font-semibold">{prev().title}</span>
+                    <span class="type-body-strong">{prev().title}</span>
                   </A>
                 )}
               </Show>
@@ -210,10 +210,10 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     href={next().href}
                     class="flex flex-col items-end gap-1 rounded-lg border border-border bg-surface p-4 text-right no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
                   >
-                    <span class="text-xs font-mono uppercase tracking-wider text-text-muted">
+                    <span class="type-caption uppercase tracking-wider text-text-muted">
                       {next().groupLabel} →
                     </span>
-                    <span class="font-semibold">{next().title}</span>
+                    <span class="type-body-strong">{next().title}</span>
                   </A>
                 )}
               </Show>

@@ -76,10 +76,10 @@ export default function ThemesModes(): JSX.Element {
                 data-mode={mode()}
                 class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
               >
-                <span class="font-mono text-xs text-text-muted">
+                <span class="type-code text-text-muted">
                   data-mode="{mode()}" (page)
                 </span>
-                <p class="text-sm text-text-muted">
+                <p class="text-text-muted">
                   Inherits the page's current mode.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
@@ -92,10 +92,10 @@ export default function ThemesModes(): JSX.Element {
                 data-mode={oppositeMode()}
                 class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
               >
-                <span class="font-mono text-xs text-text-muted">
+                <span class="type-code text-text-muted">
                   data-mode="{oppositeMode()}" (subtree)
                 </span>
-                <p class="text-sm text-text-muted">
+                <p class="text-text-muted">
                   Scoped to the opposite mode on this container.
                 </p>
                 <div class="flex items-center gap-2 pt-1">

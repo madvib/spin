@@ -181,7 +181,7 @@ function TopNav(props: {
             {(section) => (
               <A
                 href={section.href}
-                class={`block rounded-sm px-3 py-1 text-sm no-underline transition-colors duration-fast ${
+                class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
                   current(section.active)
                     ? "bg-surface-raised font-semibold"
                     : "text-text-muted"
@@ -198,7 +198,7 @@ function TopNav(props: {
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
-          class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised"
+          class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 type-code text-text-muted transition-colors hover:bg-surface-raised"
         >
           <span>Search...</span>
           <kbd>⌘K</kbd>
@@ -306,7 +306,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
   };
 
   return (
-    <div class="flex h-dvh flex-col overflow-hidden bg-surface font-sans text-md">
+    <div class="flex h-dvh flex-col overflow-hidden bg-surface">
       <BrandFavicon getPrimary={activePrimary} />
       <SearchDialog
         open={searchOpen()}
@@ -331,7 +331,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   setMobileNavOpen(false);
                   setSearchOpen(true);
                 }}
-                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 text-sm text-text-muted transition-colors hover:bg-surface-raised"
+                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 type-code text-text-muted transition-colors hover:bg-surface-raised"
               >
                 <span class="i-lucide-search icon-sm" aria-hidden="true" />
                 <span>Search...</span>
@@ -344,7 +344,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   <A
                     href={section.href}
                     onClick={() => setMobileNavOpen(false)}
-                    class="block rounded-sm bg-surface-raised px-3 py-1 text-sm font-semibold no-underline"
+                    class="block rounded-sm bg-surface-raised px-3 py-1 no-underline"
                   >
                     {section.title}
                   </A>

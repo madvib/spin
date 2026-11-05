@@ -201,7 +201,7 @@ export default function StylingAnimation(): JSX.Element {
             />
             <code>animate-pulse</code>
           </div>
-          <span class="text-xs text-text-muted">
+          <span class="type-caption text-text-muted">
             Paced at the theme&apos;s loop step (&ge; <code>250ms</code>) and
             stopped under <code>@media (prefers-reduced-motion: reduce)</code>.
           </span>
@@ -223,8 +223,8 @@ export default function StylingAnimation(): JSX.Element {
                     onClick={() => triggerAnimation(variant)}
                     class={
                       activeAnim() === variant
-                        ? "primary s-sm font-mono"
-                        : "s-sm font-mono"
+                        ? "primary s-sm type-code"
+                        : "s-sm type-code"
                     }
                   >
                     {variant}
@@ -243,7 +243,7 @@ export default function StylingAnimation(): JSX.Element {
             <For each={[replayKey()]}>
               {() => (
                 <div
-                  class={`rounded-md border border-primary bg-surface-raised px-4 py-3 font-mono text-sm shadow-sm ${activeAnim()}`}
+                  class={`rounded-md border border-primary bg-surface-raised px-4 py-3 type-code shadow-sm ${activeAnim()}`}
                 >
                   {activeAnim()}
                 </div>

@@ -196,8 +196,8 @@ export default function StylingColor(): JSX.Element {
                     {item.job}
                   </span>
                   <div class="flex flex-col gap-1">
-                    <span class="text-sm font-medium">{item.sample}</span>
-                    <span class={`text-xs ${item.detailClass}`}>
+                    <span class="type-body-strong">{item.sample}</span>
+                    <span class={`type-caption ${item.detailClass}`}>
                       {item.detail}
                     </span>
                   </div>
@@ -236,12 +236,12 @@ export default function StylingColor(): JSX.Element {
                 <div
                   class={`flex items-center justify-between rounded-md px-3 py-3 ${pair.swatchClass}`}
                 >
-                  <span class="text-sm font-semibold">{pair.label}</span>
-                  <span class="font-mono text-xs">Readable in both modes</span>
+                  <span class="type-body-strong">{pair.label}</span>
+                  <span class="type-code">Readable in both modes</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-1 px-1 pb-1">
                   <code>{pair.fill}</code>
-                  <span class="text-xs text-text-muted">+</span>
+                  <span class="type-caption text-text-muted">+</span>
                   <code>{pair.ink}</code>
                 </div>
               </div>
@@ -274,7 +274,7 @@ export default function StylingColor(): JSX.Element {
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <code>data-mode=&quot;{specimenMode()}&quot;</code>
-                <span class="text-xs text-text-muted">
+                <span class="type-caption text-text-muted">
                   on <code>data-theme=&quot;{theme()}&quot;</code>
                 </span>
               </div>
@@ -283,8 +283,8 @@ export default function StylingColor(): JSX.Element {
                   type="button"
                   class={
                     specimenMode() === "light"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setSpecimenOverride("light")}
                 >
@@ -294,8 +294,8 @@ export default function StylingColor(): JSX.Element {
                   type="button"
                   class={
                     specimenMode() === "dark"
-                      ? "primary s-sm font-mono"
-                      : "s-sm font-mono"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
                   }
                   onClick={() => setSpecimenOverride("dark")}
                 >
@@ -312,11 +312,11 @@ export default function StylingColor(): JSX.Element {
               <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
                 <div class="flex flex-col gap-1">
                   <strong>Release channel</strong>
-                  <div class="text-xs text-text-muted">
+                  <div class="type-caption text-text-muted">
                     Production traffic is healthy
                   </div>
                 </div>
-                <span class="rounded-sm bg-semantic-success px-2 py-1 text-xs font-medium text-on-semantic-success">
+                <span class="rounded-sm bg-semantic-success px-2 py-1 type-caption-strong text-on-semantic-success">
                   Healthy
                 </span>
               </div>
@@ -348,7 +348,7 @@ export default function StylingColor(): JSX.Element {
 
         <div class="my-2 flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
           <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/50 bg-surface/80 px-3 py-2">
-            <span class="text-sm font-medium">
+            <span class="type-body-strong">
               Floating bar thinned over raised canvas
             </span>
             <div class="flex flex-wrap items-center gap-1">
@@ -366,7 +366,7 @@ export default function StylingColor(): JSX.Element {
                   />
                   <div class="flex items-center justify-between gap-1">
                     <code>{item.utility}</code>
-                    <span class="font-mono text-xs text-text-muted">
+                    <span class="type-code text-text-muted">
                       {item.step}
                     </span>
                   </div>
@@ -399,15 +399,15 @@ export default function StylingColor(): JSX.Element {
         </p>
 
         <div class="my-2 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface-raised p-4">
-          <div class="inline-flex items-center gap-2 rounded-md border border-current px-3 py-1 text-sm text-primary">
+          <div class="inline-flex items-center gap-2 rounded-md border border-current px-3 py-1 type-body text-primary">
             <span>Inherits primary ink</span>
             <code>border-current</code>
           </div>
-          <div class="inline-flex items-center gap-2 rounded-md border border-current/20 px-3 py-1 text-sm text-accent">
+          <div class="inline-flex items-center gap-2 rounded-md border border-current/20 px-3 py-1 type-body text-accent">
             <span>Thinned current border</span>
             <code>border-current/20</code>
           </div>
-          <div class="inline-flex items-center gap-2 rounded-md border border-currentColor bg-transparent px-3 py-1 text-sm text-secondary">
+          <div class="inline-flex items-center gap-2 rounded-md border border-currentColor bg-transparent px-3 py-1 type-body text-secondary">
             <span>CSS keyword spelling</span>
             <code>border-currentColor</code>
             <code>bg-transparent</code>

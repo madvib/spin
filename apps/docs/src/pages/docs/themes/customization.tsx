@@ -149,7 +149,7 @@ export default function ThemesCustomization(): JSX.Element {
                 <span
                   class={`h-5 w-5 shrink-0 rounded-sm border border-border ${item.bg}`}
                 />
-                <span class="truncate font-mono text-xs">
+                <span class="truncate type-code">
                   {item.label}
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function ThemesCustomization(): JSX.Element {
             title="Per-element token overrides"
           />
         </div>
-        <p class="max-w-prose text-sm text-text-muted">
+        <p class="max-w-prose text-text-muted">
            Spin supports per-element overrides on {groups.length} element
           groups (see the full list in{" "}
           <A href="/docs/themes/reference#element-tokens">

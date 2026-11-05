@@ -59,7 +59,7 @@ export function CodeFrame(props: {
       }`}
     >
       <div class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-3 py-1">
-        <span class="font-mono text-xs font-medium text-text-muted">
+        <span class="type-caption text-text-muted">
           {headerLabel()}
         </span>
         <Show when={showCopy()}>
@@ -69,7 +69,7 @@ export function CodeFrame(props: {
             aria-label={
               props.title ? `Copy ${props.title}` : "Copy code snippet"
             }
-            class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 font-mono text-xs text-text-muted transition-colors duration-fast hover:bg-surface"
+            class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-text-muted transition-colors duration-fast hover:bg-surface"
           >
             <span
               class={
@@ -83,7 +83,7 @@ export function CodeFrame(props: {
           </button>
         </Show>
       </div>
-      <pre class="overflow-x-auto border-0 bg-surface p-4 text-sm">
+      <pre class="overflow-x-auto border-0 bg-surface p-4 type-code">
         <code>
           <For each={tokens()}>
             {(token) => (

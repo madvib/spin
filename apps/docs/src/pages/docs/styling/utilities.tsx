@@ -139,10 +139,10 @@ export default function StylingUtilities(): JSX.Element {
               <div
                 class={`flex flex-col gap-1 rounded-md p-3 ${item.classes}`}
               >
-                <span class="font-mono text-xs font-semibold">
+                <span class="type-caption-strong">
                   {item.label}
                 </span>
-                <span class="font-mono text-xs opacity-90">
+                <span class="type-code opacity-90">
                   {item.fill} + {item.ink}
                 </span>
               </div>
