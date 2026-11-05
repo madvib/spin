@@ -98,7 +98,7 @@ export default function ComponentPage(): JSX.Element {
       >
         <main class="px-6 py-6">
           <Show when={category()}>
-            <p class="uppercase tracking-wider text-text-muted">{category()}</p>
+            <p class="uppercase text-text-muted">{category()}</p>
           </Show>
           <h1>{params.id}</h1>
           <Show when={examples()}>
@@ -107,7 +107,7 @@ export default function ComponentPage(): JSX.Element {
 
           <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
             <div>
-              <p class="uppercase tracking-widest text-text-muted">
+              <p class="uppercase text-text-muted">
                 tags
               </p>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ export default function ComponentPage(): JSX.Element {
               </div>
             </div>
             <div>
-              <p class="uppercase tracking-widest text-text-muted">
+              <p class="uppercase text-text-muted">
                 variants
               </p>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -341,7 +341,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
   return (
     <main class="px-6 py-6">
       <Show when={category()}>
-        <p class="uppercase tracking-wider text-text-muted">{category()}</p>
+        <p class="uppercase text-text-muted">{category()}</p>
       </Show>
       <h1>{props.name}</h1>
       <p>

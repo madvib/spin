@@ -32,22 +32,6 @@ function typeStyleNames(): readonly string[] {
     .sort();
 }
 
-/**
- * The tracking steps the active starter theme declares. The utility spends
- * the theme's own ramp first, so the ramp on the page is the ramp in the
- * theme file.
- */
-function trackingStepNames(): readonly string[] {
-  const font = (starterDoc() as Record<string, unknown>)["font"] as
-    | Record<string, unknown>
-    | undefined;
-  const tracking = font?.["tracking"] as Record<string, unknown> | undefined;
-  if (tracking === undefined) return [];
-  return Object.keys(tracking)
-    .filter((key) => !key.startsWith("$"))
-    .sort();
-}
-
 interface UtilityGroupSpec {
   readonly id: string;
   readonly title: string;
@@ -282,43 +266,14 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
                 {(name) => <code>type-{name}</code>}
               </For>
             </span>
-            Raw <code>text-&lt;step&gt;</code> sizes and{" "}
-            <code>font-&lt;…&gt;</code> families and weights name nothing a
+            Raw <code>text-&lt;step&gt;</code> sizes,{" "}
+            <code>font-&lt;…&gt;</code> families and weights, and{" "}
+            <code>tracking-&lt;step&gt;</code> /{" "}
+            <code>leading-&lt;step&gt;</code> atoms name nothing a
             theme can make — the build fails and names the style to write
-            instead.
-          </>
-        ),
-      },
-      {
-        name: "tracking-<step>",
-        badge: "letter-spacing",
-        description: (
-          <>
-            Sets <code>letter-spacing</code> from your theme's{" "}
-            <code>font.tracking.*</code> ramp — the active theme declares{" "}
-            {trackingStepNames().length} steps (
-            <For each={trackingStepNames()}>
-              {(step, index) => (
-                <>
-                  <code>tracking-{step}</code>
-                  {index() < trackingStepNames().length - 1 ? ", " : ""}
-                </>
-              )}
-            </For>
-            ). A named style already carries its tracking — reach for this
-            for the single decision outside a style.
-          </>
-        ),
-      },
-      {
-        name: "leading-<step>",
-        badge: "line-height",
-        description: (
-          <>
-            Sets <code>line-height</code> (<code>leading-none</code> through{" "}
-            <code>leading-loose</code>). The <code>font.leading.*</code>{" "}
-            ladder is what named styles are built from — move a step there
-            and every style built on it follows.
+            instead. Tracking and leading arrive inside the style's
+            tuple; a single decision outside a style rides placement-open{" "}
+            <code>type-&lt;name&gt;</code>, never a parallel atom.
           </>
         ),
       },

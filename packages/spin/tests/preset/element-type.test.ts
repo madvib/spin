@@ -6,21 +6,22 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { elementTypeElements, elementTypeFields } from "../../src/theme/index.ts";
+import { elementStyleDefault, elementStyleElements } from "../../src/theme/index.ts";
 import { spinPreset } from "../../src/compiler/index.ts";
 
 /**
- * The per-element typography, spent.
+ * Elements read named styles, spent.
  *
- * A theme may say what ONE element reads — its face, its size, its weight —
- * and the rules that paint that element read the theme's answer. What the
- * theme does not say, the ladder says: a heading keeps the step its level
- * takes, the display face keeps the heading family, and the body keeps the
- * sans.
+ * Every prose element reads its default style as a unit — the rule
+ * spends the style's tuple, never atoms and never a per-element
+ * override path. What the style does not state, the ladder states
+ * during the migration window: a heading keeps the step its level
+ * takes until the window closes and the fallback is deleted with it.
  *
- * The assertions are about WHICH token a rule spends, never about the text
- * of a value: the token's name is the contract, and a rule that spends a
- * different one is a rule that reads a decision the theme never made.
+ * The assertions are about WHICH token a rule spends, never about the
+ * text of a value: the token's name is the contract, and a rule that
+ * spends a different one is a rule that reads a decision the theme
+ * never made.
  */
 
 const DEFAULT = new URL(
@@ -74,190 +75,84 @@ function bodyFor(result: Result, token: string): Record<string, string> {
 }
 
 /**
- * The baseline theme with one per-element decision added.
+ * The baseline theme with one style field restated.
  *
- * The decision is written the way a theme writes it: a leaf with its own
- * type, under a group the document does not have yet.
+ * Written the way a theme writes it: a leaf with its own type, over
+ * the style the element reads.
  */
-function withDecision(
-  path: string,
+function withStyleField(
+  style: string,
+  field: string,
   type: string,
   value: string,
 ): Record<string, unknown> {
   const doc = structuredClone(theme) as Record<string, unknown>;
-  const segments = path.split(".");
-  let node = doc;
-  for (const segment of segments.slice(0, -1)) {
-    const next = (node[segment] ?? {}) as Record<string, unknown>;
-    node[segment] = next;
-    node = next;
-  }
-  node[segments[segments.length - 1] as string] = {
-    $type: type,
-    $value: value,
-  };
+  const font = doc["font"] as Record<string, unknown>;
+  const styles = font["style"] as Record<string, unknown>;
+  const entry = styles[style] as Record<string, unknown>;
+  entry[field] = { $type: type, $value: value };
   return doc;
 }
 
-/** The baseline theme with some tokens removed. */
-function without(...paths: string[]): Record<string, unknown> {
-  const doc = structuredClone(theme) as Record<string, unknown>;
-  for (const path of paths) {
-    const segments = path.split(".");
-    let node = doc;
-    for (const segment of segments.slice(0, -1)) {
-      node = (node[segment] ?? {}) as Record<string, unknown>;
-    }
-    delete node[segments[segments.length - 1] as string];
-  }
-  return doc;
-}
-
-test("a theme that states a heading's size moves that heading alone", async () => {
-  // The decision is per element, so the levels are independent: the first
-  // heading moves and the second keeps the step its level takes.
-  const doc = withDecision("font.element.h1.size", "dimension", "3rem");
+test("a style's size moves every element that reads it, and nothing else", async () => {
+  // The style is the unit: restating display's size moves h1 and leaves
+  // h2 (title) exactly where it was.
+  const doc = withStyleField("display", "size", "dimension", "4rem");
   const result = await generate("<h1>a</h1><h2>b</h2>", doc);
   deepStrictEqual(
     bodyFor(result, "h1")["font-size"],
-    "var(--font-element-h1-size)",
+    "var(--font-style-display-size)",
   );
   deepStrictEqual(
     bodyFor(result, "h2")["font-size"],
-    "var(--font-size-2xl)",
+    "var(--font-style-title-size)",
   );
 });
 
-test("a heading that the theme says nothing about keeps the ladder's step", async () => {
-  // The fallback IS the ladder: a theme that omits the decision gets the
-  // system's answer, which is the step the level takes.
-  const result = await generate("<h1>a</h1><h6>b</h6>");
+test("every element the map names reads its style's tuple", async () => {
+  // The whole default map, in one sweep: an element that reads atoms
+  // instead of its style is an emitter the cutover missed.
+  for (const element of elementStyleElements()) {
+    const style = elementStyleDefault(element) as string;
+    const result = await generate(`<${element}>a</${element}>`);
+    const body = bodyFor(result, element);
+    for (const [property, field] of [
+      ["font-family", "family"],
+      ["font-size", "size"],
+      ["font-weight", "weight"],
+    ] as const) {
+      const spent = body[property] ?? "";
+      assert(
+        spent.includes(`--font-style-${style}-${field}`),
+        `${element} does not read ${style}'s ${field}: ${property}: ${spent}`,
+      );
+    }
+  }
+});
+
+test("mutating a style moves the element: the 99px probe", async () => {
+  // The ownership proof: the style is what the element reads, so an
+  // absurd style value shows up in the element's rule.
+  const doc = withStyleField("body", "size", "dimension", "99px");
+  const result = await generate("<p>a</p>", doc);
+  deepStrictEqual(
+    bodyFor(result, "p")["font-size"],
+    "var(--font-style-body-size)",
+  );
+});
+
+test("a per-element decision is dead: font.element changes nothing", async () => {
+  // The deleted path, pinned: a theme that still states font.element
+  // gets the style anyway. The group is gone from the contract; this
+  // test dies with the migration window.
+  const doc = structuredClone(theme) as Record<string, unknown>;
+  const font = doc["font"] as Record<string, unknown>;
+  font["element"] = {
+    h1: { size: { $type: "dimension", $value: "3rem" } },
+  };
+  const result = await generate("<h1>a</h1>", doc);
   deepStrictEqual(
     bodyFor(result, "h1")["font-size"],
-    "var(--font-size-3xl)",
-  );
-  deepStrictEqual(
-    bodyFor(result, "h6")["font-size"],
-    "var(--font-size-sm)",
-  );
-});
-
-test("a theme that states a weight moves the weight, not the size", async () => {
-  // The three decisions are independent: stating one leaves the others
-  // exactly where the ladder put them.
-  const doc = withDecision("font.element.h2.weight", "fontWeight", "500");
-  const result = await generate("<h2>a</h2>", doc);
-  deepStrictEqual(
-    bodyFor(result, "h2")["font-weight"],
-    "var(--font-element-h2-weight)",
-  );
-  deepStrictEqual(
-    bodyFor(result, "h2")["font-size"],
-    "var(--font-size-2xl)",
-  );
-});
-
-test("a theme that states a face gives the element that face", async () => {
-  // The face is a decision like any other: a quotation the theme sets in the
-  // body's face reads in the body's face, and the editorial face is the
-  // answer only while the theme has not given another.
-  const doc = withDecision(
-    "font.element.blockquote.family",
-    "fontFamily",
-    "Inter, sans-serif",
-  );
-  const result = await generate("<blockquote>a</blockquote>", doc);
-  deepStrictEqual(
-    bodyFor(result, "blockquote")["font-family"],
-    "var(--font-element-blockquote-family)",
-  );
-});
-
-test("a quotation the theme says nothing about reads the editorial face", async () => {
-  const result = await generate("<blockquote>a</blockquote>");
-  deepStrictEqual(
-    bodyFor(result, "blockquote")["font-family"],
-    "var(--font-family-serif)",
-  );
-});
-
-test("a display face that the theme does not name falls back to the body", async () => {
-  // The chain: the display face falls back to the heading family, and the
-  // heading family to the body. A theme that names no display voice still
-  // has a face for its headings.
-  const doc = without("font.family.heading");
-  const result = await generate("<h1>a</h1>", doc);
-  deepStrictEqual(
-    bodyFor(result, "h1")["font-family"],
-    "var(--font-family-body, var(--font-family-sans))",
-  );
-});
-
-test("a body face that the theme does not name falls back to the sans", async () => {
-  // The last step of the chain: with no display face and no body face, the
-  // heading still reads in the sans every theme declares.
-  const doc = without("font.family.heading", "font.family.body");
-  const result = await generate("<h1>a</h1>", doc);
-  deepStrictEqual(
-    bodyFor(result, "h1")["font-family"],
-    "var(--font-family-sans)",
-  );
-});
-
-test("every element the contract names reads its own decision", async () => {
-  // The whole list, in one sweep: an element the contract declares but no
-  // rule spends is a decision the theme can make that changes nothing.
-  for (const element of elementTypeElements()) {
-    const fields = elementTypeFields(element);
-    const doc = withDecision(
-      fields.size?.path as string,
-      "dimension",
-      "2rem",
-    );
-    const result = await generate(`<${element}>a</${element}>`, doc);
-    deepStrictEqual(
-      bodyFor(result, element)["font-size"],
-      `var(--font-element-${element}-size)`,
-      `${element} does not read its own size`,
-    );
-  }
-});
-
-test("every element the contract names reads its own face and weight", async () => {
-  // The other two decisions, over the same list.
-  for (const element of elementTypeElements()) {
-    const withFace = withDecision(
-      `font.element.${element}.family`,
-      "fontFamily",
-      "Inter, sans-serif",
-    );
-    const faced = await generate(`<${element}>a</${element}>`, withFace);
-    deepStrictEqual(
-      bodyFor(faced, element)["font-family"],
-      `var(--font-element-${element}-family)`,
-      `${element} does not read its own face`,
-    );
-
-    const withWeight = withDecision(
-      `font.element.${element}.weight`,
-      "fontWeight",
-      "500",
-    );
-    const weighted = await generate(`<${element}>a</${element}>`, withWeight);
-    deepStrictEqual(
-      bodyFor(weighted, element)["font-weight"],
-      `var(--font-element-${element}-weight)`,
-      `${element} does not read its own weight`,
-    );
-  }
-});
-
-test("a theme that states no per-element decision is a complete theme", async () => {
-  // The group is optional: the rules fall back to the ladder, and a theme
-  // that never mentions the group still renders.
-  const parsed = await generate("<h1>a</h1><p>b</p><code>c</code>");
-  deepStrictEqual(
-    bodyFor(parsed, "h1")["font-size"],
-    "var(--font-size-3xl)",
+    "var(--font-style-display-size)",
   );
 });

@@ -7,9 +7,11 @@ import {
   type Entry,
   focusPaint,
   focusRing,
+  ladder,
   spend,
   spentEntries,
-  withFallback,
+  styleReference,
+  styleType,
 } from "./shared.ts";
 
 /**
@@ -211,6 +213,30 @@ function deadVariantSelector(variant: VariantShape): string {
 }
 
 /**
+ * The type a variant reads when the theme gives it one of its own.
+ *
+ * A variant with no `button.<name>.type` reference inherits the base: it
+ * states no type and the cascade carries the button's voice. A variant the
+ * theme re-points reads that style as a whole tuple — one token per
+ * variant-type, never an override the base has to know about.
+ */
+function variantType(
+  ctx: ThemeContext | undefined,
+  variant: string,
+): Record<string, string | undefined> {
+  const style = styleReference(ctx, `button.${variant}.type`, undefined);
+  if (style === undefined) return {};
+  const s = styleType(ctx, style);
+  return {
+    ...(s.family !== undefined ? { "font-family": s.family } : {}),
+    ...(s.size !== undefined ? { "font-size": s.size } : {}),
+    ...(s.weight !== undefined ? { "font-weight": s.weight } : {}),
+    ...(s.tracking !== undefined ? { "letter-spacing": s.tracking } : {}),
+    ...(s.leading !== undefined ? { "line-height": s.leading } : {}),
+  };
+}
+
+/**
  * The variant declarations, keyed by variant name.
  */
 const VARIANTS: Record<PaintedVariant, VariantShape> = {
@@ -218,9 +244,10 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     group: BUTTON,
     name: "bare",
     inked: false,
-    body: () => ({
+    body: (ctx) => ({
       cursor: "pointer",
       "min-height": "0",
+      ...variantType(ctx, "bare"),
     }),
   },
   primary: {
@@ -231,6 +258,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       "background-color": token(ctx, "color.primary"),
       "border-color": token(ctx, "color.primary"),
       color: token(ctx, "color.on-primary"),
+      ...variantType(ctx, "primary"),
     }),
   },
   secondary: {
@@ -241,6 +269,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       "background-color": token(ctx, "color.secondary"),
       "border-color": token(ctx, "color.border"),
       color: token(ctx, "color.on-secondary"),
+      ...variantType(ctx, "secondary"),
     }),
   },
   ghost: {
@@ -256,6 +285,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // empty button.
       "box-shadow": "none",
       color: token(ctx, "color.text"),
+      ...variantType(ctx, "ghost"),
     }),
   },
   danger: {
@@ -266,6 +296,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       "background-color": token(ctx, "color.semantic.error"),
       "border-color": token(ctx, "color.semantic.error"),
       color: token(ctx, "color.on-semantic-error"),
+      ...variantType(ctx, "danger"),
     }),
   },
   contrast: {
@@ -276,6 +307,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       "background-color": token(ctx, "color.text"),
       "border-color": token(ctx, "color.text"),
       color: token(ctx, "color.surface"),
+      ...variantType(ctx, "contrast"),
     }),
   },
   outline: {
@@ -296,6 +328,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // does not promise.
       "border-color": token(ctx, "color.accent"),
       color: token(ctx, "color.text"),
+      ...variantType(ctx, "outline"),
     }),
   },
   "s-sm": {
@@ -303,7 +336,16 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "s-sm",
     inked: false,
     body: (ctx) => {
-      const fontSize = token(ctx, "font.size.sm");
+      // A small button reads the style `button.s-sm.type` names — the label
+      // voice it already wears — as a whole tuple, with the ladder steps
+      // the starters build that style from as the window fallback.
+      const style = styleReference(ctx, "button.s-sm.type", "label") as string;
+      const s = styleType(ctx, style);
+      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
+      const fontSize = s.size ?? ladder(ctx, "font.size.sm");
+      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
+      const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.wide");
+      const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
       const spacing1 = token(ctx, "spacing.1");
       const spacing2 = token(ctx, "spacing.2");
       const borderWidth = token(ctx, "border.width");
@@ -312,7 +354,11 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
         "padding-inline-end": spacing2,
         "padding-top": spacing1,
         "padding-bottom": spacing1,
-        "font-size": fontSize,
+        ...(fontFamily !== undefined ? { "font-family": fontFamily } : {}),
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
+        ...(fontTracking !== undefined ? { "letter-spacing": fontTracking } : {}),
+        ...(fontLeading !== undefined ? { "line-height": fontLeading } : {}),
         ...(fontSize !== undefined && spacing1 !== undefined &&
             borderWidth !== undefined
           ? {
@@ -328,7 +374,17 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "s-lg",
     inked: false,
     body: (ctx) => {
-      const fontSize = token(ctx, "font.size.lg");
+      // A large button reads the style `button.s-lg.type` names — the
+      // subtitle voice at the large step — as a whole tuple, with the
+      // ladder steps the starters build that style from as the window
+      // fallback.
+      const style = styleReference(ctx, "button.s-lg.type", "subtitle") as string;
+      const s = styleType(ctx, style);
+      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
+      const fontSize = s.size ?? ladder(ctx, "font.size.lg");
+      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
+      const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
       const spacing4 = token(ctx, "spacing.4");
       const spacing8 = token(ctx, "spacing.8");
       const borderWidth = token(ctx, "border.width");
@@ -337,7 +393,11 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
         "padding-inline-end": spacing8,
         "padding-top": spacing4,
         "padding-bottom": spacing4,
-        "font-size": fontSize,
+        ...(fontFamily !== undefined ? { "font-family": fontFamily } : {}),
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
+        ...(fontTracking !== undefined ? { "letter-spacing": fontTracking } : {}),
+        ...(fontLeading !== undefined ? { "line-height": fontLeading } : {}),
         ...(fontSize !== undefined && spacing4 !== undefined &&
             borderWidth !== undefined
           ? {
@@ -443,12 +503,17 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // compound one states itself only when every token in it resolves.
         const spacing2 = token(ctx, "spacing.2");
         const spacing4 = token(ctx, "spacing.4");
-        const fontFamily = token(ctx, "font.family.sans");
-        const fontSize = token(ctx, "font.size.md");
-        // The label reads the label style outright: a control's type is a
-        // style attachment, not three atoms of its own.
-        const labelWeight = withFallback(ctx, "font.style.label.weight", "font.weight.semibold");
-        const labelTracking = withFallback(ctx, "font.style.label.tracking", "font.tracking.normal");
+        // The button's type is a whole style, never atoms: the base reads
+        // the style `button.type` names — the label voice unless the theme
+        // re-points it — and each field falls back to the ladder step the
+        // starters build that style from during the window.
+        const style = styleReference(ctx, "button.type", "label") as string;
+        const s = styleType(ctx, style);
+        const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
+        const fontSize = s.size ?? ladder(ctx, "font.size.md");
+        const fontWeight = s.weight ?? ladder(ctx, "font.weight.semibold");
+        const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+        const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
         const borderWidth = token(ctx, "border.width");
         const surfaceRaised = token(ctx, "color.surface-raised");
         const text = token(ctx, "color.text");
@@ -475,9 +540,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
           ["gap", spacing2],
           ["font-family", fontFamily],
           ["font-size", fontSize],
-          ["font-weight", labelWeight],
-          ["letter-spacing", labelTracking],
-          ["line-height", "1"],
+          ["font-weight", fontWeight],
+          ["letter-spacing", fontTracking],
+          ["line-height", fontLeading],
           ...(fontSize !== undefined && spacing2 !== undefined &&
               borderWidth !== undefined
             ? ([[

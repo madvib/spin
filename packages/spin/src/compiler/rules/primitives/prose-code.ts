@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { proseTokens, spacing, statedType } from "./shared.ts";
+import { ladder, proseTokens, spacing, styleField, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -9,11 +9,11 @@ import { paintedTag } from "./scope.ts";
  * monospace face at a size that sits correctly beside prose, on a surface that
  * separates it from the paragraph. Separate from `prose.ts` because none of
  * them shares a state with a heading or a list; what they share is typography,
- * and that is what `proseTokens` is for.
+ * and that is what the code style is for.
  *
- * The theme may set the run of code's type for itself — the face, the size and
- * the weight are the theme's to say — and what it leaves out is the ladder's
- * and the mono's.
+ * Each reads the code style outright, and a theme moves its machine text by
+ * moving the style. What the style leaves out, the ladder answers during the
+ * window — the code's step for each field.
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
@@ -22,16 +22,19 @@ function codeRule(): Rule {
     /^code$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "code");
-      const family = own.family ?? t.mono;
-      const size = own.size ?? t.sizeSm;
+      const s = styleType(ctx, "code");
+      const family = s.family ?? ladder(ctx, "font.family.mono");
+      const size = s.size ?? ladder(ctx, "font.size.sm");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.normal");
       yield {
         [ctx.symbols.selector]: () => "code",
         ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),
@@ -49,11 +52,13 @@ function sampRule(): Rule {
   return [
     /^samp$/,
     function* (_m, ctx) {
-      const t = proseTokens(ctx);
+      const family = styleField(ctx, "code", "family");
+      const s = styleType(ctx, "code");
+      const size = s.size ?? ladder(ctx, "font.size.sm");
       yield {
         [ctx.symbols.selector]: () => "samp",
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
       };
     },
     { layer: "primitives", autocomplete: "samp" },
@@ -79,13 +84,14 @@ function preRule(): Rule {
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const family = styleField(ctx, "code", "family");
       yield {
         [ctx.symbols.selector]: () => "pre",
         // The mono face is what makes a block code; the SIZE is the author's.
         // A pinned font-size here beat every text utility on the same element
         // at equal specificity, so a consumer could not size their own code
         // block — the ladder exists so the app can spend it.
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
         ...spacing(t),
       };
       yield {

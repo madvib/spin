@@ -172,16 +172,16 @@ const PROMISE_EXHIBITS: readonly PromiseExhibit[] = [
         Reach for <code>&lt;h1&gt;</code>–<code>&lt;h6&gt;</code>,{" "}
         <code>&lt;p&gt;</code>, or <code>&lt;code&gt;</code> when text plays
         that role on the page rather than styling a <code>&lt;div&gt;</code> to
-        imitate one; when an unstyled box reaches for a tracking step that
+        imitate one; when an unstyled box reaches for a named style that
         belongs to a heading,{" "}
         <code>spin/prefer-element</code> names the tag to write instead, and a
         named style attaches anywhere without drawing that warning.
       </>
     ),
     rule: "spin/prefer-element",
-    flaggedCode: `<div class="tracking-tight">Incident summary</div>`,
+    flaggedCode: `<div class="type-display">Incident summary</div>`,
     diagnostic:
-      "the theme gives `<h1>` that tracking; `<div>` is not the element that carries it. Put the class on `<h1>`.",
+      "the theme gives `<h1>` that style; `<div>` is not the element that carries it. Put the class on `<h1>`.",
     remedyCode: `<h1>Incident summary</h1>`,
     renderLive: () => <h1>Incident summary</h1>,
   },

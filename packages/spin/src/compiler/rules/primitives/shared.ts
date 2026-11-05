@@ -1,12 +1,9 @@
 import {
   named,
   type ThemeContext,
-  themeOf,
   token,
 } from "../../utils/lookup.ts";
-import { themeKey } from "../../../theme/index.ts";
 import {
-  elementTypeFields,
   FACE_CHAINS,
   type GlobalTypePath,
 } from "../../../theme/index.ts";
@@ -101,22 +98,18 @@ export function face(
   return nested;
 }
 
-/* ------------------------------------------------ the per-element decisions -- */
+/* ------------------------------------------------------- the named styles -- */
 
 /**
- * What one element's type is, as the theme states it.
+ * What one named style's tuple is, as the theme states it.
  *
- * Only what the theme STATES. A token the theme does not declare is absent
- * here, and the rule's own answer stands in its place — the ladder's step,
- * the role's face, the weight the level implies. That is what makes the
- * group safe to leave out, and what makes it worth having: a theme that
- * moves one heading's size moves that heading and nothing else.
- *
- * The tuple is wider than the three decisions the ladder answers: the
- * tracking and leading join them, and a theme that states one step states
- * that step while the ladder answers the rest.
+ * Only what the theme STATES. A field the theme does not declare is absent
+ * here, and the rule's ladder fallback stands in its place — the step the
+ * style is built from. That is what makes a new style safe to declare
+ * halfway: a theme that moves one style's size moves every element that
+ * reads the style and nothing else.
  */
-export interface StatedType {
+export interface StyleType {
   readonly family: string | undefined;
   readonly size: string | undefined;
   readonly weight: string | undefined;
@@ -125,39 +118,96 @@ export interface StatedType {
 }
 
 /**
- * The type one element reads, as the theme states it.
+ * The tuple one named style reads, as the theme states it.
  *
  * The five decisions are read together because a theme states them together:
- * `font.element.h1.family`, `font.element.h1.size` and
- * `font.element.h1.weight` are one element's answer, and the answer a theme
- * gives is the whole of it or none of it. The tracking and the leading join
- * the three the ladder always answered.
+ * `font.style.body.family` through `font.style.body.leading` are one
+ * style's answer. No ladder fallback here: the caller pairs each field with
+ * the ladder it replaces, so the fallback a paragraph keeps is the body's
+ * and the one a heading keeps is its level's.
  */
-export function statedType(
+export function styleType(
   ctx: ThemeContext | undefined,
-  element: string,
-): StatedType {
-  const empty: StatedType = {
-    family: undefined,
-    size: undefined,
-    weight: undefined,
-    tracking: undefined,
-    leading: undefined,
-  };
-  const theme = themeOf(ctx);
-  const fields = elementTypeFields(element);
-  if (theme === undefined) {
-    return empty;
-  }
-  const read = (path: string | undefined): string | undefined =>
-    path === undefined ? undefined : theme[themeKey(path)];
+  style: string,
+): StyleType {
   return {
-    family: read(fields.family?.path),
-    size: read(fields.size?.path),
-    weight: read(fields.weight?.path),
-    tracking: read(fields.tracking?.path),
-    leading: read(fields.leading?.path),
+    family: named(ctx, "font-style", `${style}-family`),
+    size: named(ctx, "font-style", `${style}-size`),
+    weight: named(ctx, "font-style", `${style}-weight`),
+    tracking: named(ctx, "font-style", `${style}-tracking`),
+    leading: named(ctx, "font-style", `${style}-leading`),
   };
+}
+
+/**
+ * The ladder step during the migration window: what a rule spends when the
+ * theme is silent.
+ *
+ * Styles are required, so a complete theme never lands here — the style's
+ * variable answers first. An incomplete theme cannot build, so the value
+ * read here is never the product's; it is the old answer, kept so a partial
+ * document renders what it rendered before. One function so the window's
+ * end is one deletion: every call site pairs a style read with this, and
+ * closing the window deletes the pair's second half.
+ */
+export function ladder(
+  ctx: ThemeContext | undefined,
+  path: GlobalTypePath,
+): string | undefined {
+  return token(ctx, path);
+}
+
+/** The ladder step one style field falls back to during the window. */
+const STYLE_LADDER: Readonly<Record<string, ThemeTokenPath>> = {
+  "caption-size": "font.size.xs",
+  "label-size": "font.size.sm",
+  "body-strong-weight": "font.weight.semibold",
+  "code-family": "font.family.mono",
+};
+
+/**
+ * One style field with its ladder fallback, for the readers that cannot
+ * name their whole tuple's style.
+ *
+ * `kbd` and the subscripts are not prose voices and carry no default style,
+ * but their sizes are the ladder's no longer: each reads the style that
+ * wears the same step, falling back to the step itself during the window.
+ */
+export function styleField(
+  ctx: ThemeContext | undefined,
+  style: string,
+  field: string,
+): string | undefined {
+  const value = named(ctx, "font-style", `${style}-${field}`);
+  if (value !== undefined) return value;
+  // Read on its own — not inside the `??` — so the derivation that records
+  // what a rule spends sees the fallback: a token the rule only reaches
+  // when the theme is silent is still a token the rule spends.
+  const fallback = STYLE_LADDER[`${style}-${field}`];
+  if (fallback === undefined) return undefined;
+  return token(ctx, fallback);
+}
+
+/**
+ * The style a component reference names, or the default when the theme
+ * states no reference.
+ *
+ * A reference token (`button.type`) carries a style NAME, not CSS: the
+ * factory resolves declared references to their literal names when it builds
+ * the theme map, so by the time a rule reads, the value is the name or the
+ * token is absent. Absent with a default is the common case — a theme that
+ * says nothing about the button's type gets the label voice. Absent without
+ * one is a variant that inherits: it states no type of its own.
+ */
+export function styleReference(
+  ctx: ThemeContext | undefined,
+  path: string,
+  fallback: string | undefined,
+): string | undefined {
+  const segments = path.split(".");
+  const name = segments.pop() as string;
+  const family = segments.join("-");
+  return named(ctx, family, name) ?? fallback;
 }
 
 /**
@@ -287,12 +337,19 @@ export type Entry = [property: string, value: string | undefined];
 
 /* -------------------------------------------------------------------- prose --
  *
- * The typography every prose rule spends, and the spacing they share.
+ * The paint and spacing every prose rule spends, and the type the readers
+ * outside prose still take from the ladder.
  *
  * These live here rather than in `prose.ts` because all four prose files read
  * them and `prose.ts` imports those four — so anything prose.ts exported was a
  * cycle, and a binding unavailable at module init is a runtime failure in a
  * build script, which is the worst place to find one.
+ *
+ * The type fields are the window's: the prose rules read their styles
+ * outright through `styleType`, and what remains here is what the readers
+ * that carry no default style still spend — the keycap, the breadcrumbs and
+ * the disclosure summary. Each reads the style that wears its step first
+ * and the step itself second, so moving the style moves them too.
  */
 
 export interface Tokens {
@@ -315,29 +372,14 @@ export interface Tokens {
   readonly borderWidth: string | undefined;
   readonly focusWidth: string | undefined;
   readonly focusOffset: string | undefined;
+  /** The caption's size, for the keycap and the subscripts. */
   readonly sizeXs: string | undefined;
+  /** The label's size, for the breadcrumbs. */
   readonly sizeSm: string | undefined;
-  readonly sizeMd: string | undefined;
-  readonly sizeLg: string | undefined;
-  readonly sizeXl: string | undefined;
-  readonly size2xl: string | undefined;
-  readonly size3xl: string | undefined;
-  readonly weightRegular: string | undefined;
+  /** The strong voice's weight, for the disclosure summary. */
   readonly weightSemibold: string | undefined;
-  readonly weightBold: string | undefined;
+  /** The code style's face, for the keycap. */
   readonly mono: string | undefined;
-  /** The body face: what `font.family.body` says, or the sans it falls to. */
-  readonly body: string | undefined;
-  /** The editorial face: `font.family.serif`. */
-  readonly serif: string | undefined;
-  readonly heading: string | undefined;
-  readonly trackingTight: string | undefined;
-  readonly trackingNormal: string | undefined;
-  readonly trackingWide: string | undefined;
-  readonly leadingTight: string | undefined;
-  readonly leadingSnug: string | undefined;
-  readonly leadingNormal: string | undefined;
-  readonly leadingRelaxed: string | undefined;
 }
 
 export function proseTokens(ctx: ThemeContext | undefined): Tokens {
@@ -361,32 +403,10 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
     borderWidth: token(ctx, "border.width"),
     focusWidth: token(ctx, "focus.width"),
     focusOffset: token(ctx, "focus.offset"),
-    sizeXs: token(ctx, "font.size.xs"),
-    sizeSm: token(ctx, "font.size.sm"),
-    sizeMd: token(ctx, "font.size.md"),
-    sizeLg: token(ctx, "font.size.lg"),
-    sizeXl: token(ctx, "font.size.xl"),
-    size2xl: token(ctx, "font.size.2xl"),
-    size3xl: token(ctx, "font.size.3xl"),
-    weightRegular: token(ctx, "font.weight.regular"),
-    weightSemibold: token(ctx, "font.weight.semibold"),
-    weightBold: token(ctx, "font.weight.bold"),
-    mono: token(ctx, "font.family.mono"),
-    // The body face: what `font.family.body` says, or the sans it falls to.
-    body: face(ctx, "font.family.body"), // The editorial face: `font.family.serif`.
-    serif: token(ctx, "font.family.serif"),
-    // The heading face is a fallback chain, not a step: a theme may name a
-    // heading face, then a body face, and fall through to the sans face. The
-    // chain is the contract's, and it is resolved here rather than spelled as
-    // a nested `var()` because a rule reads values, not variable names.
-    heading: face(ctx, "font.family.heading"),
-    trackingTight: token(ctx, "font.tracking.tight"),
-    trackingNormal: token(ctx, "font.tracking.normal"),
-    trackingWide: token(ctx, "font.tracking.wide"),
-    leadingTight: token(ctx, "font.leading.tight"),
-    leadingSnug: token(ctx, "font.leading.snug"),
-    leadingNormal: token(ctx, "font.leading.normal"),
-    leadingRelaxed: token(ctx, "font.leading.relaxed"),
+    sizeXs: styleField(ctx, "caption", "size"),
+    sizeSm: styleField(ctx, "label", "size"),
+    weightSemibold: styleField(ctx, "body-strong", "weight"),
+    mono: styleField(ctx, "code", "family"),
   };
 }
 

@@ -12,6 +12,9 @@ import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
 import {
   parseTokens,
+  resolveStyleReference,
+  styleReferencePaths,
+  themeKey,
   themeRef,
   validateLegibility,
   validateTokens,
@@ -134,10 +137,18 @@ export function createSpinFactory(
       // same object — see `wind4Theme` for why that seam and only that seam
       // exists.
       const componentRoots = enabled ?? Object.keys(primitiveContracts);
-      const vars = themeRef(
-        Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []),
-      );
+      const merged = Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []);
+      const vars = themeRef(merged);
       const theme = { ...vars, ...wind4Theme(vars) } as unknown as ThemeRef;
+      // Style references resolve to their literal names here, not in the
+      // rules: a reference carries a NAME (`label`), and CSS cannot spend a
+      // name — only a rule that knows which style to read can. The map
+      // carries the name the theme declared, or nothing when it declared
+      // none; the rule falls back to the default style or inherits.
+      for (const path of styleReferencePaths()) {
+        const name = resolveStyleReference(merged, path);
+        if (name !== undefined) theme[themeKey(path)] = name;
+      }
       // Breakpoint VALUES, resolved: a media query cannot read a custom
       // property, so the variant needs the literal width the theme declared.
       const edges = breakpointEdges(Object.values(trees));
@@ -208,8 +219,7 @@ export function createSpinFactory(
             colors: orGroup(theme, "color"),
             spacing: orGroup(theme, "spacing"),
             opacity: orGroup(theme, "opacity"),
-            tracking: orGroup(theme, "font-tracking"),
-            leading: orGroup(theme, "font-leading"),
+            // TYPE-c: `tracking`/`leading` shorthands gone with the rules.
             breakpoint: orGroup(theme, "breakpoint"),
             zIndex: orGroup(theme, "z-index"),
             motionDuration: "(" + transitionDurations(theme).join("|") + ")",

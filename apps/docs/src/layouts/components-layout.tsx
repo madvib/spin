@@ -64,7 +64,7 @@ export function ComponentsRail(props: {
       <For each={groups()}>
         {(group) => (
           <>
-            <span class="pt-2 type-caption-strong uppercase tracking-wider text-text-muted">
+            <span class="pt-2 type-caption-strong uppercase text-text-muted">
               {group.label}
             </span>
             <For each={group.items}>

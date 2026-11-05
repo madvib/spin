@@ -102,7 +102,7 @@ export function PageHeader(props: {
         data-md-ignore="true"
         class="flex flex-wrap items-center justify-between gap-2"
       >
-        <span class="type-overline uppercase tracking-wider text-primary">
+        <span class="type-overline uppercase text-primary">
           {groupLabel()}
         </span>
         <div class="flex flex-wrap items-center gap-2">
@@ -136,7 +136,6 @@ export function PageHeader(props: {
             href={mdHref()}
             target="_blank"
             rel="noreferrer"
-            class="type-link"
           >
             View .md
           </a>

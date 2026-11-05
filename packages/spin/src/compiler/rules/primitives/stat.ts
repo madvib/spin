@@ -1,8 +1,8 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, type StyleType } from "./shared.ts";
 
-/** Stat — a labelled number, sized and coloured by the type ladder. */
+/** Stat — a labelled number, reading its voices from the named styles. */
 export function statRules(roots: readonly string[]): Rule[] {
   if (!roots.includes("stat")) return [];
   return [statRow(), statContainer(), statTitle(), statValue(), statDesc()];
@@ -11,46 +11,34 @@ export function statRules(roots: readonly string[]): Rule[] {
 /** The theme values stat spends, resolved once per rule. */
 type Tokens = {
   readonly spacing2: string | undefined;
-  readonly sizeXs: string | undefined;
-  readonly sizeSm: string | undefined;
-  readonly size2xl: string | undefined;
-  readonly weightSemibold: string | undefined;
-  /** The weight of the number, which is the stat's own decision. */
-  readonly valueWeight: string | undefined;
-  /** The face the number is set in, which is the stat's own decision. */
-  readonly valueFamily: string | undefined;
+  readonly title: StyleType;
+  readonly value: StyleType;
+  readonly desc: StyleType;
   readonly text: string | undefined;
   readonly muted: string | undefined;
-  readonly trackingWide: string | undefined;
 };
 
 /**
- * The stat's own tokens, and the scales they fall back to.
+ * The stat's own voices, each read as a whole style.
  *
  * The number reads the stat style outright: a figure set at the body's size
  * is a caption and a figure set like a poster is a lie, and the style is
- * the complete answer — face, size, weight — rather than three atoms of
- * the stat's own. Each falls back to the step the style is built from, so
- * a theme that says nothing about the number gets the type scale's answer
- * rather than the browser's. The label above it keeps the scale's weight:
- * a label is prose, and prose wears the prose weight.
+ * the complete answer — face, size, weight, tracking, leading — rather than
+ * atoms of the stat's own. The label above it reads the stat-label voice,
+ * tracked open so it reads as a label; the context under the number reads
+ * the caption voice, the small print of the figure. Each field falls back
+ * to the step its style is built from during the window, so a theme that
+ * says nothing about a part gets the scale's answer rather than the
+ * browser's.
  */
 function statTokens(ctx: ThemeContext | undefined): Tokens {
   return {
     spacing2: token(ctx, "spacing.2"),
-    sizeXs: token(ctx, "font.size.xs"),
-    sizeSm: token(ctx, "font.size.sm"),
-    size2xl: withFallback(ctx, "font.style.stat.size", "font.size.2xl"),
-    weightSemibold: token(ctx, "font.weight.semibold"),
-    valueWeight: withFallback(ctx, "font.style.stat.weight", "font.weight.semibold"),
-    // The face the number is set in: the stat style's face, because a
-    // figure is a figure and the face it is set in belongs to the number
-    // rather than to the page it sits on. The mono is the system's answer —
-    // the face that carries figures, and whose digits line up.
-    valueFamily: withFallback(ctx, "font.style.stat.family", "font.family.mono"),
+    title: styleType(ctx, "stat-label"),
+    value: styleType(ctx, "stat"),
+    desc: styleType(ctx, "caption"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
-    trackingWide: token(ctx, "font.tracking.wide"),
   };
 }
 
@@ -108,41 +96,51 @@ function statContainer(): Rule {
   ];
 }
 
-/** The label above the number: small, muted, semibold. */
+/** The label above the number: the stat-label voice, muted. */
 function statTitle(): Rule {
   return [
     /^stat-title$/,
     function* (_m, ctx) {
-      const { sizeXs, muted, weightSemibold, trackingWide } = statTokens(ctx);
+      const { title, muted } = statTokens(ctx);
+      const family = title.family ?? ladder(ctx, "font.family.sans");
+      const size = title.size ?? ladder(ctx, "font.size.xs");
+      const weight = title.weight ?? ladder(ctx, "font.weight.semibold");
+      const tracking = title.tracking ?? ladder(ctx, "font.tracking.wide");
+      const leading = title.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => ".stat-title",
-        ...(sizeXs !== undefined ? { "font-size": sizeXs } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         ...(muted !== undefined ? { color: muted } : {}),
-        ...(weightSemibold !== undefined
-          ? { "font-weight": weightSemibold }
-          : {}),
-        ...(trackingWide !== undefined
-          ? { "letter-spacing": trackingWide }
-          : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: "stat-title" },
   ];
 }
 
-/** The number itself: the largest type stat carries. */
+/** The number itself: the stat voice, the largest type stat carries. */
 function statValue(): Rule {
   return [
     /^stat-value$/,
     function* (_m, ctx) {
-      const { size2xl, valueWeight, valueFamily, text } = statTokens(ctx);
+      const { value, text } = statTokens(ctx);
+      const family = value.family ?? ladder(ctx, "font.family.mono");
+      const size = value.size ?? ladder(ctx, "font.size.2xl");
+      const weight = value.weight ?? ladder(ctx, "font.weight.semibold");
+      const tracking = value.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = value.leading ?? ladder(ctx, "font.leading.tight");
       yield {
         [ctx.symbols.selector]: () => ".stat-value",
-        ...(size2xl !== undefined ? { "font-size": size2xl } : {}),
-        ...(valueWeight !== undefined ? { "font-weight": valueWeight } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
         // The face the number is set in, so a value's face is the theme's
         // decision and not whatever the page happened to set.
-        ...(valueFamily !== undefined ? { "font-family": valueFamily } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(text !== undefined ? { color: text } : {}),
         // The number is ONE thing. A stat squeezed by a row too narrow for it
         // breaks its figure across two lines, and a figure split in half is
@@ -155,15 +153,24 @@ function statValue(): Rule {
   ];
 }
 
-/** The context under the number, in the muted colour. */
+/** The context under the number, in the caption voice and the muted colour. */
 function statDesc(): Rule {
   return [
     /^stat-desc$/,
     function* (_m, ctx) {
-      const { sizeSm, muted } = statTokens(ctx);
+      const { desc, muted } = statTokens(ctx);
+      const family = desc.family ?? ladder(ctx, "font.family.body");
+      const size = desc.size ?? ladder(ctx, "font.size.sm");
+      const weight = desc.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = desc.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = desc.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => ".stat-desc",
-        ...(sizeSm !== undefined ? { "font-size": sizeSm } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(muted !== undefined ? { color: muted } : {}),
       };
     },

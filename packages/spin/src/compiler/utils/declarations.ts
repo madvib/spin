@@ -32,8 +32,6 @@ import {
   FONT_STYLE,
   TRUNCATE,
   TEXT_TRANSFORMS,
-  TRACKING,
-  LEADING,
   TRANSITION_PROPERTY,
   USER_SELECT,
   VISIBILITY,
@@ -67,12 +65,8 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
       { "text-transform": value },
     ]),
   ),
-  ...Object.fromEntries(
-    Object.entries(TRACKING).map(([name, value]) => [
-      `tracking-${name}`,
-      { "letter-spacing": value },
-    ]),
-  ),
+  // TYPE-c: `tracking-*` statics gone with the TRACKING table — tracking
+  // arrives only inside named `type-*` styles.
   ...Object.fromEntries(
     Object.entries(OUTLINE).map(([name, value]) => [name, cssDecl(value)]),
   ),
@@ -206,12 +200,8 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
       { "text-align": value },
     ]),
   ),
-  ...Object.fromEntries(
-    Object.entries(LEADING).map(([name, value]) => [
-      name,
-      { "line-height": value },
-    ]),
-  ),
+  // TYPE-c: `leading-*` statics gone with the LEADING table — leading
+  // arrives only inside named `type-*` styles.
   ...Object.fromEntries(
     Object.entries(WHITESPACE).map(([name, value]) => [
       name,

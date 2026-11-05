@@ -73,28 +73,28 @@ export {
 export { contractGroups, themeGroups } from "./contract/groups.ts";
 export {
   ELEMENT_ROLES,
+  STYLE_REFERENCE_ROLES,
+  declaredStyleNames,
   elementFallback,
   elementPaths,
   elementRole,
+  isStyleReferencePath,
+  resolveStyleReference,
+  styleReferenceIssues,
+  styleReferencePaths,
+  styleReferenceRole,
 } from "./contract/elements.ts";
 export type { ElementDeclaration } from "./contract/elements.ts";
 export {
   ELEMENT_STYLE_DEFAULTS,
-  ELEMENT_TYPE_ROLES,
   elementStyleDefault,
   elementStyleElements,
-  elementTypeElements,
-  elementTypeFallback,
-  elementTypeFields,
-  elementTypePaths,
-  elementTypeRole,
   FACE_CHAINS,
+  STYLE_FLOOR,
+  styleFloorFields,
+  styleFloorNames,
 } from "./contract/typography.ts";
 export type {
-  ElementTypeDeclaration,
-  ElementTypeField,
-  ElementTypeFields,
-  ElementTypePath,
   GlobalTypePath,
   NamedStyleDeclaration,
   NamedStyleField,

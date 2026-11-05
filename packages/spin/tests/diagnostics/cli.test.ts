@@ -220,16 +220,17 @@ test("a file that does not parse is reported, not swallowed", async () => {
   }
 });
 
-test("an advisory is reported and does not fail the run", async () => {
-  // Several elements carry that size, so which one the author meant is a
+test("a shared ink is reported and does not fail the run", async () => {
+  // The link's ink is carried twice, so which element the author meant is a
   // question the lint cannot answer. The rule names one and stays advisory:
-  // a warning, and the run still passes.
+  // a warning, and the run still passes. TYPE-c legs: a surviving
+  // multi-carrier (the tracking atoms are removed — unknown, not advisory).
   const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
     await writeFile(
       file,
-      `export const App = () => <span className="tracking-normal" />;\n`,
+      `export const App = () => <div className="text-link" />;\n`,
     );
     const findings = await findingsOf(directory);
     deepStrictEqual(
@@ -245,9 +246,9 @@ test("an advisory is reported and does not fail the run", async () => {
   }
 });
 
-test("a single owner is reported and fails the run", async () => {
-  // The level-one size belongs to the heading alone, so a span carrying it
-  // is an error — and an error fails the run, the same as an override.
+test("a removed atom is reported as unknown with a style suggestion", async () => {
+  // TYPE-c (styles own type): `tracking-tight` is no longer vocabulary — the
+  // closed vocabulary reports it as unknown with the style to wear instead.
   const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     const file = `${directory}/app.tsx`;
@@ -257,13 +258,12 @@ test("a single owner is reported and fails the run", async () => {
     );
     const findings = await findingsOf(directory);
     deepStrictEqual(
-      findings.map((finding) => [finding.ruleId, finding.severity]),
-      [
-        ["spin/prefer-element", "error"],
-      ],
+      findings.map((finding) => finding.ruleId),
+      ["spin/closed-vocabulary"],
     );
-    const lines: string[] = [];
-    deepStrictEqual(await run(["lint", file], (line) => lines.push(line)), 1);
+    const [finding] = findings;
+    deepStrictEqual(finding?.messageId, "unknown");
+    deepStrictEqual((finding?.remedy ?? "").includes("type-"), true);
   } finally {
     await rm(directory, { recursive: true });
   }

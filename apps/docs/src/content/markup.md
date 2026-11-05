@@ -77,10 +77,10 @@ Write markup against primitives and utilities and run `npx spin lint .` (see [Li
 
 ```html
 <!-- Flagged by spin/no-redundant-class: -->
-<button type="button" class="tracking-wide">Save changes</button>
-<!-- `tracking-wide` sets `letter-spacing` to what `<button>` already sets. Drop the class. -->
+<button type="button" class="type-label">Save changes</button>
+<!-- `type-label` spends the tuple `<button>` already reads. Drop the class. -->
 
-<!-- Remedy (Drop `tracking-wide`): -->
+<!-- Remedy (Drop `type-label`): -->
 <button type="button">Save changes</button>
 ```
 
@@ -99,8 +99,8 @@ Write markup against primitives and utilities and run `npx spin lint .` (see [Li
 
 ```html
 <!-- Flagged by spin/prefer-element: -->
-<div class="tracking-tight">Incident summary</div>
-<!-- the theme gives `<h1>` that tracking; `<div>` is not the element that carries it. Put the class on `<h1>`. -->
+<div class="type-display">Incident summary</div>
+<!-- the theme gives `<h1>` that style; `<div>` is not the element that carries it. Put the class on `<h1>`. -->
 
 <h1>Incident summary</h1>
 ```

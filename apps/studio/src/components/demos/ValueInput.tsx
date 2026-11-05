@@ -524,7 +524,7 @@ function TextTransformControl(props: {
             <button
               type="button"
               aria-pressed={active()}
-              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case tracking-normal shadow-none ${
+              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case shadow-none ${
                 active()
                   ? "border-transparent bg-primary text-on-primary"
                   : "bare border-transparent text-text-muted"

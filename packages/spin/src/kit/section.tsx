@@ -149,7 +149,7 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 type-code leading-relaxed text-text-muted ${
+        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 type-code text-text-muted ${
           props.class ? ` ${props.class}` : ""
         }`}
       >

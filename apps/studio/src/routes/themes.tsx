@@ -24,7 +24,7 @@ const GROUPS: ReadonlyArray<
 ];
 
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 const DRAWER_LINK =
   "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";

@@ -29,12 +29,12 @@ function escaped(tag: string, classes: string): ClassFacts {
 }
 
 test("the escape stands the ownership rules down", () => {
-  // `tracking-tight` on a span is the single-owner error the element rule
+  // `type-display` on a heading is the second-opinion error the theme rule
   // exists to report — until the author marks the element deliberate.
-  // TYPE-b: the raw size the fixture wore is a vocabulary warning now, so
-  // the ownership legs wear the surviving single-owner carriers.
-  deepStrictEqual(checkPreferElement(facts, element("span", "tracking-tight")).length > 0, true);
-  deepStrictEqual(checkPreferElement(facts, escaped("span", "tracking-tight")), []);
+  // TYPE-c: the legs wear surviving carriers now that the tracking atoms
+  // are removed (a removed atom is unknown, not owned).
+  deepStrictEqual(checkPreferThemeValue(facts, element("h3", "type-display")).length > 0, true);
+  deepStrictEqual(checkPreferThemeValue(facts, escaped("h3", "type-display")), []);
   deepStrictEqual(checkPreferThemeValue(facts, escaped("h3", "type-body")), []);
   deepStrictEqual(checkNoRedundantClass(facts, escaped("p", "type-body")), []);
   deepStrictEqual(checkNoUnpairedInk(facts, escaped("span", "bg-primary")), []);
@@ -61,31 +61,33 @@ test("the escape leaves the closed vocabulary on", () => {
 
 test("without the escape, the ownership rules still fire", () => {
   // The escape is opt-out, not default: an unmarked element gets every rule.
-  deepStrictEqual(checkPreferElement(facts, element("span", "tracking-tight")).length > 0, true);
+  // TYPE-c legs: surviving carriers (a removed atom is unknown, not owned).
+  deepStrictEqual(checkPreferThemeValue(facts, element("h3", "type-display")).length > 0, true);
   deepStrictEqual(checkPreferThemeValue(facts, element("h3", "type-body")).length > 0, true);
 });
 
-test("the wordmark's lockup is expressible through the escape", () => {
-  // The brand wordmark's tight tracking on a span is a single-owner
-  // typographic reach the element rule reports. Through the escape it stands
-  // down; the vocabulary still holds (the tracking is one the theme
-  // produces). TYPE-b: the wordmark's raw face/weight legs are removed
-  // utilities now — the migration rounds own that markup; the escape leg
-  // that survives is the tracking.
+test("a removed atom is unknown even through the escape", () => {
+  // TYPE-c (styles own type): `tracking-tight` is no longer vocabulary, so
+  // the closed vocabulary reports it on an escaped element the same as
+  // anywhere else — with the style suggestion. The ownership rules stand
+  // down, but the dead-class rule does not.
   const wordmark = escaped("span", "tracking-tight");
   deepStrictEqual(checkPreferElement(facts, wordmark), []);
   deepStrictEqual(checkPreferThemeValue(facts, wordmark), []);
-  deepStrictEqual(checkClosedVocabulary(facts, wordmark), []);
+  const [finding] = checkClosedVocabulary(facts, wordmark);
+  deepStrictEqual(finding?.messageId, "unknown");
+  deepStrictEqual((finding?.remedy ?? "").includes("type-"), true);
 });
 
 /** A JSX attribute node, with the parent element carrying the given attributes. */
 function gateAttribute(
   classValue: string,
   parentAttributes: readonly { name: string }[],
+  tag = "span",
 ): GateNode {
   const parent = {
     type: "JSXOpeningElement",
-    name: { name: "span" },
+    name: { name: tag },
     attributes: [
       ...parentAttributes.map((attribute) => ({
         type: "JSXAttribute",
@@ -107,9 +109,9 @@ function gateAttribute(
   };
 }
 
-function ruleFindings(node: GateNode): string[] {
+function themeFindings(node: GateNode): string[] {
   const out: string[] = [];
-  RULES["prefer-element"].create({
+  RULES["prefer-theme-value"].create({
     report: (descriptor) => {
       out.push(descriptor.messageId);
     },
@@ -119,58 +121,60 @@ function ruleFindings(node: GateNode): string[] {
 
 test("the linter recognizes the escape on the element", () => {
   // The recognition every adapter shares: the class attribute's own element
-  // carries `data-spin-escape`, so the element rule stands down.
-  const bare = gateAttribute("tracking-tight", []);
-  deepStrictEqual(ruleFindings(bare), ["error"]);
-  const marked = gateAttribute("tracking-tight", [{ name: "data-spin-escape" }]);
-  deepStrictEqual(ruleFindings(marked), []);
+  // carries `data-spin-escape`, so the theme rule stands down. TYPE-c legs:
+  // a surviving owned carrier (a removed atom is unknown, not owned).
+  const bare = gateAttribute("type-display", [], "h3");
+  deepStrictEqual(themeFindings(bare).length > 0, true);
+  const marked = gateAttribute("type-display", [{ name: "data-spin-escape" }], "h3");
+  deepStrictEqual(themeFindings(marked), []);
 });
 
 test("a misspelled escape is no escape", () => {
   // There is one spelling and it is exact: a near-miss names nothing the
   // lint reads, so the finding stays.
-  const typo = gateAttribute("tracking-tight", [{ name: "data-spin-escp" }]);
-  deepStrictEqual(ruleFindings(typo), ["error"]);
-  const valued = gateAttribute("tracking-tight", [{ name: "data-escape" }]);
-  deepStrictEqual(ruleFindings(valued), ["error"]);
+  const typo = gateAttribute("type-display", [{ name: "data-spin-escp" }], "h3");
+  deepStrictEqual(themeFindings(typo).length > 0, true);
+  const valued = gateAttribute("type-display", [{ name: "data-escape" }], "h3");
+  deepStrictEqual(themeFindings(valued).length > 0, true);
 });
 
 test("the escape on another element excuses nothing here", () => {
   // The escape never inherits: it excuses the element that carries it, not
   // its children, not its siblings. A bare element beside an escaped one is
   // still read in full.
-  const bare = gateAttribute("tracking-tight", []);
-  deepStrictEqual(ruleFindings(bare), ["error"]);
+  const bare = gateAttribute("type-display", [], "h3");
+  deepStrictEqual(themeFindings(bare).length > 0, true);
 });
 
 test("the escape holds end to end through ESLint", () => {
   // The delivery, not just the check: the real ESLint linter over real
-  // source, with the escape attribute on the element.
+  // source, with the escape attribute on the element. TYPE-c legs: the
+  // theme rule over a surviving carrier.
   const linter = new Linter({ configType: "flat" });
   const config: Linter.Config = {
     files: ["**/*.jsx"],
     languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
     plugins: { spin: eslintPlugin },
-    rules: { "spin/prefer-element": "error" },
+    rules: { "spin/prefer-theme-value": "error" },
   };
   const flagged = linter.verify(
-    `<span className="tracking-tight" />`,
+    `<h3 className="type-display" />`,
     config,
     "app.jsx",
   );
-  deepStrictEqual(flagged.map((message) => message.messageId), ["error"]);
+  deepStrictEqual(flagged.length > 0, true);
   const excused = linter.verify(
-    `<span data-spin-escape className="tracking-tight" />`,
+    `<h3 data-spin-escape className="type-display" />`,
     config,
     "app.jsx",
   );
   deepStrictEqual(excused.map((message) => message.messageId), []);
   const misspelled = linter.verify(
-    `<span data-spin-escp className="tracking-tight" />`,
+    `<h3 data-spin-escp className="type-display" />`,
     config,
     "app.jsx",
   );
-  deepStrictEqual(misspelled.map((message) => message.messageId), ["error"]);
+  deepStrictEqual(misspelled.length > 0, true);
   const vocab = linter.verify(
     `<span data-spin-escape className="not-a-class" />`,
     {

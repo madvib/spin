@@ -21,12 +21,12 @@ export interface StyleTuple {
 }
 
 /**
- * Whether a class is a removed raw type utility: a `text-*` size or a
- * `font-*` family/weight the named-style system replaced.
+ * Whether a class is a removed raw type utility: a `text-*` size, a `font-*`
+ * family/weight, or a `tracking-*`/`leading-*` atom the named-style system
+ * replaced (TYPE-c: the ladder is dead as a spend path).
  *
  * The colour branch of `text-*` is vocabulary and stays silent here:
- * `text-primary` names the palette, not the scale. `tracking-*` stays too —
- * tracking never had a raw-utility twin removed.
+ * `text-primary` names the palette, not the scale.
  */
 export function isRemovedTypeUtility(cls: string): boolean {
   if (cls.startsWith("text-")) {
@@ -38,14 +38,17 @@ export function isRemovedTypeUtility(cls: string): boolean {
     }
     return true;
   }
+  if (cls.startsWith("leading-")) return cls.slice("leading-".length).length > 0;
+  if (cls.startsWith("tracking-")) return cls.slice("tracking-".length).length > 0;
   return cls.startsWith("font-") && cls.slice("font-".length).length > 0;
 }
 
 /**
  * The dimension a removed utility sets, and the step it names: a size sets
- * the tuple's size, a family the face, a weight the weight. A step the theme
- * declares under neither family is a typo wearing a familiar prefix, not a
- * removed utility, so there is nothing to suggest.
+ * the tuple's size, a family the face, a weight the weight, a tracking the
+ * tracking, a leading the leading. A step the theme declares under neither
+ * family is a typo wearing a familiar prefix, not a removed utility, so
+ * there is nothing to suggest.
  */
 export function removedTypeDimension(
   cls: string,
@@ -56,6 +59,12 @@ export function removedTypeDimension(
     const step = cls.slice("text-".length);
     if (!values.has(`--font-size-${step}`)) return undefined;
     return { field: "size", family: "--font-size", step };
+  }
+  if (cls.startsWith("tracking-")) {
+    return { field: "tracking", family: "--font-tracking", step: cls.slice("tracking-".length) };
+  }
+  if (cls.startsWith("leading-")) {
+    return { field: "leading", family: "--font-leading", step: cls.slice("leading-".length) };
   }
   const step = cls.slice("font-".length);
   for (

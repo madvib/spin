@@ -125,12 +125,11 @@ export default function Studio(): JSX.Element {
           <code>4xl</code>), the <code>font.weight.*</code> steps, the{" "}
           <code>font.tracking.*</code> steps, and the{" "}
           <code>font.leading.*</code> ratios. The <strong>Element map</strong>{" "}
-          sets per-element overrides — <code>font.element.h1.family</code>,{" "}
-          <code>font.element.code.size</code> — so a heading or a code run
-          carries its own voice where the theme means it to, and the{" "}
+          re-points an element at a named style — a heading or a code run
+          reads the style the theme means it to — and the{" "}
           <strong>Styles</strong> section manages the named{" "}
           <code>font.style.*</code> set the <code>type-&lt;name&gt;</code>{" "}
-          utilities spend. Elements inherit from the scale unless overridden.
+          utilities spend. Elements inherit from the scale unless re-pointed.
         </p>
       </Section>
 

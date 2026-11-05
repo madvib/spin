@@ -187,10 +187,10 @@ export interface Refusal {
  * The theme module's own judgement of a value, as the token of its type.
  *
  * A composite's parts are values of the theme's own types — a border's
- * width is a dimension, its colour a colour, a typography's size a
- * dimension — and the theme module owns the rule for each. So a part is
- * judged by asking the module to judge a document that holds it, and the
- * answer is the module's words rather than a rule written here.
+ * width is a dimension, its colour a colour — and the theme module owns
+ * the rule for each. So a part is judged by asking the module to judge a
+ * document that holds it, and the answer is the module's words rather than
+ * a rule written here.
  *
  * A reference is not a value to judge: it is a pointer at another token,
  * and the theme resolves those where it resolves them.
@@ -252,14 +252,7 @@ function compositeIssue(
   composite: Composite,
 ): string | undefined {
   const parts: readonly { type: string; value: string }[] =
-    composite.type === "typography"
-      ? [
-        { type: "fontFamily", value: composite.family },
-        { type: "dimension", value: composite.size },
-        { type: "fontWeight", value: composite.weight },
-        { type: "dimension", value: composite.tracking },
-      ]
-      : composite.type === "border"
+    composite.type === "border"
       ? [
         { type: "dimension", value: composite.width },
         { type: "strokeStyle", value: composite.style },

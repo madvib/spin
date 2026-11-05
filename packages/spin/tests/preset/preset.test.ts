@@ -602,7 +602,10 @@ test("opacity-100 defers to the theme, falling back to full", async () => {
   deepStrictEqual(fallbackOf(value), "1");
 });
 
-test("tracking-wide spends the theme's ramp when the theme states one", async () => {
+test("tracking-wide matches no rule: the atom path is deleted", async () => {
+  // TYPE-c (styles own type): `tracking-*` is no longer vocabulary — the
+  // rule is gone, so the class is unknown rather than a declaration. The
+  // lint carries the style suggestion (see type-suggestions.test.ts).
   const uno = await generatorFor({
     themes: {
       default: withGroup("font", {
@@ -610,10 +613,11 @@ test("tracking-wide spends the theme's ramp when the theme states one", async ()
       }),
     },
   });
-  const { css } = await uno.generate("tracking-wide");
-  assertTokenDriven(css, "tracking-wide", "letter-spacing");
+  const { matched } = await uno.generate("tracking-wide", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "tracking-wide must not resolve");
 });
-test("leading-tight spends the theme's ramp when the theme states one", async () => {
+test("leading-tight matches no rule: the atom path is deleted", async () => {
+  // Same shape: `leading-*` is no longer vocabulary either.
   const uno = await generatorFor({
     themes: {
       default: withGroup("font", {
@@ -621,8 +625,8 @@ test("leading-tight spends the theme's ramp when the theme states one", async ()
       }),
     },
   });
-  const { css } = await uno.generate("leading-tight");
-  assertTokenDriven(css, "leading-tight", "line-height");
+  const { matched } = await uno.generate("leading-tight", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "leading-tight must not resolve");
 });
 test("leading-foo matches no rule: an undeclared step is unknown", async () => {
   // Neither the theme's ramp nor the conventional steps name it, so the

@@ -163,8 +163,6 @@ const GROUP_DEMO: Readonly<Record<string, Demo>> = {
   divide: "ruled",
 
   "font-style": "prose",
-  "type-size": "prose",
-  font: "prose",
   text: "prose",
   typography: "prose",
   "text-decoration": "prose",
@@ -204,8 +202,6 @@ const DEMO_VALUE: Readonly<Record<string, string>> = {
   "translate-y-1": "translate-y-8",
   "opacity-5": "opacity-75",
   "opacity-10": "opacity-75",
-  "tracking-tighter": "tracking-widest",
-  "tracking-tight": "tracking-wider",
 };
 
 /** The class a demo shows, which is not always the class it names. */
@@ -264,10 +260,6 @@ const SCALE_SHAPES: Record<
       "Space between items in a flex or grid row, or between rows. The x and " +
       "y axes live below the preview, because a single value cannot name both.",
   },
-  "type-size": {
-    title: "Font size",
-    blurb: "The type scale, in steps. A step is a size, not a weight.",
-  },
   radius: {
     title: "Radius",
     blurb: "Corner rounding, from square to a full pill.",
@@ -283,7 +275,6 @@ const SCALE_PREFIX: Record<string, string> = {
   padding: "p",
   margin: "m",
   gap: "gap",
-  "type-size": "text",
   radius: "rounded",
   opacity: "opacity",
 };
@@ -445,7 +436,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center type-code leading-4 ${
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center type-code ${
             props.cls?.[i] ?? ""
           }`}
         >
@@ -1453,19 +1444,18 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const TITLE = "tracking-normal";
 const KIND = "type-code text-text-muted";
 const BADGE =
   "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
 const SECTION = "mb-8";
-const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal first:mt-0";
+const SUBHEAD = "mt-8 mb-2 normal-case first:mt-0";
 const PROSE = "max-w-screen-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
 const LEGEND = "mt-2 type-code text-text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
 const LABEL =
-  "mb-1 type-caption-strong normal-case tracking-normal text-text-muted";
+  "mb-1 type-caption-strong normal-case text-text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
@@ -1486,7 +1476,7 @@ const PANEL =
 const MONO_MUTED = "type-code text-text-muted";
 const RAIL_COUNT = "shrink-0 type-code text-text-muted";
 const CHIP =
-  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 type-code normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 type-code normal-case whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1497,7 +1487,7 @@ function PageHead(props: { title: string; sub: string; badge: string }) {
   return (
     <header class={PAGE_HEAD}>
       <div>
-        <h2 class={TITLE}>{props.title}</h2>
+        <h2>{props.title}</h2>
         <div class={KIND}>{props.sub}</div>
       </div>
       <span class={BADGE}>{props.badge}</span>
@@ -1841,7 +1831,7 @@ const HEADLINE: Record<string, string> = {
   shadow: "shadow-lg",
   font: "type-code",
   text: "text-center",
-  typography: "normal-case tracking-normal",
+  typography: "normal-case",
   "text-decoration": "underline",
   overflow: "overflow-hidden",
   interactivity: "cursor-grab",
@@ -2082,7 +2072,7 @@ export function UtilitiesPage(props: { group: string }) {
       when={section()}
       fallback={
         <header class={PAGE_HEAD}>
-          <h2 class={TITLE}>No such section</h2>
+          <h2>No such section</h2>
         </header>
       }
     >
@@ -2122,7 +2112,7 @@ const SPECIMEN_PANEL =
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
 
 /** The fills the palette is made of, each with the foreground it is paired
  *  with by the theme — the label is the class, so the tile is also the name. */
@@ -2331,7 +2321,7 @@ export function UtilitiesLanding() {
     <>
       <header class={PAGE_HEAD}>
         <div>
-          <h2 class={TITLE}>Utilities</h2>
+          <h2>Utilities</h2>
           <div class={KIND}>
             spin reference · {SECTIONS.length} sections · {total()} names
           </div>

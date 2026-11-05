@@ -275,20 +275,6 @@ export const TEXT_ALIGN: Record<string, string> = {
   "text-justify": "justify",
 };
 
-/**
- * Line height. A theme declares its own ramp under `font.leading` and the
- * `leading-*` rule reads it first; these are the conventional steps it falls
- * back to, so a silent theme still gets a ramp rather than nothing.
- */
-export const LEADING: Record<string, string> = {
-  "leading-none": "1",
-  "leading-tight": "1.25",
-  "leading-snug": "1.375",
-  "leading-normal": "1.5",
-  "leading-relaxed": "1.625",
-  "leading-loose": "2",
-};
-
 export const WHITESPACE: Record<string, string> = {
   "whitespace-normal": "normal",
   "whitespace-nowrap": "nowrap",
@@ -482,21 +468,6 @@ export const TEXT_TRANSFORMS: Record<string, string> = {
   capitalize: "capitalize",
   "normal-case": "none",
 };
-
-/**
- * Letter spacing. A theme may declare its own scale under `font.tracking`
- * and these are the conventional steps it falls back to, so a silent theme
- * still gets a ramp rather than nothing.
- */
-export const TRACKING: Record<string, string> = {
-  tighter: "-0.05em",
-  tight: "-0.025em",
-  normal: "0em",
-  wide: "0.025em",
-  wider: "0.05em",
-  widest: "0.1em",
-};
-
 /**
  * The flat shadow, and the lift steps a component spends.
  *

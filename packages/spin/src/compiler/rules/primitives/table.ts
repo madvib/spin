@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, withFallback } from "./shared.ts";
 
 /**
  * Table — the first primitive with a strong opinion, and deliberately so.
@@ -62,20 +62,14 @@ function tableTokens(ctx: ThemeContext | undefined) {
     rule: withFallback(ctx, "table.rule", "color.border"),
     zebra: withFallback(ctx, "table.zebra", "color.surface-sunken"),
     raised: token(ctx, "color.surface-raised"),
-    fontFamily: token(ctx, "font.family.sans"),
-    fontSize: token(ctx, "font.size.sm"),
-    sizeMd: token(ctx, "font.size.md"),
-    sizeXs: token(ctx, "font.size.xs"),
+    // The table reads the body voice for its face and size; a header cell
+    // reads the caption-strong voice as a whole tuple, because a heading
+    // that weighs like its rows is a heading nobody finds.
+    table: styleType(ctx, "body"),
+    header: styleType(ctx, "caption-strong"),
+    caption: styleType(ctx, "caption"),
     borderWidth: token(ctx, "border.width"),
-    weightSemibold: token(ctx, "font.weight.semibold"),
-    // The weight of a column's heading: the caption-strong style's weight,
-    // because a heading that weighs like its rows is a heading nobody
-    // finds. The style is the complete answer; the atom is gone.
-    headerWeight: withFallback(
-      ctx,
-      "font.style.caption-strong.weight",
-      "font.weight.semibold",
-    ),
+    strong: styleType(ctx, "body-strong"),
   };
 }
 
@@ -91,10 +85,12 @@ function tableRule(): Rule {
     /^table$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
+      const family = t.table.family ?? ladder(ctx, "font.family.sans");
+      const size = t.table.size ?? ladder(ctx, "font.size.md");
       yield {
         [ctx.symbols.selector]: () => "table",
-        ...(t.fontFamily !== undefined ? { "font-family": t.fontFamily } : {}),
-        ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         ...(t.text !== undefined ? { color: t.text } : {}),
         width: "100%",
         // The table's MINIMUM, and the fix for a table that decided its own
@@ -131,6 +127,7 @@ function cellRule(): Rule {
     /^(?:td|th)$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
+      const footerWeight = t.strong.weight ?? ladder(ctx, "font.weight.semibold");
       yield {
         [ctx.symbols.selector]: () => cell,
         ...(t.spacing2 !== undefined
@@ -175,9 +172,7 @@ function cellRule(): Rule {
           ? { "border-top": `${t.borderWidth} solid ${t.rule}` }
           : {}),
         "border-bottom": "none",
-        ...(t.weightSemibold !== undefined
-          ? { "font-weight": t.weightSemibold }
-          : {}),
+        ...(footerWeight !== undefined ? { "font-weight": footerWeight } : {}),
       };
     },
     { layer: "primitives", autocomplete: "td" },
@@ -195,13 +190,19 @@ function headerRule(): Rule {
     /^th$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
+      const family = t.header.family ?? ladder(ctx, "font.family.sans");
+      const size = t.header.size ?? ladder(ctx, "font.size.sm");
+      const weight = t.header.weight ?? ladder(ctx, "font.weight.semibold");
+      const tracking = t.header.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = t.header.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => "th",
-        ...(t.fontSize !== undefined ? { "font-size": t.fontSize } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
-        ...(t.headerWeight !== undefined
-          ? { "font-weight": t.headerWeight }
-          : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         "text-align": "start",
         // `collapse` clips a sticky cell's background, so the header needs its
         // own surface or rows show through it as they pass underneath.
@@ -245,9 +246,18 @@ function captionRule(): Rule {
     /^caption$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
+      const family = t.caption.family ?? ladder(ctx, "font.family.body");
+      const size = t.caption.size ?? ladder(ctx, "font.size.xs");
+      const weight = t.caption.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = t.caption.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = t.caption.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => "caption",
-        ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "start",
         ...(t.spacing2 !== undefined
@@ -255,7 +265,6 @@ function captionRule(): Rule {
           : {}),
       };
     },
-    { layer: "primitives", autocomplete: "caption" },
   ];
 }
 

@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { proseTokens, spacing, statedType } from "./shared.ts";
+import { ladder, proseTokens, spacing, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -44,8 +44,10 @@ function figureRule(): Rule {
 /**
  * A caption.
  *
- * Its TYPE — the small muted line it reads in — is typography, and the
- * theme's everywhere: a caption is a caption wherever it sits.
+ * Its TYPE — the caption-strong voice it reads in — is typography, and the
+ * theme's everywhere: a caption is a caption wherever it sits. A theme moves
+ * its captions by moving the style; what the style leaves out, the ladder
+ * answers during the window.
  *
  * Its PLACE — centred under the figure it belongs to — is the document's
  * furniture, because a caption is centred in a column and nowhere else.
@@ -55,8 +57,12 @@ function figcaptionRule(): Rule {
     /^figcaption$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "figcaption");
-      const size = own.size ?? t.sizeSm;
+      const s = styleType(ctx, "caption-strong");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.sm");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => "figcaption",
         // The gap the caption leaves under the figure it belongs to: the
@@ -64,11 +70,11 @@ function figcaptionRule(): Rule {
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
-        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {

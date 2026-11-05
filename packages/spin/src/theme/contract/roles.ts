@@ -13,8 +13,7 @@ import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
-import { ELEMENT_TYPE_ROLES } from "./typography.ts";
-import type { ElementTypeDeclaration } from "./typography.ts";
+import { STYLE_FLOOR, styleFloorFields, styleFloorNames } from "./typography.ts";
 import baseline from "../themes/silk.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
@@ -357,6 +356,9 @@ export const BASE_ROLES: readonly RoleDeclaration[] = DECLARED_ROLES.map(
 export function requiredPaths(): readonly string[] {
   const paths = new Set(BASE_ROLES.map((role) => role.path));
   for (const path of baselineScalePaths()) paths.add(path);
+  for (const name of styleFloorNames()) {
+    for (const field of styleFloorFields()) paths.add(`font.style.${name}.${field}`);
+  }
   return [...paths];
 }
 
@@ -372,7 +374,10 @@ export function requiredPaths(): readonly string[] {
  * `var()` fallback, so a missing step degrades to the same value instead
  * of breaking. The heading and body faces are excluded: the display face
  * falls back to the heading family and the heading to the body, so a theme
- * that names neither still has a face for its headings.
+ * that names neither still has a face for its headings. The type scales
+ * are excluded: styles carry the tuple, and a theme with literal-valued
+ * styles and no scales is complete — the scales are the style author's
+ * library, not a spend path.
  */
 function baselineScalePaths(): readonly string[] {
   return baselineScales().map((entry) => entry.path);
@@ -418,9 +423,12 @@ export function baselineScales(): readonly BaselineScale[] {
       if (
         n.path.length > 0 &&
         (optionalRoots.has(n.path[0] as string) ||
-          dotted.startsWith("font.element.") ||
           dotted.startsWith("font.style.") ||
           n.path[0] === "opacity" ||
+          dotted.startsWith("font.size.") ||
+          dotted.startsWith("font.weight.") ||
+          dotted.startsWith("font.tracking.") ||
+          dotted.startsWith("font.leading.") ||
           dotted === "font.family.heading" ||
           dotted === "font.family.body")
       ) continue;
@@ -550,18 +558,19 @@ export function themeSchema(): Record<string, unknown> {
   // must not do is require a group nothing demands, or make a theme that
   // omits one invalid for the sake of a decision it never made.
   for (const role of ELEMENT_ROLES) gather(role.group, role.path, false);
-  // The per-element typography is optional for the same reason: a theme that
-  // says nothing about a heading gets the system's answer.
-  for (const role of ELEMENT_TYPE_ROLES) {
-    gather(role.path.split(".")[0] as string, role.path, false);
+  // The style floor is required: every floor name's tuple is something a
+  // theme owes, so the schema requires it the way the required paths do.
+  for (const name of styleFloorNames()) {
+    for (const field of styleFloorFields()) {
+      gather("font", `font.style.${name}.${field}`, true);
+    }
   }
   for (const [group, entry] of groups) {
     const schema = groupSchema(entry.paths, entry.required);
     // A group a theme does not have to declare is OPTIONAL in the schema:
-    // the per-element groups and the per-element typography are decisions a
-    // theme MAY make, and a document that omits them is complete. Saying
-    // otherwise would make a scaffolded theme — which carries neither — fail
-    // the schema that describes it.
+    // the per-element groups are decisions a theme MAY make, and a document
+    // that omits them is complete. Saying otherwise would make a scaffolded
+    // theme — which carries none — fail the schema that describes it.
     const must = entry.paths.some((path) => entry.required.has(path));
     if (must) requiredGroups.push(group);
     properties[group] = schema;
@@ -619,9 +628,6 @@ function groupSchema(
 ): JsonSchema {
   const byRole = new Map(BASE_ROLES.map((role) => [role.path, role]));
   const byElement = new Map(ELEMENT_ROLES.map((role) => [role.path, role]));
-  const byType = new Map<string, ElementTypeDeclaration>(
-    ELEMENT_TYPE_ROLES.map((role) => [role.path, role]),
-  );
   const byScale = new Map(baselineScales().map((scale) => [scale.path, scale]));
   // Which groups hold a required role: a group a theme must declare is the
   // one with something required under it.
@@ -654,8 +660,8 @@ function groupSchema(
     }
     const role = byRole.get(path);
     const element = byElement.get(path);
-    const type = byType.get(path);
-    const doc = role?.doc ?? element?.doc ?? type?.doc ?? byScale.get(path)?.doc;
+    const floor = floorDoc(path);
+    const doc = role?.doc ?? element?.doc ?? floor ?? byScale.get(path)?.doc;
     if (doc === undefined) continue;
     level[segments[segments.length - 1] as string] = {
       kind: "leaf",
@@ -664,6 +670,23 @@ function groupSchema(
     };
   }
   return toSchema(shape);
+}
+
+/**
+ * The documentation for a floor style leaf, from the floor's own entry.
+ *
+ * The floor names the styles a theme owes; the schema says what each leaf
+ * holds, so the two read from the same list rather than a second roster.
+ */
+function floorDoc(path: string): string | undefined {
+  const segments = path.split(".");
+  if (segments.length !== 4 || segments[0] !== "font" || segments[1] !== "style") {
+    return undefined;
+  }
+  const style = STYLE_FLOOR.find((entry) => entry.name === segments[2]);
+  if (style === undefined) return undefined;
+  const field = segments[3] as string;
+  return `The ${field} the ${style.name} style reads at.`;
 }
 
 /** Convert an assembled group into its JSON Schema object. */

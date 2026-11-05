@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { proseTokens, statedType } from "./shared.ts";
+import { ladder, proseTokens, styleField, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 import { token } from "../../utils/lookup.ts";
 
@@ -32,19 +32,22 @@ function linkRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const underline = token(ctx, "link.underline");
-      const own = statedType(ctx, "a");
+      const s = styleType(ctx, "link");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
       yield {
         [ctx.symbols.selector]: () => a,
         ...(t.link !== undefined ? { color: t.link } : {}),
-        // A link is a run of text in the body, and the theme may say
-        // otherwise: the face, the size and the weight of a link are the
-        // theme's to set, and a link that reads at the body's weight is a
-        // theme's answer rather than the browser's.
-        ...(own.family !== undefined ? { "font-family": own.family } : {}),
-        ...(own.size !== undefined ? { "font-size": own.size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        // A link is a run of text in the body: it reads the link style
+        // outright, and a theme moves its links by moving the style.
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         "text-decoration": "underline",
         "text-underline-offset": "0.2em",
         // The theme's own weight for the rule, or the browser's own
@@ -81,16 +84,19 @@ function weightRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      const t = proseTokens(ctx);
-      const own = statedType(ctx, tag);
-      const weight = own.weight ?? t.weightBold;
+      const s = styleType(ctx, "body-strong");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.bold");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
       yield {
         [ctx.symbols.selector]: () => tag,
-        ...(own.family !== undefined ? { "font-family": own.family } : {}),
-        ...(own.size !== undefined ? { "font-size": own.size } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -102,15 +108,19 @@ function smallRule(): Rule {
     /^small$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "small");
-      const size = own.size ?? t.sizeXs;
+      const s = styleType(ctx, "caption");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.xs");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => "small",
-        ...(own.family !== undefined ? { "font-family": own.family } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
         ...(size !== undefined ? { "font-size": size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
     },
@@ -122,10 +132,10 @@ function subRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      const t = proseTokens(ctx);
+      const size = styleField(ctx, "caption", "size");
       yield {
         [ctx.symbols.selector]: () => tag,
-        ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },

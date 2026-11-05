@@ -1268,7 +1268,7 @@ export function Logo(props: {
         "font-family": "var(--font-family-brand)",
         "font-weight": "var(--font-weight-bold)",
       }}
-      class={`inline-flex items-center tracking-tight ${word().gap} ${
+      class={`inline-flex items-center ${word().gap} ${
         props.class ?? ""
       }`}
     >

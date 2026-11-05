@@ -1,5 +1,5 @@
 /**
- * Type — the faces a theme uses, the scale it sets, and the element map.
+ * Type — the faces a theme uses, the scale it sets, and the named styles.
  *
  * A token list answers "what is `font.size.lg` worth". A type surface has to
  *
@@ -12,11 +12,11 @@
  *   numbers; nine sizes in a ramp are a decision. The ramp is rendered at
  *   size, largest first, with the token and the computed value beside it.
  *
- *   **Which face does each element read?** That is the theme's answer, and
- *   this page edits it. `font.element.<tag>.<field>` is a decision a theme
- *   may make about ONE element — its face, its size, its weight — and the
- *   map at the end is where that decision is made. A row the theme says
- *   nothing about reads the ladder.
+ *   **Which style does each element read?** That is the theme's answer, and
+ *   this page edits it. `font.style.<name>` is a complete tuple the theme
+ *   declares; the Styles section below is where the set is trimmed or
+ *   extended. (TYPE-c: per-field per-element overrides are gone — re-point
+ *   the element's style or declare a new one.)
  *
  * The specimens are the studio's own neutral copy, the same in every
  * project, so two themes are compared on the same reading rather than on
@@ -24,27 +24,35 @@
  */
 
 import {
-  createEffect,
   createMemo,
   createSignal,
   For,
-  on,
-  onCleanup,
   Show,
 } from "solid-js";
 import { FamilyField, firstFamily } from "../components/FamilyField.tsx";
-import { Dynamic } from "solid-js/web";
 import {
-  elementTypeElements,
-  elementTypeFields,
-  FACE_CHAINS,
+  elementStyleDefault,
+  elementStyleElements,
   resolveAliases,
+  STYLE_REFERENCE_ROLES,
   treeInMode,
   type TokenTree,
 } from "@spinjs/spin/theme";
 import { tokenStatus } from "../lib/live-edit.ts";
-import { activeMode, activeName, activeTree, registry, themeText } from "../lib/store.ts";
-import { groupTokens, parseComposite, type TokenRow, toPx } from "../lib/tokens.ts";
+import { activeMode, activeName, activeTree, noteRefusal, refusalFor, registry, setThemeText, themeText } from "../lib/store.ts";
+import {
+  attachedStyle,
+  groupTokens,
+  repointEdits,
+  styleEdits,
+  styleGroups,
+  tokenRowAt,
+  trimRefusal,
+  trimStyle,
+  type StyleGroup,
+  type TokenRow,
+  toPx,
+} from "../lib/tokens.ts";
 import {
   DISPLAY,
   HEADING,
@@ -54,12 +62,11 @@ import {
   SENTENCE,
 } from "../lib/specimen-copy.ts";
 import {
+  createToken,
   editFontFamily,
   editToken,
-  removeToken,
-  upsertToken,
+  editTokens,
 } from "../lib/editing.ts";
-import { StepPicker } from "../components/demos/CompositeEditor.tsx";
 import ValueInput from "../components/demos/ValueInput.tsx";
 import LinkToggle from "../components/demos/LinkToggle.tsx";
 import { createLockstep, type Lockstep } from "../lib/lockstep.ts";
@@ -70,12 +77,6 @@ import {
   Section,
 } from "../components/Concern.tsx";
 import { inDrawer } from "../lib/host.ts";
-import {
-  type CatalogFont,
-  fontDeclarationFor,
-  type SpinFontDeclaration,
-} from "../lib/fonts.ts";
-import { spinClient } from "../lib/client.ts";
 
 /** `font.weight.bold` → `bold`, the step a row spends its token value at. */
 function suffixOf(path: string): string {
@@ -120,7 +121,7 @@ const SPECIMENS: Record<string, string> = {
   brand: PARAGRAPH,
 };
 
-/** Concise specimen phrases for each HTML element in the element map. */
+/** Concise specimen phrases for each HTML element in the attachment map. */
 const ELEMENT_SPECIMENS: Record<string, string> = {
   h1: "Heading 1",
   h2: "Heading 2",
@@ -136,6 +137,7 @@ const ELEMENT_SPECIMENS: Record<string, string> = {
   a: "Interactive link",
   figcaption: "Figure caption",
 };
+
 /**
  * The theme's document as it reads, with its aliases resolved.
  *
@@ -147,7 +149,6 @@ const ELEMENT_SPECIMENS: Record<string, string> = {
 function resolvedTree(): TokenTree {
   return resolveAliases(treeInMode(activeTree(), activeMode())).tree;
 }
-
 /** Every token under `font`, resolved: the families, the scale, the weights. */
 function fontRows(): readonly TokenRow[] {
   return groupTokens(resolvedTree(), [["font"]], activeMode());
@@ -171,44 +172,6 @@ function weightRows(): readonly TokenRow[] {
   return rowsUnder("font.weight");
 }
 
-/** The per-element decisions the theme states, if it states any. */
-function elementRows(): readonly TokenRow[] {
-  return rowsUnder("font.element");
-}
-
-/**
- * The type the theme states in one token.
- *
- * A typography token is a family, a size, a weight and a tracking in one
- * value — the four decisions the scales above hold separately — so it gets
- * a row of its own and an editor that takes the four apart. A theme that
- * declares none has no such row, and the section says so.
- *
- * The theme decides where it keeps them: a composite is a *type*, and a
- * type may be declared in any group — `typography.body` beside the other
- * groups, or `font.body` inside the font one. So the page asks the theme
- * which tokens are typography, wherever the theme put them.
- */
-function compositeRows(): readonly TokenRow[] {
-  return groupTokens(resolvedTree(), [[]], activeMode()).filter(
-    (row) => row.type === "typography",
-  );
-}
-
-/** The tracking tokens the theme declares, for the tracking family. */
-function trackingRows(): readonly TokenRow[] {
-  return rowsUnder("font.tracking");
-}
-
-/** The leading tokens the theme declares, for the leading family. */
-function leadingRows(): readonly TokenRow[] {
-  return rowsUnder("font.leading");
-}
-
-/** The named styles the theme declares, for trim/extend management. */
-function styleRows(): readonly TokenRow[] {
-  return rowsUnder("font.style");
-}
 
 function tokenFor(
   families: readonly TokenRow[],
@@ -273,31 +236,9 @@ function scaleOrder(): readonly string[] {
     .map((entry) => entry.step);
 }
 
-/**
- * The face a role reads, following the contract's chain.
- *
- * The display face falls back to the heading family and the body to the sans,
- * so a theme that names no display voice still has a face for its headings.
- */
-function faceFor(
-  families: readonly TokenRow[],
-  path: string,
-): TokenRow | undefined {
-  const chain = [
-    path,
-    ...(FACE_CHAINS[path as keyof typeof FACE_CHAINS] ?? []),
-  ];
-  for (const step of chain) {
-    const found = families.find((row) => row.path === step);
-    if (found !== undefined) return found;
-  }
-  return undefined;
-}
 
 export default function TypePage() {
   const sizes = createLockstep(scaleRows, "font.size");
-  const families = createMemo(familyRows);
-  const elements = createMemo(elementRows);
 
   return (
     <ConcernPage title="Type">
@@ -336,161 +277,53 @@ export default function TypePage() {
         </Frame>
       </Section>
 
-      <div
-        class={inDrawer()
-          ? "stack-lg"
-          : "grid items-start gap-6 lg:grid-cols-2"}
-      >
-        <Section
-          title="Weight"
-          fact={`${weightRows().length} steps`}
-          class="min-w-0"
-        >
-          <Show
-            when={weightRows().length > 0}
-            fallback={
-              <p class="text-text-muted">
-                This theme declares no weights yet.
-              </p>
-            }
-          >
-            <Frame>
-              <ul>
-                <For each={weightRows()}>
-                  {(row) => (
-                    <TypeStepItem
-                      row={row}
-                      step={suffixOf(row.path)}
-                      specimenStyle={{ "font-weight": `var(${row.variable})` }}
-                      group={weightRows().map((r) => r.value)}
-                    />
-                  )}
-                </For>
-              </ul>
-            </Frame>
-          </Show>
-        </Section>
-
-        <Section
-          title="Tracking"
-          fact={`${trackingRows().length} steps`}
-          class="min-w-0"
-        >
-          <Show
-            when={trackingRows().length > 0}
-            fallback={
-              <p class="text-text-muted">
-                This theme declares no tracking yet.
-              </p>
-            }
-          >
-            <Frame>
-              <ul>
-                <For each={trackingRows()}>
-                  {(row) => (
-                    <TypeStepItem
-                      row={row}
-                      step={suffixOf(row.path)}
-                      utility={`tracking-${suffixOf(row.path)}`}
-                      specimenStyle={{ "letter-spacing": `var(${row.variable})` }}
-                      group={trackingRows().map((r) => r.value)}
-                    />
-                  )}
-                </For>
-              </ul>
-            </Frame>
-          </Show>
-        </Section>
-      </div>
-
       <Section
-        title="Styles"
-        fact={`${styleRows().length} styles`}
-        info="Named type styles: the theme's complete tuples, spent with type-<name>. Trim or extend the set; elements read their default style unless overridden below."
+        title="Weight"
+        fact={`${weightRows().length} steps`}
+        class="min-w-0"
       >
         <Show
-          when={styleRows().length > 0}
+          when={weightRows().length > 0}
           fallback={
             <p class="text-text-muted">
-              This theme declares no styles yet.
+              This theme declares no weights yet.
             </p>
           }
         >
-          <ul class="stack-sm">
-            <For each={styleRows()}>
-              {(row) => (
-                <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
-                  <div class="row-sm flex-wrap items-center gap-2">
-                    <code>{row.path}</code>
-                    <code>{row.value}</code>
-                  </div>
-                  <ValueInput
-                    value={row.value}
-                    type={row.type}
-                    onCommit={(value) => editToken(row.path.split("."), value)}
-                    variable={row.variable}
-                    label={row.path}
+          <Frame>
+            <ul>
+              <For each={weightRows()}>
+                {(row) => (
+                  <TypeStepItem
+                    row={row}
+                    step={suffixOf(row.path)}
+                    specimenStyle={{ "font-weight": `var(${row.variable})` }}
+                    group={weightRows().map((r) => r.value)}
                   />
-                </li>
-              )}
-            </For>
-          </ul>
+                )}
+              </For>
+            </ul>
+          </Frame>
         </Show>
       </Section>
 
-      <Show when={compositeRows().length > 0}>
-        <Section
-          title="Type in one token"
-          fact={`${compositeRows().length} tokens`}
-          info="DTCG $type: typography composite tokens that bundle family, size, weight, and tracking into one preset."
-        >
-          <ul class="stack-sm">
-            <For each={compositeRows()}>
-              {(row) => {
-                const parsed = () => parseComposite("typography", row.value);
-                const specimenStyle = (): Record<string, string | undefined> => {
-                  const p = parsed();
-                  if (p?.type !== "typography") return {};
-                  return {
-                    "font-family": p.family || undefined,
-                    "font-size": p.size || undefined,
-                    "font-weight": p.weight || undefined,
-                    "letter-spacing": p.tracking || undefined,
-                  };
-                };
-                return (
-                  <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
-                    <div class="row-sm flex-wrap items-center gap-2">
-                      <code>{row.path}</code>
-                      <code>{row.value}</code>
-                    </div>
-                    <div
-                      data-studio-specimen=""
-                      class="rounded-md border border-border bg-surface p-3"
-                    >
-                      <p class="m-0 truncate" style={specimenStyle()}>
-                        {SENTENCE}
-                      </p>
-                    </div>
-                    <ValueInput
-                      value={row.value}
-                      type={row.type}
-                      onCommit={(value) => editToken(row.path.split("."), value)}
-                      variable={row.variable}
-                      label={row.path}
-                    />
-                  </li>
-                );
-              }}
-            </For>
-          </ul>
-        </Section>
-      </Show>
+      <Section
+        title="Styles"
+        fact={`${styleGroups(activeTree()).length} styles`}
+        info="Named type styles: the theme's complete tuples, spent with type-<name>. The floor is the contract's — trim a custom style, never a floor name. Elements read their default style (see the attachment map below)."
+      >
+        <ul class="stack-sm">
+          <For each={styleGroups(activeTree())}>
+            {(group) => <StyleCard group={group} />}
+          </For>
+        </ul>
+        <AddStyle />
+      </Section>
 
       <Section
-        title="Element map"
-        fact={`${elementTypeElements().length} elements`}
-        info="Elements inherit from the scale unless overridden under font.element."
+        title="Attachment"
+        fact={`${elementStyleElements().length} elements`}
+        info="Which style each element reads. Re-pointing writes the style's own tuple as aliases at the new style, so the element follows it live — never per-field overrides."
       >
         <div class="overflow-auto">
           <table>
@@ -498,27 +331,30 @@ export default function TypePage() {
               <tr>
                 <th>Element</th>
                 <th>Specimen</th>
-                <th>Face</th>
-                <th>Size</th>
-                <th>Weight</th>
-                <th>Tracking</th>
-                <th>Leading</th>
+                <th>Reads</th>
               </tr>
             </thead>
             <tbody>
-              <For each={elementTypeElements()}>
-                {(element) => (
-                  <ElementRow
-                    element={element}
-                    families={families()}
-                    elements={elements()}
-                  />
-                )}
+              <For each={elementStyleElements()}>
+                {(element) => <AttachmentRow element={element} />}
               </For>
             </tbody>
           </table>
         </div>
       </Section>
+
+      <Section
+        title="References"
+        fact={`${STYLE_REFERENCE_ROLES.length} references`}
+        info="The style names components read: button.type for every button, button.<variant>.type for one variant. A name that is no declared style is a theme error, said here."
+      >
+        <ul class="stack-sm">
+          <For each={STYLE_REFERENCE_ROLES}>
+            {(role) => <ReferenceRow path={role.path} />}
+          </For>
+        </ul>
+      </Section>
+
     </ConcernPage>
   );
 }
@@ -698,194 +534,273 @@ function TypeStepItem(props: {
   );
 }
 
+/** The shared family field carries the catalog search, stacks, and preview injector. */
+
 /**
- * One element of the map: the specimen it draws, and the five decisions the
- * theme may make about it.
+ * One named style: its specimen, its tuple leaves, and its trim.
  *
- * The specimen is the element itself, set in the theme's answer, so a row
- * shows what the element reads rather than what the row says it reads.
+ * The specimen wears the style's own variables, so it reads what the theme
+ * says rather than what the row claims. The trim refuses the floor in
+ * words — a floor name is stable API, and trimming it fails completeness.
  */
-function ElementRow(props: {
-  element: string;
-  families: readonly TokenRow[];
-  elements: readonly TokenRow[];
-}) {
-  const fields = createMemo(() => elementTypeFields(props.element));
-
-  /** What the theme states for one of the five decisions. */
-  const stated = (
-    field: "family" | "size" | "weight" | "tracking" | "leading",
-  ): TokenRow | undefined => {
-    const path = fields()[field]?.path;
-    if (path === undefined) return undefined;
-    return props.elements.find((row) => row.path === path);
-  };
-
-  /** What the element reads when the theme says nothing: the ladder's answer. */
-  const inherited = (
-    field: "family" | "size" | "weight" | "tracking" | "leading",
-  ): TokenRow | undefined => {
-    const fallback = fields()[field]?.fallback;
-    if (fallback === undefined) return undefined;
-    // A face falls back through the contract's chain; a size and a weight
-    // name their step outright.
-    if (field === "family") return faceFor(props.families, fallback);
-    return fontRows().find((row) => row.path === fallback);
-  };
-
-  const family = () =>
-    stated("family")?.value ?? inherited("family")?.value ?? "";
-  const size = () => stated("size")?.value ?? inherited("size")?.value ?? "";
-  const weight = () =>
-    stated("weight")?.value ?? inherited("weight")?.value ?? "";
-  const tracking = () =>
-    stated("tracking")?.value ?? inherited("tracking")?.value ?? "";
-  const leading = () =>
-    stated("leading")?.value ?? inherited("leading")?.value ?? "";
-
-  const commit = (
-    field: "family" | "size" | "weight" | "tracking" | "leading",
-    value: string,
-  ): void => {
-    const role = fields()[field];
-    if (role === undefined) return;
-    upsertToken(role.path.split("."), role.type, value);
-  };
-
+function StyleCard(props: { group: StyleGroup }) {
+  const name = () => props.group.name;
   const specimen = (): Record<string, string> => {
     const out: Record<string, string> = {};
-    if (family() !== "") out["font-family"] = family();
-    if (size() !== "") out["font-size"] = size();
-    if (weight() !== "") out["font-weight"] = weight();
-    if (tracking() !== "") out["letter-spacing"] = tracking();
-    if (leading() !== "") out["line-height"] = leading();
+    for (const row of props.group.fields) {
+      if (row.path.endsWith(".family")) out["font-family"] = `var(${row.variable})`;
+      if (row.path.endsWith(".size")) out["font-size"] = `var(${row.variable})`;
+      if (row.path.endsWith(".weight")) out["font-weight"] = `var(${row.variable})`;
+      if (row.path.endsWith(".tracking")) out["letter-spacing"] = `var(${row.variable})`;
+      if (row.path.endsWith(".leading")) out["line-height"] = `var(${row.variable})`;
+    }
     return out;
   };
-
-  const hasOverride = () =>
-    stated("family") !== undefined ||
-    stated("size") !== undefined ||
-    stated("weight") !== undefined ||
-    stated("tracking") !== undefined ||
-    stated("leading") !== undefined;
-
-  const resetElement = (): void => {
-    for (const field of ["family", "size", "weight", "tracking", "leading"] as const) {
-      const path = fields()[field]?.path;
-      if (path !== undefined) removeToken(path.split("."));
+  const trim = (): void => {
+    const refusal = trimRefusal(themeText(), name());
+    if (refusal !== undefined) {
+      noteRefusal(refusal);
+      return;
     }
+    let next: string;
+    try {
+      next = trimStyle(themeText(), name());
+    } catch (err) {
+      noteRefusal(err instanceof Error ? err.message : String(err));
+      return;
+    }
+    setThemeText(next, [`font.style.${name()}`]);
   };
+  return (
+    <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
+      <div class="row-sm flex-wrap items-center gap-2">
+        <span class="type-label">{name()}</span>
+        <Show when={props.group.floor}>
+          <span title="Floor styles stay: every theme keeps them, so there is nothing to trim.">
+            <Badge tone="info">floor</Badge>
+          </span>
+        </Show>
+        <code>type-{name()}</code>
+        <code>font.style.{name()}</code>
+        <Show when={!props.group.floor}>
+          <button
+            type="button"
+            class="bare type-caption-strong text-primary"
+            title={`Trim ${name()} from the theme`}
+            aria-label={`Trim ${name()} from the theme`}
+            onClick={trim}
+          >
+            trim
+          </button>
+        </Show>
+      </div>
+      <div data-studio-specimen="" class="rounded-md border border-border bg-surface p-3">
+        <p class="truncate" style={specimen()}>
+          {SENTENCE}
+        </p>
+      </div>
+      <ul class="stack-xs">
+        <For each={props.group.fields}>
+          {(row) => (
+            <li class="row-sm flex-wrap items-center gap-2">
+              <code>{row.path}</code>
+              <ValueInput
+                value={row.value}
+                type={row.type}
+                onCommit={(value) => editToken(row.path.split("."), value)}
+                variable={row.variable}
+                label={row.path}
+              />
+            </li>
+          )}
+        </For>
+      </ul>
+      <Show when={refusalFor(`font.style.${name()}`)}>
+        {(message) => (
+          <p class="text-semantic-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+    </li>
+  );
+}
 
+/**
+ * A name and a tuple: the custom style the theme gains.
+ *
+ * The tuple starts as the body's — a new style reads like body until the
+ * author edits it, so it is spendable the moment it lands. The name must be
+ * new: an existing name is said, not written.
+ */
+function AddStyle() {
+  const [name, setName] = createSignal("");
+  const add = (): void => {
+    const trimmed = name().trim();
+    let next: string;
+    try {
+      next = styleEdits(themeText(), trimmed);
+    } catch (err) {
+      noteRefusal(err instanceof Error ? err.message : String(err));
+      return;
+    }
+    if (setThemeText(next, [`font.style.${trimmed}`])) setName("");
+  };
+  return (
+    <div data-studio-chrome="" class="row-sm flex-wrap gap-2">
+      <label class="row-sm gap-2">
+        New style
+        <input
+          type="text"
+          class="w-36"
+          placeholder="aside"
+          value={name()}
+          onInput={(event) => setName(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") add();
+          }}
+          aria-label="New style name"
+        />
+      </label>
+      <button type="button" class="secondary s-sm" onClick={add}>
+        Add style
+      </button>
+    </div>
+  );
+}
+
+/**
+ * One element's attachment: the specimen it draws, and the style it reads.
+ *
+ * The specimen is the element itself, set in the attached style's
+ * variables, so a row shows what the element reads rather than what the row
+ * says it reads. The pick re-points the element — the default style's tuple
+ * becomes aliases at the new style — and the gate judges the batch whole.
+ */
+function AttachmentRow(props: { element: string }) {
+  const attached = () => attachedStyle(themeText(), props.element) ?? elementStyleDefault(props.element);
+  const def = () => elementStyleDefault(props.element);
+  const names = () => styleGroups(activeTree()).map((group) => group.name);
+  const specimen = (): Record<string, string> => {
+    const style = attached() ?? def() ?? "";
+    return {
+      "font-family": `var(--font-style-${style}-family)`,
+      "font-size": `var(--font-style-${style}-size)`,
+      "font-weight": `var(--font-style-${style}-weight)`,
+    };
+  };
+  const repoint = (style: string): void => {
+    let edits: readonly { path: readonly string[]; value: string }[];
+    try {
+      edits = repointEdits(themeText(), props.element, style);
+    } catch (err) {
+      noteRefusal(err instanceof Error ? err.message : String(err));
+      return;
+    }
+    editTokens(
+      edits.map((edit) => ({ path: [...edit.path], value: edit.value })),
+      "base",
+    );
+  };
   return (
     <tr>
       <td>
         <div class="row-sm">
           <code>{`<${props.element}>`}</code>
-          <Show when={hasOverride()}>
-            <button
-              type="button"
-              class="bare type-caption-strong text-primary"
-              title={`Reset <${props.element}> to the ladder`}
-              aria-label={`Reset ${props.element} to the ladder`}
-              onClick={resetElement}
-            >
-              reset
-            </button>
+          <Show when={attached() !== def()}>
+            <Badge tone="primary">→ {attached()}</Badge>
           </Show>
         </div>
       </td>
       <td>
-        <Dynamic
-          component={props.element}
-          class="m-0 truncate"
-          style={specimen()}
-        >
+        <p class="truncate" style={specimen()}>
           {ELEMENT_SPECIMENS[props.element] ?? props.element}
-        </Dynamic>
+        </p>
       </td>
       <td>
-        <FamilyField
-          value={family()}
-          label={`font.element.${props.element}.family`}
-          onCommit={(stack) => commit("family", stack)}
-        />
-      </td>
-      <td>
-        <StepChoice
-          value={size()}
-          group="font.size"
-          steps={scaleRows().map((row) => ({
-            name: row.path.split(".").pop() ?? "",
-            value: row.value,
-          }))}
-          label={`font.element.${props.element}.size`}
-          onCommit={(value) => commit("size", value)}
-        />
-      </td>
-      <td>
-        <StepChoice
-          value={weight()}
-          group="font.weight"
-          steps={weightRows().map((row) => ({
-            name: row.path.split(".").pop() ?? "",
-            value: row.value,
-          }))}
-          label={`font.element.${props.element}.weight`}
-          onCommit={(value) => commit("weight", value)}
-        />
-      </td>
-      <td>
-        <StepChoice
-          value={tracking()}
-          group="font.tracking"
-          steps={trackingRows().map((row) => ({
-            name: row.path.split(".").pop() ?? "",
-            value: row.value,
-          }))}
-          label={`font.element.${props.element}.tracking`}
-          onCommit={(value) => commit("tracking", value)}
-        />
-      </td>
-      <td>
-        <StepChoice
-          value={leading()}
-          group="font.leading"
-          steps={leadingRows().map((row) => ({
-            name: row.path.split(".").pop() ?? "",
-            value: row.value,
-          }))}
-          label={`font.element.${props.element}.leading`}
-          onCommit={(value) => commit("leading", value)}
-        />
+        <div data-studio-chrome="" class="row-sm flex-wrap gap-2">
+          <select
+            aria-label={`Style <${props.element}> reads`}
+            value={attached() ?? ""}
+            onChange={(event) => repoint(event.currentTarget.value)}
+          >
+            <For each={names()}>
+              {(style) => (
+                <option value={style}>
+                  {style}{style === def() ? " (default)" : ""}
+                </option>
+              )}
+            </For>
+          </select>
+          <code>type-{attached()}</code>
+        </div>
       </td>
     </tr>
   );
 }
 
 /**
- * One step of the theme's own scale, chosen from a panel of the theme's
- * ladder rather than a native `<select>`.
+ * One style reference: the name a component's type answers to, and whether
+ * it names a declared style.
  *
- * The value written is the ALIAS — `{font.size.3xl}` — so the element keeps
- * reading the ladder's step rather than a copy of it: move the step and the
- * element moves with it.
+ * The value is a bare name, edited as text and judged against the declared
+ * styles: a name no style wears is a theme error, said on the row rather
+ * than left silent. An undeclared reference clears the gate's way — the
+ * document keeps its other problems repairable — and the row keeps saying
+ * it until the name lands.
  */
-function StepChoice(props: {
-  value: string;
-  /** The group the steps live in: `font.size` or `font.weight`. */
-  group: string;
-  steps: readonly { name: string; value: string }[];
-  label: string;
-  onCommit: (value: string) => void;
-}) {
+function ReferenceRow(props: { path: string }) {
+  const row = () => tokenRowAt(activeTree(), props.path, activeMode());
+  const names = () => styleGroups(activeTree()).map((group) => group.name);
+  const dangling = () => {
+    const value = row()?.value.trim() ?? "";
+    return value.length > 0 && !names().includes(value)
+      ? `"${value}" names no declared font.style`
+      : undefined;
+  };
+  const commit = (value: string): boolean => {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      noteRefusal(`${props.path}: a style reference names a declared font.style — an empty name says nothing.`);
+      return false;
+    }
+    if (row() === undefined) {
+      return createToken(props.path.split("."), "typography", trimmed);
+    }
+    return editToken(props.path.split("."), trimmed, "base");
+  };
   return (
-    <StepPicker
-      label={props.label}
-      value={props.value}
-      steps={props.steps.map((s) => ({ ...s, path: `${props.group}.${s.name}` }))}
-      onPick={(step) => props.onCommit(`{${props.group}.${step.name}}`)}
-    />
+    <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
+      <div class="row-sm flex-wrap items-center gap-2">
+        <code>{props.path}</code>
+        <Show when={row() === undefined}>
+          <Badge tone="info">inherits</Badge>
+        </Show>
+      </div>
+      <div data-studio-chrome="" class="row-sm flex-wrap gap-2">
+        <select
+          aria-label={`Style ${props.path} names`}
+          value={row()?.value.trim() ?? ""}
+          onChange={(event) => {
+            commit(event.currentTarget.value);
+          }}
+        >
+          <Show when={row() === undefined}>
+            <option value="">—</option>
+          </Show>
+          <For each={names()}>
+            {(style) => <option value={style}>{style}</option>}
+          </For>
+        </select>
+        <code>type-{row()?.value.trim() ?? "—"}</code>
+      </div>
+      <Show when={dangling() ?? refusalFor(props.path)}>
+        {(message) => (
+          <p class="text-semantic-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+    </li>
   );
 }
-
-/** The shared family field carries the catalog search, stacks, and preview injector. */

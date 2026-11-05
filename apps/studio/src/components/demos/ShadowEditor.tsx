@@ -62,7 +62,7 @@ export default function ShadowEditor(props: {
             </span>
             <button
               type="button"
-              class="secondary s-sm min-h-0 cursor-pointer px-2 py-1 type-caption normal-case tracking-normal shadow-none hover:border-primary"
+              class="secondary s-sm min-h-0 cursor-pointer px-2 py-1 type-caption normal-case shadow-none hover:border-primary"
               onClick={() =>
                 props.onCommit("0 4px 12px 0 rgb(0 0 0 / 0.12)")
               }
@@ -145,7 +145,7 @@ export default function ShadowEditor(props: {
         </label>
         <button
           type="button"
-          class="bare px-1 type-code normal-case tracking-normal text-text-muted"
+          class="bare px-1 type-code normal-case text-text-muted"
           title="Remove shadow (set to none)"
           onClick={() => props.onCommit("none")}
         >

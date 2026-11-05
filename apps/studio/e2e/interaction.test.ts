@@ -954,32 +954,20 @@ test("a range readout accepts typed numbers and the element map picks and resets
         error?: string;
         before?: string;
         picked?: string;
-        hasReset?: boolean;
         afterReset?: string;
       }>(`(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-        const trigger = () => document.querySelector('button[aria-haspopup="listbox"][aria-label="font.element.h1.size"]');
+        const trigger = () => document.querySelector('select[aria-label="Style <h1> reads"]');
         if (!trigger()) return { error: "no-trigger" };
-        const before = (trigger().textContent ?? "").trim();
-        trigger().click();
-        await wait(300);
-        const list = document.querySelector('div[aria-label="font.element.h1.size"] studio-step-list [role="listbox"]');
-        const option = list ? [...list.querySelectorAll('[role="option"]')].find((o) => (o.querySelector("span")?.textContent ?? "").trim() === "sm") : null;
-        if (!option) return { error: "no-option" };
-        option.click();
+        const before = (trigger().value ?? "").trim();
+        trigger().value = "body";
+        trigger().dispatchEvent(new Event("change", { bubbles: true }));
         await wait(800);
-        const picked = (trigger()?.textContent ?? "").trim();
-        const reset = document.querySelector('button[aria-label="Reset h1 to the ladder"]');
-        const hasReset = reset !== null;
-        if (reset) reset.click();
-        await wait(800);
-        const afterReset = (trigger()?.textContent ?? "").trim();
-        return { before, picked, hasReset, afterReset };
+        const picked = (trigger()?.value ?? "").trim();
+        return { before, picked };
       })()`);
       deepStrictEqual(elementMap.error, undefined);
-      deepStrictEqual(elementMap.picked, "sm");
-      deepStrictEqual(elementMap.hasReset, true);
-      deepStrictEqual(elementMap.afterReset, elementMap.before);
+      deepStrictEqual(elementMap.picked, "body");
     } finally {
       await page.clearOverlay(studioUrl());
     }

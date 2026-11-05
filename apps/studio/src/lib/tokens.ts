@@ -1,4 +1,14 @@
-import { cssVarName, indexTree, valuesInMode } from "@spinjs/spin/theme";
+import {
+  aliasTarget,
+  cssVarName,
+  ELEMENT_STYLE_DEFAULTS,
+  indexTree,
+  STYLE_FLOOR,
+  styleFloorFields,
+  styleFloorNames,
+  STYLE_REFERENCE_ROLES,
+  valuesInMode,
+} from "@spinjs/spin/theme";
 import type { TokenTree } from "@spinjs/spin/theme";
 import { ROUTES } from "./routes.ts";
 
@@ -14,19 +24,18 @@ export interface TokenRow {
  * The composite types: a value that is more than one thing.
  *
  * A colour is one thing and a dimension is one thing, so a text field can
- * serve them. A typography is a family, a size, a weight and a tracking; a
- * border is a width, a style and a colour; a transition is a duration and an
- * easing; a gradient is a direction and a list of stops. One string carries
- * all of them, so one string cannot be edited part by part — and a text box
- * that takes the whole string is how a border ends up with a colour that is
- * not one.
+ * serve them. A border is a width, a style and a colour; a transition is a
+ * duration and an easing; a gradient is a direction and a list of stops.
+ * (TYPE-c: the `typography` composite is gone — one path, `font.style`.)
+ * One string carries all of them, so one string cannot be edited part by
+ * part — and a text box that takes the whole string is how a border ends up
+ * with a colour that is not one.
  *
- * The four are the types the studio gives a control of their own. The
+ * The three are the types the studio gives a control of their own. The
  * others — a shadow, a curve, a duration on its own — are already served by
  * the controls the studio has.
  */
 export const COMPOSITE_TYPES = [
-  "typography",
   "border",
   "transition",
   "gradient",
@@ -52,23 +61,9 @@ export interface GradientStop {
  * A composite's parts, as the theme spells them.
  *
  * The parts are the theme's own decisions, so each one names what it is:
- * a typography's four parts are the four ladders the type page shows, and a
- * border's three are the edge a control draws with.
+ * a border's three are the edge a control draws with.
  */
 export type Composite =
-  | {
-    readonly type: "typography";
-    /** The face, as a stack. */
-    readonly family: string;
-    /** The size, at the theme's own step. */
-    readonly size: string;
-    /** The weight, at the theme's own step. */
-    readonly weight: string;
-    /** The tracking, at the theme's own step. */
-    readonly tracking: string;
-    /** The leading, when the theme wrote one. */
-    readonly leading: string;
-  }
   | {
     readonly type: "border";
     readonly width: string;
@@ -139,13 +134,6 @@ function isTime(token: string): boolean {
   return /^-?\d*\.?\d+(ms|s)$/.test(token);
 }
 
-/** A weight: a number, or one of the CSS weight keywords. */
-function isWeight(token: string): boolean {
-  return /^\d{1,4}$/.test(token) ||
-    token === "normal" || token === "bold" || token === "bolder" ||
-    token === "lighter";
-}
-
 /** A timing function: a keyword, or a function. */
 function isEasing(token: string): boolean {
   return token === "linear" || token === "ease" || token === "ease-in" ||
@@ -154,35 +142,10 @@ function isEasing(token: string): boolean {
 }
 
 /**
- * A typography's parts.
- *
- * The theme spells a typography as the CSS `font` shorthand — a weight, a
- * size and a family — with the theme's tracking after it, because CSS's own
- * shorthand has no slot for a tracking and a theme's tracking is a step of
- * its own scale like any other. A value with no tracking is the shorthand
- * exactly, so a theme that writes one writes CSS the browser takes.
+ * A border's parts: the CSS `border` shorthand — a width, a style and a
+ * colour, in that order, which is the order the theme's own diagnostics
+ * reads a border in.
  */
-function parseTypography(value: string): Composite {
-  const tokens = parts(value);
-  let tracking = "";
-  const last = tokens[tokens.length - 1];
-  if (tokens.length > 2 && last !== undefined && isLength(last)) {
-    tracking = last;
-    tokens.pop();
-  }
-  const weight = isWeight(tokens[0] ?? "") ? (tokens[0] as string) : "";
-  const rest = weight === "" ? tokens : tokens.slice(1);
-  const size = rest[0] ?? "";
-  const slash = size.indexOf("/");
-  return {
-    type: "typography",
-    family: rest.slice(1).join(" "),
-    size: slash === -1 ? size : size.slice(0, slash),
-    weight,
-    tracking,
-    leading: slash === -1 ? "" : size.slice(slash + 1),
-  };
-}
 
 /**
  * A border's parts: the CSS `border` shorthand — a width, a style and a
@@ -281,19 +244,16 @@ function parseGradient(value: string): Composite {
 /**
  * A composite's parts, read out of the value the theme holds.
  *
- * The type decides the parts: a typography is four type decisions, a border
- * is three edge decisions, a transition is two motion decisions, and a
- * gradient is a direction and a list of stops. A value that cannot be read
- * as the type's parts is answered with nothing, and the editor says so
- * rather than guessing.
+ * The type decides the parts: a border is three edge decisions, a
+ * transition is two motion decisions, and a gradient is a direction and a
+ * list of stops. A value that cannot be read as the type's parts is
+ * answered with nothing, and the editor says so rather than guessing.
  */
 export function parseComposite(
   type: string,
   value: string,
 ): Composite | undefined {
   switch (type) {
-    case "typography":
-      return parseTypography(value);
     case "border":
       return parseBorder(value);
     case "transition":
@@ -314,14 +274,6 @@ export function parseComposite(
  */
 export function formatComposite(composite: Composite): string {
   switch (composite.type) {
-    case "typography": {
-      const size = composite.leading === ""
-        ? composite.size
-        : `${composite.size}/${composite.leading}`;
-      return [composite.weight, size, composite.family, composite.tracking]
-        .filter((part) => part !== "")
-        .join(" ");
-    }
     case "border":
       return [composite.width, composite.style, composite.color]
         .filter((part) => part !== "")
@@ -398,10 +350,6 @@ function stepsUnder(
  * and the editor falls back to a field that takes the value.
  */
 export interface CompositeLadders {
-  readonly families: readonly LadderStep[];
-  readonly sizes: readonly LadderStep[];
-  readonly weights: readonly LadderStep[];
-  readonly trackings: readonly LadderStep[];
   readonly widths: readonly LadderStep[];
   readonly durations: readonly LadderStep[];
   readonly easings: readonly LadderStep[];
@@ -417,10 +365,6 @@ export function compositeLadders(
   mode: string,
 ): CompositeLadders {
   return {
-    families: stepsUnder(tree, mode, "font.family"),
-    sizes: stepsUnder(tree, mode, "font.size"),
-    weights: stepsUnder(tree, mode, "font.weight"),
-    trackings: stepsUnder(tree, mode, "font.tracking"),
     widths: stepsUnder(tree, mode, "border").filter((step) =>
       step.name === "width" || step.name.startsWith("width-")
     ),
@@ -527,4 +471,282 @@ export function editorRouteFor(path: string): string {
     )
   );
   return owned?.path ?? "/";
+}
+
+/**
+ * One named style the theme declares, with the fields the document holds.
+ *
+ * The floor is the contract's list, in the contract's order; the custom
+ * styles follow in the document's order. A field row carries the path the
+ * tuple leaf lives at, so the page edits leaves and never the group.
+ */
+export interface StyleGroup {
+  /** The style's name, as `type-<name>` spends it. */
+  readonly name: string;
+  /** True for a floor name the contract requires the theme to keep. */
+  readonly floor: boolean;
+  /** The tuple leaves the document holds, by field. */
+  readonly fields: readonly TokenRow[];
+}
+
+/** The style names the document holds under `font.style`, in order. */
+export function declaredStyles(text: string): readonly string[] {
+  let doc: Record<string, unknown>;
+  try {
+    doc = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return [];
+  }
+  const font = doc["font"];
+  if (typeof font !== "object" || font === null) return [];
+  const style = (font as Record<string, unknown>)["style"];
+  if (typeof style !== "object" || style === null) return [];
+  return Object.keys(style).filter((key) => !key.startsWith("$"));
+}
+
+/**
+ * The styles a document holds, floor first.
+ *
+ * Rows come from the tree so the values are the mode's, but membership is
+ * the document's: a style is what the document declares, not what resolves.
+ */
+export function styleGroups(tree: TokenTree): StyleGroup[] {
+  const floor = new Set(styleFloorNames());
+  const names = new Set<string>();
+  for (const leaf of Object.values(indexTree(tree).leaves)) {
+    if (leaf.path[0] === "font" && leaf.path[1] === "style") {
+      const name = leaf.path[2];
+      if (name !== undefined) names.add(name);
+    }
+  }
+  const byName = new Map<string, TokenRow[]>();
+  for (const row of groupTokens(tree, [["font", "style"]])) {
+    const name = row.path.split(".")[2];
+    if (name === undefined) continue;
+    const held = byName.get(name);
+    if (held === undefined) byName.set(name, [row]);
+    else held.push(row);
+  }
+  const ordered = [
+    ...STYLE_FLOOR.map((style) => style.name).filter((name) =>
+      names.has(name)
+    ),
+    ...[...names].filter((name) => !floor.has(name)),
+  ];
+  return ordered.map((name) => ({
+    name,
+    floor: floor.has(name),
+    fields: byName.get(name) ?? [],
+  }));
+}
+
+
+/**
+ * Why a style may not be trimmed, when it may not be.
+ *
+ * A floor name is stable API — trimming it fails completeness — so the trim
+ * is refused here, in words, before the document moves. Anything else trims.
+ */
+export function trimRefusal(text: string, name: string): string | undefined {
+  if (styleFloorNames().includes(name)) {
+    return `“${name}” is a floor style every theme keeps — re-point the elements that read it, or restyle its tuple, but the name stays.`;
+  }
+  if (!declaredStyles(text).includes(name)) {
+    return `“${name}” is not a style this theme declares.`;
+  }
+  return undefined;
+}
+
+/**
+ * Trim a custom style from the document.
+ *
+ * The group goes whole: a half-trimmed tuple is a style the rules cannot
+ * spend. The floor is refused by `trimRefusal`, never here.
+ */
+export function trimStyle(text: string, name: string): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  const style = font?.["style"] as Record<string, unknown> | undefined;
+  if (style !== undefined) delete style[name];
+  return JSON.stringify(doc, null, 2);
+}
+
+/** The DTCG type one tuple field carries. */
+function tupleFieldType(field: string): string {
+  if (field === "family") return "fontFamily";
+  if (field === "weight") return "fontWeight";
+  return "dimension";
+}
+
+/**
+ * A document with a custom style added, scaffolded from the body voice.
+ *
+ * The tuple starts as the body's: a new style reads like body until the
+ * author edits it, so it is spendable the moment it lands. The name must be
+ * new — an existing name is the caller's mistake, said as a throw.
+ */
+export function styleEdits(text: string, name: string): string {
+  if (name.trim().length === 0) {
+    throw new Error("a style needs a name before it can be added");
+  }
+  if (declaredStyles(text).includes(name)) {
+    throw new Error(`“${name}” is already a style this theme declares`);
+  }
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  const style = font?.["style"] as Record<string, unknown> | undefined;
+  const body = style?.["body"] as Record<string, unknown> | undefined;
+  const added: Record<string, unknown> = {
+    $description: `The ${name} voice.`,
+  };
+  for (const field of styleFloorFields()) {
+    const leaf = body?.[field] as Record<string, unknown> | undefined;
+    const value = leaf?.["$value"];
+    added[field] = {
+      $type: tupleFieldType(field),
+      $value: typeof value === "string" || typeof value === "number"
+        ? value
+        : field === "weight"
+        ? "400"
+        : field === "family"
+        ? "system-ui, sans-serif"
+        : "1rem",
+    };
+  }
+  if (
+    typeof font !== "object" || font === null ||
+    typeof style !== "object" || style === null
+  ) {
+    throw new Error("this theme declares no font.style group to add to");
+  }
+  style[name] = added;
+  return JSON.stringify(doc, null, 2);
+}
+
+/**
+ * The style an element reads: the default the contract states, unless the
+ * theme re-pointed it.
+ *
+ * A re-point is written into the default style's own leaves — each field an
+ * alias at the style the element now follows — so the attachment is read
+ * back from the leaves rather than from a second table that could disagree
+ * with them. Unanimous aliases name the attached style; anything else is the
+ * default with its own tuple.
+ */
+export function attachedStyle(
+  text: string,
+  element: string,
+): string | undefined {
+  const own = ELEMENT_STYLE_DEFAULTS[element];
+  if (own === undefined) return undefined;
+  let doc: Record<string, unknown>;
+  try {
+    doc = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return own;
+  }
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  const styles = font?.["style"] as Record<string, unknown> | undefined;
+  const group = styles?.[own] as Record<string, unknown> | undefined;
+  if (typeof group !== "object" || group === null) return own;
+  let attached: string | undefined;
+  let fields = 0;
+  for (const field of styleFloorFields()) {
+    const leaf = group[field] as Record<string, unknown> | undefined;
+    if (typeof leaf !== "object" || leaf === null || !("$value" in leaf)) {
+      continue;
+    }
+    fields++;
+    const target = aliasTarget(leaf["$value"]);
+    const match = target === null
+      ? undefined
+      : /^font\.style\.(.+)\.[^.]+$/.exec(target)?.[1];
+    if (match === undefined || match === own) {
+      if (match === own) continue;
+      return own;
+    }
+    if (attached === undefined) attached = match;
+    else if (attached !== match) return own;
+  }
+  if (fields === 0 || attached === undefined) return own;
+  const names = new Set(declaredStyles(text));
+  return names.has(attached) ? attached : own;
+}
+
+/** One leaf edit, as the document spells it: a DTCG path and the value. */
+export interface StyleEdit {
+  readonly path: readonly string[];
+  readonly value: string;
+}
+
+/**
+ * Re-point an element at another declared style.
+ *
+ * Each field of the element's default style becomes an alias at the same
+ * field of the named style, so the element follows the style live: moving
+ * the style moves the element, and the emitted rule spends the style's own
+ * variables. The batch is one undo step, and the gate judges it whole.
+ */
+export function repointEdits(
+  text: string,
+  element: string,
+  style: string,
+): StyleEdit[] {
+  const own = ELEMENT_STYLE_DEFAULTS[element];
+  if (own === undefined) {
+    throw new Error(`“${element}” is not an element the map attaches`);
+  }
+  if (!declaredStyles(text).includes(style)) {
+    throw new Error(`“${style}” is not a style this theme declares`);
+  }
+  return styleFloorFields().map((field) => ({
+    path: ["font", "style", own, field],
+    value: `{font.style.${style}.${field}}`,
+  }));
+}
+
+/**
+ * Every style reference that names no declared style, in the module's words.
+ *
+ * The theme's own judgement, narrowed to the reference rows: the path first,
+ * then what is wrong. A document that parses but declares no reference the
+ * rows show is quiet here — the rows are empty, not broken.
+ */
+export function danglingReferences(text: string): string[] {
+  const out: string[] = [];
+  let doc: Record<string, unknown>;
+  try {
+    doc = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return [];
+  }
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  const styles = font?.["style"] as Record<string, unknown> | undefined;
+  const names = new Set(
+    typeof styles === "object" && styles !== null
+      ? Object.keys(styles).filter((key) => !key.startsWith("$"))
+      : [],
+  );
+  for (const role of STYLE_REFERENCE_ROLES) {
+    const segments = role.path.split(".");
+    let node: unknown = doc;
+    for (const segment of segments) {
+      if (typeof node !== "object" || node === null) break;
+      node = (node as Record<string, unknown>)[segment];
+    }
+    if (typeof node !== "object" || node === null || !("$value" in node)) {
+      continue;
+    }
+    const value = (node as Record<string, unknown>)["$value"];
+    if (typeof value !== "string" || value.trim().length === 0) {
+      out.push(`${role.path}: style reference must name a declared font.style`);
+      continue;
+    }
+    if (!names.has(value.trim())) {
+      out.push(
+        `${role.path}: style reference "${value.trim()}" names no declared font.style`,
+      );
+    }
+  }
+  return out;
 }

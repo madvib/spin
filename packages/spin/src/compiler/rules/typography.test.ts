@@ -1,37 +1,41 @@
 import { test } from "bun:test";
-import assert, { deepStrictEqual } from "node:assert/strict";
+import { deepStrictEqual } from "node:assert/strict";
 import { typographyRules } from "./typography.ts";
 
-function handler() {
-  const rules = typographyRules();
-  const rule = rules.find((entry) =>
-    entry[0] instanceof RegExp && entry[0].source === "^leading-(.+)$"
+/**
+ * TYPE-c (styles own type): the `tracking-*`/`leading-*` rules are deleted.
+ * What remains is capitalisation + the focus ring as static rules. A removed
+ * atom is an unknown class with a style suggestion (see
+ * tests/diagnostics/type-suggestions.test.ts), never a silent declaration.
+ */
+
+test("the tracking rule is gone", () => {
+  const sources = typographyRules().map((entry) =>
+    entry[0] instanceof RegExp ? entry[0].source : String(entry[0])
   );
-  assert(rule !== undefined, "the leading rule is registered");
-  return rule[1] as (
-    match: string[],
-    ctx?: unknown,
-  ) => Record<string, string> | undefined;
-}
-
-test("a custom leading step resolves through the theme", () => {
-  const run = handler();
-  deepStrictEqual(run(["leading-tight", "tight"], {
-    theme: { "font-leading-tight": "var(--font-leading-tight)" },
-  }), { "line-height": "var(--font-leading-tight)" });
-});
-
-test("a silent theme falls back to the conventional step", () => {
-  const run = handler();
-  deepStrictEqual(run(["leading-tight", "tight"], { theme: {} }), {
-    "line-height": "1.25",
-  });
-});
-
-test("an undeclared step resolves to nothing", () => {
-  const run = handler();
   deepStrictEqual(
-    run(["leading-foo", "foo"], { theme: {} }),
-    undefined,
+    sources.filter((source) => source.includes("tracking")),
+    [],
+    "no tracking rule may remain",
   );
+});
+
+test("the leading rule is gone", () => {
+  const sources = typographyRules().map((entry) =>
+    entry[0] instanceof RegExp ? entry[0].source : String(entry[0])
+  );
+  deepStrictEqual(
+    sources.filter((source) => source.includes("leading")),
+    [],
+    "no leading rule may remain",
+  );
+});
+
+test("capitalisation and the focus ring remain", () => {
+  const names = typographyRules().flatMap((entry) =>
+    typeof entry[0] === "string" ? [entry[0]] : []
+  );
+  for (const name of ["uppercase", "lowercase", "capitalize", "outline-none"]) {
+    deepStrictEqual(names.includes(name), true, `${name} remains vocabulary`);
+  }
 });

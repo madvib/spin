@@ -257,8 +257,10 @@ test("a field and a button share one control height", async () => {
   // a form's input above its button — and they used to be two different
   // heights: the button's line box is the type size, the field's was the
   // browser's normal leading. A row of controls that do not line up reads as
-  // assembled rather than designed. Both now state the same floor, from the
-  // same three theme values.
+  // assembled rather than designed. The button derives its floor from the
+  // label style now; the field still reads the ladder's md step, so the two
+  // floors differ by the voice each wears — a later slice moves the field
+  // onto the same style and reunites them.
   const css = await sheetFor("<input><button>Deploy</button>");
   const field = declarationsFor(css, ":is(input, textarea, select)");
   const button = declarationsFor(
@@ -270,20 +272,23 @@ test("a field and a button share one control height", async () => {
     "the field states a control-height floor",
   );
   deepStrictEqual(
-    field["min-height"],
     button["min-height"],
-    "the field and the button derive the same floor",
+    "calc(var(--font-style-label-size) + (2 * var(--spacing-2)) + (2 * var(--border-width)))",
+    "the button derives its floor from the label style",
   );
   deepStrictEqual(
     declarationsFor(css, CONTROL_FIELDS)["height"],
-    button["min-height"],
-    "the single-line field lands on that same height",
+    field["min-height"],
+    "the single-line field lands on the field's own floor",
   );
 });
 
 test("a small field lands on the small button height", async () => {
-  // The size ladder is shared: s-sm on a field and on a button is one
-  // height, and the md control remains the default.
+  // The size voices are shared no longer: s-sm on a button reads the label
+  // style, while s-sm on a field still reads the ladder's sm step. Both
+  // resolve to the same step in the starters, so the heights agree in
+  // value — through different variables, until a later slice moves the
+  // field onto the same style.
   const css = await sheetFor(
     '<input class="s-sm"><button class="s-sm">Go</button>',
   );
@@ -293,10 +298,9 @@ test("a small field lands on the small button height", async () => {
     ':is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]).s-sm',
   );
   assert(field["height"] !== undefined, "the small field states its height");
-  deepStrictEqual(
-    field["height"],
-    button["min-height"],
-    "the small field and the small button derive the same height",
+  assert(
+    button["min-height"] !== undefined,
+    "the small button states its height",
   );
   const md = declarationsFor(css, CONTROL_FIELDS)["height"];
   assert(

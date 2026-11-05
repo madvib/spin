@@ -124,7 +124,6 @@ const SCREEN_MARKUP = `<div class="flex flex-col gap-4">
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const TITLE = "tracking-normal";
 const KIND = "type-code text-text-muted";
 const BADGE =
   "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
@@ -227,7 +226,7 @@ export function MontagePage() {
     <>
       <header class={PAGE_HEAD}>
         <div>
-          <h2 class={TITLE}>Themes</h2>
+          <h2>Themes</h2>
           <div class={KIND}>
             spin reference · {THEMES.length} themes · {renderings} renderings
           </div>

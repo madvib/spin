@@ -590,6 +590,34 @@
         },
         "$description": "The heading voice: a subsection head inside a section."
       },
+      "subtitle": {
+        "family": {
+          "$type": "fontFamily",
+          "$value": "{font.family.sans}",
+          "$description": "The face the subtitle style reads in."
+        },
+        "size": {
+          "$type": "dimension",
+          "$value": "{font.size.lg}",
+          "$description": "The size the subtitle style reads at."
+        },
+        "weight": {
+          "$type": "fontWeight",
+          "$value": "{font.weight.medium}",
+          "$description": "The weight the subtitle style reads at."
+        },
+        "tracking": {
+          "$type": "dimension",
+          "$value": "{font.tracking.normal}",
+          "$description": "The tracking the subtitle style reads at."
+        },
+        "leading": {
+          "$type": "dimension",
+          "$value": "{font.leading.snug}",
+          "$description": "The leading the subtitle style reads at."
+        },
+        "$description": "The subtitle voice: the sentence under a heading that frames what follows."
+      },
       "lead": {
         "family": {
           "$type": "fontFamily",
@@ -842,6 +870,34 @@
         },
         "$description": "The stat voice: the number a figure shows, set to be read at a glance."
       },
+      "badge": {
+        "family": {
+          "$type": "fontFamily",
+          "$value": "{font.family.sans}",
+          "$description": "The face the badge style reads in."
+        },
+        "size": {
+          "$type": "dimension",
+          "$value": "{font.size.2xs}",
+          "$description": "The size the badge style reads at."
+        },
+        "weight": {
+          "$type": "fontWeight",
+          "$value": "{font.weight.medium}",
+          "$description": "The weight the badge style reads at."
+        },
+        "tracking": {
+          "$type": "dimension",
+          "$value": "{font.tracking.wide}",
+          "$description": "The tracking the badge style reads at."
+        },
+        "leading": {
+          "$type": "dimension",
+          "$value": "{font.leading.none}",
+          "$description": "The leading the badge style reads at."
+        },
+        "$description": "The badge voice: the word on a pill, set small enough to sit inside one."
+      },
       "body-strong": {
         "family": {
           "$type": "fontFamily",
@@ -897,6 +953,62 @@
           "$description": "The leading the caption-strong style reads at."
         },
         "$description": "The figure-caption voice: a caption that names its figure."
+      },
+      "stat-label": {
+        "family": {
+          "$type": "fontFamily",
+          "$value": "{font.family.sans}",
+          "$description": "The face the stat-label style reads in."
+        },
+        "size": {
+          "$type": "dimension",
+          "$value": "{font.size.xs}",
+          "$description": "The size the stat-label style reads at."
+        },
+        "weight": {
+          "$type": "fontWeight",
+          "$value": "{font.weight.semibold}",
+          "$description": "The weight the stat-label style reads at."
+        },
+        "tracking": {
+          "$type": "dimension",
+          "$value": "{font.tracking.wide}",
+          "$description": "The tracking the stat-label style reads at."
+        },
+        "leading": {
+          "$type": "dimension",
+          "$value": "{font.leading.snug}",
+          "$description": "The leading the stat-label style reads at."
+        },
+        "$description": "The stat-label voice: the name above a figure, tracked open so it reads as a label."
+      },
+      "card-title": {
+        "family": {
+          "$type": "fontFamily",
+          "$value": "{font.family.sans}",
+          "$description": "The face the card-title style reads in."
+        },
+        "size": {
+          "$type": "dimension",
+          "$value": "{font.size.lg}",
+          "$description": "The size the card-title style reads at."
+        },
+        "weight": {
+          "$type": "fontWeight",
+          "$value": "{font.weight.semibold}",
+          "$description": "The weight the card-title style reads at."
+        },
+        "tracking": {
+          "$type": "dimension",
+          "$value": "{font.tracking.normal}",
+          "$description": "The tracking the card-title style reads at."
+        },
+        "leading": {
+          "$type": "dimension",
+          "$value": "{font.leading.snug}",
+          "$description": "The leading the card-title style reads at."
+        },
+        "$description": "The card-title voice: the name on a card, set to be found inside a surface."
       }
     }
   },

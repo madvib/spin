@@ -65,7 +65,7 @@ const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
  * nothing at all, which is what the row used to be.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 /**
  * The band a run of rows is bucketed into.
@@ -84,7 +84,7 @@ const RAIL_LINK =
  * than a column and the groups are read across rather than down.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case tracking-normal first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case first:mt-0";
 
 /**
  * The row, as the drawer wears it.
@@ -107,7 +107,7 @@ const DRAWER_LINK =
  * the reader loses the one thing the group was there to say.
  */
 const DRAWER_BAND =
-  "type-body-strong normal-case tracking-normal";
+  "type-body-strong normal-case";
 
 /** One row of the list: the component it names, and the glyph it wears. */
 interface Row {

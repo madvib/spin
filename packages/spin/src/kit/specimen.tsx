@@ -34,10 +34,10 @@ export {
 const COPIED_MS = 1200;
 
 const SWITCH =
-  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 normal-case tracking-normal type-caption text-text-muted shadow-none hover:bg-surface-raised focus:bg-surface-raised aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary";
+  "inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 normal-case type-caption text-text-muted shadow-none hover:bg-surface-raised focus:bg-surface-raised aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary";
 
 const COPY_CONTROL =
-  "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border border-border bg-surface-raised px-2 py-1 normal-case tracking-normal type-caption text-text-muted opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-border-strong";
+  "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border border-border bg-surface-raised px-2 py-1 normal-case type-caption text-text-muted opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-border-strong";
 
 const CODE_PRE =
   "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border border-border bg-surface p-4 type-code text-text-muted shadow-sm";

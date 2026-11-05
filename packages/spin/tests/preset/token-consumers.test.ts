@@ -13,13 +13,13 @@ import { tokenConsumers } from "../../src/compiler/token-consumers.ts";
  */
 
 test("a probe token returns its known consumers", () => {
-  // --font-size-sm is read across the library: the index inverts the
-  // manifest rather than restating it.
-  const consumers = tokenConsumers("--font-size-sm");
-  for (const name of ["alert", "button", "card", "table", "prose"]) {
+  // --font-style-label-size is read everywhere the label voice lands: the
+  // index inverts the manifest rather than restating it.
+  const consumers = tokenConsumers("--font-style-label-size");
+  for (const name of ["button", "prose"]) {
     ok(
       consumers.includes(name),
-      `the index names ${name} as a consumer of --font-size-sm`,
+      `the index names ${name} as a consumer of --font-style-label-size`,
     );
   }
 });

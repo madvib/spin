@@ -1,151 +1,112 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import {
-  ELEMENT_TYPE_ROLES,
-  elementTypeElements,
-  elementTypeFallback,
-  elementTypeFields,
-  elementTypePaths,
-  elementTypeRole,
   FACE_CHAINS,
+  styleFloorNames,
+  indexTree,
   parseTokens,
   requiredPaths,
+  resolveAliases,
   themeSchema,
   validateTokens,
 } from "../index.ts";
 import { starterThemes } from "../themes/index.ts";
+import type { ThemeDocument, TokenLeaf } from "../pipeline/types.ts";
 
 /**
- * The per-element typography, as a contract.
+ * A theme whose styles carry literals and that states no type scales.
  *
- * Three things have to hold: the group is OPTIONAL, so a theme that never
- * mentions it is complete; every path it names is a path the theme language
- * has; and every fallback is a path a rule can actually read, so the answer
- * a theme gets by saying nothing is an answer that exists.
+ * Each style leaf's alias is replaced by the value it points at, and the
+ * scale groups the aliases pointed into are dropped. The document keeps its
+ * shape — the same styles, the same leaves — so the check answers whether
+ * the styles alone carry the theme, never whether a reshaped document does.
  */
+function inlineStyleLiterals(doc: ThemeDocument): void {
+  const parsed = parseTokens(doc);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const resolved = indexTree(resolveAliases(parsed.tree).tree).leaves;
+  const font = doc["font"] as Record<string, Record<string, Record<string, Record<string, unknown>>>>;
+  const style = font["style"] as Record<string, Record<string, Record<string, unknown>>>;
+  for (const leaf of Object.values(resolved) as TokenLeaf[]) {
+    const [root, group, name, field] = leaf.path;
+    if (root !== "font" || group !== "style") continue;
+    const entry = style[name as string]?.[field as string];
+    if (entry === undefined) continue;
+    entry["$value"] = leaf.value;
+  }
+  delete (font as Record<string, unknown>)["size"];
+  delete (font as Record<string, unknown>)["weight"];
+  delete (font as Record<string, unknown>)["tracking"];
+  delete (font as Record<string, unknown>)["leading"];
+}
 
-test("the per-element typography is optional", () => {
-  // A theme that says nothing about a heading gets the system's answer, so
-  // the group cannot be required — and the schema must not say it is.
-  const schema = themeSchema();
-  const font = schema["properties"] as Record<string, {
-    properties?: Record<string, unknown>;
-    required?: string[];
-  }>;
-  const element = font["font"]?.properties?.["element"] as {
-    properties?: Record<string, unknown>;
-    required?: string[];
-  } | undefined;
-  assert(element !== undefined, "the schema must know the group");
-  deepStrictEqual(
-    element.required,
-    undefined,
-    "the group a theme may leave out must not be required",
-  );
-  const h1 = element.properties?.["h1"] as {
-    properties?: Record<string, unknown>;
-    required?: string[];
-  } | undefined;
-  assert(h1 !== undefined, "the schema must know the first heading");
-  deepStrictEqual(
-    h1.required,
-    undefined,
-    "a heading's decisions are the theme's to make, not the schema's to demand",
+
+test("every starter implements the floor names", () => {
+  // The floor is the styles a theme must declare: every starter implements
+  // every name, and the names are the contract's own list rather than a
+  // roster written down here.
+  for (const [theme, doc] of Object.entries(starterThemes)) {
+    const font = doc["font"] as Record<string, unknown>;
+    const style = font["style"] as Record<string, unknown>;
+    for (const name of styleFloorNames()) {
+      assert(
+        style[name] !== undefined,
+        `${theme}: the starter must implement the ${name} style`,
+      );
+    }
+  }
+});
+
+test("trimming below the floor fails completeness", () => {
+  // The names are stable API: a theme that drops one breaks every consumer
+  // of that name, so the gate reports the missing tuple at its own leaves.
+  const doc = structuredClone(starterThemes.silk) as Record<string, unknown>;
+  const style = (doc["font"] as Record<string, unknown>)[
+    "style"
+  ] as Record<string, unknown>;
+  const name = styleFloorNames()[0] as string;
+  delete style[name];
+  const parsed = parseTokens(doc);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const report = validateTokens(parsed.tree, { required: requiredPaths() });
+  assert(
+    report.issues.some((issue) =>
+      issue.path === `font.style.${name}.family` &&
+      issue.message.startsWith("missing")
+    ),
+    `trimming ${name} must fail completeness: ${
+      JSON.stringify(report.issues)
+    }`,
   );
 });
 
-test("a theme that declares no per-element typography is valid", () => {
-  // The whole point of the fallback: the group is a decision a theme MAY
-  // make, so a document without it owes nothing.
-  const parsed = parseTokens(starterThemes.silk);
+test("literal-valued styles with no type scales are complete", () => {
+  // Scales are the style author's library, not a spend path: the type
+  // scales stay out of the required paths, so a theme whose styles carry
+  // literals and that states no type scale groups is complete.
+  const doc = structuredClone(starterThemes.silk) as Record<string, unknown>;
+  inlineStyleLiterals(doc);
+  const parsed = parseTokens(doc);
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
   deepStrictEqual(report.issues, []);
 });
 
-test("every per-element path is a path the theme language has", () => {
-  // A fallback the theme language does not have is an answer that cannot be
-  // given, and the rule that spends it would reach for nothing.
-  const known = new Set([
-    ...requiredPaths(),
-    "font.family.heading",
-    "font.family.body",
-    "font.family.serif",
-    "font.family.mono",
-    "font.size.xs",
-    "font.size.sm",
-    "font.size.md",
-    "font.size.lg",
-    "font.size.xl",
-    "font.size.2xl",
-    "font.size.3xl",
-    "font.weight.regular",
-    "font.weight.medium",
-    "font.weight.semibold",
-    "font.weight.bold",
-    "font.tracking.tighter",
-    "font.tracking.tight",
-    "font.tracking.normal",
-    "font.tracking.wide",
-    "font.tracking.wider",
-    "font.tracking.widest",
-    "font.leading.none",
-    "font.leading.tight",
-    "font.leading.snug",
-    "font.leading.normal",
-    "font.leading.relaxed",
-    "font.leading.loose",
-  ]);
-  for (const role of ELEMENT_TYPE_ROLES) {
+test("the type scales are not required paths", () => {
+  // The flip, stated directly: no type scale step is something a theme
+  // owes, so a gate built from the required paths never asks for one.
+  const required = new Set(requiredPaths());
+  for (
+    const step of [
+      "font.size.md",
+      "font.weight.regular",
+      "font.tracking.normal",
+      "font.leading.relaxed",
+    ]
+  ) {
     assert(
-      known.has(role.fallback),
-      `${role.path} falls back to ${role.fallback}, which the theme language does not have`,
+      !required.has(step),
+      `${step} must not be a required path: styles carry the tuple`,
     );
-  }
-  for (const chain of Object.values(FACE_CHAINS)) {
-    for (const step of chain) {
-      assert(
-        known.has(step),
-        `the face chain steps through ${step}, which the theme language does not have`,
-      );
-    }
-  }
-});
-
-test("every per-element path is named after the element it belongs to", () => {
-  // The path IS the identity: `font.element.h1.size` is the size of an `h1`,
-  // and a path that named another element would be a decision the wrong rule
-  // spends.
-  for (const role of ELEMENT_TYPE_ROLES) {
-    deepStrictEqual(
-      role.path,
-      `font.element.${role.element}.${role.field}`,
-      `${role.path} must name its own element and field`,
-    );
-  }
-});
-
-test("every element the contract names has its core decisions", () => {
-  // A half-declared element is an element the theme can set a face for and
-  // not a size for, which reads as an accident rather than a decision. The
-  // style, tracking and leading ride beside the three the ladder always
-  // answered, on the elements whose rules spend the widened tuple.
-  for (const element of elementTypeElements()) {
-    const fields = elementTypeFields(element);
-    for (const field of ["family", "size", "weight"] as const) {
-      assert(
-        fields[field] !== undefined,
-        `${element} must have a ${field} decision`,
-      );
-    }
-  }
-});
-
-test("the declaration for a path is the one that path names", () => {
-  for (const path of elementTypePaths()) {
-    const role = elementTypeRole(path);
-    assert(role !== undefined, `${path} must be declared`);
-    deepStrictEqual(role.path, path);
-    deepStrictEqual(elementTypeFallback(path), role.fallback);
   }
 });

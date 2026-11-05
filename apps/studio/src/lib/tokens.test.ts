@@ -1,18 +1,37 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, type TokenTree } from "@spinjs/spin/theme";
+import {
+  generateCss,
+  indexTree,
+  parseTokens,
+  type TokenTree,
+} from "@spinjs/spin/theme";
 import { silkTheme } from "@spinjs/spin/theme/themes";
 import {
+  attachedStyle,
+  declaredStyles,
   borderUtilityOf,
   compositeLadders,
+  danglingReferences,
   editorRouteFor,
   formatComposite,
   isCompositeType,
   parseComposite,
+  repointEdits,
+  styleEdits,
+  styleGroups,
   tokenRowAt,
   toPx,
+  trimRefusal,
+  trimStyle,
 } from "./tokens.ts";
+import { applyEdits } from "./theme.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
+import {
+  ELEMENT_STYLE_DEFAULTS,
+  STYLE_FLOOR,
+  STYLE_REFERENCE_ROLES,
+} from "@spinjs/spin/theme";
 
 /**
  * The route a token link names has to exist.
@@ -140,10 +159,11 @@ test("borderUtilityOf names the utility the vocabulary spells", () => {
  * The composites, and a value each one is written in.
  *
  * The values are the theme's own spelling: the CSS a browser takes, which
- * is how the theme writes every value it holds.
+ * is how the theme writes every value it holds. TYPE-c: the `typography`
+ * composite is gone — one path, `font.style` — so the three survivors are
+ * the whole list.
  */
 const COMPOSITES: readonly { type: string; value: string }[] = [
-  { type: "typography", value: "600 1rem Inter, sans-serif 0.01em" },
   { type: "border", value: "2px solid #c8102e" },
   { type: "transition", value: "200ms cubic-bezier(0.4, 0, 0.2, 1)" },
   {
@@ -152,8 +172,8 @@ const COMPOSITES: readonly { type: string; value: string }[] = [
   },
 ];
 
-test("the composite types are the four the studio gives a control", () => {
-  deepStrictEqual(isCompositeType("typography"), true);
+test("the composite types are the three the studio gives a control", () => {
+  deepStrictEqual(isCompositeType("typography"), false);
   deepStrictEqual(isCompositeType("border"), true);
   deepStrictEqual(isCompositeType("transition"), true);
   deepStrictEqual(isCompositeType("gradient"), true);
@@ -172,14 +192,7 @@ test("a composite is read as the parts it is made of", () => {
   });
   deepStrictEqual(
     parseComposite("typography", "600 1rem Inter, sans-serif 0.01em"),
-    {
-      type: "typography",
-      family: "Inter, sans-serif",
-      size: "1rem",
-      weight: "600",
-      tracking: "0.01em",
-      leading: "",
-    },
+    undefined,
   );
   deepStrictEqual(
     parseComposite("transition", "200ms cubic-bezier(0.4, 0, 0.2, 1)"),
@@ -258,7 +271,199 @@ test("the ladders a composite offers are the theme's own steps", () => {
     ["width", "width-2", "width-4", "width-8"],
   );
   deepStrictEqual(
-    ladders.sizes.map((step) => step.name),
-    ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
+    "families" in ladders,
+    false,
+    "no family ladder without the typography composite",
   );
+});
+
+/**
+ * The type page's variant management, read from the theme's own document.
+ *
+ * The page lists what the theme declares — the styles under `font.style`,
+ * the elements that read them, the references components name — and every
+ * gesture below lands as edits the theme module judges. A test that only
+ * renders would say the rows exist; these say what the gestures MEAN.
+ */
+function styleTuple(
+  family: string,
+  size: string,
+  weight: string,
+): Record<string, Record<string, string>> {
+  return {
+    family: { $type: "fontFamily", $value: family },
+    size: { $type: "dimension", $value: size },
+    weight: { $type: "fontWeight", $value: weight },
+    tracking: { $type: "dimension", $value: "{font.tracking.normal}" },
+    leading: { $type: "dimension", $value: "{font.leading.relaxed}" },
+  };
+}
+
+function styleFixture(): string {
+  return JSON.stringify(
+    {
+      font: {
+        style: {
+          body: styleTuple("{font.family.body}", "{font.size.md}", "{font.weight.regular}"),
+          display: styleTuple("{font.family.sans}", "{font.size.3xl}", "{font.weight.bold}"),
+          code: styleTuple("{font.family.mono}", "{font.size.sm}", "{font.weight.regular}"),
+          aside: styleTuple("{font.family.body}", "{font.size.sm}", "{font.weight.regular}"),
+        },
+      },
+      button: {
+        type: { $type: "typography", $value: "label" },
+      },
+    },
+    null,
+    2,
+  );
+}
+
+test("styleGroups lists the floor before the custom, in the theme's words", () => {
+  const parsed = parseTokens(silkTheme);
+  if (!parsed.ok) {
+    throw new Error(`the shipped theme does not parse: ${parsed.error}`);
+  }
+  const groups = styleGroups(parsed.tree);
+  const floor = new Set(STYLE_FLOOR.map((style) => style.name));
+  deepStrictEqual(
+    groups.filter((group) => group.floor).map((group) => group.name),
+    STYLE_FLOOR.map((style) => style.name),
+  );
+  for (const group of groups) {
+    assert(group.fields.length > 0, `${group.name} carries no fields`);
+    deepStrictEqual(group.floor, floor.has(group.name));
+  }
+});
+
+test("a floor style cannot be trimmed, and the refusal says why", () => {
+  for (const style of STYLE_FLOOR) {
+    const refusal = trimRefusal(styleFixture(), style.name);
+    assert(
+      refusal !== undefined && refusal.includes(style.name),
+      `trimming ${style.name} is refused with its name in the reason`,
+    );
+  }
+});
+
+test("trimming a custom style removes its group and nothing else", () => {
+  deepStrictEqual(trimRefusal(styleFixture(), "aside"), undefined);
+  const doc = JSON.parse(trimStyle(styleFixture(), "aside")) as {
+    font: { style: Record<string, unknown> };
+    button: unknown;
+  };
+  deepStrictEqual(doc.font.style["aside"], undefined);
+  assert(doc.font.style["body"] !== undefined, "the body style survives");
+  assert(doc.button !== undefined, "outside groups survive");
+});
+
+test("adding a style scaffolds the tuple, and the document still builds", () => {
+  const doc = JSON.parse(styleEdits(styleFixture(), "pull")) as {
+    font: { style: Record<string, Record<string, { $value: unknown }>> };
+  };
+  const added = doc.font.style["pull"];
+  assert(added !== undefined, "the added style lands in the document");
+  for (const field of ["family", "size", "weight", "tracking", "leading"]) {
+    assert(
+      added[field] !== undefined,
+      `the added style carries ${field}`,
+    );
+  }
+});
+
+test("re-pointing an element writes the style the element reads", () => {
+  const edits = repointEdits(styleFixture(), "p", "code");
+  const doc = JSON.parse(applyEdits(styleFixture(), edits, "base")) as {
+    font: {
+      style: Record<string, Record<string, { $value: unknown }>>;
+    };
+  };
+  deepStrictEqual(
+    doc.font.style["body"]!["size"]!.$value,
+    "{font.style.code.size}",
+  );
+  deepStrictEqual(attachedStyle(styleFixture(), "p"), "body");
+  deepStrictEqual(
+    attachedStyle(applyEdits(styleFixture(), edits, "base"), "p"),
+    "code",
+  );
+});
+
+test("re-pointing past the map leaves the other elements where they were", () => {
+  const edits = repointEdits(styleFixture(), "h1", "aside");
+  const doc = JSON.parse(applyEdits(styleFixture(), edits, "base")) as {
+    font: {
+      style: Record<string, Record<string, { $value: unknown }>>;
+    };
+  };
+  deepStrictEqual(
+    doc.font.style["display"]!["size"]!.$value,
+    "{font.style.aside.size}",
+  );
+  deepStrictEqual(
+    doc.font.style["body"]!["size"]!.$value,
+    "{font.size.md}",
+  );
+});
+
+test("a reference that names no declared style is dangling, in words", () => {
+  const found = danglingReferences(styleFixture());
+  deepStrictEqual(found.length, 1);
+  assert(
+    found[0]!.includes("button.type") && found[0]!.includes("label"),
+    `the dangling reference names its path and value: ${found[0]}`,
+  );
+});
+
+test("a reference that names a declared style is not dangling", () => {
+  const doc = JSON.parse(styleFixture()) as Record<string, unknown>;
+  const button = (doc["button"] as Record<string, Record<string, unknown>>)[
+    "type"
+  ]!;
+  button["$value"] = "code";
+  deepStrictEqual(danglingReferences(JSON.stringify(doc, null, 2)), []);
+});
+
+test("the attachment map covers every element the contract names", () => {
+  for (const element of Object.keys(ELEMENT_STYLE_DEFAULTS)) {
+    assert(
+      attachedStyle(styleFixture(), element) !== undefined ||
+        elementStyleFixtureHasNoDefault(element),
+      `${element} reads a style the map can show`,
+    );
+  }
+  deepStrictEqual(STYLE_REFERENCE_ROLES.length > 0, true);
+});
+
+function elementStyleFixtureHasNoDefault(element: string): boolean {
+  return (ELEMENT_STYLE_DEFAULTS as Record<string, string>)[element] ===
+    undefined;
+}
+
+test("add then trim round-trips: the document comes back", () => {
+  const before = styleFixture();
+  const added = styleEdits(before, "pull");
+  assert(
+    declaredStyles(added).includes("pull"),
+    "the added style is declared",
+  );
+  const trimmed = trimStyle(added, "pull");
+  deepStrictEqual(JSON.parse(trimmed), JSON.parse(before));
+});
+
+test("re-pointing moves the emitted element voice: p follows code", () => {
+  // The ownership proof at the document level: p's rule spends the body
+  // style's variables, and after the re-point those variables ARE code's —
+  // the theme CSS carries the alias, so the element follows the style.
+  const edits = repointEdits(styleFixture(), "p", "code");
+  const next = applyEdits(styleFixture(), edits, "base");
+  const parsed = parseTokens(next);
+  if (!parsed.ok) {
+    throw new Error(`the re-pointed document does not parse: ${parsed.error}`);
+  }
+  const css = generateCss(parsed.tree);
+  const bodySize = /--font-style-body-size:\s*([^;]+);/.exec(css)?.[1]?.trim();
+  deepStrictEqual(bodySize, "var(--font-style-code-size)");
+  deepStrictEqual(attachedStyle(next, "p"), "code");
+  deepStrictEqual(attachedStyle(next, "h1"), "display");
 });

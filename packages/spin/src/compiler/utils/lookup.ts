@@ -1,7 +1,6 @@
 import type { ThemeRef } from "../../theme/index.ts";
 import { themeKey } from "../../theme/index.ts";
 import type { ThemeTokenPath } from "../../theme/theme-types.d.ts";
-import type { ElementTypePath } from "../../theme/index.ts";
 
 export interface ThemeContext {
   theme?: unknown;
@@ -31,16 +30,12 @@ export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
  * undefined by design, and the caller states its own fallback.
  *
  * A theme names its tokens under the canonical paths and nowhere else: there
- * is no second spelling a reader has to know about.
- *
- * The per-element typography paths are read here too, and they are part of
- * the union because the CONTRACT declares them: a theme may state what a
- * heading reads, and a rule that spends that decision asks for it by the same
- * path it is written under.
+ * is no second spelling a reader has to know about. (TYPE-c: the
+ * per-element typography paths are gone — elements read named styles.)
  */
 export function token(
   ctx: ThemeContext | undefined,
-  path: ThemeTokenPath | ElementTypePath,
+  path: ThemeTokenPath,
 ): string | undefined {
   return themeOf(ctx)?.[themeKey(path)];
 }

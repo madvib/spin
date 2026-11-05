@@ -1,42 +1,24 @@
 /**
- * The named-type typography: the styles a theme declares, and the type the
- * elements read.
+ * The named-type typography: the styles a theme declares.
  *
  * A shared scale is a decision the whole system shares — spacing, type,
  * radius, shadow. A named STYLE is a complete tuple the theme declares under
  * `font.style.<name>`: the face, the size, the weight, the tracking, the
- * leading, and the ink. The type an ELEMENT reads is a decision the element
- * owns: a theme may set `<h1>` in a display face at the top of the ladder,
- * put a quotation in the body face, or take a link out of the body's size
- * and set it small.
+ * leading, and the ink. Elements read styles by default (see
+ * `ELEMENT_STYLE_DEFAULTS` below); authors change style by changing element
+ * or by attaching another declared style — never by per-field element
+ * overrides, which TYPE-c deleted.
  *
- * The groups are OPTIONAL, and the system has an answer for every one of
- * their tokens: the ladder's step for a heading's size, the role's face for
- * its family, the weight the level implies. A theme that says nothing about
- * a heading gets the system's answer; a theme that says something replaces
- * it. That is what makes the groups safe to leave out, and what makes them
- * worth having — one heading's size can move without the other five moving
- * with it, and a theme that never mentions them still reads as complete.
+ * The styles are REQUIRED (see the floor below); the scales are the style
+ * author's library — styles alias `{font.size.md}` instead of writing
+ * `1rem` fourteen times. A theme with literal-valued styles and no scales
+ * is complete.
  *
- * The per-element paths are `font.element.<tag>.<field>`, and the fallback
- * each one carries is the system's answer, stated here rather than in a
- * rule — so the theme's own documentation and the rules that spend it cannot
- * disagree. The style paths are `font.style.<name>.<field>`; a style's
- * fields are aliases into the scales the tuple is built from, so moving a
- * step moves every style built from it.
+ * The style paths are `font.style.<name>.<field>`; a style's fields are
+ * aliases into the scales the tuple is built from, so moving a step moves
+ * every style built from it.
  */
 
-import type { TokenType } from "../pipeline/types.ts";
-
-/**
- * What one element's type is made of.
- *
- * Five decisions, and no more: the face it reads in, the size it reads at,
- * the weight it reads at, and the tracking and leading it reads at. The
- * tracking and leading are the scale's business, and a theme that wants a
- * different leading says so on the scale.
- */
-export type ElementTypeField = "family" | "size" | "weight" | "tracking" | "leading";
 
 /**
  * What one named style is made of.
@@ -117,26 +99,44 @@ export interface NamedStyleDeclaration {
   readonly doc: string;
 }
 
-/** One decision one element may state, and what it stands for when it does not. */
-export interface ElementTypeDeclaration {
-  /** The element the decision is about: `h1`, `p`, `blockquote`. */
-  readonly element: string;
-  /** Which of the three decisions this is. */
-  readonly field: ElementTypeField;
-  /** The dotted path: `font.element.h1.family`. */
-  readonly path: string;
-  readonly type: TokenType;
-  /** What the token is for, in the words an editor shows. */
-  readonly doc: string;
-  /**
-   * The global path the element reads when the theme says nothing.
-   *
-   * The system's answer, stated once. A heading's size falls back to the
-   * ladder's step, its face to the display face, and the body's face to the
-   * sans.
-   */
-  readonly fallback: GlobalTypePath;
+/**
+ * The styles a theme owes: the floor every starter implements.
+ *
+ * The names are stable API — a theme that renames one breaks every consumer
+ * of that name — so trimming below this set fails completeness. The tuple
+ * each name carries is the theme's own: shared keys, free values.
+ */
+export const STYLE_FLOOR: readonly NamedStyleDeclaration[] = [
+  { name: "display", element: "h1", doc: "The display voice: the largest statement a page makes." },
+  { name: "title", element: "h2", doc: "The title voice: a section head, sized to be found." },
+  { name: "heading", element: "h3", doc: "The heading voice: a subsection head inside a section." },
+  { name: "subtitle", doc: "The subtitle voice: the sentence under a heading that frames what follows." },
+  { name: "lead", doc: "The lead voice: the sentence that introduces what follows." },
+  { name: "body", element: "p", doc: "The body voice: the default reading text." },
+  { name: "quote", element: "blockquote", doc: "The quotation voice: long-form editorial text set apart." },
+  { name: "code", element: "code", doc: "The code voice: machine text at a size that sits beside prose." },
+  { name: "link", element: "a", doc: "The link voice: a run of body text that reads as a control." },
+  { name: "label", element: "h4", doc: "The label voice: the name on a control or a field." },
+  { name: "caption", element: "small", doc: "The caption voice: small print under a figure or a table." },
+  { name: "overline", element: "h5", doc: "The overline voice: an eyebrow or category mark above copy." },
+  { name: "stat", doc: "The stat voice: the number a figure shows, set to be read at a glance." },
+  { name: "badge", doc: "The badge voice: the word on a pill, set small enough to sit inside one." },
+  { name: "body-strong", element: "strong", doc: "The strong voice: body copy with emphasis." },
+  { name: "caption-strong", element: "figcaption", doc: "The figure-caption voice: a caption that names its figure." },
+  { name: "stat-label", doc: "The stat-label voice: the name above a figure, tracked open so it reads as a label." },
+  { name: "card-title", doc: "The card-title voice: the name on a card, set to be found inside a surface." },
+];
+
+/** The floor names, in the order the starters state them. */
+export function styleFloorNames(): readonly string[] {
+  return STYLE_FLOOR.map((style) => style.name);
 }
+
+/** The fields every floor style carries: the complete tuple. */
+export function styleFloorFields(): readonly NamedStyleField[] {
+  return ["family", "size", "weight", "tracking", "leading"];
+}
+
 
 /**
  * The chain a face falls back through.
@@ -158,487 +158,17 @@ export const FACE_CHAINS: Readonly<
   "font.family.body": ["font.family.sans"],
 };
 
-/**
- * The per-element typography, one entry per decision.
- *
- * The order is the order a reader meets them: the headings, then the block
- * and the inline elements, then the caption. Every entry is a decision a
- * theme MAY make, and every one of them has a fallback, so the group is
- * optional throughout — a theme that declares none of it is complete.
- */
-export const ELEMENT_TYPE_ROLES = [
-  {
-    element: "h1",
-    field: "family",
-    path: "font.element.h1.family",
-    type: "fontFamily",
-    doc:
-      "The face a level-one heading reads in. The display face, unless the theme says otherwise.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h1",
-    field: "size",
-    path: "font.element.h1.size",
-    type: "dimension",
-    doc:
-      "The size a level-one heading reads at. The top of the ladder, unless the theme says otherwise.",
-    fallback: "font.size.3xl",
-  },
-  {
-    element: "h1",
-    field: "weight",
-    path: "font.element.h1.weight",
-    type: "fontWeight",
-    doc:
-      "The weight a level-one heading reads at. The ladder's bold, unless the theme says otherwise.",
-    fallback: "font.weight.bold",
-  },
-  {
-    element: "h2",
-    field: "family",
-    path: "font.element.h2.family",
-    type: "fontFamily",
-    doc: "The face a level-two heading reads in.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h2",
-    field: "size",
-    path: "font.element.h2.size",
-    type: "dimension",
-    doc: "The size a level-two heading reads at.",
-    fallback: "font.size.2xl",
-  },
-  {
-    element: "h2",
-    field: "weight",
-    path: "font.element.h2.weight",
-    type: "fontWeight",
-    doc: "The weight a level-two heading reads at.",
-    fallback: "font.weight.semibold",
-  },
-  {
-    element: "h3",
-    field: "family",
-    path: "font.element.h3.family",
-    type: "fontFamily",
-    doc: "The face a level-three heading reads in.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h3",
-    field: "size",
-    path: "font.element.h3.size",
-    type: "dimension",
-    doc: "The size a level-three heading reads at.",
-    fallback: "font.size.xl",
-  },
-  {
-    element: "h3",
-    field: "weight",
-    path: "font.element.h3.weight",
-    type: "fontWeight",
-    doc: "The weight a level-three heading reads at.",
-    fallback: "font.weight.semibold",
-  },
-  {
-    element: "h4",
-    field: "family",
-    path: "font.element.h4.family",
-    type: "fontFamily",
-    doc: "The face a level-four heading reads in.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h4",
-    field: "size",
-    path: "font.element.h4.size",
-    type: "dimension",
-    doc: "The size a level-four heading reads at.",
-    fallback: "font.size.lg",
-  },
-  {
-    element: "h4",
-    field: "weight",
-    path: "font.element.h4.weight",
-    type: "fontWeight",
-    doc: "The weight a level-four heading reads at.",
-    fallback: "font.weight.semibold",
-  },
-  {
-    element: "h5",
-    field: "family",
-    path: "font.element.h5.family",
-    type: "fontFamily",
-    doc: "The face a level-five heading reads in.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h5",
-    field: "size",
-    path: "font.element.h5.size",
-    type: "dimension",
-    doc: "The size a level-five heading reads at.",
-    fallback: "font.size.md",
-  },
-  {
-    element: "h5",
-    field: "weight",
-    path: "font.element.h5.weight",
-    type: "fontWeight",
-    doc: "The weight a level-five heading reads at.",
-    fallback: "font.weight.semibold",
-  },
-  {
-    element: "h6",
-    field: "family",
-    path: "font.element.h6.family",
-    type: "fontFamily",
-    doc: "The face a level-six heading reads in.",
-    fallback: "font.family.heading",
-  },
-  {
-    element: "h6",
-    field: "size",
-    path: "font.element.h6.size",
-    type: "dimension",
-    doc: "The size a level-six heading reads at.",
-    fallback: "font.size.sm",
-  },
-  {
-    element: "h6",
-    field: "weight",
-    path: "font.element.h6.weight",
-    type: "fontWeight",
-    doc: "The weight a level-six heading reads at.",
-    fallback: "font.weight.semibold",
-  },
-  {
-    element: "p",
-    field: "family",
-    path: "font.element.p.family",
-    type: "fontFamily",
-    doc:
-      "The face a paragraph reads in. The body face, unless the theme says otherwise.",
-    fallback: "font.family.body",
-  },
-  {
-    element: "p",
-    field: "size",
-    path: "font.element.p.size",
-    type: "dimension",
-    doc:
-      "The size a paragraph reads at. The body's size, unless the theme says otherwise.",
-    fallback: "font.size.md",
-  },
-  {
-    element: "p",
-    field: "weight",
-    path: "font.element.p.weight",
-    type: "fontWeight",
-    doc: "The weight a paragraph reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "blockquote",
-    field: "family",
-    path: "font.element.blockquote.family",
-    type: "fontFamily",
-    doc:
-      "The face a quotation reads in. The editorial face, unless the theme says otherwise.",
-    fallback: "font.family.serif",
-  },
-  {
-    element: "blockquote",
-    field: "size",
-    path: "font.element.blockquote.size",
-    type: "dimension",
-    doc: "The size a quotation reads at.",
-    fallback: "font.size.md",
-  },
-  {
-    element: "blockquote",
-    field: "weight",
-    path: "font.element.blockquote.weight",
-    type: "fontWeight",
-    doc: "The weight a quotation reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "code",
-    field: "family",
-    path: "font.element.code.family",
-    type: "fontFamily",
-    doc:
-      "The face a run of code reads in. The mono face, unless the theme says otherwise.",
-    fallback: "font.family.mono",
-  },
-  {
-    element: "code",
-    field: "size",
-    path: "font.element.code.size",
-    type: "dimension",
-    doc: "The size a run of code reads at.",
-    fallback: "font.size.sm",
-  },
-  {
-    element: "code",
-    field: "weight",
-    path: "font.element.code.weight",
-    type: "fontWeight",
-    doc: "The weight a run of code reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "small",
-    field: "family",
-    path: "font.element.small.family",
-    type: "fontFamily",
-    doc: "The face a small label reads in.",
-    fallback: "font.family.body",
-  },
-  {
-    element: "small",
-    field: "size",
-    path: "font.element.small.size",
-    type: "dimension",
-    doc: "The size a small label reads at.",
-    fallback: "font.size.xs",
-  },
-  {
-    element: "small",
-    field: "weight",
-    path: "font.element.small.weight",
-    type: "fontWeight",
-    doc: "The weight a small label reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "strong",
-    field: "family",
-    path: "font.element.strong.family",
-    type: "fontFamily",
-    doc: "The face a strong run reads in.",
-    fallback: "font.family.body",
-  },
-  {
-    element: "strong",
-    field: "size",
-    path: "font.element.strong.size",
-    type: "dimension",
-    doc: "The size a strong run reads at. The size of the text it sits in.",
-    fallback: "font.size.md",
-  },
-  {
-    element: "strong",
-    field: "weight",
-    path: "font.element.strong.weight",
-    type: "fontWeight",
-    doc:
-      "The weight a strong run reads at. The ladder's bold, unless the theme says otherwise.",
-    fallback: "font.weight.bold",
-  },
-  {
-    element: "a",
-    field: "family",
-    path: "font.element.a.family",
-    type: "fontFamily",
-    doc: "The face a link reads in.",
-    fallback: "font.family.body",
-  },
-  {
-    element: "a",
-    field: "size",
-    path: "font.element.a.size",
-    type: "dimension",
-    doc: "The size a link reads at. The size of the text it sits in.",
-    fallback: "font.size.md",
-  },
-  {
-    element: "a",
-    field: "weight",
-    path: "font.element.a.weight",
-    type: "fontWeight",
-    doc: "The weight a link reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "figcaption",
-    field: "family",
-    path: "font.element.figcaption.family",
-    type: "fontFamily",
-    doc: "The face a caption reads in.",
-    fallback: "font.family.body",
-  },
-  {
-    element: "figcaption",
-    field: "size",
-    path: "font.element.figcaption.size",
-    type: "dimension",
-    doc: "The size a caption reads at.",
-    fallback: "font.size.sm",
-  },
-  {
-    element: "figcaption",
-    field: "weight",
-    path: "font.element.figcaption.weight",
-    type: "fontWeight",
-    doc: "The weight a caption reads at.",
-    fallback: "font.weight.regular",
-  },
-  {
-    element: "h2",
-    field: "tracking",
-    path: "font.element.h2.tracking",
-    type: "dimension",
-    doc: "The tracking a level-two heading reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "h2",
-    field: "leading",
-    path: "font.element.h2.leading",
-    type: "dimension",
-    doc: "The leading a level-two heading reads at.",
-    fallback: "font.leading.snug",
-  },
-  {
-    element: "h3",
-    field: "tracking",
-    path: "font.element.h3.tracking",
-    type: "dimension",
-    doc: "The tracking a level-three heading reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "h3",
-    field: "leading",
-    path: "font.element.h3.leading",
-    type: "dimension",
-    doc: "The leading a level-three heading reads at.",
-    fallback: "font.leading.normal",
-  },
-  {
-    element: "h4",
-    field: "tracking",
-    path: "font.element.h4.tracking",
-    type: "dimension",
-    doc: "The tracking a level-four heading reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "h4",
-    field: "leading",
-    path: "font.element.h4.leading",
-    type: "dimension",
-    doc: "The leading a level-four heading reads at.",
-    fallback: "font.leading.normal",
-  },
-  {
-    element: "h5",
-    field: "tracking",
-    path: "font.element.h5.tracking",
-    type: "dimension",
-    doc: "The tracking a level-five heading reads at.",
-    fallback: "font.tracking.wide",
-  },
-  {
-    element: "h5",
-    field: "leading",
-    path: "font.element.h5.leading",
-    type: "dimension",
-    doc: "The leading a level-five heading reads at.",
-    fallback: "font.leading.snug",
-  },
-  {
-    element: "h6",
-    field: "tracking",
-    path: "font.element.h6.tracking",
-    type: "dimension",
-    doc: "The tracking a level-six heading reads at.",
-    fallback: "font.tracking.wide",
-  },
-  {
-    element: "h6",
-    field: "leading",
-    path: "font.element.h6.leading",
-    type: "dimension",
-    doc: "The leading a level-six heading reads at.",
-    fallback: "font.leading.snug",
-  },
-  {
-    element: "blockquote",
-    field: "tracking",
-    path: "font.element.blockquote.tracking",
-    type: "dimension",
-    doc: "The tracking a quotation reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "blockquote",
-    field: "leading",
-    path: "font.element.blockquote.leading",
-    type: "dimension",
-    doc: "The leading a quotation reads at.",
-    fallback: "font.leading.relaxed",
-  },
-  {
-    element: "strong",
-    field: "tracking",
-    path: "font.element.strong.tracking",
-    type: "dimension",
-    doc: "The tracking a strong run reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "strong",
-    field: "leading",
-    path: "font.element.strong.leading",
-    type: "dimension",
-    doc: "The leading a strong run reads at.",
-    fallback: "font.leading.relaxed",
-  },
-  {
-    element: "a",
-    field: "tracking",
-    path: "font.element.a.tracking",
-    type: "dimension",
-    doc: "The tracking a link reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "a",
-    field: "leading",
-    path: "font.element.a.leading",
-    type: "dimension",
-    doc: "The leading a link reads at.",
-    fallback: "font.leading.relaxed",
-  },
-  {
-    element: "figcaption",
-    field: "tracking",
-    path: "font.element.figcaption.tracking",
-    type: "dimension",
-    doc: "The tracking a caption reads at.",
-    fallback: "font.tracking.normal",
-  },
-  {
-    element: "figcaption",
-    field: "leading",
-    path: "font.element.figcaption.leading",
-    type: "dimension",
-    doc: "The leading a caption reads at.",
-    fallback: "font.leading.snug",
-  },
-] as const satisfies readonly ElementTypeDeclaration[];
 
 /** The style an element reads by default.
  *
  * Stated once so the guide, the rules and the lint cannot disagree: a
  * heading reads the display style, a paragraph the body, code the code
  * style, and the small label the caption. A theme moves an element by
- * stating the element's own fields or by attaching a style.
+ * attaching another declared style or declaring a new one — never by
+ * per-field element overrides, which TYPE-c deleted.
+ *
+ * This stays in core for web; the move to a platform-mapping layer (iOS
+ * largeTitle to display and the like) is future work, not this stage.
  */
 export const ELEMENT_STYLE_DEFAULTS: Readonly<Record<string, string>> = {
   h1: "display",
@@ -664,64 +194,4 @@ export function elementStyleDefault(element: string): string | undefined {
 /** The elements that read a named style by default, in reading order. */
 export function elementStyleElements(): readonly string[] {
   return Object.keys(ELEMENT_STYLE_DEFAULTS);
-}
-
-/** The paths of every per-element typography token. */
-export type ElementTypePath = (typeof ELEMENT_TYPE_ROLES)[number]["path"];
-
-/** The declaration for one path, when there is one. */
-export function elementTypeRole(
-  path: string,
-): ElementTypeDeclaration | undefined {
-  return ELEMENT_TYPE_ROLES.find((role) => role.path === path);
-}
-
-/** The paths of every per-element typography token. */
-export function elementTypePaths(): readonly string[] {
-  return ELEMENT_TYPE_ROLES.map((role) => role.path);
-}
-
-/**
- * The global path a token falls back to when a theme omits it.
- *
- * The fallback is a fact about the contract, not about one rule: a heading's
- * size falls back to the ladder's step wherever the heading is drawn, so the
- * answer is asked of the theme once and read by every rule.
- */
-export function elementTypeFallback(path: string): string | undefined {
-  return elementTypeRole(path)?.fallback;
-}
-
-/** The five decisions one element may state, keyed by field. */
-export type ElementTypeFields = Readonly<
-  Record<ElementTypeField, ElementTypeDeclaration | undefined>
->;
-
-/** The decisions one element may state, with their fallbacks. */
-export function elementTypeFields(element: string): ElementTypeFields {
-  const find = (field: ElementTypeField) =>
-    ELEMENT_TYPE_ROLES.find((role) =>
-      role.element === element && role.field === field
-    );
-  return {
-    family: find("family"),
-    size: find("size"),
-    weight: find("weight"),
-    tracking: find("tracking"),
-    leading: find("leading"),
-  };
-}
-
-/**
- * The elements the per-element typography is about, in the order they read.
- *
- * The order is the order the roles are declared in, so the map a studio draws
- * and the contract a theme reads are the same list.
- */
-export function elementTypeElements(): readonly string[] {
-  const out: string[] = [];
-  for (const role of ELEMENT_TYPE_ROLES) {
-    if (!out.includes(role.element)) out.push(role.element);
-  }
-  return out;
 }

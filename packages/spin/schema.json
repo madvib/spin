@@ -1449,10 +1449,7 @@
       "additionalProperties": true,
       "required": [
         "family",
-        "size",
-        "weight",
-        "tracking",
-        "leading"
+        "style"
       ],
       "properties": {
         "family": {
@@ -1603,889 +1600,44 @@
             }
           }
         },
-        "size": {
+        "style": {
           "type": "object",
           "additionalProperties": true,
           "required": [
-            "2xs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl",
-            "3xl"
+            "display",
+            "title",
+            "heading",
+            "subtitle",
+            "lead",
+            "body",
+            "quote",
+            "code",
+            "link",
+            "label",
+            "caption",
+            "overline",
+            "stat",
+            "badge",
+            "body-strong",
+            "caption-strong",
+            "stat-label",
+            "card-title"
           ],
           "properties": {
-            "2xs": {
+            "display": {
               "type": "object",
-              "description": "font.size.2xs",
               "additionalProperties": true,
               "required": [
-                "$value"
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
               ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "xs": {
-              "type": "object",
-              "description": "font.size.xs",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "sm": {
-              "type": "object",
-              "description": "font.size.sm",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "md": {
-              "type": "object",
-              "description": "font.size.md",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "lg": {
-              "type": "object",
-              "description": "font.size.lg",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "xl": {
-              "type": "object",
-              "description": "font.size.xl",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "2xl": {
-              "type": "object",
-              "description": "font.size.2xl",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "3xl": {
-              "type": "object",
-              "description": "font.size.3xl",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "weight": {
-          "type": "object",
-          "additionalProperties": true,
-          "required": [
-            "regular",
-            "medium",
-            "semibold",
-            "bold"
-          ],
-          "properties": {
-            "regular": {
-              "type": "object",
-              "description": "font.weight.regular",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "medium": {
-              "type": "object",
-              "description": "font.weight.medium",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "semibold": {
-              "type": "object",
-              "description": "font.weight.semibold",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "bold": {
-              "type": "object",
-              "description": "font.weight.bold",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tracking": {
-          "type": "object",
-          "additionalProperties": true,
-          "required": [
-            "tighter",
-            "tight",
-            "normal",
-            "wide",
-            "wider",
-            "widest"
-          ],
-          "properties": {
-            "tighter": {
-              "type": "object",
-              "description": "font.tracking.tighter",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "tight": {
-              "type": "object",
-              "description": "font.tracking.tight",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "normal": {
-              "type": "object",
-              "description": "font.tracking.normal",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "wide": {
-              "type": "object",
-              "description": "font.tracking.wide",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "wider": {
-              "type": "object",
-              "description": "font.tracking.wider",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "widest": {
-              "type": "object",
-              "description": "font.tracking.widest",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "leading": {
-          "type": "object",
-          "additionalProperties": true,
-          "required": [
-            "none",
-            "tight",
-            "snug",
-            "normal",
-            "relaxed",
-            "loose"
-          ],
-          "properties": {
-            "none": {
-              "type": "object",
-              "description": "font.leading.none",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "tight": {
-              "type": "object",
-              "description": "font.leading.tight",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "snug": {
-              "type": "object",
-              "description": "font.leading.snug",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "normal": {
-              "type": "object",
-              "description": "font.leading.normal",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "relaxed": {
-              "type": "object",
-              "description": "font.leading.relaxed",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            },
-            "loose": {
-              "type": "object",
-              "description": "font.leading.loose",
-              "additionalProperties": true,
-              "required": [
-                "$value"
-              ],
-              "properties": {
-                "$value": {},
-                "$type": {
-                  "type": "string",
-                  "enum": [
-                    "color",
-                    "boolean",
-                    "dimension",
-                    "fontFamily",
-                    "fontWeight",
-                    "duration",
-                    "cubicBezier",
-                    "number",
-                    "strokeStyle",
-                    "border",
-                    "transition",
-                    "shadow",
-                    "gradient",
-                    "typography",
-                    "textTransform"
-                  ]
-                },
-                "$description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "element": {
-          "type": "object",
-          "additionalProperties": true,
-          "properties": {
-            "h1": {
-              "type": "object",
-              "additionalProperties": true,
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a level-one heading reads in. The display face, unless the theme says otherwise.",
+                  "description": "The family the display style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2519,7 +1671,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a level-one heading reads at. The top of the ladder, unless the theme says otherwise.",
+                  "description": "The size the display style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2553,115 +1705,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a level-one heading reads at. The ladder's bold, unless the theme says otherwise.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "h2": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "family": {
-                  "type": "object",
-                  "description": "The face a level-two heading reads in.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "size": {
-                  "type": "object",
-                  "description": "The size a level-two heading reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "weight": {
-                  "type": "object",
-                  "description": "The weight a level-two heading reads at.",
+                  "description": "The weight the display style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2695,7 +1739,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a level-two heading reads at.",
+                  "description": "The tracking the display style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2729,7 +1773,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a level-two heading reads at.",
+                  "description": "The leading the display style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2763,13 +1807,20 @@
                 }
               }
             },
-            "h3": {
+            "title": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a level-three heading reads in.",
+                  "description": "The family the title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2803,7 +1854,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a level-three heading reads at.",
+                  "description": "The size the title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2837,7 +1888,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a level-three heading reads at.",
+                  "description": "The weight the title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2871,7 +1922,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a level-three heading reads at.",
+                  "description": "The tracking the title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2905,7 +1956,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a level-three heading reads at.",
+                  "description": "The leading the title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2939,13 +1990,20 @@
                 }
               }
             },
-            "h4": {
+            "heading": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a level-four heading reads in.",
+                  "description": "The family the heading style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -2979,7 +2037,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a level-four heading reads at.",
+                  "description": "The size the heading style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3013,7 +2071,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a level-four heading reads at.",
+                  "description": "The weight the heading style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3047,7 +2105,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a level-four heading reads at.",
+                  "description": "The tracking the heading style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3081,7 +2139,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a level-four heading reads at.",
+                  "description": "The leading the heading style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3115,13 +2173,20 @@
                 }
               }
             },
-            "h5": {
+            "subtitle": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a level-five heading reads in.",
+                  "description": "The family the subtitle style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3155,7 +2220,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a level-five heading reads at.",
+                  "description": "The size the subtitle style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3189,7 +2254,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a level-five heading reads at.",
+                  "description": "The weight the subtitle style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3223,7 +2288,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a level-five heading reads at.",
+                  "description": "The tracking the subtitle style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3257,7 +2322,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a level-five heading reads at.",
+                  "description": "The leading the subtitle style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3291,13 +2356,20 @@
                 }
               }
             },
-            "h6": {
+            "lead": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a level-six heading reads in.",
+                  "description": "The family the lead style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3331,7 +2403,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a level-six heading reads at.",
+                  "description": "The size the lead style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3365,7 +2437,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a level-six heading reads at.",
+                  "description": "The weight the lead style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3399,7 +2471,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a level-six heading reads at.",
+                  "description": "The tracking the lead style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3433,7 +2505,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a level-six heading reads at.",
+                  "description": "The leading the lead style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3467,13 +2539,20 @@
                 }
               }
             },
-            "p": {
+            "body": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a paragraph reads in. The body face, unless the theme says otherwise.",
+                  "description": "The family the body style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3507,7 +2586,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a paragraph reads at. The body's size, unless the theme says otherwise.",
+                  "description": "The size the body style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3541,115 +2620,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a paragraph reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "blockquote": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "family": {
-                  "type": "object",
-                  "description": "The face a quotation reads in. The editorial face, unless the theme says otherwise.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "size": {
-                  "type": "object",
-                  "description": "The size a quotation reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "weight": {
-                  "type": "object",
-                  "description": "The weight a quotation reads at.",
+                  "description": "The weight the body style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3683,7 +2654,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a quotation reads at.",
+                  "description": "The tracking the body style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3717,7 +2688,190 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a quotation reads at.",
+                  "description": "The leading the body style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "quote": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the quote style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the quote style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the quote style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the quote style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the quote style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3754,10 +2908,17 @@
             "code": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a run of code reads in. The mono face, unless the theme says otherwise.",
+                  "description": "The family the code style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3791,7 +2952,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a run of code reads at.",
+                  "description": "The size the code style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -3825,223 +2986,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a run of code reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "small": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "family": {
-                  "type": "object",
-                  "description": "The face a small label reads in.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "size": {
-                  "type": "object",
-                  "description": "The size a small label reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "weight": {
-                  "type": "object",
-                  "description": "The weight a small label reads at.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "strong": {
-              "type": "object",
-              "additionalProperties": true,
-              "properties": {
-                "family": {
-                  "type": "object",
-                  "description": "The face a strong run reads in.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "size": {
-                  "type": "object",
-                  "description": "The size a strong run reads at. The size of the text it sits in.",
-                  "additionalProperties": true,
-                  "required": [
-                    "$value"
-                  ],
-                  "properties": {
-                    "$value": {},
-                    "$type": {
-                      "type": "string",
-                      "enum": [
-                        "color",
-                        "boolean",
-                        "dimension",
-                        "fontFamily",
-                        "fontWeight",
-                        "duration",
-                        "cubicBezier",
-                        "number",
-                        "strokeStyle",
-                        "border",
-                        "transition",
-                        "shadow",
-                        "gradient",
-                        "typography",
-                        "textTransform"
-                      ]
-                    },
-                    "$description": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "weight": {
-                  "type": "object",
-                  "description": "The weight a strong run reads at. The ladder's bold, unless the theme says otherwise.",
+                  "description": "The weight the code style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4075,7 +3020,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a strong run reads at.",
+                  "description": "The tracking the code style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4109,7 +3054,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a strong run reads at.",
+                  "description": "The leading the code style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4143,13 +3088,20 @@
                 }
               }
             },
-            "a": {
+            "link": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a link reads in.",
+                  "description": "The family the link style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4183,7 +3135,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a link reads at. The size of the text it sits in.",
+                  "description": "The size the link style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4217,7 +3169,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a link reads at.",
+                  "description": "The weight the link style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4251,7 +3203,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a link reads at.",
+                  "description": "The tracking the link style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4285,7 +3237,7 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a link reads at.",
+                  "description": "The leading the link style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4319,13 +3271,20 @@
                 }
               }
             },
-            "figcaption": {
+            "label": {
               "type": "object",
               "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
               "properties": {
                 "family": {
                   "type": "object",
-                  "description": "The face a caption reads in.",
+                  "description": "The family the label style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4359,7 +3318,7 @@
                 },
                 "size": {
                   "type": "object",
-                  "description": "The size a caption reads at.",
+                  "description": "The size the label style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4393,7 +3352,7 @@
                 },
                 "weight": {
                   "type": "object",
-                  "description": "The weight a caption reads at.",
+                  "description": "The weight the label style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4427,7 +3386,7 @@
                 },
                 "tracking": {
                   "type": "object",
-                  "description": "The tracking a caption reads at.",
+                  "description": "The tracking the label style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"
@@ -4461,7 +3420,1471 @@
                 },
                 "leading": {
                   "type": "object",
-                  "description": "The leading a caption reads at.",
+                  "description": "The leading the label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "caption": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the caption style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the caption style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the caption style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the caption style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the caption style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "overline": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the overline style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the overline style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the overline style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the overline style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the overline style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "stat": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the stat style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the stat style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the stat style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the stat style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the stat style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "badge": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the badge style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the badge style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the badge style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the badge style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the badge style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "body-strong": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the body-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the body-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the body-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the body-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the body-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "caption-strong": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the caption-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the caption-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the caption-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the caption-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the caption-strong style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "stat-label": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the stat-label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the stat-label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the stat-label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the stat-label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the stat-label style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "card-title": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "family",
+                "size",
+                "weight",
+                "tracking",
+                "leading"
+              ],
+              "properties": {
+                "family": {
+                  "type": "object",
+                  "description": "The family the card-title style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "size": {
+                  "type": "object",
+                  "description": "The size the card-title style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight the card-title style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "tracking": {
+                  "type": "object",
+                  "description": "The tracking the card-title style reads at.",
+                  "additionalProperties": true,
+                  "required": [
+                    "$value"
+                  ],
+                  "properties": {
+                    "$value": {},
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "color",
+                        "boolean",
+                        "dimension",
+                        "fontFamily",
+                        "fontWeight",
+                        "duration",
+                        "cubicBezier",
+                        "number",
+                        "strokeStyle",
+                        "border",
+                        "transition",
+                        "shadow",
+                        "gradient",
+                        "typography",
+                        "textTransform"
+                      ]
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "leading": {
+                  "type": "object",
+                  "description": "The leading the card-title style reads at.",
                   "additionalProperties": true,
                   "required": [
                     "$value"

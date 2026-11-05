@@ -15,6 +15,7 @@
 
 import { ELEMENT_ROLES } from "../contract/elements.ts";
 import { BASE_ROLES, baselineScales } from "../contract/roles.ts";
+import { STYLE_FLOOR, styleFloorFields } from "../contract/typography.ts";
 import type { TokenLeaf, TokenTree, TokenType } from "../pipeline/types.ts";
 
 /** A declaration a scaffold can write: the path, the type, the value. */
@@ -26,7 +27,59 @@ interface Scaffoldable {
 
 /** Every declaration a scaffold knows, base roles first. */
 function declarations(): readonly Scaffoldable[] {
-  return [...BASE_ROLES, ...ELEMENT_ROLES];
+  return [...BASE_ROLES, ...ELEMENT_ROLES, ...floorDeclarations()];
+}
+
+/**
+ * The style floor, written as literals.
+ *
+ * The floor names are stable API, so a scaffold carries every one: a new
+ * theme starts complete, and the author meets the decisions rather than the
+ * gaps. The values are literals, never aliases into the scales — a scaffold
+ * declares no scales, so an alias would point at a token the scaffold
+ * itself does not carry. The tuple is the theme's to author, and the
+ * scaffold's is deliberately unfinished.
+ */
+function floorDeclarations(): readonly Scaffoldable[] {
+  return STYLE_FLOOR.flatMap((style) =>
+    styleFloorFields().map((field) => ({
+      path: `font.style.${style.name}.${field}`,
+      type: floorFieldType(field),
+      value: floorLiteral(style.name, field),
+    }))
+  );
+}
+
+/** The token type one floor field carries. */
+function floorFieldType(field: string): TokenType {
+  if (field === "family") return "fontFamily";
+  if (field === "weight") return "fontWeight";
+  return "dimension";
+}
+
+/** The literal value one floor leaf carries. */
+function floorLiteral(name: string, field: string): string | number {
+  const literals: Record<string, Record<string, string | number>> = {
+    display: { family: "system-ui, sans-serif", size: "1.875rem", weight: 700, tracking: "-0.025em", leading: 1.25 },
+    title: { family: "system-ui, sans-serif", size: "1.5rem", weight: 600, tracking: "0em", leading: 1.375 },
+    heading: { family: "system-ui, sans-serif", size: "1.25rem", weight: 600, tracking: "0em", leading: 1.375 },
+    subtitle: { family: "system-ui, sans-serif", size: "1.125rem", weight: 500, tracking: "0em", leading: 1.375 },
+    lead: { family: "system-ui, sans-serif", size: "1.125rem", weight: 400, tracking: "0em", leading: 1.625 },
+    body: { family: "system-ui, sans-serif", size: "1rem", weight: 400, tracking: "0em", leading: 1.625 },
+    quote: { family: "ui-serif, Georgia, serif", size: "1rem", weight: 400, tracking: "0em", leading: 1.625 },
+    code: { family: "ui-monospace, monospace", size: "0.875rem", weight: 400, tracking: "0em", leading: 1.5 },
+    link: { family: "system-ui, sans-serif", size: "1rem", weight: 400, tracking: "0em", leading: 1.625 },
+    label: { family: "system-ui, sans-serif", size: "0.875rem", weight: 500, tracking: "0.025em", leading: 1.375 },
+    caption: { family: "system-ui, sans-serif", size: "0.75rem", weight: 400, tracking: "0em", leading: 1.375 },
+    overline: { family: "system-ui, sans-serif", size: "0.75rem", weight: 600, tracking: "0.05em", leading: 1.375 },
+    stat: { family: "ui-monospace, monospace", size: "1.5rem", weight: 600, tracking: "0em", leading: 1.25 },
+    badge: { family: "system-ui, sans-serif", size: "0.625rem", weight: 500, tracking: "0.025em", leading: 1 },
+    "body-strong": { family: "system-ui, sans-serif", size: "1rem", weight: 600, tracking: "0em", leading: 1.625 },
+    "caption-strong": { family: "system-ui, sans-serif", size: "0.75rem", weight: 600, tracking: "0.025em", leading: 1.375 },
+    "stat-label": { family: "system-ui, sans-serif", size: "0.75rem", weight: 600, tracking: "0.025em", leading: 1.375 },
+    "card-title": { family: "system-ui, sans-serif", size: "1.125rem", weight: 600, tracking: "0em", leading: 1.375 },
+  };
+  return literals[name]?.[field] ?? "1rem";
 }
 
 /**

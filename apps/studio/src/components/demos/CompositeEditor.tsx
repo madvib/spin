@@ -2,12 +2,12 @@
  * The composite editors: a control for a value that is more than one thing.
  *
  * A colour is one thing and a dimension is one thing, so a text field can
- * serve them and the studio's fields do. A typography is a family, a size, a
- * weight and a tracking; a border is a width, a style and a colour; a
- * transition is a duration and an easing; a gradient is a direction and a
- * list of stops. One string carries all of them, so one string cannot be
- * edited part by part — and a text box that takes the whole string is how a
- * border ends up with a colour that is not one.
+ * serve them and the studio's fields do. A border is a width, a style and a
+ * colour; a transition is a duration and an easing; a gradient is a
+ * direction and a list of stops. One string carries all of them, so one
+ * string cannot be edited part by part — and a text box that takes the whole
+ * string is how a border ends up with a colour that is not one. (TYPE-c:
+ * the `typography` composite is gone — one path, `font.style`.)
  *
  * So each composite type has an editor of its own, and the TYPE decides
  * which one opens. This file is the dispatcher and the parts the editors
@@ -49,7 +49,6 @@ import type {
 } from "../../lib/tokens.ts";
 import { refusalFor } from "../../lib/store.ts";
 import { tokenPath } from "../../lib/live-edit.ts";
-import TypographyEditor from "./TypographyEditor.tsx";
 import BorderEditor from "./BorderEditor.tsx";
 import TransitionEditor from "./TransitionEditor.tsx";
 import GradientEditor from "./GradientEditor.tsx";
@@ -530,10 +529,9 @@ export function ChoiceField(props: {
 /**
  * The composite's own editor.
  *
- * The type decides the editor: a typography opens the type's four parts, a
- * border the edge's three, a transition the motion's two, a gradient the
- * fill's direction and stops. A value the type cannot be read as says so
- * rather than showing parts that were never there.
+ * The type decides the editor: a border the edge's three, a transition the
+ * motion's two, a gradient the fill's direction and stops. A value the type
+ * cannot be read as says so rather than showing parts that were never there.
  */
 export default function CompositeEditor(props: {
   /** The token's declared type — the composite it is. */
@@ -594,14 +592,6 @@ function Body(props: {
 }) {
   const parts = props.parts;
   switch (parts.type) {
-    case "typography":
-      return (
-        <TypographyEditor
-          composite={parts}
-          ladders={props.ladders}
-          onCommit={(next) => props.onCommit(formatComposite(next))}
-        />
-      );
     case "border":
       return (
         <BorderEditor

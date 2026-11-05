@@ -16,8 +16,8 @@
  * neither wins by source order.
  */
 
-import { proseTokens, spacing, statedType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
+import { ladder, proseTokens, spacing, styleField, styleType } from "./shared.ts";
 import type { Rule } from "@unocss/core";
 
 /**
@@ -37,10 +37,13 @@ function bodyRule(): Rule {
     /^body$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const s = styleType(ctx, "body");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
       yield {
         [ctx.symbols.selector]: () => paintedTag("body", "global", "body"),
-        ...(t.body !== undefined ? { "font-family": t.body } : {}),
-        ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         "line-height": "1.5",
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.surface !== undefined ? { "background-color": t.surface } : {}),
@@ -56,27 +59,23 @@ function bodyRule(): Rule {
  *
  * The paragraph's TYPE is the body's — it inherits the floor — and the
  * paragraph states what it inherits, so a class that says otherwise is a
- * second opinion the lint can see. The theme may set the paragraph's type
- * for itself: `font.element.p.family`, `font.element.p.size` and
- * `font.element.p.weight` are the paragraph's own answer, and where the
- * theme gives one it replaces what the paragraph would otherwise read.
- * What it leaves out, the paragraph takes from the body chain — the face
- * the body reads in, the size the body reads at, the weight unemphasised
- * text carries — and states that too, so rules and lint read one answer.
- * Nothing here changes rendered output for themes that state nothing: the
- * values stated are the values already inherited, now written down.
+ * second opinion the lint can see. The paragraph reads the body style
+ * outright: the face, the size, the weight, the tracking and the leading a
+ * paragraph wears are the body voice's, and a theme moves its paragraphs by
+ * moving the style. What the style leaves out, the ladder answers during
+ * the window — the body's step for each field.
  */
 function paragraphRule(): Rule {
   return [
     /^p$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "p");
-      const family = own.family ?? t.body;
-      const size = own.size ?? t.sizeMd;
-      const weight = own.weight ?? t.weightRegular;
-      const tracking = own.tracking ?? t.trackingNormal;
-      const leading = own.leading ?? t.leadingRelaxed;
+      const s = styleType(ctx, "body");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
       yield {
         [ctx.symbols.selector]: () => "p",
         ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
@@ -94,26 +93,21 @@ function paragraphRule(): Rule {
 /** A list: the shared spacing, its indent, and the type its rows read in.
  *
  * A list's TYPE is the body's, as the paragraph's is: the rows read the
- * same face, size and weight a paragraph would, and the list states what
- * it inherits so spacing/type overrides have an owner. The theme may set
- * the list's type for itself per element (`font.element.ul.*`,
- * `font.element.ol.*`); where the theme gives one it replaces what the
- * list would otherwise read. What it leaves out, the list takes from the
- * body chain and states too. Nothing here changes rendered output for
- * themes that state nothing: the values stated are the values already
- * inherited, now written down.
+ * body style outright, and the list states what it inherits so spacing/type
+ * overrides have an owner. What the style leaves out, the ladder answers
+ * during the window — the body's step for each field.
  */
 function listRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, tag);
-      const family = own.family ?? t.body;
-      const size = own.size ?? t.sizeMd;
-      const weight = own.weight ?? t.weightRegular;
-      const tracking = own.tracking ?? t.trackingNormal;
-      const leading = own.leading ?? t.leadingRelaxed;
+      const s = styleType(ctx, "body");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
@@ -149,10 +143,10 @@ function listItemRule(): Rule {
     /^li$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "li");
-      const family = own.family ?? t.body;
-      const size = own.size ?? t.sizeMd;
-      const weight = own.weight ?? t.weightRegular;
+      const s = styleType(ctx, "body");
+      const family = s.family ?? ladder(ctx, "font.family.body");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
       yield {
         [ctx.symbols.selector]: () => li,
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -187,12 +181,11 @@ function termRule(): Rule {
   return [
     /^dt$/,
     function* (_m, ctx) {
-      const t = proseTokens(ctx);
+      const s = styleType(ctx, "body-strong");
+      const weight = s.weight ?? ladder(ctx, "font.weight.semibold");
       yield {
         [ctx.symbols.selector]: () => "dt",
-        ...(t.weightSemibold !== undefined
-          ? { "font-weight": t.weightSemibold }
-          : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
       };
     },
     { layer: "primitives", autocomplete: "dt" },
@@ -230,9 +223,10 @@ function definitionRule(): Rule {
  *
  * The quotation's VOICE — the face it reads in and the spacing it sits in — is
  * typography, and typography is the theme's everywhere: a quotation in a
- * sidebar reads in the same face as a quotation in a document. The face is
- * the theme's editorial voice, and a theme that names none leaves the
- * quotation in the body's face.
+ * sidebar reads in the same face as a quotation in a document. The quotation
+ * reads the quote style outright, and a theme moves its quotations by moving
+ * the style. What the style leaves out, the ladder answers during the
+ * window — the quote's step for each field.
  *
  * The quotation's TREATMENT — the muted ink it reads in and the inset it is
  * set in — is the document's furniture. It is a long-form column's way of
@@ -240,7 +234,8 @@ function definitionRule(): Rule {
  * outside one is the author's, and reads like the body around it.
  *
  * The footer that carries the attribution is reached through the quotation,
- * so an ordinary `<footer>` elsewhere is not styled as one.
+ * so an ordinary `<footer>` elsewhere is not styled as one. The attribution
+ * is small print, so it reads the caption style.
  */
 function blockquoteRule(): Rule {
   const inset = block("blockquote");
@@ -248,15 +243,20 @@ function blockquoteRule(): Rule {
     /^blockquote$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, "blockquote");
-      const family = own.family ?? t.serif;
+      const s = styleType(ctx, "quote");
+      const family = s.family ?? ladder(ctx, "font.family.serif");
+      const size = s.size ?? ladder(ctx, "font.size.md");
+      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
+      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
+      const footerSize = styleField(ctx, "caption", "size");
       yield {
         [ctx.symbols.selector]: () => "blockquote",
         ...(family !== undefined ? { "font-family": family } : {}),
-        ...(own.size !== undefined ? { "font-size": own.size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...spacing(t),
       };
       yield {
@@ -274,7 +274,7 @@ function blockquoteRule(): Rule {
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
-        ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
+        ...(footerSize !== undefined ? { "font-size": footerSize } : {}),
       };
     },
     { layer: "primitives", autocomplete: "blockquote" },

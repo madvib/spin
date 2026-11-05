@@ -35,8 +35,8 @@ import type { Rule } from "@unocss/core";
  * would have to be keyed on one tag and would drag every other tag's rule in
  * with it.
  *
- * The type is spent from the scale, never minted: a theme moves its prose by
- * moving `font` and `spacing`, and every block follows.
+ * The type is spent from the theme's named styles, never minted: a theme
+ * moves its prose by moving `font.style`, and every block follows.
  */
 
 import { blockRules, bodyRule } from "./prose-block.ts";

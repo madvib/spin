@@ -18,6 +18,7 @@ import {
   indexTree,
   type TokenIndex,
 } from "./resolve.ts";
+import { styleReferenceIssues } from "../contract/elements.ts";
 import {
   TOKEN_TYPES,
   type TokenLeaf,
@@ -273,7 +274,13 @@ export function validateTokens(
     });
   }
 
+  // A style reference that names no declared style is a theme error, not a
+  // silent fallback: the rule would spend the ladder while the theme claims
+  // a style, and the claim is what the author meant to move.
+  issues.push(...styleReferenceIssues(tree));
+
   issues.push(...duplicateVarIssues(leaves));
+
   // The modes the document serves are the claim it makes; a value written
   // for a mode it does not serve is never shown. The check reads the claim
   // from the caller's `modes`, never from the presence of an override:

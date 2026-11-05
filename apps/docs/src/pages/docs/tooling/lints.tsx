@@ -40,10 +40,10 @@ const PAIRS: readonly {
   },
   {
     rule: "spin/no-redundant-class",
-    bad: `<button type="button" class="tracking-wide">Save changes</button>`,
+    bad: `<button type="button" class="type-label">Save changes</button>`,
     good: `<button type="button">Save changes</button>`,
     note:
-      "The button already wears the wide tracking. The fix drops the redundant class.",
+      "The button already reads the label style. The fix drops the redundant class.",
   },
   {
     rule: "spin/prefer-theme-value",
@@ -54,10 +54,10 @@ const PAIRS: readonly {
   },
   {
     rule: "spin/prefer-element",
-    bad: `<span class="tracking-tight">Revenue</span>`,
+    bad: `<span class="type-display">Revenue</span>`,
     good: `<h1>Revenue</h1>`,
     note:
-      "The tight tracking belongs to exactly one element, so this is an error. Tracking several elements share stays a suggestion.",
+      "The display style belongs to exactly one element, so this is an error. A style several elements read stays a suggestion.",
   },
   {
     rule: "spin/no-unpaired-ink",

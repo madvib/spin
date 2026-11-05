@@ -45,7 +45,7 @@ function SignalDemo(): JSX.Element {
         </div>
       </div>
       <div>
-        <p class="uppercase tracking-wider text-text-muted">
+        <p class="uppercase text-text-muted">
           Effect log (newest first)
         </p>
         <ul class="flow-list">

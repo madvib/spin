@@ -57,7 +57,7 @@ export default function ThemesFonts(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="scale" title="Type scale, weights, and tracking">
+      <Section id="scale" title="Type scale, weights, tracking, and leading">
         <p class="max-w-prose">
           The <code>font.size</code> group is a monotonic ramp from{" "}
           <code>2xs</code> through <code>display</code>: every step must read
@@ -66,10 +66,10 @@ export default function ThemesFonts(): JSX.Element {
           <code>font.leading.*</code> sets unitless ratios, and{" "}
           <code>font.tracking.*</code> sets tracking. When one element
           needs its own voice — uppercase tracked buttons, tight display
-          headings — declare a per-element override such as{" "}
-          <code>font.element.h1.family</code> or a named style{" "}
+          headings — declare a named style such as{" "}
           <code>font.style.label</code> and spend it with{" "}
-          <code>type-label</code> instead of forking the global scale. See{" "}
+          <code>type-label</code>, or re-point the element to a style it
+          should read, instead of forking the global scale. See{" "}
           <A href="/docs/themes/customization#elements">Customization</A> for
           the full per-element story.
         </p>

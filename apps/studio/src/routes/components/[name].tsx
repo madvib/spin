@@ -287,7 +287,7 @@ export default function ComponentPage() {
                 >
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showApi()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"
@@ -306,7 +306,7 @@ export default function ComponentPage() {
                     // states are spelled out rather than layered, because a
                     // second colour class on the same element is a coin toss
                     // for which one the sheet writes last.
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showTokens()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"
@@ -320,7 +320,7 @@ export default function ComponentPage() {
                 <Show when={classRowsFor(component).length > 0}>
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showClasses()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"

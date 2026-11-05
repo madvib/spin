@@ -109,6 +109,41 @@ test("every removed family and weight carries a style suggestion", () => {
   }
 });
 
+test("every removed tracking and leading step carries a style suggestion", () => {
+  // TYPE-c (styles own type): the ladder atoms are removed too — every
+  // `tracking-*`/`leading-*` error carries a style suggestion or the stage
+  // fails its own UX contract.
+  const facts = starterFacts();
+  for (
+    const cls of [
+      "tracking-tighter",
+      "tracking-tight",
+      "tracking-normal",
+      "tracking-wide",
+      "tracking-wider",
+      "tracking-widest",
+      "leading-none",
+      "leading-tight",
+      "leading-snug",
+      "leading-normal",
+      "leading-relaxed",
+      "leading-loose",
+    ]
+  ) {
+    const [finding] = checkClosedVocabulary(facts, element(cls));
+    deepStrictEqual(
+      finding?.messageId,
+      "unknown",
+      `${cls} is no longer vocabulary`,
+    );
+    match(
+      finding?.remedy ?? "",
+      /type-[a-z-]+/,
+      `${cls} suggests a declared style`,
+    );
+  }
+});
+
 test("the suggestion shares the removed utility's value", () => {
   // text-xs is the caption step and font-mono is the code face: the remedy
   // names the style that reads that way, not an arbitrary style.

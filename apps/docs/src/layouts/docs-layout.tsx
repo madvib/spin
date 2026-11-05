@@ -29,7 +29,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
         {(group) => (
           <div class="flex flex-col gap-1">
             <span
-              class={`px-2 pb-1 type-caption-strong uppercase tracking-wider ${
+              class={`px-2 pb-1 type-caption-strong uppercase ${
                 isGroupActive(group.items) ? "text-primary" : "text-text-muted"
               }`}
             >
@@ -197,7 +197,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     href={prev().href}
                     class="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
                   >
-                    <span class="type-caption uppercase tracking-wider text-text-muted">
+                    <span class="type-caption uppercase text-text-muted">
                       ← {prev().groupLabel}
                     </span>
                     <span class="type-body-strong">{prev().title}</span>
@@ -210,7 +210,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     href={next().href}
                     class="flex flex-col items-end gap-1 rounded-lg border border-border bg-surface p-4 text-right no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
                   >
-                    <span class="type-caption uppercase tracking-wider text-text-muted">
+                    <span class="type-caption uppercase text-text-muted">
                       {next().groupLabel} →
                     </span>
                     <span class="type-body-strong">{next().title}</span>

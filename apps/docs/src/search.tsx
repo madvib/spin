@@ -281,7 +281,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                         </span>
                       </Show>
                     </span>
-                    <span class="shrink-0 type-caption uppercase tracking-wide text-text-muted">
+                    <span class="shrink-0 type-caption uppercase text-text-muted">
                       {item.entry.category}
                     </span>
                   </li>

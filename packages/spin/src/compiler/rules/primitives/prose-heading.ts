@@ -7,37 +7,41 @@
  * document.
  */
 
-import { proseTokens, spacing, statedType, type Tokens } from "./shared.ts";
 import type { Rule } from "@unocss/core";
+import { ladder, proseTokens, spacing, styleType, type Tokens } from "./shared.ts";
+import type { GlobalTypePath } from "../../../theme/index.ts";
 
 /**
- * A heading: the scale step, the heading face, and the spacing.
+ * A heading: its default style, and the spacing.
  *
  * The gap above a heading is what makes it read as a heading and the gap below
  * is what makes it read as attached to what follows, so the heading states its
  * own block start. The type declarations are the one thing that differs
- * between the six, and they arrive as a function of the tokens.
- *
- * The FACE is the theme's display voice, and it is the same for all six: a
- * heading is a heading, and the six differ in scale, not in character. A
- * theme that names no display voice falls back to its body face, so a heading
- * never reads in a face the page does not read in.
- *
- * The theme may say otherwise for ONE level: `font.element.h2.family` moves
- * the second heading and leaves the other five where they are. What the
- * theme does not say, the ladder says — the step the level takes, the weight
- * it takes it at, and the face the six share.
+ * between the six, and each level reads its default style outright — the
+ * display voice for the first, the title for the second, and so on down to
+ * the overline the last two share. What a style leaves out, the ladder
+ * answers during the window: the step the level takes, the weight it takes
+ * it at, and the face the six share.
  */
+/** A ladder read bound to the rule's context, for a level's window fallback. */
+export type Ladder = (path: GlobalTypePath) => string | undefined;
+
 function headingRule(
   tag: string,
-  type: (t: Tokens) => Record<string, string | undefined>,
+  style: string,
+  type: (t: Tokens, ladderFor: Ladder) => Record<string, string | undefined>,
 ): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const own = statedType(ctx, tag);
-      const family = own.family ?? t.heading;
+      const s = styleType(ctx, style);
+      const family = s.family ?? ladder(ctx, "font.family.heading");
+      const size = s.size;
+      const weight = s.weight;
+      const tracking = s.tracking;
+      const leading = s.leading;
+      const ladderFor: Ladder = (path) => ladder(ctx, path);
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -47,14 +51,14 @@ function headingRule(
         // section. The h1 same-value end restatement below converges with
         // spacing() and is left as-is.
         ...spacing(t),
-        ...type(t),
-        // The theme's own decision, where it has one: the level's step,
-        // weight, tracking and leading are the ladder's until the theme
-        // says otherwise.
-        ...(own.size !== undefined ? { "font-size": own.size } : {}),
-        ...(own.weight !== undefined ? { "font-weight": own.weight } : {}),
-        ...(own.tracking !== undefined ? { "letter-spacing": own.tracking } : {}),
-        ...(own.leading !== undefined ? { "line-height": own.leading } : {}),
+        ...type(t, ladderFor),
+        // The style's answer, where it has one: the level's size, weight,
+        // tracking and leading are the style's, and a silent style leaves
+        // the declaration to the ladder the level's own rule states below.
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -63,48 +67,70 @@ function headingRule(
 
 function headingRules(): Rule[] {
   return [
-    headingRule("h1", (t) => ({
-      ...(t.size3xl !== undefined ? { "font-size": t.size3xl } : {}),
-      ...(t.weightBold !== undefined ? { "font-weight": t.weightBold } : {}),
-      ...(t.leadingTight !== undefined ? { "line-height": t.leadingTight } : { "line-height": "1.2" }),
-      ...(t.trackingTight !== undefined ? { "letter-spacing": t.trackingTight } : { "letter-spacing": "-0.02em" }),
+    headingRule("h1", "display", (t, ladderFor) => ({
+      ...(ladderFor("font.size.3xl") !== undefined
+        ? { "font-size": ladderFor("font.size.3xl") }
+        : {}),
+      ...(ladderFor("font.weight.bold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.bold") }
+        : {}),
+      ...(ladderFor("font.leading.tight") !== undefined
+        ? { "line-height": ladderFor("font.leading.tight") }
+        : { "line-height": "1.2" }),
+      ...(ladderFor("font.tracking.tight") !== undefined
+        ? { "letter-spacing": ladderFor("font.tracking.tight") }
+        : { "letter-spacing": "-0.02em" }),
       // A heading level one leads the document, so its bottom gap is a step
       // larger than the shared spacing.
       ...(t.spacing4 !== undefined ? { "margin-block-end": t.spacing4 } : {}),
     })),
-    headingRule("h2", (t) => ({
-      ...(t.size2xl !== undefined ? { "font-size": t.size2xl } : {}),
-      ...(t.weightSemibold !== undefined
-        ? { "font-weight": t.weightSemibold }
+    headingRule("h2", "title", (t, ladderFor) => ({
+      ...(ladderFor("font.size.2xl") !== undefined
+        ? { "font-size": ladderFor("font.size.2xl") }
         : {}),
-      ...(t.leadingSnug !== undefined ? { "line-height": t.leadingSnug } : { "line-height": "1.3" }),
-      ...(t.trackingNormal !== undefined ? { "letter-spacing": t.trackingNormal } : { "letter-spacing": "-0.01em" }),
+      ...(ladderFor("font.weight.semibold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.semibold") }
+        : {}),
+      ...(ladderFor("font.leading.snug") !== undefined
+        ? { "line-height": ladderFor("font.leading.snug") }
+        : { "line-height": "1.3" }),
+      ...(ladderFor("font.tracking.normal") !== undefined
+        ? { "letter-spacing": ladderFor("font.tracking.normal") }
+        : { "letter-spacing": "-0.01em" }),
     })),
-    headingRule("h3", (t) => ({
-      ...(t.sizeXl !== undefined ? { "font-size": t.sizeXl } : {}),
-      ...(t.weightSemibold !== undefined
-        ? { "font-weight": t.weightSemibold }
+    headingRule("h3", "heading", (t, ladderFor) => ({
+      ...(ladderFor("font.size.xl") !== undefined
+        ? { "font-size": ladderFor("font.size.xl") }
+        : {}),
+      ...(ladderFor("font.weight.semibold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.semibold") }
         : {}),
       "line-height": "1.4",
     })),
-    headingRule("h4", (t) => ({
-      ...(t.sizeLg !== undefined ? { "font-size": t.sizeLg } : {}),
-      ...(t.weightSemibold !== undefined
-        ? { "font-weight": t.weightSemibold }
+    headingRule("h4", "label", (t, ladderFor) => ({
+      ...(ladderFor("font.size.lg") !== undefined
+        ? { "font-size": ladderFor("font.size.lg") }
+        : {}),
+      ...(ladderFor("font.weight.semibold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.semibold") }
         : {}),
       "line-height": "1.4",
     })),
-    headingRule("h5", (t) => ({
-      ...(t.sizeMd !== undefined ? { "font-size": t.sizeMd } : {}),
-      ...(t.weightSemibold !== undefined
-        ? { "font-weight": t.weightSemibold }
+    headingRule("h5", "overline", (t, ladderFor) => ({
+      ...(ladderFor("font.size.md") !== undefined
+        ? { "font-size": ladderFor("font.size.md") }
+        : {}),
+      ...(ladderFor("font.weight.semibold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.semibold") }
         : {}),
       "line-height": "1.5",
     })),
-    headingRule("h6", (t) => ({
-      ...(t.sizeSm !== undefined ? { "font-size": t.sizeSm } : {}),
-      ...(t.weightSemibold !== undefined
-        ? { "font-weight": t.weightSemibold }
+    headingRule("h6", "overline", (t, ladderFor) => ({
+      ...(ladderFor("font.size.sm") !== undefined
+        ? { "font-size": ladderFor("font.size.sm") }
+        : {}),
+      ...(ladderFor("font.weight.semibold") !== undefined
+        ? { "font-weight": ladderFor("font.weight.semibold") }
         : {}),
       "line-height": "1.5",
     })),

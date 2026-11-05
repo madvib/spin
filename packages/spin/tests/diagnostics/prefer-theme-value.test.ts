@@ -75,17 +75,16 @@ const SPIN: SemanticOptions = {
   semanticTags: "spin",
 };
 
-test("an override is an error and the single owner is an error", () => {
-  // The stance: a one-off override of a decision the system made is banned —
-  // and so is a class that reaches for a decision exactly one element
-  // carries for the text's own shape. The rule stays a suggestion at the
-  // rule level (several owners stay advisory); the single-owner error
-  // travels on the finding, where the deliveries read it.
+test("an override is an error and the element rule stays a suggestion", () => {
+  // The stance: a one-off override of a decision the system made is banned.
+  // The rule stays a suggestion at the rule level (several owners stay
+  // advisory); the single-owner error travels on the finding, where the
+  // deliveries read it. TYPE-c legs: a surviving carrier — a removed atom
+  // is unknown, not an override (see type-suggestions.test.ts).
   deepStrictEqual(plugin.rules["prefer-theme-value"].meta.type, "problem");
   deepStrictEqual(plugin.rules["prefer-element"].meta.type, "suggestion");
-  const [finding] = other("span", "tracking-tight");
-  deepStrictEqual(finding?.messageId, "error");
-  deepStrictEqual(finding?.severity, "error");
+  const [finding] = other("div", "text-link");
+  deepStrictEqual(finding?.messageId, "element");
 });
 
 test("a class that changes nothing is not an override", () => {

@@ -378,10 +378,11 @@ export function createToken(
  * Remove a token leaf from a document, and any group along its path that now
  * holds nothing.
  *
- * A theme that creates an element override (`font.element.h1.size`) or a
- * component token (`card.radius`) during an editing session must be able to
- * return that decision to the ladder or shared scale by removing the leaf
- * rather than leaving an empty group in the JSON.
+ * A theme that creates a style leaf (`font.style.body.size`) or a component
+ * token (`card.radius`) during an editing session must be able to return
+ * that decision to the style or shared scale by removing the leaf rather
+ * than leaving an empty group in the JSON. (TYPE-c: per-field per-element
+ * overrides are gone — re-point the element's style or declare a new one.)
  */
 export function deleteToken(
   text: string,

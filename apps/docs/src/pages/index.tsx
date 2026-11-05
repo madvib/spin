@@ -644,7 +644,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 01 · Themes · Multi-Brand &amp; Dark Mode
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
@@ -730,7 +730,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 02 · Styling · Token-Bound Utilities
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
@@ -798,7 +798,7 @@ export default function Home(): JSX.Element {
                   class={`flex max-w-full flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
                 >
                   <div class="flex items-center justify-between gap-3">
-                    <strong class="type-body-strong">
+                    <strong>
                       Brand-true surface
                     </strong>
                     <badge
@@ -840,7 +840,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 03 · Elements · Styled HTML
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
@@ -932,7 +932,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 04 · Components · {MACHINE_COUNT} Interactive Widgets
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
@@ -993,7 +993,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 05 · Verification · Lints, CLI &amp; MCP
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
@@ -1082,7 +1082,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "29rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
-              <span class="type-code uppercase tracking-wider text-primary">
+              <span class="type-code uppercase text-primary">
                 06 · Workbench · Spin Studio
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">

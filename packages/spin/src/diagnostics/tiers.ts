@@ -123,7 +123,8 @@ export function paintKeyFor(
   const named = PAINT_BY_GROUP[group];
   if (named !== undefined) return named;
   if (group === "typography") {
-    if (utility.startsWith("tracking-")) return "tracking";
+    // TYPE-c: `tracking-*` is gone with the rule — the typography group now
+    // holds only capitalisation (case) and the focus ring (edge).
     if (utility.startsWith("outline-")) return "edge";
     return "case";
   }
