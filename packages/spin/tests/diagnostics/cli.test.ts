@@ -475,7 +475,8 @@ test("init writes a theme and a bundler config into a fresh root", async () => {
     const written = JSON.parse(
       await readFile(join(dir, "spin", "brand.json"), "utf8"),
     ) as Record<string, unknown>;
-    deepStrictEqual(typeof written.color, "object");
+    deepStrictEqual(written["$extends"], "nordic");
+    deepStrictEqual(written["color"], undefined);
     const config = await readFile(join(dir, "rspack.config.ts"), "utf8");
     deepStrictEqual(config.includes("spin.rspack()"), true);
   } finally {

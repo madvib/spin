@@ -7,7 +7,6 @@
  * `parseTokens` never throws — it returns `{ ok: false, error }` so a CLI can
  * print one clean message.
  */
-
 import {
   type ParseResult,
   TOKEN_TYPES,
@@ -17,6 +16,7 @@ import {
   type TokenTree,
   type TokenType,
 } from "./types.ts";
+import { expandExtends } from "../extends.ts";
 
 const TYPE_SET: Record<TokenType, true> = Object.fromEntries(
   TOKEN_TYPES.map((type) => [type, true]),
@@ -270,7 +270,23 @@ export function parseTokens(input: string | unknown): ParseResult {
     };
   }
 
-  const names = childKeys(doc).filter((key) => !DOCUMENT_KEYS[key]);
+  // A sparse document layers over its starter before anything else reads it:
+  // expansion is total, so every stage below sees the document it would
+  // have read had the author vendored the starter. An unknown starter is a
+  // parse failure, not a throw — the studio reports what is wrong.
+  let document: Record<string, unknown> = doc;
+  if (typeof document["$extends"] === "string") {
+    try {
+      document = expandExtends(document);
+    } catch (err) {
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  const names = childKeys(document).filter((key) => !DOCUMENT_KEYS[key]);
   if (names.length === 0) {
     return { ok: false, error: "token document contains no tokens" };
   }
@@ -279,7 +295,7 @@ export function parseTokens(input: string | unknown): ParseResult {
   let leaves = 0;
 
   for (const name of names) {
-    const built = buildNode(doc[name] as unknown, [name], null);
+    const built = buildNode(document[name] as unknown, [name], null);
     if (!built.ok) return { ok: false, error: built.error };
     leaves += built.leaves;
     tree.push(built.node);
@@ -327,7 +343,7 @@ export type DocumentResult =
  * re-read `$extensions` by hand. This is the one place that is not optional.
  */
 /** The root document keys that are metadata, not tokens. */
-const DOCUMENT_KEYS: Record<string, true> = { modes: true };
+const DOCUMENT_KEYS: Record<string, true> = { modes: true, $extends: true };
 
 export function parseDocument(input: string | unknown): DocumentResult {
   const parsed = parseTokens(input);

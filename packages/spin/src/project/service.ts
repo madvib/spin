@@ -405,6 +405,7 @@ export async function initProject(
       starter: options.starter,
       bundler,
       themesDir,
+      vendor: options.vendor,
     });
     await writeFile(join(dir, `${options.name}.json`), files[`${options.name}.json`], "utf8");
     if (existing !== null) {

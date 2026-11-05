@@ -12,6 +12,8 @@ import { parseTokens } from "./pipeline/parse.ts";
 import { resolveAliases } from "./pipeline/resolve.ts";
 import type { ThemeDocument, TokenNode } from "./pipeline/types.ts";
 
+export { expandExtends, mergeThemeDocuments } from "./extends.ts";
+
 export interface ResolvedTheme {
   /** The mode the values describe. */
   readonly mode: string;

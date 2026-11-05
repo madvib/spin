@@ -57,6 +57,19 @@ export interface SpinPresetOptions {
    */
   themes?: Record<string, ThemeDocument>;
   /**
+   * Named palette facet documents, each emitted under its own
+   * `[data-palette]` selector after every `[data-theme]` block. Partial by
+   * design: a palette carries ink and surface, never a full theme, so it is
+   * parsed but never completeness-checked.
+   */
+  palettes?: Record<string, ThemeDocument>;
+  /**
+   * Named spacing facet documents, each emitted under its own
+   * `[data-spacing]` selector after the palettes. Partial and
+   * mode-invariant by design: parsed, never completeness-checked.
+   */
+  spacings?: Record<string, ThemeDocument>;
+  /**
    * Primitive components to include, by name. Omitted means all of them, which
    * is what a consumer almost always wants: the primitives are what make
    * `<button>` a finished control instead of a raw element.
@@ -130,6 +143,32 @@ export function createSpinFactory(
         assertComplete(name, parsed.tree, requiredRolesFor());
         trees[name] = parsed.tree;
       }
+      // Facets are partial by design — ink or space over a base theme — so a
+      // facet parses but is never completeness-checked. A facet that does not
+      // parse still fails the build: a half-written facet is a build input
+      // like any other token document.
+      const paletteTrees: Record<string, TokenTree> = {};
+      const paletteDocuments: Record<string, ThemeDocument> = {};
+      for (const [name, doc] of Object.entries(options.palettes ?? {})) {
+        const parsed = parseTokens(doc);
+        if (!parsed.ok) {
+          throw new Error(
+            `spinPreset: palette "${name}" is invalid: ${parsed.error}`,
+          );
+        }
+        paletteTrees[name] = parsed.tree;
+        paletteDocuments[name] = doc;
+      }
+      const spacingTrees: Record<string, TokenTree> = {};
+      for (const [name, doc] of Object.entries(options.spacings ?? {})) {
+        const parsed = parseTokens(doc);
+        if (!parsed.ok) {
+          throw new Error(
+            `spinPreset: spacing "${name}" is invalid: ${parsed.error}`,
+          );
+        }
+        spacingTrees[name] = parsed.tree;
+      }
       // The uno theme is the only name table, and the names ARE the custom
       // properties: one flat map, every token. A rule reads `spacing-4` and
       // gets the reference; there is no exposure decision to make, so there
@@ -185,7 +224,7 @@ export function createSpinFactory(
           ...wind4.rules,
         ],
         preflights: buildPreflights(
-          { trees, documents },
+          { trees, documents, paletteTrees, paletteDocuments, spacingTrees },
         ),
         transformers: [transformerDirectives(), transformerVariantGroup()],
         // Declared order: reset (-100) → theme vars + body (-90) → primitives

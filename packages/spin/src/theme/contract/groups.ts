@@ -21,7 +21,7 @@ import { BASE_ROLES } from "./roles.ts";
 import type { ThemeDocument } from "../pipeline/types.ts";
 
 /** The document keys that are metadata rather than token groups. */
-const METADATA = new Set(["modes", "$extensions", "$description", "$schema"]);
+const METADATA = new Set(["modes", "$extends", "$extensions", "$description", "$schema"]);
 
 /**
  * The groups the contract declares, in the order the contract lists them.

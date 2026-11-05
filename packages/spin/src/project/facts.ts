@@ -129,13 +129,17 @@ export function initFiles(
     readonly starter: string;
     readonly bundler?: string;
     readonly themesDir?: string;
+    /** Write the starter's full JSON instead of a sparse `$extends` layer. */
+    readonly vendor?: boolean;
   },
 ): Record<string, string> {
   const config = configScaffoldText(options.bundler ?? "vite", {
     themesDir: options.themesDir,
   });
   return {
-    [`${options.name}.json`]: themeText(options.starter),
+    [`${options.name}.json`]: options.vendor === true
+      ? themeText(options.starter)
+      : JSON.stringify({ $extends: options.starter, modes: ["light", "dark"] }, null, 2) + "\n",
     [config.filename]: config.text,
   };
 }

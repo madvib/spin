@@ -282,9 +282,9 @@ describe("daemon project.themes over HTTP", () => {
       root: fresh,
     });
     deepStrictEqual(
-      JSON.parse(seeded.text ?? "{}").color !== undefined,
-      true,
-      "the seeded theme is a real document, not an empty file",
+      JSON.parse(seeded.text ?? "{}").$extends,
+      "silk",
+      "the seeded theme extends its starter, not an empty file",
     );
     rmSync(fresh, { recursive: true, force: true });
   });

@@ -77,6 +77,21 @@ export interface PreflightInput {
    * content, so the assembler needs both views of one document.
    */
   documents: Record<string, ThemeDocument>;
+  /**
+   * Named palette facet trees, keyed by facet name. Partial by design: a
+   * palette carries ink and surface, never a full theme.
+   */
+  paletteTrees?: Record<string, TokenTree>;
+  /**
+   * The same palettes as raw documents, for mode declarations. Parallel to
+   * `documents` for themes.
+   */
+  paletteDocuments?: Record<string, ThemeDocument>;
+  /**
+   * Named spacing facet trees, keyed by facet name. Partial by design and
+   * always mode-invariant: a dark mode never restates spacing.
+   */
+  spacingTrees?: Record<string, TokenTree>;
 }
 
 /** A provider plus the UnoCSS layer it emits into. */
@@ -159,6 +174,12 @@ function assemble(
         for (const [name, doc] of Object.entries(input.documents)) {
           modes[name] = themeModes(doc);
         }
+        const paletteModes: Record<string, readonly ("light" | "dark")[]> = {};
+        for (
+          const [name, doc] of Object.entries(input.paletteDocuments ?? {})
+        ) {
+          paletteModes[name] = themeModes(doc);
+        }
         return generateThemeCss(input.trees, {
           // The first theme is the one the app boots with, so its custom
           // properties are also written at `:root` — where `body {}` can
@@ -166,6 +187,9 @@ function assemble(
           // the browser default.
           rootTheme: Object.keys(input.trees)[0],
           modes,
+          palettes: input.paletteTrees,
+          paletteModes,
+          spacings: input.spacingTrees,
         });
       },
     },

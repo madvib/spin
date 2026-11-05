@@ -155,10 +155,12 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
 
   const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme.json"), "utf8")) as {
     modes?: unknown;
+    $extends?: unknown;
     $extensions?: { spin?: { fonts?: readonly { family?: string }[] } };
   };
   deepStrictEqual(writtenTheme.modes, ["light", "dark"]);
-  deepStrictEqual(writtenTheme.$extensions?.spin?.fonts?.[0]?.family, "Inter");
+  deepStrictEqual(writtenTheme.$extends, "silk");
+  deepStrictEqual(writtenTheme.$extensions, undefined);
 
   const mcpConfig = JSON.parse(await readFile(join(dir, ".mcp.json"), "utf8")) as {
     mcpServers?: { spin?: { command?: string; args?: readonly string[] } };
@@ -169,6 +171,22 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   });
 });
 
+test("init with vendor:true writes the full starter text", async () => {
+  const dir = await root();
+  const made = await initProject({
+    root: dir,
+    name: "acme",
+    starter: "silk",
+    vendor: true,
+  });
+  deepStrictEqual(made.error, null);
+  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme.json"), "utf8")) as {
+    $extends?: unknown;
+    $extensions?: { spin?: { fonts?: readonly { family?: string }[] } };
+  };
+  deepStrictEqual(writtenTheme.$extends, undefined);
+  deepStrictEqual(writtenTheme.$extensions?.spin?.fonts?.[0]?.family, "Inter");
+});
 test("init refuses a root it cannot make a project in", async () => {
   const dir = await root();
   await writeFile(join(dir, "occupied"), "not a directory", "utf8");

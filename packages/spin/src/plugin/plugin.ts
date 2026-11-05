@@ -605,7 +605,14 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * content, and any extra presets such as icons.
  */
 /**
- * Every theme document the project's directory holds, parsed.
+ * The three axes a project's theme directory holds, classified by suffix.
+ *
+ * `<name>.json` (excluding `config.json`) is a base theme served under
+ * `[data-theme]`; `<name>.palette.json` is a palette facet served under
+ * `[data-palette]`; `<name>.spacing.json` is a spacing facet served under
+ * `[data-spacing]`. The three touch disjoint custom properties, so a palette
+ * or spacing file beside a theme of the same name composes with it rather
+ * than forking it.
  *
  * A file that doesn't parse is skipped rather than thrown on: a half
  * written theme in an editor would otherwise break the whole stylesheet,
@@ -613,10 +620,19 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * directory is the configured local path, and a value naming one file
  * serves that file alone.
  */
-export async function themesFromDisk(
+export interface ThemeFacets {
+  /** Base themes, by name: `<name>.json` minus `config.json`. */
+  themes: Record<string, ThemeDocument>;
+  /** Palette facets, by name: `<name>.palette.json`. */
+  palettes: Record<string, ThemeDocument>;
+  /** Spacing facets, by name: `<name>.spacing.json`. */
+  spacings: Record<string, ThemeDocument>;
+}
+
+export async function themesFacetsFromDisk(
   root: string,
   themesDir = "spin",
-): Promise<Record<string, ThemeDocument>> {
+): Promise<ThemeFacets> {
   const { readdir, readFile } = await import("node:fs/promises");
   const { basename, join } = await import("node:path");
   const { resolveProjectDir } = await import("../project/resolve-dir.ts");
@@ -632,21 +648,43 @@ export async function themesFromDisk(
         name.endsWith(".json")
       );
     } catch {
-      return {};
+      return { themes: {}, palettes: {}, spacings: {} };
     }
     for (const name of names) {
       pairs.push([name.slice(0, -".json".length), join(resolved.path, name)]);
     }
   }
-  const themes: Record<string, ThemeDocument> = {};
+  const facets: ThemeFacets = { themes: {}, palettes: {}, spacings: {} };
   for (const [stem, file] of pairs) {
     try {
-      themes[stem] = JSON.parse(await readFile(file, "utf8"));
+      const document = JSON.parse(await readFile(file, "utf8")) as ThemeDocument;
+      if (stem === "config") continue;
+      if (stem.endsWith(".palette")) {
+        facets.palettes[stem.slice(0, -".palette".length)] = document;
+      } else if (stem.endsWith(".spacing")) {
+        facets.spacings[stem.slice(0, -".spacing".length)] = document;
+      } else {
+        facets.themes[stem] = document;
+      }
     } catch {
       // Skipped: see above.
     }
   }
-  return themes;
+  return facets;
+}
+
+/**
+ * Every base theme document the project's directory holds, by stem.
+ *
+ * Facet files (`*.palette.json`, `*.spacing.json`) and `config.json` are
+ * not themes and are excluded here — read `themesFacetsFromDisk` for those.
+ * Kept so existing callers that serve base themes keep working unchanged.
+ */
+export async function themesFromDisk(
+  root: string,
+  themesDir = "spin",
+): Promise<Record<string, ThemeDocument>> {
+  return (await themesFacetsFromDisk(root, themesDir)).themes;
 }
 
 /**
@@ -813,10 +851,13 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     // every generate is cheap — a handful of small files — and means a
     // theme forked while the server is running is live on the next
     // generate rather than needing a restart.
+    const disk = options.themes === undefined
+      ? await themesFacetsFromDisk(root, options.themesDir)
+      : { themes: {}, palettes: {}, spacings: {} };
     const themes = options.themes ??
       projectThemes(
         options.extends?.themes ?? {},
-        await themesFromDisk(root, options.themesDir),
+        disk.themes,
       );
     noteDiskDocuments(themes);
     // The walk is expensive and content changes rarely; the safelist is
@@ -863,6 +904,8 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
         ...(options.presets ?? []),
         spinPreset({
           themes,
+          palettes: disk.palettes,
+          spacings: disk.spacings,
           shortcuts: options.shortcuts,
           primitives: options.primitives,
         }),

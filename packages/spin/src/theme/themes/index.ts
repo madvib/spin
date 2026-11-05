@@ -18,6 +18,8 @@
  * That is console's case exactly — a terminal palette whose base is already
  * dark, serving dark and restating nothing.
  */
+import catppuccinPaletteDoc from "./catppuccin.palette.json" with { type: "json" };
+import compactSpacingDoc from "./compact.spacing.json" with { type: "json" };
 import industrial from "./industrial.json" with { type: "json" };
 import material from "./material.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
@@ -44,6 +46,21 @@ export const spinTheme = spin as ThemeDocument;
 
 /** Tactile hardware & neumorphic: anodized aluminum by day, gunmetal by night, dual bevel shadows. */
 export const industrialTheme = industrial as ThemeDocument;
+
+/**
+ * The compact density: a tighter spacing ramp with matching card and alert
+ * padding, served under `[data-spacing="compact"]`. A facet, not a theme —
+ * partial by design, composing over any base theme without touching its ink
+ * or type.
+ */
+export const compactSpacing = compactSpacingDoc as ThemeDocument;
+
+/**
+ * Catppuccin Latte by day, Mocha by night, served under
+ * `[data-palette="catppuccin"]`. A facet, not a theme — ink and surface only,
+ * composing over any base theme without touching its space or type.
+ */
+export const catppuccinPalette = catppuccinPaletteDoc as ThemeDocument;
 
 /**
  * The themes a consumer can start from, by name.

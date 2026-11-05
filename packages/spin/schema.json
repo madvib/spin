@@ -55,7 +55,7 @@
         "text": {
           "type": "object",
           "description": "Default body text.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -83,13 +83,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "text-muted": {
           "type": "object",
           "description": "Secondary text.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -117,13 +125,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "surface": {
           "type": "object",
           "description": "Page background.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -151,13 +167,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "surface-raised": {
           "type": "object",
           "description": "Raised surfaces.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -185,13 +209,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "border": {
           "type": "object",
           "description": "Hairlines and dividers.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -219,13 +251,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "primary": {
           "type": "object",
           "description": "Primary actions.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -253,13 +293,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "secondary": {
           "type": "object",
           "description": "Secondary actions.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -287,13 +335,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "accent": {
           "type": "object",
           "description": "Supporting emphasis.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -321,6 +377,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
@@ -337,7 +401,7 @@
             "success": {
               "type": "object",
               "description": "Success status.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -365,13 +429,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "warning": {
               "type": "object",
               "description": "Warning status.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -399,13 +471,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "error": {
               "type": "object",
               "description": "Error status.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -433,13 +513,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "info": {
               "type": "object",
               "description": "Info status.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -467,6 +555,14 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -475,7 +571,7 @@
         "on-primary": {
           "type": "object",
           "description": "Text on a primary fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -503,13 +599,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-secondary": {
           "type": "object",
           "description": "Text on a secondary fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -537,13 +641,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-accent": {
           "type": "object",
           "description": "Text on an accent fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -571,13 +683,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "selected": {
           "type": "object",
           "description": "Selected state fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -605,13 +725,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-selected": {
           "type": "object",
           "description": "Text on a selected fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -639,13 +767,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-semantic-error": {
           "type": "object",
           "description": "Text on an error fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -673,13 +809,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-semantic-success": {
           "type": "object",
           "description": "Text on a success fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -707,13 +851,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-semantic-warning": {
           "type": "object",
           "description": "Text on a warning fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -741,13 +893,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-semantic-info": {
           "type": "object",
           "description": "Text on an info fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -775,13 +935,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "disabled": {
           "type": "object",
           "description": "The fill a dead control wears.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -809,13 +977,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-disabled": {
           "type": "object",
           "description": "The ink on a dead control's fill.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -843,13 +1019,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "focus-ring": {
           "type": "object",
           "description": "Focus indicator.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -877,13 +1061,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "link": {
           "type": "object",
           "description": "Prose links.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -911,6 +1103,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
@@ -933,7 +1133,7 @@
             "50": {
               "type": "object",
               "description": "color.neutral.50",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -961,13 +1161,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "100": {
               "type": "object",
               "description": "color.neutral.100",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -995,13 +1203,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "200": {
               "type": "object",
               "description": "color.neutral.200",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1029,13 +1245,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "300": {
               "type": "object",
               "description": "color.neutral.300",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1063,13 +1287,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "400": {
               "type": "object",
               "description": "color.neutral.400",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1097,13 +1329,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "500": {
               "type": "object",
               "description": "color.neutral.500",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1131,13 +1371,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "600": {
               "type": "object",
               "description": "color.neutral.600",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1165,13 +1413,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "700": {
               "type": "object",
               "description": "color.neutral.700",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1199,13 +1455,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "800": {
               "type": "object",
               "description": "color.neutral.800",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1233,13 +1497,21 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             },
             "900": {
               "type": "object",
               "description": "color.neutral.900",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1267,6 +1539,14 @@
                 },
                 "$description": {
                   "type": "string"
+                },
+                "$modes": {
+                  "type": "object",
+                  "properties": {
+                    "light": {},
+                    "dark": {}
+                  },
+                  "additionalProperties": false
                 }
               }
             }
@@ -1275,7 +1555,7 @@
         "surface-sunken": {
           "type": "object",
           "description": "Background of elements that sit below the page: table stripes, inset wells.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -1303,13 +1583,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "scrim": {
           "type": "object",
           "description": "What dims the page behind a modal. A theme closes its dialogs over its own ink, not a neutral black.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -1337,13 +1625,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "field": {
           "type": "object",
           "description": "A field's own surface. Distinct from `surface`, so a control reads as an inset object rather than a hole in the page, and distinct from `surface-raised`, so a card on a field is still two things.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -1371,13 +1667,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "border-strong": {
           "type": "object",
           "description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -1405,13 +1709,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "on-danger": {
           "type": "object",
           "description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` — the role the contract requires, the floor is measured on, and the danger button and the danger badge wear — so the two names can never disagree.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -1439,6 +1751,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -1465,7 +1785,7 @@
             "sans": {
               "type": "object",
               "description": "Body and UI text.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1499,7 +1819,7 @@
             "serif": {
               "type": "object",
               "description": "Long-form editorial text.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1533,7 +1853,7 @@
             "mono": {
               "type": "object",
               "description": "Code, identifiers, tabular figures.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1567,7 +1887,7 @@
             "brand": {
               "type": "object",
               "description": "The logotype face — one brand, every starter.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -1677,7 +1997,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the display style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1711,7 +2031,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the display style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1745,7 +2065,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the display style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1779,7 +2099,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the display style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1813,7 +2133,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the display style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1903,7 +2223,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1937,7 +2257,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -1971,7 +2291,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2005,7 +2325,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2039,7 +2359,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2129,7 +2449,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the heading style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2163,7 +2483,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the heading style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2197,7 +2517,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the heading style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2231,7 +2551,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the heading style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2265,7 +2585,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the heading style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2355,7 +2675,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the subtitle style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2389,7 +2709,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the subtitle style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2423,7 +2743,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the subtitle style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2457,7 +2777,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the subtitle style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2491,7 +2811,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the subtitle style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2581,7 +2901,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the lead style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2615,7 +2935,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the lead style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2649,7 +2969,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the lead style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2683,7 +3003,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the lead style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2717,7 +3037,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the lead style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2807,7 +3127,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the body style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2841,7 +3161,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the body style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2875,7 +3195,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the body style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2909,7 +3229,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the body style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -2943,7 +3263,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the body style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3033,7 +3353,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the quote style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3067,7 +3387,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the quote style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3101,7 +3421,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the quote style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3135,7 +3455,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the quote style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3169,7 +3489,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the quote style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3259,7 +3579,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the code style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3293,7 +3613,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the code style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3327,7 +3647,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the code style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3361,7 +3681,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the code style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3395,7 +3715,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the code style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3485,7 +3805,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the label style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3519,7 +3839,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the label style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3553,7 +3873,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the label style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3587,7 +3907,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the label style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3621,7 +3941,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the label style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3711,7 +4031,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the caption style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3745,7 +4065,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the caption style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3779,7 +4099,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the caption style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3813,7 +4133,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the caption style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3847,7 +4167,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the caption style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3937,7 +4257,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the overline style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -3971,7 +4291,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the overline style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4005,7 +4325,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the overline style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4039,7 +4359,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the overline style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4073,7 +4393,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the overline style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4163,7 +4483,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the stat style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4197,7 +4517,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the stat style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4231,7 +4551,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the stat style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4265,7 +4585,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the stat style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4299,7 +4619,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the stat style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4389,7 +4709,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the badge style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4423,7 +4743,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the badge style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4457,7 +4777,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the badge style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4491,7 +4811,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the badge style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4525,7 +4845,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the badge style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4615,7 +4935,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the body-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4649,7 +4969,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the body-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4683,7 +5003,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the body-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4717,7 +5037,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the body-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4751,7 +5071,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the body-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4841,7 +5161,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the caption-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4875,7 +5195,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the caption-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4909,7 +5229,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the caption-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4943,7 +5263,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the caption-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -4977,7 +5297,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the caption-strong style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5067,7 +5387,7 @@
                     "family": {
                       "type": "object",
                       "description": "The family the card-title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5101,7 +5421,7 @@
                     "size": {
                       "type": "object",
                       "description": "The size the card-title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5135,7 +5455,7 @@
                     "weight": {
                       "type": "object",
                       "description": "The weight the card-title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5169,7 +5489,7 @@
                     "tracking": {
                       "type": "object",
                       "description": "The tracking the card-title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5203,7 +5523,7 @@
                     "leading": {
                       "type": "object",
                       "description": "The leading the card-title style reads at.",
-                      "additionalProperties": true,
+                      "additionalProperties": false,
                       "required": [
                         "$value"
                       ],
@@ -5253,7 +5573,7 @@
         "width": {
           "type": "object",
           "description": "Focus ring width.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5281,13 +5601,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "offset": {
           "type": "object",
           "description": "Focus ring offset.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5315,6 +5643,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -5349,7 +5685,7 @@
         "0": {
           "type": "object",
           "description": "spacing.0",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5383,7 +5719,7 @@
         "1": {
           "type": "object",
           "description": "spacing.1",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5417,7 +5753,7 @@
         "2": {
           "type": "object",
           "description": "spacing.2",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5451,7 +5787,7 @@
         "3": {
           "type": "object",
           "description": "spacing.3",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5485,7 +5821,7 @@
         "4": {
           "type": "object",
           "description": "spacing.4",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5519,7 +5855,7 @@
         "5": {
           "type": "object",
           "description": "spacing.5",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5553,7 +5889,7 @@
         "6": {
           "type": "object",
           "description": "spacing.6",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5587,7 +5923,7 @@
         "7": {
           "type": "object",
           "description": "spacing.7",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5621,7 +5957,7 @@
         "8": {
           "type": "object",
           "description": "spacing.8",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5655,7 +5991,7 @@
         "10": {
           "type": "object",
           "description": "spacing.10",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5689,7 +6025,7 @@
         "12": {
           "type": "object",
           "description": "spacing.12",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5723,7 +6059,7 @@
         "14": {
           "type": "object",
           "description": "spacing.14",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5757,7 +6093,7 @@
         "16": {
           "type": "object",
           "description": "spacing.16",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5791,7 +6127,7 @@
         "20": {
           "type": "object",
           "description": "spacing.20",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5825,7 +6161,7 @@
         "24": {
           "type": "object",
           "description": "spacing.24",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5859,7 +6195,7 @@
         "36": {
           "type": "object",
           "description": "spacing.36",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5893,7 +6229,7 @@
         "40": {
           "type": "object",
           "description": "spacing.40",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5927,7 +6263,7 @@
         "56": {
           "type": "object",
           "description": "spacing.56",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5961,7 +6297,7 @@
         "60": {
           "type": "object",
           "description": "spacing.60",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -5995,7 +6331,7 @@
         "64": {
           "type": "object",
           "description": "spacing.64",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6042,7 +6378,7 @@
         "none": {
           "type": "object",
           "description": "radius.none",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6076,7 +6412,7 @@
         "sm": {
           "type": "object",
           "description": "radius.sm",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6110,7 +6446,7 @@
         "md": {
           "type": "object",
           "description": "radius.md",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6144,7 +6480,7 @@
         "lg": {
           "type": "object",
           "description": "radius.lg",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6178,7 +6514,7 @@
         "full": {
           "type": "object",
           "description": "radius.full",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6223,7 +6559,7 @@
         "sm": {
           "type": "object",
           "description": "shadow.sm",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6251,13 +6587,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "md": {
           "type": "object",
           "description": "shadow.md",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6285,13 +6629,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "lg": {
           "type": "object",
           "description": "shadow.lg",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6319,6 +6671,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -6337,7 +6697,7 @@
         "sm": {
           "type": "object",
           "description": "breakpoint.sm",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6371,7 +6731,7 @@
         "md": {
           "type": "object",
           "description": "breakpoint.md",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6405,7 +6765,7 @@
         "lg": {
           "type": "object",
           "description": "breakpoint.lg",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6439,7 +6799,7 @@
         "xl": {
           "type": "object",
           "description": "breakpoint.xl",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6485,7 +6845,7 @@
         "base": {
           "type": "object",
           "description": "z-index.base",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6519,7 +6879,7 @@
         "dropdown": {
           "type": "object",
           "description": "z-index.dropdown",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6553,7 +6913,7 @@
         "modal": {
           "type": "object",
           "description": "z-index.modal",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6587,7 +6947,7 @@
         "toast": {
           "type": "object",
           "description": "z-index.toast",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6641,7 +7001,7 @@
             "fast": {
               "type": "object",
               "description": "motion.duration.fast",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6675,7 +7035,7 @@
             "base": {
               "type": "object",
               "description": "motion.duration.base",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6709,7 +7069,7 @@
             "slow": {
               "type": "object",
               "description": "motion.duration.slow",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6743,7 +7103,7 @@
             "loop": {
               "type": "object",
               "description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A loop is watched rather than reacted to, so it is slower than any transition — and never faster than the floor below which it reads as a strobe.",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6789,7 +7149,7 @@
             "linear": {
               "type": "object",
               "description": "motion.easing.linear",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6823,7 +7183,7 @@
             "standard": {
               "type": "object",
               "description": "motion.easing.standard",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6857,7 +7217,7 @@
             "decelerate": {
               "type": "object",
               "description": "motion.easing.decelerate",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6891,7 +7251,7 @@
             "accelerate": {
               "type": "object",
               "description": "motion.easing.accelerate",
-              "additionalProperties": true,
+              "additionalProperties": false,
               "required": [
                 "$value"
               ],
@@ -6939,7 +7299,7 @@
         "width": {
           "type": "object",
           "description": "The hairline every control and surface draws with.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -6973,7 +7333,7 @@
         "width-2": {
           "type": "object",
           "description": "The emphasis edge: a control that must read as selected rather than merely bordered.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7007,7 +7367,7 @@
         "width-4": {
           "type": "object",
           "description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7041,7 +7401,7 @@
         "width-8": {
           "type": "object",
           "description": "The frame. A block drawn rather than outlined.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7086,7 +7446,7 @@
         "sm": {
           "type": "object",
           "description": "The size for a face in a list or a comment: it reads beside its label without leading the row.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7120,7 +7480,7 @@
         "md": {
           "type": "object",
           "description": "The default: a face beside a name, or a profile header at rest.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7154,7 +7514,7 @@
         "lg": {
           "type": "object",
           "description": "A face as the subject of a page: a profile header at the top of a long column.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7194,7 +7554,7 @@
         "edge": {
           "type": "object",
           "description": "The stroke the badge draws around itself.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7228,7 +7588,7 @@
         "pill": {
           "type": "object",
           "description": "Whether the badge is a pill or a square tag.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7268,7 +7628,7 @@
         "shadow": {
           "type": "object",
           "description": "The elevation a button rests at.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7296,13 +7656,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "shadow-hover": {
           "type": "object",
           "description": "The elevation a button lifts to when it is touched.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7330,13 +7698,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "edge": {
           "type": "object",
           "description": "The ink a button frames itself in; both variants share it.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7364,13 +7740,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "radius": {
           "type": "object",
           "description": "The corner rounding of a button.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7410,7 +7794,7 @@
         "depth": {
           "type": "object",
           "description": "How physical a checkbox is: one scalar driving three inset shadows.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7450,7 +7834,7 @@
         "depth": {
           "type": "object",
           "description": "How physical a switch is: one scalar driving three inset shadows.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7490,7 +7874,7 @@
         "sm": {
           "type": "object",
           "description": "The smallest glyph step, in `em` so it tracks the control it sits in.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7524,7 +7908,7 @@
         "md": {
           "type": "object",
           "description": "The default glyph step.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7558,7 +7942,7 @@
         "lg": {
           "type": "object",
           "description": "The largest glyph step.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7598,7 +7982,7 @@
         "radius": {
           "type": "object",
           "description": "The card's own corner. A card is not a button and need not round the same way.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7632,7 +8016,7 @@
         "padding": {
           "type": "object",
           "description": "The air inside the card, between its parts and around its edge.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7666,7 +8050,7 @@
         "border": {
           "type": "object",
           "description": "The ink of the card's own edge, when it draws one.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7694,13 +8078,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "elevation": {
           "type": "object",
           "description": "The elevation the card rests at. A card that sits on the page says so.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7728,6 +8120,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -7740,7 +8140,7 @@
         "radius": {
           "type": "object",
           "description": "The alert's own corner.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7774,7 +8174,7 @@
         "padding": {
           "type": "object",
           "description": "The air above and below the alert's text.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7808,7 +8208,7 @@
         "padding-inline": {
           "type": "object",
           "description": "The air beside the alert's text, where the message is read.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7842,7 +8242,7 @@
         "edge": {
           "type": "object",
           "description": "The ink of the hairline the alert wears on every side.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7870,6 +8270,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -7882,7 +8290,7 @@
         "radius": {
           "type": "object",
           "description": "The field's own corner.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7916,7 +8324,7 @@
         "border": {
           "type": "object",
           "description": "The ink of the field's own edge: the line a finger has to find.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7944,6 +8352,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -7956,7 +8372,7 @@
         "rule": {
           "type": "object",
           "description": "The ink of the rule under a row.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -7984,13 +8400,21 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         },
         "zebra": {
           "type": "object",
           "description": "The fill a striped row wears.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -8018,6 +8442,14 @@
             },
             "$description": {
               "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
             }
           }
         }
@@ -8030,7 +8462,7 @@
         "underline": {
           "type": "object",
           "description": "The thickness of the rule under a link. Zero marks the link by colour alone.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -8064,7 +8496,7 @@
         "offset": {
           "type": "object",
           "description": "The distance between a link and its underline.",
-          "additionalProperties": true,
+          "additionalProperties": false,
           "required": [
             "$value"
           ],
@@ -8107,6 +8539,17 @@
           "dark"
         ]
       }
+    },
+    "$extends": {
+      "type": "string",
+      "description": "The starter this document layers over. Tokens the document states replace the starter's; tokens it omits are inherited.",
+      "enum": [
+        "spin",
+        "silk",
+        "material",
+        "neobrut",
+        "industrial"
+      ]
     }
   }
 }

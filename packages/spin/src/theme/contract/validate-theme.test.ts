@@ -2,7 +2,11 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { scaffoldTheme } from "../authoring/scaffold.ts";
 import { treeToJson } from "../authoring/mutate.ts";
-import { validateTheme } from "./validate-theme.ts";
+import {
+  validatePaletteFacet,
+  validateSpacingFacet,
+  validateTheme,
+} from "./validate-theme.ts";
 import type { ThemeReport } from "./validate-theme.ts";
 
 /**
@@ -206,4 +210,72 @@ test("a theme object is judged, and a broken scale, loop, and restated spacing a
   assert(issueAt(report, "spacing.4").message.includes("descends"));
   assert(issueAt(report, "motion.duration.loop").message.includes("strobe"));
   assert(issueAt(report, "spacing.8").message.includes("ink and focus"));
+});
+
+test("a palette facet carrying ink and modes is valid", () => {
+  // A palette facet states ink alone; the base it composes with states the
+  // rest, so the floors are measured where the facet is worn.
+  const report = validatePaletteFacet({
+    color: {
+      $type: "color",
+      primary: { $value: "#2563eb", $modes: { dark: "#8db9fa" } },
+    },
+  });
+
+  deepStrictEqual(report.valid, true);
+  deepStrictEqual(report.issues, []);
+});
+
+test("a palette facet carrying spacing is reported at that token", () => {
+  const report = validatePaletteFacet({
+    spacing: { $type: "dimension", 4: { $value: "1rem" } },
+  });
+
+  deepStrictEqual(report.valid, false);
+  assert(issueAt(report, "spacing.4").message.includes("not a palette token"));
+  assert(issueAt(report, "spacing.4").message.includes("not spacing"));
+});
+
+test("a palette facet carrying a non-palette token with modes is reported", () => {
+  const report = validatePaletteFacet({
+    spacing: {
+      $type: "dimension",
+      8: { $value: "2rem", $modes: { dark: "9rem" } },
+    },
+  });
+
+  deepStrictEqual(report.valid, false);
+  assert(issueAt(report, "spacing.8").message.includes("not a palette token"));
+});
+
+test("a spacing facet carrying space is valid", () => {
+  const report = validateSpacingFacet({
+    spacing: { $type: "dimension", 4: { $value: "1rem" } },
+  });
+
+  deepStrictEqual(report.valid, true);
+  deepStrictEqual(report.issues, []);
+});
+
+test("a spacing facet carrying color is reported at that token", () => {
+  const report = validateSpacingFacet({
+    color: { $type: "color", primary: { $value: "#2563eb" } },
+  });
+
+  deepStrictEqual(report.valid, false);
+  assert(
+    issueAt(report, "color.primary").message.includes("not a spacing token"),
+  );
+});
+
+test("a spacing facet carrying $modes is reported at that token", () => {
+  const report = validateSpacingFacet({
+    spacing: {
+      $type: "dimension",
+      8: { $value: "2rem", $modes: { dark: "9rem" } },
+    },
+  });
+
+  deepStrictEqual(report.valid, false);
+  assert(issueAt(report, "spacing.8").message.includes("$modes"));
 });

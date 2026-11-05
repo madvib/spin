@@ -1,6 +1,8 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { treeToJson } from "../authoring/mutate.ts";
+import { ownedStyleNames } from "../contract/typography.ts";
+import { expandExtends } from "../extends.ts";
 import { parseTokens } from "./parse.ts";
 import type { ParseResult, TokenGroup, TokenLeaf, TokenTree } from "./types.ts";
 
@@ -297,4 +299,32 @@ test("treeToJson serializes a style tuple as the compact composite", () => {
   });
   // The composite a serializer writes is one the parser reads back.
   deepStrictEqual(leafValues(treeOf(parseTokens(doc))), leafValues(tree));
+});
+
+test("parseTokens resolves $extends to the complete starter document", () => {
+  // A sparse document layers one override over its starter; the tree reads
+  // as the document the author would have vendored.
+  const tree = treeOf(parseTokens({
+    $extends: "silk",
+    modes: ["light", "dark"],
+    color: { primary: { $value: "#2563eb" } },
+  }));
+
+  deepStrictEqual(leafAt(tree, "color.primary").value, "#2563eb");
+  const styles = new Set(
+    leaves(tree)
+      .filter((leaf) => leaf.path[0] === "font" && leaf.path[1] === "style")
+      .map((leaf) => leaf.path[2]),
+  );
+  deepStrictEqual([...styles].sort(), [...ownedStyleNames()].sort());
+});
+
+test("expandExtends throws on an unknown starter", () => {
+  assert.throws(
+    () => expandExtends({ $extends: "nope" }),
+    /unknown starter "nope"/,
+  );
+  // Through the parser the same mistake is reported, not thrown: the
+  // studio's job is to say what is wrong.
+  deepStrictEqual(parseTokens({ $extends: "nope" }).ok, false);
 });

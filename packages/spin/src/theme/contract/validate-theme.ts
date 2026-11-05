@@ -15,13 +15,23 @@
  * what is wrong, and a theme it refuses to load is one it cannot help fix.
  */
 
+import { mergeThemeDocuments } from "../extends.ts";
 import { parseTokens } from "../pipeline/parse.ts";
-import type { TokenTree, ValidationIssue } from "../pipeline/types.ts";
+import type {
+  ThemeDocument,
+  TokenLeaf,
+  TokenNode,
+  TokenTree,
+  ValidationIssue,
+} from "../pipeline/types.ts";
+import { indexTree, resolveAliases } from "../pipeline/resolve.ts";
+import type { TokenIndex } from "../pipeline/resolve.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import { type Mode, treeInMode } from "../modes.ts";
 import { themeGates } from "./battery.ts";
-import { requiredPaths } from "./roles.ts";
+import { isPaletteTokenPath, requiredPaths } from "./roles.ts";
 import { validateLegibility } from "./schema.ts";
+import { silkTheme } from "../themes/index.ts";
 
 /** What a caller may state about the document it is judging. */
 export interface ValidateThemeOptions {
@@ -135,4 +145,194 @@ export function validateTheme(
     issues,
     valid: issues.length === 0,
   };
+}
+
+/**
+ * Judge a palette facet: the ink a `[data-palette]` subtree wears.
+ *
+ * A facet is judged twice: on its own — every path it states must be a
+ * palette token and every value must be sound — and merged over the base it
+ * composes with, where the contrast floors are measured. A facet that
+ * carries spacing is not a stricter palette; it is a document in the wrong
+ * file, and the message says which root it belongs to.
+ */
+export function validatePaletteFacet(
+  input: string | unknown,
+  baseDoc: ThemeDocument = silkTheme,
+): ThemeReport {
+  const decoded = decodeFacet(input);
+  if (!decoded.ok) {
+    return { tree: undefined, error: decoded.error, issues: [], valid: false };
+  }
+  const parsed = parseTokens(decoded.doc);
+  if (!parsed.ok) {
+    return { tree: undefined, error: parsed.error, issues: [], valid: false };
+  }
+  const issues: ValidationIssue[] = [];
+  for (const leaf of facetLeaves(parsed.tree)) {
+    const path = leaf.path.join(".");
+    if (!isPaletteTokenPath(path)) {
+      issues.push({
+        path,
+        message:
+          `${path} is not a palette token — palette facets carry ink, not ${leaf.path[0]}`,
+      });
+    }
+  }
+  // A facet owes no roles of its own: the base it composes with owes them.
+  // What it owes is sound values, so only the values are judged here.
+  issues.push(...validateTokens(parsed.tree, { required: [] }).issues);
+  // The floors are measured where the facet is worn: over the base, where
+  // every fill the ink reads against is present.
+  const merged = parseTokens(mergeThemeDocuments(baseDoc, decoded.doc));
+  if (merged.ok) issues.push(...validateLegibility(merged.tree));
+  return {
+    tree: parsed.tree,
+    error: undefined,
+    issues,
+    valid: issues.length === 0,
+  };
+}
+
+/**
+ * Judge a spacing facet: the ruler a `[data-spacing]` subtree spends.
+ *
+ * A facet is judged twice: on its own — every path under `spacing.*` or a
+ * padding element token, and no `$modes` anywhere, because space does not
+ * vary by mode — and merged over the base it composes with, where the
+ * spacing ladder must still climb.
+ */
+export function validateSpacingFacet(
+  input: string | unknown,
+  baseDoc: ThemeDocument = silkTheme,
+): ThemeReport {
+  const decoded = decodeFacet(input);
+  if (!decoded.ok) {
+    return { tree: undefined, error: decoded.error, issues: [], valid: false };
+  }
+  const parsed = parseTokens(decoded.doc);
+  if (!parsed.ok) {
+    return { tree: undefined, error: parsed.error, issues: [], valid: false };
+  }
+  const issues: ValidationIssue[] = [];
+  for (const leaf of facetLeaves(parsed.tree)) {
+    const path = leaf.path.join(".");
+    const root = leaf.path[0] as string;
+    if (
+      root !== "spacing" && path !== "card.padding" &&
+      path !== "alert.padding"
+    ) {
+      issues.push({
+        path,
+        message:
+          `${path} is not a spacing token — spacing facets carry space, not ${root}`,
+      });
+      continue;
+    }
+    if (leaf.modes !== undefined && Object.keys(leaf.modes).length > 0) {
+      issues.push({
+        path,
+        message:
+          `${path} declares $modes, and a spacing facet varies nothing by mode`,
+      });
+    }
+  }
+  issues.push(...validateTokens(parsed.tree, { required: [] }).issues);
+  // The ladder is read where the facet is worn: over the base, where the
+  // steps the facet omits are still present.
+  const merged = parseTokens(mergeThemeDocuments(baseDoc, decoded.doc));
+  if (merged.ok) {
+    issues.push(
+      ...spacingLadderIssues(indexTree(resolveAliases(merged.tree).tree)),
+    );
+  }
+  return {
+    tree: parsed.tree,
+    error: undefined,
+    issues,
+    valid: issues.length === 0,
+  };
+}
+
+/** A facet document as decoded JSON, or why it is not one. */
+function decodeFacet(
+  input: string | unknown,
+): { ok: true; doc: ThemeDocument } | { ok: false; error: string } {
+  let doc: unknown = input;
+  if (typeof input === "string") {
+    try {
+      doc = JSON.parse(input);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: `invalid JSON: ${detail}` };
+    }
+  }
+  if (
+    typeof doc !== "object" || doc === null || Array.isArray(doc)
+  ) {
+    return { ok: false, error: "facet document must be a JSON object" };
+  }
+  return { ok: true, doc: doc as ThemeDocument };
+}
+
+/** Every token leaf in a tree, depth-first. */
+function facetLeaves(tree: TokenTree): TokenLeaf[] {
+  const out: TokenLeaf[] = [];
+  const walk = (nodes: readonly TokenNode[]): void => {
+    for (const node of nodes) {
+      if (node.kind === "token") out.push(node);
+      else walk(node.children);
+    }
+  };
+  walk(tree);
+  return out;
+}
+
+/**
+ * The spacing ladder, over one resolved index: the steps climb.
+ *
+ * The battery's scales gate, duplicated for a facet merged over its base
+ * rather than a whole theme. The battery is not refactored to share it: a
+ * facet is judged where it is worn, and the gate's other ladders do not
+ * apply to a document that carries space alone.
+ */
+function spacingLadderIssues(index: TokenIndex): ValidationIssue[] {
+  const steps = Object.keys(index.leaves)
+    .filter((path) => path.startsWith("spacing."))
+    .map((path) => path.slice("spacing.".length))
+    .filter((step) => /^\d+$/.test(step))
+    .sort((a, b) => Number(a) - Number(b));
+  const issues: ValidationIssue[] = [];
+  let previous: { step: string; value: number; text: string } | undefined;
+  for (const step of steps) {
+    const leaf = index.leaves[`spacing.${step}`];
+    if (leaf === undefined) continue;
+    const value = facetLengthOf(leaf.value);
+    if (value === undefined) continue;
+    if (previous !== undefined && value < previous.value) {
+      issues.push({
+        path: `spacing.${step}`,
+        message:
+          `the spacing ladder descends: spacing.${previous.step} is ${previous.text} and spacing.${step} is ${leaf.value}`,
+      });
+    }
+    previous = { step, value, text: String(leaf.value) };
+  }
+  return issues;
+}
+
+/**
+ * A length as a number of pixels, so two steps of one ladder can be
+ * compared. `rem` and `em` read at the root's sixteen pixels.
+ */
+function facetLengthOf(value: unknown): number | undefined {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+  if (typeof value !== "string") return undefined;
+  const match = /^(-?\d*\.?\d+)(rem|px|em)?$/.exec(value.trim());
+  if (match === null) return undefined;
+  const amount = Number(match[1]);
+  const unit = match[2] ?? "px";
+  return unit === "px" ? amount : amount * 16;
 }

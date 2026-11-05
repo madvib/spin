@@ -49,6 +49,51 @@ export interface RoleDeclaration {
    */
   readonly floor?: LegibilityFloor;
 }
+/**
+ * The top-level groups a mode may restate: ink, elevation, transparency,
+ * and the shared focus ring. Everything else — spacing, type, radius,
+ * motion, breakpoints — is the theme's one decision, and a mode that
+ * restates it is a second layout nobody measured.
+ */
+export const PALETTE_ROOTS: Record<string, true> = {
+  color: true,
+  shadow: true,
+  opacity: true,
+  focus: true,
+};
+
+/**
+ * The per-element tokens a mode may restate: the inks and elevations an
+ * element wears, each with a global fallback. A geometry sibling (`radius`,
+ * `padding`, `depth`, `pill`) is the theme's one decision.
+ */
+export const PALETTE_ELEMENT_PATHS: Record<string, true> = {
+  "button.edge": true,
+  "button.shadow": true,
+  "button.shadow-hover": true,
+  "card.border": true,
+  "card.elevation": true,
+  "alert.edge": true,
+  "field.border": true,
+  "table.rule": true,
+  "table.zebra": true,
+};
+
+/**
+ * Whether a mode may restate the token at a dotted path.
+ *
+ * A palette token is an ink or an elevation: every path under a palette
+ * root, or one of the named per-element ink/elevation paths. The question
+ * belongs here rather than in each consumer, so the schema, the facet
+ * validators and the invariance gate cannot disagree about what a mode
+ * owns.
+ */
+export function isPaletteTokenPath(path: string): boolean {
+  const root = path.split(".")[0] as string;
+  return Object.hasOwn(PALETTE_ROOTS, root) ||
+    Object.hasOwn(PALETTE_ELEMENT_PATHS, path);
+}
+
 
 /** Body ink on the page. */
 const TEXT_ON_SURFACE: LegibilityFloor = {
@@ -505,16 +550,25 @@ const TokenTypeSchema: JsonSchema = {
 };
 
 /** One declared token: a value, optionally typed at the group level. */
-function leafSchema(doc: string): JsonSchema {
+function leafSchema(doc: string, allowModes: boolean): JsonSchema {
   return {
     type: "object",
     description: doc,
-    additionalProperties: true,
+    additionalProperties: false,
     required: ["$value"],
     properties: {
       $value: {},
       $type: TokenTypeSchema,
       $description: { type: "string" },
+      ...(allowModes
+        ? {
+          $modes: {
+            type: "object",
+            properties: { light: {}, dark: {} },
+            additionalProperties: false,
+          },
+        }
+        : {}),
     },
   };
 }
@@ -588,6 +642,15 @@ export function themeSchema(): Record<string, unknown> {
       type: "string",
       enum: ["light", "dark"],
     },
+  };
+  // `$extends` is document metadata like `modes`: the starter this sparse
+  // document layers over. Listed and constrained to the shipped starters so
+  // an unknown name fails the schema, not the build.
+  properties["$extends"] = {
+    type: "string",
+    description:
+      "The starter this document layers over. Tokens the document states replace the starter's; tokens it omits are inherited.",
+    enum: ["spin", "silk", "material", "neobrut", "industrial"],
   };
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -667,7 +730,7 @@ function groupSchema(
     level[segments[segments.length - 1] as string] = {
       kind: "leaf",
       required: required.has(path),
-      schema: leafSchema(doc),
+      schema: leafSchema(doc, isPaletteTokenPath(path)),
     };
   }
   // A style tuple states its five fields as one composite token or as five

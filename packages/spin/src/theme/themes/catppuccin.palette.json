@@ -1,0 +1,207 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Catppuccin Latte by day, Mocha by night: the full palette as a facet over any base theme. State roles directly, so the facet survives a starter whose ramp it never shared.",
+    "surface": {
+      "$value": "#eff1f5",
+      "$description": "Latte base: the page.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "surface-raised": {
+      "$value": "#e6e9ef",
+      "$description": "Latte mantle: the sheet above the page.",
+      "$modes": {
+        "dark": "#1e1e2e"
+      }
+    },
+    "surface-sunken": {
+      "$value": "#dce0e8",
+      "$description": "Latte crust: the trough below the page.",
+      "$modes": {
+        "dark": "#181825"
+      }
+    },
+    "text": {
+      "$value": "#4c4f69",
+      "$description": "Latte text: the default ink.",
+      "$modes": {
+        "dark": "#cdd6f4"
+      }
+    },
+    "text-muted": {
+      "$value": "#6c6f85",
+      "$description": "Latte subtext1: the second voice.",
+      "$modes": {
+        "dark": "#a6adc8"
+      }
+    },
+    "border": {
+      "$value": "#ccd0da",
+      "$description": "Latte surface1: hairlines and dividers.",
+      "$modes": {
+        "dark": "#313244"
+      }
+    },
+    "border-strong": {
+      "$value": "#acb0be",
+      "$description": "Latte overlay0: a control's own edge, one step stronger than the dividers around it.",
+      "$modes": {
+        "dark": "#45475a"
+      }
+    },
+    "primary": {
+      "$value": "#0b4fc4",
+      "$description": "A darkened Latte blue: primary actions, readable as text on the page and behind white ink as a fill.",
+      "$modes": {
+        "dark": "#89b4fa"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$description": "The ink on the primary fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "secondary": {
+      "$value": "#8839ef",
+      "$description": "Latte mauve: secondary actions, readable as text on the page and behind white ink as a fill.",
+      "$modes": {
+        "dark": "#cba6f7"
+      }
+    },
+    "on-secondary": {
+      "$value": "#ffffff",
+      "$description": "The ink on the secondary fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "accent": {
+      "$value": "#045960",
+      "$description": "A darkened Latte teal: supporting emphasis, readable as text on the page and behind white ink as a fill.",
+      "$modes": {
+        "dark": "#94e2d5"
+      }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$description": "The ink on the accent fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue.",
+      "success": {
+        "$value": "#2b7a33",
+        "$description": "A darkened Latte green: readable as status text on the page.",
+        "$modes": {
+          "dark": "#a6e3a1"
+        }
+      },
+      "warning": {
+        "$value": "#8a5d00",
+        "$description": "A darkened Latte yellow: readable as status text on the page.",
+        "$modes": {
+          "dark": "#f9e2af"
+        }
+      },
+      "error": {
+        "$value": "#d20f39",
+        "$description": "Latte red: readable as status text on the page.",
+        "$modes": {
+          "dark": "#f38ba8"
+        }
+      },
+      "info": {
+        "$value": "#0e7490",
+        "$description": "A darkened Latte sapphire: readable as status text on the page.",
+        "$modes": {
+          "dark": "#74c7ec"
+        }
+      }
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the success fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "White on the darkened amber fill: crust ink cannot be read on it.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the error fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the info fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "selected": {
+      "$type": "color",
+      "$value": "#4c4f69",
+      "$description": "Latte text: the selected state fill.",
+      "$modes": {
+        "dark": "#cdd6f4"
+      }
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "#eff1f5",
+      "$description": "Latte base: the ink on the selected fill.",
+      "$modes": {
+        "dark": "#11111b"
+      }
+    },
+    "disabled": {
+      "$type": "color",
+      "$value": "#ccd0da",
+      "$description": "Latte surface1: the fill a dead control wears.",
+      "$modes": {
+        "dark": "#313244"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "#4c4f69",
+      "$description": "Latte text: the ink on a dead control's fill.",
+      "$modes": {
+        "dark": "#a6adc8"
+      }
+    },
+    "focus-ring": {
+      "$value": "#0b4fc4",
+      "$description": "The primary's ink: the focus indicator follows the primary.",
+      "$modes": {
+        "dark": "#89b4fa"
+      }
+    },
+    "link": {
+      "$value": "#0b4fc4",
+      "$description": "Prose links follow the primary.",
+      "$modes": {
+        "dark": "#89b4fa"
+      }
+    }
+  },
+  "modes": ["light", "dark"]
+}

@@ -66,6 +66,8 @@ export interface InitCommand {
   readonly themesDir?: string;
   readonly componentsDir?: string;
   readonly prefix?: string;
+  /** Vendor the full starter text instead of a sparse `$extends` document. */
+  readonly vendor?: boolean;
   /** The daemon to dial, when the procedures live elsewhere. */
   readonly url?: string;
   /** Skip the interactive prompts. */
@@ -302,6 +304,7 @@ function parseInit(argv: readonly string[]): Command {
   let themesDir: string | undefined;
   let componentsDir: string | undefined;
   let prefix: string | undefined;
+  let vendor: boolean | undefined;
   let url: string | undefined;
   let yes = false;
 
@@ -330,6 +333,9 @@ function parseInit(argv: readonly string[]): Command {
       case "prefix":
         prefix = argument.value as string;
         break;
+      case "vendor":
+        vendor = true;
+        break;
       case "url":
         url = argument.value as string;
         break;
@@ -354,6 +360,7 @@ function parseInit(argv: readonly string[]): Command {
     ...(themesDir === undefined ? {} : { themesDir }),
     ...(componentsDir === undefined ? {} : { componentsDir }),
     ...(prefix === undefined ? {} : { prefix }),
+    ...(vendor === undefined ? {} : { vendor }),
     ...(url === undefined ? {} : { url }),
     yes,
   };
@@ -1120,6 +1127,7 @@ async function runInit(
       ...(command.themesDir === undefined ? {} : { themesDir: command.themesDir }),
       ...(command.componentsDir === undefined ? {} : { componentsDir: command.componentsDir }),
       ...(command.prefix === undefined ? {} : { prefix: command.prefix }),
+      ...(command.vendor === undefined ? {} : { vendor: command.vendor }),
     });
   } catch (error) {
     warn(error instanceof Error ? error.message : String(error));

@@ -207,6 +207,7 @@ export const initProject = oc
       themesDir: v.optional(v.string()),
       componentsDir: v.optional(v.string()),
       prefix: v.optional(v.string()),
+      vendor: v.optional(v.boolean()),
     }),
   )
   .output(v.object({ error: v.nullable(v.string()) }))

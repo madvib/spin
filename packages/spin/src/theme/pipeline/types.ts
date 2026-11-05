@@ -160,6 +160,24 @@ export interface CssOptions {
    * block to detect. A theme absent from the map keeps the old derivation.
    */
   modes?: Record<string, readonly ("light" | "dark")[]>;
+  /**
+   * Named palette facets, each emitted under its own `[data-palette]` selector
+   * after every `[data-theme]` block. A facet carries only the leaves it
+   * states — ink and surface — so it composes over any base theme without
+   * clobbering its spacing or type.
+   */
+  palettes?: Record<string, TokenTree>;
+  /**
+   * The modes each palette facet serves, parallel to `modes` for themes.
+   * A facet absent from the map keeps the structural derivation.
+   */
+  paletteModes?: Record<string, readonly ("light" | "dark")[]>;
+  /**
+   * Named spacing facets, each emitted under its own `[data-spacing]`
+   * selector after the palettes. A facet carries only the leaves it states,
+   * and never mode blocks: spacing is mode-invariant.
+   */
+  spacings?: Record<string, TokenTree>;
 }
 
 /**

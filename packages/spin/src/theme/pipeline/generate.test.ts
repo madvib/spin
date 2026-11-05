@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { generateCss, generateThemeCss, generateTypes } from "./generate.ts";
 import { parseTokens } from "./parse.ts";
-import { silkTheme } from "../themes/index.ts";
+import { catppuccinPalette, compactSpacing, silkTheme, starterThemes } from "../themes/index.ts";
 import type { TokenTree } from "./types.ts";
 
 interface CssBlock {
@@ -160,7 +160,6 @@ const MIDNIGHT: TokenTree = [
   },
 ];
 
-import { starterThemes } from "../themes/index.ts";
 test("generateCss emits a custom property per token, named by its dotted path", () => {
   const css = generateCss(LIGHT);
   const root = blockWithSelector(css, ":root");
@@ -517,5 +516,95 @@ test("generateThemeCss without declarations keeps the structural derivation", ()
   deepStrictEqual(
     blockWithSelector(css, '[data-theme="daylight"]').declarations["--spin-modes"],
     "light",
+  );
+});
+
+test("a palette facet emits after its theme carrying only its own ink", () => {
+  // The composition this covers: `<html data-theme="silk"
+  // data-palette="catppuccin">` resolves the palette's ink over the theme's
+  // space. The facet block must come later at equal specificity (so it wins
+  // ties) and must carry only the leaves the facet states (so it never
+  // clobbers the theme's spacing or type along with its ink).
+  const silk = treeOf(parseTokens(silkTheme));
+  const palette = treeOf(parseTokens(catppuccinPalette));
+  const css = generateThemeCss(
+    { silk },
+    { palettes: { catppuccin: palette }, paletteModes: { catppuccin: ["light", "dark"] } },
+  );
+  const themeBlock = blockWithSelector(css, '[data-theme="silk"]');
+  const facetBlock = blockWithSelector(css, '[data-palette="catppuccin"]');
+  deepStrictEqual(facetBlock.declarations["--color-surface"], "#eff1f5");
+  deepStrictEqual(
+    blockWithSelector(css, '[data-palette="catppuccin"][data-mode="dark"]').declarations["--color-surface"],
+    "#11111b",
+  );
+  assert(
+    css.indexOf('[data-palette="catppuccin"]') > css.indexOf('[data-theme="silk"]'),
+    "the palette block is written after the theme block",
+  );
+  for (const property of Object.keys(facetBlock.declarations)) {
+    assert(
+      property === "--spin-modes" || property.startsWith("--color-"),
+      `a palette block carries only ink: ${property}`,
+    );
+  }
+  deepStrictEqual(themeBlock.declarations["--color-surface"] !== undefined, true);
+});
+
+test("a spacing facet emits last carrying only its own space, never modes", () => {
+  // The composition this covers: `<div data-spacing="compact">` tightens
+  // gaps without touching ink or type. Spacing is mode-invariant, so the
+  // facet ships one block and no `[data-mode]` companion.
+  const silk = treeOf(parseTokens(silkTheme));
+  const palette = treeOf(parseTokens(catppuccinPalette));
+  const spacing = treeOf(parseTokens(compactSpacing));
+  const css = generateThemeCss(
+    { silk },
+    { palettes: { catppuccin: palette }, spacings: { compact: spacing } },
+  );
+  const facetBlock = blockWithSelector(css, '[data-spacing="compact"]');
+  deepStrictEqual(facetBlock.declarations["--spacing-4"], "0.875rem");
+  assert(
+    css.indexOf('[data-spacing="compact"]') > css.indexOf('[data-palette="catppuccin"]'),
+    "the spacing block is written after the palette block",
+  );
+  for (const property of Object.keys(facetBlock.declarations)) {
+    assert(
+      property.startsWith("--spacing-") || property.startsWith("--card-") ||
+        property.startsWith("--alert-"),
+      `a spacing block carries only space: ${property}`,
+    );
+  }
+  assert(
+    blocks(css).every((block) => !block.selector.startsWith('[data-spacing="compact"][')),
+    "a spacing facet ships no mode block",
+  );
+});
+
+test("a palette block and a spacing block compose without clobbering", () => {
+  // The nested-subtree case: `<div data-theme="silk"
+  // data-spacing="compact"><aside data-palette="catppuccin"
+  // data-mode="dark">` resolves compact's space and catppuccin's dark ink
+  // at once. Each block must lack the other's axis entirely.
+  const silk = treeOf(parseTokens(silkTheme));
+  const palette = treeOf(parseTokens(catppuccinPalette));
+  const spacing = treeOf(parseTokens(compactSpacing));
+  const css = generateThemeCss(
+    { silk },
+    { palettes: { catppuccin: palette }, spacings: { compact: spacing } },
+  );
+  const paletteBlock = blockWithSelector(css, '[data-palette="catppuccin"]');
+  const spacingBlock = blockWithSelector(css, '[data-spacing="compact"]');
+  assert(
+    Object.keys(paletteBlock.declarations).every((property) => !property.startsWith("--spacing-")),
+    "the palette block carries no spacing",
+  );
+  assert(
+    Object.keys(spacingBlock.declarations).every((property) => !property.startsWith("--color-")),
+    "the spacing block carries no ink",
+  );
+  deepStrictEqual(
+    blockWithSelector(css, '[data-palette="catppuccin"][data-mode="dark"]').declarations["--color-text"],
+    "#cdd6f4",
   );
 });

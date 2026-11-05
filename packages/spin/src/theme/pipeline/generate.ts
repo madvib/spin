@@ -168,6 +168,13 @@ export function generateCss(tree: TokenTree, opts: CssOptions = {}): string {
  * Each theme is emitted under `[data-theme="<name>"]`. A theme that carries its
  * own `dark` group also gets a `[data-theme="<name>"][data-mode="dark"]`
  * override block, so a per-theme dark mode does not fight the global one.
+ *
+ * Palette facets (`opts.palettes`) follow every theme block, and spacing
+ * facets (`opts.spacings`) follow the palettes. The three axes touch disjoint
+ * custom properties at equal specificity, so they compose: an element wearing
+ * `data-theme` and `data-palette` resolves the palette's ink over the theme's
+ * space, and a nested `data-spacing` subtree tightens gaps without touching
+ * either. Order is the contract — facets must come last so they win ties.
  */
 export function generateThemeCss(
   themes: Record<string, TokenTree>,
@@ -227,6 +234,52 @@ export function generateThemeCss(
     for (const block of blocks) {
       if (block.declarations.length === 0) continue;
       chunks.push(renderBlock(block, indent));
+    }
+  }
+
+  // Palettes next: only the leaves the facet states, so a palette never
+  // carries a theme's spacing or type along with its ink.
+  for (const name of Object.keys(opts.palettes ?? {})) {
+    const tree = (opts.palettes as Record<string, TokenTree>)[name] as TokenTree;
+    const selector = `[data-palette="${name}"]`;
+    const blocks = collectBlocks(
+      tree,
+      selector,
+      opts.prefix,
+      `${selector}[data-mode="dark"]`,
+      `${selector}[data-mode="light"]`,
+    );
+    const base = blocks[0];
+    const dark = blocks[2];
+    if (base !== undefined) {
+      const declared = opts.paletteModes?.[name]?.join(" ");
+      const modes = declared !== undefined && declared.length > 0
+        ? declared
+        : dark !== undefined && dark.declarations.length > 0
+        ? "light dark"
+        : "light";
+      base.declarations.unshift(["--spin-modes", modes]);
+    }
+    for (const block of blocks) {
+      if (block.declarations.length === 0) continue;
+      chunks.push(renderBlock(block, indent));
+    }
+  }
+
+  // Spacing last: only the leaves the facet states, and never mode blocks.
+  for (const name of Object.keys(opts.spacings ?? {})) {
+    const tree = (opts.spacings as Record<string, TokenTree>)[name] as TokenTree;
+    const selector = `[data-spacing="${name}"]`;
+    const blocks = collectBlocks(
+      tree,
+      selector,
+      opts.prefix,
+      `${selector}[data-mode="dark"]`,
+      `${selector}[data-mode="light"]`,
+    );
+    const base = blocks[0];
+    if (base !== undefined && base.declarations.length > 0) {
+      chunks.push(renderBlock(base, indent));
     }
   }
 

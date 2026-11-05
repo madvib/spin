@@ -225,4 +225,6 @@ export interface InitProjectOptions {
   readonly componentsDir?: string;
   /** The component prefix. */
   readonly prefix?: string;
+  /** Vendor the full starter text instead of a sparse `$extends` document. */
+  readonly vendor?: boolean;
 }
