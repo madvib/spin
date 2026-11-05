@@ -50,13 +50,13 @@ export const plugins = [
   subtreeMode: `<div class="grid gap-4 md:grid-cols-2">
   <article class="card" data-theme="silk" data-mode="light">
     <h3>Light Container</h3>
-    <p class="text-sm text-text-muted">Rendered with data-mode="light".</p>
+    <p class="type-caption text-text-muted">Rendered with data-mode="light".</p>
     <button class="primary">Primary Action</button>
   </article>
 
   <article class="card" data-theme="silk" data-mode="dark">
     <h3>Dark Subtree</h3>
-    <p class="text-sm text-text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
+    <p class="type-caption text-text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
     <button class="primary">Primary Action</button>
   </article>
 </div>`,

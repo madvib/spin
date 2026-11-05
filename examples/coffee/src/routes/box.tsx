@@ -16,7 +16,7 @@ export default function BoxPage() {
   return (
     <div class="mx-auto flex max-w-3xl flex-col gap-8 p-8">
       <header class="flex flex-col gap-4">
-        <h1 class="m-0 text-3xl font-heading">Your box</h1>
+        <h1 class="m-0">Your box</h1>
         <p class="m-0 text-text-muted">
           Roasted Tuesday, shipped Wednesday — orders close Monday at noon.
         </p>

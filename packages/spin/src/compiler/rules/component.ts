@@ -6,8 +6,8 @@ import { named, type ThemeContext } from "../utils/lookup.ts";
  * Component tokens, spent as utilities.
  *
  * A component's own tokens are a customisation axis, not a parallel
- * vocabulary: `button.weight` is spent as `button-weight`, reading the same
- * `theme.button.weight` the preflight emitted. The utility is the component
+ * vocabulary: `button.edge` is spent as `button-edge`, reading the same
+ * `theme.button.edge` the preflight emitted. The utility is the component
  * root plus the step the theme declared — never a hardcoded list per
  * component, so a token added to the manifest is spendable by the same change
  * that added it.
@@ -54,8 +54,8 @@ function stepOf(root: string, path: string): string | undefined {
 /**
  * The property a token's type sets, when the type alone decides it.
  *
- * A token does not know what it styles — `button.weight` is a number whether
- * it is a font weight or a border width — so the type is the first signal.
+ * A token does not know what it styles — `switch.depth` is a number whether
+ * it is a shadow depth or a glyph size — so the type is the first signal.
  * `dimension` and `number` are absent because their property depends on the
  * step: a dimension under `tracking` is a letter-spacing, under `border-width`
  * a border-width, under `hover-lift` a translate.

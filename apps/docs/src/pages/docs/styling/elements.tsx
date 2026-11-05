@@ -10,6 +10,7 @@ import {
   Code,
   PageHeader,
   Section,
+  Specimen,
   starterDoc,
 } from "../../../ui/index.ts";
 
@@ -134,11 +135,11 @@ const PROMISE_EXHIBITS: readonly PromiseExhibit[] = [
       </>
     ),
     rule: "spin/no-redundant-class",
-    flaggedCode: `<button type="button" class="font-medium">Save changes</button>`,
+    flaggedCode: `<p class="type-body">Release notes for v4.12.0</p>`,
     diagnostic:
-      "`font-medium` sets `font-weight` to what `<button>` already sets. Drop the class. (Remedy: Drop `font-medium`)",
-    remedyCode: `<button type="button">Save changes</button>`,
-    renderLive: () => <button type="button">Save changes</button>,
+      "`type-body` sets `font-family, font-size, font-weight, letter-spacing, line-height` to what `<p>` already sets. Drop the class. (Remedy: Drop `type-body`)",
+    remedyCode: `<p>Release notes for v4.12.0</p>`,
+    renderLive: () => <p>Release notes for v4.12.0</p>,
   },
   {
     title: "2. Recurring look changes belong to variants or the theme",
@@ -170,18 +171,19 @@ const PROMISE_EXHIBITS: readonly PromiseExhibit[] = [
       <>
         Reach for <code>&lt;h1&gt;</code>–<code>&lt;h6&gt;</code>,{" "}
         <code>&lt;p&gt;</code>, or <code>&lt;code&gt;</code> when text plays
-        that role on the page rather than styling a <code>&lt;div&gt;</code> or{" "}
-        <code>&lt;span&gt;</code> to imitate one; when an unstyled box reaches
-        for a typographic size or tracking that belongs to a semantic element,{" "}
-        <code>spin/prefer-element</code> names the tag to write instead.
+        that role on the page rather than styling a <code>&lt;div&gt;</code> to
+        imitate one; when an unstyled box reaches for a tracking step that
+        belongs to a heading,{" "}
+        <code>spin/prefer-element</code> names the tag to write instead, and a
+        named style attaches anywhere without drawing that warning.
       </>
     ),
     rule: "spin/prefer-element",
-    flaggedCode: `<div class="text-2xl">Incident summary</div>`,
+    flaggedCode: `<div class="tracking-tight">Incident summary</div>`,
     diagnostic:
-      "the theme gives `<h1>` that size; `<div>` is not the element that carries it. Put the class on `<h1>`.",
+      "the theme gives `<h1>` that tracking; `<div>` is not the element that carries it. Put the class on `<h1>`.",
     remedyCode: `<h1>Incident summary</h1>`,
-    renderLive: () => <strong>Incident summary</strong>,
+    renderLive: () => <h1>Incident summary</h1>,
   },
   {
     title: "4. Layout is free, look is owned",
@@ -304,10 +306,11 @@ export default function StylingElements(): JSX.Element {
           update together:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-            <div class="flex flex-col gap-3">
-              <strong>Button variants row</strong>
+        <div class="my-2 flex flex-col gap-4">
+          <Specimen
+            title="Button variants row"
+            code={BUTTONS_ROW_SNIPPET}
+            preview={
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" class="primary">
                   Save changes
@@ -326,60 +329,54 @@ export default function StylingElements(): JSX.Element {
                   Delete
                 </button>
               </div>
-            </div>
-            <Code
-              code={BUTTONS_ROW_SNIPPET}
-              lang="html"
-              title="Bare <button> and its emphasis variants"
-            />
-          </div>
+            }
+          />
 
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-            <card>
-              <card-header>
-                <card-title>Alert routing</card-title>
-                <card-description>
-                  Notify on-call engineers when error budgets burn.
-                </card-description>
-                <card-action>
-                  <badge variant="success">Active</badge>
-                </card-action>
-              </card-header>
-              <card-content class="flex flex-col gap-2">
-                <label for="demo-oncall-channel">Escalation channel</label>
-                <input
-                  id="demo-oncall-channel"
-                  type="text"
-                  value="#incidents-primary"
-                />
-                <label for="demo-webhook-url">Webhook endpoint</label>
-                <field>
-                  <span
-                    class="i-lucide-webhook icon-sm"
-                    aria-hidden="true"
-                  />
+          <Specimen
+            title="Card anatomy with field and input"
+            code={CARD_ANATOMY_SNIPPET}
+            preview={
+              <card>
+                <card-header>
+                  <card-title>Alert routing</card-title>
+                  <card-description>
+                    Notify on-call engineers when error budgets burn.
+                  </card-description>
+                  <card-action>
+                    <badge variant="success">Active</badge>
+                  </card-action>
+                </card-header>
+                <card-content class="flex flex-col gap-2">
+                  <label for="demo-oncall-channel">Escalation channel</label>
                   <input
-                    id="demo-webhook-url"
-                    type="url"
-                    placeholder="https://hooks.acme.dev/incidents"
+                    id="demo-oncall-channel"
+                    type="text"
+                    value="#incidents-primary"
                   />
-                </field>
-              </card-content>
-              <card-footer class="justify-end">
-                <button type="button" class="ghost">
-                  Cancel
-                </button>
-                <button type="button" class="primary">
-                  Save rule
-                </button>
-              </card-footer>
-            </card>
-            <Code
-              code={CARD_ANATOMY_SNIPPET}
-              lang="html"
-              title="<card> anatomy, standalone <input>, and grouped <field>"
-            />
-          </div>
+                  <label for="demo-webhook-url">Webhook endpoint</label>
+                  <field>
+                    <span
+                      class="i-lucide-webhook icon-sm"
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="demo-webhook-url"
+                      type="url"
+                      placeholder="https://hooks.acme.dev/incidents"
+                    />
+                  </field>
+                </card-content>
+                <card-footer class="justify-end">
+                  <button type="button" class="ghost">
+                    Cancel
+                  </button>
+                  <button type="button" class="primary">
+                    Save rule
+                  </button>
+                </card-footer>
+              </card>
+            }
+          />
         </div>
 
         <p class="max-w-prose">
@@ -492,70 +489,69 @@ export default function StylingElements(): JSX.Element {
           <A href="/docs/styling/space#bare-escape">The bare escape</A>):
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-            <div class="flex flex-wrap items-center gap-2">
-              <button type="button" class="primary s-sm">
-                Small primary (.s-sm)
-              </button>
-              <button type="button" class="primary">
-                Default primary
-              </button>
-              <button type="button" class="primary s-lg">
-                Large primary (.s-lg)
-              </button>
-              <button type="button" class="ghost">
-                Ghost (.ghost)
-              </button>
-              <button type="button" class="danger">
-                Delete (.danger)
-              </button>
-              <button
-                type="button"
-                class="bare inline-flex items-center gap-1"
-              >
-                <span>Chrome-free (.bare)</span>
-              </button>
-            </div>
-
-            <div class="flex flex-col gap-2 border-t border-border pt-3">
-              <small>
-                Active starter component tokens on <code>&lt;button&gt;</code>{" "}
-                and <code>&lt;card&gt;</code>:
-              </small>
-              <div class="flex flex-wrap items-center gap-2">
-                <code>
-                  button.radius ={" "}
-                  {readComponentToken(
-                    "button",
-                    "radius",
-                    "radius",
-                    "md",
-                    "0.375rem",
-                  )}
-                </code>
-                <code>
-                  label.weight ={" "}
-                  {readStyleToken("label", "weight", "weight", "medium", "500")}
-                </code>
-                <code>
-                  card.radius ={" "}
-                  {readComponentToken(
-                    "card",
-                    "radius",
-                    "radius",
-                    "lg",
-                    "0.5rem",
-                  )}
-                </code>
-              </div>
-            </div>
-          </div>
-
-          <Code
+        <div class="my-2">
+          <Specimen
+            title="Emphasis variants, sizes, and bare"
             code={VARIANTS_SNIPPET}
-            lang="html"
-            title="Emphasis variants, .s-sm / .s-lg sizes, and .bare"
+            preview={
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" class="primary s-sm">
+                    Small primary (.s-sm)
+                  </button>
+                  <button type="button" class="primary">
+                    Default primary
+                  </button>
+                  <button type="button" class="primary s-lg">
+                    Large primary (.s-lg)
+                  </button>
+                  <button type="button" class="ghost">
+                    Ghost (.ghost)
+                  </button>
+                  <button type="button" class="danger">
+                    Delete (.danger)
+                  </button>
+                  <button
+                    type="button"
+                    class="bare inline-flex items-center gap-1"
+                  >
+                    <span>Chrome-free (.bare)</span>
+                  </button>
+                </div>
+                <div class="flex flex-col gap-2 border-t border-border pt-3">
+                  <small>
+                    Active starter component tokens on <code>&lt;button&gt;</code>{" "}
+                    and <code>&lt;card&gt;</code>:
+                  </small>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <code>
+                      button.radius ={" "}
+                      {readComponentToken(
+                        "button",
+                        "radius",
+                        "radius",
+                        "md",
+                        "0.375rem",
+                      )}
+                    </code>
+                    <code>
+                      label.weight ={" "}
+                      {readStyleToken("label", "weight", "weight", "medium", "500")}
+                    </code>
+                    <code>
+                      card.radius ={" "}
+                      {readComponentToken(
+                        "card",
+                        "radius",
+                        "radius",
+                        "lg",
+                        "0.5rem",
+                      )}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            }
           />
         </div>
 
@@ -601,39 +597,20 @@ export default function StylingElements(): JSX.Element {
           keep your templates consistent across theme and mode switches:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
+        <div class="my-2 flex flex-col gap-4">
           <For each={PROMISE_EXHIBITS}>
             {(item) => (
-              <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface p-4">
-                <div class="flex flex-col gap-2">
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <strong>{item.title}</strong>
-                    <code>{item.rule}</code>
+              <Specimen
+                title={`${item.title} — ${item.rule}`}
+                description={item.diagnostic}
+                code={`<!-- Authored markup -->\n${item.flaggedCode}\n\n<!-- Remedy markup -->\n${item.remedyCode}`}
+                preview={
+                  <div class="flex flex-col gap-3">
+                    <p class="max-w-prose">{item.summary}</p>
+                    <div>{item.renderLive()}</div>
                   </div>
-                  <p class="max-w-prose">{item.summary}</p>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                  <Code
-                    code={item.flaggedCode}
-                    lang="html"
-                    title="Authored markup"
-                  />
-                  <div class="rounded-md border border-border bg-surface-raised p-3">
-                    <small>{item.diagnostic}</small>
-                  </div>
-                  <Code
-                    code={item.remedyCode}
-                    lang="html"
-                    title="Remedy markup"
-                  />
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
-                  <small>Rendered output:</small>
-                  <div>{item.renderLive()}</div>
-                </div>
-              </div>
+                }
+              />
             )}
           </For>
         </div>

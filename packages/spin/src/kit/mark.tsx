@@ -1221,18 +1221,20 @@ export function Mark(props: {
 }
 
 /**
- * The wordmark beside the mark: a one-off brand lockup the theme cannot
- * name. No `type-*` style fits — every style reads in the sans/mono/serif
- * voices, and the lockup's voice is the brand face at three bold sizes —
- * so both spans wear the blessed escape instead (see round-3 findings).
- * The size ramp below is the gap the lockup keeps at each size; the word
- * itself reads whatever the lockup inherits, until a spendable brand
- * mechanism exists.
+ * The wordmark beside the mark: one-off display type the theme cannot
+ * name as a style, so the lockup reads the theme's own brand voice
+ * directly — the brand face, bold, on the size ramp — through the
+ * variables the preflight emits. The escape excuses the ownership
+ * rules; the style props name no class, so the vocabulary rule has
+ * nothing to read. A reskin re-voices the lockup with the theme.
  */
-const LOGO_WORD: Record<LogoSize, { readonly gap: string }> = {
-  sm: { gap: "gap-2" },
-  md: { gap: "gap-2" },
-  lg: { gap: "gap-3" },
+const LOGO_WORD: Record<
+  LogoSize,
+  { readonly gap: string; readonly size: string }
+> = {
+  sm: { gap: "gap-2", size: "var(--font-size-lg)" },
+  md: { gap: "gap-2", size: "var(--font-size-xl)" },
+  lg: { gap: "gap-3", size: "var(--font-size-2xl)" },
 };
 
 export type LogoSize = "sm" | "md" | "lg";
@@ -1244,7 +1246,7 @@ interface LogoSpec {
 
 const LOGO_BOX: Record<LogoSize, LogoSpec> = {
   sm: { px: 22, box: "h-5 w-5" },
-  md: { px: 28, box: "h-7 w-7" },
+  md: { px: 32, box: "h-8 w-8" },
   lg: { px: 34, box: "h-8 w-8" },
 };
 
@@ -1261,13 +1263,17 @@ export function Logo(props: {
   const word = () => LOGO_WORD[size()];
   return (
     <span
-      data-spin-escape
+      data-spin-escape="brand lockup"
+      style={{
+        "font-family": "var(--font-family-brand)",
+        "font-weight": "var(--font-weight-bold)",
+      }}
       class={`inline-flex items-center tracking-tight ${word().gap} ${
         props.class ?? ""
       }`}
     >
       <Web size={spec().px} class={`${spec().box} shrink-0 text-primary`} />
-      <span>spin</span>
+      <span style={{ "font-size": word().size }}>spin</span>
     </span>
   );
 }

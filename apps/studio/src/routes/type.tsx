@@ -1,8 +1,7 @@
 /**
  * Type — the faces a theme uses, the scale it sets, and the element map.
  *
- * A token list answers "what is `font-size-lg` worth". A type surface has to
- * answer the questions a theme author actually has:
+ * A token list answers "what is `font.size.lg` worth". A type surface has to
  *
  *   **What does each face look like, and what is it for?** `body`, `heading`,
  *   `serif`, `mono` — each a live specimen, the stack it resolves to, and
@@ -78,7 +77,7 @@ import {
 } from "../lib/fonts.ts";
 import { spinClient } from "../lib/client.ts";
 
-/** `font.weight.bold` → `bold`, the suffix the matching utility spends. */
+/** `font.weight.bold` → `bold`, the step a row spends its token value at. */
 function suffixOf(path: string): string {
   return path.split(".").slice(2).join("-");
 }
@@ -362,7 +361,6 @@ export default function TypePage() {
                     <TypeStepItem
                       row={row}
                       step={suffixOf(row.path)}
-                      utility={`font-${suffixOf(row.path)}`}
                       specimenStyle={{ "font-weight": `var(${row.variable})` }}
                       group={weightRows().map((r) => r.value)}
                     />
@@ -621,12 +619,9 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
         <span class="type-label">{props.step}</span>
         <code class="text-text-muted">{`font.size.${props.step}`}</code>
       </div>
-      <div
-        data-studio-specimen=""
-        class="min-w-0 flex-1 overflow-hidden"
-      >
+      <div data-studio-specimen="" class="min-w-0 flex-1 overflow-hidden">
         <p
-          class={`m-0 truncate text-${props.step}`}
+          class="m-0 truncate"
           style={{
             "font-size": row()
               ? props.family.shown(row()!.path, row()!.value)
@@ -661,7 +656,8 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
 function TypeStepItem(props: {
   row: TokenRow;
   step: string;
-  utility: string;
+  /** The utility the row spends, if the scale ships one. Weights arrive only inside named styles, so a weight row names none. */
+  utility?: string;
   specimenStyle: Record<string, string>;
   group: readonly string[];
 }) {
@@ -675,9 +671,13 @@ function TypeStepItem(props: {
           <span class="type-label">{props.step}</span>
           <span class="inline-flex items-center">
             <code tabIndex={0} class="text-text-muted">
-              {props.utility}
+              {props.utility ?? props.row.path}
             </code>
-            <tooltip class="start-0 translate-none">{props.row.path}</tooltip>
+            <Show when={props.utility !== undefined}>
+              <tooltip class="start-0 translate-none">
+                {props.row.path}
+              </tooltip>
+            </Show>
           </span>
         </div>
         <ValueInput

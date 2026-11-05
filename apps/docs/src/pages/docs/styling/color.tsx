@@ -8,9 +8,9 @@ import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
 import {
-  Code,
   PageHeader,
   Section,
+  Specimen,
 } from "../../../ui/index.ts";
 
 interface RoleSwatch {
@@ -192,14 +192,10 @@ export default function StylingColor(): JSX.Element {
                 <div
                   class={`flex min-h-24 flex-col justify-between rounded-md p-3 ${item.boxClass}`}
                 >
-                  <span class="type-caption-strong">
-                    {item.job}
-                  </span>
+                  <small>{item.job}</small>
                   <div class="flex flex-col gap-1">
                     <span class="type-body-strong">{item.sample}</span>
-                    <span class={`type-caption ${item.detailClass}`}>
-                      {item.detail}
-                    </span>
+                    <small class={item.detailClass}>{item.detail}</small>
                   </div>
                 </div>
                 <div class="flex flex-wrap gap-1 px-1 pb-1">
@@ -241,7 +237,7 @@ export default function StylingColor(): JSX.Element {
                 </div>
                 <div class="flex flex-wrap items-center gap-1 px-1 pb-1">
                   <code>{pair.fill}</code>
-                  <span class="type-caption text-text-muted">+</span>
+                  <small>+</small>
                   <code>{pair.ink}</code>
                 </div>
               </div>
@@ -269,16 +265,13 @@ export default function StylingColor(): JSX.Element {
           same markup in place:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
+        <div class="my-2">
+          <Specimen
+            title="Same markup in both modes — zero dark: classes"
+            code={MODE_SPECIMEN_SNIPPET}
+            controls={
+              <>
                 <code>data-mode=&quot;{specimenMode()}&quot;</code>
-                <span class="type-caption text-text-muted">
-                  on <code>data-theme=&quot;{theme()}&quot;</code>
-                </span>
-              </div>
-              <div class="flex items-center gap-1">
                 <button
                   type="button"
                   class={
@@ -301,38 +294,31 @@ export default function StylingColor(): JSX.Element {
                 >
                   dark
                 </button>
-              </div>
-            </div>
-
-            <div
-              data-theme={theme()}
-              data-mode={specimenMode()}
-              class="rounded-lg border border-border bg-surface p-4"
-            >
-              <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
-                <div class="flex flex-col gap-1">
-                  <strong>Release channel</strong>
-                  <div class="type-caption text-text-muted">
-                    Production traffic is healthy
+              </>
+            }
+            preview={
+              <div
+                data-theme={theme()}
+                data-mode={specimenMode()}
+                class="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4"
+              >
+                <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
+                  <div class="flex flex-col gap-1">
+                    <strong>Release channel</strong>
+                    <small>Production traffic is healthy</small>
                   </div>
+                  <span class="rounded-sm bg-semantic-success px-2 py-1 type-caption-strong text-on-semantic-success">
+                    Healthy
+                  </span>
                 </div>
-                <span class="rounded-sm bg-semantic-success px-2 py-1 type-caption-strong text-on-semantic-success">
-                  Healthy
-                </span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" class="primary">
+                    Deploy now
+                  </button>
+                  <button type="button">Inspect logs</button>
+                </div>
               </div>
-              <div class="mt-3 flex flex-wrap items-center gap-2">
-                <button type="button" class="primary">
-                  Deploy now
-                </button>
-                <button type="button">Inspect logs</button>
-              </div>
-            </div>
-          </div>
-
-          <Code
-            code={MODE_SPECIMEN_SNIPPET}
-            lang="html"
-            title="Same markup in both modes — zero dark: classes"
+            }
           />
         </div>
       </Section>
@@ -357,18 +343,16 @@ export default function StylingColor(): JSX.Element {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div class="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             <For each={ALPHA_RAMP}>
               {(item) => (
-                <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-2">
+                <div class="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-surface p-2">
                   <div
                     class={`h-12 w-full rounded-sm border border-border/50 ${item.swatchClass}`}
                   />
-                  <div class="flex items-center justify-between gap-1">
-                    <code>{item.utility}</code>
-                    <span class="type-code text-text-muted">
-                      {item.step}
-                    </span>
+                  <div class="flex min-w-0 flex-wrap items-center justify-between gap-1">
+                    <code class="break-all">{item.utility}</code>
+                    <small>{item.step}</small>
                   </div>
                 </div>
               )}

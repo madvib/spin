@@ -64,9 +64,9 @@ export const ICON_EXAMPLES: readonly IconExample[] = [
   {
     name: "Sizes · at the size they read",
     html: row(
-      `          <p class="text-md"><i class="i-lucide-plus icon-sm"></i> Deploy</p>
-          <p class="text-md"><i class="i-lucide-plus icon-md"></i> Deploy</p>
-          <p class="text-md"><i class="i-lucide-plus icon-lg"></i> Deploy</p>`,
+      `          <p><i class="i-lucide-plus icon-sm"></i> Deploy</p>
+          <p><i class="i-lucide-plus icon-md"></i> Deploy</p>
+          <p><i class="i-lucide-plus icon-lg"></i> Deploy</p>`,
     ),
   },
   {

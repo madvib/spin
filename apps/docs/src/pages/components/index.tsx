@@ -139,10 +139,10 @@ export default function ComponentsIndex(): JSX.Element {
           {(entry) => (
             <A
               href={entry.href}
-              class={`rounded-md px-3 py-1 type-body no-underline transition-colors duration-fast ${
+              class={`rounded-md px-3 py-1 no-underline transition-colors duration-fast ${
                 kind() === entry.id
-                  ? "bg-primary font-semibold text-on-primary"
-                  : "text-text-muted hover:bg-surface"
+                  ? "bg-primary text-on-primary type-body-strong"
+                  : "text-text-muted hover:bg-surface type-body"
               }`}
             >
               {entry.label}{" "}

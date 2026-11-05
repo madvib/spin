@@ -77,10 +77,10 @@ Write markup against primitives and utilities and run `npx spin lint .` (see [Li
 
 ```html
 <!-- Flagged by spin/no-redundant-class: -->
-<button type="button" class="font-medium">Save changes</button>
-<!-- `font-medium` sets `font-weight` to what `<button>` already sets. Drop the class. -->
+<button type="button" class="tracking-wide">Save changes</button>
+<!-- `tracking-wide` sets `letter-spacing` to what `<button>` already sets. Drop the class. -->
 
-<!-- Remedy (Drop `font-medium`): -->
+<!-- Remedy (Drop `tracking-wide`): -->
 <button type="button">Save changes</button>
 ```
 
@@ -99,10 +99,9 @@ Write markup against primitives and utilities and run `npx spin lint .` (see [Li
 
 ```html
 <!-- Flagged by spin/prefer-element: -->
-<div class="text-2xl">Incident summary</div>
-<!-- the theme gives `<h1>` that size; `<div>` is not the element that carries it. Put the class on `<h1>`. -->
+<div class="tracking-tight">Incident summary</div>
+<!-- the theme gives `<h1>` that tracking; `<div>` is not the element that carries it. Put the class on `<h1>`. -->
 
-<!-- Remedy (Put the class on `<h1>`.): -->
 <h1>Incident summary</h1>
 ```
 

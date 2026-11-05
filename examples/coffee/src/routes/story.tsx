@@ -13,14 +13,14 @@ export default function Story(): JSX.Element {
   return (
     <div class="flex flex-col gap-8 max-w-3xl mx-auto p-8">
       <header class="flex flex-col gap-4">
-        <h1 class="text-3xl">The shop</h1>
+        <h1>The shop</h1>
         <p class="text-text-muted">
           A two-person roastery on the edge of town, roasting for shops between
           here and the coast.
         </p>
       </header>
       <card class="flex flex-col gap-4 p-6">
-        <h2 class="text-xl">The week</h2>
+        <h2>The week</h2>
         <table>
           <thead>
             <tr>

@@ -183,7 +183,7 @@ function TopNav(props: {
                 href={section.href}
                 class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
                   current(section.active)
-                    ? "bg-surface-raised font-semibold"
+                    ? "bg-surface-raised type-body-strong"
                     : "text-text-muted"
                 }`}
               >
@@ -344,7 +344,15 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   <A
                     href={section.href}
                     onClick={() => setMobileNavOpen(false)}
-                    class="block rounded-sm bg-surface-raised px-3 py-1 no-underline"
+                    class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
+                      section.active.some(
+                        (prefix) =>
+                          location.pathname === prefix ||
+                          location.pathname.startsWith(`${prefix}/`),
+                      )
+                        ? "bg-surface-raised type-body-strong"
+                        : "text-text-muted"
+                    }`}
                   >
                     {section.title}
                   </A>

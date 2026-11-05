@@ -165,12 +165,12 @@ test("faceSpecimens shows the slots this theme declares, leading with the displa
   );
 });
 
-test("faceSpecimens carries the stack and the utility that draws it", () => {
+test("faceSpecimens carries the stack and the style that draws it", () => {
   const heading = faceSpecimens(TEXT, "light").find((f) =>
     f.slot === "heading"
   );
   deepStrictEqual(heading?.stack, "Georgia, serif");
-  deepStrictEqual(heading?.paint, "font-heading");
+  deepStrictEqual(heading?.paint, "type-heading");
 });
 
 /**

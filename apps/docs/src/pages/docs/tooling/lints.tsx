@@ -33,17 +33,17 @@ const PAIRS: readonly {
 }[] = [
   {
     rule: "spin/closed-vocabulary",
-    bad: `<p class="text-md p-13">Quarterly revenue</p>`,
-    good: `<p class="text-md p-4">Quarterly revenue</p>`,
+    bad: `<p class="type-caption p-13">Quarterly revenue</p>`,
+    good: `<p class="type-caption p-4">Quarterly revenue</p>`,
     note:
       "p-13 is not a declared spacing step — it emits no CSS. The fix names a declared step.",
   },
   {
     rule: "spin/no-redundant-class",
-    bad: `<h3 class="text-xl">Revenue</h3>`,
-    good: `<h3>Revenue</h3>`,
+    bad: `<button type="button" class="tracking-wide">Save changes</button>`,
+    good: `<button type="button">Save changes</button>`,
     note:
-      "The element already sets text-xl. The fix drops the redundant class.",
+      "The button already wears the wide tracking. The fix drops the redundant class.",
   },
   {
     rule: "spin/prefer-theme-value",
@@ -54,10 +54,10 @@ const PAIRS: readonly {
   },
   {
     rule: "spin/prefer-element",
-    bad: `<span class="text-3xl">Revenue</span>`,
+    bad: `<span class="tracking-tight">Revenue</span>`,
     good: `<h1>Revenue</h1>`,
     note:
-      "The level-one size belongs to exactly one element, so this is an error. A size several elements share stays a suggestion.",
+      "The tight tracking belongs to exactly one element, so this is an error. Tracking several elements share stays a suggestion.",
   },
   {
     rule: "spin/no-unpaired-ink",

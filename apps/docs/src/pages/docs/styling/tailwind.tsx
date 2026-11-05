@@ -113,14 +113,13 @@ interface AbsenceItem {
 const ABSENCE_ITEMS: readonly AbsenceItem[] = [
   {
     tailwindForm: "text-base",
-    spinAnswer: "text-md (or bare <p>)",
+    spinAnswer: "type-body (or bare <p>)",
     reason: () => (
       <>
-        Use <code>text-md</code> or write a bare <code>&lt;p&gt;</code> when you
-        want the body font-size step. The type scale uses the same{" "}
-        <code>2xs</code>–<code>3xl</code> step names as radii, shadows, and
-        control sizes so you never switch between <code>base</code> on type and{" "}
-        <code>md</code> everywhere else.
+        Write <code>type-body</code> or a bare <code>&lt;p&gt;</code> when you
+        want the body voice. The theme declares one named style per voice, so
+        a paragraph reads the same in every theme without guessing which size
+        step the active theme calls body.
       </>
     ),
   },
@@ -158,16 +157,16 @@ const ABSENCE_ITEMS: readonly AbsenceItem[] = [
   },
   {
     tailwindForm: "bg-[#fff] / bg-blue-500 / text-[14px]",
-    spinAnswer: "bg-surface / bg-primary / text-sm",
+    spinAnswer: "bg-surface / bg-primary / type-caption",
     reason: () => (
       <>
         Reach for semantic color roles (<code>bg-surface</code>,{" "}
-        <code>bg-primary</code>, <code>text-text-muted</code>) and declared{" "}
-        <code>font.size.*</code> steps (<code>text-2xs</code> through{" "}
-        <code>text-3xl</code>), or add a token to{" "}
-        <code>spin/&lt;name&gt;.json</code>. Default numbered color palettes and
-        bracketed color or font-size literals are omitted so switching themes
-        never leaves unthemed colors or off-scale type behind.
+        <code>bg-primary</code>, <code>text-text-muted</code>) and a declared{" "}
+        type style (<code>type-body</code>, <code>type-caption</code>), or add
+        a token to <code>spin/&lt;name&gt;.json</code>. Default numbered color
+        palettes and bracketed color or font-size literals are omitted so
+        switching themes never leaves unthemed colors or off-scale type
+        behind.
       </>
     ),
   },
@@ -336,8 +335,8 @@ export default function StylingTailwind(): JSX.Element {
           validation, because a number sizes one element while a color or type
           size repaints the system without telling the theme; thin a declared
           color role with an alpha suffix like <code>bg-surface/80</code> and
-          pick type sizes from your <code>font.size.*</code> scale (
-          <code>text-2xs</code> through <code>text-3xl</code>).
+          pick a declared type style (<code>type-body</code>,{" "}
+          <code>type-caption</code>, <code>type-code</code>).
         </p>
         <p class="max-w-prose">
           A bracketed measurement carries no scale promise, so switching

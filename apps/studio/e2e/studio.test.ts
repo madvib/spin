@@ -1159,36 +1159,34 @@ test("the component-token controls read as chrome, not as calls to action", asyn
 /**
  * A value below zero sits where its row says it does.
  *
- * Silk tracks its buttons tight — `-0.01em` — and the slider used to pin
- * such a value at the track's floor: the readout said one thing, the thumb
- * another, and one drag jumped the token across the map because the
- * unitless weight shared the family's ceiling with the length. The row now
- * stations its own value with room below zero.
+ * Silk tracks tight below zero — `-0.025em` — and the stepper's decrement
+ * stays live: the row's own value stations the control, and room below it
+ * keeps one more step reachable.
  */
 test("a negative tracking rests where the row says it does", async () => {
   await withPage(async (page) => {
     await page.goto(`${studioUrl()}/`);
     const seatedTrack = await seatTheme(page, "silk");
     assert(seatedTrack === "seated", `silk never seated: ${seatedTrack}`);
-    await page.goto(`${studioUrl()}/components/button`);
-    const opened = await openComponentPanel(page);
-    assert(opened === "opened", `the component panel is ${opened}`);
+    await page.goto(`${studioUrl()}/themes/type`);
+    await page.settle(800);
 
     const track = await page.eval<
-      { min: string; max: string; value: string; code: string } | null
+      { value: string; code: string; decDisabled: boolean | null } | null
     >(
       `(() => {
-        const input = document.querySelector('[id="token-button.tracking"]');
+        const input = document.querySelector('[id="token-font.tracking.tight"]');
         if (!input) return null;
-        const code = input.closest("card")?.querySelector("code")?.textContent ?? "";
-        return { min: input.min, max: input.max, value: input.value, code };
+        const dec = document.querySelector('[id="token-font.tracking.tight-dec"]');
+        const code = input.closest("li")?.querySelector("code[hidden]")?.textContent ?? "";
+        return { value: input.value, code, decDisabled: dec ? dec.disabled : null };
       })()`,
     );
     assert(
       track !== null && Number.parseFloat(track.code) < 0 &&
-        Number(track.value) === Number.parseFloat(track.code) &&
-        Number(track.value) > Number(track.min),
-      `tracking: value=${track?.value} code=${track?.code} min=${track?.min} max=${track?.max}`,
+        Number.parseFloat(track.value) === Number.parseFloat(track.code) &&
+        track.decDisabled === false,
+      `tracking: value=${track?.value} code=${track?.code} decDisabled=${track?.decDisabled}`,
     );
   });
 });

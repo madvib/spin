@@ -2,10 +2,11 @@
  * The organization — how a reader thinks about the surface, over what the
  * catalog happens to be divided into.
  *
- * The catalog's groups are which FILE a rule lives in, which is an
- * implementation fact: `text-color`, `type-size`, `text` and `typography` are
- * all `text.ts`. A reader looking for "how do I set my line height" does not
- * know or care that it shares a file with text colour.
+ * The catalog's groups are which RULE FAMILY produces them, which is an
+ * implementation fact: `text-color`, `font-style`, `text` and `typography`
+ * span `color.ts`, `type.ts`, `text.ts` and `typography.ts`. A reader
+ * looking for "how do I set my line height" does not know or care which
+ * file the rule lives in.
  *
  * So the reference is organized by INTENT, and this is the single declaration
  * of that. Not the sidebar — the sidebar reads it, the studio will read it, and

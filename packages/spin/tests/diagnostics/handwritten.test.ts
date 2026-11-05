@@ -132,6 +132,17 @@ test("a token written by hand in a style attribute is reported", () => {
   deepStrictEqual(report?.data?.["token"], "color-text");
 });
 
+test("a token inside the blessed escape is the lockup's own voice, not a mistake", () => {
+  // The escape exists for display type the theme cannot name: the lockup
+  // reads the theme's own variables deliberately, and the attribute says
+  // so on the element. The rule stands down exactly there.
+  const node = attribute("style", literal("font-family: var(--font-family-brand)"));
+  (node as { parent: unknown }).parent = {
+    attributes: [{ name: { name: "data-spin-escape" } }],
+  };
+  deepStrictEqual(reportsFor(node), []);
+});
+
 test("a token written by hand in a template used as markup is reported", () => {
   // The template is the class list the element wears, so the token in it is
   // a token in the document's own text.

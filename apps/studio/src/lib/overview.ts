@@ -79,15 +79,15 @@ export interface Face {
 const FACE_SLOTS: readonly Omit<Face, "stack">[] = [
   {
     slot: "heading",
-    paint: "font-heading",
+    paint: "type-heading",
     role: "Headings, and anything that leads",
   },
-  { slot: "body", paint: "font-body", role: "Paragraphs, and UI copy" },
-  { slot: "sans", paint: "font-sans", role: "The default face" },
-  { slot: "serif", paint: "font-serif", role: "Long-form editorial text" },
+  { slot: "body", paint: "type-body", role: "Paragraphs, and UI copy" },
+  { slot: "sans", paint: "type-body", role: "The default face" },
+  { slot: "serif", paint: "type-quote", role: "Long-form editorial text" },
   {
     slot: "mono",
-    paint: "font-mono",
+    paint: "type-code",
     role: "Code, identifiers, tabular figures",
   },
 ];

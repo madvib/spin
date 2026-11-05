@@ -51,10 +51,9 @@ export default function ThemesFonts(): JSX.Element {
           roles for you: <code>&lt;body&gt;</code> renders in{" "}
           <code>sans</code>, <code>&lt;h1&gt;</code>–<code>&lt;h6&gt;</code>{" "}
           render in <code>heading</code>, and <code>&lt;code&gt;</code> and{" "}
-          <code>&lt;pre&gt;</code> render in <code>mono</code>. The matching
-          utilities — <code>font-sans</code>, <code>font-heading</code>,{" "}
-          <code>font-mono</code> — spend the same roles anywhere in your
-          markup.
+          <code>&lt;pre&gt;</code> render in <code>mono</code>. Families
+          arrive inside named type styles — write{" "}
+          <code>type-code</code> for the mono voice anywhere in your markup.
         </p>
       </Section>
 

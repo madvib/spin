@@ -29,6 +29,8 @@ import {
   SHADOW,
   TEXT_ALIGN,
   TEXT_DECORATION,
+  FONT_STYLE,
+  TRUNCATE,
   TEXT_TRANSFORMS,
   TRACKING,
   LEADING,
@@ -154,6 +156,15 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
       name,
       { "text-decoration": value },
     ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(FONT_STYLE).map(([name, value]) => [
+      name,
+      { "font-style": value },
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(TRUNCATE).map(([name, value]) => [name, cssDecl(value)]),
   ),
 
   ...Object.fromEntries(

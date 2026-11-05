@@ -510,7 +510,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       "index.html": `<!doctype html>
 <html lang="en" data-theme="${themeName}" data-mode="${modeName}">
   <body>
-    <div id="app" class="min-h-dvh bg-surface p-6 font-sans">${inner}</div>
+    <div id="app" class="min-h-dvh bg-surface p-6 type-body">${inner}</div>
     <script type="module" src="/src/main.${wiring.ext}"></script>
   </body>
 </html>

@@ -95,19 +95,19 @@ export interface Wind4Layers {
  * names are not ours to choose. Everything outside this list is our own
  * shape — one flat map keyed by custom property name, which is the token's
  * identity — and nothing else in a spin build reads the nested form.
+ *
+ * The font keys are deliberately absent: `font`, `fontWeight`, `fontSize`,
+ * `leading`, `tracking` and `text` read nothing, so a wind4 font rule that
+ * reaches the theme-keyed branch emits a bare read of an undefined variable
+ * and the audit reports it inert rather than leaking type through the seam.
  */
 const WIND4_FAMILIES: ReadonlyArray<readonly [key: string, family: string]> = [
   ["colors", "color"],
   ["spacing", "spacing"],
-  ["fontSize", "font-size"],
-  ["fontFamily", "font-family"],
-  ["fontWeight", "font-weight"],
   ["radius", "radius"],
   ["shadow", "shadow"],
   ["breakpoint", "breakpoint"],
-  ["zIndex", "z-index"],
   ["opacity", "opacity"],
-  ["letterSpacing", "font-tracking"],
 ];
 
 /** wind4's nested view of the flat theme map, for the rules that read it. */
@@ -580,11 +580,56 @@ function guarded(
  * applied to the survivors, and for a static rule that costs nothing at all —
  * its declarations are already sitting in the tuple, readable without calling
  * anything.
+ *
+ * The font patterns are excluded outright: type arrives only inside named
+ * `type-*` styles, so a rule answering `font-`, `fw-`, `leading-`/`lh-`,
+ * `tracking-`, `word-spacing-`, `tab-` or `indent-` is a back door around
+ * the vocabulary, whether it reads the theme or a bare number.
  */
+const FONT_EXCLUDED: readonly RegExp[] = [
+  /^fw-?([^-]+)$/,
+  /^(?:font-)?(?:leading|lh|line-height)-(.+)$/,
+  /^(?:font-)?tracking-(.+)$/,
+  /^(?:font-)?word-spacing-(.+)$/,
+  /^font-synthesis-(.+)$/,
+  /^font-stretch-(.+)$/,
+  /^(?:text|font)-size-(.+)$/,
+  /^font-(.+)$/,
+  /^tab(?:-(.+))?$/,
+  /^indent-(.+)$/,
+];
+
+/**
+ * wind4's static font utilities, named outright: slant, smoothing and
+ * truncation ship no theme knob, so keeping the rule keeps a second
+ * spelling of a decision the theme owns (or a decision nobody owns —
+ * `antialiased` has no token, no ramp, no ramp to join).
+ */
+const FONT_EXCLUDED_STATIC: Record<string, true> = {
+  italic: true,
+  "not-italic": true,
+  oblique: true,
+  "not-oblique": true,
+  antialiased: true,
+  "subpixel-antialiased": true,
+  "text-truncate": true,
+  truncate: true,
+};
+
+function fontExcluded(rule: Rule): boolean {
+  const source = nameOf(rule);
+  if (FONT_EXCLUDED_STATIC[source] === true) return true;
+  return FONT_EXCLUDED.some((pattern) => pattern.source === source);
+}
+
 function usableRules(report: (exclusion: Wind4Exclusion) => void): Rule[] {
   const kept: Rule[] = [];
   for (const rule of wind4Rules) {
     if (claimsOf(rule).some((claim) => covered(rule, claim))) {
+      report({ rule: nameOf(rule), reason: "owned" });
+      continue;
+    }
+    if (fontExcluded(rule)) {
       report({ rule: nameOf(rule), reason: "owned" });
       continue;
     }

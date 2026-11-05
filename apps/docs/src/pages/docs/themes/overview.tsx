@@ -154,10 +154,10 @@ export default function ThemesOverview(): JSX.Element {
                     <button
                       type="button"
                       onClick={() => setSelectedName(item.name)}
-                      class={`bare cursor-pointer rounded-md border px-3 py-1 type-code transition-colors duration-fast ${
+                      class={`bare cursor-pointer rounded-md border px-3 py-1 transition-colors duration-fast ${
                         isSelected()
-                          ? "border-primary bg-primary text-on-primary font-semibold"
-                          : "border-border bg-surface text-text-muted hover:border-border-strong"
+                          ? "border-primary bg-primary text-on-primary type-body-strong"
+                          : "border-border bg-surface text-text-muted hover:border-border-strong type-code"
                       }`}
                     >
                       {item.name}

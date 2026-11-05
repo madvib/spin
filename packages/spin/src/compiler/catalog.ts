@@ -13,8 +13,10 @@ import { POSITION_NAMES } from "./rules/position.ts";
 import { SIZING_NAMES } from "./rules/sizing.ts";
 import { GUTTER_NAMES, MARGIN_AUTO_NAMES } from "./rules/spacing.ts";
 import {
+  FONT_STYLE_NAMES,
   TEXT_ALIGN_NAMES,
   TEXT_DECORATION_NAMES,
+  TRUNCATE_NAMES,
   WHITESPACE_NAMES,
   WORD_BREAK_NAMES,
 } from "./rules/text.ts";
@@ -181,6 +183,8 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       title: "Text",
       utilities: [
         ...TEXT_ALIGN_NAMES,
+        ...FONT_STYLE_NAMES,
+        ...TRUNCATE_NAMES,
         ...WHITESPACE_NAMES,
         ...WORD_BREAK_NAMES,
       ],

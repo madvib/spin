@@ -584,20 +584,68 @@ test("no custom property is defined in terms of itself", async () => {
  * list that grows with usage is honest about what happened, but only a test
  * that forces the read can pin it.
  */
+test("wind4's font back doors stay shut", async () => {
+  // Type arrives only inside named `type-*` styles, so wind4's font rules
+  // are excluded outright rather than audited: `font-`, `fw-`,
+  // `leading-`/`lh-`, `tracking-`, `word-spacing-`, `tab-` and `indent-`
+  // answer around the vocabulary, whether from the theme or a bare number.
+  const uno = await layered();
+  const owned = new Set(
+    wind4Exclusions()
+      .filter((exclusion) => exclusion.reason === "owned")
+      .map((exclusion) => exclusion.rule),
+  );
+  for (
+    const rule of [
+      "^fw-?([^-]+)$",
+      "^(?:font-)?(?:leading|lh|line-height)-(.+)$",
+      "^(?:font-)?tracking-(.+)$",
+      "^(?:font-)?word-spacing-(.+)$",
+      "^font-synthesis-(.+)$",
+      "^font-stretch-(.+)$",
+      "^(?:text|font)-size-(.+)$",
+      "^font-(.+)$",
+      "^tab(?:-(.+))?$",
+      "^indent-(.+)$",
+    ]
+  ) {
+    assert(
+      owned.has(rule),
+      `wind4's ${rule} is not excluded — type leaks through the seam`,
+    );
+  }
+  const leaked: string[] = [];
+  for (
+    const name of [
+      "font-100",
+      "fw-700",
+      "leading-4",
+      "lh-4",
+      "font-[Arial]",
+      "tab-4",
+      "indent-4",
+      "word-spacing-4",
+    ]
+  ) {
+    const { css } = await uno.generate(name, { preflights: false });
+    if (claims(css, name)) leaked.push(name);
+  }
+  deepStrictEqual(
+    leaked,
+    [],
+    `these answer around the named-style vocabulary: ${leaked.join(", ")}`,
+  );
+});
+
 test("wind4's inert rules stay out of the layer", async () => {
   const uno = await layered();
   // Force the lazy report with a blur utility WE do not own: the guarded
   // wrapper only learns the handler cannot run when something reaches it.
   await uno.generate("filter-blur", { preflights: false });
-  // And a font utility the removal uncovered: wind4's `font-` pattern is no
-  // longer ownership-excluded now ours is gone, so the audit runs it, finds
-  // it cannot read a spin theme, and records it inert. TYPE-b.
-  await uno.generate("font-sans", { preflights: false });
   const KNOWN_INERT: readonly string[] = [
     "transform",
     "transform-cpu",
     "transform-gpu",
-    "^font-(.+)$",
     "^(?:(backdrop-)|filter-)?blur(?:-(.+))?$",
   ];
   const inert = wind4Exclusions()

@@ -43,7 +43,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
                     end
                     onClick={() => props.onSelect?.()}
                     class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
-                    activeClass="bg-surface-raised font-semibold"
+                    activeClass="bg-surface-raised type-body-strong"
                     inactiveClass="text-text-muted"
                   >
                     {item.title}

@@ -1081,6 +1081,10 @@ const noHandwrittenTokens: GateRule = {
     return {
       JSXAttribute(node) {
         if (!carriesMarkup(node)) return;
+        // The blessed escape excuses the lockup's own voice: display type
+        // the theme cannot name reads the theme's variables deliberately,
+        // and the attribute says so on the element.
+        if (carriesEscape(node)) return;
         const found: MarkupText[] = [];
         markupStrings(node.value, found);
         if (found.length === 0) return;

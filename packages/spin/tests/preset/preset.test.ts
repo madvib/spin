@@ -613,6 +613,27 @@ test("tracking-wide spends the theme's ramp when the theme states one", async ()
   const { css } = await uno.generate("tracking-wide");
   assertTokenDriven(css, "tracking-wide", "letter-spacing");
 });
+test("leading-tight spends the theme's ramp when the theme states one", async () => {
+  const uno = await generatorFor({
+    themes: {
+      default: withGroup("font", {
+        "leading": { $type: "dimension", tight: { $value: 1.1 } },
+      }),
+    },
+  });
+  const { css } = await uno.generate("leading-tight");
+  assertTokenDriven(css, "leading-tight", "line-height");
+});
+test("leading-foo matches no rule: an undeclared step is unknown", async () => {
+  // Neither the theme's ramp nor the conventional steps name it, so the
+  // rule abstains and the class is unknown rather than a silent empty rule.
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
+  const { matched } = await uno.generate("leading-foo", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "an undeclared step must not resolve");
+});
+
 
 test("w-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("w-4"), "w-4", "width");

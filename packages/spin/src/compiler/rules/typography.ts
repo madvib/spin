@@ -2,11 +2,12 @@ import type { Rule } from "@unocss/core";
 import { staticRules } from "../utils/factories.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
-import { OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
+import { LEADING, OUTLINE, TEXT_TRANSFORMS, TRACKING } from "../utils/vocabulary.ts";
 
 export const TYPOGRAPHY_NAMES: readonly string[] = [
   ...Object.keys(TEXT_TRANSFORMS),
   ...Object.keys(TRACKING).map((name) => `tracking-${name}`),
+  ...Object.keys(LEADING),
   ...Object.keys(OUTLINE),
 ];
 
@@ -23,7 +24,18 @@ export function typographyRules(): Rule[] {
         if (token !== undefined) return { "letter-spacing": token };
         return STATIC_DECLS[`tracking-${name}`];
       },
-      { autocomplete: "tracking-$letterSpacing" },
+      { autocomplete: "tracking-$tracking" },
+    ],
+    // Leading: the same shape — the theme's ramp first, the conventional
+    // step second, inside one rule for the same shadowing reason.
+    [
+      /^leading-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) => {
+        const token = named(ctx, "font-leading", name);
+        if (token !== undefined) return { "line-height": token };
+        return STATIC_DECLS[`leading-${name}`];
+      },
+      { autocomplete: "leading-$leading" },
     ],
     // Capitalisation and the focus ring: fixed steps a theme may override
     // through `extendTheme`, but never has to name by hand.

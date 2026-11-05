@@ -448,8 +448,8 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
         const setPlaying = (next) => {
           playing = next;
           icon.className = next
-            ? "i-lucide-pause text-md"
-            : "i-lucide-play text-md";
+            ? "i-lucide-pause icon-md"
+            : "i-lucide-play icon-md";
           if (next) {
             timer = setInterval(tick, 1000);
           } else {
@@ -533,13 +533,13 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           btn.setAttribute("data-note", String(index));
           btn.className = "grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
           const t = document.createElement("p");
-          t.className = "m-0 text-sm font-medium text-text-muted";
+          t.className = "m-0 type-label text-text-muted";
           t.textContent = "Untitled Note";
           const pv = document.createElement("p");
-          pv.className = "m-0 text-xs text-muted";
+          pv.className = "m-0 type-caption text-muted";
           pv.textContent = "…";
           const dt = document.createElement("p");
-          dt.className = "m-0 text-xs text-muted";
+          dt.className = "m-0 type-caption text-muted";
           dt.textContent = "Just now";
           btn.append(t, pv, dt);
           btn.addEventListener("click", () => select(Number(btn.getAttribute("data-note"))));
@@ -638,7 +638,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           btn.classList.toggle("text-on-primary", !pressed);
           btn.classList.toggle("bg-surface-raised", pressed);
           btn.classList.toggle("text-text-muted", pressed);
-          if (icon) icon.className = "i-lucide-" + (pressed ? onIcon : offIcon) + " text-sm";
+          if (icon) icon.className = "i-lucide-" + (pressed ? onIcon : offIcon) + " icon-sm";
         };
         const mute = root.querySelector("[data-mute]");
         const video = root.querySelector("[data-video]");

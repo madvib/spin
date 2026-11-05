@@ -9,6 +9,7 @@ export {
   type ThemeDocument,
 } from "./page-header.tsx";
 export { PropList, type PropEntry } from "./prop-list.tsx";
+export { Specimen } from "./specimen.tsx";
 export { SplitExample } from "./split-example.tsx";
 export {
   PlaygroundEmbed,

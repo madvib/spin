@@ -115,11 +115,11 @@ const DTCG_SAMPLES: readonly DtcgTokenSample[] = [
     pairing: "Paired with color.on-primary (≥ 4.5:1 AA)",
   },
   {
-    path: "font.size.lg",
+    path: "font.style.lead.size",
     type: "dimension",
     role: "Subheading & lead type scale",
     sample: "font",
-    sampleClass: "font-heading",
+    sampleClass: "type-lead",
     pairing: "Scales from font.size.xs to font.size.3xl",
   },
   {

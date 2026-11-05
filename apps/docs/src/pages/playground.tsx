@@ -32,7 +32,7 @@ const FRAMEWORKS: readonly PlaygroundFramework[] = [
 ];
 
 const PRESET_PILL =
-  "bare cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-fast aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary border-border bg-surface text-text-muted";
+  "bare cursor-pointer rounded-full border px-3 py-1 type-caption transition-colors duration-fast aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary aria-[pressed=true]:type-body-strong aria-[pressed=true]:text-on-primary border-border bg-surface text-text-muted";
 
 export default function PlaygroundPage(): JSX.Element {
   const [preset, setPreset] = createSignal(0);

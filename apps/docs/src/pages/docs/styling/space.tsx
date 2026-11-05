@@ -11,6 +11,7 @@ import {
   Code,
   PageHeader,
   Section,
+  Specimen,
   starterDoc,
 } from "../../../ui/index.ts";
 
@@ -224,17 +225,17 @@ export default function StylingSpace(): JSX.Element {
             </div>
           </div>
 
-          <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-3 overflow-x-auto">
+          <div class="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-surface p-3">
             <For each={SPACING_LADDER}>
               {(item) => (
-                <div class="flex items-center justify-between gap-3">
+                <div class="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
                   <div class="flex shrink-0 items-center gap-1">
                     <code>{item.padUtil}</code>
                     <code>{item.gapUtil}</code>
                   </div>
-                  <div class="flex min-w-0 grow items-center gap-2">
+                  <div class="flex min-w-24 grow items-center gap-2">
                     <div
-                      class={`h-3 shrink-0 rounded-sm bg-primary text-on-primary ${item.widthClass}`}
+                      class={`h-3 max-w-full shrink rounded-sm bg-primary text-on-primary ${item.widthClass}`}
                     />
                     <small>{readGroupStep("spacing", item.step, "—")}</small>
                   </div>
@@ -270,46 +271,44 @@ export default function StylingSpace(): JSX.Element {
           <code>split</code>) is one your project chose:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
-              <div class="flex items-center justify-between gap-4">
-                <strong>Release pipeline</strong>
-                <badge variant="success">Ready</badge>
+        <div class="my-2 flex flex-col gap-4">
+          <Specimen
+            title="Before — raw utilities on every container"
+            code={COMPOSITION_BEFORE_SNIPPET}
+            preview={
+              <div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+                <div class="flex items-center justify-between gap-4">
+                  <strong>Release pipeline</strong>
+                  <badge variant="success">Ready</badge>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                  <button type="button" class="primary">
+                    Promote build
+                  </button>
+                  <button type="button">Compare diff</button>
+                </div>
               </div>
-              <div class="flex flex-wrap items-center gap-4">
-                <button type="button" class="primary">
-                  Promote build
-                </button>
-                <button type="button">Compare diff</button>
-              </div>
-            </div>
-            <Code
-              code={COMPOSITION_BEFORE_SNIPPET}
-              lang="html"
-              title="Before — raw utilities on every container"
-            />
-          </div>
+            }
+          />
 
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="stack rounded-lg border border-border bg-surface p-4">
-              <div class="split">
-                <strong>Release pipeline</strong>
-                <badge variant="success">Ready</badge>
+          <Specimen
+            title="After — named compositions (stack, split, row)"
+            code={COMPOSITION_AFTER_SNIPPET}
+            preview={
+              <div class="stack rounded-lg border border-border bg-surface p-4">
+                <div class="split">
+                  <strong>Release pipeline</strong>
+                  <badge variant="success">Ready</badge>
+                </div>
+                <div class="row flex-wrap">
+                  <button type="button" class="primary">
+                    Promote build
+                  </button>
+                  <button type="button">Compare diff</button>
+                </div>
               </div>
-              <div class="row flex-wrap">
-                <button type="button" class="primary">
-                  Promote build
-                </button>
-                <button type="button">Compare diff</button>
-              </div>
-            </div>
-            <Code
-              code={COMPOSITION_AFTER_SNIPPET}
-              lang="html"
-              title="After — named compositions (stack, split, row)"
-            />
-          </div>
+            }
+          />
         </div>
 
         <p class="max-w-prose">
@@ -349,16 +348,12 @@ export default function StylingSpace(): JSX.Element {
           <code>lg:</code>:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-1">
-                <code>max-md:</code>
-                <code>sm:</code>
-                <code>md:</code>
-                <code>lg:</code>
-              </div>
-              <div class="flex flex-wrap items-center gap-1">
+        <div class="my-2">
+          <Specimen
+            title="Reflowing across max-md:, sm:, md:, and lg:"
+            code={RESPONSIVE_SPECIMEN_SNIPPET}
+            controls={
+              <>
                 <button
                   type="button"
                   class={
@@ -403,67 +398,63 @@ export default function StylingSpace(): JSX.Element {
                 >
                   lg ({readGroupStep("breakpoint", "lg", "64rem")})
                 </button>
-              </div>
-            </div>
-
-            <div
-              class={`mx-auto w-full rounded-lg border border-border bg-surface p-4 ${stageWidthClass()}`}
-            >
-              <div
-                class={
-                  previewWidth() === "compact" || previewWidth() === "sm"
-                    ? "flex flex-col gap-2"
-                    : "flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
-                }
-              >
-                <div class="flex items-center gap-2">
-                  <strong>Edge regions</strong>
-                  <small>
-                    Active edge:{" "}
-                    <code>
-                      {previewWidth() === "compact"
-                        ? "max-md:"
-                        : `${previewWidth()}:`}
-                    </code>
-                  </small>
+              </>
+            }
+            preview={
+              <div class="flex flex-col gap-3">
+                <div
+                  class={`mx-auto w-full rounded-lg border border-border bg-surface p-4 ${stageWidthClass()}`}
+                >
+                  <div
+                    class={
+                      previewWidth() === "compact" || previewWidth() === "sm"
+                        ? "flex flex-col gap-2"
+                        : "flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
+                    }
+                  >
+                    <div class="flex items-center gap-2">
+                      <strong>Edge regions</strong>
+                      <small>
+                        Active edge:{" "}
+                        <code>
+                          {previewWidth() === "compact"
+                            ? "max-md:"
+                            : `${previewWidth()}:`}
+                        </code>
+                      </small>
+                    </div>
+                    <Show when={previewWidth() === "compact" || previewWidth() === "sm"}>
+                      <badge variant="info" class="max-md:inline-flex">
+                        Compact view (max-md:)
+                      </badge>
+                    </Show>
+                    <Show when={previewWidth() === "md" || previewWidth() === "lg"}>
+                      <badge variant="success">Multi-column row (md:)</badge>
+                    </Show>
+                  </div>
+                  <div class={gridReflowClass()}>
+                    <card>
+                      <card-header>
+                        <card-title>us-east</card-title>
+                        <card-description>12 ms p95 · 4 replicas</card-description>
+                      </card-header>
+                    </card>
+                    <card>
+                      <card-header>
+                        <card-title>eu-central</card-title>
+                        <card-description>18 ms p95 · 3 replicas</card-description>
+                      </card-header>
+                    </card>
+                    <card>
+                      <card-header>
+                        <card-title>ap-northeast</card-title>
+                        <card-description>24 ms p95 · 3 replicas</card-description>
+                      </card-header>
+                    </card>
+                  </div>
                 </div>
-                <Show when={previewWidth() === "compact" || previewWidth() === "sm"}>
-                  <badge variant="info" class="max-md:inline-flex">
-                    Compact view (max-md:)
-                  </badge>
-                </Show>
-                <Show when={previewWidth() === "md" || previewWidth() === "lg"}>
-                  <badge variant="success">Multi-column row (md:)</badge>
-                </Show>
               </div>
-
-              <div class={gridReflowClass()}>
-                <card>
-                  <card-header>
-                    <card-title>us-east</card-title>
-                    <card-description>12 ms p95 · 4 replicas</card-description>
-                  </card-header>
-                </card>
-                <card>
-                  <card-header>
-                    <card-title>eu-central</card-title>
-                    <card-description>18 ms p95 · 3 replicas</card-description>
-                  </card-header>
-                </card>
-                <card>
-                  <card-header>
-                    <card-title>ap-northeast</card-title>
-                    <card-description>24 ms p95 · 3 replicas</card-description>
-                  </card-header>
-                </card>
-              </div>
-            </div>
-          </div>
-
-          <Code
-            code={RESPONSIVE_SPECIMEN_SNIPPET}
-            lang="html"
-            title="Reflowing across max-md:, sm:, md:, and lg:"
+            }
           />
         </div>
 
@@ -498,18 +489,12 @@ export default function StylingSpace(): JSX.Element {
           <code>position-area-top</code>):
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-1">
-                <code>isolate</code>
-                <code>z-base</code>
-                <code>z-dropdown</code>
-                <code>z-modal</code>
-                <code>z-toast</code>
-                <code>anchor-release-menu</code>
-              </div>
-              <div class="flex flex-wrap items-center gap-1">
+        <div class="my-2">
+          <Specimen
+            title="Trigger-pinned panel in the top layer"
+            code={ANCHORED_PANEL_SNIPPET}
+            controls={
+              <>
                 <button
                   type="button"
                   class={
@@ -538,61 +523,54 @@ export default function StylingSpace(): JSX.Element {
                 >
                   position-area-top
                 </button>
-              </div>
-            </div>
-
-            <div class="isolate relative flex min-h-36 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-surface p-4">
-              <Show when={panelOpen() && anchorArea() === "top"}>
-                <div class="z-dropdown position-anchor-release-menu position-area-top flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
-                  <div class="flex items-center justify-between gap-3">
-                    <strong>Pinned above trigger</strong>
-                    <code>position-area-top</code>
+              </>
+            }
+            preview={
+              <div class="isolate relative flex min-h-36 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-surface p-4">
+                <Show when={panelOpen() && anchorArea() === "top"}>
+                  <div class="z-dropdown position-anchor-release-menu position-area-top flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
+                    <div class="flex items-center justify-between gap-3">
+                      <strong>Pinned above trigger</strong>
+                      <code>position-area-top</code>
+                    </div>
+                    <small>
+                      <code>position-anchor-release-menu</code> on{" "}
+                      <code>z-dropdown</code>
+                    </small>
                   </div>
+                </Show>
+                <div class="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    class="relative anchor-release-menu"
+                    onClick={() => setPanelOpen((open) => !open)}
+                  >
+                    <span>Release targets</span>
+                    <span
+                      class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary text-on-primary"
+                      aria-hidden="true"
+                    />
+                  </button>
                   <small>
-                    <code>position-anchor-release-menu</code> on{" "}
-                    <code>z-dropdown</code>
+                    Trigger carries <code>relative</code>,{" "}
+                    <code>anchor-release-menu</code>, and an{" "}
+                    <code>absolute top-1 right-1</code> indicator dot.
                   </small>
                 </div>
-              </Show>
-
-              <div class="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  class="relative anchor-release-menu"
-                  onClick={() => setPanelOpen((open) => !open)}
-                >
-                  <span>Release targets</span>
-                  <span
-                    class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary text-on-primary"
-                    aria-hidden="true"
-                  />
-                </button>
-                <small>
-                  Trigger carries <code>relative</code>,{" "}
-                  <code>anchor-release-menu</code>, and an{" "}
-                  <code>absolute top-1 right-1</code> indicator dot.
-                </small>
-              </div>
-
-              <Show when={panelOpen() && anchorArea() === "bottom"}>
-                <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
-                  <div class="flex items-center justify-between gap-3">
-                    <strong>Pinned below trigger</strong>
-                    <code>position-area-bottom-span-right</code>
+                <Show when={panelOpen() && anchorArea() === "bottom"}>
+                  <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
+                    <div class="flex items-center justify-between gap-3">
+                      <strong>Pinned below trigger</strong>
+                      <code>position-area-bottom-span-right</code>
+                    </div>
+                    <small>
+                      <code>position-anchor-release-menu</code> on{" "}
+                      <code>z-dropdown</code>
+                    </small>
                   </div>
-                  <small>
-                    <code>position-anchor-release-menu</code> on{" "}
-                    <code>z-dropdown</code>
-                  </small>
-                </div>
-              </Show>
-            </div>
-          </div>
-
-          <Code
-            code={ANCHORED_PANEL_SNIPPET}
-            lang="html"
-            title="Trigger-pinned panel in the top layer"
+                </Show>
+              </div>
+            }
           />
         </div>
 
@@ -604,23 +582,23 @@ export default function StylingSpace(): JSX.Element {
           inline on the text baseline:
         </p>
 
-        <div class="my-2 grid gap-3 sm:grid-cols-3">
+        <div class="my-2 grid min-w-0 gap-3 sm:grid-cols-3">
           <For each={ICON_STEPS}>
             {(item) => (
-              <div class="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised px-3 py-3">
-                <div class="flex items-center gap-2">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised px-3 py-3">
+                <div class="flex min-w-0 items-center gap-2">
                   <span
-                    class={`${item.glyphClass} ${item.sizeClass} text-primary`}
+                    class={`${item.glyphClass} ${item.sizeClass} shrink-0 text-primary`}
                     aria-hidden="true"
                   />
-                  <div class="flex flex-col">
-                    <strong>{item.label}</strong>
-                    <small>{readGroupStep("icon", item.step, "1em")}</small>
+                  <div class="flex min-w-0 flex-col">
+                    <strong class="break-words">{item.label}</strong>
+                    <small class="break-all">{readGroupStep("icon", item.step, "1em")}</small>
                   </div>
                 </div>
-                <div class="flex flex-col items-end gap-1">
-                  <code>{item.sizeClass}</code>
-                  <code>{item.glyphClass}</code>
+                <div class="flex min-w-0 flex-col items-end gap-1">
+                  <code class="break-all">{item.sizeClass}</code>
+                  <code class="break-all">{item.glyphClass}</code>
                 </div>
               </div>
             )}
@@ -647,43 +625,40 @@ export default function StylingSpace(): JSX.Element {
           <code>.ghost</code> still carries more chrome than the surface allows:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface p-4">
-              <button type="button" class="ghost">
-                Ghost action
-              </button>
-
-              <button
-                type="button"
-                class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 type-code text-text-muted"
-              >
-                <span>Command palette</span>
-                <kbd>⌘K</kbd>
-              </button>
-
-              <button
-                type="button"
-                class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-strong text-on-primary"
-              >
-                <span>Live filter</span>
-              </button>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <code>.ghost</code>
-              <code>bare</code>
-              <code>bg-surface</code>
-              <code>text-text-muted</code>
-              <code>bg-primary</code>
-              <code>text-on-primary</code>
-            </div>
-          </div>
-
-          <Code
+        <div class="my-2">
+          <Specimen
+            title="Custom triggers with bare and explicit ink"
             code={BARE_ESCAPE_SNIPPET}
-            lang="html"
-            title="Custom triggers with class=&quot;bare&quot; and explicit ink"
+            preview={
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface p-4">
+                  <button type="button" class="ghost">
+                    Ghost action
+                  </button>
+                  <button
+                    type="button"
+                    class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 type-code text-text-muted"
+                  >
+                    <span>Command palette</span>
+                    <kbd>⌘K</kbd>
+                  </button>
+                  <button
+                    type="button"
+                    class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-strong text-on-primary"
+                  >
+                    <span>Live filter</span>
+                  </button>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <code>.ghost</code>
+                  <code>bare</code>
+                  <code>bg-surface</code>
+                  <code>text-text-muted</code>
+                  <code>bg-primary</code>
+                  <code>text-on-primary</code>
+                </div>
+              </div>
+            }
           />
         </div>
       </Section>

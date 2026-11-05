@@ -19,10 +19,6 @@ const STRUCTURAL: Record<string, true> = {
   "items-center": true,
   "justify-center": true,
   "gap-2": true,
-  // The type step the icon is shown at: the size ladder's whole claim is
-  // that a step is set against the root, so a row has to say what the root
-  // is — a typography utility, not a component variant.
-  "text-md": true,
 };
 
 const isKnown = (cls: string, known: Set<string>): boolean =>

@@ -46,14 +46,14 @@ export default function App() {
             data-theme="roastery"
             class="flex min-h-screen flex-col bg-surface"
           >
-            <div class="bg-primary py-2 text-center text-sm text-on-primary">
+            <div class="bg-primary py-2 text-center text-on-primary">
               Roast day is Tuesday · free shipping over $40
             </div>
 
             <nav class="flex flex-row items-center gap-4 border-b border-border bg-surface-raised p-4">
               <A href="/" class="row-sm no-underline whitespace-nowrap">
                 <img src="/mark.svg" alt="" width="28" height="28" />
-                <span class="font-heading font-semibold">
+                <span>
                   Basecamp Roastery
                 </span>
               </A>
@@ -64,7 +64,7 @@ export default function App() {
                       <A
                         href={href}
                         class="no-underline text-text-muted"
-                        activeClass="no-underline text-text font-semibold"
+                        activeClass="no-underline"
                         inactiveClass="no-underline text-text-muted"
                       >
                         {label}
@@ -75,7 +75,7 @@ export default function App() {
               </ul>
               <A
                 href="/box"
-                class="flex items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm no-underline text-text"
+                class="flex items-center gap-2 rounded-sm border border-border px-3 py-2 no-underline"
               >
                 <i
                   class="i-lucide-shopping-bag button-icon icon-sm"
@@ -90,12 +90,12 @@ export default function App() {
 
             <main class="flex-1">{props.children}</main>
 
-            <footer class="border-t border-border bg-surface-raised text-sm text-text-muted">
+            <footer class="border-t border-border bg-surface-raised text-text-muted">
               <div class="mx-auto grid max-w-5xl gap-8 p-8 md:grid-cols-3">
                 <div class="flex flex-col gap-2">
-                  <span class="flex items-center gap-2 text-text">
+                  <span class="flex items-center gap-2">
                     <img src="/mark.svg" alt="" width="22" height="22" />
-                    <span class="font-heading font-semibold">
+                    <span>
                       Basecamp Roastery
                     </span>
                   </span>
@@ -104,7 +104,7 @@ export default function App() {
                   </p>
                 </div>
                 <div class="flex flex-col gap-2">
-                  <span class="font-semibold text-text">Shop</span>
+                  <span>Shop</span>
                   <For each={FOOTER_SHOP}>
                     {([href, label]) => (
                       <A href={href} class="no-underline text-text-muted">
@@ -114,11 +114,11 @@ export default function App() {
                   </For>
                 </div>
                 <div class="flex flex-col gap-2">
-                  <span class="font-semibold text-text">The week</span>
+                  <span>The week</span>
                   <For each={FOOTER_WEEK}>
                     {([day, what]) => (
                       <p class="m-0">
-                        <span class="text-text">{day}</span> — {what}
+                        <span>{day}</span> — {what}
                       </p>
                     )}
                   </For>
