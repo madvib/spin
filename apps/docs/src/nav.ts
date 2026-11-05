@@ -137,7 +137,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Typography & Lists",
         href: "/docs/styling/prose",
-        summary: "Element-owned typography (h1-h6, p, code, blockquote, <prose>) and list primitives (ul/ol reset, row-list, flow-list).",
+        summary: "Named type styles your theme declares (type-<name>), carried by elements by default — plus list primitives (ul/ol reset, row-list, flow-list).",
       },
       {
         title: "Color & Dark Mode",

@@ -1,89 +1,60 @@
 /**
- * Typography & Lists: element-owned typography (`h1`–`h6`, `p`, `code`,
- * `blockquote`, `<prose>`) and list primitives (`ul`/`ol` reset, `row-list`,
- * `flow-list`).
+ * Typography: the named type styles the theme declares, spent with
+ * `type-<name>` or carried by elements by default — plus the list
+ * primitives (`ul`/`ol` reset, `row-list`, `flow-list`).
  */
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import {
-  Chip,
+  ELEMENT_STYLE_DEFAULTS,
+  resolveTheme,
+  starterThemes,
+} from "@spinjs/spin/theme";
+import { mode, theme } from "@spinjs/kit";
+import {
   Code,
   PageHeader,
   PropList,
   Section,
-  starterDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 
-const TYPOGRAPHY_ELEMENTS: readonly PropEntry[] = [
-  {
-    name: "<h1> – <h6>",
-    badge: "headings",
-    description: (
-      <>
-        Spend <code>font.family.heading</code>, the monotonic{" "}
-        <code>font.size.*</code> ramp (<code>2xl</code> down to{" "}
-        <code>sm</code>), <code>font.weight.bold</code> /{" "}
-        <code>semibold</code>, and <code>font.leading.tight</code>. Never
-        add <code>font-bold</code> or <code>text-*</code> to a heading —{" "}
-        <code>spin/no-redundant-class</code> and{" "}
-        <code>spin/prefer-theme-value</code> flag overrides.
-      </>
-    ),
-  },
-  {
-    name: "<p>, <small>, <strong>",
-    badge: "body copy",
-    description: (
-      <>
-        Spend <code>font.family.sans</code> (or <code>font.family.body</code>),{" "}
-        <code>font.size.md</code> (<code>font.size.xs</code> on{" "}
-        <code>&lt;small&gt;</code>), and <code>color.text</code>. Write copy in{" "}
-        <code>&lt;p&gt;</code> and <code>&lt;small&gt;</code> rather than{" "}
-        <code>&lt;div class="text-sm"&gt;</code>.
-      </>
-    ),
-  },
-  {
-    name: "<code>, <pre>, <kbd>",
-    badge: "monospace",
-    description: (
-      <>
-        Spend <code>font.family.mono</code>, <code>color.surface-raised</code>,
-        and <code>color.border</code>. Inline <code>&lt;code&gt;</code> and{" "}
-        <code>&lt;kbd&gt;</code> carry their own pill chrome;{" "}
-        <code>&lt;pre&gt;</code> resets nested <code>&lt;code&gt;</code> chrome
-        automatically.
-      </>
-    ),
-  },
-  {
-    name: "<blockquote>, <a>, <hr>",
-    badge: "editorial",
-    description: (
-      <>
-        <code>&lt;blockquote&gt;</code> renders an accent inline-start border
-        and muted ink; <code>&lt;a&gt;</code> spends <code>color.link</code>{" "}
-        and <code>color.link-hover</code>; <code>&lt;hr&gt;</code> renders a{" "}
-        <code>border.width</code> rule (with <code>.divider-dashed</code> and{" "}
-        <code>.divider-vertical</code> modifiers).
-      </>
-    ),
-  },
-  {
-    name: "<prose> / .prose",
-    badge: "document container",
-    description: (
-      <>
-        Sets a readable measure (<code>max-width: 65ch</code>), vertical rhythm
-        between headings, paragraphs, code blocks, and tables, and restores{" "}
-        <code>disc</code> / <code>decimal</code> markers on nested{" "}
-        <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> lists.
-      </>
-    ),
-  },
-];
+const SAMPLE = "The quick brown fox jumps over the lazy dog";
+
+const DEFAULT_ELEMENTS: readonly string[] = Object.keys(
+  ELEMENT_STYLE_DEFAULTS,
+);
+
+function styleInline(name: string): Record<string, string> {
+  const doc = starterThemes[theme() as keyof typeof starterThemes];
+  const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
+  const read = (field: string): string => {
+    const value = resolved.values[`font.style.${name}.${field}`];
+    return typeof value === "string" || typeof value === "number"
+      ? String(value)
+      : "inherit";
+  };
+  return {
+    "font-family": read("family"),
+    "font-size": read("size"),
+    "font-weight": read("weight"),
+    "letter-spacing": read("tracking"),
+    "line-height": read("leading"),
+  };
+}
+
+function declarationOf(name: string): string {
+  const doc = starterThemes[theme() as keyof typeof starterThemes];
+  const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
+  const read = (field: string): string => {
+    const value = resolved.values[`font.style.${name}.${field}`];
+    return typeof value === "string" || typeof value === "number"
+      ? String(value)
+      : "—";
+  };
+  return `${read("family")} · ${read("size")} · ${read("weight")}`;
+}
 
 const LIST_PATTERNS: readonly PropEntry[] = [
   {
@@ -116,8 +87,8 @@ const LIST_PATTERNS: readonly PropEntry[] = [
       <>
         Expands to a horizontal flex row (<code>display: flex; align-items: center; list-style-type: none; margin: 0; padding: 0</code>) and zeroes{" "}
         <code>li + li</code> top margin so the first item and subsequent items
-        align on the exact same baseline. Use on horizontal navs, breadcrumbs,
-        and steppers.
+        align on the exact same baseline. Use on horizontal navs,
+        breadcrumbs, and steppers.
       </>
     ),
   },
@@ -156,30 +127,128 @@ const PROSE_AND_LIST_SNIPPET = `<!-- Long-form article or Markdown container -->
   </ul>
 </nav>`;
 
-export default function StylingProse(): JSX.Element {
-  const fontScale = (): readonly string[] => {
-    const font = (starterDoc().font ?? {}) as Record<string, unknown>;
-    const size = (font["size"] ?? {}) as Record<string, unknown>;
-    return Object.keys(size).filter((k) => !k.startsWith("$"));
-  };
+const ATTACH_SNIPPET = `<!-- The caption voice, worn by a span inside a figure -->
+<figure>
+  <img src="/chart.svg" alt="Weekly error budget" />
+  <figcaption><span class="type-caption-strong">Figure 3.</span> Burn-down across regions.</figcaption>
+</figure>`;
 
-  return (
-    <main class="flex flex-col">
+export default function StylingProse(): JSX.Element {
+  const names = (): readonly string[] => {
+    const doc = starterThemes[theme() as keyof typeof starterThemes];
+    const resolved = resolveTheme(doc, mode() === "dark" ? "dark" : "light");
+    const found = new Set<string>();
+    for (const key of Object.keys(resolved.values)) {
+      if (!key.startsWith("font.style.")) continue;
+      const rest = key.slice("font.style.".length);
+      const dot = rest.indexOf(".");
+      if (dot > 0) found.add(rest.slice(0, dot));
+    }
+    return [...found].sort();
+  };
+   return (
+     <main class="flex flex-col">
       <PageHeader
-        title="Typography & Lists"
-        lede="In Spin, semantic HTML elements own typography: headings, paragraphs, inline code, and <prose> read the theme's font scale directly, while ul/ol reset cleanly for UI chrome and restore markers inside <prose>."
+        title="Typography"
+        lede="Write semantic HTML and get finished type: every element arrives carrying a named style, and one type-<name> class changes the voice — the whole tuple at once, never letter by letter."
       />
 
-      <Section id="ownership" title="Elements own typography">
+      <Section id="defaults" title="Elements arrive with their voice">
         <p class="max-w-prose">
-          Instead of scattering <code>text-2xl font-bold tracking-tight</code>{" "}
-          onto <code>&lt;div&gt;</code> and <code>&lt;span&gt;</code> tags,
-          write semantic HTML tags. Each typographic element claims its family,
-          size, weight, line height, and color from your theme's{" "}
-          <code>font.*</code> tokens, and <A href="/docs/tooling/lints">Spin's lint rules</A>{" "}
-          flag utilities that duplicate or fight the element's own styling:
+          Write <code>&lt;h1&gt;</code> and get the page's loudest statement;{" "}
+          write <code>&lt;p&gt;</code> and get the reading voice; write{" "}
+          <code>&lt;small&gt;</code> and get the small print. Each element
+          carries one of your theme's named styles by default, so your markup
+          reads as a document instead of a pile of sizes:
         </p>
-        <PropList items={TYPOGRAPHY_ELEMENTS} />
+        <ul class="flex flex-col gap-4">
+          <For each={DEFAULT_ELEMENTS}>
+            {(element) => (
+              <li class="flex flex-col gap-2">
+                <card>
+                  <div class="flex flex-wrap items-baseline gap-x-2">
+                    <code>&lt;{element}&gt;</code>
+                    <small>reads</small>
+                    <code>type-{ELEMENT_STYLE_DEFAULTS[element]}</code>
+                    <small>
+                      from <code>font.style.{ELEMENT_STYLE_DEFAULTS[element]}</code>
+                    </small>
+                  </div>
+                  <div class="rounded-md border border-border bg-surface p-3">
+                    <p style={styleInline(ELEMENT_STYLE_DEFAULTS[element] ?? "body")}>
+                      {SAMPLE}
+                    </p>
+                  </div>
+                </card>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Section>
+
+      <Section id="restyle" title="One class changes the voice">
+        <p class="max-w-prose">
+          To change how a run of text reads, write one{" "}
+          <code>type-&lt;name&gt;</code> class — it spends the whole tuple
+          (face, size, weight, tracking, leading) at once. Sizing and weighing
+          by hand with <code>text-sm</code> or <code>font-medium</code> names
+          nothing your theme can make, so the build fails and names the style
+          to write instead. Every style below renders live from your active
+          starter theme, beside the class that spends it and the theme
+          location that owns it:
+        </p>
+        <ul class="flex flex-col gap-4">
+          <For each={names()}>
+            {(name) => (
+              <li class="flex flex-col gap-2">
+                <card>
+                  <div class="flex flex-wrap items-baseline gap-x-2">
+                    <code>type-{name}</code>
+                    <small>
+                      from <code>font.style.{name}</code>
+                    </small>
+                    <small>{declarationOf(name)}</small>
+                  </div>
+                  <div class="rounded-md border border-border bg-surface p-3">
+                    <p style={styleInline(name)}>{SAMPLE}</p>
+                  </div>
+                </card>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Section>
+
+      <Section id="placement" title="Styles attach anywhere">
+        <p class="max-w-prose">
+          A style is a voice, not a seat: put a theme-declared style on any
+          element — <code>&lt;span class="type-caption"&gt;</code> captions a
+          figure from inside a paragraph. The only constraint is the
+          vocabulary: the style must be one your theme declares, so{" "}
+          <code>type-headline</code> on a theme with no{" "}
+          <code>font.style.headline</code> fails the build and names the
+          nearest style that exists. Where a style sits is advice, never a
+          rule — the lint stays quiet when a caption lands on a span.
+        </p>
+        <Code
+          code={ATTACH_SNIPPET}
+          lang="html"
+          title="A declared style on any element"
+        />
+      </Section>
+
+      <Section id="theme" title="The theme owns the set">
+        <p class="max-w-prose">
+          The styles above are not built into Spin — they are your theme's{" "}
+          <code>font.style.*</code> entries, read live on this page. A
+          designer trims or extends the set in{" "}
+          <code>spin/&lt;name&gt;.json</code> (or the{" "}
+          <A href="/studio">Studio</A> Styles section) and every specimen here
+          follows; the <code>font.size.*</code> steps are the ladder the
+          styles are built from, so moving a step moves every style that
+          stands on it. The full token surface lives in the{" "}
+          <A href="/docs/themes/reference">token reference</A>.
+        </p>
       </Section>
 
       <Section id="lists" title="Lists: UI reset vs. document prose">
@@ -200,16 +269,19 @@ export default function StylingProse(): JSX.Element {
         />
       </Section>
 
-      <Section id="scale" title="Active theme font.size ramp">
+      <Section id="escape" title="The escape, honestly">
         <p class="max-w-prose">
-          The monotonic <code>font.size.*</code> steps declared by the active
-          starter theme. When styling non-prose UI chrome (such as a badge
-          counter or a metadata label), <code>text-&lt;step&gt;</code> spends
-          these steps:
+          One voice on this site is genuinely one-off: the Spin wordmark in
+          the corner, set in the brand face at one deliberate size no theme
+          scale has reason to name. That element carries{" "}
+          <code>data-spin-escape</code>, which tells the ownership rules its
+          classes are deliberate — while the vocabulary rule still fires
+          there, because deliberate code still names nothing dead. Reach for
+          it for a brand lockup or a hero moment, never for copy the theme
+          could say; if you reach for it twice, the theme is missing a style
+          worth naming. The full contract lives in the{" "}
+          <A href="/docs/tooling/lints">lints guide</A>.
         </p>
-        <div class="flex flex-wrap gap-2">
-          <For each={fontScale()}>{(step) => <Chip>text-{step}</Chip>}</For>
-        </div>
       </Section>
     </main>
   );
