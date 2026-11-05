@@ -20,11 +20,11 @@ const machine = menu({});
     >
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span show={block.label !== null} class="block px-2 pb-1 text-xs font-medium text-text-muted"
+          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-text-muted"
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
-              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors duration-fast cursor-default hover:bg-surface-sunken"
+              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast cursor-default hover:bg-surface-sunken"
               {...machine.getItemProps(row)}
             >
               <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>

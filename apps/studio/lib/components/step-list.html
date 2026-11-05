@@ -7,13 +7,13 @@ const machine = listbox({});
   <template for={machine.getBlocks()} as={block} key={block.id}>
     <template for={machine.getRows(block)} as={row} key={row.value}>
       <div
-        class="flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken aria-[selected=true]:bg-surface-sunken data-[highlighted]:bg-surface-sunken"
+        class="flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 text-left text-text-muted hover:bg-surface-sunken aria-[selected=true]:bg-surface-sunken data-[highlighted]:bg-surface-sunken"
         {...machine.getItemProps(row)}
       >
         <span class="truncate"
           {...machine.getItemTextProps(row)}>{row.label}</span>
         <span
-          class="ms-auto truncate text-xs text-text-muted">{row.value}</span>
+          class="ms-auto truncate type-caption text-text-muted">{row.value}</span>
       </div>
     </template>
   </template>

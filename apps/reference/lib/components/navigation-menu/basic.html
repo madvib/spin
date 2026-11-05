@@ -16,14 +16,14 @@ const machine = navigationMenu({
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
-          class={["bare flex items-center gap-1 rounded-md px-3 py-1 text-sm font-medium transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]}
+          class={["bare flex items-center gap-1 rounded-md px-3 py-1 transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.value === row.value }]}
           {...machine.getLinkProps(row)}>{row.label}</a>
 
         <div
           class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate"
           {...machine.getItemContentProps(row)}>
-          <p class="text-xs text-text-muted">{row.label} panel</p>
-          <a class="mt-2 block text-xs" {...machine.getLinkProps(row)}>Open {row.label}</a>
+          <p class="text-text-muted">{row.label} panel</p>
+          <a class="mt-2 block" {...machine.getLinkProps(row)}>Open {row.label}</a>
         </div>
       </li>
     </template>

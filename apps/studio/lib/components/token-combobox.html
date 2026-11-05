@@ -7,13 +7,13 @@ const machine = combobox({});
 <div class="relative w-full" {...machine.getRootProps()}>
   <div class="relative" {...machine.getControlProps()}>
     <button
-      class="bare flex w-full cursor-pointer items-center gap-2 rounded-md border border-dashed border-border bg-surface px-2 py-1 text-left text-sm shadow-none hover:border-primary"
+      class="bare flex w-full cursor-pointer items-center gap-2 rounded-md border border-dashed border-border bg-surface px-2 py-1 text-left shadow-none hover:border-primary"
       data-testid="token-combobox-trigger"
       {...machine.getTriggerProps({ focusable: true })}
     >
       <span show={!machine.inputValue} class="i-lucide-swatch-book inline-block shrink-0 icon-sm" aria-hidden="true"></span>
       <span class={["min-w-0 flex-1 truncate", { "text-text-muted": !machine.inputValue }]}>{machine.inputValue || "Search theme colors…"}</span>
-      <span aria-hidden="true" class="text-xs" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span>
+      <span aria-hidden="true" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span>
     </button>
     <div
       class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
@@ -34,17 +34,17 @@ const machine = combobox({});
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-strong text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
-                  class="relative flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-1 text-sm hover:bg-surface-sunken"
+                  class="relative flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-1 type-body hover:bg-surface-sunken"
                   {...machine.getItemProps(row)}
                 >
                   <swatch class="s-md shrink-0" aria-hidden="true" style={'--swatch: ' + (row.meta?.swatch ?? 'transparent')}></swatch>
                   <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
                   <span
                     aria-hidden="true"
-                    class="shrink-0 text-xs text-primary"
+                    class="shrink-0 type-caption text-primary"
                     {...machine.getItemIndicatorProps(row)}
                   ><span class="inline-block icon-sm i-lucide-check" aria-hidden="true"></span></span>
                 </div>

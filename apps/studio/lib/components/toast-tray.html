@@ -17,8 +17,8 @@ const machine = toast({
     >
       <div class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg">
         <div class="min-w-0 flex-1">
-          <div class="text-sm font-medium" {...machine.getTitleProps(row)}>{row.title}</div>
-          <div class="text-sm text-text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
+          <div class="type-label" {...machine.getTitleProps(row)}>{row.title}</div>
+          <div class="type-body text-text-muted" {...machine.getDescriptionProps(row)}>{row.description}</div>
         </div>
         <button
           class="bare shrink-0 cursor-pointer p-0 text-text-muted"

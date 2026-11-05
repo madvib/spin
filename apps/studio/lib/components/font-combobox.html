@@ -19,7 +19,7 @@ const machine = combobox({});
       <button
         class="ghost icon s-sm"
         {...machine.getTriggerProps()}
-      ><span aria-hidden="true" class="text-xs" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span></button>
+      ><span aria-hidden="true" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span></button>
     </div>
     <div
       class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
@@ -32,16 +32,16 @@ const machine = combobox({});
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-strong text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
-                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm"
+                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"
                   {...machine.getItemProps(row)}
                 >
                   <span class="min-w-0 flex-1 truncate" style={'font-family: "' + row.label + '", ui-sans-serif, system-ui, sans-serif'} {...machine.getItemTextProps(row)}>{row.label}</span>
                   <span
                     aria-hidden="true"
-                    class="shrink-0 text-xs text-primary"
+                    class="shrink-0 type-caption text-primary"
                     {...machine.getItemIndicatorProps(row)}
                   ><span class="inline-block icon-sm i-lucide-check" aria-hidden="true"></span></span>
                 </div>

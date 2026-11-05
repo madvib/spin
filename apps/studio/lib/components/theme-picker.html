@@ -26,7 +26,7 @@ const machine = themePicker({ syncDocument: false });
       <div {...machine.getListProps()}>
         <template for={machine.getItems()} as={row} key={row.value}>
           <div
-            class={["bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-surface-sunken", { "bg-surface-sunken text-primary font-medium": machine.getItemState(row).selected }]}
+            class={["bare flex w-full cursor-default items-center gap-2 rounded-md px-2 py-1 type-body transition-colors hover:bg-surface-sunken", { "bg-surface-sunken text-primary": machine.getItemState(row).selected }]}
             role="option"
             data-theme-option={row.value}
             {...machine.getItemProps(row)}

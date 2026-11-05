@@ -31,17 +31,17 @@ const machine = combobox({});
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 text-xs font-medium text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-strong text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
-                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-sm"
+                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"
                   data-command={row.value}
                   {...machine.getItemProps(row)}
                 >
                   <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
                   <span
                     aria-hidden="true"
-                    class="shrink-0 text-xs text-text-muted"
+                    class="shrink-0 type-caption text-text-muted"
                     {...machine.getItemIndicatorProps(row)}
                   ><span class="inline-block icon-sm i-lucide-chevron-right" aria-hidden="true"></span></span>
                 </div>
