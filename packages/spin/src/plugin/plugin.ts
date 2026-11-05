@@ -226,6 +226,11 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       targets: [source.presetIndex],
     },
     {
+      find: "@spinjs/spin/skill/authoring",
+      replacement: pkg("../theme/skill/authoring.ts"),
+      targets: [pkg("../theme/skill/authoring.ts")],
+    },
+    {
       find: "@spinjs/spin/skill",
       replacement: pkg("../theme/skill/index.ts"),
       targets: [pkg("../theme/skill/index.ts")],

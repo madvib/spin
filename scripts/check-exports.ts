@@ -26,6 +26,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
+import { renderAuthoringSkill } from "../packages/spin/src/theme/skill/authoring.ts";
 import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -197,6 +198,19 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
           `${name}: skill/SKILL.md is not the rendered checklist — run ` +
             `bun run skill in packages/spin`,
         );
+      }
+      const authoringMd = join(dir, "skill", "spin-type.md");
+      if (await exists(authoringMd)) {
+        const renderedAuthoring = renderAuthoringSkill(
+          await readFile(authoringMd, "utf8"),
+        );
+        const currentAuthoring = await readFile(authoringMd, "utf8");
+        if (renderedAuthoring !== currentAuthoring) {
+          findings.fail(
+            `${name}: skill/spin-type.md is not the rendered style list — run ` +
+              `bun run skill in packages/spin`,
+          );
+        }
       }
     }
   }

@@ -32,6 +32,7 @@
 import { dirname, join, relative, resolve } from "node:path";
 import { mkdir, rm, copyFile, chmod, stat, symlink, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { renderAuthoringSkill } from "../packages/spin/src/theme/skill/authoring.ts";
 import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
 import { build } from "tsdown";
@@ -50,6 +51,15 @@ const COPY_PREFIX = ".dist-";
 const SKILL_RENDERERS: Record<string, (template: string) => string> = {
   "@spinjs/spin": (template) => renderSkill(template),
 };
+
+/**
+ * The authoring skill files the package ships, rendered from the starters.
+ *
+ * The house skill renders through SKILL_RENDERERS above; the authoring
+ * skill's style list is emitted from the starters' style set, so it ships
+ * rendered the same way, file by file.
+ */
+const AUTHORING_SKILL_FILES = ["skill/spin-type.md"];
 
 /** A package's `package.json`, as far as the build cares. */
 interface Manifest {
@@ -595,6 +605,14 @@ async function buildPackage(
     const renderer = SKILL_RENDERERS[manifest.name];
     if (renderer && (await exists(skillFile))) {
       await writeFile(skillFile, renderer(await readFile(skillFile, "utf8")));
+    }
+    if (manifest.name === "@spinjs/spin") {
+      for (const file of AUTHORING_SKILL_FILES) {
+        const path = join(dir, file);
+        if (await exists(path)) {
+          await writeFile(path, renderAuthoringSkill(await readFile(path, "utf8")));
+        }
+      }
     }
 
 

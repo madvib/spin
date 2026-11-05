@@ -6,8 +6,11 @@
  * plus the named style references. One source, two shapes, no copy.
  */
 
+import { renderAuthoringSkill } from "../theme/skill/authoring.ts";
 import { renderSkill } from "../theme/skill/index.ts";
 import template from "../../skill/SKILL.md?raw";
+import authoringTemplate from "../../skill/spin-type.md?raw";
+import authoringReference from "../../skill/type-migration.md?raw";
 import darkTech from "../../skill/dark-tech-cinematic.md?raw";
 import editorial from "../../skill/editorial-minimalism.md?raw";
 import agency from "../../skill/high-end-agency.md?raw";
@@ -17,6 +20,13 @@ import soft from "../../skill/warm-soft-saas.md?raw";
 
 /** The skill's own text, assembled from the contract's group list. */
 export const SKILL_TEXT: string = renderSkill(template);
+
+/** The authoring skill's text, assembled from the starters' style list. */
+export const AUTHORING_SKILL_TEXT: string =
+  renderAuthoringSkill(authoringTemplate);
+
+/** The authoring skill's migration reference, in full. */
+export const AUTHORING_REFERENCE_TEXT: string = authoringReference;
 
 /** One style reference's markdown, in full, keyed by slug. */
 const SOURCES: Readonly<Record<string, string>> = {

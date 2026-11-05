@@ -145,6 +145,10 @@
       "types": "./src/theme/skill/index.ts",
       "default": "./src/theme/skill/index.ts"
     },
+    "./skill/authoring": {
+      "types": "./src/theme/skill/authoring.ts",
+      "default": "./src/theme/skill/authoring.ts"
+    },
     "./elements": {
       "types": "./src/compiler/elements.d.ts"
     },
@@ -332,6 +336,10 @@
         "types": "./dist/theme/skill/index.d.ts",
         "default": "./dist/theme/skill/index.js"
       },
+      "./skill/authoring": {
+        "types": "./dist/theme/skill/authoring.d.ts",
+        "default": "./dist/theme/skill/authoring.js"
+      },
       "./elements": {
         "types": "./dist/compiler/elements.d.ts"
       },
@@ -346,7 +354,8 @@
     "lint": "oxlint",
     "fmt": "biome format --write .",
     "codegen": "bun run src/compiler/rules/primitives/derive.ts && biome format --write . src/compiler/rules/primitives/manifest.ts && bun run codegen-animation.ts",
-    "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/theme/skill/index.ts'; const rendered = renderSkill(await readFile('./skill/SKILL.md', 'utf8')); await writeFile('./skill/SKILL.md', rendered); console.log('wrote skill/SKILL.md');\"",
+    "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderAuthoringSkill } from './src/theme/skill/authoring.ts'; await writeFile('./skill/spin-type.md', renderAuthoringSkill(await readFile('./skill/spin-type.md', 'utf8'))); console.log('wrote skill/spin-type.md');\"",
+    "skill:all": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/theme/skill/index.ts'; import { renderAuthoringSkill } from './src/theme/skill/authoring.ts'; await writeFile('./skill/SKILL.md', renderSkill(await readFile('./skill/SKILL.md', 'utf8'))); await writeFile('./skill/spin-type.md', renderAuthoringSkill(await readFile('./skill/spin-type.md', 'utf8'))); console.log('wrote skill/SKILL.md + skill/spin-type.md');\"",
     "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/theme/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n'); console.log('wrote schema.json');\"",
     "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, silkTheme } from './src/theme/index.ts'; const parsed = parseTokens(silkTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme/theme-types.d.ts', generateTypes(parsed.tree)); console.log('wrote src/theme/theme-types.d.ts');\""
   }
