@@ -194,6 +194,7 @@
     "@iconify-json/lucide": "^1.2.0",
     "@modelcontextprotocol/client": "2.4.0",
     "@types/react": "^19.0.0",
+    "@typescript-eslint/parser": "8.71.0",
     "@unocss/core": "66.10.5",
     "@unocss/preset-attributify": "66.10.5",
     "@unocss/preset-tagify": "66.10.5",
