@@ -11,6 +11,7 @@ import {
   themeSchema,
   validateTokens,
 } from "../index.ts";
+import { FONT_MAP_DEFAULTS, resolveFontMap } from "./typography.ts";
 import { starterThemes } from "../themes/index.ts";
 import type { ThemeDocument, TokenLeaf } from "../pipeline/types.ts";
 
@@ -31,9 +32,18 @@ function inlineStyleLiterals(doc: ThemeDocument): void {
   for (const leaf of Object.values(resolved) as TokenLeaf[]) {
     const [root, group, name, field] = leaf.path;
     if (root !== "font" || group !== "style") continue;
-    const entry = style[name as string]?.[field as string];
+    const entry = style[name as string];
     if (entry === undefined) continue;
-    entry["$value"] = leaf.value;
+    // Composite form nests fields inside one `$value`; group form nests a
+    // leaf per field. Either way the literal lands where the parser reads.
+    const tuple = (entry as Record<string, unknown>)["$value"];
+    if (typeof tuple === "object" && tuple !== null) {
+      (tuple as Record<string, unknown>)[field as string] = leaf.value;
+      continue;
+    }
+    const child = (entry as Record<string, Record<string, unknown>>)[field as string];
+    if (child === undefined) continue;
+    child["$value"] = leaf.value;
   }
   delete (font as Record<string, unknown>)["size"];
   delete (font as Record<string, unknown>)["weight"];
@@ -120,11 +130,6 @@ test("the type scales are not required paths", () => {
  * check reads the resolved tuple — the alias targets, not the alias text —
  * so two styles built from the same steps fail even when they spell the
  * steps the same way.
- *
- * One pair is known-shared and held out: `link` reads the `body` tuple in
- * every starter today (audit observation, owner-unruled — merging the two
- * voices needs an owner decision, not a silent slice edit). The hold-out
- * names the pair so a third sharer still fails.
  */
 function resolvedStyleTuples(doc: ThemeDocument): Map<string, string> {
   const parsed = parseTokens(structuredClone(doc));
@@ -146,15 +151,13 @@ function resolvedStyleTuples(doc: ThemeDocument): Map<string, string> {
   return tuples;
 }
 
-test("no two styles share a tuple, except the known link/body pair", () => {
+test("no two styles share a tuple", () => {
   for (const [theme, doc] of Object.entries(starterThemes)) {
     const seen = new Map<string, string>();
     for (const [name, tuple] of resolvedStyleTuples(doc)) {
       const other = seen.get(tuple);
-      const knownPair = new Set([name, other]).has("link") &&
-        new Set([name, other]).has("body");
       assert(
-        other === undefined || knownPair,
+        other === undefined,
         `${theme}: ${name} carries the ${other} tuple — one tuple, one name`,
       );
       seen.set(tuple, name);
@@ -175,4 +178,68 @@ test("starters disagree: at least two voices differ per style", () => {
       `${name} reads the same in every starter — a voice no starter owns`,
     );
   }
+});
+
+test("the owned set is sixteen voices with no link", () => {
+  deepStrictEqual([...ownedStyleNames()], [
+    "display",
+    "title",
+    "heading",
+    "subtitle",
+    "lead",
+    "body",
+    "quote",
+    "code",
+    "label",
+    "caption",
+    "overline",
+    "stat",
+    "badge",
+    "body-strong",
+    "caption-strong",
+    "card-title",
+  ]);
+});
+
+test("the font map voices elements and components by default", () => {
+  deepStrictEqual(FONT_MAP_DEFAULTS["h1"], "display");
+  deepStrictEqual(FONT_MAP_DEFAULTS["p"], "body");
+  deepStrictEqual(FONT_MAP_DEFAULTS["small"], "caption");
+  deepStrictEqual(FONT_MAP_DEFAULTS["figcaption"], "caption-strong");
+  deepStrictEqual(FONT_MAP_DEFAULTS["button"], "label");
+  deepStrictEqual(FONT_MAP_DEFAULTS["button.s-lg"], "subtitle");
+  deepStrictEqual(FONT_MAP_DEFAULTS["stat.title"], "caption-strong");
+  deepStrictEqual(FONT_MAP_DEFAULTS["stat.value"], "stat");
+  deepStrictEqual(FONT_MAP_DEFAULTS["stat.desc"], "caption");
+  deepStrictEqual(FONT_MAP_DEFAULTS["badge"], "badge");
+  deepStrictEqual(FONT_MAP_DEFAULTS["card.title"], "card-title");
+  deepStrictEqual(FONT_MAP_DEFAULTS["field"], "body");
+  deepStrictEqual(FONT_MAP_DEFAULTS["alert"], "label");
+});
+
+test("resolveFontMap merges font.map over the defaults", () => {
+  const merged = resolveFontMap({
+    font: { map: { h1: "title", p: "none", small: null } },
+  });
+  deepStrictEqual(merged["h1"], "title");
+  deepStrictEqual(merged["p"], null);
+  deepStrictEqual(merged["small"], null);
+  deepStrictEqual(merged["h2"], FONT_MAP_DEFAULTS["h2"]);
+  deepStrictEqual(merged["button"], FONT_MAP_DEFAULTS["button"]);
+});
+
+test("resolveFontMap reads legacy component references under their map targets", () => {
+  const merged = resolveFontMap({
+    button: { type: { $type: "typography", $value: "body" } },
+    stat: { title: { type: { $type: "typography", $value: "overline" } } },
+  });
+  deepStrictEqual(merged["button"], "body");
+  deepStrictEqual(merged["stat.title"], "overline");
+  // The map wins where both speak: the legacy reference is the fallback,
+  // never an override of a stated mapping.
+  const stated = resolveFontMap({
+    font: { map: { button: "subtitle" } },
+    button: { type: { $type: "typography", $value: "body" } },
+  });
+  deepStrictEqual(stated["button"], "subtitle");
 });

@@ -273,6 +273,14 @@ export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
     doc:
       "The thickness of the rule under a link. Zero marks the link by colour alone.",
   },
+  {
+    group: "link",
+    element: "link",
+    path: "link.offset",
+    type: "dimension",
+    value: "0.2em",
+    doc: "The distance between a link and its underline.",
+  },
 ];
 
 /** The paths of every per-element token. */

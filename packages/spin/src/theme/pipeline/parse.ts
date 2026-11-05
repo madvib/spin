@@ -52,6 +52,78 @@ function childKeys(node: Record<string, unknown>): string[] {
 function dotted(path: string[]): string {
   return path.join(".");
 }
+/**
+ * The fields one composite `$type: "typography"` `$value` carries, and the
+ * token type each expands to. A style entry states the tuple once; the parser
+ * fans it out to the five leaves the rules spend, so the composite and the
+ * five-child group normalize to the same leaves.
+ */
+const STYLE_FIELD_TYPES: Record<string, TokenType> = {
+  family: "fontFamily",
+  size: "dimension",
+  weight: "fontWeight",
+  tracking: "dimension",
+  leading: "dimension",
+};
+
+/** The fields every composite typography tuple must carry, in order. */
+const STYLE_FIELDS: readonly string[] = [
+  "family",
+  "size",
+  "weight",
+  "tracking",
+  "leading",
+];
+
+/**
+ * Expand one composite typography tuple to the style group the five-child
+ * form states outright. Values pass through verbatim — aliases stay aliases —
+ * so resolution downstream cannot tell which form authored them.
+ */
+function buildStyleTuple(
+  raw: Record<string, unknown>,
+  path: string[],
+  description: string | undefined,
+): Built {
+  const here = dotted(path);
+  const composite = raw["$value"] as Record<string, unknown>;
+  const keys = Object.keys(composite);
+  const complete = STYLE_FIELDS.every((field) =>
+    Object.hasOwn(composite, field)
+  ) && keys.every((key) => Object.hasOwn(STYLE_FIELD_TYPES, key));
+  if (!complete) {
+    return {
+      ok: false,
+      error:
+        `token "${here}" declares $type "typography" with an object $value that must hold exactly family, size, weight, tracking and leading`,
+    };
+  }
+  const group: TokenGroup = {
+    kind: "group",
+    name: path[path.length - 1] as string,
+    path,
+    children: [],
+  };
+  group.type = "typography";
+  if (description !== undefined) group.description = description;
+  // A composite tuple varies as one: a `$modes` beside it belongs to every
+  // field, so each leaf carries it and the serializer keeps the group form.
+  const modes = isPlainObject(raw["$modes"])
+    ? raw["$modes"] as Record<string, unknown>
+    : undefined;
+  for (const field of STYLE_FIELDS) {
+    const leaf: TokenLeaf = {
+      kind: "token",
+      name: field,
+      path: [...path, field],
+      type: STYLE_FIELD_TYPES[field] as TokenType,
+      value: composite[field],
+    };
+    if (modes !== undefined) leaf.modes = modes;
+    group.children.push(leaf);
+  }
+  return { ok: true, node: group, leaves: group.children.length };
+}
 
 type Built =
   | { ok: true; node: TokenNode; leaves: number }
@@ -122,12 +194,24 @@ function buildNode(
     const below = declared ?? inherited;
     let leaves = 0;
     for (const name of names) {
+      // `font.map` is a voice assignment table, not tokens: bare style names
+      // the contract reads as references. The parser skips it the way it
+      // skips document metadata — emitting it as tokens would mint
+      // `--font-map-*` variables nothing spends and reject the bare names.
+      if (here === "font" && name === "map") continue;
       const child = buildNode(raw[name] as unknown, [...path, name], below);
       if (!child.ok) return { ok: false, error: child.error };
       leaves += child.leaves;
       group.children.push(child.node);
     }
     return { ok: true, node: group, leaves };
+  }
+
+  // A composite tuple states the five fields in one `$value` object where the
+  // group form states five child tokens. Both normalize to the same group,
+  // so the leaf path a caller reads says nothing about the form authored.
+  if (hasValue && declared === "typography" && isPlainObject(raw["$value"])) {
+    return buildStyleTuple(raw, path, description);
   }
 
   const type = declared ?? inherited;

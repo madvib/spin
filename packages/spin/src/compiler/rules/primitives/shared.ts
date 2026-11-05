@@ -104,10 +104,9 @@ export function face(
  * What one named style's tuple is, as the theme states it.
  *
  * Only what the theme STATES. A field the theme does not declare is absent
- * here, and the rule's ladder fallback stands in its place — the step the
- * style is built from. That is what makes a new style safe to declare
- * halfway: a theme that moves one style's size moves every element that
- * reads the style and nothing else.
+ * here, and the declaration that reads it is dropped: styles are required,
+ * so a theme that moves one style's size moves every element that reads the
+ * style and nothing else.
  */
 export interface StyleType {
   readonly family: string | undefined;
@@ -122,9 +121,8 @@ export interface StyleType {
  *
  * The five decisions are read together because a theme states them together:
  * `font.style.body.family` through `font.style.body.leading` are one
- * style's answer. No ladder fallback here: the caller pairs each field with
- * the ladder it replaces, so the fallback a paragraph keeps is the body's
- * and the one a heading keeps is its level's.
+ * style's answer. Styles are required, so there is no fallback: a field the
+ * theme does not state is absent, and the rule drops its declaration.
  */
 export function styleType(
   ctx: ThemeContext | undefined,
@@ -137,55 +135,6 @@ export function styleType(
     tracking: named(ctx, "font-style", `${style}-tracking`),
     leading: named(ctx, "font-style", `${style}-leading`),
   };
-}
-
-/**
- * The ladder step during the migration window: what a rule spends when the
- * theme is silent.
- *
- * Styles are required, so a complete theme never lands here — the style's
- * variable answers first. An incomplete theme cannot build, so the value
- * read here is never the product's; it is the old answer, kept so a partial
- * document renders what it rendered before. One function so the window's
- * end is one deletion: every call site pairs a style read with this, and
- * closing the window deletes the pair's second half.
- */
-export function ladder(
-  ctx: ThemeContext | undefined,
-  path: GlobalTypePath,
-): string | undefined {
-  return token(ctx, path);
-}
-
-/** The ladder step one style field falls back to during the window. */
-const STYLE_LADDER: Readonly<Record<string, ThemeTokenPath>> = {
-  "caption-size": "font.size.xs",
-  "label-size": "font.size.sm",
-  "body-strong-weight": "font.weight.semibold",
-  "code-family": "font.family.mono",
-};
-
-/**
- * One style field with its ladder fallback, for the readers that cannot
- * name their whole tuple's style.
- *
- * `kbd` and the subscripts are not prose voices and carry no default style,
- * but their sizes are the ladder's no longer: each reads the style that
- * wears the same step, falling back to the step itself during the window.
- */
-export function styleField(
-  ctx: ThemeContext | undefined,
-  style: string,
-  field: string,
-): string | undefined {
-  const value = named(ctx, "font-style", `${style}-${field}`);
-  if (value !== undefined) return value;
-  // Read on its own — not inside the `??` — so the derivation that records
-  // what a rule spends sees the fallback: a token the rule only reaches
-  // when the theme is silent is still a token the rule spends.
-  const fallback = STYLE_LADDER[`${style}-${field}`];
-  if (fallback === undefined) return undefined;
-  return token(ctx, fallback);
 }
 
 /**
@@ -337,19 +286,15 @@ export type Entry = [property: string, value: string | undefined];
 
 /* -------------------------------------------------------------------- prose --
  *
- * The paint and spacing every prose rule spends, and the type the readers
- * outside prose still take from the ladder.
+ * The paint and spacing every prose rule spends.
  *
  * These live here rather than in `prose.ts` because all four prose files read
  * them and `prose.ts` imports those four — so anything prose.ts exported was a
  * cycle, and a binding unavailable at module init is a runtime failure in a
  * build script, which is the worst place to find one.
  *
- * The type fields are the window's: the prose rules read their styles
- * outright through `styleType`, and what remains here is what the readers
- * that carry no default style still spend — the keycap, the breadcrumbs and
- * the disclosure summary. Each reads the style that wears its step first
- * and the step itself second, so moving the style moves them too.
+ * The prose rules read their styles outright through `styleType`; what remains
+ * here is the paint and spacing no style owns.
  */
 
 export interface Tokens {
@@ -372,14 +317,6 @@ export interface Tokens {
   readonly borderWidth: string | undefined;
   readonly focusWidth: string | undefined;
   readonly focusOffset: string | undefined;
-  /** The caption's size, for the keycap and the subscripts. */
-  readonly sizeXs: string | undefined;
-  /** The label's size, for the breadcrumbs. */
-  readonly sizeSm: string | undefined;
-  /** The strong voice's weight, for the disclosure summary. */
-  readonly weightSemibold: string | undefined;
-  /** The code style's face, for the keycap. */
-  readonly mono: string | undefined;
 }
 
 export function proseTokens(ctx: ThemeContext | undefined): Tokens {
@@ -403,10 +340,6 @@ export function proseTokens(ctx: ThemeContext | undefined): Tokens {
     borderWidth: token(ctx, "border.width"),
     focusWidth: token(ctx, "focus.width"),
     focusOffset: token(ctx, "focus.offset"),
-    sizeXs: styleField(ctx, "caption", "size"),
-    sizeSm: styleField(ctx, "label", "size"),
-    weightSemibold: styleField(ctx, "body-strong", "weight"),
-    mono: styleField(ctx, "code", "family"),
   };
 }
 

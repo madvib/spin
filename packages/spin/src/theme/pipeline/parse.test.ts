@@ -1,5 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
+import { treeToJson } from "../authoring/mutate.ts";
 import { parseTokens } from "./parse.ts";
 import type { ParseResult, TokenGroup, TokenLeaf, TokenTree } from "./types.ts";
 
@@ -189,4 +190,111 @@ test("parseTokens rejects a document that mixes a valid group with a valueless o
     error.includes("sm"),
     `the error must name the offending token, got: ${error}`,
   );
+});
+
+test("parseTokens expands a composite typography tuple to the five style leaves", () => {
+  const tree = treeOf(parseTokens({
+    font: {
+      style: {
+        body: {
+          $type: "typography",
+          $description: "The body voice.",
+          $value: {
+            family: "{font.family.sans}",
+            size: "{font.size.md}",
+            weight: "{font.weight.regular}",
+            tracking: "{font.tracking.normal}",
+            leading: "{font.leading.relaxed}",
+          },
+        },
+      },
+    },
+  }));
+
+  deepStrictEqual(leafAt(tree, "font.style.body.family").type, "fontFamily");
+  deepStrictEqual(leafAt(tree, "font.style.body.family").value, "{font.family.sans}");
+  deepStrictEqual(leafAt(tree, "font.style.body.size").type, "dimension");
+  deepStrictEqual(leafAt(tree, "font.style.body.weight").type, "fontWeight");
+  deepStrictEqual(leafAt(tree, "font.style.body.tracking").type, "dimension");
+  deepStrictEqual(leafAt(tree, "font.style.body.leading").type, "dimension");
+});
+
+test("parseTokens normalizes the composite and group forms to the same tree", () => {
+  const tuple = {
+    family: "{font.family.sans}",
+    size: "{font.size.md}",
+    weight: "{font.weight.regular}",
+    tracking: "{font.tracking.normal}",
+    leading: "{font.leading.relaxed}",
+  };
+  const composite = treeOf(parseTokens({
+    font: { style: { body: { $type: "typography", $value: tuple } } },
+  }));
+  const grouped = treeOf(parseTokens({
+    font: {
+      style: {
+        body: {
+          family: { $type: "fontFamily", $value: tuple.family },
+          size: { $type: "dimension", $value: tuple.size },
+          weight: { $type: "fontWeight", $value: tuple.weight },
+          tracking: { $type: "dimension", $value: tuple.tracking },
+          leading: { $type: "dimension", $value: tuple.leading },
+        },
+      },
+    },
+  }));
+
+  deepStrictEqual(leafValues(composite), leafValues(grouped));
+});
+
+test("parseTokens rejects a composite tuple missing a field", () => {
+  const error = errorOf(parseTokens({
+    font: {
+      style: {
+        body: {
+          $type: "typography",
+          $value: { family: "{font.family.sans}", size: "{font.size.md}" },
+        },
+      },
+    },
+  }));
+
+  assert(
+    error.includes("font.style.body"),
+    `the error must name the offending tuple, got: ${error}`,
+  );
+});
+
+test("treeToJson serializes a style tuple as the compact composite", () => {
+  const tree = treeOf(parseTokens({
+    font: {
+      style: {
+        body: {
+          family: { $type: "fontFamily", $value: "{font.family.sans}" },
+          size: { $type: "dimension", $value: "{font.size.md}" },
+          weight: { $type: "fontWeight", $value: "{font.weight.regular}" },
+          tracking: { $type: "dimension", $value: "{font.tracking.normal}" },
+          leading: { $type: "dimension", $value: "{font.leading.relaxed}" },
+        },
+      },
+    },
+  }));
+
+  const doc = JSON.parse(treeToJson(tree)) as Record<string, unknown>;
+  const body = (doc["font"] as Record<string, unknown>)["style"] as Record<
+    string,
+    unknown
+  >;
+  deepStrictEqual(body["body"], {
+    $type: "typography",
+    $value: {
+      family: "{font.family.sans}",
+      size: "{font.size.md}",
+      weight: "{font.weight.regular}",
+      tracking: "{font.tracking.normal}",
+      leading: "{font.leading.relaxed}",
+    },
+  });
+  // The composite a serializer writes is one the parser reads back.
+  deepStrictEqual(leafValues(treeOf(parseTokens(doc))), leafValues(tree));
 });

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleType, withFallback } from "./shared.ts";
+import { styleType, withFallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
@@ -16,8 +16,7 @@ export function skeletonRules(roots: readonly string[]): Rule[] {
 /** The theme values a skeleton spends, resolved once per rule. */
 function tokens(ctx: ThemeContext | undefined) {
   // The text line stands in for one line of body copy, so its height is the
-  // body style's size — read through the style, never the step — with the
-  // ladder step that style is built from as the window fallback.
+  // body style's size, read through the style outright.
   const body = styleType(ctx, "body");
   return {
     well: token(ctx, "color.surface-sunken"),
@@ -25,8 +24,8 @@ function tokens(ctx: ThemeContext | undefined) {
     radiusSm: token(ctx, "radius.sm"),
     radiusFull: token(ctx, "radius.full"),
     spacing2: token(ctx, "spacing.2"),
-    textSize: body.size ?? ladder(ctx, "font.size.md"),
-    // A disc placeholder is a face, so its edge is the avatar ladder's.
+    textSize: body.size,
+    // A disc placeholder is a face, so its edge is the avatar token's.
     avatar: named(ctx, "avatar", "md"),
     // The LOOP step, not the slowest transition: a loader is watched rather
     // than reacted to, so its period is a step of its own. A theme that
@@ -108,7 +107,7 @@ function textLine(): Rule {
  * The circle — a placeholder for a face.
  *
  * A disc placeholder is an avatar, the one thing a circle stands for, so its
- * edge is read from the avatar ladder rather than minted from the spacing
+ * edge is read from the avatar token rather than minted from the spacing
  * scale: a loading face and a real one fill the same square, and the swap
  * between them moves nothing.
  */

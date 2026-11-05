@@ -50,7 +50,16 @@ function requiredLeaves(
     if (key.startsWith("$")) continue;
     const path = [...prefix, key];
     const child = properties[key];
-    if (isGroup(child)) {
+    // A composite typography tuple is required as one voice but owed as five
+    // fields: descend the group branch of its `anyOf` so the walk reports
+    // the same leaf paths the required-paths declaration states.
+    const branches = child?.["anyOf"] as
+      | Record<string, unknown>[]
+      | undefined;
+    const groupBranch = branches?.find((branch) => isGroup(branch));
+    if (groupBranch !== undefined) {
+      out.push(...requiredLeaves(groupBranch, path));
+    } else if (isGroup(child)) {
       out.push(...requiredLeaves(child, path));
     } else {
       out.push(path.join("."));

@@ -90,7 +90,14 @@ function withStyleField(
   const font = doc["font"] as Record<string, unknown>;
   const styles = font["style"] as Record<string, unknown>;
   const entry = styles[style] as Record<string, unknown>;
-  entry[field] = { $type: type, $value: value };
+  // Composite form nests fields inside one `$value`; group form nests a leaf
+  // per field. Either way the value lands where the parser reads.
+  const tuple = entry["$value"] as Record<string, unknown> | undefined;
+  if (typeof tuple === "object" && tuple !== null) {
+    tuple[field] = value;
+  } else {
+    entry[field] = { $type: type, $value: value };
+  }
   return doc;
 }
 
@@ -111,16 +118,17 @@ test("a style's size moves every element that reads it, and nothing else", async
 
 test("every element the map names reads its style's tuple", async () => {
   // The whole default map, in one sweep: an element that reads atoms
-  // instead of its style is an emitter the cutover missed.
+  // instead of its style is an emitter the cutover missed. `strong` is the
+  // exception that proves the rule: an inline modifier, it reads only the
+  // body-strong weight over whatever voice surrounds it.
   for (const element of elementStyleElements()) {
     const style = elementStyleDefault(element) as string;
     const result = await generate(`<${element}>a</${element}>`);
     const body = bodyFor(result, element);
-    for (const [property, field] of [
-      ["font-family", "family"],
-      ["font-size", "size"],
-      ["font-weight", "weight"],
-    ] as const) {
+    const fields: ReadonlyArray<readonly [string, string]> = element === "strong"
+      ? [["font-weight", "weight"]]
+      : [["font-family", "family"], ["font-size", "size"], ["font-weight", "weight"]];
+    for (const [property, field] of fields) {
       const spent = body[property] ?? "";
       assert(
         spent.includes(`--font-style-${style}-${field}`),

@@ -2,6 +2,7 @@ import {
   aliasTarget,
   cssVarName,
   ELEMENT_STYLE_DEFAULTS,
+  FONT_MAP_DEFAULTS,
   indexTree,
   OWNED_STYLES,
   ownedStyleFields,
@@ -650,19 +651,17 @@ export function styleEdits(text: string, name: string): string {
 
 /**
  * The style an element reads: the default the contract states, unless the
- * theme re-pointed it.
+ * theme re-pointed it in `font.map`.
  *
- * A re-point is written into the default style's own leaves — each field an
- * alias at the style the element now follows — so the attachment is read
- * back from the leaves rather than from a second table that could disagree
- * with them. Unanimous aliases name the attached style; anything else is the
- * default with its own tuple.
+ * A re-point is one declaration — `font.map.h1 = "title"` — read back from
+ * the map rather than from unanimous leaf aliases. A theme that never
+ * states the map reads the default; `null` or `"none"` opts out.
  */
 export function attachedStyle(
   text: string,
   element: string,
 ): string | undefined {
-  const own = ELEMENT_STYLE_DEFAULTS[element];
+  const own = ELEMENT_STYLE_DEFAULTS[element] ?? FONT_MAP_DEFAULTS[element];
   if (own === undefined) return undefined;
   let doc: Record<string, unknown>;
   try {
@@ -671,31 +670,12 @@ export function attachedStyle(
     return own;
   }
   const font = doc["font"] as Record<string, unknown> | undefined;
-  const styles = font?.["style"] as Record<string, unknown> | undefined;
-  const group = styles?.[own] as Record<string, unknown> | undefined;
-  if (typeof group !== "object" || group === null) return own;
-  let attached: string | undefined;
-  let fields = 0;
-  for (const field of ownedStyleFields()) {
-    const leaf = group[field] as Record<string, unknown> | undefined;
-    if (typeof leaf !== "object" || leaf === null || !("$value" in leaf)) {
-      continue;
-    }
-    fields++;
-    const target = aliasTarget(leaf["$value"]);
-    const match = target === null
-      ? undefined
-      : /^font\.style\.(.+)\.[^.]+$/.exec(target)?.[1];
-    if (match === undefined || match === own) {
-      if (match === own) continue;
-      return own;
-    }
-    if (attached === undefined) attached = match;
-    else if (attached !== match) return own;
-  }
-  if (fields === 0 || attached === undefined) return own;
+  const map = font?.["map"] as Record<string, unknown> | undefined;
+  const entry = map?.[element];
+  if (entry === null || entry === "none") return undefined;
+  if (typeof entry !== "string" || entry.trim().length === 0) return own;
   const names = new Set(declaredStyles(text));
-  return names.has(attached) ? attached : own;
+  return names.has(entry) ? entry : own;
 }
 
 /** One leaf edit, as the document spells it: a DTCG path and the value. */
@@ -707,27 +687,45 @@ export interface StyleEdit {
 /**
  * Re-point an element at another declared style.
  *
- * Each field of the element's default style becomes an alias at the same
- * field of the named style, so the element follows the style live: moving
- * the style moves the element, and the emitted rule spends the style's own
- * variables. The batch is one undo step, and the gate judges it whole.
+ * One declaration — `font.map.<element> = "<style>"` — so the element
+ * follows the style live without touching the style's own tuple. The edit
+ * is one undo step, and the gate judges it whole.
  */
 export function repointEdits(
   text: string,
   element: string,
   style: string,
 ): StyleEdit[] {
-  const own = ELEMENT_STYLE_DEFAULTS[element];
+  const own = ELEMENT_STYLE_DEFAULTS[element] ?? FONT_MAP_DEFAULTS[element];
   if (own === undefined) {
     throw new Error(`“${element}” is not an element the map attaches`);
   }
   if (!declaredStyles(text).includes(style)) {
     throw new Error(`“${style}” is not a style this theme declares`);
   }
-  return ownedStyleFields().map((field) => ({
-    path: ["font", "style", own, field],
-    value: `{font.style.${style}.${field}}`,
-  }));
+  return [{ path: ["font", "map", element], value: style }];
+}
+
+/**
+ * Apply a map re-point: create `font.map.<element>` when absent, set it
+ * when present. A map entry is a bare style name, not a token leaf — the
+ * theme contract reads it as a reference, and the parser ignores the group.
+ */
+export function applyMapEdit(text: string, element: string, style: string): string {
+  const doc = JSON.parse(text) as Record<string, unknown>;
+  const font = doc["font"] as Record<string, unknown> | undefined;
+  if (typeof font !== "object" || font === null) {
+    throw new Error("this theme declares no font group to map under");
+  }
+  let map = font["map"] as Record<string, unknown> | undefined;
+  if (map === undefined) {
+    map = {};
+    font["map"] = map;
+  } else if (typeof map !== "object" || map === null || Array.isArray(map)) {
+    throw new Error("font.map is not an object the map can be written under");
+  }
+  map[element] = style;
+  return JSON.stringify(doc, null, 2);
 }
 
 /**

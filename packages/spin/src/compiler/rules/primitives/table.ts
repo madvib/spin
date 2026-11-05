@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleType, withFallback } from "./shared.ts";
+import { styleType, withFallback } from "./shared.ts";
 
 /**
  * Table — the first primitive with a strong opinion, and deliberately so.
@@ -85,8 +85,8 @@ function tableRule(): Rule {
     /^table$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.table.family ?? ladder(ctx, "font.family.sans");
-      const size = t.table.size ?? ladder(ctx, "font.size.md");
+      const family = t.table.family;
+      const size = t.table.size;
       yield {
         [ctx.symbols.selector]: () => "table",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -127,7 +127,7 @@ function cellRule(): Rule {
     /^(?:td|th)$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const footerWeight = t.strong.weight ?? ladder(ctx, "font.weight.semibold");
+      const footerWeight = t.strong.weight;
       yield {
         [ctx.symbols.selector]: () => cell,
         ...(t.spacing2 !== undefined
@@ -190,11 +190,11 @@ function headerRule(): Rule {
     /^th$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.header.family ?? ladder(ctx, "font.family.sans");
-      const size = t.header.size ?? ladder(ctx, "font.size.sm");
-      const weight = t.header.weight ?? ladder(ctx, "font.weight.semibold");
-      const tracking = t.header.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = t.header.leading ?? ladder(ctx, "font.leading.snug");
+      const family = t.header.family;
+      const size = t.header.size;
+      const weight = t.header.weight;
+      const tracking = t.header.tracking;
+      const leading = t.header.leading;
       yield {
         [ctx.symbols.selector]: () => "th",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -246,11 +246,11 @@ function captionRule(): Rule {
     /^caption$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.caption.family ?? ladder(ctx, "font.family.body");
-      const size = t.caption.size ?? ladder(ctx, "font.size.xs");
-      const weight = t.caption.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = t.caption.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = t.caption.leading ?? ladder(ctx, "font.leading.snug");
+      const family = t.caption.family;
+      const size = t.caption.size;
+      const weight = t.caption.weight;
+      const tracking = t.caption.tracking;
+      const leading = t.caption.leading;
       yield {
         [ctx.symbols.selector]: () => "caption",
         ...(family !== undefined ? { "font-family": family } : {}),

@@ -496,6 +496,7 @@ interface JsonSchema {
   readonly properties?: Record<string, JsonSchema>;
   readonly items?: JsonSchema;
   readonly enum?: readonly string[];
+  readonly anyOf?: readonly JsonSchema[];
 }
 
 const TokenTypeSchema: JsonSchema = {
@@ -669,7 +670,38 @@ function groupSchema(
       schema: leafSchema(doc),
     };
   }
+  // A style tuple states its five fields as one composite token or as five
+  // child tokens; the schema accepts either. The parser expands the composite
+  // to the same five leaves, so the branch below mirrors the group rather
+  // than deciding anything twice.
+  acceptStyleTuples(shape);
   return toSchema(shape);
+}
+
+/**
+ * Admit the composite form beside the five-child group for every owned style
+ * under `font.style.<name>`. The `shape` here is one top-level group's
+ * children, so `style.<name>` holds the five field leaves the gather loop
+ * just placed. Each is re-hung as a leaf whose schema is either the group
+ * the loop built or the composite tuple — one required voice, two spellings.
+ */
+function acceptStyleTuples(shape: GroupShape): void {
+  const style = shape["style"];
+  if (style === undefined || style.kind !== "group") return;
+  for (const owned of OWNED_STYLES) {
+    const tuple = style.children[owned.name];
+    if (tuple === undefined || tuple.kind !== "group") continue;
+    const groupForm: JsonSchema = toSchema(tuple.children);
+    const compositeForm = styleTupleSchema(owned.name);
+    style.children[owned.name] = {
+      kind: "leaf",
+      required: tuple.required,
+      schema: {
+        description: groupForm.description ?? compositeForm.description,
+        anyOf: [compositeForm, groupForm],
+      },
+    };
+  }
 }
 
 /**
@@ -687,6 +719,35 @@ function ownedDoc(path: string): string | undefined {
   if (style === undefined) return undefined;
   const field = segments[3] as string;
   return `The ${field} the ${style.name} style reads at.`;
+}
+
+/**
+ * The composite typography tuple one owned style may state instead of the
+ * five-child group: one `$type: "typography"` carrying the five fields in a
+ * single `$value`. The parser expands it to the same five leaves, so the
+ * schema accepts both — and requires the same fields either way.
+ */
+function styleTupleSchema(style: string): JsonSchema {
+  const fields: Record<string, JsonSchema> = {};
+  for (const field of ["family", "size", "weight", "tracking", "leading"]) {
+    fields[field] = {};
+  }
+  return {
+    type: "object",
+    description: `The ${style} voice as one typography tuple.`,
+    additionalProperties: false,
+    required: ["$type", "$value"],
+    properties: {
+      $type: { type: "string", enum: ["typography"] },
+      $value: {
+        type: "object",
+        additionalProperties: false,
+        required: ["family", "size", "weight", "tracking", "leading"],
+        properties: fields,
+      },
+      $description: { type: "string" },
+    },
+  };
 }
 
 /** Convert an assembled group into its JSON Schema object. */

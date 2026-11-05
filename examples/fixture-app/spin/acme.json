@@ -452,480 +452,180 @@
     },
     "style": {
       "display": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the display style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.3xl}",
-          "$description": "The size the display style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.bold}",
-          "$description": "The weight the display style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.tight}",
-          "$description": "The tracking the display style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.tight}",
-          "$description": "The leading the display style reads at."
-        },
-        "$description": "The display voice: the largest statement a page makes."
+        "$type": "typography",
+        "$description": "The display voice: the largest statement a page makes.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.3xl}",
+          "weight": "{font.weight.bold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.tight}"
+        }
       },
       "title": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the title style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.2xl}",
-          "$description": "The size the title style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the title style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the title style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the title style reads at."
-        },
-        "$description": "The title voice: a section head, sized to be found."
+        "$type": "typography",
+        "$description": "The title voice: a section head, sized to be found.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.2xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "heading": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the heading style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xl}",
-          "$description": "The size the heading style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the heading style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the heading style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the heading style reads at."
-        },
-        "$description": "The heading voice: a subsection head inside a section."
+        "$type": "typography",
+        "$description": "The heading voice: a subsection head inside a section.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "subtitle": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the subtitle style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.lg}",
-          "$description": "The size the subtitle style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.medium}",
-          "$description": "The weight the subtitle style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the subtitle style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the subtitle style reads at."
-        },
-        "$description": "The subtitle voice: the sentence under a heading that frames what follows."
+        "$type": "typography",
+        "$description": "The subtitle voice: the sentence under a heading that frames what follows.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "lead": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the lead style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.lg}",
-          "$description": "The size the lead style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the lead style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the lead style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.relaxed}",
-          "$description": "The leading the lead style reads at."
-        },
-        "$description": "The lead voice: the sentence that introduces what follows."
+        "$type": "typography",
+        "$description": "The lead voice: the sentence that introduces what follows.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
       },
       "body": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the body style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.md}",
-          "$description": "The size the body style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the body style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the body style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.relaxed}",
-          "$description": "The leading the body style reads at."
-        },
-        "$description": "The body voice: the default reading text."
+        "$type": "typography",
+        "$description": "The body voice: the default reading text.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
       },
       "quote": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.serif}",
-          "$description": "The face the quote style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.md}",
-          "$description": "The size the quote style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the quote style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the quote style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.relaxed}",
-          "$description": "The leading the quote style reads at."
-        },
-        "$description": "The quotation voice: long-form editorial text set apart."
+        "$type": "typography",
+        "$description": "The quotation voice: long-form editorial text set apart.",
+        "$value": {
+          "family": "{font.family.serif}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
       },
       "code": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.mono}",
-          "$description": "The face the code style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.sm}",
-          "$description": "The size the code style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the code style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the code style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.normal}",
-          "$description": "The leading the code style reads at."
-        },
-        "$description": "The code voice: machine text at a size that sits beside prose."
-      },
-      "link": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the link style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.md}",
-          "$description": "The size the link style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the link style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the link style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.relaxed}",
-          "$description": "The leading the link style reads at."
-        },
-        "$description": "The link voice: a run of body text that reads as a control."
+        "$type": "typography",
+        "$description": "The code voice: machine text at a size that sits beside prose.",
+        "$value": {
+          "family": "{font.family.mono}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.normal}"
+        }
       },
       "label": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the label style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.sm}",
-          "$description": "The size the label style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.medium}",
-          "$description": "The weight the label style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the label style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the label style reads at."
-        },
-        "$description": "The label voice: the name on a control or a field."
+        "$type": "typography",
+        "$description": "The label voice: the name on a control or a field.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.wide}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "caption": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the caption style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the caption style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.regular}",
-          "$description": "The weight the caption style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the caption style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the caption style reads at."
-        },
-        "$description": "The caption voice: small print under a figure or a table."
+        "$type": "typography",
+        "$description": "The caption voice: small print under a figure or a table.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "overline": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the overline style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the overline style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the overline style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wider}",
-          "$description": "The tracking the overline style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the overline style reads at."
-        },
-        "$description": "The overline voice: an eyebrow or category mark above copy."
+        "$type": "typography",
+        "$description": "The overline voice: an eyebrow or category mark above copy.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.wider}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "stat": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.mono}",
-          "$description": "The face the stat style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.2xl}",
-          "$description": "The size the stat style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the stat style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the stat style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.tight}",
-          "$description": "The leading the stat style reads at."
-        },
-        "$description": "The stat voice: the number a figure shows, set to be read at a glance."
+        "$type": "typography",
+        "$description": "The stat voice: the number a figure shows, set to be read at a glance.",
+        "$value": {
+          "family": "{font.family.mono}",
+          "size": "{font.size.2xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.tight}"
+        }
       },
       "badge": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the badge style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.2xs}",
-          "$description": "The size the badge style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.medium}",
-          "$description": "The weight the badge style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the badge style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.none}",
-          "$description": "The leading the badge style reads at."
-        },
-        "$description": "The badge voice: the word on a pill, set small enough to sit inside one."
+        "$type": "typography",
+        "$description": "The badge voice: the word on a pill, set small enough to sit inside one.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.2xs}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.wide}",
+          "leading": "{font.leading.none}"
+        }
       },
       "body-strong": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the body-strong style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.md}",
-          "$description": "The size the body-strong style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the body-strong style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the body-strong style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.relaxed}",
-          "$description": "The leading the body-strong style reads at."
-        },
-        "$description": "The strong voice: body copy with emphasis."
+        "$type": "typography",
+        "$description": "The strong voice: body copy with emphasis.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
       },
       "caption-strong": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the caption-strong style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the caption-strong style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the caption-strong style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the caption-strong style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the caption-strong style reads at."
-        },
-        "$description": "The figure-caption voice: a caption that names its figure."
+        "$type": "typography",
+        "$description": "The figure-caption voice: a caption that names its figure.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.wide}",
+          "leading": "{font.leading.snug}"
+        }
       },
       "card-title": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the card-title style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.lg}",
-          "$description": "The size the card-title style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the card-title style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.normal}",
-          "$description": "The tracking the card-title style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the card-title style reads at."
-        },
-        "$description": "The card-title voice: the name on a card, set to be found inside a surface."
+        "$type": "typography",
+        "$description": "The card-title voice: the name on a card, set to be found inside a surface.",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
       }
     }
   },
@@ -1197,6 +897,13 @@
       "$type": "dimension",
       "$value": "4rem",
       "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it and its distance from the text.",
+    "offset": {
+      "$type": "dimension",
+      "$value": "0.2em"
     }
   },
   "modes": [

@@ -1,7 +1,7 @@
 import type { Rule } from "@unocss/core";
 
 import { token } from "../../utils/lookup.ts";
-import { ladder, styleType } from "./shared.ts";
+import { styleType } from "./shared.ts";
 
 /**
  * Label — the bare `<label>` as a captioned control.
@@ -23,13 +23,11 @@ function labelRule(): Rule {
   return [
     /^label$/,
     function* (_m, ctx) {
-      // The label wears the label voice outright — the name on a control —
-      // with the ladder steps the starters build that style from as the
-      // window fallback.
+      // The label wears the label voice outright — the name on a control.
       const s = styleType(ctx, "label");
-      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
-      const fontSize = s.size ?? ladder(ctx, "font.size.sm");
-      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
+      const fontFamily = s.family;
+      const fontSize = s.size;
+      const fontWeight = s.weight;
       yield {
         [ctx.symbols.selector]: () => label,
         display: "flex",

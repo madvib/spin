@@ -375,6 +375,71 @@ function deepMerge(
   }
 }
 
+/**
+ * The fields one composite typography tuple carries, in the order it states
+ * them. Kept beside the parser's own list rather than imported from it, so
+ * the two forms agree by test rather than by sharing a private constant.
+ */
+const STYLE_FIELDS: readonly string[] = [
+  "family",
+  "size",
+  "weight",
+  "tracking",
+  "leading",
+];
+
+/**
+ * Whether a group is a serialized style tuple: a group under
+ * `font.style.<name>` whose children are exactly the five style leaves.
+ * Composite tuples and five-child groups normalize to the same tree, so the
+ * serializer writes the compact form back whatever form authored it.
+ */
+function isStyleTuple(node: TokenGroup): boolean {
+  if (node.kind !== "group" || node.path.length !== 3) return false;
+  if (node.path[0] !== "font" || node.path[1] !== "style") return false;
+  if (node.children.length !== STYLE_FIELDS.length) return false;
+  return node.children.every((child, index) =>
+    child.kind === "token" &&
+    child.name === STYLE_FIELDS[index] &&
+    child.path.length === 4 &&
+    child.path[3] === STYLE_FIELDS[index]
+  );
+}
+
+/**
+ * Serialize one style tuple as the compact composite token: one
+ * `$type: "typography"` carrying the five fields in a single `$value`. The
+ * leaves' descriptions stay on the document's leaves no longer — the tuple
+ * is the owned voice, and the tuple's own `$description` says what it is.
+ */
+function styleTupleToJson(node: TokenGroup): unknown {
+  const value: Record<string, unknown> = {};
+  for (const child of node.children) {
+    if (child.kind !== "token") continue;
+    value[child.name] = child.value;
+  }
+  const out: Record<string, unknown> = {
+    $type: "typography",
+  };
+  if (node.description !== undefined) out.$description = node.description;
+  out.$value = value;
+  // A `$modes` the tuple's leaves share is the tuple's variation, stated
+  // once beside the value rather than five times across it.
+  const modes = node.children[0]?.kind === "token"
+    ? node.children[0].modes
+    : undefined;
+  if (
+    modes !== undefined &&
+    node.children.every((child) =>
+      child.kind === "token" &&
+      JSON.stringify(child.modes) === JSON.stringify(modes)
+    )
+  ) {
+    out.$modes = modes;
+  }
+  return out;
+}
+
 function nodeToJson(node: TokenNode): unknown {
   if (node.kind === "token") {
     const out: Record<string, unknown> = {
@@ -385,9 +450,13 @@ function nodeToJson(node: TokenNode): unknown {
     if (node.description !== undefined) out.$description = node.description;
     return out;
   }
+  // A style tuple round-trips as the compact composite whatever form
+  // authored it: the parser expands the composite to these same leaves,
+  // so serializing the leaves back as five children would grow every file
+  // the parser touched.
+  if (isStyleTuple(node)) return styleTupleToJson(node);
   const out: Record<string, unknown> = {};
   if (node.type !== undefined) out.$type = node.type;
-  if (node.description !== undefined) out.$description = node.description;
   for (const child of node.children) {
     // Children nest by their full path relative to the group, so a leaf at
     // `color.semantic.success` lands three deep even when the tree holds it

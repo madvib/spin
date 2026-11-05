@@ -1,7 +1,7 @@
 import type { Rule } from "@unocss/core";
-import { ladder, proseTokens, styleField, styleType } from "./shared.ts";
+import { proseTokens, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
-import { token } from "../../utils/lookup.ts";
+import { named, token } from "../../utils/lookup.ts";
 
 /**
  * Inline text: links, weight, `small`, sub/superscript, `abbr`, `mark`, `ins`,
@@ -32,29 +32,23 @@ function linkRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const underline = token(ctx, "link.underline");
-      const s = styleType(ctx, "link");
-      const family = s.family ?? ladder(ctx, "font.family.body");
-      const size = s.size ?? ladder(ctx, "font.size.md");
-      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
+      // `link.offset` lands with LinkKill's slice (new token alongside
+      // `link.underline`); read through the flat family so this file
+      // compiles before and after that token exists.
+      const offset = named(ctx, "link", "offset");
       yield {
         [ctx.symbols.selector]: () => a,
         ...(t.link !== undefined ? { color: t.link } : {}),
-        // A link is a run of text in the body: it reads the link style
-        // outright, and a theme moves its links by moving the style.
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
-        "text-decoration": "underline",
-        "text-underline-offset": "0.2em",
+        // A link inherits its prose: no family, no size, no weight, no
+        // tracking, no leading of its own — only the ink and the underline
+        // it wears over whatever text carries it.
+        "text-decoration-line": "underline",
         // The theme's own weight for the rule, or the browser's own
         // underline when the theme says nothing.
         ...(underline !== undefined
           ? { "text-decoration-thickness": underline }
           : {}),
+        ...(offset !== undefined ? { "text-underline-offset": offset } : {}),
       };
       yield {
         [ctx.symbols.selector]: () => `${a}:hover`,
@@ -84,19 +78,13 @@ function weightRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      const s = styleType(ctx, "body-strong");
-      const family = s.family ?? ladder(ctx, "font.family.body");
-      const size = s.size ?? ladder(ctx, "font.size.md");
-      const weight = s.weight ?? ladder(ctx, "font.weight.bold");
-      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = s.leading ?? ladder(ctx, "font.leading.relaxed");
+      // Strong is an inline modifier, not a voice: it wears only the
+      // body-strong weight over whatever prose carries it, so bolding inside
+      // a caption never resets the caption's size, family, or leading.
+      const weight = styleType(ctx, "body-strong").weight;
       yield {
         [ctx.symbols.selector]: () => tag,
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
         ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: tag },
@@ -109,11 +97,11 @@ function smallRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const s = styleType(ctx, "caption");
-      const family = s.family ?? ladder(ctx, "font.family.body");
-      const size = s.size ?? ladder(ctx, "font.size.xs");
-      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = s.leading ?? ladder(ctx, "font.leading.snug");
+      const family = s.family;
+      const size = s.size;
+      const weight = s.weight;
+      const tracking = s.tracking;
+      const leading = s.leading;
       yield {
         [ctx.symbols.selector]: () => "small",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -132,7 +120,7 @@ function subRule(tag: string): Rule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      const size = styleField(ctx, "caption", "size");
+      const size = styleType(ctx, "caption").size;
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(size !== undefined ? { "font-size": size } : {}),

@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { proseTokens } from "./shared.ts";
+import { proseTokens, styleType } from "./shared.ts";
 
 /** Keyboard input: a keycap for a key on the keyboard. */
 function kbdRule(): Rule {
@@ -7,10 +7,12 @@ function kbdRule(): Rule {
     /^kbd$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
+      const fam = styleType(ctx, "code").family;
+      const size = styleType(ctx, "caption").size;
       yield {
         [ctx.symbols.selector]: () => "kbd",
-        ...(t.mono !== undefined ? { "font-family": t.mono } : {}),
-        ...(t.sizeXs !== undefined ? { "font-size": t.sizeXs } : {}),
+        ...(fam !== undefined ? { "font-family": fam } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 4) ${t.spacing1}` }
           : {}),

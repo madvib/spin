@@ -7,7 +7,6 @@ import {
   type Entry,
   focusPaint,
   focusRing,
-  ladder,
   spend,
   spentEntries,
   styleReference,
@@ -337,15 +336,14 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: false,
     body: (ctx) => {
       // A small button reads the style `button.s-sm.type` names — the label
-      // voice it already wears — as a whole tuple, with the ladder steps
-      // the starters build that style from as the window fallback.
+      // voice it already wears — as a whole tuple.
       const style = styleReference(ctx, "button.s-sm.type", "label") as string;
       const s = styleType(ctx, style);
-      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
-      const fontSize = s.size ?? ladder(ctx, "font.size.sm");
-      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
-      const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.wide");
-      const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
+      const fontFamily = s.family;
+      const fontSize = s.size;
+      const fontWeight = s.weight;
+      const fontTracking = s.tracking;
+      const fontLeading = s.leading;
       const spacing1 = token(ctx, "spacing.1");
       const spacing2 = token(ctx, "spacing.2");
       const borderWidth = token(ctx, "border.width");
@@ -375,16 +373,14 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: false,
     body: (ctx) => {
       // A large button reads the style `button.s-lg.type` names — the
-      // subtitle voice at the large step — as a whole tuple, with the
-      // ladder steps the starters build that style from as the window
-      // fallback.
+      // subtitle voice at the large step — as a whole tuple.
       const style = styleReference(ctx, "button.s-lg.type", "subtitle") as string;
       const s = styleType(ctx, style);
-      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
-      const fontSize = s.size ?? ladder(ctx, "font.size.lg");
-      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
-      const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
+      const fontFamily = s.family;
+      const fontSize = s.size;
+      const fontWeight = s.weight;
+      const fontTracking = s.tracking;
+      const fontLeading = s.leading;
       const spacing4 = token(ctx, "spacing.4");
       const spacing8 = token(ctx, "spacing.8");
       const borderWidth = token(ctx, "border.width");
@@ -505,15 +501,14 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         const spacing4 = token(ctx, "spacing.4");
         // The button's type is a whole style, never atoms: the base reads
         // the style `button.type` names — the label voice unless the theme
-        // re-points it — and each field falls back to the ladder step the
-        // starters build that style from during the window.
+        // re-points it.
         const style = styleReference(ctx, "button.type", "label") as string;
         const s = styleType(ctx, style);
-        const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
-        const fontSize = s.size ?? ladder(ctx, "font.size.md");
-        const fontWeight = s.weight ?? ladder(ctx, "font.weight.semibold");
-        const fontTracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-        const fontLeading = s.leading ?? ladder(ctx, "font.leading.snug");
+        const fontFamily = s.family;
+        const fontSize = s.size;
+        const fontWeight = s.weight;
+        const fontTracking = s.tracking;
+        const fontLeading = s.leading;
         const borderWidth = token(ctx, "border.width");
         const surfaceRaised = token(ctx, "color.surface-raised");
         const text = token(ctx, "color.text");

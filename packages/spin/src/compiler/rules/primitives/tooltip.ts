@@ -1,7 +1,7 @@
 import type { Rule } from "@unocss/core";
 
 import { token } from "../../utils/lookup.ts";
-import { ladder, styleType } from "./shared.ts";
+import { styleType } from "./shared.ts";
 
 /**
  * The hover chip: a one-line note that floats beside its control.
@@ -19,10 +19,9 @@ function tooltipRule(): Rule {
   return [
     /^tooltip$/,
     function* (_m, ctx) {
-      // The chip reads the caption voice — small print, never body copy —
-      // with the ladder step that style is built from as the window fallback.
+      // The chip reads the caption voice — small print, never body copy.
       const caption = styleType(ctx, "caption");
-      const sizeXs = caption.size ?? ladder(ctx, "font.size.xs");
+      const sizeXs = caption.size;
       const text = token(ctx, "color.text");
       const raised = token(ctx, "color.surface-raised");
       const borderWidth = token(ctx, "border.width");

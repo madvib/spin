@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleType, type StyleType } from "./shared.ts";
+import { styleType, type StyleType } from "./shared.ts";
 
 /**
  * Disclosure — `<details>` and `<summary>`.
@@ -221,11 +221,9 @@ function summaryRule(summary: string, details: string): Rule {
         // indicators in three browsers.
         "list-style": "none",
         // The label wears the body-strong voice's weight — emphasis for the
-        // row that opens — with the ladder step that style is built from as
-        // the window fallback.
+        // row that opens.
         ...(() => {
-          const weight = t.weightSemibold.weight ??
-            ladder(ctx, "font.weight.semibold");
+          const weight = t.weightSemibold.weight;
           return weight !== undefined ? { "font-weight": weight } : {};
         })(),
         ...(t.text !== undefined ? { color: t.text } : {}),

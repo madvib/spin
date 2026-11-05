@@ -87,7 +87,6 @@ export type StyleDefaultElement =
   | "code"
   | "small"
   | "strong"
-  | "a"
   | "figcaption";
 
 /** One named style the starters ship, and the element it styles by default. */
@@ -116,7 +115,6 @@ export const OWNED_STYLES: readonly NamedStyleDeclaration[] = [
   { name: "body", element: "p", doc: "The body voice: the default reading text." },
   { name: "quote", element: "blockquote", doc: "The quotation voice: long-form editorial text set apart." },
   { name: "code", element: "code", doc: "The code voice: machine text at a size that sits beside prose." },
-  { name: "link", element: "a", doc: "The link voice: a run of body text that reads as a control." },
   { name: "label", element: "h4", doc: "The label voice: the name on a control or a field." },
   { name: "caption", element: "small", doc: "The caption voice: small print under a figure or a table." },
   { name: "overline", element: "h5", doc: "The overline voice: an eyebrow or category mark above copy." },
@@ -182,7 +180,6 @@ export const ELEMENT_STYLE_DEFAULTS: Readonly<Record<string, string>> = {
   code: "code",
   small: "caption",
   strong: "body-strong",
-  a: "link",
   figcaption: "caption-strong",
 };
 
@@ -194,4 +191,157 @@ export function elementStyleDefault(element: string): string | undefined {
 /** The elements that read a named style by default, in reading order. */
 export function elementStyleElements(): readonly string[] {
   return Object.keys(ELEMENT_STYLE_DEFAULTS);
+}
+
+/**
+ * The voices elements and components read unless the theme says otherwise.
+ *
+ * One table for both: an element (`h1`) and a component (`button`,
+ * `stat.value`, `card.title`) both read a named voice, and both re-point by
+ * naming another. A theme moves a target by stating `font.map.<target>`;
+ * a value of `null` or `"none"` opts out, leaving the target unvoiced.
+ *
+ * The element entries mirror `ELEMENT_STYLE_DEFAULTS` plus the table and
+ * form voices the rules spend; the component entries mirror the style
+ * reference defaults (`button.type`, `stat.title.type`) a theme re-points.
+ */
+export const FONT_MAP_DEFAULTS: Readonly<Record<string, string>> = {
+  h1: "display",
+  h2: "title",
+  h3: "heading",
+  h4: "subtitle",
+  h5: "label",
+  h6: "overline",
+  p: "body",
+  blockquote: "quote",
+  code: "code",
+  small: "caption",
+  figcaption: "caption-strong",
+  th: "caption-strong",
+  caption: "caption",
+  label: "label",
+  legend: "label",
+  dt: "body-strong",
+  button: "label",
+  "button.s-sm": "label",
+  "button.s-lg": "subtitle",
+  "stat.title": "caption-strong",
+  "stat.value": "stat",
+  "stat.desc": "caption",
+  badge: "badge",
+  "card.title": "card-title",
+  "card.description": "label",
+  field: "body",
+  alert: "label",
+};
+
+/**
+ * The voice a target reads: the theme's `font.map` over the defaults.
+ *
+ * A theme states `font.map.<target>` to re-point one target without
+ * touching the voice itself; `null` or `"none"` opts out, so the target
+ * reads no Spin voice. The legacy per-component references (`button.type`,
+ * `stat.title.type` and their variant paths) still win where `font.map`
+ * is silent, so a theme written against the reference roles keeps reading
+ * what it named until it moves to the map.
+ */
+export function resolveFontMap(doc: Record<string, unknown>): Record<string, string | null> {
+  const out: Record<string, string | null> = { ...FONT_MAP_DEFAULTS };
+  const stated = new Set<string>();
+  const font = doc["font"];
+  if (typeof font === "object" && font !== null) {
+    const map = (font as Record<string, unknown>)["map"];
+    if (typeof map === "object" && map !== null) {
+      for (const [target, name] of Object.entries(map as Record<string, unknown>)) {
+        stated.add(target);
+        if (name === null || name === "none") {
+          out[target] = null;
+          continue;
+        }
+        if (typeof name !== "string" || name.trim().length === 0) continue;
+        out[target] = name.trim();
+      }
+    }
+  }
+  const legacy = legacyReferenceOverrides(doc);
+  for (const [target, name] of Object.entries(legacy)) {
+    if (stated.has(target)) continue;
+    out[target] = name;
+  }
+  return out;
+}
+
+/**
+ * The style names the legacy per-component references name.
+ *
+ * Stated as targets of the map (`button`, `button.s-sm`, `stat.title`) so a
+ * theme that re-points through `button.type` keeps its voice until it moves
+ * to `font.map`. Opt-outs (`null`, `"none"`, blank) are the map's to read:
+ * a legacy reference that names nothing leaves the target on its default.
+ */
+function legacyReferenceOverrides(doc: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const read = (path: string): string | undefined => {
+    const value = valueAt(doc, path.split("."));
+    if (typeof value !== "string") return undefined;
+    const name = value.trim();
+    return name.length === 0 || name === "none" ? undefined : name;
+  };
+  const shorthand: Readonly<Record<string, string>> = {
+    "button.type": "button",
+    "stat.title.type": "stat.title",
+  };
+  for (const [path, target] of Object.entries(shorthand)) {
+    const name = read(path);
+    if (name !== undefined) out[target] = name;
+  }
+  for (const path of referenceLeafPaths(doc, ["button"])) {
+    if (!path.endsWith(".type")) continue;
+    const name = read(path);
+    if (name === undefined) continue;
+    const middle = path.split(".").slice(1, -1).join(".");
+    out[middle.length === 0 ? "button" : `button.${middle}`] = name;
+  }
+  return out;
+}
+
+/** The leaf paths under a group, as dotted paths — groups included. */
+function referenceLeafPaths(doc: Record<string, unknown>, prefix: readonly string[]): string[] {
+  let node: unknown = doc;
+  for (const segment of prefix) {
+    if (typeof node !== "object" || node === null) return [];
+    node = (node as Record<string, unknown>)[segment];
+  }
+  const out: string[] = [];
+  const visit = (value: unknown, path: readonly string[]): void => {
+    if (typeof value !== "object" || value === null) {
+      out.push(path.join("."));
+      return;
+    }
+    const record = value as Record<string, unknown>;
+    if (typeof record["$value"] !== "undefined" || typeof record["$type"] === "string") {
+      out.push(path.join("."));
+      return;
+    }
+    for (const [key, child] of Object.entries(record)) {
+      if (key.startsWith("$")) continue;
+      visit(child, [...path, key]);
+    }
+  };
+  visit(node, [...prefix]);
+  return out;
+}
+
+/** The value at a dotted descent, when every step is a group. */
+function valueAt(doc: Record<string, unknown>, segments: readonly string[]): unknown {
+  let node: unknown = doc;
+  for (const segment of segments) {
+    if (typeof node !== "object" || node === null) return undefined;
+    node = (node as Record<string, unknown>)[segment];
+  }
+  if (typeof node === "object" && node !== null) {
+    const record = node as Record<string, unknown>;
+    if ("$value" in record) return record["$value"];
+  }
+  return node;
 }

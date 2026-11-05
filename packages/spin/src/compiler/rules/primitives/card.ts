@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleType, withFallback, type StyleType } from "./shared.ts";
+import { styleType, withFallback, type StyleType } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -102,8 +102,7 @@ type Tokens = {
  *
  * The card's type is two styles, never atoms: the title wears the card-title
  * voice and the description the label voice (the advisory small-medium
- * type), each read as a whole tuple with the ladder steps their styles are
- * built from as the window fallback.
+ * type), each read as a whole tuple, outright.
  */
 function cardTokens(ctx: ThemeContext | undefined): Tokens {
   return {
@@ -218,13 +217,12 @@ function cardTitle(): Rule {
     function* (_m, ctx) {
       const { title, text } = cardTokens(ctx);
       // The title wears the card-title voice as a whole tuple — the name on
-      // a card, set to be found inside a surface — with the ladder steps the
-      // starters build that style from as the window fallback.
-      const family = title.family ?? ladder(ctx, "font.family.sans");
-      const size = title.size ?? ladder(ctx, "font.size.lg");
-      const weight = title.weight ?? ladder(ctx, "font.weight.semibold");
-      const tracking = title.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = title.leading ?? ladder(ctx, "font.leading.snug");
+      // a card, set to be found inside a surface.
+      const family = title.family;
+      const size = title.size;
+      const weight = title.weight;
+      const tracking = title.tracking;
+      const leading = title.leading;
       yield {
         [ctx.symbols.selector]: () => "card-title",
         "grid-column": "1",
@@ -247,10 +245,9 @@ function cardDescription(): Rule {
     function* (_m, ctx) {
       const { description, muted } = cardTokens(ctx);
       // The description wears the label voice — the advisory small-medium
-      // type — with the ladder steps the starters build that style from as
-      // the window fallback.
-      const size = description.size ?? ladder(ctx, "font.size.sm");
-      const weight = description.weight ?? ladder(ctx, "font.weight.medium");
+      // type, read outright.
+      const size = description.size;
+      const weight = description.weight;
       yield {
         [ctx.symbols.selector]: () => "card-description",
         "grid-column": "1",

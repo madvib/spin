@@ -36,7 +36,20 @@ function withValue(
   for (const segment of segments.slice(0, -1)) {
     node = (node[segment] as Record<string, unknown>);
   }
-  node[segments[segments.length - 1] as string] = value;
+  const leaf = segments[segments.length - 1] as string;
+  // A composite `$type: "typography"` style carries its fields inside one
+  // `$value` object rather than as child tokens: writing a child beside it
+  // is a document that claims both, and the parser rejects it.
+  if (
+    segments.length === 4 && segments[0] === "font" && segments[1] === "style" &&
+    typeof node["$value"] === "object" && node["$value"] !== null
+  ) {
+    const tuple = node["$value"] as Record<string, unknown>;
+    const inner = value as Record<string, unknown>;
+    tuple[leaf] = "$value" in inner ? inner["$value"] : value;
+    return doc;
+  }
+  node[leaf] = value;
   return doc;
 }
 
@@ -134,20 +147,45 @@ test("a heading spends its default style, not the ladder step", async () => {
   );
 });
 
-test("small print, code, links, strong and quotations spend their styles", async () => {
+test("small print, code, strong and quotations spend their styles; links inherit", async () => {
+  // `link.offset` is the contract's, but the starters predate it: the leaf
+  // is added the way a theme writes one until the starters carry it.
+  const doc = withLeaf("link.offset", "dimension", "0.2em");
   const css = (
     await sheetFor(
       "<small>a</small><code>a</code><a href=\"#\">a</a><strong>a</strong><blockquote>a</blockquote><figcaption>a</figcaption>",
-      silk(),
+      doc,
     )
   ).css;
   deepStrictEqual(declsFor(css, "small")["font-size"], "var(--font-style-caption-size)");
   deepStrictEqual(declsFor(css, "code")["font-size"], "var(--font-style-code-size)");
-  deepStrictEqual(declsFor(css, "a")["font-size"], "var(--font-style-link-size)");
+  // A link is an inline modifier over inherited prose: it reads no style,
+  // so it resets no face, size, weight, tracking or leading of its own.
+  const link = declsFor(css, "a");
+  assert(!("font-size" in link), `a link inherits its size, got: ${JSON.stringify(link)}`);
+  assert(!("font-family" in link), `a link inherits its face, got: ${JSON.stringify(link)}`);
+  assert(!("font-weight" in link), `a link inherits its weight, got: ${JSON.stringify(link)}`);
+  assert(!("letter-spacing" in link), `a link inherits its tracking, got: ${JSON.stringify(link)}`);
+  assert(!("line-height" in link), `a link inherits its leading, got: ${JSON.stringify(link)}`);
+  deepStrictEqual(link["color"], "var(--color-link)");
+  deepStrictEqual(link["text-decoration-line"], "underline");
+  // The resting rule wears the theme's thickness (`a`); the hover yield
+  // thickens it (`a:hover`), and declsFor merges yields the way the cascade
+  // does — so the resting declaration is read off the bare selector.
   deepStrictEqual(
-    declsFor(css, "strong")["font-weight"],
-    "var(--font-style-body-strong-weight)",
+    declsFor(css.split("a:hover")[0] as string, "a")["text-decoration-thickness"],
+    "var(--link-underline)",
   );
+  deepStrictEqual(link["text-underline-offset"], "var(--link-offset)");
+  // Strong is the other inline modifier: weight only, never a tuple reset.
+  // (`b` shares the weight rule; it is covered by the rule, not re-asserted
+  // here — the bare `b` tag also matches prose selectors, so its merged
+  // declarations carry the surrounding prose, not the rule alone.)
+  const weight = declsFor(css, "strong");
+  deepStrictEqual(weight["font-weight"], "var(--font-style-body-strong-weight)");
+  assert(!("font-size" in weight), `strong keeps its size, got: ${JSON.stringify(weight)}`);
+  assert(!("font-family" in weight), `strong keeps its face, got: ${JSON.stringify(weight)}`);
+  assert(!("line-height" in weight), `strong keeps its leading, got: ${JSON.stringify(weight)}`);
   deepStrictEqual(
     declsFor(css, "blockquote")["font-family"],
     "var(--font-style-quote-family)",

@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { ladder, proseTokens, spacing, styleField, styleType } from "./shared.ts";
+import { proseTokens, spacing, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -12,8 +12,7 @@ import { paintedTag } from "./scope.ts";
  * and that is what the code style is for.
  *
  * Each reads the code style outright, and a theme moves its machine text by
- * moving the style. What the style leaves out, the ladder answers during the
- * window — the code's step for each field.
+ * moving the style.
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
@@ -23,11 +22,11 @@ function codeRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const s = styleType(ctx, "code");
-      const family = s.family ?? ladder(ctx, "font.family.mono");
-      const size = s.size ?? ladder(ctx, "font.size.sm");
-      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = s.leading ?? ladder(ctx, "font.leading.normal");
+      const family = s.family;
+      const size = s.size;
+      const weight = s.weight;
+      const tracking = s.tracking;
+      const leading = s.leading;
       yield {
         [ctx.symbols.selector]: () => "code",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -52,9 +51,9 @@ function sampRule(): Rule {
   return [
     /^samp$/,
     function* (_m, ctx) {
-      const family = styleField(ctx, "code", "family");
+      const family = styleType(ctx, "code").family;
       const s = styleType(ctx, "code");
-      const size = s.size ?? ladder(ctx, "font.size.sm");
+      const size = s.size;
       yield {
         [ctx.symbols.selector]: () => "samp",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -84,13 +83,13 @@ function preRule(): Rule {
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const family = styleField(ctx, "code", "family");
+      const family = styleType(ctx, "code").family;
       yield {
         [ctx.symbols.selector]: () => "pre",
         // The mono face is what makes a block code; the SIZE is the author's.
         // A pinned font-size here beat every text utility on the same element
         // at equal specificity, so a consumer could not size their own code
-        // block — the ladder exists so the app can spend it.
+        // block.
         ...(family !== undefined ? { "font-family": family } : {}),
         ...spacing(t),
       };

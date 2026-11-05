@@ -16,6 +16,7 @@ import {
 import { tokenStatus } from "../lib/live-edit.ts";
 import { activeMode, activeName, activeTree, noteRefusal, refusalFor, registry, setThemeText, themeText } from "../lib/store.ts";
 import {
+  applyMapEdit,
   attachedStyle,
   groupTokens,
   repointEdits,
@@ -590,17 +591,20 @@ function AttachmentRow(props: { element: string }) {
     };
   };
   const repoint = (style: string): void => {
-    let edits: readonly { path: readonly string[]; value: string }[];
     try {
-      edits = repointEdits(themeText(), props.element, style);
+      repointEdits(themeText(), props.element, style);
     } catch (err) {
       noteRefusal(err instanceof Error ? err.message : String(err));
       return;
     }
-    editTokens(
-      edits.map((edit) => ({ path: [...edit.path], value: edit.value })),
-      "base",
-    );
+    let next: string;
+    try {
+      next = applyMapEdit(themeText(), props.element, style);
+    } catch (err) {
+      noteRefusal(err instanceof Error ? err.message : String(err));
+      return;
+    }
+    setThemeText(next, [`font.map.${props.element}`]);
   };
   return (
     <tr>

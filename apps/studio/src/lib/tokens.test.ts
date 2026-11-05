@@ -8,6 +8,7 @@ import {
 } from "@spinjs/spin/theme";
 import { silkTheme } from "@spinjs/spin/theme/themes";
 import {
+  applyMapEdit,
   attachedStyle,
   declaredStyles,
   borderUtilityOf,
@@ -374,36 +375,30 @@ test("adding a style scaffolds the tuple, and the document still builds", () => 
 
 test("re-pointing an element writes the style the element reads", () => {
   const edits = repointEdits(styleFixture(), "p", "code");
-  const doc = JSON.parse(applyEdits(styleFixture(), edits, "base")) as {
-    font: {
-      style: Record<string, Record<string, { $value: unknown }>>;
-    };
+  deepStrictEqual(edits, [{ path: ["font", "map", "p"], value: "code" }]);
+  const next = applyMapEdit(styleFixture(), "p", "code");
+  const doc = JSON.parse(next) as {
+    font: { map: Record<string, string> };
   };
-  deepStrictEqual(
-    doc.font.style["body"]!["size"]!.$value,
-    "{font.style.code.size}",
-  );
+  deepStrictEqual(doc.font.map["p"], "code");
   deepStrictEqual(attachedStyle(styleFixture(), "p"), "body");
-  deepStrictEqual(
-    attachedStyle(applyEdits(styleFixture(), edits, "base"), "p"),
-    "code",
-  );
+  deepStrictEqual(attachedStyle(next, "p"), "code");
 });
 
 test("re-pointing past the map leaves the other elements where they were", () => {
-  const edits = repointEdits(styleFixture(), "h1", "aside");
-  const doc = JSON.parse(applyEdits(styleFixture(), edits, "base")) as {
+  const next = applyMapEdit(styleFixture(), "h1", "aside");
+  const doc = JSON.parse(next) as {
     font: {
+      map: Record<string, string>;
       style: Record<string, Record<string, { $value: unknown }>>;
     };
   };
+  deepStrictEqual(doc.font.map["h1"], "aside");
+  deepStrictEqual(doc.font.map["p"], undefined);
   deepStrictEqual(
     doc.font.style["display"]!["size"]!.$value,
-    "{font.style.aside.size}",
-  );
-  deepStrictEqual(
-    doc.font.style["body"]!["size"]!.$value,
-    "{font.size.md}",
+    "{font.size.3xl}",
+    "the display tuple survives: the map points, it never rewrites",
   );
 });
 
@@ -453,18 +448,20 @@ test("add then trim round-trips: the document comes back", () => {
 });
 
 test("re-pointing moves the emitted element voice: p follows code", () => {
-  // The ownership proof at the document level: p's rule spends the body
-  // style's variables, and after the re-point those variables ARE code's —
-  // the theme CSS carries the alias, so the element follows the style.
-  const edits = repointEdits(styleFixture(), "p", "code");
-  const next = applyEdits(styleFixture(), edits, "base");
+  // The ownership proof at the document level: p's paragraph rule reads
+  // from the map-resolved voice, and the body tuple is untouched — the map
+  // points, it never rewrites.
+  const next = applyMapEdit(styleFixture(), "p", "code");
   const parsed = parseTokens(next);
   if (!parsed.ok) {
     throw new Error(`the re-pointed document does not parse: ${parsed.error}`);
   }
   const css = generateCss(parsed.tree);
   const bodySize = /--font-style-body-size:\s*([^;]+);/.exec(css)?.[1]?.trim();
-  deepStrictEqual(bodySize, "var(--font-style-code-size)");
+  assert(
+    bodySize !== undefined && !bodySize.includes("--font-style-code-size"),
+    `the body tuple survives the re-point: ${bodySize}`,
+  );
   deepStrictEqual(attachedStyle(next, "p"), "code");
   deepStrictEqual(attachedStyle(next, "h1"), "display");
 });

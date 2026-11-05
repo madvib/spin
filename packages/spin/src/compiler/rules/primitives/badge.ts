@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
-import { ladder, styleType, withFallback } from "./shared.ts";
+import { styleType, withFallback } from "./shared.ts";
 
 /**
  * Badge — a small status label.
@@ -38,12 +38,10 @@ function badgeBase(): Rule {
       const spacing1 = token(ctx, "spacing.1");
       const borderWidth = token(ctx, "border.width");
       const borderColor = token(ctx, "color.border");
-      // The badge wears the badge voice outright — the word on a pill —
-      // with the ladder steps the starters build that style from as the
-      // window fallback.
+      // The badge wears the badge voice outright — the word on a pill.
       const s = styleType(ctx, "badge");
-      const sizeXs = s.size ?? ladder(ctx, "font.size.2xs");
-      const weightMedium = s.weight ?? ladder(ctx, "font.weight.medium");
+      const sizeXs = s.size;
+      const weightMedium = s.weight;
       const edge = withFallback(ctx, "badge.edge", "border.width") ??
         borderWidth;
       // `badge.pill` is a boolean token. The rule context carries references,
@@ -215,9 +213,7 @@ function badgeSizes(): Rule[] {
       // styles' sizes, so moving the styles moves the sizes with them.
       const voice = styleType(ctx, "badge");
       const label = styleType(ctx, "label");
-      const fontSize = size.fontSize === "2xs"
-        ? (voice.size ?? ladder(ctx, "font.size.2xs"))
-        : (label.size ?? ladder(ctx, "font.size.sm"));
+      const fontSize = size.fontSize === "2xs" ? voice.size : label.size;
       const spacingInline = named(ctx, "spacing", size.spacingInline);
       const spacingBlock = named(ctx, "spacing", size.spacingBlock);
       yield {

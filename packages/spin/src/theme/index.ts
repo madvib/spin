@@ -90,9 +90,11 @@ export {
   elementStyleDefault,
   elementStyleElements,
   FACE_CHAINS,
+  FONT_MAP_DEFAULTS,
   OWNED_STYLES,
   ownedStyleFields,
   ownedStyleNames,
+  resolveFontMap,
 } from "./contract/typography.ts";
 export type {
   GlobalTypePath,

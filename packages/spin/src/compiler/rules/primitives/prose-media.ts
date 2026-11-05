@@ -1,5 +1,5 @@
 import type { Rule } from "@unocss/core";
-import { ladder, proseTokens, spacing, styleType } from "./shared.ts";
+import { proseTokens, spacing, styleType } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -46,8 +46,7 @@ function figureRule(): Rule {
  *
  * Its TYPE — the caption-strong voice it reads in — is typography, and the
  * theme's everywhere: a caption is a caption wherever it sits. A theme moves
- * its captions by moving the style; what the style leaves out, the ladder
- * answers during the window.
+ * its captions by moving the style.
  *
  * Its PLACE — centred under the figure it belongs to — is the document's
  * furniture, because a caption is centred in a column and nowhere else.
@@ -58,11 +57,11 @@ function figcaptionRule(): Rule {
     function* (_m, ctx) {
       const t = proseTokens(ctx);
       const s = styleType(ctx, "caption-strong");
-      const family = s.family ?? ladder(ctx, "font.family.body");
-      const size = s.size ?? ladder(ctx, "font.size.sm");
-      const weight = s.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = s.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = s.leading ?? ladder(ctx, "font.leading.snug");
+      const family = s.family;
+      const size = s.size;
+      const weight = s.weight;
+      const tracking = s.tracking;
+      const leading = s.leading;
       yield {
         [ctx.symbols.selector]: () => "figcaption",
         // The gap the caption leaves under the figure it belongs to: the

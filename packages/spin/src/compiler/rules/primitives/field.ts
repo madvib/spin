@@ -4,7 +4,6 @@ import {
   disabledPosture,
   focusPaint,
   focusRing,
-  ladder,
   styleType,
   withFallback,
 } from "./shared.ts";
@@ -43,14 +42,13 @@ export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
   // The field's type is the field's own reading voice at body size: an input
   // reads what a reader typed, so it reads at the body step. Style-less by
   // design (no owned style names a field), so the rule names the body voice
-  // outright — never atoms — with the ladder steps the starters build that
-  // style from as the window fallback.
+  // outright — never atoms.
   const body = styleType(ctx, "body");
   return {
     spacing2: token(ctx, "spacing.2"),
     radius: withFallback(ctx, "field.radius", "radius.md"),
-    fontFamily: body.family ?? ladder(ctx, "font.family.sans"),
-    fontSize: body.size ?? ladder(ctx, "font.size.md"),
+    fontFamily: body.family,
+    fontSize: body.size,
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     field: token(ctx, "color.field"),
@@ -211,7 +209,7 @@ export function fieldBox(): Rule {
       };
 
 
-      // The size ladder, the same steps a button takes. A field's type and
+      // The size voices, the same steps a button takes. A field's type and
       // padding move with the step; a single-line control also lands on the
       // step's height, while a textarea keeps its own lines. Without this a
       // chrome control had to restate the small metrics at every call site.
@@ -222,8 +220,8 @@ export function fieldBox(): Rule {
       const label = styleType(context, "label");
       const subtitle = styleType(context, "subtitle");
       for (const [name, size, spaceToken] of [
-        ["s-sm", label.size ?? ladder(context, "font.size.sm"), "spacing.1"],
-        ["s-lg", subtitle.size ?? ladder(context, "font.size.lg"), "spacing.4"],
+        ["s-sm", label.size, "spacing.1"],
+        ["s-lg", subtitle.size, "spacing.4"],
       ] as const) {
         const space = token(context, spaceToken);
         if (size !== undefined) {

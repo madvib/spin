@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleReference, styleType, type StyleType } from "./shared.ts";
+import { styleReference, styleType, type StyleType } from "./shared.ts";
 
 /** Stat — a labelled number, reading its voices from the named styles. */
 export function statRules(roots: readonly string[]): Rule[] {
@@ -27,9 +27,7 @@ type Tokens = {
  * atoms of the stat's own. The label above it reads the style the
  * `stat.title.type` reference names — the caption-strong voice unless the
  * theme re-points it — and the context under the number reads the caption
- * voice, the small print of the figure. Each field falls back to the step
- * its style is built from during the window, so a theme that says nothing
- * about a part gets the scale's answer rather than the browser's.
+ * voice, the small print of the figure.
  */
 function statTokens(ctx: ThemeContext | undefined): Tokens {
   const titleStyle = styleReference(ctx, "stat.title.type", "caption-strong") as string;
@@ -102,11 +100,11 @@ function statTitle(): Rule {
     /^stat-title$/,
     function* (_m, ctx) {
       const { title, muted } = statTokens(ctx);
-      const family = title.family ?? ladder(ctx, "font.family.sans");
-      const size = title.size ?? ladder(ctx, "font.size.xs");
-      const weight = title.weight ?? ladder(ctx, "font.weight.semibold");
-      const tracking = title.tracking ?? ladder(ctx, "font.tracking.wide");
-      const leading = title.leading ?? ladder(ctx, "font.leading.snug");
+      const family = title.family;
+      const size = title.size;
+      const weight = title.weight;
+      const tracking = title.tracking;
+      const leading = title.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-title",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -127,11 +125,11 @@ function statValue(): Rule {
     /^stat-value$/,
     function* (_m, ctx) {
       const { value, text } = statTokens(ctx);
-      const family = value.family ?? ladder(ctx, "font.family.mono");
-      const size = value.size ?? ladder(ctx, "font.size.2xl");
-      const weight = value.weight ?? ladder(ctx, "font.weight.semibold");
-      const tracking = value.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = value.leading ?? ladder(ctx, "font.leading.tight");
+      const family = value.family;
+      const size = value.size;
+      const weight = value.weight;
+      const tracking = value.tracking;
+      const leading = value.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-value",
         ...(size !== undefined ? { "font-size": size } : {}),
@@ -159,11 +157,11 @@ function statDesc(): Rule {
     /^stat-desc$/,
     function* (_m, ctx) {
       const { desc, muted } = statTokens(ctx);
-      const family = desc.family ?? ladder(ctx, "font.family.body");
-      const size = desc.size ?? ladder(ctx, "font.size.sm");
-      const weight = desc.weight ?? ladder(ctx, "font.weight.regular");
-      const tracking = desc.tracking ?? ladder(ctx, "font.tracking.normal");
-      const leading = desc.leading ?? ladder(ctx, "font.leading.snug");
+      const family = desc.family;
+      const size = desc.size;
+      const weight = desc.weight;
+      const tracking = desc.tracking;
+      const leading = desc.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-desc",
         ...(family !== undefined ? { "font-family": family } : {}),
