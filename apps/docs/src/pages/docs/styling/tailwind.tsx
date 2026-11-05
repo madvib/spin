@@ -9,12 +9,7 @@ import { A } from "@solidjs/router";
 import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
-import {
-  Code,
-  PageHeader,
-  Section,
-  starterDoc,
-} from "../../../ui/index.ts";
+import { PageHeader, Section, Specimen, starterDoc } from "../../../ui/index.ts";
 
 const TRANSFERS_SNIPPET = `<div class="rounded-lg border border-border bg-surface p-4">
   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -210,55 +205,54 @@ export default function StylingTailwind(): JSX.Element {
           breakpoints transfers directly, compiled under the hood by UnoCSS:
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="rounded-lg border border-border bg-surface p-4">
-              <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <strong>Edge routing</strong>
-                  <small class="block">
-                    3 regions active across 12 pop nodes
-                  </small>
-                </div>
-                <div
-                  tabindex="0"
-                  class="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
-                >
-                  <strong>Inspect routes</strong>
-                  <kbd>⌘K</kbd>
-                </div>
-              </div>
-              <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div class="rounded-md border border-border bg-surface-raised p-3">
-                  <strong>us-east</strong>
-                  <small class="block">14 ms p95</small>
-                </div>
-                <div class="rounded-md border border-border bg-surface-raised p-3">
-                  <strong>eu-central</strong>
-                  <small class="block">19 ms p95</small>
-                </div>
-                <div class="rounded-md border border-border bg-surface-raised p-3">
-                  <strong>ap-northeast</strong>
-                  <small class="block">27 ms p95</small>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-1">
-              <code>p-4</code>
-              <code>bg-surface</code>
-              <code>hover:bg-surface-raised</code>
-              <code>md:flex-row</code>
-              <code>md:grid-cols-3</code>
-              <code>flex</code>
-              <code>grid</code>
-            </div>
-          </div>
-
-          <Code
-            code={TRANSFERS_SNIPPET}
-            lang="html"
+        <div class="my-2">
+          <Specimen
             title="One markup sample valid in both grammars, rendered live"
+            code={TRANSFERS_SNIPPET}
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <div class="rounded-lg border border-border bg-surface p-4">
+                  <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <strong>Edge routing</strong>
+                      <small class="block">
+                        3 regions active across 12 pop nodes
+                      </small>
+                    </div>
+                    <div
+                      tabindex="0"
+                      class="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
+                    >
+                      <strong>Inspect routes</strong>
+                      <kbd>⌘K</kbd>
+                    </div>
+                  </div>
+                  <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                      <strong>us-east</strong>
+                      <small class="block">14 ms p95</small>
+                    </div>
+                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                      <strong>eu-central</strong>
+                      <small class="block">19 ms p95</small>
+                    </div>
+                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                      <strong>ap-northeast</strong>
+                      <small class="block">27 ms p95</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1">
+                  <code>p-4</code>
+                  <code>bg-surface</code>
+                  <code>hover:bg-surface-raised</code>
+                  <code>md:flex-row</code>
+                  <code>md:grid-cols-3</code>
+                  <code>flex</code>
+                  <code>grid</code>
+                </div>
+              </div>
+            }
           />
         </div>
       </Section>
@@ -279,43 +273,43 @@ export default function StylingTailwind(): JSX.Element {
           <A href="/docs/tooling/lints">Lints &amp; Diagnostics</A>).
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="rounded-md border border-border bg-surface p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <strong>Resolved against {theme()}</strong>
-                <badge variant="success">Build green</badge>
-              </div>
-              <div class="mt-3 flex flex-wrap items-center gap-2">
-                <code>
-                  p-4 → {readThemeToken("spacing", "4", "1rem")}
-                </code>
-                <code>
-                  rounded-md → {readThemeToken("radius", "md", "0.375rem")}
-                </code>
-                <code>bg-surface-raised</code>
-              </div>
-            </div>
-
-            <div class="rounded-md border border-border bg-surface p-3">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <strong>Undeclared step or palette class</strong>
-                <badge variant="danger">Build error</badge>
-              </div>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <code>p-13</code>
-                <small>→ suggests</small>
-                <code>p-12</code>
-                <code>bg-blue-500</code>
-                <small>→ flagged for removal or role replacement</small>
-              </div>
-            </div>
-          </div>
-
-          <Code
+        <div class="my-2">
+          <Specimen
+            title="Build output when markup names a class the theme cannot produce"
             code={PRINCIPLE_BUILD_SNIPPET}
             lang="bash"
-            title="Build output when markup names a class the theme cannot produce"
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <div class="rounded-md border border-border bg-surface p-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <strong>Resolved against {theme()}</strong>
+                    <badge variant="success">Build green</badge>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <code>
+                      p-4 → {readThemeToken("spacing", "4", "1rem")}
+                    </code>
+                    <code>
+                      rounded-md → {readThemeToken("radius", "md", "0.375rem")}
+                    </code>
+                    <code>bg-surface-raised</code>
+                  </div>
+                </div>
+                <div class="rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <strong>Undeclared step or palette class</strong>
+                    <badge variant="danger">Build error</badge>
+                  </div>
+                  <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <code>p-13</code>
+                    <small>→ suggests</small>
+                    <code>p-12</code>
+                    <code>bg-blue-500</code>
+                    <small>→ flagged for removal or role replacement</small>
+                  </div>
+                </div>
+              </div>
+            }
           />
         </div>
       </Section>
@@ -346,42 +340,42 @@ export default function StylingTailwind(): JSX.Element {
           agent guidance point the same way. No build fails for measuring one
           element past the scale.
         </p>
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="relative rounded-md border border-border bg-surface/80 p-3 w-[13rem]">
-              <span
-                class="absolute top-[3px] right-2 h-2 w-2 rounded-full bg-primary text-on-primary"
-                aria-hidden="true"
-              />
-              <strong>Pinned rail</strong>
-              <small class="block">
-                Measured with <code>w-[13rem]</code> and <code>top-[3px]</code>
-              </small>
-            </div>
-
-            <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-3">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-1">
-                  <code>w-[13rem]</code>
-                  <code>top-[3px]</code>
-                  <code>bg-surface/80</code>
-                </div>
-                <badge variant="success">Emits CSS</badge>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-1">
-                  <code>bg-[#fff]</code>
-                  <code>text-[14px]</code>
-                </div>
-                <badge variant="danger">Dead on arrival</badge>
-              </div>
-            </div>
-          </div>
-
-          <Code
-            code={ARBITRARY_SNIPPET}
-            lang="html"
+        <div class="my-2">
+          <Specimen
             title="Numeric size/inset measurements resolve; color and type-size literals do not"
+            code={ARBITRARY_SNIPPET}
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <div class="relative w-[13rem] rounded-md border border-border bg-surface/80 p-3">
+                  <span
+                    class="absolute top-[3px] right-2 h-2 w-2 rounded-full bg-primary text-on-primary"
+                    aria-hidden="true"
+                  />
+                  <strong>Pinned rail</strong>
+                  <small class="block">
+                    Measured with <code>w-[13rem]</code> and{" "}
+                    <code>top-[3px]</code>
+                  </small>
+                </div>
+                <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-1">
+                      <code>w-[13rem]</code>
+                      <code>top-[3px]</code>
+                      <code>bg-surface/80</code>
+                    </div>
+                    <badge variant="success">Emits CSS</badge>
+                  </div>
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-1">
+                      <code>bg-[#fff]</code>
+                      <code>text-[14px]</code>
+                    </div>
+                    <badge variant="danger">Dead on arrival</badge>
+                  </div>
+                </div>
+              </div>
+            }
           />
         </div>
       </Section>
@@ -401,48 +395,56 @@ export default function StylingTailwind(): JSX.Element {
           the full walkthrough:
         </p>
 
-        <div class="my-2 flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <code>data-mode=&quot;{activeMode()}&quot;</code>
-              <small>
-                Active theme: <code>{theme()}</code>
-              </small>
-            </div>
-            <div class="flex items-center gap-1">
-              <button
-                type="button"
-                class={activeMode() === "light" ? "primary s-sm" : "s-sm"}
-                onClick={() => setSpecimenOverride("light")}
+        <div class="my-2">
+          <Specimen
+            title="Same markup in both modes — zero dark: classes"
+            code={`<!-- One class list, two honest answers -->\n<div data-theme="<theme>" data-mode="light|dark" class="rounded-md border border-border bg-surface p-4">\n  <button type="button" class="primary">Primary action</button>\n</div>`}
+            controls={
+              <>
+                <code>data-mode=&quot;{activeMode()}&quot;</code>
+                <button
+                  type="button"
+                  class={
+                    activeMode() === "light"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
+                  }
+                  onClick={() => setSpecimenOverride("light")}
+                >
+                  light
+                </button>
+                <button
+                  type="button"
+                  class={
+                    activeMode() === "dark"
+                      ? "primary s-sm type-code"
+                      : "s-sm type-code"
+                  }
+                  onClick={() => setSpecimenOverride("dark")}
+                >
+                  dark
+                </button>
+              </>
+            }
+            preview={
+              <div
+                data-theme={theme()}
+                data-mode={activeMode()}
+                class="flex min-w-0 flex-wrap items-center justify-between gap-3"
               >
-                light
-              </button>
-              <button
-                type="button"
-                class={activeMode() === "dark" ? "primary s-sm" : "s-sm"}
-                onClick={() => setSpecimenOverride("dark")}
-              >
-                dark
-              </button>
-            </div>
-          </div>
-
-          <div
-            data-theme={theme()}
-            data-mode={activeMode()}
-            class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface p-4"
-          >
-            <div>
-              <strong>Same class list in both modes</strong>
-              <small class="block">
-                <code>bg-surface</code> · <code>border-border</code> ·{" "}
-                <code>bg-primary text-on-primary</code>
-              </small>
-            </div>
-            <button type="button" class="primary">
-              Primary action
-            </button>
-          </div>
+                <div>
+                  <strong>Same class list in both modes</strong>
+                  <small class="block">
+                    <code>bg-surface</code> · <code>border-border</code> ·{" "}
+                    <code>bg-primary text-on-primary</code>
+                  </small>
+                </div>
+                <button type="button" class="primary">
+                  Primary action
+                </button>
+              </div>
+            }
+          />
         </div>
       </Section>
 
@@ -463,47 +465,49 @@ export default function StylingTailwind(): JSX.Element {
           <A href="/docs/styling/elements">Primitives guide</A>):
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
-            <card>
-              <card-header>
-                <card-title>Invoice summary</card-title>
-                <card-description>
-                  Bare tags supply the control chrome; utilities adjust
-                  placement.
-                </card-description>
-              </card-header>
-              <card-content>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Environment</th>
-                      <th>Requests</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Production</td>
-                      <td>1.4M</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <button type="button" class="primary mt-4 w-full">
-                  Download statement
-                </button>
-              </card-content>
-            </card>
-            <div class="flex flex-wrap items-center gap-1">
-              <code>&lt;card&gt;</code>
-              <code>&lt;table&gt;</code>
-              <code>&lt;button class=&quot;primary mt-4 w-full&quot;&gt;</code>
-            </div>
-          </div>
-
-          <Code
-            code={ELEMENTS_ADJUST_SNIPPET}
-            lang="html"
+        <div class="my-2">
+          <Specimen
             title="Bare tags provide the look; mt-4 and w-full adjust layout"
+            code={ELEMENTS_ADJUST_SNIPPET}
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <card>
+                  <card-header>
+                    <card-title>Invoice summary</card-title>
+                    <card-description>
+                      Bare tags supply the control chrome; utilities adjust
+                      placement.
+                    </card-description>
+                  </card-header>
+                  <card-content>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Environment</th>
+                          <th>Requests</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Production</td>
+                          <td>1.4M</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <button type="button" class="primary mt-4 w-full">
+                      Download statement
+                    </button>
+                  </card-content>
+                </card>
+                <div class="flex flex-wrap items-center gap-1">
+                  <code>&lt;card&gt;</code>
+                  <code>&lt;table&gt;</code>
+                  <code>
+                    &lt;button class=&quot;primary mt-4 w-full&quot;&gt;
+                  </code>
+                </div>
+              </div>
+            }
           />
         </div>
       </Section>
@@ -548,62 +552,60 @@ export default function StylingTailwind(): JSX.Element {
           and <A href="/docs/themes/reference#elements">Token Reference</A>):
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-3">
-              <small class="block">
-                1. Horizontal list (<code>row-list</code>) vs. vertical UI list
-                (<code>flow-list</code>)
-              </small>
-              <ul class="row-list">
-                <li>
-                  <a href="#what-spin-adds">Overview</a>
-                </li>
-                <li>
-                  <a href="#what-spin-adds">Regions</a>
-                </li>
-                <li>
-                  <a href="#what-spin-adds">Audit log</a>
-                </li>
-              </ul>
-              <ul class="flow-list">
-                <li>Primary region healthy</li>
-                <li>Failover rehearsal passed</li>
-              </ul>
-            </div>
-
-            <div class="isolate relative min-h-24 rounded-md border border-border bg-surface p-3">
-              <small class="block">
-                2. Top-layer anchor utilities (<code>anchor-region-menu</code> +{" "}
-                <code>position-anchor-region-menu</code>)
-              </small>
-              <div class="mt-2">
-                <button type="button" class="s-sm anchor-region-menu">
-                  Region target
-                </button>
-                <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right mt-1 inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 shadow-md">
-                  <strong>Pinned to --region-menu</strong>
+        <div class="my-2">
+          <Specimen
+            title="List orientation, CSS anchor positioning, and named type styles"
+            code={ADDITIONS_SNIPPET}
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <div class="flex flex-col gap-2">
+                  <small class="block">
+                    1. Horizontal list (<code>row-list</code>) vs. vertical UI
+                    list (<code>flow-list</code>)
+                  </small>
+                  <ul class="row-list">
+                    <li>
+                      <a href="#what-spin-adds">Overview</a>
+                    </li>
+                    <li>
+                      <a href="#what-spin-adds">Regions</a>
+                    </li>
+                    <li>
+                      <a href="#what-spin-adds">Audit log</a>
+                    </li>
+                  </ul>
+                  <ul class="flow-list">
+                    <li>Primary region healthy</li>
+                    <li>Failover rehearsal passed</li>
+                  </ul>
+                </div>
+                <div class="isolate relative min-h-24">
+                  <small class="block">
+                    2. Top-layer anchor utilities (<code>anchor-region-menu</code>{" "}
+                    + <code>position-anchor-region-menu</code>)
+                  </small>
+                  <div class="mt-2">
+                    <button type="button" class="s-sm anchor-region-menu">
+                      Region target
+                    </button>
+                    <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right mt-1 inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 shadow-md">
+                      <strong>Pinned to --region-menu</strong>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <small class="block">
+                    3. Named type styles (<code>type-label</code> ·{" "}
+                    <code>type-caption</code> · <code>type-code</code>)
+                  </small>
+                  <div class="mt-2">
+                    <alert role="status" class="type-label">
+                      <span>Matches the active label style</span>
+                    </alert>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="rounded-md border border-border bg-surface p-3">
-              <small class="block">
-                3. Named type styles (<code>type-label</code> ·{" "}
-                <code>type-caption</code> · <code>type-code</code>)
-              </small>
-              <div class="mt-2">
-                <alert role="status" class="type-label">
-                  <span>Matches the active label style</span>
-                </alert>
-              </div>
-            </div>
-          </div>
-
-          <Code
-            code={ADDITIONS_SNIPPET}
-            lang="html"
-            title="List orientation, CSS anchor positioning, and named type styles"
+            }
           />
         </div>
       </Section>

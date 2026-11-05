@@ -7,11 +7,7 @@ import { A } from "@solidjs/router";
 import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { animationContract } from "@spinjs/spin/animation";
-import {
-  Code,
-  PageHeader,
-  Section,
-} from "../../../ui/index.ts";
+import { PageHeader, Section, Specimen } from "../../../ui/index.ts";
 
 const THEME_MOTION_SNIPPET = `<button type="button" class="primary">
   Hover to feel the button transition
@@ -66,37 +62,40 @@ export default function StylingAnimation(): JSX.Element {
           on the page agrees.
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-5">
-            <div class="flex flex-wrap items-center gap-3">
-              <button type="button" class="primary">
-                Hover to feel the button transition
-              </button>
+        <div class="my-2">
+          <Specimen
+            title="One button and one card, both paced by the active theme"
+            code={THEME_MOTION_SNIPPET}
+            controls={
               <button
                 type="button"
-                class="ghost s-sm"
+                class="ghost s-sm type-code"
                 onClick={() => setThemeDemoKey((k) => k + 1)}
               >
                 Replay card entrance
               </button>
-            </div>
-            <For each={[themeDemoKey()]}>
-              {() => (
-                <card class="animate-slide-up">
-                  <card-header>
-                    <card-title>Deployment ready</card-title>
-                    <card-description>
-                      Arrives on the same theme curve.
-                    </card-description>
-                  </card-header>
-                </card>
-              )}
-            </For>
-          </div>
-          <Code
-            code={THEME_MOTION_SNIPPET}
-            lang="html"
-            title="One button and one card, both paced by the active theme"
+            }
+            preview={
+              <div class="flex min-w-0 flex-col gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                  <button type="button" class="primary">
+                    Hover to feel the button transition
+                  </button>
+                </div>
+                <For each={[themeDemoKey()]}>
+                  {() => (
+                    <card class="animate-slide-up">
+                      <card-header>
+                        <card-title>Deployment ready</card-title>
+                        <card-description>
+                          Arrives on the same theme curve.
+                        </card-description>
+                      </card-header>
+                    </card>
+                  )}
+                </For>
+              </div>
+            }
           />
         </div>
 
@@ -123,52 +122,51 @@ export default function StylingAnimation(): JSX.Element {
           <code>animate-slide-up</code>.
         </p>
 
-        <div class="my-2 grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-            <div class="flex min-h-32 flex-col items-center justify-center rounded-md border border-border bg-surface-raised p-4">
-              <div
-                tabindex="0"
-                class="cursor-pointer rounded-md border border-border bg-surface-raised px-4 py-3 text-text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
-              >
-                Hover or focus to transition state
+        <div class="my-2 flex flex-col gap-4">
+          <Specimen
+            title="State change — transition utilities"
+            code={STATE_TRANSITION_SNIPPET}
+            preview={
+              <div class="flex min-h-32 min-w-0 flex-col items-center justify-center p-4">
+                <div
+                  tabindex="0"
+                  class="cursor-pointer rounded-md border border-border bg-surface-raised px-4 py-3 text-text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
+                >
+                  Hover or focus to transition state
+                </div>
               </div>
-            </div>
-            <Code
-              code={STATE_TRANSITION_SNIPPET}
-              lang="html"
-              title="State change — transition utilities"
-            />
-          </div>
-
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-            <div class="flex min-h-32 flex-col items-center justify-center gap-3 rounded-md border border-border bg-surface-raised p-4">
-              <For each={[entranceKey()]}>
-                {() => (
-                  <card class="animate-fade-in">
-                    <div class="row-sm">
-                      <span
-                        class="i-lucide-check icon-sm text-primary"
-                        aria-hidden="true"
-                      />
-                      <span>Preview environment mounted</span>
-                    </div>
-                  </card>
-                )}
-              </For>
+            }
+          />
+          <Specimen
+            title="Mounting moment — named entrance"
+            code={ENTRANCE_SNIPPET}
+            controls={
               <button
                 type="button"
-                class="ghost s-sm"
+                class="ghost s-sm type-code"
                 onClick={() => setEntranceKey((k) => k + 1)}
               >
                 Replay animate-fade-in
               </button>
-            </div>
-            <Code
-              code={ENTRANCE_SNIPPET}
-              lang="html"
-              title="Mounting moment — named entrance"
-            />
-          </div>
+            }
+            preview={
+              <div class="flex min-h-32 min-w-0 flex-col items-center justify-center gap-3 p-4">
+                <For each={[entranceKey()]}>
+                  {() => (
+                    <card class="animate-fade-in">
+                      <div class="row-sm">
+                        <span
+                          class="i-lucide-check icon-sm text-primary"
+                          aria-hidden="true"
+                        />
+                        <span>Preview environment mounted</span>
+                      </div>
+                    </card>
+                  )}
+                </For>
+              </div>
+            }
+          />
         </div>
       </Section>
 
@@ -186,22 +184,22 @@ export default function StylingAnimation(): JSX.Element {
           <A href="/docs/tooling/check">browser checks</A>.
         </p>
 
-        <div class="my-2 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-surface-raised px-4 py-3">
-          <div class="row-sm">
+        <div class="flex min-w-0 flex-wrap items-center gap-4 rounded-lg border border-border bg-surface-raised px-4 py-3">
+          <div class="row-sm min-w-0">
             <span
-              class="i-lucide-loader icon-sm animate-spin text-primary"
+              class="i-lucide-loader icon-sm shrink-0 animate-spin text-primary"
               aria-hidden="true"
             />
-            <code>animate-spin</code>
+            <code class="break-all">animate-spin</code>
           </div>
-          <div class="row-sm">
+          <div class="row-sm min-w-0">
             <span
-              class="inline-block h-3 w-3 rounded-full bg-primary text-on-primary animate-pulse"
+              class="inline-block h-3 w-3 shrink-0 rounded-full bg-primary text-on-primary animate-pulse"
               aria-hidden="true"
             />
-            <code>animate-pulse</code>
+            <code class="break-all">animate-pulse</code>
           </div>
-          <span class="type-caption text-text-muted">
+          <span class="type-caption min-w-0 text-text-muted">
             Paced at the theme&apos;s loop step (&ge; <code>250ms</code>) and
             stopped under <code>@media (prefers-reduced-motion: reduce)</code>.
           </span>
@@ -213,50 +211,50 @@ export default function StylingAnimation(): JSX.Element {
           Click any class below to preview every entrance and loop the system
           ships against the active theme.
         </p>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface-raised p-4">
-            <div class="flex flex-wrap gap-2">
-              <For each={animationContract.variants}>
-                {(variant) => (
-                  <button
-                    type="button"
-                    onClick={() => triggerAnimation(variant)}
-                    class={
-                      activeAnim() === variant
-                        ? "primary s-sm type-code"
-                        : "s-sm type-code"
-                    }
-                  >
-                    {variant}
-                  </button>
-                )}
-              </For>
-            </div>
-            <Code
-              code={`<div class="${activeAnim()}">\n  ${activeAnim()}\n</div>`}
-              lang="html"
-              title="Selected class"
-            />
-          </div>
-
-          <div class="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-surface p-6">
-            <For each={[replayKey()]}>
-              {() => (
-                <div
-                  class={`rounded-md border border-primary bg-surface-raised px-4 py-3 type-code shadow-sm ${activeAnim()}`}
+        <div class="my-2">
+          <Specimen
+            title={`Previewing ${activeAnim()} against the active theme`}
+            code={`<div class="${activeAnim()}">\n  ${activeAnim()}\n</div>`}
+            controls={
+              <>
+                <For each={animationContract.variants}>
+                  {(variant) => (
+                    <button
+                      type="button"
+                      onClick={() => triggerAnimation(variant)}
+                      class={
+                        activeAnim() === variant
+                          ? "primary s-sm type-code"
+                          : "s-sm type-code"
+                      }
+                    >
+                      {variant}
+                    </button>
+                  )}
+                </For>
+                <button
+                  type="button"
+                  onClick={() => setReplayKey((k) => k + 1)}
+                  class="ghost s-sm type-code"
                 >
-                  {activeAnim()}
-                </div>
-              )}
-            </For>
-            <button
-              type="button"
-              onClick={() => setReplayKey((k) => k + 1)}
-              class="ghost s-sm"
-            >
-              Replay {activeAnim()}
-            </button>
-          </div>
+                  Replay {activeAnim()}
+                </button>
+              </>
+            }
+            preview={
+              <div class="flex min-h-40 min-w-0 flex-col items-center justify-center gap-3">
+                <For each={[replayKey()]}>
+                  {() => (
+                    <div
+                      class={`rounded-md border border-primary bg-surface-raised px-4 py-3 type-code shadow-sm ${activeAnim()}`}
+                    >
+                      {activeAnim()}
+                    </div>
+                  )}
+                </For>
+              </div>
+            }
+          />
         </div>
       </Section>
     </main>
