@@ -1221,15 +1221,18 @@ export function Mark(props: {
 }
 
 /**
- * The wordmark beside the mark, in the brand face, at the size that reads.
+ * The wordmark beside the mark: a one-off brand lockup the theme cannot
+ * name. No `type-*` style fits — every style reads in the sans/mono/serif
+ * voices, and the lockup's voice is the brand face at three bold sizes —
+ * so both spans wear the blessed escape instead (see round-3 findings).
+ * The size ramp below is the gap the lockup keeps at each size; the word
+ * itself reads whatever the lockup inherits, until a spendable brand
+ * mechanism exists.
  */
-const LOGO_WORD: Record<
-  LogoSize,
-  { readonly text: string; readonly gap: string }
-> = {
-  sm: { text: "text-lg", gap: "gap-2" },
-  md: { text: "text-xl", gap: "gap-2" },
-  lg: { text: "text-2xl", gap: "gap-3" },
+const LOGO_WORD: Record<LogoSize, { readonly gap: string }> = {
+  sm: { gap: "gap-2" },
+  md: { gap: "gap-2" },
+  lg: { gap: "gap-3" },
 };
 
 export type LogoSize = "sm" | "md" | "lg";
@@ -1259,12 +1262,12 @@ export function Logo(props: {
   return (
     <span
       data-spin-escape
-      class={`inline-flex items-center font-brand font-bold tracking-tight ${word().gap} ${
+      class={`inline-flex items-center tracking-tight ${word().gap} ${
         props.class ?? ""
       }`}
     >
       <Web size={spec().px} class={`${spec().box} shrink-0 text-primary`} />
-      <span class={word().text}>spin</span>
+      <span>spin</span>
     </span>
   );
 }

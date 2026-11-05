@@ -162,6 +162,7 @@ const GROUP_DEMO: Readonly<Record<string, Demo>> = {
   gap: "row",
   divide: "ruled",
 
+  "font-style": "prose",
   "type-size": "prose",
   font: "prose",
   text: "prose",
@@ -383,7 +384,7 @@ function mechanismOf(name: string): string {
   return UNCLAIMED;
 }
 
-const CAP = "font-mono text-xs text-text-muted";
+const CAP = "type-code text-text-muted";
 
 /** Three distinct fills, so which item is which is never a guess. */
 const FILL = ["neutral-300", "primary", "neutral-400"] as const;
@@ -444,7 +445,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center font-mono text-xs leading-4 ${
+          class={`block h-4 w-8 shrink-0 rounded-sm bg-surface-sunken text-center type-code leading-4 ${
             props.cls?.[i] ?? ""
           }`}
         >
@@ -1312,8 +1313,8 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
        order and every row would render the same ink. */
     case "prose": {
       const base = props.group === "text-color"
-        ? "m-0 block w-1/2 text-md"
-        : "m-0 block w-1/2 text-md";
+        ? "m-0 block w-1/2"
+        : "m-0 block w-1/2";
       return (
         <UnderTest base={base} cls={cls()} tag="p">
           {"Handgloves & 0123 — the quick brown fox jumps over the lazy dog, and the measure is what type is for."}
@@ -1410,8 +1411,8 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           base="inline-flex w-1/3 flex-col overflow-hidden rounded-sm border border-solid border-border bg-surface-raised"
           cls={cls()}
         >
-          <b class="flex items-center gap-2 px-2 py-2 text-xs">top row</b>
-          <b class="flex items-center gap-2 px-2 py-2 text-xs">bottom row</b>
+          <b class="flex items-center gap-2 px-2 py-2 type-caption">top row</b>
+          <b class="flex items-center gap-2 px-2 py-2 type-caption">bottom row</b>
         </UnderTest>
       );
 
@@ -1423,7 +1424,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           base="relative block h-16 w-1/3 rounded-sm border border-solid border-border bg-surface-raised"
           cls={cls()}
         >
-          <b class="block h-16 w-full rounded-sm bg-accent p-2 font-mono text-xs text-on-accent">
+          <b class="block h-16 w-full rounded-sm bg-accent p-2 type-code text-on-accent">
             This paragraph is deliberately larger than the box around it.
           </b>
         </UnderTest>
@@ -1433,7 +1434,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "said":
       return (
         <UnderTest
-          base="inline-flex w-full min-w-0 items-start gap-2 rounded-sm border border-solid border-border p-2 text-xs text-text-muted"
+          base="inline-flex w-full min-w-0 items-start gap-2 rounded-sm border border-solid border-border p-2 type-caption text-text-muted"
           cls={cls()}
           tag="span"
         >
@@ -1453,18 +1454,18 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
 const TITLE = "tracking-normal";
-const KIND = "font-mono text-xs text-text-muted";
+const KIND = "type-code text-text-muted";
 const BADGE =
-  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
+  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
 const SECTION = "mb-8";
 const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal first:mt-0";
-const PROSE = "max-w-screen-md text-md text-text-muted";
+const PROSE = "max-w-screen-md text-text-muted";
 const FAMILY_DEMO =
   "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
-const LEGEND = "mt-2 font-mono text-xs text-text-muted";
+const LEGEND = "mt-2 type-code text-text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
 const LABEL =
-  "mb-1 text-xs font-semibold normal-case tracking-normal text-text-muted";
+  "mb-1 type-caption-strong normal-case tracking-normal text-text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
@@ -1474,18 +1475,18 @@ const SCALE_CONTROLS = "mt-4 flex flex-wrap items-start gap-8";
 const SCALE_GROUP = "flex flex-col items-start gap-2";
 const SCALE_BUTTONS = "flex flex-wrap gap-1";
 const DECL =
-  "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 font-mono text-xs text-text-muted";
-const DECL_NAME = "font-mono text-xs";
+  "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 type-code text-text-muted";
+const DECL_NAME = "type-code";
 const NAME_LIST = "grid grid-cols-4 gap-2";
 const SWATCH_GRID = "mt-4 grid grid-cols-4 gap-2";
 const NOTE_BOX =
-  "mt-4 max-w-screen-md rounded-md border border-solid border-border bg-surface-raised p-4 text-sm text-text-muted";
+  "mt-4 max-w-screen-md rounded-md border border-solid border-border bg-surface-raised p-4 text-text-muted";
 const PANEL =
   "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
-const MONO_MUTED = "font-mono text-xs text-text-muted";
-const RAIL_COUNT = "shrink-0 font-mono text-xs text-text-muted";
+const MONO_MUTED = "type-code text-text-muted";
+const RAIL_COUNT = "shrink-0 type-code text-text-muted";
 const CHIP =
-  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 type-code normal-case tracking-normal whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1529,7 +1530,7 @@ function Swatch(props: {
         <code class="block truncate">
           {props.name}
         </code>
-        <span class="block truncate font-mono text-xs text-text-muted">
+        <span class="block truncate type-code text-text-muted">
           {props.values[bare] ?? ""}
         </span>
       </span>
@@ -1648,7 +1649,7 @@ function VariantsBench() {
         >
           hover, focus and press me
         </button>
-        <span class="inline-flex w-1/3 shrink-0 items-start gap-2 rounded-sm border border-dashed border-solid border-border p-2 text-xs text-text-muted">
+        <span class="inline-flex w-1/3 shrink-0 items-start gap-2 rounded-sm border border-dashed border-solid border-border p-2 type-caption text-text-muted">
           nothing here is a still picture: every state below exists only while a
           pointer is over it, it holds focus, or it is pressed
         </span>
@@ -1667,7 +1668,7 @@ function InteractivityBench() {
           <span class={MONO_MUTED}>grab · scroll · resize</span>
           <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>
             {(i) => (
-              <span class="shrink-0 rounded-sm bg-surface px-2 py-1 font-mono text-xs">
+              <span class="shrink-0 rounded-sm bg-surface px-2 py-1 type-code">
                 row {i}
               </span>
             )}
@@ -1675,12 +1676,12 @@ function InteractivityBench() {
         </div>
         <div class="w-1/3 shrink-0 rounded-md border border-solid border-border bg-surface-raised p-2 select-text">
           <span class={MONO_MUTED}>drag across this text</span>
-          <p class="text-sm">
+          <p>
             Selection is a property of the pointer and the document, not of a
             picture.
           </p>
         </div>
-        <span class="pointer-events-none w-1/4 shrink-0 rounded-md border border-dashed border-solid border-border p-2 text-xs text-text-muted">
+        <span class="pointer-events-none w-1/4 shrink-0 rounded-md border border-dashed border-solid border-border p-2 type-caption text-text-muted">
           pointer-events-none: this box cannot be pointed at, and cannot be
           proven by a screenshot.
         </span>
@@ -1826,7 +1827,7 @@ function TransitionsBench() {
 
 /**
  * The class a family's working demonstration wears. Not the first name in the
- * group: `p-0` and `text-sm` are the least legible members of their families.
+ * group: `p-0` is the least legible member of its family.
  */
 const HEADLINE: Record<string, string> = {
   background: "bg-primary",
@@ -1838,7 +1839,7 @@ const HEADLINE: Record<string, string> = {
   divide: "divide-y divide-neutral-300",
   border: "border-4 border-dashed border-primary",
   shadow: "shadow-lg",
-  font: "font-mono",
+  font: "type-code",
   text: "text-center",
   typography: "normal-case tracking-normal",
   "text-decoration": "underline",
@@ -2121,7 +2122,7 @@ const SPECIMEN_PANEL =
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
 
 /** The fills the palette is made of, each with the foreground it is paired
  *  with by the theme — the label is the class, so the tile is also the name. */
@@ -2135,14 +2136,21 @@ const FILLS = [
   "bg-semantic-info",
 ] as const;
 
-/** The type ladder: a scale is read as a scale, so every rung is shown. */
+/** The type ladder: the named styles, each shown in its own voice. */
 const TYPE_STEPS = [
-  "text-2xl",
-  "text-xl",
-  "text-lg",
-  "text-md",
-  "text-sm",
-  "text-xs",
+  "type-display",
+  "type-title",
+  "type-heading",
+  "type-lead",
+  "type-body",
+  "type-body-strong",
+  "type-label",
+  "type-caption",
+  "type-caption-strong",
+  "type-overline",
+  "type-code",
+  "type-quote",
+  "type-stat",
 ] as const;
 
 /** The spacing scale, one box per step, with a mark inside it. */
@@ -2170,7 +2178,7 @@ function ColorSpecimen() {
           return (
             <div class="flex min-w-0 flex-1 flex-col gap-1">
               <div
-                class={`flex h-16 min-w-0 items-end rounded-md p-2 font-mono text-xs ${cls} ${ink}`}
+              class={`flex h-16 min-w-0 items-end rounded-md p-2 type-code ${cls} ${ink}`}
               >
                 {ink === "" ? "" : cls}
               </div>
@@ -2294,14 +2302,14 @@ function SectionCard(props: { section: Section; count: number }) {
       class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-border-strong"
     >
       <span class="flex w-full items-center gap-2">
-          <span class="text-sm font-semibold">
+          <span class="type-body-strong">
           {props.section.title}
         </span>
-        <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+        <span class="ms-auto shrink-0 type-code text-text-muted">
           {props.count}
         </span>
       </span>
-      <span class="text-xs text-text-muted">{props.section.blurb}</span>
+      <span class="type-caption text-text-muted">{props.section.blurb}</span>
     </button>
   );
 }
@@ -2330,7 +2338,7 @@ export function UtilitiesLanding() {
         </div>
         <span class={BADGE}>{total()} names</span>
       </header>
-      <p class="max-w-screen-md text-md text-text-muted">
+      <p class="max-w-screen-md text-text-muted">
         Every page on this side is drawn by the utilities it describes: the
         chrome around a demonstration wears the surface being demonstrated, so a
         utility that breaks breaks the showcase with it.
@@ -2338,7 +2346,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Sections</h3>
-        <p class="max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-text-muted">
           The surface cut by what a reader is looking for, not by which file the
           rule lives in.
         </p>
@@ -2356,7 +2364,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-text-muted">
           Four of the{" "}
           {SECTIONS.length}, each one built out of the utilities it names — the
           demo is the class rather than a picture of it.

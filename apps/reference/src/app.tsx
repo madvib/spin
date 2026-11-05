@@ -87,7 +87,7 @@ function useTheme(): ThemeState {
  * taller than its labels.
  */
 const SURFACE_LINK =
-  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:font-medium";
+  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised";
 
 /** The group either switch or toggle is drawn in. */
 const SEGMENT_GROUP =
@@ -113,7 +113,7 @@ const SEGMENT_GROUP =
  * the whole tile; only where the glyph sits changes.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised aria-[current]:border-border-strong aria-[current]:bg-surface-raised aria-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised aria-[current]:border-border-strong aria-[current]:bg-surface-raised";
 
 /**
  * The band a run of rows is bucketed into.
@@ -130,7 +130,7 @@ const RAIL_LINK =
  * far as its rows does not read as their title.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-md font-semibold normal-case tracking-normal first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case tracking-normal first:mt-0";
 
 /**
  * The heading over the rail's list.
@@ -141,10 +141,10 @@ const RAIL_BAND =
  * flat is a rail you have to read end to end.
  */
 const RAIL_HEAD =
-  "mb-2 flex items-center gap-2 px-2 pt-3 text-lg font-bold normal-case tracking-normal first:mt-0";
+  "mb-2 flex items-center gap-2 px-2 pt-3 type-heading normal-case tracking-normal first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
-const RAIL_EMPTY = "px-2 py-1 text-xs text-text-muted";
+const RAIL_EMPTY = "px-2 py-1 type-caption text-text-muted";
 
 /**
  * The glyph beside a page title: the small step in ink, so it supports the
@@ -165,16 +165,16 @@ const SUBHEAD = "mt-8 mb-2 normal-case tracking-normal first:mt-0";
  * line, an icon and a box, and no chrome beyond the field itself.
  */
 const SEARCH_FIELD =
-  "flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 text-xs";
+  "flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 type-caption";
 // The field primitive pads and borders every `<input>` it claims, so a
 // control inside a chrome of its own is a box within a box: the input spends
 // its border and its padding here, and the field it sits in supplies both.
 const SEARCH_INPUT =
-  "w-full border-transparent bg-transparent p-0 text-xs";
+  "w-full border-transparent bg-transparent p-0 type-caption";
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 font-mono text-xs font-medium normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case tracking-normal text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
 
 /**
  * The panel every specimen sits in: ONE box, one surface, and only as much
@@ -215,21 +215,21 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 <h2>
                   {f().title}
                 </h2>
-                <div class="font-mono text-xs text-text-muted">
+                <div class="type-code text-text-muted">
                   {f().kind}
                 </div>
                 <Show when={f().id.startsWith("component-")}>
-                  <div class="mt-1 text-xs text-text-muted">
+                  <div class="mt-1 type-caption text-text-muted">
                     {componentRequirement(f().id)}
                   </div>
                 </Show>
               </div>
             </div>
-            <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted">
+            <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted">
               {f().examples.length} examples
             </span>
           </header>
-          <p class="max-w-screen-md text-md text-text-muted">
+          <p class="max-w-screen-md text-text-muted">
             {f().note}
           </p>
           <For each={[...f().examples]}>
@@ -297,10 +297,10 @@ function IndexRow(props: { id: string }) {
       <i
         class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
       />
-      <span class="min-w-0 flex-1 truncate text-sm">
+      <span class="min-w-0 flex-1 truncate type-body">
         {page.title}
       </span>
-      <span class="shrink-0 font-mono text-xs text-text-muted">
+      <span class="shrink-0 type-code text-text-muted">
         {page.examples.length}
       </span>
     </button>
@@ -328,10 +328,10 @@ function LandingPage() {
           <Web class="h-5 w-5 shrink-0 text-primary" />
           <h2>Primitives</h2>
         </div>
-        <div class="font-mono text-xs text-text-muted">
+        <div class="type-code text-text-muted">
           spin reference · {PRIMITIVES.length + COMPONENTS.length} components
         </div>
-        <p class="max-w-screen-md text-md text-text-muted">
+        <p class="max-w-screen-md text-text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
           the component and the theme is the only value source: nothing in this
           app carries a color, a space or a radius that is not a token.
@@ -340,7 +340,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-text-muted">
           Three of the{" "}
           {PRIMITIVES.length}, rendered from the markup a consumer writes — no
           wrapper, no adapter, the rules beside the rule they came from.
@@ -354,7 +354,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Index</h3>
-        <p class="max-w-screen-md text-sm text-text-muted">
+        <p class="max-w-screen-md text-text-muted">
           Every component, alphabetical, with the number of examples each one
           carries.
         </p>
@@ -396,7 +396,7 @@ function AppHeader(props: { state: ThemeState }) {
         <Logo size="sm" />
       </div>
       <div class="flex items-center gap-2">
-        <span class="shrink-0 font-mono text-xs text-text-muted">theme</span>
+        <span class="shrink-0 type-code text-text-muted">theme</span>
         <ThemePicker
           state={props.state}
           class="min-w-0 flex-1"
@@ -557,7 +557,7 @@ function Rail(props: {
                   type="button"
                   aria-pressed={kindFilter() === kind}
                   onClick={() => setKindFilter(kind)}
-                  class="bare rounded-sm px-2 py-1 text-xs text-text-muted aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
+                  class="bare rounded-sm px-2 py-1 type-caption text-text-muted aria-[pressed=true]:bg-surface-raised"
                 >
                   {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
                 </button>
@@ -572,7 +572,7 @@ function Rail(props: {
           <span>
             {montage() ? "themes" : utilities() ? "sections" : "components"}
           </span>
-          <span class="font-mono text-xs font-regular">
+          <span class="type-code">
             {montage()
               ? `${THEMES.length}`
               : needle() === ""
@@ -612,7 +612,7 @@ function Rail(props: {
                     class={RAIL_LINK}
                   >
                     <span class="min-w-0 truncate">{group.label}</span>
-                    <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+                    <span class="ms-auto shrink-0 type-code text-text-muted">
                       {group.count}
                     </span>
                   </button>
@@ -640,7 +640,7 @@ function Rail(props: {
                         </Show>
                         <span class="min-w-0 truncate">{row.title}</span>
                         <Show when={row.count !== undefined}>
-                          <span class="ms-auto shrink-0 font-mono text-xs text-text-muted">
+                          <span class="ms-auto shrink-0 type-code text-text-muted">
                             {row.count}
                           </span>
                         </Show>

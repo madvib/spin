@@ -125,10 +125,10 @@ const SCREEN_MARKUP = `<div class="flex flex-col gap-4">
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
 const TITLE = "tracking-normal";
-const KIND = "font-mono text-xs text-text-muted";
+const KIND = "type-code text-text-muted";
 const BADGE =
-  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text-muted";
-const LEAD = "mb-8 max-w-screen-md text-md text-text-muted";
+  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
+const LEAD = "mb-8 max-w-screen-md text-text-muted";
 
 /**
  * The four columns, side by side, each as wide as the page allows it.
@@ -150,8 +150,8 @@ const GRID =
 
 /** One theme's column: the name, and the renderings under it. */
 const COLUMN = "flex min-w-0 flex-col gap-2";
-const THEME_NAME = "m-0 truncate text-sm font-semibold";
-const MODE_LABEL = "font-mono text-xs text-text-muted";
+const THEME_NAME = "m-0 truncate type-body-strong";
+const MODE_LABEL = "type-code text-text-muted";
 
 /**
  * The screen's own frame.
@@ -167,7 +167,7 @@ const SCREEN =
 
 /** What a column says when its theme never reached the page. */
 const NOT_RENDERED =
-  "rounded-md border border-dashed border-solid border-border bg-surface p-2 text-sm text-text-muted";
+  "rounded-md border border-dashed border-solid border-border bg-surface p-2 text-text-muted";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE.

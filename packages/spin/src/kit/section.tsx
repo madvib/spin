@@ -55,16 +55,16 @@ export function Section(props: {
 }) {
   return (
     <section
-      class={`stack-sm ${props.class ?? ""}`}
+      class={`flex flex-col gap-2 ${props.class ?? ""}`}
       id={props.id}
       aria-label={props.title}
     >
-      <div class="split">
-        <h2 class="row-sm">
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="flex items-center gap-2">
           <Marker tone={props.tone} />
           <Show when={props.id} fallback={<span class="min-w-0">{props.title}</span>}>
             {(id) => (
-              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="font-mono text-sm text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
+              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="type-code text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
             )}
           </Show>
           <Show when={props.info}>
@@ -76,7 +76,7 @@ export function Section(props: {
                   aria-label={info()}
                 >
                   <span
-                    class="i-lucide-info inline-block shrink-0 text-sm"
+                    class="i-lucide-info inline-block shrink-0 type-code"
                     aria-hidden="true"
                   />
                 </button>
@@ -87,18 +87,18 @@ export function Section(props: {
             )}
           </Show>
         </h2>
-        <div class="row-sm shrink-0">
+        <div class="flex shrink-0 items-center gap-2">
           <Show when={props.fact}>
-            <span class="text-sm text-text-muted">{props.fact}</span>
+            <span class="type-body text-text-muted">{props.fact}</span>
           </Show>
           {props.aside}
         </div>
       </div>
       <Show when={props.note}>
-        <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p>
+        <p class="max-w-screen-md text-text-muted">{props.note}</p>
       </Show>
       <Show when={props.muted} fallback={props.children}>
-        <div class="stack text-text-muted">{props.children}</div>
+        <div class="flex flex-col gap-4 text-text-muted">{props.children}</div>
       </Show>
     </section>
   );
@@ -149,7 +149,7 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 font-mono text-sm leading-relaxed text-text-muted ${
+        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 type-code leading-relaxed text-text-muted ${
           props.class ? ` ${props.class}` : ""
         }`}
       >
