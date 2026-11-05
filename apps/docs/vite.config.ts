@@ -437,20 +437,34 @@ function buildThemeMarkdown(routePath: string): string | undefined {
               .join(", ")}`,
         )
         .join("\n");
+      const spinDoc = starterThemes.spin as unknown as Record<string, unknown>;
+      const fontGroup = spinDoc["font"] as Record<string, unknown> | undefined;
+      const styleGroup = fontGroup?.["style"] as
+        | Record<string, unknown>
+        | undefined;
+      const styles = Object.keys(styleGroup ?? {})
+        .filter((key) => !key.startsWith("$"))
+        .sort()
+        .map((name) => `- \`type-${name}\` (from \`font.style.${name}\`)`)
+        .join("\n");
       return [
         "## Supported `$type` Values",
         "",
         TYPES.map((t) => `- \`${t}\``).join("\n"),
         "",
-        "## Core Token Groups",
-        "",
-        groups,
-        "",
         "## Required Roles",
         "",
         roles,
         "",
+        "## Named Type Styles",
+        "",
+        "Write `type-<name>` to spend one of these voices — face, size, weight, tracking, leading, all at once. The Typography guide (`/docs/styling/prose`) maps each voice to its default element with a live specimen.",
+        "",
+        styles,
+        "",
         "## Per-Element Token Overrides",
+        "",
+        "Type arrives through named styles now — no element carries weight, case, or tracking tokens of its own.",
         "",
         elGroups,
       ].join("\n");

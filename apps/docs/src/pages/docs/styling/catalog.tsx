@@ -7,7 +7,46 @@ import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { animationContract } from "@spinjs/spin/animation";
-import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
+import {
+  PageHeader,
+  PropList,
+  Section,
+  starterDoc,
+  type PropEntry,
+} from "../../../ui/index.ts";
+
+/**
+ * The named type styles the active starter theme declares, in document
+ * order. Read live on every render, so switching starters rewrites the
+ * list — a style added to the theme is listed by the same change that
+ * added it.
+ */
+function typeStyleNames(): readonly string[] {
+  const font = (starterDoc() as Record<string, unknown>)["font"] as
+    | Record<string, unknown>
+    | undefined;
+  const style = font?.["style"] as Record<string, unknown> | undefined;
+  if (style === undefined) return [];
+  return Object.keys(style)
+    .filter((key) => !key.startsWith("$"))
+    .sort();
+}
+
+/**
+ * The tracking steps the active starter theme declares. The utility spends
+ * the theme's own ramp first, so the ramp on the page is the ramp in the
+ * theme file.
+ */
+function trackingStepNames(): readonly string[] {
+  const font = (starterDoc() as Record<string, unknown>)["font"] as
+    | Record<string, unknown>
+    | undefined;
+  const tracking = font?.["tracking"] as Record<string, unknown> | undefined;
+  if (tracking === undefined) return [];
+  return Object.keys(tracking)
+    .filter((key) => !key.startsWith("$"))
+    .sort();
+}
 
 interface UtilityGroupSpec {
   readonly id: string;
@@ -16,8 +55,10 @@ interface UtilityGroupSpec {
   readonly rules: readonly PropEntry[];
 }
 
-
 function useReferenceGroups(): readonly UtilityGroupSpec[] {
+  // Reactive on the active starter: switching themes rewrites the style
+  // and step lists below without a remount.
+  void starterDoc();
   const groups: readonly UtilityGroupSpec[] = [
   {
     id: "layout",
@@ -217,42 +258,90 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
     title: "Typography & Icons",
     summary: (
       <>
-        Font family, size, weight, tracking, and icon sizing utilities for UI
-        chrome outside semantic prose elements — steps live on{" "}
+        Write <code>type-&lt;name&gt;</code> to spend a whole named style at
+        once, and the single-decision utilities below for everything around
+        it. The voices, their element defaults, and live specimens live in
+        the <A href="/docs/styling/prose">Typography guide</A>; every ladder
+        behind them lives on{" "}
         <A href="/docs/themes/reference#groups">Token Reference</A>.
       </>
     ),
     rules: [
       {
-        name: "font-<sans|heading|mono|serif|body|brand>",
-        badge: "font-family",
+        name: "type-<name>",
+        badge: "named styles",
         description: (
           <>
-            Sets <code>font-family: var(--font-family-&lt;role&gt;)</code> for
-            every role declared under <code>font.family</code> in your theme.
+            One class spends the whole tuple (<code>font-family</code>,{" "}
+            <code>font-size</code>, <code>font-weight</code>,{" "}
+            <code>letter-spacing</code>, <code>line-height</code>) from{" "}
+            <code>font.style.&lt;name&gt;</code> — the active theme declares{" "}
+            {typeStyleNames().length}:
+            <span class="flex flex-wrap gap-1">
+              <For each={typeStyleNames()}>
+                {(name) => <code>type-{name}</code>}
+              </For>
+            </span>
+            Raw <code>text-&lt;step&gt;</code> sizes and{" "}
+            <code>font-&lt;…&gt;</code> families and weights name nothing a
+            theme can make — the build fails and names the style to write
+            instead.
           </>
         ),
       },
       {
-        name: "text-<step>",
-        badge: "font-size",
+        name: "tracking-<step>",
+        badge: "letter-spacing",
         description: (
           <>
-            Sets <code>font-size: var(--font-size-&lt;step&gt;)</code> from your
-            theme&apos;s monotonic <code>font.size</code> ramp — type sizes come
-            from the scale, and <code>text-[…]</code> renders nothing.
+            Sets <code>letter-spacing</code> from your theme's{" "}
+            <code>font.tracking.*</code> ramp — the active theme declares{" "}
+            {trackingStepNames().length} steps (
+            <For each={trackingStepNames()}>
+              {(step, index) => (
+                <>
+                  <code>tracking-{step}</code>
+                  {index() < trackingStepNames().length - 1 ? ", " : ""}
+                </>
+              )}
+            </For>
+            ). A named style already carries its tracking — reach for this
+            for the single decision outside a style.
           </>
         ),
       },
       {
-        name: "font-<weight> / tracking-<step>",
-        badge: "weight & tracking",
+        name: "leading-<step>",
+        badge: "line-height",
         description: (
           <>
-            Spends <code>font.weight.*</code> and{" "}
-            <code>font.tracking.*</code>. (<code>overline</code> is the
-            static <code>text-decoration: overline</code> utility — Tailwind
-            vocabulary, not a caption composition.)
+            Sets <code>line-height</code> (<code>leading-none</code> through{" "}
+            <code>leading-loose</code>). The <code>font.leading.*</code>{" "}
+            ladder is what named styles are built from — move a step there
+            and every style built on it follows.
+          </>
+        ),
+      },
+      {
+        name: "uppercase / lowercase / capitalize",
+        badge: "text-transform",
+        description: (
+          <>
+            Sets <code>text-transform</code>. Case is utility vocabulary, not
+            a theme decision — no style carries it, so it sits beside{" "}
+            <code>type-&lt;name&gt;</code>, never inside one.
+          </>
+        ),
+      },
+      {
+        name: "underline / overline / line-through",
+        badge: "text-decoration",
+        description: (
+          <>
+            Static <code>text-decoration</code> utilities.{" "}
+            <code>overline</code> the utility draws a line above a run of
+            text; <code>type-overline</code> the style is the eyebrow voice
+            — same word, different jobs.
           </>
         ),
       },
@@ -261,10 +350,12 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
         badge: "icons",
         description: (
           <>
-            <code>icon-sm</code>, <code>icon-md</code>, and <code>icon-lg</code>{" "}
-            size icons from your theme's <code>icon.size.*</code> tokens;{" "}
-            <code>i-lucide-*</code>, <code>i-ph-*</code>,{" "}
-            <code>i-tabler-*</code>, <code>i-carbon-*</code>, and{" "}
+            <code>icon-sm</code>, <code>icon-md</code>, and{" "}
+            <code>icon-lg</code> size icons from your theme's{" "}
+            <code>icon.sm</code>, <code>icon.md</code>, and{" "}
+            <code>icon.lg</code> tokens; <code>i-lucide-*</code>,{" "}
+            <code>i-ph-*</code>, <code>i-tabler-*</code>,{" "}
+            <code>i-carbon-*</code>, and{" "}
             <code>i-material-symbols-*</code> render offline Iconify glyphs.
           </>
         ),

@@ -1,8 +1,13 @@
 /**
- * Token Reference: DTCG grammar, 12 core token groups, grouped required roles, and per-element tokens.
+ * Token Reference: DTCG grammar, the live token groups, grouped required
+ * roles, and per-element tokens. Every group, role, and token renders from
+ * live data — the schema, the starter documents, and the preset manifest —
+ * so a token added to the theme is listed by the same change that added
+ * it. The Typography guide owns the how-to; this page owns the surface.
  */
 import { createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { A } from "@solidjs/router";
 import {
   Chip,
   PageHeader,
@@ -32,8 +37,7 @@ const RESERVED_KEYS: readonly PropEntry[] = [
   {
     name: "$type",
     badge: "Inherited or leaf",
-    description:
-      "One of the 15 closed DTCG token types. Declared on a parent group or on individual leaves.",
+    description: `One of the ${TYPES.length} closed DTCG token types. Declared on a parent group or on individual leaves.`,
   },
   {
     name: "$modes",
@@ -65,7 +69,7 @@ const GROUP_DESCRIPTIONS: Readonly<Record<string, string>> = {
   color:
     "Surfaces, inks, primary/secondary/accent actions, semantic status pairs, borders, and raw palette ramps.",
   font:
-    "Font family stacks (sans, heading, mono), monotonic size scale (2xs–display), weights, line heights, and tracking.",
+    "Font family stacks, named type styles (font.style.* — the voices type-<name> spends), the size ladder the styles are built from, weights, the font.tracking.* and font.leading.* ladders, and per-element defaults.",
   spacing:
     "Monotonic spatial scale (0, 1..64) consumed by padding, margin, and gap utilities.",
   radius:
@@ -154,6 +158,37 @@ const ROLE_FAMILIES: readonly RoleFamily[] = [
   },
 ];
 
+/**
+ * The named type styles the active starter theme declares. Read live from
+ * the active document, so the table is the theme file, not a copy of it.
+ */
+function fontStyleEntries(): readonly PropEntry[] {
+  const font = (starterDoc() as Record<string, unknown>)["font"] as
+    | Record<string, unknown>
+    | undefined;
+  const style = font?.["style"] as Record<string, unknown> | undefined;
+  if (style === undefined) return [];
+  return Object.keys(style)
+    .filter((key) => !key.startsWith("$"))
+    .sort()
+    .map((name) => {
+      const node = style[name] as Record<string, unknown> | undefined;
+      const note =
+        typeof node?.["$description"] === "string"
+          ? (node["$description"] as string)
+          : `The ${name} voice.`;
+      return {
+        name: `font.style.${name}`,
+        badge: "style",
+        description: (
+          <>
+            {note} Spend it with <code>type-{name}</code>.
+          </>
+        ),
+      };
+    });
+}
+
 export default function ThemesReference(): JSX.Element {
   const schema = schemaFacts();
   const elements = elementGroups();
@@ -209,7 +244,7 @@ export default function ThemesReference(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Token Reference"
-        lede="Complete reference of DTCG document keys, the 12 core token groups, required base roles grouped by family, and optional per-element token overrides."
+        lede="Switch starter themes and every table below rewrites itself — the groups, the roles, and the tokens your active theme declares. The Typography guide shows what to write; this page lists everything a theme can hold."
       />
 
       <Section id="grammar" title="Document keys and token types">
@@ -228,14 +263,14 @@ export default function ThemesReference(): JSX.Element {
             {(entry) => (
               <div class="flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <span class="font-mono text-sm font-semibold">
+                  <span class="type-code">
                     {entry.name}
                   </span>
                   <Show when={entry.badge}>
                     <span class="badge shrink-0">{entry.badge}</span>
                   </Show>
                 </div>
-                <span class="text-sm text-text-muted">{entry.description}</span>
+                <span class="type-caption">{entry.description}</span>
               </div>
             )}
           </For>
@@ -267,20 +302,34 @@ export default function ThemesReference(): JSX.Element {
         </For>
       </Section>
 
+      <Section id="styles" title="Named type styles">
+        <p class="max-w-prose">
+          Write <code>type-&lt;name&gt;</code> to spend one of these voices —
+          the face, the size, the weight, the tracking, the leading, all at
+          once. The table reads the active starter theme, so switching
+          starters rewrites it; every voice, its element default, and a live
+          specimen lives in the{" "}
+          <A href="/docs/styling/prose">Typography guide</A>.
+        </p>
+        <PropList items={fontStyleEntries()} />
+      </Section>
+
       <Section id="element-tokens" title="Per-element token reference">
         <p class="max-w-prose">
-          All {elements.length} per-element groups are optional. When omitted,
-          each element falls back to the system scales above.
+          All {elements.length} per-element groups are optional. When
+          omitted, each element falls back to the system scales above —
+          type arrives only through named styles now, so no element carries
+          weight, case, or tracking tokens of its own.
         </p>
         <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
           <For each={elements}>
             {(group) => (
               <div class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4">
                 <div class="flex items-baseline justify-between gap-2">
-                  <span class="font-mono text-sm font-semibold">
+                  <span class="type-code">
                     {group}
                   </span>
-                  <span class="font-mono text-xs text-text-muted">
+                  <span class="type-caption">
                     {elementTokens(group).length} tokens
                   </span>
                 </div>
