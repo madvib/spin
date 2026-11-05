@@ -630,9 +630,7 @@ function buildStylingMarkdown(routePath: string): string | undefined {
       "- `row-list`: Horizontal flex list (`display: flex; align-items: center; list-style-type: none; margin: 0; padding: 0`) that zeroes `li + li` top margin.",
       "- `flow-list`: Vertical list with markers off and theme-spaced `li + li` block gaps.",
       "",
-      "## The Escape, Honestly",
-      "",
-      "Genuinely one-off display type (a brand lockup, a hero moment) carries `data-spin-escape`, which tells the ownership rules its classes are deliberate — while `closed-vocabulary` still fires there. If you reach for it twice, the theme is missing a style worth naming (see [Lints & Diagnostics](/docs/tooling/lints)).",
+      "Genuinely one-off display type (a brand lockup, a hero moment) carries `data-spin-escape`, the author's explicit word that its classes are deliberate — while `closed-vocabulary` still fires there, because deliberate code still names nothing dead. If you reach for it twice, the theme is missing a style worth naming (see [Lints & Diagnostics](/docs/tooling/lints)).",
     ].join("\n");
   }
   if (routePath === "/docs/styling/color") {

@@ -228,7 +228,7 @@ export default function StylingProse(): JSX.Element {
           <code>type-headline</code> on a theme with no{" "}
           <code>font.style.headline</code> fails the build and names the
           nearest style that exists. Where a style sits is advice, never a
-          rule — the lint stays quiet when a caption lands on a span.
+          rule — no warning fires when a caption lands on a span.
         </p>
         <Code
           code={ATTACH_SNIPPET}
@@ -274,9 +274,10 @@ export default function StylingProse(): JSX.Element {
           One voice on this site is genuinely one-off: the Spin wordmark in
           the corner, set in the brand face at one deliberate size no theme
           scale has reason to name. That element carries{" "}
-          <code>data-spin-escape</code>, which tells the ownership rules its
-          classes are deliberate — while the vocabulary rule still fires
-          there, because deliberate code still names nothing dead. Reach for
+          <code>data-spin-escape</code>, the author's explicit word that its
+          classes are deliberate — so no warning fires about placement
+          there — while the vocabulary rule still fires, because deliberate
+          code still names nothing dead. Reach for
           it for a brand lockup or a hero moment, never for copy the theme
           could say; if you reach for it twice, the theme is missing a style
           worth naming. The full contract lives in the{" "}
