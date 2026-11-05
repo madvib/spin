@@ -30,7 +30,9 @@ import type {
  * `hover:bg-primary` is `bg-primary` under a state, and the tier of a
  * utility does not change with the state it is in. A prefix the vocabulary
  * does not know is left alone: `md:flex` is only a variant if `md:` is a
- * breakpoint the theme declares.
+ * breakpoint the theme declares. wind4's attribute variants ride in the
+ * preset (`data-[…]:`, `aria-[…]:`, `group-*:`/`peer-*:`): the bracket
+ * carries the selector, so any `data-`/`aria-` head is a prefix by shape.
  */
 export function coreName(
   cls: string,
@@ -39,6 +41,8 @@ export function coreName(
   const parts = cls.split(":");
   if (parts.length === 1) return cls;
   for (const part of parts.slice(0, -1)) {
+    if (/^(data|aria)-/.test(part)) continue;
+    if (/^(group|peer)(-.+)?$/.test(part)) continue;
     if (!prefixes.has(`${part}:`)) return cls;
   }
   return parts[parts.length - 1] as string;

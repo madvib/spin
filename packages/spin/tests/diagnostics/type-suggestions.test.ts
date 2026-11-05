@@ -196,3 +196,25 @@ test("a removed utility warns before the gate and errors after it", () => {
     "a genuine typo stays an error past the gate",
   );
 });
+
+test("a removed utility under a state variant suggests the style for its core", () => {
+  // The variant is wind4's, not ours to strip by list: `aria-[pressed=true]`
+  // rides in the preset by shape, so the suggestion reads the `font-medium`
+  // core and names a style — the window covers what the core was, not the
+  // state it was under.
+  const [finding] = checkClosedVocabulary(
+    starterFacts(),
+    element("aria-[pressed=true]:font-medium", "button"),
+  );
+  deepStrictEqual(finding?.messageId, "unknown");
+  match(
+    finding?.remedy ?? "",
+    /type-[a-z-]+/,
+    "the remedy names a declared style for the removed core",
+  );
+  deepStrictEqual(
+    finding?.severity,
+    "warning",
+    "a removed core warns under a variant like it warns bare",
+  );
+});
