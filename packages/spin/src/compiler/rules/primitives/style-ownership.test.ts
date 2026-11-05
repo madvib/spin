@@ -207,11 +207,191 @@ test("a stat's number, label and context spend their styles", async () => {
   );
   deepStrictEqual(
     declsFor(css, ".stat-title")["font-size"],
-    "var(--font-style-stat-label-size)",
+    "var(--font-style-caption-strong-size)",
+    "the label reads the style stat.title.type names — caption-strong unless re-pointed",
   );
   deepStrictEqual(
     declsFor(css, ".stat-desc")["font-size"],
     "var(--font-style-caption-size)",
+  );
+});
+
+test("a stat label re-points by naming another style", async () => {
+  const doc = withLeaf("stat.title.type", "typography", "overline");
+  const css = (
+    await sheetFor(
+      "<div class=\"stat\"><div class=\"stat-title\">a</div></div>",
+      doc,
+    )
+  ).css;
+  deepStrictEqual(
+    declsFor(css, ".stat-title")["font-size"],
+    "var(--font-style-overline-size)",
+    "stat.title.type names the style the label reads",
+  );
+});
+
+test("a dangling stat title reference is a theme error", async () => {
+  const doc = withLeaf("stat.title.type", "typography", "no-such-style");
+  const parsed = parseTokens(JSON.parse(JSON.stringify(doc)));
+  assert(parsed.ok, `fixture must parse: ${!parsed.ok ? parsed.error : ""}`);
+  if (!parsed.ok) return;
+  const report = validateTokens(parsed.tree);
+  assert(
+    report.issues.some(
+      (issue) => issue.path === "stat.title.type" && /no-such-style/.test(issue.message),
+    ),
+    `dangling stat.title.type must be reported, got: ${
+      JSON.stringify(report.issues)
+    }`,
+  );
+  await assert.rejects(
+    () => sheetFor("<div class=\"stat\"><div class=\"stat-title\">a</div></div>", doc),
+    /stat\.title\.type/,
+    "and the preset refuses to build the theme",
+  );
+});
+
+test("a badge spends the badge style, not the ladder step", async () => {
+  const css = (await sheetFor('<badge>Tag</badge>', silk())).css;
+  deepStrictEqual(
+    declsFor(css, "badge")["font-size"],
+    "var(--font-style-badge-size)",
+  );
+  deepStrictEqual(
+    declsFor(css, "badge")["font-weight"],
+    "var(--font-style-badge-weight)",
+  );
+});
+
+test("moving the badge style moves the badge", async () => {
+  const doc = withValue("font.style.badge.size", {
+    $type: "dimension",
+    $value: "99px",
+  });
+  const css = (await sheetFor("<badge>Tag</badge>", doc)).css;
+  deepStrictEqual(
+    declsFor(css, "badge")["font-size"],
+    "var(--font-style-badge-size)",
+    "a badge spends the badge style's size, not the ladder's",
+  );
+  deepStrictEqual(
+    resolveTheme(JSON.parse(JSON.stringify(doc))).values["font.style.badge.size"],
+    "99px",
+    "and the stylesheet resolves that variable to the theme's answer",
+  );
+});
+
+test("a label spends the label style as a whole tuple", async () => {
+  const css = (await sheetFor("<label>a</label>", silk())).css;
+  deepStrictEqual(
+    declsFor(css, "label")["font-size"],
+    "var(--font-style-label-size)",
+  );
+  deepStrictEqual(
+    declsFor(css, "label")["font-weight"],
+    "var(--font-style-label-weight)",
+  );
+});
+
+test("moving the label style moves the label", async () => {
+  const doc = withValue("font.style.label.size", {
+    $type: "dimension",
+    $value: "99px",
+  });
+  const css = (await sheetFor("<label>a</label>", doc)).css;
+  deepStrictEqual(
+    declsFor(css, "label")["font-size"],
+    "var(--font-style-label-size)",
+    "a label spends the label style's size, not the ladder's",
+  );
+  deepStrictEqual(
+    resolveTheme(JSON.parse(JSON.stringify(doc))).values["font.style.label.size"],
+    "99px",
+    "and the stylesheet resolves that variable to the theme's answer",
+  );
+});
+
+test("a card title and description spend their styles", async () => {
+  const css = (
+    await sheetFor(
+      "<card-title>a</card-title><card-description>a</card-description>",
+      silk(),
+    )
+  ).css;
+  deepStrictEqual(
+    declsFor(css, "card-title")["font-size"],
+    "var(--font-style-card-title-size)",
+  );
+  deepStrictEqual(
+    declsFor(css, "card-description")["font-size"],
+    "var(--font-style-label-size)",
+  );
+});
+
+test("a fieldset legend spends the label style", async () => {
+  const css = (await sheetFor("<fieldset><legend>a</legend></fieldset>", silk())).css;
+  deepStrictEqual(
+    declsFor(css, "legend")["font-size"],
+    "var(--font-style-label-size)",
+  );
+  deepStrictEqual(
+    declsFor(css, "legend")["font-weight"],
+    "var(--font-style-label-weight)",
+  );
+});
+
+test("an alert spends the label style", async () => {
+  const css = (await sheetFor('<alert role="status">a</alert>', silk())).css;
+  deepStrictEqual(
+    declsFor(css, "alert")["font-size"],
+    "var(--font-style-label-size)",
+  );
+  deepStrictEqual(
+    declsFor(css, 'alert[role="alert"]')["font-weight"],
+    "var(--font-style-body-strong-weight)",
+  );
+});
+
+test("breadcrumbs spend the label style", async () => {
+  const css = (
+    await sheetFor('<nav class="breadcrumbs"><ol><li>a</li></ol></nav>', silk())
+  ).css;
+  deepStrictEqual(
+    declsFor(css, ".breadcrumbs")["font-size"],
+    "var(--font-style-label-size)",
+  );
+});
+
+test("a disclosure summary spends the body-strong weight", async () => {
+  const css = (await sheetFor("<details><summary>a</summary></details>", silk())).css;
+  deepStrictEqual(
+    declsFor(css, "summary")["font-weight"],
+    "var(--font-style-body-strong-weight)",
+  );
+});
+
+test("a meter spends the label style", async () => {
+  const css = (await sheetFor("<meter>a</meter>", silk())).css;
+  deepStrictEqual(
+    declsFor(css, "meter")["font-size"],
+    "var(--font-style-label-size)",
+  );
+});
+
+test("a tooltip spends the caption style", async () => {
+  const css = (await sheetFor("<tooltip>a</tooltip>", silk())).css;
+  deepStrictEqual(
+    declsFor(css, "tooltip")["font-size"],
+    "var(--font-style-caption-size)",
+  );
+});
+
+test("a skeleton text line spends the body style's size", async () => {
+  const css = (await sheetFor('<div class="skeleton skeleton-text"></div>', silk())).css;
+  deepStrictEqual(
+    declsFor(css, ".skeleton.skeleton-text")["height"],
+    "var(--font-style-body-size)",
   );
 });
 

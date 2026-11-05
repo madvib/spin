@@ -3,13 +3,14 @@ import {
   cssVarName,
   ELEMENT_STYLE_DEFAULTS,
   indexTree,
-  STYLE_FLOOR,
-  styleFloorFields,
-  styleFloorNames,
+  OWNED_STYLES,
+  ownedStyleFields,
+  ownedStyleNames,
   STYLE_REFERENCE_ROLES,
   valuesInMode,
 } from "@spinjs/spin/theme";
 import type { TokenTree } from "@spinjs/spin/theme";
+import { scaleValue } from "./scale.ts";
 import { ROUTES } from "./routes.ts";
 
 export interface TokenRow {
@@ -393,6 +394,30 @@ export function toPx(value: string): number | undefined {
 }
 
 /**
+ * One ramp scaled by one factor: every step the factor can mean moves in its
+ * own unit, and a step it cannot mean keeps the document's word.
+ *
+ * A factor of one or a ramp the grid rounds back to unchanged is no edit at
+ * all, so the caller's undo stack stays quiet. Anything at or below zero is
+ * refused: it scales the group out of existence rather than anywhere.
+ */
+export function scaleRampEdits(
+  steps: readonly { path: string; value: string }[],
+  factor: number,
+): StyleEdit[] {
+  if (!Number.isFinite(factor) || factor <= 0) {
+    throw new Error(`a ramp scales by a positive factor, got ${factor}`);
+  }
+  const out: StyleEdit[] = [];
+  for (const step of steps) {
+    const next = scaleValue(step.value, factor);
+    if (next === undefined || next === step.value) continue;
+    out.push({ path: step.path.split("."), value: next });
+  }
+  return out;
+}
+
+/**
  * The border utility whose value the token carries. `border.width` is the
  * bare hairline; `border.width-N` is the step. Anything else does not usefully
  * name a border utility at all, and fails the oracle rather than guessing.
@@ -476,15 +501,15 @@ export function editorRouteFor(path: string): string {
 /**
  * One named style the theme declares, with the fields the document holds.
  *
- * The floor is the contract's list, in the contract's order; the custom
- * styles follow in the document's order. A field row carries the path the
+ * The owned set is the contract's list, in the contract's order; the user
+ * extension follows in the document's order. A field row carries the path the
  * tuple leaf lives at, so the page edits leaves and never the group.
  */
 export interface StyleGroup {
   /** The style's name, as `type-<name>` spends it. */
   readonly name: string;
-  /** True for a floor name the contract requires the theme to keep. */
-  readonly floor: boolean;
+  /** True for an owned name the contract requires the theme to keep. */
+  readonly owned: boolean;
   /** The tuple leaves the document holds, by field. */
   readonly fields: readonly TokenRow[];
 }
@@ -505,13 +530,13 @@ export function declaredStyles(text: string): readonly string[] {
 }
 
 /**
- * The styles a document holds, floor first.
+ * The styles a document holds, owned first.
  *
  * Rows come from the tree so the values are the mode's, but membership is
  * the document's: a style is what the document declares, not what resolves.
  */
 export function styleGroups(tree: TokenTree): StyleGroup[] {
-  const floor = new Set(styleFloorNames());
+  const owned = new Set(ownedStyleNames());
   const names = new Set<string>();
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     if (leaf.path[0] === "font" && leaf.path[1] === "style") {
@@ -528,14 +553,14 @@ export function styleGroups(tree: TokenTree): StyleGroup[] {
     else held.push(row);
   }
   const ordered = [
-    ...STYLE_FLOOR.map((style) => style.name).filter((name) =>
+    ...OWNED_STYLES.map((style) => style.name).filter((name) =>
       names.has(name)
     ),
-    ...[...names].filter((name) => !floor.has(name)),
+    ...[...names].filter((name) => !owned.has(name)),
   ];
   return ordered.map((name) => ({
     name,
-    floor: floor.has(name),
+    owned: owned.has(name),
     fields: byName.get(name) ?? [],
   }));
 }
@@ -544,12 +569,12 @@ export function styleGroups(tree: TokenTree): StyleGroup[] {
 /**
  * Why a style may not be trimmed, when it may not be.
  *
- * A floor name is stable API — trimming it fails completeness — so the trim
+ * An owned name is stable API — trimming it fails completeness — so the trim
  * is refused here, in words, before the document moves. Anything else trims.
  */
 export function trimRefusal(text: string, name: string): string | undefined {
-  if (styleFloorNames().includes(name)) {
-    return `“${name}” is a floor style every theme keeps — re-point the elements that read it, or restyle its tuple, but the name stays.`;
+  if (ownedStyleNames().includes(name)) {
+    return `“${name}” is an owned style every theme keeps — re-point the elements that read it, or restyle its tuple, but the name stays.`;
   }
   if (!declaredStyles(text).includes(name)) {
     return `“${name}” is not a style this theme declares.`;
@@ -561,7 +586,7 @@ export function trimRefusal(text: string, name: string): string | undefined {
  * Trim a custom style from the document.
  *
  * The group goes whole: a half-trimmed tuple is a style the rules cannot
- * spend. The floor is refused by `trimRefusal`, never here.
+ * spend. The owned set is refused by `trimRefusal`, never here.
  */
 export function trimStyle(text: string, name: string): string {
   const doc = JSON.parse(text) as Record<string, unknown>;
@@ -599,7 +624,7 @@ export function styleEdits(text: string, name: string): string {
   const added: Record<string, unknown> = {
     $description: `The ${name} voice.`,
   };
-  for (const field of styleFloorFields()) {
+  for (const field of ownedStyleFields()) {
     const leaf = body?.[field] as Record<string, unknown> | undefined;
     const value = leaf?.["$value"];
     added[field] = {
@@ -651,7 +676,7 @@ export function attachedStyle(
   if (typeof group !== "object" || group === null) return own;
   let attached: string | undefined;
   let fields = 0;
-  for (const field of styleFloorFields()) {
+  for (const field of ownedStyleFields()) {
     const leaf = group[field] as Record<string, unknown> | undefined;
     if (typeof leaf !== "object" || leaf === null || !("$value" in leaf)) {
       continue;
@@ -699,7 +724,7 @@ export function repointEdits(
   if (!declaredStyles(text).includes(style)) {
     throw new Error(`“${style}” is not a style this theme declares`);
   }
-  return styleFloorFields().map((field) => ({
+  return ownedStyleFields().map((field) => ({
     path: ["font", "style", own, field],
     value: `{font.style.${style}.${field}}`,
   }));

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { ladder, styleType, type StyleType } from "./shared.ts";
+import { ladder, styleReference, styleType, type StyleType } from "./shared.ts";
 
 /** Stat — a labelled number, reading its voices from the named styles. */
 export function statRules(roots: readonly string[]): Rule[] {
@@ -24,17 +24,18 @@ type Tokens = {
  * The number reads the stat style outright: a figure set at the body's size
  * is a caption and a figure set like a poster is a lie, and the style is
  * the complete answer — face, size, weight, tracking, leading — rather than
- * atoms of the stat's own. The label above it reads the stat-label voice,
- * tracked open so it reads as a label; the context under the number reads
- * the caption voice, the small print of the figure. Each field falls back
- * to the step its style is built from during the window, so a theme that
- * says nothing about a part gets the scale's answer rather than the
- * browser's.
+ * atoms of the stat's own. The label above it reads the style the
+ * `stat.title.type` reference names — the caption-strong voice unless the
+ * theme re-points it — and the context under the number reads the caption
+ * voice, the small print of the figure. Each field falls back to the step
+ * its style is built from during the window, so a theme that says nothing
+ * about a part gets the scale's answer rather than the browser's.
  */
 function statTokens(ctx: ThemeContext | undefined): Tokens {
+  const titleStyle = styleReference(ctx, "stat.title.type", "caption-strong") as string;
   return {
     spacing2: token(ctx, "spacing.2"),
-    title: styleType(ctx, "stat-label"),
+    title: styleType(ctx, titleStyle),
     value: styleType(ctx, "stat"),
     desc: styleType(ctx, "caption"),
     text: token(ctx, "color.text"),
@@ -95,8 +96,7 @@ function statContainer(): Rule {
     { layer: "primitives", autocomplete: "stat" },
   ];
 }
-
-/** The label above the number: the stat-label voice, muted. */
+/** The label above the number: the style `stat.title.type` names, muted. */
 function statTitle(): Rule {
   return [
     /^stat-title$/,

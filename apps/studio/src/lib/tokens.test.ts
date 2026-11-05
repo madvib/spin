@@ -18,6 +18,7 @@ import {
   isCompositeType,
   parseComposite,
   repointEdits,
+  scaleRampEdits,
   styleEdits,
   styleGroups,
   tokenRowAt,
@@ -29,7 +30,7 @@ import { applyEdits } from "./theme.ts";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 import {
   ELEMENT_STYLE_DEFAULTS,
-  STYLE_FLOOR,
+  OWNED_STYLES,
   STYLE_REFERENCE_ROLES,
 } from "@spinjs/spin/theme";
 
@@ -319,25 +320,25 @@ function styleFixture(): string {
   );
 }
 
-test("styleGroups lists the floor before the custom, in the theme's words", () => {
+test("styleGroups lists the owned set before the user extension, in the theme's words", () => {
   const parsed = parseTokens(silkTheme);
   if (!parsed.ok) {
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }
   const groups = styleGroups(parsed.tree);
-  const floor = new Set(STYLE_FLOOR.map((style) => style.name));
+  const owned = new Set(OWNED_STYLES.map((style) => style.name));
   deepStrictEqual(
-    groups.filter((group) => group.floor).map((group) => group.name),
-    STYLE_FLOOR.map((style) => style.name),
+    groups.filter((group) => group.owned).map((group) => group.name),
+    OWNED_STYLES.map((style) => style.name),
   );
   for (const group of groups) {
     assert(group.fields.length > 0, `${group.name} carries no fields`);
-    deepStrictEqual(group.floor, floor.has(group.name));
+    deepStrictEqual(group.owned, owned.has(group.name));
   }
 });
 
-test("a floor style cannot be trimmed, and the refusal says why", () => {
-  for (const style of STYLE_FLOOR) {
+test("an owned style cannot be trimmed, and the refusal says why", () => {
+  for (const style of OWNED_STYLES) {
     const refusal = trimRefusal(styleFixture(), style.name);
     assert(
       refusal !== undefined && refusal.includes(style.name),
@@ -466,4 +467,68 @@ test("re-pointing moves the emitted element voice: p follows code", () => {
   deepStrictEqual(bodySize, "var(--font-style-code-size)");
   deepStrictEqual(attachedStyle(next, "p"), "code");
   deepStrictEqual(attachedStyle(next, "h1"), "display");
+});
+
+test("scaleRampEdits multiplies every scalable step by the factor", () => {
+  const steps = [
+    { path: "font.size.sm", value: "0.875rem" },
+    { path: "font.size.md", value: "1rem" },
+    { path: "font.size.lg", value: "1.125rem" },
+  ];
+  const edits = scaleRampEdits(steps, 2);
+  deepStrictEqual(
+    edits.map((edit) => [edit.path.join("."), edit.value]),
+    [
+      ["font.size.sm", "1.75rem"],
+      ["font.size.md", "2rem"],
+      ["font.size.lg", "2.25rem"],
+    ],
+  );
+});
+
+test("scaleRampEdits refuses a factor that cannot mean a scale", () => {
+  const steps = [{ path: "font.size.md", value: "1rem" }];
+  assert.throws(
+    () => scaleRampEdits(steps, 0),
+    /factor/,
+    "a zero factor scales the group out of existence",
+  );
+  assert.throws(
+    () => scaleRampEdits(steps, -1.5),
+    /factor/,
+    "a negative factor is not a scale",
+  );
+  assert.throws(
+    () => scaleRampEdits(steps, Number.NaN),
+    /factor/,
+    "a factor that is not a number is not a scale",
+  );
+});
+
+test("scaleRampEdits leaves a step a factor cannot mean at its own value", () => {
+  const steps = [
+    { path: "font.weight.regular", value: "400" },
+    { path: "font.weight.bold", value: "700" },
+  ];
+  const edits = scaleRampEdits(steps, 1.1);
+  deepStrictEqual(
+    edits.map((edit) => edit.path.join(".")),
+    ["font.weight.regular", "font.weight.bold"],
+  );
+  for (const edit of edits) {
+    const before = steps.find((step) => step.path === edit.path.join("."))!;
+    assert(
+      edit.value !== before.value,
+      `${edit.path.join(".")} moves with the factor`,
+    );
+  }
+});
+
+test("scaleRampEdits skips a sibling the grid rounds back to unchanged", () => {
+  const steps = [
+    { path: "font.size.md", value: "1rem" },
+    { path: "font.leading.normal", value: "1.5" },
+  ];
+  const edits = scaleRampEdits(steps, 1);
+  deepStrictEqual(edits, [], "a factor of one moves nothing");
 });

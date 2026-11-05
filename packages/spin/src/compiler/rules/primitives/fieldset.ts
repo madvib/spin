@@ -1,6 +1,7 @@
 import type { Rule } from "@unocss/core";
 
 import { token } from "../../utils/lookup.ts";
+import { ladder, styleType } from "./shared.ts";
 
 /**
  * Fieldset & legend — the bare grouping element and its title.
@@ -60,18 +61,18 @@ function fieldsetRule(): Rule {
       };
 
       // The legend sits on the border: padding-inline lifts it clear of the
-      // edge, and the type weight makes it read as the group's name.
+      // edge, and it wears the label voice — the name on a control — so it
+      // reads as the group's name rather than a stray word inside it.
+      const s = styleType(ctx, "label");
+      const fontSize = s.size ?? ladder(ctx, "font.size.sm");
+      const fontWeight = s.weight ?? ladder(ctx, "font.weight.semibold");
       yield {
         [ctx.symbols.selector]: () => `${fieldset} > ${legend}`,
         ...(token(ctx, "spacing.2") !== undefined
           ? { "padding-inline": token(ctx, "spacing.2") }
           : {}),
-        ...(token(ctx, "font.size.sm") !== undefined
-          ? { "font-size": token(ctx, "font.size.sm") }
-          : {}),
-        ...(token(ctx, "font.weight.semibold") !== undefined
-          ? { "font-weight": token(ctx, "font.weight.semibold") }
-          : {}),
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
       };
     },
     { layer: "primitives", autocomplete: "fieldset" },

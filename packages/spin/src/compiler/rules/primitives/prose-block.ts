@@ -57,7 +57,7 @@ function bodyRule(): Rule {
 /**
  * Body copy: the spacing below it, and the type it reads in.
  *
- * The paragraph's TYPE is the body's — it inherits the floor — and the
+ * The paragraph's TYPE is the body's — it inherits the owned set — and the
  * paragraph states what it inherits, so a class that says otherwise is a
  * second opinion the lint can see. The paragraph reads the body style
  * outright: the face, the size, the weight, the tracking and the leading a

@@ -724,8 +724,6 @@ export const def = {
           "data-state": scope.context.openSubmenu === row.value
             ? "open"
             : "closed",
-          class:
-            "absolute start-full top-0 ms-2 min-w-40 rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg",
           "use:hover-delay": {
             closeDelay: 250,
             onClose: (): void => {

@@ -48,7 +48,7 @@ test("a mode a document spells as a group is not one of its groups", () => {
 });
 
 test("every group the contract declares is one the starters state", () => {
-  // The contract is the floor and the starters are its expression, so the two
+  // The contract is the owned set and the starters are its expression, so the two
   // have to agree: a group the contract requires that no starter states is a
   // group the product cannot spend.
   const stated = new Set(

@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, withFallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
@@ -15,13 +15,17 @@ export function skeletonRules(roots: readonly string[]): Rule[] {
 
 /** The theme values a skeleton spends, resolved once per rule. */
 function tokens(ctx: ThemeContext | undefined) {
+  // The text line stands in for one line of body copy, so its height is the
+  // body style's size — read through the style, never the step — with the
+  // ladder step that style is built from as the window fallback.
+  const body = styleType(ctx, "body");
   return {
     well: token(ctx, "color.surface-sunken"),
     ink: token(ctx, "color.text-muted"),
     radiusSm: token(ctx, "radius.sm"),
     radiusFull: token(ctx, "radius.full"),
     spacing2: token(ctx, "spacing.2"),
-    textSize: token(ctx, "font.size.sm"),
+    textSize: body.size ?? ladder(ctx, "font.size.md"),
     // A disc placeholder is a face, so its edge is the avatar ladder's.
     avatar: named(ctx, "avatar", "md"),
     // The LOOP step, not the slowest transition: a loader is watched rather

@@ -260,7 +260,7 @@ function unreadable(): Facts {
 /**
  * The facts of a project: its own themes, and the starters beside them.
  *
- * The starters are the fallback, not the floor: a project that has forked
+ * The starters are the fallback, not the owned set: a project that has forked
  * a theme still serves the others, so both are in the vocabulary. And the
  * project's own theme is read LAST, because a value is the project's
  * answer: where the project and the starter it was forked from disagree,

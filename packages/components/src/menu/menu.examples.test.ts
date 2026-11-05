@@ -24,8 +24,13 @@ test("every example renders its submenu level inline", () => {
       read(stem).includes("getSubmenuItemProps(child)"),
       `${stem} example must bind the level's rows to submenu items`,
     );
+    assert.ok(
+      read(stem).includes("start-full"),
+      `${stem} example must place the level beside its row, where the content scan reads it`,
+    );
   }
 });
+
 
 test("no example mounts a nested menu element", () => {
   for (const stem of STEMS) {

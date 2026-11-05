@@ -961,17 +961,14 @@ test("Given a submenu trigger row / When the inline level ids are read / Then ar
   );
 });
 
-test("Given a submenu level / When its props are read / Then the part owns its placement beside the row", () => {
+test("Given a submenu level / When its props are read / Then the part carries no placement of its own", () => {
   const h = mount(NESTED);
-  const cls = String(h.api.getSubmenuContentProps(h.row("share"))["class"]);
-  const tokens = cls.split(" ");
-  for (const token of ["absolute", "start-full", "top-0", "ms-2", "min-w-40"]) {
-    deepStrictEqual(
-      tokens.includes(token),
-      true,
-      `the level escapes the row's box (${token})`,
-    );
-  }
+  const bag = h.api.getSubmenuContentProps(h.row("share")) as Record<string, unknown>;
+  deepStrictEqual(
+    "class" in bag,
+    false,
+    "the level's placement lives in the markup that renders it, where the content scan reads it",
+  );
 });
 
 test("Given a submenu row is opened by keyboard / When the level is focused / Then the focus target resolves in the document", () => {

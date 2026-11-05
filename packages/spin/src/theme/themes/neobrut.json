@@ -491,7 +491,7 @@
       "display": {
         "family": {
           "$type": "fontFamily",
-          "$value": "{font.family.sans}",
+          "$value": "{font.family.heading}",
           "$description": "The face the display style reads in."
         },
         "size": {
@@ -514,7 +514,7 @@
           "$value": "{font.leading.tight}",
           "$description": "The leading the display style reads at."
         },
-        "$description": "The display voice: the largest statement a page makes."
+        "$description": "The display voice: the largest statement a page makes, set in the heavy face."
       },
       "title": {
         "family": {
@@ -809,12 +809,12 @@
         },
         "weight": {
           "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
+          "$value": "{font.weight.bold}",
           "$description": "The weight the overline style reads at."
         },
         "tracking": {
           "$type": "dimension",
-          "$value": "{font.tracking.wider}",
+          "$value": "{font.tracking.widest}",
           "$description": "The tracking the overline style reads at."
         },
         "leading": {
@@ -822,7 +822,7 @@
           "$value": "{font.leading.snug}",
           "$description": "The leading the overline style reads at."
         },
-        "$description": "The overline voice: an eyebrow or category mark above copy."
+        "$description": "The overline voice: an eyebrow set bold and widest, loud on purpose."
       },
       "stat": {
         "family": {
@@ -865,7 +865,7 @@
         },
         "weight": {
           "$type": "fontWeight",
-          "$value": "{font.weight.medium}",
+          "$value": "{font.weight.semibold}",
           "$description": "The weight the badge style reads at."
         },
         "tracking": {
@@ -878,7 +878,7 @@
           "$value": "{font.leading.none}",
           "$description": "The leading the badge style reads at."
         },
-        "$description": "The badge voice: the word on a pill, set small enough to sit inside one."
+        "$description": "The badge voice: the word on a pill, set semibold so it holds the fill."
       },
       "body-strong": {
         "family": {
@@ -935,34 +935,6 @@
           "$description": "The leading the caption-strong style reads at."
         },
         "$description": "The figure-caption voice: a caption that names its figure."
-      },
-      "stat-label": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the stat-label style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the stat-label style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the stat-label style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the stat-label style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the stat-label style reads at."
-        },
-        "$description": "The stat-label voice: the name above a figure, tracked open so it reads as a label."
       },
       "card-title": {
         "family": {

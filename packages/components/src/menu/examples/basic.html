@@ -40,7 +40,9 @@ const machine = menu({
               <span aria-hidden="true"
                 class={["shrink-0 type-caption text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-90": machine.openSubmenu === row.value }]}
                 {...machine.getItemSubmenuIndicatorProps(row)}><span class="inline-block i-lucide-chevron-right type-caption" aria-hidden="true"></span></span>
-              <panel show={machine.openSubmenu === row.value}
+              <panel
+                class="absolute start-full top-0 ms-2 min-w-40 rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+                show={machine.openSubmenu === row.value}
                 {...machine.getSubmenuContentProps(row)}>
                 <template for={machine.getSubmenuBlocks(row)} as={sub} key={sub.id}>
                   <div class="py-1" {...machine.getItemGroupProps(sub)}>

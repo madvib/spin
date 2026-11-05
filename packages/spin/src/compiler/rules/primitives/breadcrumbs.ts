@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
+import { ladder, styleType } from "./shared.ts";
 
 /**
  * Breadcrumbs — the trail home, claimed as a class on the `<nav>`.
@@ -22,8 +23,11 @@ export function breadcrumbsRules(roots: readonly string[]): Rule[] {
 
 /** The theme values breadcrumbs spends, resolved once per rule. */
 function tokens(ctx: ThemeContext | undefined) {
+  // The trail wears the label voice — the small-medium advisory type — with
+  // the ladder step that style is built from as the window fallback.
+  const label = styleType(ctx, "label");
   return {
-    sizeSm: token(ctx, "font.size.sm"),
+    sizeSm: label.size ?? ladder(ctx, "font.size.sm"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     gap: token(ctx, "spacing.2"),

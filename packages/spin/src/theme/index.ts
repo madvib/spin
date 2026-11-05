@@ -90,9 +90,9 @@ export {
   elementStyleDefault,
   elementStyleElements,
   FACE_CHAINS,
-  STYLE_FLOOR,
-  styleFloorFields,
-  styleFloorNames,
+  OWNED_STYLES,
+  ownedStyleFields,
+  ownedStyleNames,
 } from "./contract/typography.ts";
 export type {
   GlobalTypePath,

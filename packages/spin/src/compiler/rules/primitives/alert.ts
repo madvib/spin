@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, withFallback } from "./shared.ts";
 
 /**
  * Alert — `<alert role="status">` and `<alert role="alert">`.
@@ -34,6 +34,12 @@ export function alertRules(roots: readonly string[]): Rule[] {
 }
 
 function alertTokens(ctx: ThemeContext | undefined) {
+  // The alert reads the label voice — the small-medium advisory type — and
+  // an assertion reads the body-strong weight: an assertion is read before
+  // a status. Each field falls back to the ladder step its style is built
+  // from during the window.
+  const label = styleType(ctx, "label");
+  const strong = styleType(ctx, "body-strong");
   return {
     spacing2: withFallback(ctx, "alert.padding", "spacing.2"),
     spacing4: withFallback(ctx, "alert.padding-inline", "spacing.4"),
@@ -45,8 +51,8 @@ function alertTokens(ctx: ThemeContext | undefined) {
     // them — and it is the alert's own ink, falling back to the page's.
     border: withFallback(ctx, "alert.edge", "color.border"),
     borderWidth: token(ctx, "border.width"),
-    fontSize: token(ctx, "font.size.sm"),
-    weight: token(ctx, "font.weight.medium"),
+    fontSize: label.size ?? ladder(ctx, "font.size.sm"),
+    weight: strong.weight ?? ladder(ctx, "font.weight.medium"),
   };
 }
 

@@ -395,6 +395,14 @@ export const STYLE_REFERENCE_ROLES: readonly ElementDeclaration[] = [
     value: "label",
     doc: "The style a danger button reads when it reads one. Undeclared, it inherits the button's style.",
   },
+  {
+    group: "stat",
+    element: "stat",
+    path: "stat.title.type",
+    type: "typography",
+    value: "caption-strong",
+    doc: "The style the stat's label reads. The figure-caption voice, unless the theme names another.",
+  },
 ];
 
 /** The paths of every style reference token. */

@@ -4,6 +4,8 @@ import {
   disabledPosture,
   focusPaint,
   focusRing,
+  ladder,
+  styleType,
   withFallback,
 } from "./shared.ts";
 
@@ -38,11 +40,17 @@ export interface FieldTokens {
 }
 
 export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
+  // The field's type is the field's own reading voice at body size: an input
+  // reads what a reader typed, so it reads at the body step. Style-less by
+  // design (no owned style names a field), so the rule names the body voice
+  // outright — never atoms — with the ladder steps the starters build that
+  // style from as the window fallback.
+  const body = styleType(ctx, "body");
   return {
     spacing2: token(ctx, "spacing.2"),
     radius: withFallback(ctx, "field.radius", "radius.md"),
-    fontFamily: token(ctx, "font.family.sans"),
-    fontSize: token(ctx, "font.size.md"),
+    fontFamily: body.family ?? ladder(ctx, "font.family.sans"),
+    fontSize: body.size ?? ladder(ctx, "font.size.md"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
     field: token(ctx, "color.field"),
@@ -207,11 +215,16 @@ export function fieldBox(): Rule {
       // padding move with the step; a single-line control also lands on the
       // step's height, while a textarea keeps its own lines. Without this a
       // chrome control had to restate the small metrics at every call site.
-      for (const [name, fontToken, spaceToken] of [
-        ["s-sm", "font.size.sm", "spacing.1"],
-        ["s-lg", "font.size.lg", "spacing.4"],
+      // The type at each step is the field's reading voice at that step: sm
+      // reads the label size through the label style, lg the subtitle size
+      // through the subtitle style (the button's s-lg voice), so moving the
+      // styles moves the sizes with them.
+      const label = styleType(context, "label");
+      const subtitle = styleType(context, "subtitle");
+      for (const [name, size, spaceToken] of [
+        ["s-sm", label.size ?? ladder(context, "font.size.sm"), "spacing.1"],
+        ["s-lg", subtitle.size ?? ladder(context, "font.size.lg"), "spacing.4"],
       ] as const) {
-        const size = token(context, fontToken);
         const space = token(context, spaceToken);
         if (size !== undefined) {
           yield {

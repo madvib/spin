@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, withFallback, type StyleType } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -84,9 +84,8 @@ type Tokens = {
   readonly raised: string | undefined;
   readonly text: string | undefined;
   readonly muted: string | undefined;
-  readonly sizeLg: string | undefined;
-  readonly sizeSm: string | undefined;
-  readonly weightSemibold: string | undefined;
+  readonly title: StyleType;
+  readonly description: StyleType;
 
   readonly shadow: string | undefined;
 };
@@ -100,6 +99,11 @@ type Tokens = {
  * scale the card would otherwise wear, so a theme that says nothing about
  * the card's corner gets the page's radius — the theme's answer, never the
  * browser's.
+ *
+ * The card's type is two styles, never atoms: the title wears the card-title
+ * voice and the description the label voice (the advisory small-medium
+ * type), each read as a whole tuple with the ladder steps their styles are
+ * built from as the window fallback.
  */
 function cardTokens(ctx: ThemeContext | undefined): Tokens {
   return {
@@ -110,9 +114,8 @@ function cardTokens(ctx: ThemeContext | undefined): Tokens {
     raised: token(ctx, "color.surface-raised"),
     text: token(ctx, "color.text"),
     muted: token(ctx, "color.text-muted"),
-    sizeLg: token(ctx, "font.size.lg"),
-    sizeSm: token(ctx, "font.size.sm"),
-    weightSemibold: token(ctx, "font.weight.semibold"),
+    title: styleType(ctx, "card-title"),
+    description: styleType(ctx, "label"),
 
     shadow: withFallback(ctx, "card.elevation", "shadow.md"),
   };
@@ -213,19 +216,24 @@ function cardTitle(): Rule {
   return [
     /^card-title$/,
     function* (_m, ctx) {
-      const { sizeLg, weightSemibold, text } = cardTokens(ctx);
-      const headingFamily = withFallback(ctx, "font.family.heading", "font.family.sans");
+      const { title, text } = cardTokens(ctx);
+      // The title wears the card-title voice as a whole tuple — the name on
+      // a card, set to be found inside a surface — with the ladder steps the
+      // starters build that style from as the window fallback.
+      const family = title.family ?? ladder(ctx, "font.family.sans");
+      const size = title.size ?? ladder(ctx, "font.size.lg");
+      const weight = title.weight ?? ladder(ctx, "font.weight.semibold");
+      const tracking = title.tracking ?? ladder(ctx, "font.tracking.normal");
+      const leading = title.leading ?? ladder(ctx, "font.leading.snug");
       yield {
         [ctx.symbols.selector]: () => "card-title",
         "grid-column": "1",
         "min-width": "0",
-        ...(headingFamily !== undefined
-          ? { "font-family": headingFamily }
-          : {}),
-        ...(sizeLg !== undefined ? { "font-size": sizeLg } : {}),
-        ...(weightSemibold !== undefined
-          ? { "font-weight": weightSemibold }
-          : {}),
+        ...(family !== undefined ? { "font-family": family } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
+        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(text !== undefined ? { color: text } : {}),
       };
     },
@@ -237,12 +245,18 @@ function cardDescription(): Rule {
   return [
     /^card-description$/,
     function* (_m, ctx) {
-      const { sizeSm, muted } = cardTokens(ctx);
+      const { description, muted } = cardTokens(ctx);
+      // The description wears the label voice — the advisory small-medium
+      // type — with the ladder steps the starters build that style from as
+      // the window fallback.
+      const size = description.size ?? ladder(ctx, "font.size.sm");
+      const weight = description.weight ?? ladder(ctx, "font.weight.medium");
       yield {
         [ctx.symbols.selector]: () => "card-description",
         "grid-column": "1",
         "min-width": "0",
-        ...(sizeSm !== undefined ? { "font-size": sizeSm } : {}),
+        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(weight !== undefined ? { "font-weight": weight } : {}),
         ...(muted !== undefined ? { color: muted } : {}),
       };
     },

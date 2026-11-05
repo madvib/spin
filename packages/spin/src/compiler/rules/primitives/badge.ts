@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { named, token } from "../../utils/lookup.ts";
-import { withFallback } from "./shared.ts";
+import { ladder, styleType, withFallback } from "./shared.ts";
 
 /**
  * Badge — a small status label.
@@ -38,8 +38,12 @@ function badgeBase(): Rule {
       const spacing1 = token(ctx, "spacing.1");
       const borderWidth = token(ctx, "border.width");
       const borderColor = token(ctx, "color.border");
-      const sizeXs = token(ctx, "font.size.xs");
-      const weightMedium = token(ctx, "font.weight.medium");
+      // The badge wears the badge voice outright — the word on a pill —
+      // with the ladder steps the starters build that style from as the
+      // window fallback.
+      const s = styleType(ctx, "badge");
+      const sizeXs = s.size ?? ladder(ctx, "font.size.2xs");
+      const weightMedium = s.weight ?? ladder(ctx, "font.weight.medium");
       const edge = withFallback(ctx, "badge.edge", "border.width") ??
         borderWidth;
       // `badge.pill` is a boolean token. The rule context carries references,
@@ -206,7 +210,14 @@ function badgeSizes(): Rule[] {
   return SIZES.map((size) => [
     new RegExp(`^${size.name}$`),
     function* (_m, ctx) {
-      const fontSize = named(ctx, "font.size", size.fontSize);
+      // The badge's sizes are the badge voice at its steps: sm keeps the
+      // badge style's own 2xs, lg takes the label step — read through the
+      // styles' sizes, so moving the styles moves the sizes with them.
+      const voice = styleType(ctx, "badge");
+      const label = styleType(ctx, "label");
+      const fontSize = size.fontSize === "2xs"
+        ? (voice.size ?? ladder(ctx, "font.size.2xs"))
+        : (label.size ?? ladder(ctx, "font.size.sm"));
       const spacingInline = named(ctx, "spacing", size.spacingInline);
       const spacingBlock = named(ctx, "spacing", size.spacingBlock);
       yield {

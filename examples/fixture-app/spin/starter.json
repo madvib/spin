@@ -891,34 +891,6 @@
         },
         "$description": "The figure-caption voice: a caption that names its figure."
       },
-      "stat-label": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the stat-label style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the stat-label style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the stat-label style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the stat-label style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the stat-label style reads at."
-        },
-        "$description": "The stat-label voice: the name above a figure, tracked open so it reads as a label."
-      },
       "card-title": {
         "family": {
           "$type": "fontFamily",

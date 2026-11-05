@@ -9,7 +9,7 @@
  * or by attaching another declared style — never by per-field element
  * overrides, which TYPE-c deleted.
  *
- * The styles are REQUIRED (see the floor below); the scales are the style
+ * The styles are REQUIRED (see the owned set below); the scales are the style
  * author's library — styles alias `{font.size.md}` instead of writing
  * `1rem` fourteen times. A theme with literal-valued styles and no scales
  * is complete.
@@ -49,6 +49,7 @@ export type GlobalTypePath =
   | "font.family.body"
   | "font.family.serif"
   | "font.family.mono"
+  | "font.size.2xs"
   | "font.size.xs"
   | "font.size.sm"
   | "font.size.md"
@@ -100,13 +101,13 @@ export interface NamedStyleDeclaration {
 }
 
 /**
- * The styles a theme owes: the floor every starter implements.
+ * The styles a theme owes: the owned set every starter implements.
  *
  * The names are stable API — a theme that renames one breaks every consumer
  * of that name — so trimming below this set fails completeness. The tuple
  * each name carries is the theme's own: shared keys, free values.
  */
-export const STYLE_FLOOR: readonly NamedStyleDeclaration[] = [
+export const OWNED_STYLES: readonly NamedStyleDeclaration[] = [
   { name: "display", element: "h1", doc: "The display voice: the largest statement a page makes." },
   { name: "title", element: "h2", doc: "The title voice: a section head, sized to be found." },
   { name: "heading", element: "h3", doc: "The heading voice: a subsection head inside a section." },
@@ -123,17 +124,16 @@ export const STYLE_FLOOR: readonly NamedStyleDeclaration[] = [
   { name: "badge", doc: "The badge voice: the word on a pill, set small enough to sit inside one." },
   { name: "body-strong", element: "strong", doc: "The strong voice: body copy with emphasis." },
   { name: "caption-strong", element: "figcaption", doc: "The figure-caption voice: a caption that names its figure." },
-  { name: "stat-label", doc: "The stat-label voice: the name above a figure, tracked open so it reads as a label." },
   { name: "card-title", doc: "The card-title voice: the name on a card, set to be found inside a surface." },
 ];
 
-/** The floor names, in the order the starters state them. */
-export function styleFloorNames(): readonly string[] {
-  return STYLE_FLOOR.map((style) => style.name);
+/** The owned names, in the order the starters state them. */
+export function ownedStyleNames(): readonly string[] {
+  return OWNED_STYLES.map((style) => style.name);
 }
 
-/** The fields every floor style carries: the complete tuple. */
-export function styleFloorFields(): readonly NamedStyleField[] {
+/** The fields every owned style carries: the complete tuple. */
+export function ownedStyleFields(): readonly NamedStyleField[] {
   return ["family", "size", "weight", "tracking", "leading"];
 }
 

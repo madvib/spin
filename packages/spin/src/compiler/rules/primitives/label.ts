@@ -1,6 +1,7 @@
 import type { Rule } from "@unocss/core";
 
 import { token } from "../../utils/lookup.ts";
+import { ladder, styleType } from "./shared.ts";
 
 /**
  * Label — the bare `<label>` as a captioned control.
@@ -22,6 +23,13 @@ function labelRule(): Rule {
   return [
     /^label$/,
     function* (_m, ctx) {
+      // The label wears the label voice outright — the name on a control —
+      // with the ladder steps the starters build that style from as the
+      // window fallback.
+      const s = styleType(ctx, "label");
+      const fontFamily = s.family ?? ladder(ctx, "font.family.sans");
+      const fontSize = s.size ?? ladder(ctx, "font.size.sm");
+      const fontWeight = s.weight ?? ladder(ctx, "font.weight.medium");
       yield {
         [ctx.symbols.selector]: () => label,
         display: "flex",
@@ -29,15 +37,9 @@ function labelRule(): Rule {
         ...(token(ctx, "spacing.1") !== undefined
           ? { gap: token(ctx, "spacing.1") }
           : {}),
-        ...(token(ctx, "font.family.sans") !== undefined
-          ? { "font-family": token(ctx, "font.family.sans") }
-          : {}),
-        ...(token(ctx, "font.size.sm") !== undefined
-          ? { "font-size": token(ctx, "font.size.sm") }
-          : {}),
-        ...(token(ctx, "font.weight.medium") !== undefined
-          ? { "font-weight": token(ctx, "font.weight.medium") }
-          : {}),
+        ...(fontFamily !== undefined ? { "font-family": fontFamily } : {}),
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
         ...(token(ctx, "color.text") !== undefined
           ? { color: token(ctx, "color.text") }
           : {}),

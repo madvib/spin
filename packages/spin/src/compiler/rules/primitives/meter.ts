@@ -1,5 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { token } from "../../utils/lookup.ts";
+import { ladder, styleType } from "./shared.ts";
 
 
 /**
@@ -46,12 +47,18 @@ function meterRule(): Rule {
         ...(token(ctx, "spacing.2") !== undefined
           ? { height: token(ctx, "spacing.2") }
           : {}),
-        ...(token(ctx, "font.family.sans") !== undefined
-          ? { "font-family": token(ctx, "font.family.sans") }
-          : {}),
-        ...(token(ctx, "font.size.sm") !== undefined
-          ? { "font-size": token(ctx, "font.size.sm") }
-          : {}),
+        // The gauge's fallback text reads in the label voice — the
+        // small-medium advisory type — with the ladder steps the starters
+        // build that style from as the window fallback.
+        ...(() => {
+          const label = styleType(ctx, "label");
+          const family = label.family ?? ladder(ctx, "font.family.sans");
+          const size = label.size ?? ladder(ctx, "font.size.sm");
+          return {
+            ...(family !== undefined ? { "font-family": family } : {}),
+            ...(size !== undefined ? { "font-size": size } : {}),
+          };
+        })(),
         ...(token(ctx, "color.field") !== undefined
           ? { "background-color": token(ctx, "color.field") }
           : {}),

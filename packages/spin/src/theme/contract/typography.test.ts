@@ -2,7 +2,8 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import {
   FACE_CHAINS,
-  styleFloorNames,
+  ownedStyleFields,
+  ownedStyleNames,
   indexTree,
   parseTokens,
   requiredPaths,
@@ -41,14 +42,14 @@ function inlineStyleLiterals(doc: ThemeDocument): void {
 }
 
 
-test("every starter implements the floor names", () => {
-  // The floor is the styles a theme must declare: every starter implements
+test("every starter implements the owned names", () => {
+  // The owned set is the styles a theme must declare: every starter implements
   // every name, and the names are the contract's own list rather than a
   // roster written down here.
   for (const [theme, doc] of Object.entries(starterThemes)) {
     const font = doc["font"] as Record<string, unknown>;
     const style = font["style"] as Record<string, unknown>;
-    for (const name of styleFloorNames()) {
+    for (const name of ownedStyleNames()) {
       assert(
         style[name] !== undefined,
         `${theme}: the starter must implement the ${name} style`,
@@ -57,14 +58,14 @@ test("every starter implements the floor names", () => {
   }
 });
 
-test("trimming below the floor fails completeness", () => {
+test("trimming below the owned set fails completeness", () => {
   // The names are stable API: a theme that drops one breaks every consumer
   // of that name, so the gate reports the missing tuple at its own leaves.
   const doc = structuredClone(starterThemes.silk) as Record<string, unknown>;
   const style = (doc["font"] as Record<string, unknown>)[
     "style"
   ] as Record<string, unknown>;
-  const name = styleFloorNames()[0] as string;
+  const name = ownedStyleNames()[0] as string;
   delete style[name];
   const parsed = parseTokens(doc);
   if (!parsed.ok) throw new Error(parsed.error);
@@ -107,6 +108,71 @@ test("the type scales are not required paths", () => {
     assert(
       !required.has(step),
       `${step} must not be a required path: styles carry the tuple`,
+    );
+  }
+});
+
+/**
+ * The voice audit: no two declared styles may carry the same tuple.
+ *
+ * Two names over one tuple are one voice with two names, and a theme that
+ * keeps both invites the second guess every re-point has to rule out. The
+ * check reads the resolved tuple — the alias targets, not the alias text —
+ * so two styles built from the same steps fail even when they spell the
+ * steps the same way.
+ *
+ * One pair is known-shared and held out: `link` reads the `body` tuple in
+ * every starter today (audit observation, owner-unruled — merging the two
+ * voices needs an owner decision, not a silent slice edit). The hold-out
+ * names the pair so a third sharer still fails.
+ */
+function resolvedStyleTuples(doc: ThemeDocument): Map<string, string> {
+  const parsed = parseTokens(structuredClone(doc));
+  if (!parsed.ok) throw new Error(parsed.error);
+  const resolved = indexTree(resolveAliases(parsed.tree).tree).leaves;
+  const leaves = new Map<string, string>();
+  for (const leaf of Object.values(resolved) as TokenLeaf[]) {
+    const [root, group, name, field] = leaf.path;
+    if (root !== "font" || group !== "style") continue;
+    leaves.set(`${name as string}.${field as string}`, String(leaf.value));
+  }
+  const tuples = new Map<string, string>();
+  for (const name of ownedStyleNames()) {
+    tuples.set(
+      name,
+      ownedStyleFields().map((field) => leaves.get(`${name}.${field}`)).join("|"),
+    );
+  }
+  return tuples;
+}
+
+test("no two styles share a tuple, except the known link/body pair", () => {
+  for (const [theme, doc] of Object.entries(starterThemes)) {
+    const seen = new Map<string, string>();
+    for (const [name, tuple] of resolvedStyleTuples(doc)) {
+      const other = seen.get(tuple);
+      const knownPair = new Set([name, other]).has("link") &&
+        new Set([name, other]).has("body");
+      assert(
+        other === undefined || knownPair,
+        `${theme}: ${name} carries the ${other} tuple — one tuple, one name`,
+      );
+      seen.set(tuple, name);
+    }
+  }
+});
+
+test("starters disagree: at least two voices differ per style", () => {
+  // The starters are five directions, not five copies: a style that reads
+  // the same everywhere is a voice no starter owns. Two differing voices
+  // per style keeps the set honest without pinning which theme differs.
+  for (const name of ownedStyleNames()) {
+    const tuples = new Set(
+      Object.values(starterThemes).map((doc) => resolvedStyleTuples(doc).get(name)),
+    );
+    assert(
+      tuples.size >= 2,
+      `${name} reads the same in every starter — a voice no starter owns`,
     );
   }
 });

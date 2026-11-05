@@ -12,7 +12,7 @@
  * come first, in the order they declare them, because that is the order an
  * author fills a document in. A group the contract knows and no document
  * states is still a group a theme may declare, so it is added at the end
- * rather than dropped: the contract is the floor, and the documents are one
+ * rather than dropped: the contract is the owned set, and the documents are one
  * expression of it.
  */
 

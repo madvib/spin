@@ -1,6 +1,6 @@
 import type { Rule } from "@unocss/core";
 import { type ThemeContext, token } from "../../utils/lookup.ts";
-
+import { ladder, styleType, type StyleType } from "./shared.ts";
 
 /**
  * Disclosure — `<details>` and `<summary>`.
@@ -50,7 +50,7 @@ interface Tokens {
   readonly sunken: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
-  readonly weightSemibold: string | undefined;
+  readonly weightSemibold: StyleType;
   readonly focusWidth: string | undefined;
   readonly focusOffset: string | undefined;
   readonly focusRing: string | undefined;
@@ -73,7 +73,7 @@ function tokens(ctx: ThemeContext | undefined): Tokens {
     sunken: token(ctx, "color.surface-sunken"),
     border: token(ctx, "color.border"),
     borderWidth: token(ctx, "border.width"),
-    weightSemibold: token(ctx, "font.weight.semibold"),
+    weightSemibold: styleType(ctx, "body-strong"),
     focusWidth: token(ctx, "focus.width"),
     focusOffset: token(ctx, "focus.offset"),
     focusRing: token(ctx, "color.focus-ring"),
@@ -220,9 +220,14 @@ function summaryRule(summary: string, details: string): Rule {
         // and leaving either in place is how a disclosure ends up with two
         // indicators in three browsers.
         "list-style": "none",
-        ...(t.weightSemibold !== undefined
-          ? { "font-weight": t.weightSemibold }
-          : {}),
+        // The label wears the body-strong voice's weight — emphasis for the
+        // row that opens — with the ladder step that style is built from as
+        // the window fallback.
+        ...(() => {
+          const weight = t.weightSemibold.weight ??
+            ladder(ctx, "font.weight.semibold");
+          return weight !== undefined ? { "font-weight": weight } : {};
+        })(),
         ...(t.text !== undefined ? { color: t.text } : {}),
         ...(t.duration !== undefined
           ? { "transition-duration": t.duration }

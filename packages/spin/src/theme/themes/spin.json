@@ -682,7 +682,7 @@
         },
         "size": {
           "$type": "dimension",
-          "$value": "{font.size.md}",
+          "$value": "{font.size.lg}",
           "$description": "The size the quote style reads at."
         },
         "weight": {
@@ -700,7 +700,7 @@
           "$value": "{font.leading.relaxed}",
           "$description": "The leading the quote style reads at."
         },
-        "$description": "The quotation voice: long-form editorial text set apart."
+        "$description": "The quotation voice: long-form editorial text set apart at the large step."
       },
       "code": {
         "family": {
@@ -832,7 +832,7 @@
         },
         "tracking": {
           "$type": "dimension",
-          "$value": "{font.tracking.wider}",
+          "$value": "{font.tracking.widest}",
           "$description": "The tracking the overline style reads at."
         },
         "leading": {
@@ -840,7 +840,7 @@
           "$value": "{font.leading.snug}",
           "$description": "The leading the overline style reads at."
         },
-        "$description": "The overline voice: an eyebrow or category mark above copy."
+        "$description": "The overline voice: an eyebrow set widest above editorial copy."
       },
       "stat": {
         "family": {
@@ -855,7 +855,7 @@
         },
         "weight": {
           "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
+          "$value": "{font.weight.bold}",
           "$description": "The weight the stat style reads at."
         },
         "tracking": {
@@ -868,7 +868,7 @@
           "$value": "{font.leading.tight}",
           "$description": "The leading the stat style reads at."
         },
-        "$description": "The stat voice: the number a figure shows, set to be read at a glance."
+        "$description": "The stat voice: the number a figure shows, set bold like a headline figure."
       },
       "badge": {
         "family": {
@@ -953,34 +953,6 @@
           "$description": "The leading the caption-strong style reads at."
         },
         "$description": "The figure-caption voice: a caption that names its figure."
-      },
-      "stat-label": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the stat-label style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the stat-label style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the stat-label style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the stat-label style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the stat-label style reads at."
-        },
-        "$description": "The stat-label voice: the name above a figure, tracked open so it reads as a label."
       },
       "card-title": {
         "family": {

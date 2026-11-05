@@ -482,7 +482,7 @@
       "display": {
         "family": {
           "$type": "fontFamily",
-          "$value": "{font.family.sans}",
+          "$value": "{font.family.serif}",
           "$description": "The face the display style reads in."
         },
         "size": {
@@ -505,7 +505,7 @@
           "$value": "{font.leading.tight}",
           "$description": "The leading the display style reads at."
         },
-        "$description": "The display voice: the largest statement a page makes."
+        "$description": "The display voice: the largest statement a page makes, set in the serif stack."
       },
       "title": {
         "family": {
@@ -655,7 +655,7 @@
         },
         "size": {
           "$type": "dimension",
-          "$value": "{font.size.md}",
+          "$value": "{font.size.lg}",
           "$description": "The size the quote style reads at."
         },
         "weight": {
@@ -673,7 +673,7 @@
           "$value": "{font.leading.relaxed}",
           "$description": "The leading the quote style reads at."
         },
-        "$description": "The quotation voice: long-form editorial text set apart."
+        "$description": "The quotation voice: long-form editorial text set apart at the large step."
       },
       "code": {
         "family": {
@@ -927,38 +927,10 @@
         },
         "$description": "The figure-caption voice: a caption that names its figure."
       },
-      "stat-label": {
-        "family": {
-          "$type": "fontFamily",
-          "$value": "{font.family.sans}",
-          "$description": "The face the stat-label style reads in."
-        },
-        "size": {
-          "$type": "dimension",
-          "$value": "{font.size.xs}",
-          "$description": "The size the stat-label style reads at."
-        },
-        "weight": {
-          "$type": "fontWeight",
-          "$value": "{font.weight.semibold}",
-          "$description": "The weight the stat-label style reads at."
-        },
-        "tracking": {
-          "$type": "dimension",
-          "$value": "{font.tracking.wide}",
-          "$description": "The tracking the stat-label style reads at."
-        },
-        "leading": {
-          "$type": "dimension",
-          "$value": "{font.leading.snug}",
-          "$description": "The leading the stat-label style reads at."
-        },
-        "$description": "The stat-label voice: the name above a figure, tracked open so it reads as a label."
-      },
       "card-title": {
         "family": {
           "$type": "fontFamily",
-          "$value": "{font.family.sans}",
+          "$value": "{font.family.serif}",
           "$description": "The face the card-title style reads in."
         },
         "size": {
@@ -981,7 +953,7 @@
           "$value": "{font.leading.snug}",
           "$description": "The leading the card-title style reads at."
         },
-        "$description": "The card-title voice: the name on a card, set to be found inside a surface."
+        "$description": "The card-title voice: the name on a card, set in the serif stack."
       }
     }
   },

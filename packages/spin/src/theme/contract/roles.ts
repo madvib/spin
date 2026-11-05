@@ -13,7 +13,7 @@ import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
-import { STYLE_FLOOR, styleFloorFields, styleFloorNames } from "./typography.ts";
+import { OWNED_STYLES, ownedStyleFields, ownedStyleNames } from "./typography.ts";
 import baseline from "../themes/silk.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
@@ -356,8 +356,8 @@ export const BASE_ROLES: readonly RoleDeclaration[] = DECLARED_ROLES.map(
 export function requiredPaths(): readonly string[] {
   const paths = new Set(BASE_ROLES.map((role) => role.path));
   for (const path of baselineScalePaths()) paths.add(path);
-  for (const name of styleFloorNames()) {
-    for (const field of styleFloorFields()) paths.add(`font.style.${name}.${field}`);
+  for (const name of ownedStyleNames()) {
+    for (const field of ownedStyleFields()) paths.add(`font.style.${name}.${field}`);
   }
   return [...paths];
 }
@@ -558,10 +558,10 @@ export function themeSchema(): Record<string, unknown> {
   // must not do is require a group nothing demands, or make a theme that
   // omits one invalid for the sake of a decision it never made.
   for (const role of ELEMENT_ROLES) gather(role.group, role.path, false);
-  // The style floor is required: every floor name's tuple is something a
+  // The owned set is required: every owned name's tuple is something a
   // theme owes, so the schema requires it the way the required paths do.
-  for (const name of styleFloorNames()) {
-    for (const field of styleFloorFields()) {
+  for (const name of ownedStyleNames()) {
+    for (const field of ownedStyleFields()) {
       gather("font", `font.style.${name}.${field}`, true);
     }
   }
@@ -660,8 +660,8 @@ function groupSchema(
     }
     const role = byRole.get(path);
     const element = byElement.get(path);
-    const floor = floorDoc(path);
-    const doc = role?.doc ?? element?.doc ?? floor ?? byScale.get(path)?.doc;
+    const owned = ownedDoc(path);
+    const doc = role?.doc ?? element?.doc ?? owned ?? byScale.get(path)?.doc;
     if (doc === undefined) continue;
     level[segments[segments.length - 1] as string] = {
       kind: "leaf",
@@ -673,17 +673,17 @@ function groupSchema(
 }
 
 /**
- * The documentation for a floor style leaf, from the floor's own entry.
+ * The documentation for an owned style leaf, from the owned set's own entry.
  *
- * The floor names the styles a theme owes; the schema says what each leaf
+ * The owned set names the styles a theme owes; the schema says what each leaf
  * holds, so the two read from the same list rather than a second roster.
  */
-function floorDoc(path: string): string | undefined {
+function ownedDoc(path: string): string | undefined {
   const segments = path.split(".");
   if (segments.length !== 4 || segments[0] !== "font" || segments[1] !== "style") {
     return undefined;
   }
-  const style = STYLE_FLOOR.find((entry) => entry.name === segments[2]);
+  const style = OWNED_STYLES.find((entry) => entry.name === segments[2]);
   if (style === undefined) return undefined;
   const field = segments[3] as string;
   return `The ${field} the ${style.name} style reads at.`;
