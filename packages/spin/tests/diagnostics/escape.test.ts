@@ -29,40 +29,50 @@ function escaped(tag: string, classes: string): ClassFacts {
 }
 
 test("the escape stands the ownership rules down", () => {
-  // `text-3xl` on a span is the single-owner error the element rule exists
-  // to report — until the author marks the element deliberate.
-  deepStrictEqual(checkPreferElement(facts, element("span", "text-3xl")).length > 0, true);
-  deepStrictEqual(checkPreferElement(facts, escaped("span", "text-3xl")), []);
-  deepStrictEqual(checkPreferThemeValue(facts, escaped("h3", "text-sm")), []);
-  deepStrictEqual(checkNoRedundantClass(facts, escaped("h3", "text-xl")), []);
+  // `tracking-tight` on a span is the single-owner error the element rule
+  // exists to report — until the author marks the element deliberate.
+  // TYPE-b: the raw size the fixture wore is a vocabulary warning now, so
+  // the ownership legs wear the surviving single-owner carriers.
+  deepStrictEqual(checkPreferElement(facts, element("span", "tracking-tight")).length > 0, true);
+  deepStrictEqual(checkPreferElement(facts, escaped("span", "tracking-tight")), []);
+  deepStrictEqual(checkPreferThemeValue(facts, escaped("h3", "type-body")), []);
+  deepStrictEqual(checkNoRedundantClass(facts, escaped("p", "type-body")), []);
   deepStrictEqual(checkNoUnpairedInk(facts, escaped("span", "bg-primary")), []);
 });
 
 test("the escape leaves the closed vocabulary on", () => {
   // Deliberate code still names nothing dead: a class no theme produces is
-  // reported on an escaped element the same as anywhere else.
+  // reported on an escaped element the same as anywhere else — including a
+  // removed raw utility, which is unknown with a style suggestion. A class
+  // the theme produces stays silent.
   deepStrictEqual(
     checkClosedVocabulary(facts, escaped("span", "not-a-class")).map((finding) => finding.messageId),
     ["unknown"],
   );
   deepStrictEqual(
     checkClosedVocabulary(facts, escaped("span", "text-3xl")).map((finding) => finding.messageId),
+    ["unknown"],
+  );
+  deepStrictEqual(
+    checkClosedVocabulary(facts, escaped("span", "type-body")).map((finding) => finding.messageId),
     [],
   );
 });
 
 test("without the escape, the ownership rules still fire", () => {
   // The escape is opt-out, not default: an unmarked element gets every rule.
-  deepStrictEqual(checkPreferElement(facts, element("span", "text-3xl")).length > 0, true);
-  deepStrictEqual(checkPreferThemeValue(facts, element("h3", "text-sm")).length > 0, true);
+  deepStrictEqual(checkPreferElement(facts, element("span", "tracking-tight")).length > 0, true);
+  deepStrictEqual(checkPreferThemeValue(facts, element("h3", "type-body")).length > 0, true);
 });
 
 test("the wordmark's lockup is expressible through the escape", () => {
-  // The brand wordmark (kit/mark.tsx): brand face, bold, tight tracking on
-  // a span — each a single-owner typographic reach the element rule reports.
-  // Through the escape, all three stand down; the vocabulary still holds
-  // (every class is one the theme produces).
-  const wordmark = escaped("span", "font-brand font-bold tracking-tight");
+  // The brand wordmark's tight tracking on a span is a single-owner
+  // typographic reach the element rule reports. Through the escape it stands
+  // down; the vocabulary still holds (the tracking is one the theme
+  // produces). TYPE-b: the wordmark's raw face/weight legs are removed
+  // utilities now — the migration rounds own that markup; the escape leg
+  // that survives is the tracking.
+  const wordmark = escaped("span", "tracking-tight");
   deepStrictEqual(checkPreferElement(facts, wordmark), []);
   deepStrictEqual(checkPreferThemeValue(facts, wordmark), []);
   deepStrictEqual(checkClosedVocabulary(facts, wordmark), []);
@@ -110,18 +120,18 @@ function ruleFindings(node: GateNode): string[] {
 test("the linter recognizes the escape on the element", () => {
   // The recognition every adapter shares: the class attribute's own element
   // carries `data-spin-escape`, so the element rule stands down.
-  const bare = gateAttribute("text-3xl", []);
+  const bare = gateAttribute("tracking-tight", []);
   deepStrictEqual(ruleFindings(bare), ["error"]);
-  const marked = gateAttribute("text-3xl", [{ name: "data-spin-escape" }]);
+  const marked = gateAttribute("tracking-tight", [{ name: "data-spin-escape" }]);
   deepStrictEqual(ruleFindings(marked), []);
 });
 
 test("a misspelled escape is no escape", () => {
   // There is one spelling and it is exact: a near-miss names nothing the
   // lint reads, so the finding stays.
-  const typo = gateAttribute("text-3xl", [{ name: "data-spin-escp" }]);
+  const typo = gateAttribute("tracking-tight", [{ name: "data-spin-escp" }]);
   deepStrictEqual(ruleFindings(typo), ["error"]);
-  const valued = gateAttribute("text-3xl", [{ name: "data-escape" }]);
+  const valued = gateAttribute("tracking-tight", [{ name: "data-escape" }]);
   deepStrictEqual(ruleFindings(valued), ["error"]);
 });
 
@@ -129,7 +139,7 @@ test("the escape on another element excuses nothing here", () => {
   // The escape never inherits: it excuses the element that carries it, not
   // its children, not its siblings. A bare element beside an escaped one is
   // still read in full.
-  const bare = gateAttribute("text-3xl", []);
+  const bare = gateAttribute("tracking-tight", []);
   deepStrictEqual(ruleFindings(bare), ["error"]);
 });
 
@@ -144,19 +154,19 @@ test("the escape holds end to end through ESLint", () => {
     rules: { "spin/prefer-element": "error" },
   };
   const flagged = linter.verify(
-    `<span className="text-3xl" />`,
+    `<span className="tracking-tight" />`,
     config,
     "app.jsx",
   );
   deepStrictEqual(flagged.map((message) => message.messageId), ["error"]);
   const excused = linter.verify(
-    `<span data-spin-escape className="text-3xl" />`,
+    `<span data-spin-escape className="tracking-tight" />`,
     config,
     "app.jsx",
   );
   deepStrictEqual(excused.map((message) => message.messageId), []);
   const misspelled = linter.verify(
-    `<span data-spin-escp className="text-3xl" />`,
+    `<span data-spin-escp className="tracking-tight" />`,
     config,
     "app.jsx",
   );

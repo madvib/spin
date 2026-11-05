@@ -268,8 +268,15 @@ test("p-4 resolves to the spacing token variable", async () => {
   assertTokenDriven(await cssFor("p-4"), "p-4", "padding");
 });
 
-test("text-lg resolves to the font-size token variable", async () => {
-  assertTokenDriven(await cssFor("text-lg"), "text-lg", "font-size");
+test("text-lg matches no rule: sizes arrive only inside named styles", async () => {
+  // TYPE-b (remove raw type utilities): the size branch is gone — `text-*`
+  // now resolves only through the color rules, so a scale step emits nothing
+  // and the closed vocabulary reports it with a style suggestion.
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
+  const { matched } = await uno.generate("text-lg", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "a raw size must not resolve");
 });
 
 test("rounded-lg resolves to the radius token variable", async () => {
@@ -303,15 +310,13 @@ test("preflight emits the theme variables", async () => {
     themes: { default: workingTreeDocument() },
   });
   const { css } = await uno.generate(
-    "bg-primary p-4 rounded-lg text-lg font-sans shadow-md",
+    "bg-primary p-4 rounded-lg shadow-md",
   );
   for (
     const [utility, property] of [
       ["bg-primary", "background-color"],
       ["p-4", "padding"],
       ["rounded-lg", "border-radius"],
-      ["text-lg", "font-size"],
-      ["font-sans", "font-family"],
       ["shadow-md", "box-shadow"],
     ] as [string, string][]
   ) {
@@ -337,14 +342,26 @@ test("border-neutral-50 resolves to the ramp token variable", async () => {
   assertTokenDriven(css, "border-neutral-50", "border-color");
 });
 
-test("font-sans resolves to the family token variable", async () => {
-  const css = await cssFor("font-sans");
-  assertTokenDriven(css, "font-sans", "font-family");
+test("font-sans matches no rule: families arrive only inside named styles", async () => {
+  // TYPE-b (remove raw type utilities): the `font-*` rule is gone, so a
+  // family emits nothing and the closed vocabulary reports it with a style
+  // suggestion.
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
+  const { matched } = await uno.generate("font-sans", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "a raw family must not resolve");
 });
 
-test("font-bold resolves to the weight token variable", async () => {
-  const css = await cssFor("font-bold");
-  assertTokenDriven(css, "font-bold", "font-weight");
+test("font-bold matches no rule: weights arrive only inside named styles", async () => {
+  // TYPE-b (remove raw type utilities): the `font-*` rule is gone, so a
+  // weight emits nothing and the closed vocabulary reports it with a style
+  // suggestion.
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
+  const { matched } = await uno.generate("font-bold", { extendedInfo: true });
+  deepStrictEqual([...matched.keys()], [], "a raw weight must not resolve");
 });
 
 test("m-4 resolves to the spacing token variable", async () => {
@@ -1063,7 +1080,7 @@ test("no emitted declaration is a self-referential custom property", async () =>
   });
   const { css } = await uno.generate(
     "p-4 m-4 ps-4 px-4 gap-4 w-4 h-4 inset-4 inset-x-0 top-4 bg-primary " +
-      "border-primary rounded-lg text-lg font-sans font-bold shadow-md " +
+      "border-primary rounded-lg shadow-md " +
       "z-dropdown duration-base ease-standard max-w-screen-md divide-primary",
   );
   const selfReference = /(--[\w-]+):\s*var\(\s*\1\s*\)/g;

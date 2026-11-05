@@ -55,7 +55,12 @@ export function checkPreferElement(
   const claimed = claimedBy(facts, node);
   const out: Finding[] = [];
   for (const reading of readings(facts, node, options)) {
-    if (!isReported(reading.tier, options.strictness)) continue;
+    // A named style stays silent: styles attach to any element by design
+    // (placement-open), so wearing one is never a reach for another
+    // element's decision. The style's whole tuple shares values with many
+    // elements, and naming the first of those would be naming noise — the
+    // rule has nothing to say about where a style sits.
+    if (coreName(reading.cls, facts.prefixes).startsWith("type-")) continue;
     const decision = reading.decision;
     if (decision === undefined) continue;
     // The decoration family is not this rule's. A control's `text-decoration:

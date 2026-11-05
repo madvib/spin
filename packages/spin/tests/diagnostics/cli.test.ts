@@ -85,13 +85,13 @@ test("the dials are the rule's own", async () => {
   try {
     await writeFile(
       `${directory}/app.tsx`,
-      `export const App = () => <button className="text-sm bg-surface-raised" />;\n`,
+      `export const App = () => <button className="type-body bg-surface-raised" />;\n`,
     );
     const strict = await findingsOf(directory, ["--strictness", "strict"]);
     const balanced = await findingsOf(directory, ["--strictness", "balanced"]);
     deepStrictEqual(strict.map((finding) => finding.message), [
       "`bg-surface-raised` sets `background-color` to what `<button>` already sets. Drop the class.",
-      "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
+      "the theme sets the size of `<button>`; `type-body` fights it. Use the theme's value.",
     ]);
     deepStrictEqual(balanced.map((finding) => finding.message), [
       "`bg-surface-raised` sets `background-color` to what `<button>` already sets. Drop the class.",
@@ -229,7 +229,7 @@ test("an advisory is reported and does not fail the run", async () => {
     const file = `${directory}/app.tsx`;
     await writeFile(
       file,
-      `export const App = () => <span className="text-sm" />;\n`,
+      `export const App = () => <span className="tracking-normal" />;\n`,
     );
     const findings = await findingsOf(directory);
     deepStrictEqual(
@@ -253,7 +253,7 @@ test("a single owner is reported and fails the run", async () => {
     const file = `${directory}/app.tsx`;
     await writeFile(
       file,
-      `export const App = () => <span className="text-3xl" />;\n`,
+      `export const App = () => <span className="tracking-tight" />;\n`,
     );
     const findings = await findingsOf(directory);
     deepStrictEqual(
@@ -277,7 +277,7 @@ test("an error fails the run", async () => {
     const file = `${directory}/app.tsx`;
     await writeFile(
       file,
-      `export const App = () => <h3 className="text-sm" />;\n`,
+      `export const App = () => <h3 className="type-body" />;\n`,
     );
     const findings = await findingsOf(directory);
     deepStrictEqual(

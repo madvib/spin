@@ -105,6 +105,7 @@ export {
   primitiveReadsByGroup,
   primitiveVariants,
 } from "./rules/primitives/manifest.ts";
+export { tokenConsumers } from "./token-consumers.ts";
 export type {
   PrimitiveCategory,
   PrimitiveElement,

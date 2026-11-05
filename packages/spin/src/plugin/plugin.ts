@@ -501,6 +501,15 @@ export interface SpinPluginOptions {
    * checked.
    */
   readonly strictClasses?: boolean;
+  /**
+   * How removed raw type utilities (`text-*` sizes, `font-*`
+   * families/weights) report. Default: the migration window warns before the
+   * gate minor (`0.2`) and errors after it. Pass `"error"` to migrate early,
+   * `"warn"` to stay lenient past the gate. A genuine typo is an error either
+   * way — the window covers the rename, not the vocabulary. The lint's
+   * `closed-vocabulary` finding follows the same window.
+   */
+  readonly rawType?: "warn" | "error";
   /** Safelist the catalog so a utility named only as data still resolves. */
   readonly safelist?: boolean;
   /**
@@ -862,6 +871,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
       themes,
       shortcuts: options.shortcuts,
       strict: options.strictClasses,
+      rawType: options.rawType,
       envMode,
       root,
       report: (message) => console.warn(message),

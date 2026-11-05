@@ -9,13 +9,13 @@ import { renderMessage, RULES } from "../../src/diagnostics/rules.ts";
 const OVERRIDE = RULES["prefer-theme-value"].meta;
 
 test("a class that says something else overrides the theme", () => {
-  // The heading takes its size from the theme's ladder; `text-sm` is a
-  // different step, and a second opinion about the ladder.
-  const [finding] = override("h3", "text-sm");
+  // The heading takes its size from the theme's ladder; `type-body` reads a
+  // different size, and a second opinion about the ladder.
+  const [finding] = override("h3", "type-body");
   deepStrictEqual(finding?.messageId, "override");
   deepStrictEqual(finding?.data, {
     tag: "h3",
-    cls: "text-sm",
+    cls: "type-body",
     family: "typography",
     claim: "the theme sets the size of `<h3>`",
     remedy: "Use the theme's value.",
@@ -27,10 +27,10 @@ test("the typography family says the theme sets the text", () => {
   // The theme states the scale, so the heading's size is the theme's — and
   // the message says so, and says what to write instead. No hedging: a
   // second opinion about the ladder is not a question.
-  const [finding] = override("h3", "text-sm");
+  const [finding] = override("h3", "type-body");
   deepStrictEqual(
     renderMessage(OVERRIDE, finding!),
-    "the theme sets the size of `<h3>`; `text-sm` fights it. Use the theme's value.",
+    "the theme sets the size of `<h3>`; `type-body` fights it. Use the theme's value.",
   );
 });
 
@@ -83,15 +83,16 @@ test("an override is an error and the single owner is an error", () => {
   // travels on the finding, where the deliveries read it.
   deepStrictEqual(plugin.rules["prefer-theme-value"].meta.type, "problem");
   deepStrictEqual(plugin.rules["prefer-element"].meta.type, "suggestion");
-  const [finding] = other("span", "text-3xl");
+  const [finding] = other("span", "tracking-tight");
   deepStrictEqual(finding?.messageId, "error");
   deepStrictEqual(finding?.severity, "error");
 });
 
 test("a class that changes nothing is not an override", () => {
   // The rule that says "the theme already said this" is the redundancy
-  // rule's business: one class, one finding.
-  deepStrictEqual(override("h3", "text-xl"), []);
+  // rule's business: one class, one finding. TYPE-b: the element's own
+  // style is the same value, so wearing it is dead, not a fight.
+  deepStrictEqual(override("p", "type-body"), []);
 });
 
 test("a layout utility is free on an element that paints", () => {
@@ -159,13 +160,15 @@ test("the spacing on an element the theme does not type is free", () => {
 
 test("the strictness dial chooses which tiers count", () => {
   // `balanced` reads a type size as a decision about content rather than
-  // about the element's own look, and leaves it to the author.
+  // about the element's own look, and leaves it to the author. TYPE-b: named
+  // styles inherit the raw sizes' structure tier, so the dial reads them the
+  // way it read the steps.
   const balanced: SemanticOptions = {
     strictness: "balanced",
     semanticTags: "all",
   };
-  deepStrictEqual(redundant("h1", "text-sm", balanced), []);
-  deepStrictEqual(override("h1", "text-sm", balanced), []);
+  deepStrictEqual(redundant("h1", "type-caption", balanced), []);
+  deepStrictEqual(override("h1", "type-caption", balanced), []);
   deepStrictEqual(override("button", "bg-primary", balanced).length, 1);
 });
 
@@ -241,30 +244,31 @@ test("a control's spacing is answered by its size variant", () => {
 });
 
 test("a paragraph states the type it renders", () => {
-  // The paragraph states the body's face, size and weight, so a class that
-  // says otherwise is a second opinion the theme-value rule reports: the
-  // size, the face, the weight — and the message names the theme's decision.
-  const [size] = override("p", "text-lg");
+  // The paragraph states the body's face, size and weight, so a style that
+  // reads otherwise is a second opinion the theme-value rule reports. A
+  // style fights as one decision — the size — however many of its values
+  // differ, and the message names the theme's decision.
+  const [size] = override("p", "type-caption");
   deepStrictEqual(size?.messageId, "override");
   deepStrictEqual(size?.data["family"], "typography");
   deepStrictEqual(size?.data["claim"], "the theme sets the size of `<p>`");
-  const [face] = override("p", "font-mono");
+  const [face] = override("p", "type-code");
   deepStrictEqual(face?.messageId, "override");
-  deepStrictEqual(face?.data["claim"], "the theme sets the typeface of `<p>`");
-  const [weight] = override("p", "font-semibold");
+  deepStrictEqual(face?.data["claim"], "the theme sets the size of `<p>`");
+  const [weight] = override("p", "type-caption-strong");
   deepStrictEqual(weight?.messageId, "override");
-  deepStrictEqual(weight?.data["claim"], "the theme sets the weight of `<p>`");
+  deepStrictEqual(weight?.data["claim"], "the theme sets the size of `<p>`");
   // A paragraph wearing `bare` has opted out of its primitive's paint: a
   // utility there is the author's own decision, not a fight with the theme.
-  deepStrictEqual(override("p", "bare text-lg"), []);
+  deepStrictEqual(override("p", "bare type-caption"), []);
 });
 
 test("a list states the type its rows read in", () => {
-  // The list states the body's face, size and weight, so overrides fire on
-  // the list and on its items — and the same class that matches the stated
-  // value is dead weight the redundancy rule drops.
+  // The list states the body's face, size and weight, so a style fights on
+  // the list and on its items — and the element's own style is dead weight
+  // the redundancy rule drops.
   for (const tag of ["ul", "ol", "li"]) {
-    const [finding] = override(tag, "text-lg");
+    const [finding] = override(tag, "type-lead");
     deepStrictEqual(finding?.messageId, "override");
     deepStrictEqual(finding?.data["family"], "typography");
     deepStrictEqual(
@@ -272,18 +276,18 @@ test("a list states the type its rows read in", () => {
       `the theme sets the size of \`<${tag}>\``,
     );
   }
-  const [face] = override("ul", "font-mono");
+  const [face] = override("ul", "type-code");
   deepStrictEqual(face?.messageId, "override");
   deepStrictEqual(
     face?.data["claim"],
-    "the theme sets the typeface of `<ul>`",
+    "the theme sets the size of `<ul>`",
   );
-  const [dead] = redundant("p", "text-md");
+  const [dead] = redundant("p", "type-body");
   deepStrictEqual(dead?.messageId, "redundant");
   deepStrictEqual(dead?.data, {
     tag: "p",
-    cls: "text-md",
-    properties: "font-size",
+    cls: "type-body",
+    properties: "font-family, font-size, font-weight, letter-spacing, line-height",
   });
   deepStrictEqual(override("li", "flex gap-2"), []);
 });

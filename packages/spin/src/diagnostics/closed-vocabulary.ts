@@ -11,11 +11,23 @@
  */
 
 import { coreName, removalOf } from "./semantic.ts";
+import { rawTypeSeverity, type RawTypeSeverity } from "./raw-type-window.ts";
+import { suggestTypeStyle } from "./type-style.ts";
 import type { ClassFacts, Facts, Finding } from "./core.ts";
+
+/** What the closed-vocabulary check is told about the migration window. */
+export interface ClosedVocabularyOptions {
+  /**
+   * How removed raw type utilities report. Omitted, the shipping version's
+   * window side decides: warn before the gate minor, error after it.
+   */
+  readonly rawType?: RawTypeSeverity;
+}
 
 export function checkClosedVocabulary(
   facts: Facts,
   node: ClassFacts,
+  options: ClosedVocabularyOptions = {},
 ): Finding[] {
   if (!facts.readable) return [];
   // The project composes, and the lint cannot see what it composed: the
@@ -45,12 +57,21 @@ export function checkClosedVocabulary(
       }
       continue;
     }
+    const suggestion = suggestTypeStyle(core, facts.values, node.tag);
+    // The migration window: a removed utility warns before the gate minor
+    // and errors after it. Anything else unknown is dead either way.
+    const removed = suggestion !== undefined;
     out.push({
       messageId: "unknown",
       data: { cls },
       position: node.position,
       fix: removalOf(node, index),
-      remedy: "Drop `" + cls + "`",
+      remedy: removed
+        ? "Did you mean `" + suggestion + "`? Drop `" + cls + "` and wear the style instead."
+        : "Drop `" + cls + "`",
+      ...(removed && rawTypeSeverity(options.rawType) === "warn"
+        ? { severity: "warning" as const }
+        : {}),
     });
   }
   return out;

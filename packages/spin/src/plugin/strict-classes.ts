@@ -5,8 +5,16 @@ import { animationVariants } from "../animation/index.ts";
 import { describeCatalog } from "../compiler/catalog.ts";
 import { primitiveVariants } from "../compiler/index.ts";
 import { breakpointEdges, variantPrefixes } from "../compiler/variants/index.ts";
-import { parseTokens, type ThemeDocument } from "../theme/index.ts";
+import { rawTypeSeverity, type RawTypeSeverity } from "../diagnostics/raw-type-window.ts";
+import { suggestTypeStyle } from "../diagnostics/type-style.ts";
 import type { ContentMap } from "./content.ts";
+import {
+  cssVarName,
+  indexTree,
+  parseTokens,
+  resolveAliases,
+  type ThemeDocument,
+} from "../theme/index.ts";
 
 /**
  * The build's unknown-class error (`strictClasses`).
@@ -40,6 +48,13 @@ export interface StrictClassesInput {
   readonly shortcuts?: UserShortcuts;
   /** The flag's spelling: error always, error in builds, or silence. */
   readonly strict?: boolean;
+  /**
+   * How removed raw type utilities (`text-*` sizes, `font-*`
+   * families/weights) report. Omitted, the migration window decides: warn
+   * before the gate minor, error after it. A genuine typo is an error either
+   * way — the window covers the rename, not the vocabulary.
+   */
+  readonly rawType?: RawTypeSeverity;
   /** Whether the sheet is served or built. */
   readonly envMode: "dev" | "build";
   /** The project root the file paths are read against. */
@@ -55,6 +70,12 @@ export interface DeadClass {
   readonly suggestion: string | undefined;
   /** The shortcut that spends the dead class, when that is the problem. */
   readonly shortcut: string | undefined;
+  /**
+   * Whether the class is a removed raw type utility travelling under the
+   * migration window: it warns while the window is open and errors past
+   * the gate, where every other dead class errors in builds either way.
+   */
+  readonly removedType?: boolean;
 }
 
 /**
@@ -62,17 +83,41 @@ export interface DeadClass {
  *
  * `strict === false` restores silence. Otherwise a production build (or an
  * explicit `true`) throws with every dead class; the dev server reports the
- * same payload and keeps serving.
+ * same payload and keeps serving. Removed raw type utilities follow the
+ * migration window instead: they warn while the window is open, even in a
+ * production build, and join the error past the gate.
  */
 export function checkStrictClasses(input: StrictClassesInput): void {
   if (input.strict === false) return;
   const dead = deadClasses(input);
   if (dead.length === 0) return;
+  const windowed = rawTypeSeverity(input.rawType);
+  if (windowed === "warn") {
+    const removed = dead.filter((entry) => isRemovedTypeEntry(entry));
+    const rest = dead.filter((entry) => !isRemovedTypeEntry(entry));
+    if (removed.length > 0) input.report(formatStrictClassesError(removed));
+    if (rest.length === 0) return;
+    const message = formatStrictClassesError(rest);
+    if (input.strict === true || input.envMode === "build") {
+      throw new Error(message);
+    }
+    input.report(message);
+    return;
+  }
   const message = formatStrictClassesError(dead);
   if (input.strict === true || input.envMode === "build") {
     throw new Error(message);
   }
   input.report(message);
+}
+
+/**
+ * Whether a dead class travels under the migration window rather than with
+ * the ordinary dead: a removed raw type utility, marked where the class was
+ * read with the prefixes and values in hand.
+ */
+function isRemovedTypeEntry(entry: DeadClass): boolean {
+  return entry.removedType === true;
 }
 
 /** Every class the sources name that nothing produces. */
@@ -91,6 +136,19 @@ export function deadClasses(input: Omit<StrictClassesInput, "strict" | "envMode"
     ...variantPrefixes(),
     ...Object.keys(breakpointEdges(trees)).map((name) => `${name}:`),
   ]);
+  // The theme's resolved values, for the removed-type suggestion: a dead
+  // `text-sm` names the style that reads that way, the way the lint remedy
+  // does. Built here the way the lint's facts build it — aliases followed,
+  // last document winning — so the two suggestions cannot disagree.
+  const values = new Map<string, string>();
+  for (const tree of trees) {
+    const resolved = resolveAliases(tree);
+    for (const leaf of Object.values(indexTree(resolved.tree).leaves)) {
+      const value = leaf.value;
+      if (value === undefined || value === null) continue;
+      values.set(cssVarName(leaf.path), String(value));
+    }
+  }
   const vocabulary = new Set<string>([
     ...trees.flatMap((tree) =>
       describeCatalog(tree).flatMap((section) => section.utilities)
@@ -160,14 +218,26 @@ export function deadClasses(input: Omit<StrictClassesInput, "strict" | "envMode"
     if (file.startsWith("..")) continue;
     for (const cls of candidatesInFile(path, text)) consider(file, cls);
   }
+  // A removed raw type utility names the style that reads that way — the
+  // same suggestion the lint remedy carries — rather than the nearest
+  // neighbour by spelling, which would never reach across the rename. The
+  // entry carries the window marker with it, so the check can split the
+  // migration warning from the ordinary dead without re-deriving anything.
+  const suggest = (cls: string): { suggestion: string | undefined; removedType: boolean } => {
+    const style = suggestTypeStyle(coreOf(cls, prefixes), values);
+    if (style !== undefined) return { suggestion: style, removedType: true };
+    return { suggestion: suggestFor(cls, prefixes, vocabulary), removedType: false };
+  };
   const out: DeadClass[] = [];
   for (const [cls, files] of [...seen].sort(([a], [b]) => a < b ? -1 : 1)) {
+    const { suggestion, removedType } = suggest(cls);
     for (const file of [...files].sort()) {
       out.push({
         file,
         cls,
-        suggestion: suggestFor(cls, prefixes, vocabulary),
+        suggestion,
         shortcut: undefined,
+        ...(removedType ? { removedType: true as const } : {}),
       });
     }
   }
@@ -185,11 +255,13 @@ export function deadClasses(input: Omit<StrictClassesInput, "strict" | "envMode"
     for (const part of parts) {
       if (coreOf(part, prefixes).startsWith("i-")) continue;
       if (known(part)) continue;
+      const { suggestion, removedType } = suggest(part);
       out.push({
         file: "the project configuration",
         cls: part,
-        suggestion: suggestFor(part, prefixes, vocabulary),
+        suggestion,
         shortcut: name,
+        ...(removedType ? { removedType: true as const } : {}),
       });
     }
   }

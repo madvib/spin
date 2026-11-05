@@ -44,9 +44,11 @@ async function project(
 }
 
 /** A source with one class nothing can produce, and one the theme owns. */
+// TYPE-b: the override wears a named style — raw sizes are vocabulary
+// warnings now, not theme fights.
 const DIRTY = `export const App = () => (
   <div className="not-a-class">
-    <h1 className="text-lg">Title</h1>
+    <h1 className="type-body">Title</h1>
   </div>
 );
 `;

@@ -589,10 +589,15 @@ test("wind4's inert rules stay out of the layer", async () => {
   // Force the lazy report with a blur utility WE do not own: the guarded
   // wrapper only learns the handler cannot run when something reaches it.
   await uno.generate("filter-blur", { preflights: false });
+  // And a font utility the removal uncovered: wind4's `font-` pattern is no
+  // longer ownership-excluded now ours is gone, so the audit runs it, finds
+  // it cannot read a spin theme, and records it inert. TYPE-b.
+  await uno.generate("font-sans", { preflights: false });
   const KNOWN_INERT: readonly string[] = [
     "transform",
     "transform-cpu",
     "transform-gpu",
+    "^font-(.+)$",
     "^(?:(backdrop-)|filter-)?blur(?:-(.+))?$",
   ];
   const inert = wind4Exclusions()

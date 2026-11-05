@@ -21,7 +21,14 @@ function workingDocument(): ThemeDocument {
       neutral: { 300: { $value: "#a1a1aa" } },
     },
     spacing: { $type: "dimension", 4: { $value: "1rem" } },
-    font: { size: { $type: "dimension", lg: { $value: "1.25rem" } } },
+    font: {
+      size: { $type: "dimension", lg: { $value: "1.25rem" } },
+      // TYPE-b: one declared style, so the suite's "named X still works"
+      // assertions spend the vocabulary that replaced the raw utilities.
+      style: {
+        body: { size: { $type: "dimension", $value: "{font.size.lg}" } },
+      },
+    },
     radius: { $type: "dimension", md: { $value: "0.5rem" } },
     shadow: { $type: "shadow", md: { $value: "0 1px 2px black" } },
     breakpoint: { $type: "dimension", md: { $value: "48rem" } },
@@ -230,9 +237,9 @@ test("an arbitrary type size produces no rule at all", async () => {
     `these type sizes carry a number written by hand and still produce a rule: ${alive.join(", ")}`,
   );
   deepStrictEqual(
-    valueFor(await sheetFor("text-lg"), "text-lg", "font-size"),
-    "var(--font-size-lg)",
-    "the named step still sizes type",
+    valueFor(await sheetFor("type-body"), "type-body", "font-size"),
+    "var(--font-style-body-size)",
+    "the declared style still sizes type",
   );
 });
 
@@ -463,6 +470,6 @@ test("text-text emits no rule while the text token and its sibling stay", async 
     /color:\s*var\(--color-text-muted\)/,
     "text-text-muted still paints the muted ink",
   );
-  const sized = await uno.generate("text-lg", { preflights: false });
-  assert.match(sized.css, /font-size/, "text-lg still sizes type");
+  const styled = await uno.generate("type-body", { preflights: false });
+  assert.match(styled.css, /font-size/, "the declared style still sizes type");
 });

@@ -60,14 +60,14 @@ export const TIER_BY_GROUP: Readonly<Record<string, Tier>> = {
   divide: "skin",
   radius: "skin",
   shadow: "skin",
-  font: "skin",
   opacity: "skin",
   "text-decoration": "skin",
   typography: "skin",
-  "font-style": "skin",
 
-  // Structure — the size of the element's text.
-  "type-size": "structure",
+  // Structure — the size of the element's text. TYPE-b: named styles inherit
+  // the raw sizes' tier — a style fights the element's scale the way a size
+  // step did, so the strictness dial reads it the way it read the step.
+  "font-style": "structure",
 };
 
 /**
@@ -106,33 +106,22 @@ export const PAINT_BY_GROUP: Readonly<Record<string, Decision>> = {
   shadow: "elevation",
   opacity: "opacity",
   "text-decoration": "decoration",
-  "type-size": "size",
   "font-style": "size",
 };
 
 /**
  * The decision a utility makes.
  *
- * The catalog's group says what the family does; two families hold more than
- * one decision, and the NAME says which:
- *
- * - `font` — a family (`font-mono`) is a face, a step (`font-semibold`) is
- *   a weight. The steps come from the theme, so a theme that names a weight
- *   of its own is read correctly.
- * - `typography` — tracking is tracking, a capitalisation is a case, and the
- *   focus ring is an edge.
+ * The catalog's group says what the family does; one family holds more than
+ * one decision, and the NAME says which: in `typography`, tracking is
+ * tracking, a capitalisation is a case, and the focus ring is an edge.
  */
 export function paintKeyFor(
   utility: string,
   group: string,
-  weights: ReadonlySet<string>,
 ): Decision | undefined {
   const named = PAINT_BY_GROUP[group];
   if (named !== undefined) return named;
-  if (group === "font") {
-    const step = utility.startsWith("font-") ? utility.slice(5) : utility;
-    return weights.has(step) ? "weight" : "face";
-  }
   if (group === "typography") {
     if (utility.startsWith("tracking-")) return "tracking";
     if (utility.startsWith("outline-")) return "edge";

@@ -32,17 +32,18 @@ test("every catalog family has a tier", () => {
 test("the tier of a family says what it does to an element", () => {
   // A spot check on the reading: the families that paint are skin, the one
   // that sets the type scale is structure, and the ones that place things
-  // are layout.
+  // are layout. TYPE-b: named styles inherit the raw sizes' structure tier;
+  // the removed `type-size` and `font` groups pin nothing anymore.
   deepStrictEqual(TIER_BY_GROUP["background"], "skin");
   deepStrictEqual(TIER_BY_GROUP["text-color"], "skin");
   deepStrictEqual(TIER_BY_GROUP["border"], "skin");
   deepStrictEqual(TIER_BY_GROUP["radius"], "skin");
   deepStrictEqual(TIER_BY_GROUP["shadow"], "skin");
-  deepStrictEqual(TIER_BY_GROUP["font"], "skin");
   deepStrictEqual(TIER_BY_GROUP["opacity"], "skin");
   deepStrictEqual(TIER_BY_GROUP["typography"], "skin");
-  deepStrictEqual(TIER_BY_GROUP["font-style"], "skin");
-  deepStrictEqual(TIER_BY_GROUP["type-size"], "structure");
+  deepStrictEqual(TIER_BY_GROUP["font-style"], "structure");
+  deepStrictEqual(TIER_BY_GROUP["type-size"], undefined);
+  deepStrictEqual(TIER_BY_GROUP["font"], undefined);
   deepStrictEqual(TIER_BY_GROUP["layout"], "layout");
   deepStrictEqual(TIER_BY_GROUP["sizing"], "layout");
   deepStrictEqual(TIER_BY_GROUP["grid"], "layout");

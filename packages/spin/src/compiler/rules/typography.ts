@@ -31,35 +31,10 @@ export function typographyRules(): Rule[] {
       [...Object.keys(TEXT_TRANSFORMS), ...Object.keys(OUTLINE)],
       STATIC_DECLS,
     ),
-    [
-      /^font-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
-        const family = named(ctx, "font-family", name);
-        if (family) return { "font-family": family };
-        const weight = named(ctx, "font-weight", name);
-        if (weight) return { "font-weight": weight };
-        return undefined;
-      },
-      { autocomplete: "font-$fontFamily" },
-    ],
-    // T2 (remove the type hatch): type sizes come from the scale — there is
-    // no arbitrary branch here, so `text-[14px]` matches no rule and is dead
-    // on arrival (closed-vocabulary and `strictClasses` catch it like a typo).
-    // The `text-*` size rule below resolves only steps the theme declares.
-    [
-      /^text-(.+)$/,
-      ([, name]: string[], ctx?: ThemeContext) => {
-        // T5 (remove `text-text`): the twin carve-out to `color.ts` — the
-        // later-registered color branch is tried first, so this branch also
-        // refuses the exact name rather than resolving the bare token.
-        if (name === "text") return undefined;
-        const size = named(ctx, "font-size", name);
-        if (size) return { "font-size": size };
-        const color = named(ctx, "color", name);
-        if (color) return { color: color };
-        return undefined;
-      },
-      { autocomplete: "text-$fontSize" },
-    ],
+    // TYPE-b (remove raw type utilities): the `font-*` family/weight rule is
+    // gone — families and weights arrive only inside named `type-*` styles.
+    // The `text-*` size branch is gone with it: `text-*` now resolves only
+    // through the color rules, so a size is an unknown class with a style
+    // suggestion rather than a silent empty declaration.
   ];
 }

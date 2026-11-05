@@ -198,8 +198,8 @@ export function createSpinFactory(
             "z-$zIndex",
             "duration-$motionDuration",
             "ease-$motionEasing",
-            "text-$fontSize",
-            "font-$fontFamily",
+            // TYPE-b: no `text-$fontSize` / `font-$fontFamily` templates — the
+            // raw utilities are gone, and completion offers named styles.
             "type-$fontStyle",
             "rounded-$radius",
             "shadow-$shadow",
@@ -212,9 +212,6 @@ export function createSpinFactory(
             breakpoint: orGroup(theme, "breakpoint"),
             zIndex: orGroup(theme, "z-index"),
             motionDuration: "(" + transitionDurations(theme).join("|") + ")",
-            fontSize: orGroup(theme, "font-size"),
-            fontFamily: orGroup(theme, "font-family"),
-            fontWeight: orGroup(theme, "font-weight"),
             fontStyle: styleNames(theme),
             radius: orGroup(theme, "radius"),
             shadow: orGroup(theme, "shadow"),

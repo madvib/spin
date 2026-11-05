@@ -98,8 +98,8 @@ export const SECTIONS: readonly Section[] = [
   {
     id: "typography",
     title: "Typography",
-    blurb: "Size, family, weight, named styles, alignment, decoration and case.",
-    groups: ["type-size", "font", "font-style", "text", "typography", "text-decoration"],
+    blurb: "Named styles, alignment, decoration and case.",
+    groups: ["font-style", "text", "typography", "text-decoration"],
     sample: "text",
   },
   {

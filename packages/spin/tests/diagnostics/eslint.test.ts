@@ -57,8 +57,9 @@ test("a flat configuration takes the plugin and it reports", () => {
 test("the dial reaches the rule through the linter's options", () => {
   // `strict` reads a type size as the element's own decision; `balanced`
   // reads it as a decision about content. The options travel the way ESLint
-  // delivers them: as the rule's first option.
-  const code = `<button className="text-sm bg-primary" />`;
+  // delivers them: as the rule's first option. TYPE-b: the style fights the
+  // button's size the way the raw step did.
+  const code = `<button className="type-body bg-primary" />`;
   const strict = linter().verify(
     code,
     config({
@@ -74,7 +75,7 @@ test("the dial reaches the rule through the linter's options", () => {
     "app.jsx",
   );
   deepStrictEqual(strict.map((message) => message.message), [
-    "the theme sets the size of `<button>`; `text-sm` fights it. Use the theme's value.",
+    "the theme sets the size of `<button>`; `type-body` fights it. Use the theme's value.",
     "`<button>` sets its own fill; `bg-primary` fights it. Use a variant (`bare`, `contrast`, …) or the theme's value.",
   ]);
   deepStrictEqual(balanced.map((message) => message.message), [

@@ -65,25 +65,6 @@ function scopesOf(): ScopeFact[] {
   return out;
 }
 
-/**
- * The weight steps the themes declare.
- *
- * The catalog puts the families and the weights in one group — `font-mono`
- * and `font-semibold` are both a font — and the rule asks which DECISION a
- * utility makes: a face or a weight. The names come from the theme, so a
- * theme that names a weight of its own is read correctly.
- */
-function weightNames(trees: readonly TokenTree[]): Set<string> {
-  const out = new Set<string>();
-  for (const tree of trees) {
-    for (const leaf of Object.values(indexTree(tree).leaves)) {
-      if (leaf.path[0] !== "font" || leaf.path[1] !== "weight") continue;
-      const step = leaf.path[2];
-      if (step !== undefined) out.add(step);
-    }
-  }
-  return out;
-}
 
 /** The trees a set of documents parses to, in order. */
 function treesOf(documents: readonly ThemeDocument[]): TokenTree[] {
@@ -129,7 +110,6 @@ export function factsFor(
   const tiers = new Map<string, Tier>();
   const paints = new Map<string, Decision>();
   const prefixes = new Set<string>();
-  const weights = weightNames(trees);
   for (const tree of trees) {
     for (const section of describeCatalog(tree)) {
       for (const utility of section.utilities) {
@@ -142,9 +122,10 @@ export function factsFor(
         const tier = TIER_BY_GROUP[section.id];
         if (tier === undefined) continue;
         if (!tiers.has(utility)) tiers.set(utility, tier);
-        // The decision a utility makes. A group that says only "font" needs
-        // the name to say whether it is a face or a weight.
-        const decision = paintKeyFor(utility, section.id, weights);
+        // The decision a utility makes, by the catalog group that produces
+        // it. A group the map does not name makes no decision the lint can
+        // speak about.
+        const decision = paintKeyFor(utility, section.id);
         if (decision === undefined) continue;
         if (!paints.has(utility)) paints.set(utility, decision);
       }

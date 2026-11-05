@@ -83,9 +83,11 @@ test("a class nothing produces carries the edit that drops it", () => {
 test("a scale step the starters declare is part of the vocabulary", () => {
   // The whole point of the union: the scaffold a theme starts from has no
   // scales at all, so a vocabulary built from it calls every step unknown.
+  // TYPE-b: raw type utilities are no longer vocabulary — the named styles
+  // are — so the fixture wears `type-body` where it once wore `text-xs`.
   const facts = factsFor(Object.values(starterThemes));
   deepStrictEqual(
-    reported(facts, "text-xs text-sm gap-2 font-mono rounded-md p-3"),
+    reported(facts, "type-body type-caption gap-2 rounded-md p-3"),
     [],
   );
 });
@@ -115,7 +117,7 @@ test("with no project theme, the starters' vocabulary applies", () => {
   // A project that has not forked a theme still renders: it serves the
   // starters. The vocabulary is theirs, and only theirs.
   const facts = projectFacts({}, new Set());
-  deepStrictEqual(reported(facts, "text-xs gap-2 rounded-md"), []);
+  deepStrictEqual(reported(facts, "type-body gap-2 rounded-md"), []);
   deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });
 
@@ -141,7 +143,7 @@ test("a class the project declares is known beside the starters", () => {
     { acme: projectTheme() },
     new Set(),
   );
-  deepStrictEqual(reported(facts, "p-72 text-xs"), []);
+  deepStrictEqual(reported(facts, "p-72 type-body"), []);
   deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });
 
@@ -169,14 +171,20 @@ test("text-text is unknown and carries the edit that drops it", () => {
   deepStrictEqual(finding?.fix, { range: [0, 9], text: "" });
 });
 
-test("an arbitrary type size is unknown while the named step stays known", () => {
-  // T2 (remove the type hatch): no rule emits `text-[14px]`, and the catalog
-  // never names it, so the closed vocabulary reports it like any dead class —
-  // while the named steps stay known.
+test("a removed raw size is unknown while the named style stays known", () => {
+  // TYPE-b (remove raw type utilities): no rule emits `text-xs`, and the
+  // catalog never names it, so the closed vocabulary reports it like any
+  // dead class — while the named styles stay known. The arbitrary hatch
+  // (`text-[14px]`) reads the same way it always did.
   const facts = factsFor(Object.values(starterThemes));
   deepStrictEqual(reported(facts, "text-[14px] text-[15px]"), [
     "text-[14px]",
     "text-[15px]",
   ]);
-  deepStrictEqual(reported(facts, "text-xs text-lg text-2xs"), []);
+  deepStrictEqual(reported(facts, "text-xs text-lg text-2xs"), [
+    "text-xs",
+    "text-lg",
+    "text-2xs",
+  ]);
+  deepStrictEqual(reported(facts, "type-body type-caption"), []);
 });

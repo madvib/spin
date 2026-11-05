@@ -130,22 +130,13 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       ],
     },
     {
-      id: "type-size",
-      title: "Type size",
-      utilities: prefixed(["text-"], namesIn(theme, "font-size")),
-    },
-    {
+      // TYPE-b (remove raw type utilities): the `text-*` sizes and `font-*`
+      // families/weights are no longer produced, so the catalog names only
+      // the named styles. `text-*` colours still list under "Text color"
+      // above — the palette is vocabulary, the scale is not.
       id: "font-style",
       title: "Named type styles",
       utilities: catalogStyleNames(theme),
-    },
-    {
-      id: "font",
-      title: "Font family and weight",
-      utilities: [
-        ...prefixed(["font-"], namesIn(theme, "font-family")),
-        ...prefixed(["font-"], namesIn(theme, "font-weight")),
-      ],
     },
     {
       id: "radius",
