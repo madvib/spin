@@ -418,7 +418,7 @@ export default function OverviewPage() {
           {(failure) => (
             <section class="stack-sm panel" aria-label="No project">
               <h2>There is no project here</h2>
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 The studio edits a project on disk, and the daemon it is talking
                 to is not serving one: {problemText(failure())}
               </p>
@@ -429,19 +429,19 @@ export default function OverviewPage() {
           {(report) => (
             <section class="stack-sm panel" aria-label="First run">
               <h2>This folder is not a spin project yet</h2>
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 A project is a folder with a <code>spin/</code>{" "}
                 directory in it. The daemon is serving{" "}
                 <code class="break-all">{report().root}</code>, and that folder
                 has no such directory — so the themes below are the built-ins,
                 and nothing here is the project's own yet.
               </p>
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 Creating the project writes the directory, a first theme, and
                 the bundler config that wires the Spin plugin into the build.
               </p>
               <div class="row-sm">
-                <label for="project-theme-name" class="text-sm text-text-muted">
+                <label for="project-theme-name" class="text-text-muted">
                   First theme
                 </label>
                 <input
@@ -453,7 +453,7 @@ export default function OverviewPage() {
                 <button type="button" onClick={init}>Create the project</button>
               </div>
               <Show when={projectProblem() !== null}>
-                <p class="text-sm text-semantic-error" role="alert">
+                <p class="text-semantic-error" role="alert">
                   {projectProblem()}
                 </p>
               </Show>
@@ -473,7 +473,7 @@ export default function OverviewPage() {
             </alert>
           </Show>
           <div class="flex justify-end">
-            <span class="text-sm text-text-muted">
+            <span class="type-caption text-text-muted">
               {summaries().length} themes
             </span>
           </div>
@@ -513,7 +513,7 @@ export default function OverviewPage() {
                   <div class="row-sm flex-wrap">
                     <button
                       type="button"
-                      class="bare min-w-0 flex-1 justify-start text-left font-medium"
+                      class="bare min-w-0 flex-1 justify-start text-left type-label"
                       style={{
                         "font-family": seedToken(seed(summary.name) ?? "", "font.family.heading", "inherit"),
                         color: cardText(),
@@ -525,20 +525,20 @@ export default function OverviewPage() {
                       {summary.name}
                     </button>
                     <Show when={summary.dirty}>
-                      <span class="shrink-0 text-xs text-semantic-warning">
+                      <span class="shrink-0 type-caption text-semantic-warning">
                         unsaved
                       </span>
                     </Show>
                     <Show when={summary.state === "changed"}>
                       <span
-                        class="shrink-0 text-xs text-semantic-warning"
+                        class="shrink-0 type-caption text-semantic-warning"
                         title="The file on disk is not what the studio wrote"
                       >
                         changed on disk
                       </span>
                     </Show>
                     <Show when={!summary.valid}>
-                      <span class="shrink-0 text-xs text-semantic-error">
+                      <span class="shrink-0 type-caption text-semantic-error">
                         {summary.issues.length === 1
                           ? "1 issue"
                           : `${summary.issues.length} issues`}
@@ -569,7 +569,7 @@ export default function OverviewPage() {
                   </div>
                   <Show when={deleteProblems()[summary.name]}>
                     {(message) => (
-                      <p class="text-xs text-semantic-error" role="alert">
+                      <p class="text-semantic-error" role="alert">
                         {message()}
                       </p>
                     )}
@@ -579,7 +579,7 @@ export default function OverviewPage() {
                       group.chips.length > 0
                     )}
                     fallback={
-                      <p class="text-xs text-text-muted">
+                      <p class="text-text-muted">
                         No palette declared yet.
                       </p>
                     }
@@ -592,7 +592,7 @@ export default function OverviewPage() {
                       >
                         {(group) => (
                           <div class="flex items-center gap-2">
-                            <span class="w-10 shrink-0 font-mono text-xs text-text-muted" style={{ color: cardMuted() }}>
+                            <span class="w-10 shrink-0 type-code text-text-muted" style={{ color: cardMuted() }}>
                               {group.mode}
                             </span>
                             <div class="flex h-6 flex-1 overflow-hidden rounded-sm border border-border">
@@ -615,7 +615,7 @@ export default function OverviewPage() {
                       </For>
                     </div>
                   </Show>
-                  <p class="mt-auto truncate text-xs text-text-muted" style={{ color: cardMuted() }}>
+                  <p class="mt-auto truncate text-text-muted" style={{ color: cardMuted() }}>
                     {summary.tokens} tokens · {summary.file ?? "@spinjs/spin/theme"}
                   </p>
                 </article>
@@ -627,12 +627,12 @@ export default function OverviewPage() {
         <section class="stack-sm panel" aria-label="Project">
           <h2>Project</h2>
           <Show when={config()?.file === null}>
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               Defaults — save to write spin/config.json.
             </p>
           </Show>
           <div class="row-sm">
-            <label for="project-active-theme" class="text-sm text-text-muted">
+            <label for="project-active-theme" class="text-text-muted">
               Active theme
             </label>
             <select
@@ -651,7 +651,7 @@ export default function OverviewPage() {
             <For each={summaries()}>
               {(summary, index) => (
                 <li class="row-sm">
-                  <span class="flex-1 truncate text-sm">{summary.name}</span>
+                  <span class="flex-1 truncate type-body">{summary.name}</span>
                   <button
                     type="button"
                     class="secondary s-sm"
@@ -718,7 +718,7 @@ export default function OverviewPage() {
             above and below it is the theme's rhythm. */
         }
         <hr class="w-full" />
-        <footer class="stack-sm text-xs text-text-muted">
+        <footer class="stack-sm type-caption text-text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
             <span>{active()?.file ?? "@spinjs/spin/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
@@ -809,7 +809,7 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
       <Show
         when={props.chips.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no palette roles yet.
           </p>
         }
@@ -851,7 +851,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
       <Show
         when={props.steps.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no surface ladder yet.
           </p>
         }
@@ -861,7 +861,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
           style={{ background: recessed()?.value ?? page()?.value ?? "transparent" }}
         >
           <span
-            class="px-2 py-1 font-mono text-xs"
+            class="px-2 py-1 type-code"
             style={{ color: recessed()?.ink ?? page()?.ink ?? "inherit" }}
           >
             {toHex(recessed()?.value ?? page()?.value ?? "") ?? recessed()?.value ?? page()?.value ?? ""}
@@ -871,7 +871,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
             style={{ background: page()?.value ?? "transparent" }}
           >
             <span
-              class="px-2 py-1 font-mono text-xs"
+              class="px-2 py-1 type-code"
               style={{ color: page()?.ink ?? "inherit" }}
             >
               {toHex(page()?.value ?? "") ?? page()?.value ?? ""}
@@ -881,7 +881,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
               style={{ background: raised()?.value ?? "transparent" }}
             >
               <span
-                class="px-2 py-1 font-mono text-xs"
+                class="px-2 py-1 type-code"
                 style={{ color: raised()?.ink ?? "inherit" }}
               >
                 {toHex(raised()?.value ?? "") ?? raised()?.value ?? ""}
@@ -911,7 +911,7 @@ function TypeCard(props: { faces: readonly Face[] }) {
       <Show
         when={props.faces.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no faces yet.
           </p>
         }
@@ -924,7 +924,7 @@ function TypeCard(props: { faces: readonly Face[] }) {
                   <code>
                     {`font.family.${face.slot}`}
                   </code>
-                  <span class="truncate text-xs text-text-muted">
+                  <span class="truncate type-caption text-text-muted">
                     {face.stack}
                   </span>
                 </div>
@@ -997,7 +997,7 @@ function ShapeCard(props: {
       <Show
         when={!empty()}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no radius or shadow steps yet.
           </p>
         }
@@ -1022,7 +1022,7 @@ function ShapeCard(props: {
           </Show>
           <Show when={props.shadow.length > 0}>
             <div class="stack-sm">
-              <span class="text-xs font-semibold uppercase text-text-muted">
+              <span class="type-caption-strong uppercase text-text-muted">
                 Lift
               </span>
               <div class="flex flex-wrap items-end gap-3 rounded-md bg-surface-sunken p-3">
@@ -1082,7 +1082,7 @@ function SpaceCard(props: {
       <Show
         when={props.steps.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no spacing steps yet.
           </p>
         }
@@ -1107,7 +1107,7 @@ function SpaceCard(props: {
             <For each={props.steps}>
               {(row) => (
                 <div class="flex-1 stack-sm text-center">
-                  <code class="font-semibold">
+                  <code>
                     {row.path.split(".").pop()}
                   </code>
                   <code>{row.value}</code>
@@ -1145,7 +1145,7 @@ function MotionCard(props: {
       <Show
         when={props.durations.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares no durations yet, so nothing here has a time to
             take.
           </p>
@@ -1162,7 +1162,7 @@ function MotionCard(props: {
               <For each={props.durations}>
                 {(row) => (
                   <div class="flex items-center gap-2">
-                    <code class="w-16 shrink-0 truncate text-xs">
+                    <code class="w-16 shrink-0 truncate">
                       {row.path.split(".").pop()}
                     </code>
                     <div class="h-8 flex-1 overflow-hidden rounded-sm bg-surface-sunken">
@@ -1174,7 +1174,7 @@ function MotionCard(props: {
                           "animation-fill-mode": "both",
                         }}
                       >
-                        <code class="shrink-0 text-xs">{row.value}</code>
+                        <code class="shrink-0">{row.value}</code>
                       </div>
                     </div>
                   </div>
@@ -1197,7 +1197,7 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
       <Show
         when={props.samples.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">The library has not answered.</p>
+          <p class="text-text-muted">The library has not answered.</p>
         }
       >
         <div class="stack-sm">

@@ -106,7 +106,7 @@ function GridSwitch(props: {
                   onClick={() => props.onChoose(entry)}
                 >
                   <Glyph entry={entry} box={props.box} />
-                  <span class="w-full truncate text-center text-xs">
+                  <span class="w-full truncate text-center type-caption">
                     {props.copied === iconUtility(entry) ? "copied" : entry.name}
                   </span>
                 </button>
@@ -117,15 +117,15 @@ function GridSwitch(props: {
       }
     >
       <Match when={props.loading}>
-        <p class="text-sm text-text-muted">loading catalogue…</p>
+        <p class="text-text-muted">loading catalogue…</p>
       </Match>
       <Match when={props.errored}>
-        <p class="text-sm text-text-muted">
+        <p class="text-text-muted">
           No glyphs. Is the API running?
         </p>
       </Match>
       <Match when={props.results.length === 0}>
-        <p class="text-sm text-text-muted">
+        <p class="text-text-muted">
           {props.emptyQuery.trim() === ""
             ? "This collection is empty."
             : `No glyph name contains “${props.emptyQuery.trim()}”.`}
@@ -174,17 +174,17 @@ function LibraryBrowser(props: {
                       />
                     </span>
                     <span class="stack-xs min-w-0 flex-1">
-                      <span class="block truncate text-sm font-semibold">
+                      <span class="block truncate type-label">
                         {icon.name}
                       </span>
-                      <span class="block truncate text-xs text-text-muted">
+                      <span class="block truncate type-caption text-text-muted">
                         {attributionText(icon.attribution)}
                       </span>
                     </span>
                   </button>
                   <button
                     type="button"
-                    class="secondary s-sm shrink-0 text-xs text-text-muted"
+                    class="secondary s-sm shrink-0 type-caption text-text-muted"
                     aria-label={`Remove ${icon.name} from the library`}
                     onClick={() => props.onUnkeep(icon.name)}
                   >
@@ -198,20 +198,20 @@ function LibraryBrowser(props: {
       }
     >
       <Match when={props.saved === undefined}>
-        <p class="text-sm text-text-muted">reading the library…</p>
+        <p class="text-text-muted">reading the library…</p>
       </Match>
       <Match when={(props.saved ?? []).length === 0}>
         <card class="stack-xs p-5">
-          <p class="m-0 text-sm font-semibold">
+          <p class="m-0">
             No saved icons in this project yet
           </p>
-          <p class="m-0 text-xs text-text-muted">
+          <p class="m-0 text-text-muted">
             Select any glyph in the Available tab and press “Keep in library” to vendor its SVG into spin/icons/.
           </p>
         </card>
       </Match>
       <Match when={filtered().length === 0}>
-        <p class="text-sm text-text-muted">
+        <p class="text-text-muted">
           {`No saved icon matches “${props.query.trim()}”.`}
         </p>
       </Match>
@@ -286,10 +286,10 @@ function InspectorAside(props: {
           <section class="stack rounded-lg border border-border bg-surface p-4">
             <div class="split flex-wrap items-start gap-3">
               <div class="stack-xs min-w-0">
-                <p class="m-0 truncate text-md font-semibold">
+                <p class="m-0 truncate">
                   {entry().collection} · {entry().name}
                 </p>
-                <code class="truncate text-xs text-text-muted">
+                <code class="truncate text-text-muted">
                   {iconUtility(entry())}
                 </code>
               </div>
@@ -321,10 +321,10 @@ function InspectorAside(props: {
                         entry={entry()}
                         box={cssLength(currentVal())}
                       />
-                      <span class="text-xs font-semibold">
+                      <span class="type-code">
                         {step.step}
                       </span>
-                      <code class="text-xs text-text-muted">
+                      <code class="text-text-muted">
                         {currentVal()}
                       </code>
                     </div>
@@ -333,7 +333,7 @@ function InspectorAside(props: {
               </For>
             </div>
             <Show when={props.notice !== null}>
-              <p class="m-0 text-xs text-text-muted" role="status">
+              <p class="m-0 text-text-muted" role="status">
                 {props.notice}
               </p>
             </Show>
@@ -373,10 +373,10 @@ function InspectorAside(props: {
                         )}
                       </Show>
                       <div class="stack-xs">
-                        <span class="text-sm font-semibold">
+                        <span class="type-label">
                           {stepName()}
                         </span>
-                        <code class="text-xs text-text-muted">{row.path}</code>
+                        <code class="text-text-muted">{row.path}</code>
                       </div>
                     </div>
                     <ValueInput
@@ -405,13 +405,13 @@ function InspectorAside(props: {
             <h2>Saved icons</h2>
           </div>
           <div class="row-sm">
-            <span class="text-xs text-text-muted">
+            <span class="type-caption text-text-muted">
               {props.saved?.length ?? 0} kept
             </span>
             <Show when={(props.saved?.length ?? 0) > 0}>
               <button
                 type="button"
-                class="bare text-xs font-medium text-text-muted"
+                class="bare type-caption text-text-muted"
                 onClick={props.onOpenLibrary}
               >
                 Open library
@@ -435,17 +435,17 @@ function InspectorAside(props: {
                         />
                       </span>
                       <span class="stack-xs min-w-0 flex-1">
-                        <span class="block truncate text-sm font-medium">
+                        <span class="block truncate type-label">
                           {icon.name}
                         </span>
-                        <span class="block truncate text-xs text-text-muted">
+                        <span class="block truncate type-caption text-text-muted">
                           {attributionText(icon.attribution)}
                         </span>
                       </span>
                     </div>
                     <button
                       type="button"
-                      class="secondary s-sm shrink-0 text-xs text-text-muted"
+                      class="secondary s-sm shrink-0 type-caption text-text-muted"
                       aria-label={`Remove ${icon.name} from the library`}
                       onClick={() => props.onUnkeep(icon.name)}
                     >
@@ -458,10 +458,10 @@ function InspectorAside(props: {
           }
         >
           <Match when={props.saved === undefined}>
-            <p class="text-sm text-text-muted">reading the library…</p>
+            <p class="text-text-muted">reading the library…</p>
           </Match>
           <Match when={(props.saved ?? []).length === 0}>
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               Nothing kept yet.
             </p>
           </Match>
@@ -612,7 +612,7 @@ export default function IconsPage() {
                 type="button"
                 role="tab"
                 aria-selected={tab() === "available"}
-                class="bare rounded-sm px-3 py-1 text-xs font-semibold transition-colors"
+                class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "available",
                   "text-text-muted": tab() !== "available",
@@ -625,7 +625,7 @@ export default function IconsPage() {
                 type="button"
                 role="tab"
                 aria-selected={tab() === "library"}
-                class="bare rounded-sm px-3 py-1 text-xs font-semibold transition-colors"
+                class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "library",
                   "text-text-muted": tab() !== "library",
@@ -654,7 +654,7 @@ export default function IconsPage() {
                     class="secondary s-sm"
                     aria-pressed={size() === step.step}
                     classList={{
-                      "border-primary font-semibold": size() ===
+                      "border-primary": size() ===
                         step.step,
                       "border-border text-text-muted": size() !== step.step,
                     }}
@@ -674,7 +674,7 @@ export default function IconsPage() {
               class="secondary s-sm"
               aria-pressed={picked() === ""}
               classList={{
-                "border-primary font-semibold": picked() === "",
+                "border-primary": picked() === "",
                 "border-border text-text-muted": picked() !== "",
               }}
               onClick={() => setPicked("")}
@@ -688,7 +688,7 @@ export default function IconsPage() {
                   class="secondary s-sm"
                   aria-pressed={picked() === collection}
                   classList={{
-                    "border-primary font-semibold": picked() ===
+                    "border-primary": picked() ===
                       collection,
                     "border-border text-text-muted": picked() !== collection,
                   }}

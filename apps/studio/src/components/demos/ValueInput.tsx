@@ -524,7 +524,7 @@ function TextTransformControl(props: {
             <button
               type="button"
               aria-pressed={active()}
-              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none ${
+              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case tracking-normal shadow-none ${
                 active()
                   ? "border-transparent bg-primary text-on-primary"
                   : "bare border-transparent text-text-muted"
@@ -533,7 +533,7 @@ function TextTransformControl(props: {
                 if (!active()) props.onCommit(option);
               }}
             >
-              {option}
+              <span class="type-code">{option}</span>
             </button>
           );
         }}
@@ -662,7 +662,7 @@ function RangeControl(props: {
           <button
             id={props.id === undefined ? undefined : `${props.id}-dec`}
             type="button"
-            class="secondary s-sm px-2 font-mono text-xs shadow-none"
+            class="secondary s-sm px-2 type-code shadow-none"
             aria-label={`Decrease ${props.label ?? "value"}`}
             disabled={(shownNumber() ?? range().min) <= range().min}
             onClick={() => stepBy(-1)}
@@ -680,7 +680,7 @@ function RangeControl(props: {
             aria-label={props.label === undefined
               ? "Token value"
               : `${props.label} value`}
-            class="w-24 shrink-0 px-2 font-mono text-xs text-center tabular-nums"
+            class="w-24 shrink-0 px-2 text-center tabular-nums"
             value={shown()}
             onChange={(event) => {
               const raw = event.currentTarget.value.trim();
@@ -696,7 +696,7 @@ function RangeControl(props: {
           <button
             id={props.id === undefined ? undefined : `${props.id}-inc`}
             type="button"
-            class="secondary s-sm px-2 font-mono text-xs shadow-none"
+            class="secondary s-sm px-2 type-code shadow-none"
             aria-label={`Increase ${props.label ?? "value"}`}
             disabled={(shownNumber() ?? range().max) >= range().max}
             onClick={() => stepBy(1)}

@@ -63,7 +63,7 @@ import { createSpinComponent } from "@spinjs/components/solid";
  * without the row shouting.
  */
 const ROW =
-  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left text-sm font-regular text-text-muted hover:bg-surface-sunken aria-selected:bg-surface-sunken";
+  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left type-body text-text-muted hover:bg-surface-sunken aria-selected:bg-surface-sunken";
 
 /**
  * The panel's own frame.
@@ -323,7 +323,7 @@ export function StepField(props: {
   );
   const shown = createMemo(() => current()?.name ?? props.value);
   return (
-    <label class="stack-sm text-xs text-text-muted">
+    <label class="stack-sm text-text-muted">
       {props.label}
       <Show
         when={props.steps.length > 0}
@@ -384,7 +384,7 @@ export function ColourField(props: {
   // document. `on` so the effect answers the value, not the draft.
   createEffect(on(() => props.value, (value) => setDraft(value)));
   return (
-    <label class="stack-sm text-xs text-text-muted">
+    <label class="stack-sm text-text-muted">
       {props.label}
       <div class="row-sm gap-2">
         <Panel
@@ -446,7 +446,7 @@ export function TextField(props: {
   placeholder?: string;
 }) {
   return (
-    <label class="stack-sm text-xs text-text-muted">
+    <label class="stack-sm text-text-muted">
       {props.label}
       <input
         type="text"
@@ -482,7 +482,7 @@ export function ChoiceField(props: {
 }) {
   const known = createMemo(() => props.choices.includes(props.value));
   return (
-    <label class="stack-sm text-xs text-text-muted">
+    <label class="stack-sm text-text-muted">
       {props.label}
       <Panel
         label={`${props.label}: ${props.value}`}
@@ -560,7 +560,7 @@ export default function CompositeEditor(props: {
       <Show
         when={parts()}
         fallback={
-          <p class="text-xs text-text-muted">
+          <p class="text-text-muted">
             This value is not a {props.type} the studio can take apart.
           </p>
         }
@@ -575,7 +575,7 @@ export default function CompositeEditor(props: {
       </Show>
       <Show when={refusal()}>
         {(message) => (
-          <p class="text-xs text-semantic-error" role="alert">
+          <p class="text-semantic-error" role="alert">
             {message()}
           </p>
         )}

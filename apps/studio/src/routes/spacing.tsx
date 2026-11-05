@@ -109,7 +109,7 @@ export default function SpacingPage() {
         <Show
           when={steps.rows().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no spacing steps yet.
             </p>
           }
@@ -118,7 +118,7 @@ export default function SpacingPage() {
             class={
               inDrawer()
                 ? "stack-lg"
-                : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] [&>*]:min-w-0"
+                : "grid items-start gap-6 lg:grid-cols-2"
             }
           >
             <Frame class="min-w-0 p-2">
@@ -152,13 +152,13 @@ export default function SpacingPage() {
                           >
                             <span
                               data-studio-chrome=""
-                              class="w-8 shrink-0 font-mono text-xs font-semibold"
+                              class="w-8 shrink-0 type-caption-strong"
                             >
                               {stepOf(entry.row.path)}
                             </span>
                             <code
                               data-studio-chrome=""
-                              class="w-24 shrink-0 truncate text-xs text-text-muted"
+                              class="w-24 shrink-0 truncate text-text-muted"
                             >
                               {entry.row.path}
                             </code>
@@ -188,7 +188,7 @@ export default function SpacingPage() {
                             </code>
                             <span
                               data-studio-chrome=""
-                              class="w-12 shrink-0 text-right font-mono text-xs text-text-muted tabular-nums"
+                              class="w-12 shrink-0 text-right type-code text-text-muted tabular-nums"
                             >
                               {shownPx() !== undefined
                                 ? `${Math.round(shownPx()!)}px`
@@ -196,7 +196,7 @@ export default function SpacingPage() {
                             </span>
                             <code
                               data-studio-chrome=""
-                              class="w-12 shrink-0 text-right text-xs text-text-muted tabular-nums"
+                              class="w-12 shrink-0 text-right text-text-muted tabular-nums"
                             >
                               {ratioAt(index())}
                             </code>
@@ -225,14 +225,14 @@ export default function SpacingPage() {
                         class="split items-baseline gap-2"
                       >
                         <div class="row-sm items-baseline">
-                          <span class="text-md font-semibold">
+                          <span class="type-body-strong">
                             Step {stepOf(entry().row.path)}
                           </span>
-                          <code class="text-xs text-text-muted">
+                          <code class="text-text-muted">
                             {entry().row.path}
                           </code>
                         </div>
-                        <span class="rounded-md bg-surface-sunken px-2 py-0 font-mono text-xs text-text-muted tabular-nums">
+                        <span class="rounded-md bg-surface-sunken px-2 py-0 type-code text-text-muted tabular-nums">
                           {Math.round(shownPx())}px
                         </span>
                       </div>
@@ -284,7 +284,7 @@ export default function SpacingPage() {
         <Show
           when={breakpoints.rows().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no breakpoints yet.
             </p>
           }
@@ -301,7 +301,7 @@ export default function SpacingPage() {
                     Math.max(8, ((toPx(shown()) ?? 0) / widest()) * 100);
                   return (
                     <div class="row-sm items-center gap-3">
-                      <span class="w-10 shrink-0 font-mono text-xs font-semibold">
+                      <span class="w-10 shrink-0 type-caption-strong">
                         {row.path.split(".").pop()}
                       </span>
                       <div class="h-4 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface">
@@ -313,7 +313,7 @@ export default function SpacingPage() {
                           }}
                         />
                       </div>
-                      <code class="w-16 shrink-0 text-right text-xs text-text-muted tabular-nums">
+                      <code class="w-16 shrink-0 text-right text-text-muted tabular-nums">
                         {shown()}
                       </code>
                     </div>
@@ -365,8 +365,8 @@ function StepFigures(props: {
     <div class="stack-sm">
       <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="text-xs font-semibold">Container padding</span>
-          <code class="text-xs text-text-muted">{`p-${step()}`}</code>
+          <span class="type-caption-strong">Container padding</span>
+          <code class="text-text-muted">{`p-${step()}`}</code>
         </div>
         <div
           class="spin-preview overflow-hidden rounded-sm border border-dashed bg-surface"
@@ -383,8 +383,8 @@ function StepFigures(props: {
       </div>
       <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="text-xs font-semibold">Stack / row gap</span>
-          <code class="text-xs text-text-muted">{`gap-${step()}`}</code>
+          <span class="type-caption-strong">Stack / row gap</span>
+          <code class="text-text-muted">{`gap-${step()}`}</code>
         </div>
         <div
           class="spin-preview flex items-center overflow-hidden rounded-sm border border-border bg-surface p-2"

@@ -79,7 +79,7 @@ export function ColorField(props: {
           // value, and a `!== undefined` test would hand them `true` — which
           // `String()`-ed into a colour input and rendered black.
           when={toHex(props.value)}
-          fallback={<span class="text-xs opacity-80">No picker for this spelling</span>}
+          fallback={<span class="type-caption opacity-80">No picker for this spelling</span>}
         >
           {(current) => <Trigger current={String(current())} />}
         </Show>
@@ -88,7 +88,7 @@ export function ColorField(props: {
       <div class="row-sm">
         <Show
           when={toHex(props.value)}
-          fallback={<span class="text-xs opacity-80">No picker for this spelling</span>}
+          fallback={<span class="type-caption opacity-80">No picker for this spelling</span>}
         >
           {(current) => <Trigger current={String(current())} />}
         </Show>

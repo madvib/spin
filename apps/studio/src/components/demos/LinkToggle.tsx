@@ -16,7 +16,7 @@ export default function LinkToggle(
     <span class="inline-flex items-center">
       <button
         type="button"
-        class="secondary s-sm row-sm shrink-0 text-xs text-text-muted"
+        class="secondary s-sm row-sm shrink-0 type-caption text-text-muted"
         classList={{
           "bg-transparent": !linked(),
           "border-primary": linked(),
@@ -32,7 +32,7 @@ export default function LinkToggle(
         />
         <span>{linked() ? "Linked" : "Unlinked"}</span>
         <Show when={linked() && props.ratio}>
-          {(factor) => <span class="font-mono text-primary">{factor()}</span>}
+          {(factor) => <span class="type-code text-primary">{factor()}</span>}
         </Show>
       </button>
       <tooltip class="end-0 start-auto translate-none">

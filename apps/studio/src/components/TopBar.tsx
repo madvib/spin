@@ -249,7 +249,7 @@ export default function TopBar() {
         aria-label="Editing"
         class="flex min-w-0 flex-[2_2_0%] items-center justify-center"
       >
-        <p class="min-w-0 truncate text-center text-sm text-text-muted">
+        <p class="min-w-0 truncate text-center text-text-muted">
           <span class="whitespace-nowrap">
             Editing <strong>{theme()}</strong>
           </span>
@@ -425,7 +425,7 @@ export default function TopBar() {
                 Close
               </button>
             </div>
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme is read-only here. Save your edits as a project
               theme in <code>spin/</code>.
             </p>
@@ -450,7 +450,7 @@ export default function TopBar() {
             </div>
             <Show when={copyProblem()}>
               {(msg) => (
-                <p class="text-sm text-semantic-error" role="alert">
+                <p class="text-semantic-error" role="alert">
                   {msg()}
                 </p>
               )}

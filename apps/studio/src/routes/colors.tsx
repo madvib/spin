@@ -96,9 +96,7 @@ export default function ColorsPage() {
       action={<ModeToggle />}
     >
       <div
-        class={inDrawer()
-          ? "stack-lg"
-          : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] [&>*]:min-w-0"}
+        class={inDrawer() ? "stack-lg" : "grid items-start gap-6 lg:grid-cols-2"}
       >
         <div class="stack-lg min-w-0">
           <For each={FAMILIES}>
@@ -246,7 +244,7 @@ function RolePicker(props: {
     <Show
       when={props.role}
       fallback={
-        <p class="text-sm text-text-muted">
+        <p class="text-text-muted">
           This theme declares no colour roles yet.
         </p>
       }
@@ -258,10 +256,10 @@ function RolePicker(props: {
         >
           <div class="stack-sm">
             <div class="split">
-              <h2 class="truncate text-lg font-semibold" title={role().path}>
+              <h2 class="truncate" title={role().path}>
                 {humanName(role().path)}
               </h2>
-              <span class="row-sm font-mono text-xs text-text-muted">
+              <span class="row-sm type-code text-text-muted">
                 <span class="truncate">{role().path}</span>
                 <CopyButton text={role().path} label={`Copy ${role().path}`} />
               </span>
@@ -280,7 +278,7 @@ function RolePicker(props: {
                   >
                     <button
                       type="button"
-                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
                       classList={{
                         "bg-surface-raised shadow-sm": onFill(),
                         "text-text-muted": !onFill(),
@@ -292,7 +290,7 @@ function RolePicker(props: {
                     </button>
                     <button
                       type="button"
-                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left text-xs font-medium"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
                       classList={{
                         "bg-surface-raised shadow-sm": !onFill(),
                         "text-text-muted": onFill(),
@@ -325,7 +323,7 @@ function RolePicker(props: {
             {(msg) => (
               <p
                 role="alert"
-                class="rounded-md border border-semantic-error bg-surface p-2 text-xs text-semantic-error"
+                class="rounded-md border border-semantic-error bg-surface p-2 text-semantic-error"
               >
                 {msg()}
               </p>
@@ -334,7 +332,7 @@ function RolePicker(props: {
 
           <Show when={pairs().length > 0}>
             <div class="stack-sm border-t border-border pt-3">
-              <span class="text-xs font-medium text-text-muted">Legibility checks</span>
+              <span class="type-caption-strong text-text-muted">Legibility checks</span>
               <div class="row-sm flex-wrap">
                 <For each={pairs()}>
                   {(floor) => (
@@ -421,14 +419,14 @@ function InspectorSpecimen(props: {
       }}
     >
       <div class="row-sm min-w-0">
-        <span class="text-md font-bold">Aa</span>
-        <span class="truncate text-xs font-medium">
+        <span class="type-body-strong">Aa</span>
+        <span class="truncate type-caption-strong">
           {humanName(props.role.path)}
         </span>
       </div>
       <Show when={props.current?.reference}>
         {(followed) => (
-          <span class="truncate font-mono text-xs" title={`follows ${followed()}`}>
+          <span class="truncate type-code" title={`follows ${followed()}`}>
             → {humanName(followed())}
           </span>
         )}
@@ -489,7 +487,7 @@ function SlotEditor(props: {
   return (
     <div class="stack rounded-md border border-border bg-surface p-3">
       <div class="stack-sm">
-        <span class="text-xs font-medium text-text-muted">Color</span>
+        <span class="type-caption-strong text-text-muted">Color</span>
         <div class="split">
           <ColorField
             bare
@@ -506,7 +504,7 @@ function SlotEditor(props: {
       </div>
 
       <div class="stack-sm border-t border-border pt-3">
-        <span class="text-xs font-medium text-text-muted">Theme swatch</span>
+        <span class="type-caption-strong text-text-muted">Theme swatch</span>
         <ReferencePicker
           targets={props.targets.filter((t) => t.path !== props.role.path)}
           current={props.value.reference}
@@ -540,7 +538,7 @@ function CopyValue(props: { value: string; label: string }) {
   return (
     <button
       type="button"
-      class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 font-mono text-xs hover:bg-surface-sunken"
+      class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 type-code hover:bg-surface-sunken"
       title={`Copy ${props.value}`}
       aria-label={props.label}
       onClick={(e) => {
@@ -698,21 +696,21 @@ function RoleCardView(props: {
               aria-hidden="true"
             />
           </Show>
-          <span class="truncate text-md font-semibold" title={role().path}>
+          <span class="truncate type-body-strong" title={role().path}>
             {name()}
           </span>
         </div>
         <Show
           when={current()?.reference}
           fallback={
-            <span class="shrink-0 font-mono text-xs">
+            <span class="shrink-0 type-code">
               {current()?.hex ?? ""}
             </span>
           }
         >
           {(followed) => (
             <span
-              class="shrink-0 truncate font-mono text-xs"
+              class="shrink-0 truncate type-code"
               title={`Follows ${followed()} (${current()?.hex ?? ""})`}
             >
               → {humanName(followed())}
@@ -725,8 +723,8 @@ function RoleCardView(props: {
       <div class="split gap-2 py-1">
         <Show when={kind() === "fill"}>
           <div class="row-sm min-w-0">
-            <span class="text-xl font-bold">Aa</span>
-            <span class="truncate text-sm font-medium">
+            <span class="type-heading">Aa</span>
+            <span class="truncate type-label">
               {inkRole() ? `${humanName(inkRole()!.path)} ink` : "Sample text"}
             </span>
           </div>
@@ -734,10 +732,10 @@ function RoleCardView(props: {
 
         <Show when={kind() === "surface"}>
           <div class="stack-xs min-w-0">
-            <span class="truncate text-sm font-semibold" style={{ color: safeInk(textVal(), cardBg()) }}>
+            <span class="truncate type-body-strong" style={{ color: safeInk(textVal(), cardBg()) }}>
               Aa — Text on {name()}
             </span>
-            <span class="truncate text-xs" style={{ color: safeInk(textMutedVal(), cardBg()) }}>
+            <span class="truncate type-caption" style={{ color: safeInk(textMutedVal(), cardBg()) }}>
               Muted text specimen
             </span>
           </div>
@@ -749,13 +747,13 @@ function RoleCardView(props: {
             style={{ color: safeInk(current()?.hex, cardBg()) }}
           >
             <span
-              class="text-xl font-bold"
+              class="type-heading"
               classList={{ underline: role().path === "color.link" }}
             >
               Aa
             </span>
             <span
-              class="truncate text-sm font-medium"
+              class="truncate type-label"
               classList={{ underline: role().path === "color.link" }}
             >
               {name()} on Surface
@@ -765,7 +763,7 @@ function RoleCardView(props: {
 
         <Show when={kind() === "stroke"}>
           <div
-            class="w-full rounded-md border-2 border-solid px-3 py-1 text-xs font-medium"
+            class="w-full rounded-md border-2 border-solid px-3 py-1 type-caption-strong"
             style={{
               "border-color": current()?.hex ?? undefined,
               background: surfaceRaisedVal(),
@@ -782,7 +780,7 @@ function RoleCardView(props: {
             <Show when={liveRatio()}>
               {(ratio) => (
                 <span
-                  class="shrink-0 rounded-sm border border-current px-2 py-1 font-mono text-xs font-semibold"
+                  class="shrink-0 rounded-sm border border-current px-2 py-1 type-code"
                   title={`Text on ${name()} · ${ratio().toFixed(2)}:1`}
                 >
                   {ratio().toFixed(1)}:1 ✓
@@ -796,7 +794,7 @@ function RoleCardView(props: {
             return (
               <button
                 type="button"
-                class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border px-2 py-1 font-mono text-xs font-semibold"
+                class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border px-2 py-1 type-code"
                 classList={{
                   "border-current": holds(),
                   "border-semantic-error bg-semantic-error text-on-semantic-error": !holds(),
@@ -837,7 +835,7 @@ function RoleCardView(props: {
       </Show>
 
       {/* Bottom row: Paired Ink selector + Other-mode switch */}
-      <div class="split border-t border-current/20 pt-2 text-xs">
+      <div class="split border-t border-current/20 pt-2 type-caption">
         <Show
           when={inkRole()}
           fallback={
@@ -862,7 +860,7 @@ function RoleCardView(props: {
           {(ink) => (
             <button
               type="button"
-              class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 text-xs font-medium"
+              class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 type-caption-strong"
               classList={{
                 "border-current": selectedInk(),
                 "border-transparent hover:border-current": !selectedInk(),
@@ -889,7 +887,7 @@ function RoleCardView(props: {
           {(hex) => (
             <button
               type="button"
-              class="bare relative z-10 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-1 py-1 text-xs"
+              class="bare relative z-10 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-1 py-1 type-caption"
               title={`Switch to ${other() ?? ""} mode (${hex()})`}
               aria-label={`Show ${name()} in ${other() ?? ""} mode`}
               onClick={(e) => {
@@ -936,7 +934,7 @@ function PairChip(props: {
         if (!holds()) props.onToggle();
       }}
     >
-      <span class="row-sm px-2 py-1 text-xs font-medium" style={{ color: safeInk(ink(), bg()) }}>
+      <span class="row-sm px-2 py-1 type-caption-strong" style={{ color: safeInk(ink(), bg()) }}>
         <swatch class="s-sm" style={{ "--swatch": ink() }} aria-hidden="true" />
         <span class="truncate">{humanName(props.floor.fg)} on {humanName(props.floor.bg)}</span>
         <Show when={numbers()} fallback={<span>{props.floor.ratio.toFixed(1)}:1</span>}>
@@ -956,7 +954,7 @@ function FloorFix(props: {
   const slot = (): "light" | "dark" => props.mode === "dark" ? "dark" : "light";
   return (
     <div class="stack-sm rounded-md border border-border bg-surface p-3">
-      <div class="split text-xs">
+      <div class="split type-caption">
         <span>
           {humanName(props.floor.fg)} on {humanName(props.floor.bg)} is {props.floor.ratio.toFixed(2)}:1 — needs {props.floor.min}:1.
         </span>
@@ -975,12 +973,12 @@ function FloorFix(props: {
       <Show
         when={props.floor.remedy !== null}
         fallback={
-          <span class="text-xs text-text-muted">No automatic fix — adjust the background fill first.</span>
+          <span class="type-caption text-text-muted">No automatic fix — adjust the background fill first.</span>
         }
       >
         <button
           type="button"
-          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left text-xs font-medium"
+          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left type-caption-strong"
           title={`Set ${props.floor.fg} to ${props.floor.remedy}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -1055,10 +1053,10 @@ function Ramp() {
                       style={{ background: valueInMode(step) ?? "" }}
                     />
                     <div class="split px-1">
-                      <span class="font-mono text-xs font-semibold">
+                      <span class="type-code">
                         {step.step}
                       </span>
-                      <span class="truncate text-xs text-text-muted">
+                      <span class="truncate type-caption text-text-muted">
                         {rolesUsing()[0] ?? "—"}
                       </span>
                     </div>
@@ -1070,7 +1068,7 @@ function Ramp() {
         <Show when={open()}>
           <div class="split flex-wrap gap-2 border-t border-border pt-2">
             <div class="row-sm">
-              <span class="text-xs text-text-muted">Seed hue</span>
+              <span class="type-caption text-text-muted">Seed hue</span>
               <ColorField
                 bare
                 value={base()}

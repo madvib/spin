@@ -283,7 +283,7 @@ function Family(props: {
       <Show
         when={props.rows.length > 0}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             This theme declares none of these yet.
           </p>
         }
@@ -366,10 +366,10 @@ function RadiusFigure(props: {
                 />
               </div>
               <figcaption class="stack-xs items-center text-center">
-                <span class="font-mono text-xs font-semibold">
+                <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-xs text-text-muted tabular-nums">
+                <code class="text-text-muted tabular-nums">
                   {props.shownOf(row)}
                 </code>
               </figcaption>
@@ -394,10 +394,10 @@ function LiftFigure(props: { rows: readonly TokenRow[] }) {
                 "box-shadow": `var(${row.variable})`,
               }}
             >
-              <span class="font-mono text-xs font-semibold">
+              <span class="type-code">
                 {stepOf(row.path)}
               </span>
-              <code class="text-xs text-text-muted">
+              <code class="text-text-muted">
                 shadow-{suffixOf(row.path)}
               </code>
             </div>
@@ -453,7 +453,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
               <div class="split items-center gap-2">
                 <span
                   class={`
-                    font-mono text-xs font-semibold truncate
+                    type-code truncate
                     ${isWinner() ? "text-on-primary" : ""}
                   `}
                 >
@@ -461,7 +461,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
                 </span>
                 <span
                   class={`
-                    font-mono text-xs tabular-nums
+                    type-code tabular-nums
                     ${isWinner() ? "text-on-primary" : "text-text-muted"}
                   `}
                 >
@@ -506,10 +506,10 @@ function OpacityFigure(props: {
                 />
               </div>
               <figcaption class="stack-xs items-center text-center">
-                <span class="font-mono text-xs font-semibold">
+                <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-xs text-text-muted tabular-nums">
+                <code class="text-text-muted tabular-nums">
                   {pct()}
                 </code>
               </figcaption>
@@ -543,10 +543,10 @@ function BorderFigure(props: {
               }}
             />
             <figcaption class="stack-xs items-center text-center">
-              <span class="font-mono text-xs font-semibold">
+                <span class="type-code">
                 {stepOf(row.path)}
               </span>
-              <code class="text-xs text-text-muted tabular-nums">
+                <code class="text-text-muted tabular-nums">
                 {row.value}
               </code>
             </figcaption>
@@ -589,10 +589,10 @@ function FocusFigure(props: {
               </button>
             </div>
             <figcaption class="stack-xs items-center text-center">
-              <span class="font-mono text-xs font-semibold">
+                <span class="type-code">
                 {stepOf(row.path)}
               </span>
-              <code class="text-xs text-text-muted tabular-nums">
+                <code class="text-text-muted tabular-nums">
                 {row.value}
               </code>
             </figcaption>

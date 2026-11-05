@@ -310,7 +310,7 @@ export default function TypePage() {
         <Show
           when={declaredFaces().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no faces yet.
             </p>
           }
@@ -340,16 +340,17 @@ export default function TypePage() {
       <div
         class={inDrawer()
           ? "stack-lg"
-          : "grid items-start gap-6 lg:grid-cols-2 [&>*]:min-w-0"}
+          : "grid items-start gap-6 lg:grid-cols-2"}
       >
         <Section
           title="Weight"
           fact={`${weightRows().length} steps`}
+          class="min-w-0"
         >
           <Show
             when={weightRows().length > 0}
             fallback={
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 This theme declares no weights yet.
               </p>
             }
@@ -375,11 +376,12 @@ export default function TypePage() {
         <Section
           title="Tracking"
           fact={`${trackingRows().length} steps`}
+          class="min-w-0"
         >
           <Show
             when={trackingRows().length > 0}
             fallback={
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 This theme declares no tracking yet.
               </p>
             }
@@ -411,7 +413,7 @@ export default function TypePage() {
         <Show
           when={styleRows().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no styles yet.
             </p>
           }
@@ -548,10 +550,10 @@ function FaceCard(props: { slot: string }) {
         classList={{ split: !inDrawer(), "stack-sm": inDrawer() }}
       >
         <div class="row-sm flex-wrap">
-          <span class="text-md font-semibold">
+          <span class="type-body-strong">
             {humanFaceName(props.slot)}
           </span>
-          <span class="rounded-md bg-surface-sunken px-2 py-0 text-xs text-text-muted">
+          <span class="rounded-md bg-surface-sunken px-2 py-0 type-caption text-text-muted">
             {role()}
           </span>
           <Show when={status().aliasOf}>
@@ -559,7 +561,7 @@ function FaceCard(props: { slot: string }) {
               <span class="inline-flex items-center">
                 <span
                   tabIndex={0}
-                  class="font-mono text-xs text-text-muted"
+                  class="type-code text-text-muted"
                 >
                   → {humanFaceName(target().split(".").pop() ?? target())}
                 </span>
@@ -571,7 +573,7 @@ function FaceCard(props: { slot: string }) {
           </Show>
         </div>
         <div class="row-sm">
-          <code class="text-xs text-text-muted">{`font.family.${props.slot}`}</code>
+          <code class="text-text-muted">{`font.family.${props.slot}`}</code>
           <Badge tone={loaded().includes(family()) ? "primary" : "info"}>
             {loaded().includes(family()) ? "webfont" : "system stack"}
           </Badge>
@@ -582,12 +584,12 @@ function FaceCard(props: { slot: string }) {
         style={{ "font-family": row()?.value ?? "inherit" }}
       >
         <div class="split items-baseline">
-          <span class="text-3xl font-bold">Aa</span>
-          <span class="truncate text-md font-semibold">
+          <span class="type-display">Aa</span>
+          <span class="truncate type-body-strong">
             {family() || "—"}
           </span>
         </div>
-        <p class="m-0 mt-1 text-sm">
+        <p class="m-0 mt-1">
           {SPECIMENS[role()] ?? SENTENCE}
         </p>
       </div>
@@ -599,7 +601,7 @@ function FaceCard(props: { slot: string }) {
             editFontFamily(["font", "family", props.slot], stack, font)}
         />
         <code
-          class="block truncate text-xs text-text-muted"
+          class="block truncate text-text-muted"
           title={row()?.value ?? ""}
         >
           {row()?.value ?? "—"}
@@ -616,8 +618,8 @@ function ScaleRow(props: { step: string; family: Lockstep }) {
   return (
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border py-4 last:border-b-0">
       <div data-studio-chrome="" class="w-24 shrink-0 stack-xs">
-        <span class="text-sm font-semibold">{props.step}</span>
-        <code class="text-xs text-text-muted">{`font.size.${props.step}`}</code>
+        <span class="type-label">{props.step}</span>
+        <code class="text-text-muted">{`font.size.${props.step}`}</code>
       </div>
       <div
         data-studio-specimen=""
@@ -670,9 +672,9 @@ function TypeStepItem(props: {
     >
       <div class="split flex-wrap gap-2">
         <div class="row-sm min-w-0">
-          <span class="text-sm font-semibold">{props.step}</span>
+          <span class="type-label">{props.step}</span>
           <span class="inline-flex items-center">
-            <code tabIndex={0} class="text-xs text-text-muted">
+            <code tabIndex={0} class="text-text-muted">
               {props.utility}
             </code>
             <tooltip class="start-0 translate-none">{props.row.path}</tooltip>
@@ -688,7 +690,7 @@ function TypeStepItem(props: {
         />
       </div>
       <div data-studio-specimen="" class="min-w-0 overflow-hidden">
-        <p class="m-0 truncate text-md" style={props.specimenStyle}>
+        <p class="m-0 truncate" style={props.specimenStyle}>
           {HEADING}
         </p>
       </div>
@@ -782,7 +784,7 @@ function ElementRow(props: {
           <Show when={hasOverride()}>
             <button
               type="button"
-              class="bare text-xs font-medium text-primary"
+              class="bare type-caption-strong text-primary"
               title={`Reset <${props.element}> to the ladder`}
               aria-label={`Reset ${props.element} to the ladder`}
               onClick={resetElement}

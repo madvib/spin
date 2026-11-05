@@ -136,7 +136,7 @@ export default function FindingsPage() {
       <Show when={notice() !== null}>
         <div
           role="status"
-          class="rounded-md border border-border bg-surface-raised px-3 py-2 text-sm"
+          class="rounded-md border border-border bg-surface-raised px-3 py-2 type-body"
         >
           {notice()}
         </div>
@@ -145,7 +145,7 @@ export default function FindingsPage() {
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="text-xs font-medium text-text-muted">
+            <span class="type-caption-strong text-text-muted">
               Theme checks
             </span>
             <Badge
@@ -156,38 +156,38 @@ export default function FindingsPage() {
                 : `${themeChecks().length} issues`}
             </Badge>
           </div>
-          <p class="m-0 text-sm font-medium">{activeName()}</p>
+          <p class="m-0">{activeName()}</p>
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="text-xs font-medium text-text-muted">
+            <span class="type-caption-strong text-text-muted">
               Source lints
             </span>
             <Badge tone={findings().length === 0 ? "primary" : "warning"}>
               {findings().length === 0 ? "clean" : `${findings().length} rules`}
             </Badge>
           </div>
-          <p class="m-0 text-sm font-medium">
+          <p class="m-0">
             {report()?.files ?? 0} files scanned
           </p>
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="text-xs font-medium text-text-muted">Repetition</span>
+            <span class="type-caption-strong text-text-muted">Repetition</span>
             <Badge tone="info">{repetition().length}</Badge>
           </div>
-          <p class="m-0 text-sm font-medium">
+          <p class="m-0">
             repeated class lists
           </p>
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="text-xs font-medium text-text-muted">
+            <span class="type-caption-strong text-text-muted">
               Class order
             </span>
             <Badge tone="info">{order().length}</Badge>
           </div>
-          <p class="m-0 text-sm font-medium">files out of order</p>
+          <p class="m-0">files out of order</p>
         </Frame>
       </div>
 
@@ -199,15 +199,15 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={report() === undefined}>
-              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+              <p class="m-0 text-text-muted">reading the source…</p>
             </Match>
             <Match when={report.error !== undefined}>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="m-0 text-text-muted">
                 The findings could not be read. Is the API running?
               </p>
             </Match>
             <Match when={findings().length === 0}>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="m-0 text-text-muted">
                 Nothing to report: every class in the project's source is one
                 the theme can produce, and no class fights a decision the theme
                 has already made.
@@ -222,7 +222,7 @@ export default function FindingsPage() {
             </Match>
           </Switch>
           <Show when={(report()?.unreadable.length ?? 0) > 0}>
-            <p class="m-0 text-sm text-text-muted">
+            <p class="m-0 text-text-muted">
               {report()?.unreadable.join(", ")} could not be read.
             </p>
           </Show>
@@ -237,10 +237,10 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={corpus() === undefined}>
-              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+              <p class="m-0 text-text-muted">reading the source…</p>
             </Match>
             <Match when={repetition().length === 0}>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="m-0 text-text-muted">
                 Nothing repeats: no composition is written twice.
               </p>
             </Match>
@@ -263,10 +263,10 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={corpus() === undefined}>
-              <p class="m-0 text-sm text-text-muted">reading the source…</p>
+              <p class="m-0 text-text-muted">reading the source…</p>
             </Match>
             <Match when={order().length === 0}>
-              <p class="m-0 text-sm text-text-muted">
+              <p class="m-0 text-text-muted">
                 Every class list is in the order the stylesheet writes them.
               </p>
             </Match>

@@ -69,7 +69,7 @@ export default function StudioNav() {
   return (
     <span class="inline-flex shrink-0 items-center gap-1">
       <studio-nav ref={setEl} />
-      <span class="whitespace-nowrap text-sm font-medium">
+      <span class="whitespace-nowrap type-label">
         {current()}
       </span>
     </span>

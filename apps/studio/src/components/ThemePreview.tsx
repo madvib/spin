@@ -65,7 +65,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
       >
         <div class="flex items-center justify-between gap-2">
           <span
-            class="truncate text-md font-semibold"
+            class="truncate type-body-strong"
             style={{ "font-family": headingStack() ?? "inherit", color: text() ?? "inherit" }}
           >
             {props.name}
@@ -74,7 +74,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
             <div class="flex gap-1">
               <button
                 type="button"
-                class="bare text-xs"
+                class="bare type-caption"
                 style={{ color: muted() ?? "inherit" }}
                 onClick={() => setMode("light")}
               >
@@ -82,7 +82,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
               </button>
               <button
                 type="button"
-                class="bare text-xs"
+                class="bare type-caption"
                 style={{ color: muted() ?? "inherit" }}
                 onClick={() => setMode("dark")}
               >
@@ -93,7 +93,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
         </div>
         <Show when={props.static !== true}>
           <p
-            class="mt-1 text-xs"
+            class="mt-1"
             style={{ "font-family": bodyStack() ?? "inherit", color: muted() ?? "inherit" }}
           >
             {PANGRAM}
@@ -104,7 +104,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
           style={{ background: raised() ?? "transparent", "border-color": border() ?? "currentColor" }}
         >
           <span
-            class="inline-block rounded-md px-3 py-2 text-sm font-medium"
+            class="inline-block rounded-md px-3 py-2 type-code"
             style={{
               "font-family": bodyStack() ?? "inherit",
               background: primary() ?? "transparent",
@@ -115,7 +115,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
           </span>
           <Show when={props.static !== true}>
             <span
-              class="truncate text-xs"
+              class="truncate type-caption"
               style={{ "font-family": bodyStack() ?? "inherit", color: text() ?? "inherit" }}
             >
               {PANGRAM}
@@ -141,7 +141,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
                 {(group: SwatchGroup) => (
                   <div class="flex items-center gap-2">
                     <span
-                      class="w-10 shrink-0 font-mono text-xs"
+                      class="w-10 shrink-0 type-code"
                       style={{ color: muted() ?? "inherit" }}
                     >
                       {group.mode}
@@ -169,7 +169,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
               {(group: () => SwatchGroup) => (
                 <div class="flex items-center gap-2">
                   <span
-                    class="w-10 shrink-0 font-mono text-xs"
+                    class="w-10 shrink-0 type-code"
                     style={{ color: muted() ?? "inherit" }}
                   >
                     {group().mode}

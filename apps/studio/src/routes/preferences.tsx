@@ -48,18 +48,18 @@ export default function PreferencesPage() {
         <Frame>
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="stack-xs">
-              <span class="text-xs text-text-muted">Root</span>
+              <span class="type-caption text-text-muted">Root</span>
               <code class="truncate">{project()?.root ?? "—"}</code>
             </div>
             <div class="stack-xs">
-              <span class="text-xs text-text-muted">Preset status</span>
+              <span class="type-caption text-text-muted">Preset status</span>
               <code class="truncate">
                 {project()?.wired ? "spinPreset wired" : "not wired"}
               </code>
             </div>
             <div class="stack-xs">
-              <span class="text-xs text-text-muted">Themes</span>
-              <span class="text-sm">
+              <span class="type-caption text-text-muted">Themes</span>
+              <span class="type-body">
                 {registry()?.filter((t) => t.file !== null).length ?? 0} project
                 {" · "}
                 {registry()?.filter((t) => t.file === null).length ?? 0}{" "}
@@ -67,7 +67,7 @@ export default function PreferencesPage() {
               </span>
             </div>
             <div class="stack-xs">
-              <span class="text-xs text-text-muted">Themes directory</span>
+              <span class="type-caption text-text-muted">Themes directory</span>
               <code class="truncate">
                 {project()?.spin ? "spin/" : "not initialized"}
               </code>
@@ -93,7 +93,7 @@ export default function PreferencesPage() {
             </div>
             <div class="stack-sm min-w-[12rem] flex-1">
               <DrawerEdge />
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 The studio asks the host which edge it is on rather than
                 guessing from its own width, so a drawer on the right is a
                 drawer on the right.

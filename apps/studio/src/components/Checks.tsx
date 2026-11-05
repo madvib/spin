@@ -204,7 +204,7 @@ export default function Checks() {
           // in a document: the theme's heading face belongs to the document
           // the studio previews, and the studio's chrome has one face — the
           // body face it reads in everywhere else.
-          class="stack panel max-w-[90vw] font-sans"
+          class="stack panel max-w-[90vw]"
           ref={(el: HTMLDialogElement) => {
             requestAnimationFrame(() => {
               if (el.isConnected && !el.open) el.showModal();
@@ -216,7 +216,7 @@ export default function Checks() {
           <Show
             when={findings().length > 0}
             fallback={
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 Nothing to report: the document parses, and every value it
                 declares clears the floors.
               </p>
@@ -225,7 +225,7 @@ export default function Checks() {
             <ul class="stack-sm">
               <For each={findings()}>
                 {(finding) => (
-                  <li class="stack-sm text-sm">
+                  <li class="stack-sm">
                     <A
                       href={hostPath(editorRouteFor(finding.path))}
                       class="hover:underline"

@@ -160,7 +160,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                   style={{ background: toHex(shownFor(r)) ?? shownFor(r) }}
                 />
                 <span class="min-w-0">
-                  <span class="block truncate text-sm font-medium">
+                  <span class="block truncate type-label">
                     {labelOf(r)}
                   </span>
                 </span>
@@ -190,7 +190,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
   }) {
     return (
       <div class="stack-sm">
-        <span class="text-sm font-medium">{p.label}</span>
+        <span class="type-label">{p.label}</span>
         <FamilyField
           value={p.value()}
           label={p.label}
@@ -208,7 +208,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
             {(title, index) => (
               <li class="flex min-w-0 flex-1 items-center gap-2">
                 <span
-                  class="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid text-sm font-semibold"
+                  class="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-body-strong"
                   classList={{
                     "border-primary bg-primary text-on-primary": index() <= step(),
                     "border-border bg-surface-raised text-text-muted": index() > step(),
@@ -217,7 +217,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                 >
                   {index() + 1}
                 </span>
-                <span class="truncate text-xs font-medium">{title}</span>
+                <span class="truncate type-caption-strong">{title}</span>
               </li>
             )}
           </For>
@@ -279,7 +279,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                 onInput={(e) => setName(e.currentTarget.value)}
               />
               <Show when={problem() !== null || draftErr() !== null}>
-                <p class="text-sm text-semantic-error" role="alert">
+                <p class="text-semantic-error" role="alert">
                   {problem() ?? draftErr()}
                 </p>
               </Show>

@@ -76,7 +76,7 @@ export default function TransitionEditor(props: {
       <div class="row-sm items-center gap-3">
         <button
           type="button"
-          class="secondary s-sm font-mono text-xs"
+          class="secondary s-sm type-caption"
           style={{
             ...transition(),
             width: pressed() ? "9rem" : "5.5rem",

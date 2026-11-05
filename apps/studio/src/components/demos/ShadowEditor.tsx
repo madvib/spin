@@ -57,12 +57,12 @@ export default function ShadowEditor(props: {
         when={!isNone()}
         fallback={
           <>
-            <span class="rounded-sm bg-surface-sunken px-2 py-1 font-mono text-xs text-text-muted">
+            <span class="rounded-sm bg-surface-sunken px-2 py-1 type-code text-text-muted">
               none
             </span>
             <button
               type="button"
-              class="secondary s-sm min-h-0 cursor-pointer px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary"
+              class="secondary s-sm min-h-0 cursor-pointer px-2 py-1 type-caption normal-case tracking-normal shadow-none hover:border-primary"
               onClick={() =>
                 props.onCommit("0 4px 12px 0 rgb(0 0 0 / 0.12)")
               }
@@ -72,31 +72,31 @@ export default function ShadowEditor(props: {
           </>
         }
       >
-        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 text-text-muted">
           <span>x</span>
           <input
             type="text"
-            class="w-12 px-1 text-center font-mono text-xs tabular-nums"
+            class="w-12 px-1 text-center tabular-nums"
             value={draft().x}
             onKeyDown={(e) => stepKey(e, "x")}
             onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 text-text-muted">
           <span>y</span>
           <input
             type="text"
-            class="w-12 px-1 text-center font-mono text-xs tabular-nums"
+            class="w-12 px-1 text-center tabular-nums"
             value={draft().y}
             onKeyDown={(e) => stepKey(e, "y")}
             onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 text-text-muted">
           <span>blur</span>
           <input
             type="text"
-            class="w-12 px-1 text-center font-mono text-xs tabular-nums"
+            class="w-12 px-1 text-center tabular-nums"
             value={draft().blur}
             onKeyDown={(e) => stepKey(e, "blur")}
             onChange={(e) =>
@@ -104,11 +104,11 @@ export default function ShadowEditor(props: {
             }
           />
         </label>
-        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 text-text-muted">
           <span>spread</span>
           <input
             type="text"
-            class="w-12 px-1 text-center font-mono text-xs tabular-nums"
+            class="w-12 px-1 text-center tabular-nums"
             value={draft().spread}
             onKeyDown={(e) => stepKey(e, "spread")}
             onChange={(e) =>
@@ -120,12 +120,12 @@ export default function ShadowEditor(props: {
           value={draft().hex}
           onCommit={(hex) => commit({ ...draft(), hex })}
         />
-        <label class="row-sm items-center gap-1 font-mono text-xs text-text-muted">
+        <label class="row-sm items-center gap-1 text-text-muted">
           <span>α</span>
           <input
             type="text"
             aria-label="Shadow opacity"
-            class="w-12 px-1 text-center font-mono text-xs tabular-nums"
+            class="w-12 px-1 text-center tabular-nums"
             value={`${draft().alpha}%`}
             onKeyDown={stepAlpha}
             onChange={(e) => {
@@ -145,7 +145,7 @@ export default function ShadowEditor(props: {
         </label>
         <button
           type="button"
-          class="bare px-1 font-mono text-xs font-regular normal-case tracking-normal text-text-muted"
+          class="bare px-1 type-code normal-case tracking-normal text-text-muted"
           title="Remove shadow (set to none)"
           onClick={() => props.onCommit("none")}
         >

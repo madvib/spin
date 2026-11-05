@@ -87,10 +87,10 @@ export function ReferencePicker(props: {
     <div class="stack-sm">
       <Show when={active()}>
         {(target) => (
-          <div class="split rounded-md border border-primary bg-surface px-2 py-1 text-xs">
+          <div class="split rounded-md border border-primary bg-surface px-2 py-1 type-caption">
             <span class="row-sm rounded-sm" title={target().path}>
               <swatch class="s-sm" style={{ "--swatch": target().hex ?? "" }} aria-hidden="true" />
-              <span class="truncate font-medium">Follows {humanName(target().path)}</span>
+              <span class="truncate type-caption-strong">Follows {humanName(target().path)}</span>
             </span>
             <button
               type="button"

@@ -49,7 +49,7 @@ export function FindingGroups(props: {
                 <Marker />
                 <span class="min-w-0">{group.title}</span>
               </h2>
-              <span class="shrink-0 text-sm text-text-muted">
+              <span class="shrink-0 type-caption text-text-muted">
                 {group.findings.length}
               </span>
             </div>
@@ -90,15 +90,15 @@ export function FindingRow(props: {
         <code class="min-w-0 truncate">
           {props.finding.file}:{props.finding.line}:{props.finding.column}
         </code>
-        <span class="shrink-0 text-xs uppercase text-text-muted">
+        <span class="shrink-0 type-caption uppercase text-text-muted">
           {props.finding.severity}
         </span>
       </div>
-      <p class="text-sm">{props.finding.message}</p>
+      <p>{props.finding.message}</p>
       <Show
         when={props.finding.remedy}
         fallback={
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             Nothing to apply — the rule offers no edit for this one.
           </p>
         }
@@ -107,7 +107,7 @@ export function FindingRow(props: {
           <Show
             when={props.finding.fixable}
             fallback={
-              <p class="text-sm text-text-muted">
+              <p class="text-text-muted">
                 No automatic fix — {remedy()}
               </p>
             }
@@ -174,7 +174,7 @@ function RepetitionRow(props: {
         <code class="block break-words">
           {props.row.classes.join(" ")}
         </code>
-        <span class="text-sm text-text-muted">
+        <span class="type-caption text-text-muted">
           {props.row.count} times · {props.row.files.join(", ")}
         </span>
       </div>
@@ -238,7 +238,7 @@ export function ClassOrders(props: {
             <ul class="stack-sm">
               <For each={file.attributes}>
                 {(attribute) => (
-                  <li class="text-sm">
+                  <li>
                     <span class="text-text-muted">
                       {attribute.classes.join(" ")}
                     </span>

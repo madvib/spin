@@ -75,7 +75,7 @@ export function ConcernPage(props: {
             <h1>{props.title}</h1>
             {props.action}
           </div>
-          {props.note ? <p class="max-w-screen-md text-sm text-text-muted">{props.note}</p> : null}
+          {props.note ? <p class="max-w-screen-md text-text-muted">{props.note}</p> : null}
         </header>
         {props.children}
       </div>
@@ -141,7 +141,7 @@ export function TokenLine(props: {
             <span class="inline-flex items-center">
               <span
                 tabindex="0"
-                class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-text-muted"
+                class="rounded-sm bg-surface-sunken px-1 py-1 type-code text-text-muted"
               >
                 → {target()}
               </span>
@@ -155,7 +155,7 @@ export function TokenLine(props: {
           <span class="inline-flex items-center">
             <span
               tabindex="0"
-              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-accent"
+              class="rounded-sm bg-surface-sunken px-1 py-1 type-code text-accent"
             >
               dark
             </span>
@@ -168,7 +168,7 @@ export function TokenLine(props: {
           <span class="inline-flex items-center">
             <span
               tabindex="0"
-              class="rounded-sm bg-surface-sunken px-1 py-1 font-mono text-xs text-primary"
+              class="rounded-sm bg-surface-sunken px-1 py-1 type-code text-primary"
             >
               edited
             </span>
@@ -195,7 +195,7 @@ export function TokenLine(props: {
       }
       <Show when={refusalFor(props.path)}>
         {(message) => (
-          <p class="w-full text-xs text-semantic-error" role="alert">
+          <p class="w-full text-semantic-error" role="alert">
             {message()}
           </p>
         )}
@@ -254,10 +254,10 @@ export function Badge(props: {
 export function TokenChip(props: { path: string; value: string }) {
   return (
     <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border border-border bg-surface-raised px-1 py-1">
-      <span class="truncate font-mono text-xs text-text-muted">
+      <span class="truncate type-code text-text-muted">
         {props.path}
       </span>
-      <span class="shrink-0 font-mono text-xs">{props.value}</span>
+      <span class="shrink-0 type-code">{props.value}</span>
     </span>
   );
 }

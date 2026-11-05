@@ -490,7 +490,7 @@ function EasingChart(props: {
           </Show>
         </svg>
         <ul
-          class="stack-xs flex-1 text-xs"
+          class="stack-xs flex-1"
           style={{ "min-width": "14rem" }}
         >
           <For each={props.lanes}>
@@ -525,14 +525,14 @@ function EasingChart(props: {
                           stroke-width="2"
                         />
                       </svg>
-                      <span class="font-mono text-xs font-semibold">
+                      <span class="type-code">
                         {lane.path.split(".").pop()}
                       </span>
-                      <code class="text-xs text-text-muted">{lane.utility}</code>
+                      <code class="text-text-muted">{lane.utility}</code>
                     </span>
                     <Show when={lane.points}>
                       {(points) => (
-                        <span class="font-mono text-xs text-text-muted tabular-nums">
+                        <span class="type-code text-text-muted tabular-nums">
                           {Math.round(bezierY(points(), 0.5) * 100)}% at t=0.5
                         </span>
                       )}
@@ -569,7 +569,7 @@ function LoopButton(props: {
     <button
       type="button"
       aria-pressed={props.running}
-      class={`bare rounded-md border px-2 py-1 text-xs ${
+      class={`bare rounded-md border px-2 py-1 type-caption ${
         props.running
           ? `border-transparent ${props.paint}`
           : "ghost border-border text-text-muted"
@@ -655,7 +655,7 @@ export default function MotionPage() {
         <Show
           when={durations.rows().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no durations yet.
             </p>
           }
@@ -692,7 +692,7 @@ export default function MotionPage() {
         <Show
           when={easings().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no easings yet.
             </p>
           }
@@ -730,7 +730,7 @@ export default function MotionPage() {
         <Show
           when={transitions().length > 0}
           fallback={
-            <p class="text-sm text-text-muted">
+            <p class="text-text-muted">
               This theme declares no transitions yet.
             </p>
           }

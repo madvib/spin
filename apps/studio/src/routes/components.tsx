@@ -65,7 +65,7 @@ const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
  * nothing at all, which is what the row used to be.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left text-sm font-regular normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:font-medium";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case tracking-normal text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 /**
  * The band a run of rows is bucketed into.
@@ -84,7 +84,7 @@ const RAIL_LINK =
  * than a column and the groups are read across rather than down.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 text-sm font-semibold normal-case tracking-normal first:mt-0 lg:text-md";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case tracking-normal first:mt-0";
 
 /**
  * The row, as the drawer wears it.
@@ -95,7 +95,7 @@ const RAIL_BAND =
  * strong edge, full ink — so a reader who knows the rail knows it collapsed.
  */
 const DRAWER_LINK =
-  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 text-sm no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken data-[current]:font-medium";
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 /**
  * The group heading, as the drawer wears it.
@@ -107,7 +107,7 @@ const DRAWER_LINK =
  * the reader loses the one thing the group was there to say.
  */
 const DRAWER_BAND =
-  "text-sm font-semibold normal-case tracking-normal";
+  "type-body-strong normal-case tracking-normal";
 
 /** One row of the list: the component it names, and the glyph it wears. */
 interface Row {
@@ -134,9 +134,7 @@ function NavBody(props: {
 }) {
   return (
     <>
-      <h2
-        class={props.drawer() ? "text-sm text-text-muted" : "text-sm font-semibold"}
-      >
+      <h2 classList={{ "text-text-muted": props.drawer() }}>
         Components
       </h2>
       <div role="group" aria-label="Component kind" class="flex w-fit min-w-0 shrink-0 gap-1 rounded-md border border-solid border-border p-1">
@@ -146,7 +144,7 @@ function NavBody(props: {
               type="button"
               aria-pressed={props.kindFilter() === kind}
               onClick={() => props.setKindFilter(kind)}
-              class="bare rounded-md border border-solid border-transparent px-2 py-1 text-xs text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised aria-[pressed=true]:font-medium"
+              class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised"
             >
               {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
             </button>
@@ -167,9 +165,9 @@ function NavBody(props: {
           class="min-w-0 flex-1 ps-7"
         />
       </label>
-      <div class="flex items-center justify-between gap-2 text-xs text-text-muted">
+      <div class="flex items-center justify-between gap-2 type-caption text-text-muted">
         <span>components</span>
-        <span class="font-mono">
+        <span class="type-code">
           {props.needle() === "" ? `${props.total()}` : `${props.shown().length} of ${props.total()}`}
         </span>
       </div>
@@ -178,7 +176,7 @@ function NavBody(props: {
           <Show
             when={props.shown().length > 0}
             fallback={
-              <p class="text-xs text-text-muted">
+              <p class="text-text-muted">
                 No component matches “{props.query()}”.
               </p>
             }
@@ -226,10 +224,10 @@ function NavBody(props: {
         }
       >
         <Match when={library() === undefined}>
-          <p class="text-sm text-text-muted">loading…</p>
+          <p class="text-text-muted">loading…</p>
         </Match>
         <Match when={(library() ?? []).length === 0}>
-          <p class="text-sm text-text-muted">
+          <p class="text-text-muted">
             No components. Is the daemon running?
           </p>
         </Match>

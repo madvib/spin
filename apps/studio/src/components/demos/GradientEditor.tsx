@@ -129,7 +129,7 @@ export default function GradientEditor(props: {
         />
       </div>
       <Show when={props.composite.stops.length === 0}>
-        <p class="text-xs text-text-muted">
+        <p class="text-text-muted">
           A gradient with no stops paints nothing.
         </p>
       </Show>

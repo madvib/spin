@@ -130,7 +130,7 @@ function ExampleSection(props: {
         <Show when={props.row.stem !== undefined}>
           <button
             type="button"
-            class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
+            class="secondary s-sm min-h-0 cursor-pointer type-caption hover:border-primary"
             onClick={() => void copyExample()}
           >
             {copiedFile() ?? "copy to project"}
@@ -252,7 +252,7 @@ export default function ComponentPage() {
             fallback={
               <div>
                 <h1 class="capitalize">{params.name}</h1>
-                <p class="text-sm text-text-muted">Loading…</p>
+                <p class="text-text-muted">Loading…</p>
               </div>
             }
           >
@@ -275,7 +275,7 @@ export default function ComponentPage() {
                     Boolean(component.examples?.note)
                   }
                 >
-                  <p class="mt-1 max-w-screen-md text-sm text-text-muted">
+                  <p class="mt-1 max-w-screen-md text-text-muted">
                     {component.examples?.note}
                   </p>
                 </Show>
@@ -287,7 +287,7 @@ export default function ComponentPage() {
                 >
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
                       showApi()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"
@@ -306,7 +306,7 @@ export default function ComponentPage() {
                     // states are spelled out rather than layered, because a
                     // second colour class on the same element is a coin toss
                     // for which one the sheet writes last.
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
                       showTokens()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"
@@ -320,7 +320,7 @@ export default function ComponentPage() {
                 <Show when={classRowsFor(component).length > 0}>
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs font-regular normal-case tracking-normal shadow-none hover:border-primary ${
+                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case tracking-normal shadow-none hover:border-primary ${
                       showClasses()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border-border bg-surface-raised"
@@ -339,19 +339,19 @@ export default function ComponentPage() {
             <Show when={showClasses() && classRowsFor(component).length > 0}>
               <div
                 data-studio-chrome=""
-                class="mb-4 w-fit max-w-full overflow-x-auto rounded-md border border-border bg-surface text-left text-xs"
+                class="mb-4 w-fit max-w-full overflow-x-auto rounded-md border border-border bg-surface text-left type-caption"
                 aria-label="Classes and tags"
               >
-                <table class="m-0 w-full border-collapse text-left text-xs">
+                <table class="m-0 w-full border-collapse text-left">
                   <thead>
                     <tr class="border-b border-border bg-surface-raised text-text-muted">
-                      <th class="whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
+                      <th class="whitespace-nowrap px-3 py-2">
                         Class / Tag
                       </th>
-                      <th class="whitespace-nowrap px-3 py-2 font-mono text-xs font-medium">
+                      <th class="whitespace-nowrap px-3 py-2">
                         Type
                       </th>
-                      <th class="px-3 py-2 text-xs font-medium">
+                      <th class="px-3 py-2">
                         Description
                       </th>
                     </tr>
@@ -360,15 +360,15 @@ export default function ComponentPage() {
                     <For each={classRowsFor(component)}>
                       {(item) => (
                         <tr class="border-b border-border last:border-b-0">
-                          <td class="whitespace-nowrap px-3 py-1 font-mono text-xs font-medium text-primary">
+                          <td class="whitespace-nowrap px-3 py-1 type-code text-primary">
                             <code>{item.name}</code>
                           </td>
-                          <td class="whitespace-nowrap px-3 py-1 font-mono text-xs text-text-muted">
-                            <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 font-mono text-xs">
+                          <td class="whitespace-nowrap px-3 py-1 type-caption text-text-muted">
+                            <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 type-caption">
                               {item.kind}
                             </span>
                           </td>
-                          <td class="px-3 py-1 text-xs text-text-muted">
+                          <td class="px-3 py-1 text-text-muted">
                             {item.description}
                           </td>
                         </tr>
@@ -408,13 +408,13 @@ export default function ComponentPage() {
                     {([tier, names]) => (
                       <Show when={names.length > 0}>
                         <div class="flex flex-wrap items-baseline gap-2">
-                          <span class="w-20 shrink-0 font-mono text-xs text-text-muted">
+                          <span class="w-20 shrink-0 type-caption text-text-muted">
                             {tier}
                           </span>
                           <div class="flex flex-wrap gap-1">
                             <For each={names}>
                               {(name) => (
-                                <code class="rounded-sm border border-border bg-surface px-1 py-0 font-mono text-xs">
+                                <code class="rounded-sm border border-border bg-surface px-1 py-0">
                                   {name}
                                 </code>
                               )}
@@ -444,7 +444,7 @@ export default function ComponentPage() {
                     close
                   </button>
                 </div>
-                <p class="text-xs text-text-muted">
+                <p class="text-text-muted">
                   The tokens this component declares as its own — edited inline
                   while you interact with the specimens below, or created here
                   when the theme currently relies on the shared scale.
@@ -464,18 +464,18 @@ export default function ComponentPage() {
                           fallback={
                             <card class="min-h-12 flex-row items-center justify-between gap-4 px-3 py-2">
                               <div class="row-sm min-w-0">
-                                <span class="truncate font-mono text-xs">
+                                <span class="truncate type-code">
                                   {entry.path}
                                 </span>
                               </div>
                               <div class="row-sm min-w-0 shrink-0 items-center justify-end gap-2">
-                                <span class="font-mono text-xs text-text-muted">
+                                <span class="type-code text-text-muted">
                                   {entry.type} · falls back to {entry.value}
                                 </span>
                                 <Badge tone="warning">not declared</Badge>
                                 <button
                                   type="button"
-                                  class="secondary s-sm min-h-0 cursor-pointer text-xs hover:border-primary"
+                                  class="secondary s-sm min-h-0 cursor-pointer type-caption hover:border-primary"
                                   onClick={() =>
                                     createToken(
                                       entry.path.split("."),

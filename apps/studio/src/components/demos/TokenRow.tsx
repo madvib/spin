@@ -70,7 +70,7 @@ export default function TokenRow_(props: {
           <Show when={status().aliasOf}>
             {(target) => (
               <span
-                class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-text-muted"
+                class="rounded-sm bg-surface-sunken px-1 py-0 type-code leading-none text-text-muted"
                 title={`Points at ${target()}`}
               >
                 → {target()}
@@ -79,7 +79,7 @@ export default function TokenRow_(props: {
           </Show>
           <Show when={activeMode() === "dark" && status().restatedInDark}>
             <span
-              class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-accent"
+                class="rounded-sm bg-surface-sunken px-1 py-0 leading-none text-accent"
               title="Overridden in dark mode"
             >
               dark
@@ -87,7 +87,7 @@ export default function TokenRow_(props: {
           </Show>
           <Show when={status().modified}>
             <span
-              class="rounded-sm bg-surface-sunken px-1 py-0 font-mono text-xs leading-none text-primary"
+                class="rounded-sm bg-surface-sunken px-1 py-0 leading-none text-primary"
               title="Modified in this session"
             >
               edited
@@ -117,7 +117,7 @@ export default function TokenRow_(props: {
       }
       <Show when={refusalFor(props.row.path)}>
         {(message) => (
-          <p class="text-xs text-semantic-error" role="alert">
+          <p class="text-semantic-error" role="alert">
             {message()}
           </p>
         )}
