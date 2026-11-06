@@ -13,7 +13,7 @@ import { TOKEN_TYPES } from "../pipeline/types.ts";
 import type { TokenType } from "../pipeline/types.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
-import { OWNED_STYLES, ownedStyleFields, ownedStyleNames } from "./typography.ts";
+import { ownedStyleFields, ownedStyleNames } from "./typography.ts";
 import baseline from "../themes/silk.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
@@ -113,13 +113,13 @@ const TEXT_ON_RAISED: LegibilityFloor = {
   bg: "color.surface-raised",
   min: 4.5,
 };
-/** The second voice on the page. */
+/** The secondary style on the page. */
 const MUTED_ON_SURFACE: LegibilityFloor = {
   fg: "color.text-muted",
   bg: "color.surface",
   min: 3,
 };
-/** The second voice on the raised sheet above the page. */
+/** The secondary style on the raised sheet above the page. */
 const MUTED_ON_RAISED: LegibilityFloor = {
   fg: "color.text-muted",
   bg: "color.surface-raised",
@@ -422,7 +422,9 @@ export function requiredPaths(): readonly string[] {
  * that names neither still has a face for its headings. The type scales
  * are excluded: styles carry the tuple, and a theme with literal-valued
  * styles and no scales is complete — the scales are the style author's
- * library, not a spend path.
+ * library, not a spend path. The type tuples are excluded: every tuple
+ * read carries its style fallback, so a theme that declares no tuple
+ * reads the style, not the void.
  */
 function baselineScalePaths(): readonly string[] {
   return baselineScales().map((entry) => entry.path);
@@ -451,7 +453,10 @@ export function baselineScales(): readonly BaselineScale[] {
       `contract: baseline theme does not parse: ${parsed.error}`,
     );
   }
-  const optionalRoots = new Set(ELEMENT_ROLES.map((role) => role.group));
+  const optionalRoots = new Set([
+    "element",
+    ...ELEMENT_ROLES.map((role) => role.group),
+  ]);
   const out: BaselineScale[] = [];
   const walk = (nodes: readonly unknown[]): void => {
     for (const node of nodes) {
@@ -475,7 +480,8 @@ export function baselineScales(): readonly BaselineScale[] {
           dotted.startsWith("font.tracking.") ||
           dotted.startsWith("font.leading.") ||
           dotted === "font.family.heading" ||
-          dotted === "font.family.body")
+          dotted === "font.family.body" ||
+          n.path[n.path.length - 2] === "type")
       ) continue;
       if (n.kind === "token") {
         out.push({
@@ -643,14 +649,15 @@ export function themeSchema(): Record<string, unknown> {
       enum: ["light", "dark"],
     },
   };
-  // `$extends` is document metadata like `modes`: the starter this sparse
-  // document layers over. Listed and constrained to the shipped starters so
+  // `$extends` is document metadata like `modes`: the document this sparse
+  // document layers over — a starter, or the `base` foundation the starters
+  // themselves layer over. Listed and constrained to the shipped names so
   // an unknown name fails the schema, not the build.
   properties["$extends"] = {
     type: "string",
     description:
-      "The starter this document layers over. Tokens the document states replace the starter's; tokens it omits are inherited.",
-    enum: ["spin", "silk", "material", "neobrut", "industrial"],
+      "The document this document layers over. Tokens the document states replace the base's; tokens it omits are inherited.",
+    enum: ["spin", "silk", "material", "neobrut", "industrial", "base"],
   };
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -746,17 +753,17 @@ function groupSchema(
  * under `font.style.<name>`. The `shape` here is one top-level group's
  * children, so `style.<name>` holds the five field leaves the gather loop
  * just placed. Each is re-hung as a leaf whose schema is either the group
- * the loop built or the composite tuple — one required voice, two spellings.
+ * the loop built or the composite tuple — one required style, two spellings.
  */
 function acceptStyleTuples(shape: GroupShape): void {
   const style = shape["style"];
   if (style === undefined || style.kind !== "group") return;
-  for (const owned of OWNED_STYLES) {
-    const tuple = style.children[owned.name];
+  for (const name of ownedStyleNames()) {
+    const tuple = style.children[name];
     if (tuple === undefined || tuple.kind !== "group") continue;
     const groupForm: JsonSchema = toSchema(tuple.children);
-    const compositeForm = styleTupleSchema(owned.name);
-    style.children[owned.name] = {
+    const compositeForm = styleTupleSchema(name);
+    style.children[name] = {
       kind: "leaf",
       required: tuple.required,
       schema: {
@@ -768,7 +775,7 @@ function acceptStyleTuples(shape: GroupShape): void {
 }
 
 /**
- * The documentation for an owned style leaf, from the owned set's own entry.
+ * The documentation for an owned style leaf, from the owned set itself.
  *
  * The owned set names the styles a theme owes; the schema says what each leaf
  * holds, so the two read from the same list rather than a second roster.
@@ -778,10 +785,10 @@ function ownedDoc(path: string): string | undefined {
   if (segments.length !== 4 || segments[0] !== "font" || segments[1] !== "style") {
     return undefined;
   }
-  const style = OWNED_STYLES.find((entry) => entry.name === segments[2]);
-  if (style === undefined) return undefined;
+  const name = segments[2] as string;
+  if (!ownedStyleNames().includes(name)) return undefined;
   const field = segments[3] as string;
-  return `The ${field} the ${style.name} style reads at.`;
+  return `The ${field} the ${name} style reads at.`;
 }
 
 /**
@@ -797,7 +804,7 @@ function styleTupleSchema(style: string): JsonSchema {
   }
   return {
     type: "object",
-    description: `The ${style} voice as one typography tuple.`,
+    description: `The ${style} style as one typography tuple.`,
     additionalProperties: false,
     required: ["$type", "$value"],
     properties: {

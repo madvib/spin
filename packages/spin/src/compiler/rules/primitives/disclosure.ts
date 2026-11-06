@@ -1,6 +1,6 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType, type StyleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
+import type { ThemeType } from "../../../theme/theme-types.d.ts";
 
 /**
  * Disclosure — `<details>` and `<summary>`.
@@ -33,7 +33,7 @@ import { styleType, type StyleType } from "./shared.ts";
  */
 export function disclosureRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("details")) return [];
   const details = "details";
   const summary = "summary";
@@ -50,7 +50,7 @@ interface Tokens {
   readonly sunken: string | undefined;
   readonly border: string | undefined;
   readonly borderWidth: string | undefined;
-  readonly weightSemibold: StyleType;
+  readonly weightSemibold: ThemeType | undefined;
   readonly focusWidth: string | undefined;
   readonly focusOffset: string | undefined;
   readonly focusRing: string | undefined;
@@ -64,28 +64,28 @@ interface Tokens {
 
 function tokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing2: token(ctx, "spacing.2"),
-    radius: token(ctx, "radius.md"),
-    radiusSm: token(ctx, "radius.sm"),
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    raised: token(ctx, "color.surface-raised"),
-    sunken: token(ctx, "color.surface-sunken"),
-    border: token(ctx, "color.border"),
-    borderWidth: token(ctx, "border.width"),
-    weightSemibold: styleType(ctx, "body-strong"),
-    focusWidth: token(ctx, "focus.width"),
-    focusOffset: token(ctx, "focus.offset"),
-    focusRing: token(ctx, "color.focus-ring"),
-    duration: token(ctx, "motion.duration.fast"),
-    easing: token(ctx, "motion.easing.standard"),
-    reveal: token(ctx, "motion.duration.base"),
-    easeOut: token(ctx, "motion.easing.decelerate"),
+    spacing2: ctx?.theme?.spacing?.[2],
+    radius: ctx?.theme?.radius?.md,
+    radiusSm: ctx?.theme?.radius?.sm,
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
+    raised: ctx?.theme?.color?.["surface-raised"],
+    sunken: ctx?.theme?.color?.["surface-sunken"],
+    border: ctx?.theme?.color?.border,
+    borderWidth: ctx?.theme?.border?.width,
+    weightSemibold: ctx?.theme?.font?.style?.["body-strong"],
+    focusWidth: ctx?.theme?.focus?.width,
+    focusOffset: ctx?.theme?.focus?.offset,
+    focusRing: ctx?.theme?.color?.["focus-ring"],
+    duration: ctx?.theme?.motion?.duration?.fast,
+    easing: ctx?.theme?.motion?.easing?.standard,
+    reveal: ctx?.theme?.motion?.duration?.base,
+    easeOut: ctx?.theme?.motion?.easing?.decelerate,
   };
 }
 
 /** The container: a surface with a rule, and none of its own state. */
-function detailsRule(details: string, summary: string): Rule {
+function detailsRule(details: string, summary: string): SpinRule {
   return [
     /^details$/,
     function* (_m, ctx) {
@@ -194,7 +194,7 @@ function detailsRule(details: string, summary: string): Rule {
  * Hovering raises the whole label, not just the marker, because the label is
  * the control and the marker is a picture of it.
  */
-function summaryRule(summary: string, details: string): Rule {
+function summaryRule(summary: string, details: string): SpinRule {
   return [
     /^summary$/,
     function* (_m, ctx) {
@@ -220,10 +220,10 @@ function summaryRule(summary: string, details: string): Rule {
         // and leaving either in place is how a disclosure ends up with two
         // indicators in three browsers.
         "list-style": "none",
-        // The label wears the body-strong voice's weight — emphasis for the
+        // The label wears the body-strong style's weight — emphasis for the
         // row that opens.
         ...(() => {
-          const weight = t.weightSemibold.weight;
+          const weight = t.weightSemibold?.["font-weight"];
           return weight !== undefined ? { "font-weight": weight } : {};
         })(),
         ...(t.text !== undefined ? { color: t.text } : {}),

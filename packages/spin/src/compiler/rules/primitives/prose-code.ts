@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { proseTokens, spacing, styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { proseTokens, spacing } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -11,29 +11,23 @@ import { paintedTag } from "./scope.ts";
  * them shares a state with a heading or a list; what they share is typography,
  * and that is what the code style is for.
  *
- * Each reads the code style outright, and a theme moves its machine text by
- * moving the style.
+ * Inline code reads its element type outright — the code style unless the
+ * theme re-points it. The other two read the code style outright, and a
+ * theme moves its machine text by moving the style.
  */
 
 /** Inline code: a chip that reads as code without leaving the line box. */
-function codeRule(): Rule {
+function codeRule(): SpinRule {
   return [
     /^code$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "code");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
+      const primary = ctx?.theme?.element?.code?.type;
+      const shared = ctx?.theme?.font?.style?.code;
+      const s = primary ?? shared;
       yield {
         [ctx.symbols.selector]: () => "code",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(s ?? {}),
         ...(t.spacing1 !== undefined
           ? { padding: `calc(${t.spacing1} / 2) ${t.spacing1}` }
           : {}),
@@ -47,13 +41,12 @@ function codeRule(): Rule {
 }
 
 /** Program output: the mono face, no chip — it is a run of text, not a token. */
-function sampRule(): Rule {
+function sampRule(): SpinRule {
   return [
     /^samp$/,
     function* (_m, ctx) {
-      const family = styleType(ctx, "code").family;
-      const s = styleType(ctx, "code");
-      const size = s.size;
+      const family = ctx?.theme?.font?.style?.code?.["font-family"];
+      const size = ctx?.theme?.font?.style?.code?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => "samp",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -77,13 +70,13 @@ function sampRule(): Rule {
  * document's furniture, and the inline chip is undone inside it: a block is
  * not a stack of chips.
  */
-function preRule(): Rule {
+function preRule(): SpinRule {
   const chrome = paintedTag("prose", "descendant", "pre");
   return [
     /^pre$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const family = styleType(ctx, "code").family;
+      const family = ctx?.theme?.font?.style?.code?.["font-family"];
       yield {
         [ctx.symbols.selector]: () => "pre",
         // The mono face is what makes a block code; the SIZE is the author's.
@@ -118,6 +111,6 @@ function preRule(): Rule {
   ];
 }
 
-export function codeRules(): Rule[] {
+export function codeRules(): SpinRule[] {
   return [codeRule(), sampRule(), preRule()];
 }

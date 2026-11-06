@@ -1,5 +1,5 @@
 import type { EventUnion } from "@spinjs/runtime/fsm";
-import type { ColorChannel } from "@zag-js/color-utils";
+import type { ColorChannel } from "./color.ts";
 import type { ColorFormat } from "./color-picker.state.ts";
 
 export interface ColorPickerEvents {

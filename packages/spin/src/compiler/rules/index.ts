@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { primitiveRules } from "./primitives/index.ts";
 import { borderRules } from "./border.ts";
 import { colorRules } from "./color.ts";
@@ -23,7 +23,7 @@ import { transitionRules } from "./transitions.ts";
 import { namedTypeRules } from "./type.ts";
 import { typographyRules } from "./typography.ts";
 
-export function spinRules(roots: readonly string[]): Rule[] {
+export function spinRules(roots: readonly string[]): SpinRule[] {
   return [
     ...layoutRules(),
     ...listRules(),

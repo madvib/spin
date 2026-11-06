@@ -69,7 +69,7 @@ const GROUP_DESCRIPTIONS: Readonly<Record<string, string>> = {
   color:
     "Surfaces, inks, primary/secondary/accent actions, semantic status pairs, borders, and raw palette ramps.",
   font:
-    "Font family stacks, the sixteen named type styles (font.style.* — the voices type-<name> spends, each a composite $type typography tuple), the size/weight/tracking/leading scales the styles alias, font.map voice assignment, and per-element defaults.",
+    "Font family stacks, the sixteen named type styles (font.style.* — the styles type-<name> spends, each a composite $type typography tuple), and the size/weight/tracking/leading scales the styles alias.",
   spacing:
     "Monotonic spatial scale (0, 1..64) consumed by padding, margin, and gap utilities.",
   radius:
@@ -176,7 +176,7 @@ function fontStyleEntries(): readonly PropEntry[] {
       const note =
         typeof node?.["$description"] === "string"
           ? (node["$description"] as string)
-          : `The ${name} voice.`;
+          : `The ${name} style.`;
       return {
         name: `font.style.${name}`,
         badge: "style",
@@ -305,11 +305,11 @@ export default function ThemesReference(): JSX.Element {
       <Section id="styles" title="Named type styles">
         <p class="max-w-prose">
           Write <code>type-&lt;name&gt;</code> to spend one of these sixteen
-          voices — the face, the size, the weight, the tracking, the leading,
+          styles — the face, the size, the weight, the tracking, the leading,
           all at once, each declared as a composite{" "}
           <code>$type: "typography"</code> tuple in{" "}
           <code>font.style.&lt;name&gt;</code>. The table reads the active
-          starter theme, so switching starters rewrites it; every voice, its
+          starter theme, so switching starters rewrites it; every style, its
           element default, and a live specimen lives in the{" "}
           <A href="/docs/styling/prose">Typography guide</A>.
         </p>

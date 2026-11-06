@@ -10,12 +10,12 @@
     "focus",
     "spacing",
     "radius",
-    "shadow",
+    "border",
+    "motion",
     "breakpoint",
     "z-index",
-    "motion",
-    "border",
-    "avatar"
+    "avatar",
+    "shadow"
   ],
   "properties": {
     "color": {
@@ -1943,11 +1943,11 @@
           ],
           "properties": {
             "display": {
-              "description": "The display voice as one typography tuple.",
+              "description": "The display style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The display voice as one typography tuple.",
+                  "description": "The display style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -2169,11 +2169,11 @@
               ]
             },
             "title": {
-              "description": "The title voice as one typography tuple.",
+              "description": "The title style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The title voice as one typography tuple.",
+                  "description": "The title style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -2395,11 +2395,11 @@
               ]
             },
             "heading": {
-              "description": "The heading voice as one typography tuple.",
+              "description": "The heading style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The heading voice as one typography tuple.",
+                  "description": "The heading style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -2621,11 +2621,11 @@
               ]
             },
             "subtitle": {
-              "description": "The subtitle voice as one typography tuple.",
+              "description": "The subtitle style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The subtitle voice as one typography tuple.",
+                  "description": "The subtitle style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -2847,11 +2847,11 @@
               ]
             },
             "lead": {
-              "description": "The lead voice as one typography tuple.",
+              "description": "The lead style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The lead voice as one typography tuple.",
+                  "description": "The lead style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -3073,11 +3073,11 @@
               ]
             },
             "body": {
-              "description": "The body voice as one typography tuple.",
+              "description": "The body style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The body voice as one typography tuple.",
+                  "description": "The body style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -3299,11 +3299,11 @@
               ]
             },
             "quote": {
-              "description": "The quote voice as one typography tuple.",
+              "description": "The quote style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The quote voice as one typography tuple.",
+                  "description": "The quote style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -3525,11 +3525,11 @@
               ]
             },
             "code": {
-              "description": "The code voice as one typography tuple.",
+              "description": "The code style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The code voice as one typography tuple.",
+                  "description": "The code style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -3751,11 +3751,11 @@
               ]
             },
             "label": {
-              "description": "The label voice as one typography tuple.",
+              "description": "The label style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The label voice as one typography tuple.",
+                  "description": "The label style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -3977,11 +3977,11 @@
               ]
             },
             "caption": {
-              "description": "The caption voice as one typography tuple.",
+              "description": "The caption style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The caption voice as one typography tuple.",
+                  "description": "The caption style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -4203,11 +4203,11 @@
               ]
             },
             "overline": {
-              "description": "The overline voice as one typography tuple.",
+              "description": "The overline style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The overline voice as one typography tuple.",
+                  "description": "The overline style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -4429,11 +4429,11 @@
               ]
             },
             "stat": {
-              "description": "The stat voice as one typography tuple.",
+              "description": "The stat style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The stat voice as one typography tuple.",
+                  "description": "The stat style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -4655,11 +4655,11 @@
               ]
             },
             "badge": {
-              "description": "The badge voice as one typography tuple.",
+              "description": "The badge style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The badge voice as one typography tuple.",
+                  "description": "The badge style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -4881,11 +4881,11 @@
               ]
             },
             "body-strong": {
-              "description": "The body-strong voice as one typography tuple.",
+              "description": "The body-strong style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The body-strong voice as one typography tuple.",
+                  "description": "The body-strong style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -5107,11 +5107,11 @@
               ]
             },
             "caption-strong": {
-              "description": "The caption-strong voice as one typography tuple.",
+              "description": "The caption-strong style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The caption-strong voice as one typography tuple.",
+                  "description": "The caption-strong style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -5333,11 +5333,11 @@
               ]
             },
             "card-title": {
-              "description": "The card-title voice as one typography tuple.",
+              "description": "The card-title style as one typography tuple.",
               "anyOf": [
                 {
                   "type": "object",
-                  "description": "The card-title voice as one typography tuple.",
+                  "description": "The card-title style as one typography tuple.",
                   "additionalProperties": false,
                   "required": [
                     "$type",
@@ -6547,156 +6547,19 @@
         }
       }
     },
-    "shadow": {
+    "border": {
       "type": "object",
       "additionalProperties": true,
       "required": [
-        "sm",
-        "md",
-        "lg"
+        "width",
+        "width-2",
+        "width-4",
+        "width-8"
       ],
       "properties": {
-        "sm": {
+        "width": {
           "type": "object",
-          "description": "shadow.sm",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            },
-            "$modes": {
-              "type": "object",
-              "properties": {
-                "light": {},
-                "dark": {}
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "md": {
-          "type": "object",
-          "description": "shadow.md",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            },
-            "$modes": {
-              "type": "object",
-              "properties": {
-                "light": {},
-                "dark": {}
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "lg": {
-          "type": "object",
-          "description": "shadow.lg",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            },
-            "$modes": {
-              "type": "object",
-              "properties": {
-                "light": {},
-                "dark": {}
-              },
-              "additionalProperties": false
-            }
-          }
-        }
-      }
-    },
-    "breakpoint": {
-      "type": "object",
-      "additionalProperties": true,
-      "required": [
-        "sm",
-        "md",
-        "lg",
-        "xl"
-      ],
-      "properties": {
-        "sm": {
-          "type": "object",
-          "description": "breakpoint.sm",
+          "description": "The hairline every control and surface draws with.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -6728,9 +6591,9 @@
             }
           }
         },
-        "md": {
+        "width-2": {
           "type": "object",
-          "description": "breakpoint.md",
+          "description": "The emphasis edge: a control that must read as selected rather than merely bordered.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -6762,9 +6625,9 @@
             }
           }
         },
-        "lg": {
+        "width-4": {
           "type": "object",
-          "description": "breakpoint.lg",
+          "description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -6796,157 +6659,9 @@
             }
           }
         },
-        "xl": {
+        "width-8": {
           "type": "object",
-          "description": "breakpoint.xl",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
-    "z-index": {
-      "type": "object",
-      "additionalProperties": true,
-      "required": [
-        "base",
-        "dropdown",
-        "modal",
-        "toast"
-      ],
-      "properties": {
-        "base": {
-          "type": "object",
-          "description": "z-index.base",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "dropdown": {
-          "type": "object",
-          "description": "z-index.dropdown",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "modal": {
-          "type": "object",
-          "description": "z-index.modal",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "toast": {
-          "type": "object",
-          "description": "z-index.toast",
+          "description": "The frame. A block drawn rather than outlined.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7286,19 +7001,19 @@
         }
       }
     },
-    "border": {
+    "breakpoint": {
       "type": "object",
       "additionalProperties": true,
       "required": [
-        "width",
-        "width-2",
-        "width-4",
-        "width-8"
+        "sm",
+        "md",
+        "lg",
+        "xl"
       ],
       "properties": {
-        "width": {
+        "sm": {
           "type": "object",
-          "description": "The hairline every control and surface draws with.",
+          "description": "breakpoint.sm",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7330,9 +7045,9 @@
             }
           }
         },
-        "width-2": {
+        "md": {
           "type": "object",
-          "description": "The emphasis edge: a control that must read as selected rather than merely bordered.",
+          "description": "breakpoint.md",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7364,9 +7079,9 @@
             }
           }
         },
-        "width-4": {
+        "lg": {
           "type": "object",
-          "description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider.",
+          "description": "breakpoint.lg",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7398,9 +7113,157 @@
             }
           }
         },
-        "width-8": {
+        "xl": {
           "type": "object",
-          "description": "The frame. A block drawn rather than outlined.",
+          "description": "breakpoint.xl",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "z-index": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "base",
+        "dropdown",
+        "modal",
+        "toast"
+      ],
+      "properties": {
+        "base": {
+          "type": "object",
+          "description": "z-index.base",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "dropdown": {
+          "type": "object",
+          "description": "z-index.dropdown",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "modal": {
+          "type": "object",
+          "description": "z-index.modal",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "toast": {
+          "type": "object",
+          "description": "z-index.toast",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7547,13 +7410,150 @@
         }
       }
     },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "properties": {
+        "sm": {
+          "type": "object",
+          "description": "shadow.sm",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "md": {
+          "type": "object",
+          "description": "shadow.md",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "lg": {
+          "type": "object",
+          "description": "shadow.lg",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    },
     "badge": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
         "edge": {
           "type": "object",
-          "description": "The stroke the badge draws around itself.",
+          "description": "The stroke the badge draws around itself, so a small shape holds apart from the page. Zero leaves it a bare fill with no edge.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7587,7 +7587,7 @@
         },
         "pill": {
           "type": "object",
-          "description": "Whether the badge is a pill or a square tag.",
+          "description": "Fully round reads as a pill; false squares it into a tag.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7625,9 +7625,51 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
+        "edge": {
+          "type": "object",
+          "description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            },
+            "$modes": {
+              "type": "object",
+              "properties": {
+                "light": {},
+                "dark": {}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
         "shadow": {
           "type": "object",
-          "description": "The elevation a button rests at.",
+          "description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7669,49 +7711,7 @@
         },
         "shadow-hover": {
           "type": "object",
-          "description": "The elevation a button lifts to when it is touched.",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            },
-            "$modes": {
-              "type": "object",
-              "properties": {
-                "light": {},
-                "dark": {}
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "edge": {
-          "type": "object",
-          "description": "The ink a button frames itself in; both variants share it.",
+          "description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7793,7 +7793,7 @@
       "properties": {
         "depth": {
           "type": "object",
-          "description": "How physical a checkbox is: one scalar driving three inset shadows.",
+          "description": "How physical a checkbox is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7833,115 +7833,7 @@
       "properties": {
         "depth": {
           "type": "object",
-          "description": "How physical a switch is: one scalar driving three inset shadows.",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
-    "icon": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "sm": {
-          "type": "object",
-          "description": "The smallest glyph step, in `em` so it tracks the control it sits in.",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "md": {
-          "type": "object",
-          "description": "The default glyph step.",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            }
-          }
-        },
-        "lg": {
-          "type": "object",
-          "description": "The largest glyph step.",
+          "description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -7981,7 +7873,7 @@
       "properties": {
         "radius": {
           "type": "object",
-          "description": "The card's own corner. A card is not a button and need not round the same way.",
+          "description": "The large step: a card is a big quiet thing, and a big quiet thing rounds a little more than a control does.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8049,7 +7941,7 @@
         },
         "border": {
           "type": "object",
-          "description": "The ink of the card's own edge, when it draws one.",
+          "description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8091,7 +7983,7 @@
         },
         "elevation": {
           "type": "object",
-          "description": "The elevation the card rests at. A card that sits on the page says so.",
+          "description": "The theme's resting step: a card sits on the page rather than floating above it.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8139,7 +8031,7 @@
       "properties": {
         "radius": {
           "type": "object",
-          "description": "The alert's own corner.",
+          "description": "The page's corner: a message is a box, and a box is not a pill.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8173,7 +8065,7 @@
         },
         "padding": {
           "type": "object",
-          "description": "The air above and below the alert's text.",
+          "description": "The air above and below the message.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8207,7 +8099,7 @@
         },
         "padding-inline": {
           "type": "object",
-          "description": "The air beside the alert's text, where the message is read.",
+          "description": "The air beside the message, where it is read.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8241,7 +8133,7 @@
         },
         "edge": {
           "type": "object",
-          "description": "The ink of the hairline the alert wears on every side.",
+          "description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8289,7 +8181,7 @@
       "properties": {
         "radius": {
           "type": "object",
-          "description": "The field's own corner.",
+          "description": "The page's corner.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8323,7 +8215,7 @@
         },
         "border": {
           "type": "object",
-          "description": "The ink of the field's own edge: the line a finger has to find.",
+          "description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8371,7 +8263,7 @@
       "properties": {
         "rule": {
           "type": "object",
-          "description": "The ink of the rule under a row.",
+          "description": "The ink of the rule under a row: the page's hairline.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8413,7 +8305,7 @@
         },
         "zebra": {
           "type": "object",
-          "description": "The fill a striped row wears.",
+          "description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8455,13 +8347,121 @@
         }
       }
     },
+    "icon": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "sm": {
+          "type": "object",
+          "description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "md": {
+          "type": "object",
+          "description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        },
+        "lg": {
+          "type": "object",
+          "description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+          "additionalProperties": false,
+          "required": [
+            "$value"
+          ],
+          "properties": {
+            "$value": {},
+            "$type": {
+              "type": "string",
+              "enum": [
+                "color",
+                "boolean",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "duration",
+                "cubicBezier",
+                "number",
+                "strokeStyle",
+                "border",
+                "transition",
+                "shadow",
+                "gradient",
+                "typography",
+                "textTransform"
+              ]
+            },
+            "$description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "link": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
         "underline": {
           "type": "object",
-          "description": "The thickness of the rule under a link. Zero marks the link by colour alone.",
+          "description": "A hair, one pixel at the body size: a link is found without being shouted at.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8495,7 +8495,7 @@
         },
         "offset": {
           "type": "object",
-          "description": "The distance between a link and its underline.",
+          "description": "The link's own decisions: the rule under it.",
           "additionalProperties": false,
           "required": [
             "$value"
@@ -8542,13 +8542,14 @@
     },
     "$extends": {
       "type": "string",
-      "description": "The starter this document layers over. Tokens the document states replace the starter's; tokens it omits are inherited.",
+      "description": "The document this document layers over. Tokens the document states replace the base's; tokens it omits are inherited.",
       "enum": [
         "spin",
         "silk",
         "material",
         "neobrut",
-        "industrial"
+        "industrial",
+        "base"
       ]
     }
   }

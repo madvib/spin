@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import type { ColorPickerApi } from "./color-picker.presentation.ts";
-import type { ColorChannel } from "@zag-js/color-utils";
+import type { ColorChannel } from "./color.ts";
 
 // The derived api's public surface, pinned: removing a reader, method,
 // command, part, or slot from the def removes it here, and this test

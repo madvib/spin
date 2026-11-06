@@ -471,9 +471,9 @@ test("init writes a theme and a bundler config into a fresh root", async () => {
       () => {},
     );
     deepStrictEqual(code, 0);
-    deepStrictEqual(lines, ["Initialized spin/brand.json (nordic, rspack)"]);
+    deepStrictEqual(lines, ["Initialized spin/brand/tokens.json (nordic, rspack)"]);
     const written = JSON.parse(
-      await readFile(join(dir, "spin", "brand.json"), "utf8"),
+      await readFile(join(dir, "spin", "brand", "tokens.json"), "utf8"),
     ) as Record<string, unknown>;
     deepStrictEqual(written["$extends"], "nordic");
     deepStrictEqual(written["color"], undefined);

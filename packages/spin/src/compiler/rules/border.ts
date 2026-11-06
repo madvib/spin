@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   BORDER_SIDES,
   BORDER_STYLES,
@@ -43,7 +43,7 @@ export const BORDER_NAMES: readonly string[] = [
   ...BORDER_SIDE_NAMES,
 ];
 
-export function borderRules(): Rule[] {
+export function borderRules(): SpinRule[] {
   return [
     ...staticRules([...BORDER_STYLE_NAMES], STATIC_DECLS),
     [

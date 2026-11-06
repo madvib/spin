@@ -1,6 +1,6 @@
-import type { Rule } from "@unocss/core";
-import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType, withFallback } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { named, type ThemeContext } from "../../utils/lookup.ts";
+import { fallback } from "./shared.ts";
 
 /**
  * Alert — `<alert role="status">` and `<alert role="alert">`.
@@ -28,31 +28,31 @@ import { styleType, withFallback } from "./shared.ts";
  * behaviour, not decoration: a rule can draw an × but cannot remove the
  * message, and an × that does nothing is worse than none.
  */
-export function alertRules(roots: readonly string[]): Rule[] {
+export function alertRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("alert")) return [];
   return [alertBase(), ...alertTones()];
 }
 
 function alertTokens(ctx: ThemeContext | undefined) {
-  // The alert reads the label voice — the small-medium advisory type — and
+  // The alert reads the label style — the small-medium advisory type — and
   // an assertion reads the body-strong weight: an assertion is read before
   // a status. Styles are required: a field the theme does not state is
   // absent, and its declaration is dropped.
-  const label = styleType(ctx, "label");
-  const strong = styleType(ctx, "body-strong");
+  const label = ctx?.theme?.alert?.type ?? ctx?.theme?.font?.style?.label;
+  const strong = ctx?.theme?.font?.style?.["body-strong"];
   return {
-    spacing2: withFallback(ctx, "alert.padding", "spacing.2"),
-    spacing4: withFallback(ctx, "alert.padding-inline", "spacing.4"),
-    radius: withFallback(ctx, "alert.radius", "radius.md"),
-    text: token(ctx, "color.text"),
-    raised: token(ctx, "color.surface-raised"),
+    spacing2: fallback(ctx?.theme?.alert?.padding, ctx?.theme?.spacing?.[2]),
+    spacing4: fallback(ctx?.theme?.alert?.["padding-inline"], ctx?.theme?.spacing?.[4]),
+    radius: fallback(ctx?.theme?.alert?.radius, ctx?.theme?.radius?.md),
+    text: ctx?.theme?.color?.text,
+    raised: ctx?.theme?.color?.["surface-raised"],
     // The hairline the alert wears on every side. The tone variants
     // recolour the leading edge alone, so this is the quiet frame around
     // them — and it is the alert's own ink, falling back to the page's.
-    border: withFallback(ctx, "alert.edge", "color.border"),
-    borderWidth: token(ctx, "border.width"),
-    fontSize: label.size,
-    weight: strong.weight,
+    border: fallback(ctx?.theme?.alert?.edge, ctx?.theme?.color?.border),
+    borderWidth: ctx?.theme?.border?.width,
+    fontSize: label?.["font-size"],
+    weight: strong?.["font-weight"],
   };
 }
 
@@ -63,7 +63,7 @@ function alertTokens(ctx: ThemeContext | undefined) {
  * component, not tokens a document writes: uno keeps only the first rule
  * matching a token, so a separate rule keyed on a role would never be reached.
  */
-function alertBase(): Rule {
+function alertBase(): SpinRule {
   const alert = "alert";
   return [
     /^alert$/,
@@ -157,7 +157,7 @@ const ALERT_TONES: ReadonlyArray<{
   { name: "neutral", fill: "surface-raised", edge: "border" },
 ];
 
-function alertTones(): Rule[] {
+function alertTones(): SpinRule[] {
   const alert = "alert";
   return ALERT_TONES.flatMap((tone) => {
     const { name, fill, edge } = tone;
@@ -206,5 +206,5 @@ function alertTones(): Rule[] {
         { layer: "primitives", autocomplete: `alert-${name}-muted` },
       ],
     ];
-  }) as Rule[];
+  }) as SpinRule[];
 }

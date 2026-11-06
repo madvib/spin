@@ -1,4 +1,5 @@
 import type { Variant } from "@unocss/core";
+import type { Theme } from "../../theme/theme-types.d.ts";
 import { FOCUS_PREFIX, focusVariant } from "./focus.ts";
 import { HOVER_PREFIX, hoverVariant } from "./hover.ts";
 import { breakpointVariant } from "./breakpoint.ts";
@@ -16,7 +17,7 @@ import { breakpointVariant } from "./breakpoint.ts";
  */
 export function spinVariants(
   options: { readonly breakpoints?: Readonly<Record<string, string>> } = {},
-): Variant[] {
+): Variant<Theme>[] {
   return [
     hoverVariant,
     focusVariant,

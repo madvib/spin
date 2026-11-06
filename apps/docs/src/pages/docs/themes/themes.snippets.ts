@@ -32,7 +32,7 @@ export const THEMES_SNIPPETS = {
     <button type="button">Compare diff</button>
   </div>
 </div>`,
-  compositeVoice: `{
+  compositeStyle: `{
   "font": {
     "style": {
       "heading": {
@@ -49,11 +49,14 @@ export const THEMES_SNIPPETS = {
   }
 }`,
   fontMap: `{
-  "font": {
-    "map": {
-      "h1": "title",
-      "card.title": "card-title",
-      "dt": null
+  "element": {
+    "h1": {
+      "type": { "$type": "typography", "$value": "{font.style.title}" }
+    }
+  },
+  "card": {
+    "title": {
+      "type": { "$type": "typography", "$value": "{font.style.card-title}" }
     }
   }
 }`,

@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+
 import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
@@ -21,19 +21,19 @@ import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
  * `radius.md`, because a 4px radius on a 20px circle is a squircle, and a
  * squircle is not a radio.
  */
-export function radioRules(roots: readonly string[]): Rule[] {
+export function radioRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("radio")) return [];
   return [
     [
       /^radio$/,
       function* (_m, ctx) {
-        const size = token(ctx, "spacing.4");
-        const borderWidth = token(ctx, "border.width");
-        const border = token(ctx, "color.border");
-        const field = token(ctx, "color.field");
-        const primary = token(ctx, "color.primary");
-        const duration = token(ctx, "motion.duration.fast");
-        const easing = token(ctx, "motion.easing.standard");
+        const size = ctx?.theme?.spacing?.[4];
+        const borderWidth = ctx?.theme?.border?.width;
+        const border = ctx?.theme?.color?.border;
+        const field = ctx?.theme?.color?.field;
+        const primary = ctx?.theme?.color?.primary;
+        const duration = ctx?.theme?.motion?.duration?.fast;
+        const easing = ctx?.theme?.motion?.easing?.standard;
         const ring = focusRing(ctx);
 
         const shell: Record<string, string | undefined> = {

@@ -415,7 +415,7 @@ function buildThemeMarkdown(routePath: string): string | undefined {
         "Each named voice is a composite tuple of family, size, weight, tracking, and leading, spent with `type-<name>`. Sixteen ship with every starter (`display`, `title`, `heading`, `subtitle`, `lead`, `body`, `quote`, `code`, `label`, `caption`, `overline`, `stat`, `badge`, `body-strong`, `caption-strong`, `card-title`):",
         "",
         "```json",
-        THEMES_SNIPPETS.compositeVoice,
+        THEMES_SNIPPETS.compositeStyle,
         "```",
         "",
         "## Voice Assignment (`font.map`)",

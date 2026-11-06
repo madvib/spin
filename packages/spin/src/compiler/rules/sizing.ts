@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   FRACTIONS,
   HEIGHT_KEYWORDS,
@@ -32,7 +32,7 @@ export const SIZING_NAMES: readonly string[] = [
     ["w", "h"].map((axis) => `${edge}-${axis}-0`)
   ),
 ];
-export function sizingRules(): Rule[] {
+export function sizingRules(): SpinRule[] {
   return [
     [
       /^w-(.+)$/,

@@ -1,5 +1,5 @@
 import { symbols } from "@unocss/core";
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { DIVIDE_WIDTHS } from "../utils/vocabulary.ts";
 import { divideChildren } from "../utils/factories.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
@@ -30,7 +30,7 @@ export function divideNames(colors: readonly string[] = []): readonly string[] {
 /** The axis-width names, for a caller with no theme to read colours from. */
 export const DIVIDE_NAMES: readonly string[] = divideNames();
 
-export function divideRules(): Rule[] {
+export function divideRules(): SpinRule[] {
   return [
     [
       /^divide-([xy])(?:-(0|2|4|8))?$/,

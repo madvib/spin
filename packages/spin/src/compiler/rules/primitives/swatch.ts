@@ -1,6 +1,4 @@
-import type { Rule } from "@unocss/core";
-import { token } from "../../utils/lookup.ts";
-
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Swatch — a small color dot/box painted from a `--swatch` CSS variable.
@@ -11,19 +9,19 @@ import { token } from "../../utils/lookup.ts";
  */
 export function swatchRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("swatch")) return [];
   const base = "swatch";
   return [swatchBase(base), ...swatchSizes(base)];
 }
 
-function swatchBase(base: string): Rule {
+function swatchBase(base: string): SpinRule {
   return [
     /^swatch$/,
     function* (_m, ctx) {
-      const borderWidth = token(ctx, "border.width");
-      const borderColor = token(ctx, "color.border");
-      const radius = token(ctx, "radius.sm");
+      const borderWidth = ctx?.theme?.border?.width;
+      const borderColor = ctx?.theme?.color?.border;
+      const radius = ctx?.theme?.radius?.sm;
       yield {
         [ctx.symbols.selector]: () => base,
         display: "inline-block",
@@ -55,7 +53,7 @@ function swatchBase(base: string): Rule {
   ];
 }
 
-function swatchSizes(base: string): Rule[] {
+function swatchSizes(base: string): SpinRule[] {
   return [
     [
       /^s-md$/,

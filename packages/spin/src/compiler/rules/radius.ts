@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 import { CORNER_LOGICAL } from "../utils/vocabulary.ts";
 
@@ -13,7 +13,7 @@ import { CORNER_LOGICAL } from "../utils/vocabulary.ts";
  * Both resolve the same radius scale, so a theme moves them together and a
  * component never names a value: it names the radius it wants.
  */
-export function radiusRules(): Rule[] {
+export function radiusRules(): SpinRule[] {
   return [
     [
       // A corner suffix followed by a radius: `rounded-ss-md`.

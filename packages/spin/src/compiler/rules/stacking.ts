@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
@@ -22,8 +22,8 @@ import { named, type ThemeContext } from "../utils/lookup.ts";
 /** The theme's steps, in the order they stack. */
 const STACKING = ["base", "dropdown", "modal", "toast"] as const;
 
-export function stackingRules(): Rule[] {
-  const steps: Rule[] = STACKING.map((step): Rule => [
+export function stackingRules(): SpinRule[] {
+  const steps: SpinRule[] = STACKING.map((step): SpinRule => [
     new RegExp(`^z-${step}$`),
     (_match: RegExpMatchArray, ctx?: ThemeContext) => {
       const value = named(ctx, "z-index", step);
@@ -35,7 +35,7 @@ export function stackingRules(): Rule[] {
   // The numeric fallback, for an author who genuinely needs a value between
   // ours. It is a number rather than a token, and it is here precisely so that
   // using one is a visible choice.
-  const numeric: Rule = [
+  const numeric: SpinRule = [
     /^z-(\d+)$/,
     ([, n]: string[]) => ({ "z-index": n }),
     { autocomplete: "z-<number>" },
@@ -45,7 +45,7 @@ export function stackingRules(): Rule[] {
   // is measured against the nearest positioned ANCESTOR, which is almost never
   // what the author meant — and the failure is silent, because the number was
   // applied and simply did not do what it looked like it did.
-  const isolation: Rule[] = [
+  const isolation: SpinRule[] = [
     ["isolate", { isolation: "isolate" }],
     ["static", { isolation: "static" }],
   ];

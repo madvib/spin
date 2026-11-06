@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { staticRules } from "../utils/factories.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { OUTLINE, TEXT_TRANSFORMS } from "../utils/vocabulary.ts";
@@ -9,7 +9,7 @@ export const TYPOGRAPHY_NAMES: readonly string[] = [
 ];
 
 
-export function typographyRules(): Rule[] {
+export function typographyRules(): SpinRule[] {
   return [
     // TYPE-c (styles own type): the `tracking-*`/`leading-*` dynamic rules
     // are gone — single-decision adjustments ride placement-open `type-*`

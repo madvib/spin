@@ -179,14 +179,14 @@ export default function ThemesCustomization(): JSX.Element {
         <p class="max-w-prose">
           By default, elements derive their appearance from the global token
           groups (<code>button</code> uses <code>radius.md</code> and{" "}
-          <code>color.border</code>), and each element reads its voice from{" "}
-          <code>font.map</code> — <code>h1</code> reads{" "}
-          <code>display</code>, <code>button</code> reads <code>label</code>.
-          When you want to give a specific element its own character — such
-          as pill badges or deeper card shadows — without altering the global
-          scales, declare optional per-element tokens; when you want an
-          element to speak in another voice, re-point it in{" "}
-          <code>font.map</code> instead:
+          <code>color.border</code>), and each element reads its style from
+          its <code>.type</code> token — <code>element.h1.type</code> reads{" "}
+          <code>display</code>, <code>button.type</code> reads{" "}
+          <code>label</code>. When you want to give a specific element its
+          own character — such as pill badges or deeper card shadows —
+          without altering the global scales, declare optional per-element
+          tokens; when you want an element to use another style,
+          re-point its <code>.type</code> alias instead:
         </p>
         <div class="my-3">
           <Code
@@ -199,7 +199,7 @@ export default function ThemesCustomization(): JSX.Element {
           <Code
             code={THEMES_SNIPPETS.fontMap}
             lang="json"
-            title="Re-pointing voices in spin/<name>.json"
+            title="Re-pointing styles in spin/<name>.json"
           />
         </div>
         <p class="max-w-prose text-text-muted">

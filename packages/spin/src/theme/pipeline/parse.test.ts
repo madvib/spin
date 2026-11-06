@@ -266,6 +266,63 @@ test("parseTokens rejects a composite tuple missing a field", () => {
     `the error must name the offending tuple, got: ${error}`,
   );
 });
+test("parseTokens expands a whole-style alias to the five field aliases", () => {
+  const tree = treeOf(parseTokens({
+    font: {
+      family: { sans: { $type: "fontFamily", $value: "Inter" } },
+      size: { md: { $type: "dimension", $value: "1rem" } },
+      weight: { regular: { $type: "fontWeight", $value: 400 } },
+      tracking: { normal: { $type: "dimension", $value: "0em" } },
+      leading: { relaxed: { $type: "dimension", $value: 1.625 } },
+      style: {
+        body: {
+          $type: "typography",
+          $value: {
+            family: "{font.family.sans}",
+            size: "{font.size.md}",
+            weight: "{font.weight.regular}",
+            tracking: "{font.tracking.normal}",
+            leading: "{font.leading.relaxed}",
+          },
+        },
+      },
+    },
+    button: { type: { $type: "typography", $value: "{font.style.body}" } },
+  }));
+
+  deepStrictEqual(leafAt(tree, "button.type.family").type, "fontFamily");
+  deepStrictEqual(leafAt(tree, "button.type.family").value, "{font.style.body.family}");
+  deepStrictEqual(leafAt(tree, "button.type.size").value, "{font.style.body.size}");
+  deepStrictEqual(leafAt(tree, "button.type.weight").value, "{font.style.body.weight}");
+  deepStrictEqual(leafAt(tree, "button.type.tracking").value, "{font.style.body.tracking}");
+  deepStrictEqual(leafAt(tree, "button.type.leading").value, "{font.style.body.leading}");
+});
+
+test("parseTokens rejects a bare style name as a typography $value", () => {
+  const error = errorOf(parseTokens({
+    button: { type: { $type: "typography", $value: "body" } },
+  }));
+
+  assert(
+    error.includes("button.type"),
+    `the error must name the offending token, got: ${error}`,
+  );
+});
+
+test("treeToJson serializes a whole-style alias back to the single reference", () => {
+  const tree = treeOf(parseTokens({
+    button: { type: { $type: "typography", $value: "{font.style.body}" } },
+  }));
+
+  const doc = JSON.parse(treeToJson(tree)) as Record<string, unknown>;
+  const button = doc["button"] as Record<string, unknown>;
+  deepStrictEqual(button["type"], {
+    $type: "typography",
+    $value: "{font.style.body}",
+  });
+  deepStrictEqual(leafValues(treeOf(parseTokens(doc))), leafValues(tree));
+});
+
 
 test("treeToJson serializes a style tuple as the compact composite", () => {
   const tree = treeOf(parseTokens({

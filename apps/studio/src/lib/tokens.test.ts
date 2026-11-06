@@ -8,17 +8,16 @@ import {
 } from "@spinjs/spin/theme";
 import { silkTheme } from "@spinjs/spin/theme/themes";
 import {
-  applyMapEdit,
   attachedStyle,
   declaredStyles,
   borderUtilityOf,
   compositeLadders,
-  danglingReferences,
   editorRouteFor,
+  elementTargets,
   formatComposite,
   isCompositeType,
   parseComposite,
-  repointEdits,
+  referenceTargets,
   scaleRampEdits,
   styleEdits,
   styleGroups,
@@ -26,14 +25,11 @@ import {
   toPx,
   trimRefusal,
   trimStyle,
+  typeTarget,
 } from "./tokens.ts";
-import { applyEdits } from "./theme.ts";
+import { ownedStyleNames } from "@spinjs/spin/theme";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
-import {
-  ELEMENT_STYLE_DEFAULTS,
-  OWNED_STYLES,
-  STYLE_REFERENCE_ROLES,
-} from "@spinjs/spin/theme";
+import { createToken, setToken } from "./theme.ts";
 
 /**
  * The route a token link names has to exist.
@@ -312,13 +308,47 @@ function styleFixture(): string {
           aside: styleTuple("{font.family.body}", "{font.size.sm}", "{font.weight.regular}"),
         },
       },
+      element: {
+        p: { type: { $type: "typography", $value: "{font.style.body}" } },
+        h1: { type: { $type: "typography", $value: "{font.style.display}" } },
+      },
       button: {
-        type: { $type: "typography", $value: "label" },
+        type: { $type: "typography", $value: "{font.style.label}" },
+        "s-sm": {
+          type: { $type: "typography", $value: "{font.style.label}" },
+        },
+      },
+      stat: {
+        title: {
+          type: { $type: "typography", $value: "{font.style.caption-strong}" },
+        },
       },
     },
     null,
     2,
   );
+}
+function aliasTree(text: string): TokenTree {
+  const parsed = parseTokens(text);
+  if (!parsed.ok) {
+    throw new Error(`the alias fixture does not parse: ${parsed.error}`);
+  }
+  return parsed.tree;
+}
+
+/**
+ * Re-point one `.type` alias token through the document helpers the route
+ * itself spends: `setToken` when the token is there, `createToken` when the
+ * theme never stated it. The tests read the target back out of the parsed
+ * tree, so the write path and the read path cannot drift apart unnoticed.
+ */
+function repointAlias(text: string, dotted: string, style: string): string {
+  const path = dotted.split(".");
+  try {
+    return setToken(text, path, `{font.style.${style}}`, "base");
+  } catch {
+    return createToken(text, path, "typography", `{font.style.${style}}`);
+  }
 }
 
 test("styleGroups lists the owned set before the user extension, in the theme's words", () => {
@@ -327,10 +357,10 @@ test("styleGroups lists the owned set before the user extension, in the theme's 
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }
   const groups = styleGroups(parsed.tree);
-  const owned = new Set(OWNED_STYLES.map((style) => style.name));
+  const owned = new Set(ownedStyleNames());
   deepStrictEqual(
     groups.filter((group) => group.owned).map((group) => group.name),
-    OWNED_STYLES.map((style) => style.name),
+    [...ownedStyleNames()],
   );
   for (const group of groups) {
     assert(group.fields.length > 0, `${group.name} carries no fields`);
@@ -339,11 +369,11 @@ test("styleGroups lists the owned set before the user extension, in the theme's 
 });
 
 test("an owned style cannot be trimmed, and the refusal says why", () => {
-  for (const style of OWNED_STYLES) {
-    const refusal = trimRefusal(styleFixture(), style.name);
+  for (const style of ownedStyleNames()) {
+    const refusal = trimRefusal(styleFixture(), style);
     assert(
-      refusal !== undefined && refusal.includes(style.name),
-      `trimming ${style.name} is refused with its name in the reason`,
+      refusal !== undefined && refusal.includes(style),
+      `trimming ${style} is refused with its name in the reason`,
     );
   }
 });
@@ -373,68 +403,93 @@ test("adding a style scaffolds the tuple, and the document still builds", () => 
   }
 });
 
-test("re-pointing an element writes the style the element reads", () => {
-  const edits = repointEdits(styleFixture(), "p", "code");
-  deepStrictEqual(edits, [{ path: ["font", "map", "p"], value: "code" }]);
-  const next = applyMapEdit(styleFixture(), "p", "code");
-  const doc = JSON.parse(next) as {
-    font: { map: Record<string, string> };
-  };
-  deepStrictEqual(doc.font.map["p"], "code");
-  deepStrictEqual(attachedStyle(styleFixture(), "p"), "body");
-  deepStrictEqual(attachedStyle(next, "p"), "code");
+test("attachedStyle reads the element's alias target", () => {
+  const tree = aliasTree(styleFixture());
+  deepStrictEqual(attachedStyle(tree, "p"), "body");
+  deepStrictEqual(attachedStyle(tree, "h1"), "display");
 });
 
-test("re-pointing past the map leaves the other elements where they were", () => {
-  const next = applyMapEdit(styleFixture(), "h1", "aside");
+test("attachedStyle is quiet when the element states no alias", () => {
+  const parsed = parseTokens({
+    font: { style: { body: styleTuple("x", "1rem", "400") } },
+  });
+  if (!parsed.ok) {
+    throw new Error(`the bare fixture does not parse: ${parsed.error}`);
+  }
+  deepStrictEqual(attachedStyle(parsed.tree, "p"), undefined);
+});
+
+test("elementTargets lists the elements in tree order", () => {
+  deepStrictEqual(elementTargets(aliasTree(styleFixture())), ["p", "h1"]);
+});
+
+test("referenceTargets lists the component type groups in tree order", () => {
+  deepStrictEqual(referenceTargets(aliasTree(styleFixture())), [
+    "button.type",
+    "button.s-sm.type",
+    "stat.title.type",
+  ]);
+});
+
+test("typeTarget reads a reference row's alias style", () => {
+  const tree = aliasTree(styleFixture());
+  deepStrictEqual(typeTarget(tree, "button.type"), "label");
+  deepStrictEqual(typeTarget(tree, "stat.title.type"), "caption-strong");
+  deepStrictEqual(typeTarget(tree, "button.missing.type"), undefined);
+  const plain = parseTokens({
+    font: { style: { body: styleTuple("x", "1rem", "400") } },
+    button: { label: { $type: "dimension", $value: "1rem" } },
+  });
+  if (!plain.ok) {
+    throw new Error(`the plain fixture does not parse: ${plain.error}`);
+  }
+  deepStrictEqual(
+    typeTarget(plain.tree, "button.label"),
+    undefined,
+    "a non-tuple leaf names no style",
+  );
+});
+
+test("re-pointing an element writes the alias the element reads", () => {
+  const next = repointAlias(styleFixture(), "element.p.type", "code");
   const doc = JSON.parse(next) as {
-    font: {
-      map: Record<string, string>;
-      style: Record<string, Record<string, { $value: unknown }>>;
-    };
+    element: { p: { type: { $value: string } } };
   };
-  deepStrictEqual(doc.font.map["h1"], "aside");
-  deepStrictEqual(doc.font.map["p"], undefined);
+  deepStrictEqual(doc.element.p.type.$value, "{font.style.code}");
+  deepStrictEqual(attachedStyle(aliasTree(styleFixture()), "p"), "body");
+  deepStrictEqual(attachedStyle(aliasTree(next), "p"), "code");
+});
+
+test("re-pointing past one element leaves the other elements where they were", () => {
+  const next = repointAlias(styleFixture(), "element.h1.type", "aside");
+  const doc = JSON.parse(next) as {
+    element: {
+      h1: { type: { $value: string } };
+      p: { type: { $value: string } };
+    };
+    font: { style: Record<string, Record<string, { $value: unknown }>> };
+  };
+  deepStrictEqual(doc.element.h1.type.$value, "{font.style.aside}");
+  deepStrictEqual(doc.element.p.type.$value, "{font.style.body}");
   deepStrictEqual(
     doc.font.style["display"]!["size"]!.$value,
     "{font.size.3xl}",
-    "the display tuple survives: the map points, it never rewrites",
+    "the display tuple survives: the alias points, it never rewrites",
   );
 });
 
-test("a reference that names no declared style is dangling, in words", () => {
-  const found = danglingReferences(styleFixture());
-  deepStrictEqual(found.length, 1);
-  assert(
-    found[0]!.includes("button.type") && found[0]!.includes("label"),
-    `the dangling reference names its path and value: ${found[0]}`,
-  );
-});
-
-test("a reference that names a declared style is not dangling", () => {
+test("re-pointing creates the alias token when the theme never stated it", () => {
   const doc = JSON.parse(styleFixture()) as Record<string, unknown>;
-  const button = (doc["button"] as Record<string, Record<string, unknown>>)[
-    "type"
-  ]!;
-  button["$value"] = "code";
-  deepStrictEqual(danglingReferences(JSON.stringify(doc, null, 2)), []);
+  delete (doc["element"] as Record<string, unknown>)["h1"];
+  const without = JSON.stringify(doc, null, 2);
+  deepStrictEqual(
+    attachedStyle(aliasTree(without), "h1"),
+    undefined,
+    "a theme that never states element.h1.type reads nothing",
+  );
+  const next = repointAlias(without, "element.h1.type", "aside");
+  deepStrictEqual(attachedStyle(aliasTree(next), "h1"), "aside");
 });
-
-test("the attachment map covers every element the contract names", () => {
-  for (const element of Object.keys(ELEMENT_STYLE_DEFAULTS)) {
-    assert(
-      attachedStyle(styleFixture(), element) !== undefined ||
-        elementStyleFixtureHasNoDefault(element),
-      `${element} reads a style the map can show`,
-    );
-  }
-  deepStrictEqual(STYLE_REFERENCE_ROLES.length > 0, true);
-});
-
-function elementStyleFixtureHasNoDefault(element: string): boolean {
-  return (ELEMENT_STYLE_DEFAULTS as Record<string, string>)[element] ===
-    undefined;
-}
 
 test("add then trim round-trips: the document comes back", () => {
   const before = styleFixture();
@@ -449,21 +504,26 @@ test("add then trim round-trips: the document comes back", () => {
 
 test("re-pointing moves the emitted element voice: p follows code", () => {
   // The ownership proof at the document level: p's paragraph rule reads
-  // from the map-resolved voice, and the body tuple is untouched — the map
-  // points, it never rewrites.
-  const next = applyMapEdit(styleFixture(), "p", "code");
+  // from the alias-resolved voice, and the body tuple is untouched — the
+  // alias points, it never rewrites.
+  const next = repointAlias(styleFixture(), "element.p.type", "code");
   const parsed = parseTokens(next);
   if (!parsed.ok) {
     throw new Error(`the re-pointed document does not parse: ${parsed.error}`);
   }
   const css = generateCss(parsed.tree);
+  const family = /--element-p-type-family:\s*([^;]+);/.exec(css)?.[1]?.trim();
+  assert(
+    family !== undefined && family.includes("--font-style-code-family"),
+    `p's emitted voice follows the alias: ${family}`,
+  );
   const bodySize = /--font-style-body-size:\s*([^;]+);/.exec(css)?.[1]?.trim();
   assert(
     bodySize !== undefined && !bodySize.includes("--font-style-code-size"),
     `the body tuple survives the re-point: ${bodySize}`,
   );
-  deepStrictEqual(attachedStyle(next, "p"), "code");
-  deepStrictEqual(attachedStyle(next, "h1"), "display");
+  deepStrictEqual(attachedStyle(parsed.tree, "p"), "code");
+  deepStrictEqual(attachedStyle(parsed.tree, "h1"), "display");
 });
 
 test("scaleRampEdits multiplies every scalable step by the factor", () => {

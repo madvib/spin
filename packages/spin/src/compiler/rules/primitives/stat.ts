@@ -1,9 +1,9 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleReference, styleType, type StyleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
+import type { Theme, ThemeType } from "../../../theme/theme-types.d.ts";
 
-/** Stat — a labelled number, reading its voices from the named styles. */
-export function statRules(roots: readonly string[]): Rule[] {
+/** Stat — a labelled number, reading its styles from the named styles. */
+export function statRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("stat")) return [];
   return [statRow(), statContainer(), statTitle(), statValue(), statDesc()];
 }
@@ -11,33 +11,37 @@ export function statRules(roots: readonly string[]): Rule[] {
 /** The theme values stat spends, resolved once per rule. */
 type Tokens = {
   readonly spacing2: string | undefined;
-  readonly title: StyleType;
-  readonly value: StyleType;
-  readonly desc: StyleType;
+  readonly title: ThemeType | undefined;
+  readonly value: ThemeType | undefined;
+  readonly desc: ThemeType | undefined;
   readonly text: string | undefined;
   readonly muted: string | undefined;
 };
 
 /**
- * The stat's own voices, each read as a whole style.
+ * The stat's own styles, each read as a whole tuple.
  *
  * The number reads the stat style outright: a figure set at the body's size
  * is a caption and a figure set like a poster is a lie, and the style is
  * the complete answer — face, size, weight, tracking, leading — rather than
- * atoms of the stat's own. The label above it reads the style the
- * `stat.title.type` reference names — the caption-strong voice unless the
- * theme re-points it — and the context under the number reads the caption
- * voice, the small print of the figure.
+ * atoms of the stat's own. The label above it reads `stat.title.type` —
+ * the caption-strong style unless the theme declares its own title — and
+ * the context under the number reads the caption style, the small print
+ * of the figure.
  */
 function statTokens(ctx: ThemeContext | undefined): Tokens {
-  const titleStyle = styleReference(ctx, "stat.title.type", "caption-strong") as string;
+  const theme: Theme | undefined = ctx?.theme;
+  // The label above the number reads `stat.title.type`, falling back to the
+  // caption-strong style when the theme declares no title of its own.
+  const title = theme?.stat?.title?.type
+    ?? theme?.font?.style?.["caption-strong"];
   return {
-    spacing2: token(ctx, "spacing.2"),
-    title: styleType(ctx, titleStyle),
-    value: styleType(ctx, "stat"),
-    desc: styleType(ctx, "caption"),
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
+    spacing2: ctx?.theme?.spacing?.[2],
+    title,
+    value: theme?.stat?.value?.type ?? theme?.font?.style?.stat,
+    desc: theme?.stat?.desc?.type ?? theme?.font?.style?.caption,
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
   };
 }
 
@@ -61,7 +65,7 @@ function statTokens(ctx: ThemeContext | undefined): Tokens {
  * LABELS: the titles have to line up, and a stat centred against a taller
  * neighbour puts its title below the others'.
  */
-function statRow(): Rule {
+function statRow(): SpinRule {
   return [
     /^stat-row$/,
     function* (_m, ctx) {
@@ -79,7 +83,7 @@ function statRow(): Rule {
 }
 
 /** The container: a flex column with a gap between the parts. */
-function statContainer(): Rule {
+function statContainer(): SpinRule {
   return [
     /^stat$/,
     function* (_m, ctx) {
@@ -94,51 +98,33 @@ function statContainer(): Rule {
     { layer: "primitives", autocomplete: "stat" },
   ];
 }
-/** The label above the number: the style `stat.title.type` names, muted. */
-function statTitle(): Rule {
+/** The label above the number: the stat title tuple, muted. */
+function statTitle(): SpinRule {
   return [
     /^stat-title$/,
     function* (_m, ctx) {
       const { title, muted } = statTokens(ctx);
-      const family = title.family;
-      const size = title.size;
-      const weight = title.weight;
-      const tracking = title.tracking;
-      const leading = title.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-title",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(title ?? {}),
         ...(muted !== undefined ? { color: muted } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
       };
     },
     { layer: "primitives", autocomplete: "stat-title" },
   ];
 }
 
-/** The number itself: the stat voice, the largest type stat carries. */
-function statValue(): Rule {
+/** The number itself: the stat style, the largest type stat carries. */
+function statValue(): SpinRule {
   return [
     /^stat-value$/,
     function* (_m, ctx) {
       const { value, text } = statTokens(ctx);
-      const family = value.family;
-      const size = value.size;
-      const weight = value.weight;
-      const tracking = value.tracking;
-      const leading = value.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-value",
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(value ?? {}),
         // The face the number is set in, so a value's face is the theme's
         // decision and not whatever the page happened to set.
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
         ...(text !== undefined ? { color: text } : {}),
         // The number is ONE thing. A stat squeezed by a row too narrow for it
         // breaks its figure across two lines, and a figure split in half is
@@ -151,24 +137,15 @@ function statValue(): Rule {
   ];
 }
 
-/** The context under the number, in the caption voice and the muted colour. */
-function statDesc(): Rule {
+/** The context under the number, in the caption style and the muted colour. */
+function statDesc(): SpinRule {
   return [
     /^stat-desc$/,
     function* (_m, ctx) {
       const { desc, muted } = statTokens(ctx);
-      const family = desc.family;
-      const size = desc.size;
-      const weight = desc.weight;
-      const tracking = desc.tracking;
-      const leading = desc.leading;
       yield {
         [ctx.symbols.selector]: () => ".stat-desc",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(desc ?? {}),
         ...(muted !== undefined ? { color: muted } : {}),
       };
     },

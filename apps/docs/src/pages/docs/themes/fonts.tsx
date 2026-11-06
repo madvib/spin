@@ -53,29 +53,29 @@ export default function ThemesFonts(): JSX.Element {
           <code>heading</code>, and <code>&lt;code&gt;</code> and{" "}
           <code>&lt;pre&gt;</code> render in <code>mono</code>. Families
           arrive inside named type styles — write{" "}
-          <code>type-code</code> for the mono voice anywhere in your markup.
+          <code>type-code</code> for the mono style anywhere in your markup.
         </p>
       </Section>
 
-      <Section id="voices" title="Sixteen voices, spent whole">
+      <Section id="styles" title="Sixteen styles, spent whole">
         <p class="max-w-prose">
-          A theme declares sixteen named voices in{" "}
+          A theme declares sixteen named styles in{" "}
           <code>font.style.&lt;name&gt;</code>, each a composite{" "}
           <code>$type: "typography"</code> tuple of family, size, weight,
           tracking, and leading — written once, spent with{" "}
           <code>type-&lt;name&gt;</code> anywhere in your markup. The scales
           from the previous sections are the building blocks those tuples
-          alias; the voices are what your markup wears:
+          alias; the styles are what your markup wears:
         </p>
         <div class="my-3">
           <Code
-            code={THEMES_SNIPPETS.compositeVoice}
+            code={THEMES_SNIPPETS.compositeStyle}
             lang="json"
-            title="One voice in spin/<name>.json"
+            title="One style in spin/<name>.json"
           />
         </div>
         <p class="max-w-prose">
-          Sixteen voices ship with every starter — <code>display</code>,{" "}
+          Sixteen styles ship with every starter — <code>display</code>,{" "}
           <code>title</code>, <code>heading</code>, <code>subtitle</code>,{" "}
           <code>lead</code>, <code>body</code>, <code>quote</code>,{" "}
           <code>code</code>, <code>label</code>, <code>caption</code>,{" "}
@@ -98,25 +98,25 @@ export default function ThemesFonts(): JSX.Element {
           <code>font.weight.*</code> names the numeric steps,{" "}
           <code>font.leading.*</code> sets unitless ratios, and{" "}
           <code>font.tracking.*</code> sets tracking. When one element needs
-          its own voice — uppercase tracked buttons, tight display headings
-          — re-point it in <code>font.map</code> instead of forking the
+          its own style — uppercase tracked buttons, tight display headings
+          — re-point its <code>.type</code> alias instead of forking the
           global scale:
         </p>
         <div class="my-3">
           <Code
             code={THEMES_SNIPPETS.fontMap}
             lang="json"
-            title="Re-pointing voices in spin/<name>.json"
+            title="Re-pointing styles in spin/<name>.json"
           />
         </div>
         <p class="max-w-prose">
-          <code>font.map</code> assigns a default voice to each element and
-          component (<code>h1</code> reads <code>display</code>,{" "}
-          <code>card.title</code> reads <code>card-title</code>); state{" "}
-          <code>null</code> to opt a target out of Spin voicing entirely.
-          While elements carry a voice, <code>&lt;a&gt;</code> and{" "}
-          <code>&lt;strong&gt;</code> are inline modifiers over inherited
-          text — a link adds only its paint (<code>color.link</code>, an
+          Each element and component carries a <code>.type</code> token
+          aliasing its default style (<code>element.h1.type</code> reads{" "}
+          <code>display</code>, <code>card.title.type</code> reads{" "}
+          <code>card-title</code>). While elements carry a style,{" "}
+          <code>&lt;a&gt;</code> and <code>&lt;strong&gt;</code> are inline
+          modifiers over inherited text — a link adds only its paint
+          (<code>color.link</code>, an
           underline of <code>link.underline</code> thickness at{" "}
           <code>link.offset</code> distance), and{" "}
           <code>&lt;strong&gt;</code> adds only{" "}

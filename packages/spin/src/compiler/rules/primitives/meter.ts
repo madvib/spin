@@ -1,7 +1,4 @@
-import type { Rule } from "@unocss/core";
-import { token } from "../../utils/lookup.ts";
-import { styleType } from "./shared.ts";
-
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Meter — the native `<meter>` gauge.
@@ -19,12 +16,12 @@ import { styleType } from "./shared.ts";
  * pseudo with `:-moz-meter-*` on the element, so each band gets its own
  * selector chain rather than its own pseudo.
  */
-export function meterRules(roots: readonly string[]): Rule[] {
+export function meterRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("meter")) return [];
   return [meterRule()];
 }
 
-function meterRule(): Rule {
+function meterRule(): SpinRule {
   const meter = "meter";
   return [
     /^meter$/,
@@ -44,33 +41,33 @@ function meterRule(): Rule {
         // `appearance: none` does not lift it: the trough's theme colour
         // needs the gradient explicitly gone.
         "background-image": "none",
-        ...(token(ctx, "spacing.2") !== undefined
-          ? { height: token(ctx, "spacing.2") }
+        ...(ctx?.theme?.spacing?.[2] !== undefined
+          ? { height: ctx?.theme?.spacing?.[2] }
           : {}),
-        // The gauge's fallback text reads in the label voice — the
+        // The gauge's fallback text reads in the label style — the
         // small-medium advisory type.
         ...(() => {
-          const label = styleType(ctx, "label");
-          const family = label.family;
-          const size = label.size;
+          const label = ctx?.theme?.font?.style?.label;
+          const family = label?.["font-family"];
+          const size = label?.["font-size"];
           return {
             ...(family !== undefined ? { "font-family": family } : {}),
             ...(size !== undefined ? { "font-size": size } : {}),
           };
         })(),
-        ...(token(ctx, "color.field") !== undefined
-          ? { "background-color": token(ctx, "color.field") }
+        ...(ctx?.theme?.color?.field !== undefined
+          ? { "background-color": ctx?.theme?.color?.field }
           : {}),
-        ...(token(ctx, "border.width") !== undefined &&
-            token(ctx, "color.border") !== undefined
+        ...(ctx?.theme?.border?.width !== undefined &&
+            ctx?.theme?.color?.border !== undefined
           ? {
-            border: `${token(ctx, "border.width")} solid ${
-              token(ctx, "color.border")
+            border: `${ctx?.theme?.border?.width} solid ${
+              ctx?.theme?.color?.border
             }`,
           }
           : {}),
-        ...(token(ctx, "radius.sm") !== undefined
-          ? { "border-radius": token(ctx, "radius.sm") }
+        ...(ctx?.theme?.radius?.sm !== undefined
+          ? { "border-radius": ctx?.theme?.radius?.sm }
           : {}),
       };
 
@@ -80,19 +77,19 @@ function meterRule(): Rule {
       // painted the page's colour reads as a hole, not a channel.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-webkit-meter-bar`,
-        ...(token(ctx, "color.field") !== undefined
-          ? { "background-color": token(ctx, "color.field") }
+        ...(ctx?.theme?.color?.field !== undefined
+          ? { "background-color": ctx?.theme?.color?.field }
           : {}),
-        ...(token(ctx, "border.width") !== undefined &&
-            token(ctx, "color.border") !== undefined
+        ...(ctx?.theme?.border?.width !== undefined &&
+            ctx?.theme?.color?.border !== undefined
           ? {
-            border: `${token(ctx, "border.width")} solid ${
-              token(ctx, "color.border")
+            border: `${ctx?.theme?.border?.width} solid ${
+              ctx?.theme?.color?.border
             }`,
           }
           : {}),
-        ...(token(ctx, "radius.sm") !== undefined
-          ? { "border-radius": token(ctx, "radius.sm") }
+        ...(ctx?.theme?.radius?.sm !== undefined
+          ? { "border-radius": ctx?.theme?.radius?.sm }
           : {}),
       };
 
@@ -105,24 +102,24 @@ function meterRule(): Rule {
       // that does not know one selector in it.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-webkit-meter-optimum-value`,
-        ...(token(ctx, "color.semantic.success") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.success") }
+        ...(ctx?.theme?.color?.semantic?.success !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.success }
           : {}),
         "-webkit-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}::-webkit-meter-suboptimum-value`,
-        ...(token(ctx, "color.semantic.warning") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.warning") }
+        ...(ctx?.theme?.color?.semantic?.warning !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.warning }
           : {}),
         "-webkit-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}::-webkit-meter-even-less-good-value`,
-        ...(token(ctx, "color.semantic.error") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.error") }
+        ...(ctx?.theme?.color?.semantic?.error !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.error }
           : {}),
         "-webkit-appearance": "none",
       };
@@ -133,33 +130,33 @@ function meterRule(): Rule {
       // default a bare gauge reads in.
       yield {
         [ctx.symbols.selector]: () => `${meter}::-moz-meter-bar`,
-        ...(token(ctx, "color.semantic.success") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.success") }
+        ...(ctx?.theme?.color?.semantic?.success !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.success }
           : {}),
-        ...(token(ctx, "radius.sm") !== undefined
-          ? { "border-radius": token(ctx, "radius.sm") }
+        ...(ctx?.theme?.radius?.sm !== undefined
+          ? { "border-radius": ctx?.theme?.radius?.sm }
           : {}),
         "-moz-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}:-moz-meter-sub-optimum::-moz-meter-bar`,
-        ...(token(ctx, "color.semantic.warning") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.warning") }
+        ...(ctx?.theme?.color?.semantic?.warning !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.warning }
           : {}),
-        ...(token(ctx, "radius.sm") !== undefined
-          ? { "border-radius": token(ctx, "radius.sm") }
+        ...(ctx?.theme?.radius?.sm !== undefined
+          ? { "border-radius": ctx?.theme?.radius?.sm }
           : {}),
         "-moz-appearance": "none",
       };
       yield {
         [ctx.symbols.selector]: () =>
           `${meter}:-moz-meter-sub-sub-optimum::-moz-meter-bar`,
-        ...(token(ctx, "color.semantic.error") !== undefined
-          ? { "background-color": token(ctx, "color.semantic.error") }
+        ...(ctx?.theme?.color?.semantic?.error !== undefined
+          ? { "background-color": ctx?.theme?.color?.semantic?.error }
           : {}),
-        ...(token(ctx, "radius.sm") !== undefined
-          ? { "border-radius": token(ctx, "radius.sm") }
+        ...(ctx?.theme?.radius?.sm !== undefined
+          ? { "border-radius": ctx?.theme?.radius?.sm }
           : {}),
         "-moz-appearance": "none",
       };
@@ -170,7 +167,7 @@ function meterRule(): Rule {
       // not a design value.
       yield {
         [ctx.symbols.selector]: () => `${meter}:disabled`,
-        opacity: token(ctx, "opacity.50") ?? 0.55,
+        opacity: ctx?.theme?.opacity?.["50"] ?? 0.55,
       };
     },
     { layer: "primitives", autocomplete: "meter" },

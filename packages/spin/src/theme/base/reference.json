@@ -1,0 +1,361 @@
+{
+  "modes": [
+    "light",
+    "dark"
+  ],
+  "font": {
+    "size": {
+      "$type": "dimension",
+      "2xs": {
+        "$value": "0.625rem"
+      },
+      "xs": {
+        "$value": "0.75rem"
+      },
+      "sm": {
+        "$value": "0.875rem"
+      },
+      "md": {
+        "$value": "1rem"
+      },
+      "lg": {
+        "$value": "1.125rem"
+      },
+      "xl": {
+        "$value": "1.25rem"
+      },
+      "2xl": {
+        "$value": "1.5rem"
+      },
+      "3xl": {
+        "$value": "1.875rem"
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    },
+    "tracking": {
+      "$type": "dimension",
+      "$description": "How far the letters sit from each other. A theme has a real opinion here — the open end is what separates a plain label from a shouted one — so the ramp is tokens rather than the handful of `em` values the utilities would otherwise carry.",
+      "tighter": {
+        "$value": "-0.05em"
+      },
+      "tight": {
+        "$value": "-0.025em"
+      },
+      "normal": {
+        "$value": "0em"
+      },
+      "wide": {
+        "$value": "0.025em"
+      },
+      "wider": {
+        "$value": "0.05em"
+      },
+      "widest": {
+        "$value": "0.1em"
+      }
+    },
+    "leading": {
+      "$type": "dimension",
+      "$description": "How far the lines sit from each other. A theme has a real opinion here — the open end is what separates a poster from a wall of text — so the ramp is tokens rather than the handful of bare numbers the utilities would otherwise carry.",
+      "none": {
+        "$value": 1
+      },
+      "tight": {
+        "$value": 1.25
+      },
+      "snug": {
+        "$value": 1.375
+      },
+      "normal": {
+        "$value": 1.5
+      },
+      "relaxed": {
+        "$value": 1.625
+      },
+      "loose": {
+        "$value": 2
+      }
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0"
+    },
+    "1": {
+      "$value": "0.25rem"
+    },
+    "2": {
+      "$value": "0.5rem"
+    },
+    "3": {
+      "$value": "0.75rem"
+    },
+    "4": {
+      "$value": "1rem"
+    },
+    "5": {
+      "$value": "1.25rem"
+    },
+    "6": {
+      "$value": "1.5rem"
+    },
+    "7": {
+      "$value": "1.75rem"
+    },
+    "8": {
+      "$value": "2rem"
+    },
+    "10": {
+      "$value": "2.5rem"
+    },
+    "12": {
+      "$value": "3.0rem"
+    },
+    "14": {
+      "$value": "3.5rem"
+    },
+    "16": {
+      "$value": "4rem"
+    },
+    "20": {
+      "$value": "5.0rem"
+    },
+    "24": {
+      "$value": "6.0rem"
+    },
+    "36": {
+      "$value": "9rem"
+    },
+    "40": {
+      "$value": "10rem"
+    },
+    "56": {
+      "$value": "14rem"
+    },
+    "60": {
+      "$value": "15rem"
+    },
+    "64": {
+      "$value": "16rem"
+    },
+    "$type": "dimension",
+    "$description": "The spacing scale. Every gap, pad and inset is one of these steps."
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Corner rounding, from square to fully round.",
+    "none": {
+      "$value": "0"
+    },
+    "sm": {
+      "$value": "0.25rem"
+    },
+    "md": {
+      "$value": "0.5rem"
+    },
+    "lg": {
+      "$value": "0.875rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
+    "width": {
+      "$value": "1px",
+      "$description": "The hairline every control and surface draws with."
+    },
+    "width-2": {
+      "$value": "2px",
+      "$description": "The emphasis edge: a control that must read as selected rather than merely bordered."
+    },
+    "width-4": {
+      "$value": "4px",
+      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
+    },
+    "width-8": {
+      "$value": "8px",
+      "$description": "The frame. A block drawn rather than outlined."
+    }
+  },
+  "opacity": {
+    "0": {
+      "$value": 0,
+      "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
+    },
+    "10": {
+      "$value": 0.1,
+      "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
+    },
+    "20": {
+      "$value": 0.2,
+      "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
+    },
+    "30": {
+      "$value": 0.3,
+      "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
+    },
+    "40": {
+      "$value": 0.4,
+      "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
+    },
+    "50": {
+      "$value": 0.5,
+      "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about."
+    },
+    "60": {
+      "$value": 0.6,
+      "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
+    },
+    "70": {
+      "$value": 0.7,
+      "$description": "Secondary content that must survive a projector or a bright room."
+    },
+    "80": {
+      "$value": 0.8,
+      "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
+    },
+    "90": {
+      "$value": 0.9,
+      "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
+    },
+    "100": {
+      "$value": 1,
+      "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
+    },
+    "$type": "number",
+    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
+  },
+  "motion": {
+    "$description": "How things move and how long it takes.",
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "150ms"
+      },
+      "base": {
+        "$value": "250ms"
+      },
+      "slow": {
+        "$value": "400ms"
+      },
+      "loop": {
+        "$value": "1.2s",
+        "$description": "The period of an endless animation: the skeleton's pulse and the loop utilities. A loop is watched rather than reacted to, so it is slower than any transition — and never faster than the floor below which it reads as a strobe."
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": {
+        "$value": "linear"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)"
+      },
+      "decelerate": {
+        "$value": "cubic-bezier(0, 0, 0, 1)"
+      },
+      "accelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)"
+      }
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport widths where layout steps change.",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem"
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem"
+    }
+  },
+  "z-index": {
+    "$type": "number",
+    "$description": "Stacking order. Layer, never a magic number at the call site.",
+    "base": {
+      "$value": 0
+    },
+    "dropdown": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 2000
+    },
+    "toast": {
+      "$value": 3000
+    }
+  },
+  "icon": {
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 14px prose is 2px.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.875rem"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "1.125rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1.5rem"
+    }
+  },
+  "avatar": {
+    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
+    "sm": {
+      "$type": "dimension",
+      "$value": "1.5rem",
+      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "2.5rem",
+      "$description": "The default: a face beside a name, or a profile header at rest."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "4rem",
+      "$description": "A face as the subject of a page: a profile header at the top of a long column."
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs.",
+    "width": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      },
+      "$description": "The ring's stroke. Two pixels in both modes: a one-pixel ring reads as a rendering artifact rather than a decision."
+    },
+    "offset": {
+      "$value": "2px",
+      "$modes": {
+        "dark": "2px"
+      }
+    }
+  }
+}

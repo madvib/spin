@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { named, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { named } from "../../utils/lookup.ts";
 import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
@@ -31,7 +31,7 @@ import { disabledPosture, focusPaint, focusRing } from "./shared.ts";
  * their declaration rather than falling back to a value the theme did not
  * state.
  */
-export function controlRules(roots: readonly string[]): Rule[] {
+export function controlRules(roots: readonly string[]): SpinRule[] {
   return [
     ...(roots.includes("checkbox") ? [checkboxRule()] : []),
     ...(roots.includes("switch") ? [switchRule()] : []),
@@ -52,19 +52,19 @@ const TICK_ON = "polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%)";
 const TICK_MIXED =
   "polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%)";
 
-function checkboxRule(): Rule {
+function checkboxRule(): SpinRule {
   return [
     /^checkbox$/,
     function* (_m, ctx) {
-      const size = token(ctx, "spacing.4");
-      const radius = token(ctx, "radius.sm");
-      const text = token(ctx, "color.text");
-      const primary = token(ctx, "color.primary");
-      const onPrimary = token(ctx, "color.on-primary");
-      const border = token(ctx, "color.border");
-      const duration = token(ctx, "motion.duration.fast");
-      const easing = token(ctx, "motion.easing.standard");
-      const borderWidth = token(ctx, "border.width");
+      const size = ctx?.theme?.spacing?.[4];
+      const radius = ctx?.theme?.radius?.sm;
+      const text = ctx?.theme?.color?.text;
+      const primary = ctx?.theme?.color?.primary;
+      const onPrimary = ctx?.theme?.color?.["on-primary"];
+      const border = ctx?.theme?.color?.border;
+      const duration = ctx?.theme?.motion?.duration?.fast;
+      const easing = ctx?.theme?.motion?.easing?.standard;
+      const borderWidth = ctx?.theme?.border?.width;
       const ring = focusRing(ctx);
 
       // Depth is three inset shadows driven by one scalar rather than a
@@ -256,23 +256,23 @@ function checkboxRule(): Rule {
  * track's padding. That keeps the thumb from spilling past the track's curve
  * at any size.
  */
-function switchRule(): Rule {
+function switchRule(): SpinRule {
   return [
     /^switch$/,
     function* (_m, ctx) {
-      const size = token(ctx, "spacing.4");
-      const borderWidth = token(ctx, "border.width");
-      const radius = token(ctx, "radius.md");
-      const radiusFull = token(ctx, "radius.full");
-      const border = token(ctx, "color.border");
-      const text = token(ctx, "color.text");
-      const muted = token(ctx, "color.text-muted");
-      const raised = token(ctx, "color.surface-raised");
-      const primary = token(ctx, "color.primary");
-      const onPrimary = token(ctx, "color.on-primary");
-      const shadow = token(ctx, "shadow.sm");
-      const duration = token(ctx, "motion.duration.fast");
-      const easing = token(ctx, "motion.easing.standard");
+      const size = ctx?.theme?.spacing?.[4];
+      const borderWidth = ctx?.theme?.border?.width;
+      const radius = ctx?.theme?.radius?.md;
+      const radiusFull = ctx?.theme?.radius?.full;
+      const border = ctx?.theme?.color?.border;
+      const text = ctx?.theme?.color?.text;
+      const muted = ctx?.theme?.color?.["text-muted"];
+      const raised = ctx?.theme?.color?.["surface-raised"];
+      const primary = ctx?.theme?.color?.primary;
+      const onPrimary = ctx?.theme?.color?.["on-primary"];
+      const shadow = ctx?.theme?.shadow?.sm;
+      const duration = ctx?.theme?.motion?.duration?.fast;
+      const easing = ctx?.theme?.motion?.easing?.standard;
       const ring = focusRing(ctx);
 
       const shell: Record<string, string | undefined> = {

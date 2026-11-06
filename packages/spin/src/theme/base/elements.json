@@ -1,0 +1,128 @@
+{
+  "element": {
+    "h1": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a first-level heading reads. The display style, unless the theme names another.",
+        "$value": "{font.style.display}"
+      }
+    },
+    "h2": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a second-level heading reads. The title style, unless the theme names another.",
+        "$value": "{font.style.title}"
+      }
+    },
+    "h3": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a third-level heading reads. The heading style, unless the theme names another.",
+        "$value": "{font.style.heading}"
+      }
+    },
+    "h4": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a fourth-level heading reads. The subtitle style, unless the theme names another.",
+        "$value": "{font.style.subtitle}"
+      }
+    },
+    "h5": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a fifth-level heading reads. The label style, unless the theme names another.",
+        "$value": "{font.style.label}"
+      }
+    },
+    "h6": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a sixth-level heading reads. The overline style, unless the theme names another.",
+        "$value": "{font.style.overline}"
+      }
+    },
+    "p": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a paragraph reads. The body style, unless the theme names another.",
+        "$value": "{font.style.body}"
+      }
+    },
+    "blockquote": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a quotation reads. The quote style, unless the theme names another.",
+        "$value": "{font.style.quote}"
+      }
+    },
+    "code": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style inline code reads. The code style, unless the theme names another.",
+        "$value": "{font.style.code}"
+      }
+    },
+    "small": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style small print reads. The caption style, unless the theme names another.",
+        "$value": "{font.style.caption}"
+      }
+    },
+    "figcaption": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a figure caption reads. The figure-caption style, unless the theme names another.",
+        "$value": "{font.style.caption-strong}"
+      }
+    },
+    "th": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a table header reads. The figure-caption style, unless the theme names another.",
+        "$value": "{font.style.caption-strong}"
+      }
+    },
+    "caption": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a table caption reads. The caption style, unless the theme names another.",
+        "$value": "{font.style.caption}"
+      }
+    },
+    "label": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a form label reads. The label style, unless the theme names another.",
+        "$value": "{font.style.label}"
+      }
+    },
+    "legend": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a fieldset legend reads. The label style, unless the theme names another.",
+        "$value": "{font.style.label}"
+      }
+    },
+    "dt": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a definition term reads. The strong style, unless the theme names another.",
+        "$value": "{font.style.body-strong}"
+      }
+    }
+  },
+  "link": {
+    "$description": "The link's own decisions: the rule under it.",
+    "underline": {
+      "$type": "dimension",
+      "$value": "0.0625em",
+      "$description": "A hair, one pixel at the body size: a link is found without being shouted at."
+    },
+    "offset": {
+      "$type": "dimension",
+      "$value": "0.2em"
+    }
+  }
+}

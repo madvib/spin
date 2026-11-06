@@ -4,7 +4,6 @@ import { join, resolve } from "node:path";
 import { spin } from "../../../packages/spin/src/plugin/plugin.ts";
 import { describeCatalog, spinPreset } from "../../../packages/spin/src/compiler/index.ts";
 import {
-  FONT_MAP_DEFAULTS,
   indexTree,
   ownedStyleNames,
   parseTokens,
@@ -157,9 +156,9 @@ function wornTypeClasses(sources: readonly string[]): ReadonlySet<string> {
 
 /**
  * Token paths a snippet or page states: `group.name` dotted paths under a
- * known theme group, inside backtick literals or `font.map`-style prose
- * code. Bare words (`compact.spacing.json` filenames, `spin/<name>.json`
- * paths) are excluded by requiring a real group root.
+ * known theme group, inside backtick literals or prose code. Bare words
+ * (`compact.spacing.json` filenames, `spin/<name>.json` paths) are excluded
+ * by requiring a real group root.
  */
 function statedTokenPaths(sources: readonly string[]): ReadonlySet<string> {
   const found = new Set<string>();
@@ -172,11 +171,6 @@ function statedTokenPaths(sources: readonly string[]): ReadonlySet<string> {
   for (const text of sources) {
     for (const m of text.matchAll(path)) {
       const candidate = (m[1] ?? "").replace(/\.+$/, "");
-      // `font.map` is a voice-assignment table, not tokens — the parser
-      // skips it deliberately, so its currency is the owned-voice check.
-      if (candidate === "font.map" || candidate.startsWith("font.map.")) {
-        continue;
-      }
       if (candidate !== "") found.add(candidate);
     }
   }
@@ -229,10 +223,8 @@ describe("docs-to-catalog currency", () => {
     if (!parsed.ok) throw new Error(parsed.error);
     const index = indexTree(resolveAliases(parsed.tree).tree);
     for (const path of stated) {
-      // `font.map` target keys (`card.title`, `stat.value`) are voice
-      // assignment addresses, not token paths — the parser skips `font.map`
-      // deliberately, so they resolve against the map, not the tree.
-      if (Object.hasOwn(FONT_MAP_DEFAULTS, path)) continue;
+      // Voice targets (`card.title`, `stat.value`) are token groups now:
+      // the `.type` tuples live under them, so they resolve in the tree.
       // A stated prefix of a deeper leaf (color.neutral, font.size) counts:
       // the docs name families as well as leaves.
       const hit = Object.keys(index.nodes).some(

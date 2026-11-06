@@ -5,7 +5,6 @@ import {
   type ExtendedTokenInfo,
   type GenerateResult,
 } from "@unocss/core";
-import { readFileSync } from "node:fs";
 import { cssVarName, ELEMENT_ROLES } from "../../src/theme/index.ts";
 import { starterThemes } from "../../src/theme/themes/index.ts";
 import { spinPreset } from "../../src/compiler/index.ts";
@@ -20,14 +19,10 @@ import { deriveRuleContract } from "../../src/compiler/rules/primitives/derive.t
  * the primitives at all: a group is spent by a rule, and the rule is here.
  */
 
-const DEFAULT = new URL(
-  "../../src/theme/themes/silk.json",
-  import.meta.url,
-);
-const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
-  string,
-  unknown
->;
+// The expanded baseline: omission fixtures below delete tokens from a
+// complete document — deleting from the sparse file would inherit the
+// token back from the base it layers over.
+const theme = starterThemes.silk as unknown as Record<string, unknown>;
 
 type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 

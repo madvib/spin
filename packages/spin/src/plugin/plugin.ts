@@ -6,6 +6,7 @@ import { type ContentMap, type ContentOptions, joinContent, scanContent } from "
 import { checkStrictClasses } from "./strict-classes.ts";
 import { describeCatalog } from "../compiler/catalog.ts";
 import { parseTokens, type ThemeDocument } from "../theme/index.ts";
+import { loadProjectBrand, type ThemeFacets } from "../project/index.ts";
 import {
   noteDiskDocuments,
   onOverlayChange,
@@ -606,88 +607,6 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  * `spin()` composes the preset itself; a consumer only names themes,
  * content, and any extra presets such as icons.
  */
-/**
- * The three axes a project's theme directory holds, classified by suffix.
- *
- * `<name>.json` (excluding `config.json`) is a base theme served under
- * `[data-theme]`; `<name>.palette.json` is a palette facet served under
- * `[data-palette]`; `<name>.spacing.json` is a spacing facet served under
- * `[data-spacing]`. The three touch disjoint custom properties, so a palette
- * or spacing file beside a theme of the same name composes with it rather
- * than forking it.
- *
- * A file that doesn't parse is skipped rather than thrown on: a half
- * written theme in an editor would otherwise break the whole stylesheet,
- * and one bad theme should not cost the app its other themes. The
- * directory is the configured local path, and a value naming one file
- * serves that file alone.
- */
-export interface ThemeFacets {
-  /** Base themes, by name: `<name>.json` minus `config.json`. */
-  themes: Record<string, ThemeDocument>;
-  /** Palette facets, by name: `<name>.palette.json`. */
-  palettes: Record<string, ThemeDocument>;
-  /** Spacing facets, by name: `<name>.spacing.json`. */
-  spacings: Record<string, ThemeDocument>;
-}
-
-export async function themesFacetsFromDisk(
-  root: string,
-  themesDir = "spin",
-): Promise<ThemeFacets> {
-  const { readdir, readFile } = await import("node:fs/promises");
-  const { basename, join } = await import("node:path");
-  const { resolveProjectDir } = await import("../project/resolve-dir.ts");
-  const resolved = await resolveProjectDir(root, themesDir, "themes");
-  const pairs: [string, string][] = [];
-  if (resolved.file) {
-    const stem = basename(resolved.path, ".json");
-    if (resolved.path.endsWith(".json")) pairs.push([stem, resolved.path]);
-  } else {
-    let names: string[];
-    try {
-      names = (await readdir(resolved.path)).filter((name) =>
-        name.endsWith(".json")
-      );
-    } catch {
-      return { themes: {}, palettes: {}, spacings: {} };
-    }
-    for (const name of names) {
-      pairs.push([name.slice(0, -".json".length), join(resolved.path, name)]);
-    }
-  }
-  const facets: ThemeFacets = { themes: {}, palettes: {}, spacings: {} };
-  for (const [stem, file] of pairs) {
-    try {
-      const document = JSON.parse(await readFile(file, "utf8")) as ThemeDocument;
-      if (stem === "config") continue;
-      if (stem.endsWith(".palette")) {
-        facets.palettes[stem.slice(0, -".palette".length)] = document;
-      } else if (stem.endsWith(".spacing")) {
-        facets.spacings[stem.slice(0, -".spacing".length)] = document;
-      } else {
-        facets.themes[stem] = document;
-      }
-    } catch {
-      // Skipped: see above.
-    }
-  }
-  return facets;
-}
-
-/**
- * Every base theme document the project's directory holds, by stem.
- *
- * Facet files (`*.palette.json`, `*.spacing.json`) and `config.json` are
- * not themes and are excluded here — read `themesFacetsFromDisk` for those.
- * Kept so existing callers that serve base themes keep working unchanged.
- */
-export async function themesFromDisk(
-  root: string,
-  themesDir = "spin",
-): Promise<Record<string, ThemeDocument>> {
-  return (await themesFacetsFromDisk(root, themesDir)).themes;
-}
 
 /**
  * The themes a project serves: the brand layer, forked by local files of
@@ -854,7 +773,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     // theme forked while the server is running is live on the next
     // generate rather than needing a restart.
     const disk = options.themes === undefined
-      ? await themesFacetsFromDisk(root, options.themesDir)
+      ? await loadProjectBrand(root, options.themesDir)
       : { themes: {}, palettes: {}, spacings: {} };
     const themes = options.themes ??
       projectThemes(

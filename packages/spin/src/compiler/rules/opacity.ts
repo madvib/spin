@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   OPACITY_STEPS,
   OPACITY_UTILITIES,
@@ -19,8 +19,8 @@ export const OPACITY_NAMES: readonly string[] = OPACITY_UTILITIES;
  * token reference does. A theme that states no step resolves to the fraction
  * the table always carried.
  */
-export function opacityRules(): Rule[] {
-  return OPACITY_STEPS.map((step): Rule => [
+export function opacityRules(): SpinRule[] {
+  return OPACITY_STEPS.map((step): SpinRule => [
     `opacity-${step}`,
     {
       opacity: `var(--opacity-${step}, ${opacityValue(`opacity-${step}`)})`,

@@ -1,6 +1,6 @@
-import type { Rule } from "@unocss/core";
-import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType, withFallback } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { named, type ThemeContext } from "../../utils/lookup.ts";
+import { fallback } from "./shared.ts";
 
 /**
  * Skeleton — the CSS-only loader: a placeholder block that pulses.
@@ -8,7 +8,7 @@ import { styleType, withFallback } from "./shared.ts";
  * A skeleton is class-entry, and no bare element means "the content has not
  * arrived yet", so there is no tag claim to make.
  */
-export function skeletonRules(roots: readonly string[]): Rule[] {
+export function skeletonRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("skeleton")) return [];
   return [block(), textLine(), circle()];
 }
@@ -17,22 +17,22 @@ export function skeletonRules(roots: readonly string[]): Rule[] {
 function tokens(ctx: ThemeContext | undefined) {
   // The text line stands in for one line of body copy, so its height is the
   // body style's size, read through the style outright.
-  const body = styleType(ctx, "body");
+  const body = ctx?.theme?.font?.style?.body;
   return {
-    well: token(ctx, "color.surface-sunken"),
-    ink: token(ctx, "color.text-muted"),
-    radiusSm: token(ctx, "radius.sm"),
-    radiusFull: token(ctx, "radius.full"),
-    spacing2: token(ctx, "spacing.2"),
-    textSize: body.size,
+    well: ctx?.theme?.color?.["surface-sunken"],
+    ink: ctx?.theme?.color?.["text-muted"],
+    radiusSm: ctx?.theme?.radius?.sm,
+    radiusFull: ctx?.theme?.radius?.full,
+    spacing2: ctx?.theme?.spacing?.[2],
+    textSize: body?.["font-size"],
     // A disc placeholder is a face, so its edge is the avatar token's.
     avatar: named(ctx, "avatar", "md"),
     // The LOOP step, not the slowest transition: a loader is watched rather
     // than reacted to, so its period is a step of its own. A theme that
     // declares no loop falls back to its slowest transition, which is the
     // answer the system had before the loop step existed.
-    duration: withFallback(ctx, "motion.duration.loop", "motion.duration.slow"),
-    easing: token(ctx, "motion.easing.standard"),
+    duration: fallback(ctx?.theme?.motion?.duration?.loop, ctx?.theme?.motion?.duration?.slow),
+    easing: ctx?.theme?.motion?.easing?.standard,
   };
 }
 
@@ -44,7 +44,7 @@ function tokens(ctx: ThemeContext | undefined) {
  * field is white on a near-white page — invisible. The mix keeps the block
  * legible on a tinted surface without minting a new token.
  */
-function block(): Rule {
+function block(): SpinRule {
   return [
     /^skeleton$/,
     function* (_m, ctx) {
@@ -82,7 +82,7 @@ function block(): Rule {
  * trailing space is the theme's own, so stacked lines carry the spacing the
  * real text will carry.
  */
-function textLine(): Rule {
+function textLine(): SpinRule {
   return [
     /^skeleton-text$/,
     function* (_m, ctx) {
@@ -111,7 +111,7 @@ function textLine(): Rule {
  * scale: a loading face and a real one fill the same square, and the swap
  * between them moves nothing.
  */
-function circle(): Rule {
+function circle(): SpinRule {
   return [
     /^skeleton-circle$/,
     function* (_m, ctx) {

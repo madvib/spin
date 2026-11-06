@@ -1,7 +1,6 @@
-import type { Rule } from "@unocss/core";
-import { proseTokens, styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { proseTokens } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
-import { named, token } from "../../utils/lookup.ts";
 
 /**
  * Inline text: links, weight, `small`, sub/superscript, `abbr`, `mark`, `ins`,
@@ -25,20 +24,19 @@ import { named, token } from "../../utils/lookup.ts";
  * nothing gets the browser's own underline; a theme that writes zero marks
  * the link by colour alone, and the hover brings the underline back.
  */
-function linkRule(): Rule {
+function linkRule(): SpinRule {
   const a = "a";
   return [
     /^a$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const underline = token(ctx, "link.underline");
-      // `link.offset` lands with LinkKill's slice (new token alongside
-      // `link.underline`); read through the flat family so this file
-      // compiles before and after that token exists.
-      const offset = named(ctx, "link", "offset");
+      const underline = ctx?.theme?.link?.underline;
+      const offset = ctx?.theme?.link?.offset;
+      const ink = ctx?.theme?.color?.link;
+      const hover = (ctx?.theme?.color as Record<string, string | undefined> | undefined)?.["link-hover"];
       yield {
         [ctx.symbols.selector]: () => a,
-        ...(t.link !== undefined ? { color: t.link } : {}),
+        ...(ink !== undefined ? { color: ink } : {}),
         // A link inherits its prose: no family, no size, no weight, no
         // tracking, no leading of its own — only the ink and the underline
         // it wears over whatever text carries it.
@@ -55,6 +53,7 @@ function linkRule(): Rule {
         // The hover thickens the underline rather than replacing it, and it
         // never thins it: a link marked by colour alone shows its rule the
         // moment the reader reaches for it.
+        ...(hover !== undefined ? { color: hover } : {}),
         "text-decoration-thickness": underline !== undefined
           ? `max(0.1em, calc(${underline} * 2))`
           : "0.1em",
@@ -74,14 +73,14 @@ function linkRule(): Rule {
   ];
 }
 
-function weightRule(tag: string): Rule {
+function weightRule(tag: string): SpinRule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      // Strong is an inline modifier, not a voice: it wears only the
+      // Strong is an inline modifier, not a type style: it wears only the
       // body-strong weight over whatever prose carries it, so bolding inside
       // a caption never resets the caption's size, family, or leading.
-      const weight = styleType(ctx, "body-strong").weight;
+      const weight = ctx?.theme?.font?.style?.["body-strong"]?.["font-weight"];
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(weight !== undefined ? { "font-weight": weight } : {}),
@@ -91,24 +90,17 @@ function weightRule(tag: string): Rule {
   ];
 }
 
-function smallRule(): Rule {
+function smallRule(): SpinRule {
   return [
     /^small$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "caption");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
+      const primary = ctx?.theme?.element?.small?.type;
+      const shared = ctx?.theme?.font?.style?.caption;
+      const s = primary ?? shared;
       yield {
         [ctx.symbols.selector]: () => "small",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(s ?? {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
     },
@@ -116,11 +108,11 @@ function smallRule(): Rule {
   ];
 }
 
-function subRule(tag: string): Rule {
+function subRule(tag: string): SpinRule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
-      const size = styleType(ctx, "caption").size;
+      const size = ctx?.theme?.font?.style?.caption?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => tag,
         ...(size !== undefined ? { "font-size": size } : {}),
@@ -131,7 +123,7 @@ function subRule(tag: string): Rule {
 }
 
 /** An abbreviation: the dotted underline is what says "there is an expansion". */
-function abbrRule(): Rule {
+function abbrRule(): SpinRule {
   return [
     /^abbr$/,
     function* (_m, ctx) {
@@ -145,7 +137,7 @@ function abbrRule(): Rule {
   ];
 }
 
-function markRule(): Rule {
+function markRule(): SpinRule {
   return [
     /^mark$/,
     function* (_m, ctx) {
@@ -167,7 +159,7 @@ function markRule(): Rule {
   ];
 }
 
-function insRule(): Rule {
+function insRule(): SpinRule {
   return [
     /^ins$/,
     function* (_m, ctx) {
@@ -190,7 +182,7 @@ function insRule(): Rule {
   ];
 }
 
-function delRule(): Rule {
+function delRule(): SpinRule {
   return [
     /^del$/,
     function* (_m, ctx) {
@@ -207,7 +199,7 @@ function delRule(): Rule {
   ];
 }
 
-export function inlineRules(): Rule[] {
+export function inlineRules(): SpinRule[] {
   return [
     linkRule(),
     weightRule("strong"),

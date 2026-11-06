@@ -122,6 +122,9 @@ export function isWired(text: string): boolean {
  * Keeping the mapping here — rather than inside either package — is what lets
  * a project gain a file later (a `.gitignore`, an entry point) without the
  * theme package learning what a project is.
+ *
+ * Keys are paths under the themes directory: a brand is a directory, and
+ * the brand's identity file is the tokens layer it names first.
  */
 export function initFiles(
   options: {
@@ -137,7 +140,7 @@ export function initFiles(
     themesDir: options.themesDir,
   });
   return {
-    [`${options.name}.json`]: options.vendor === true
+    [`${options.name}/tokens.json`]: options.vendor === true
       ? themeText(options.starter)
       : JSON.stringify({ $extends: options.starter, modes: ["light", "dark"] }, null, 2) + "\n",
     [config.filename]: config.text,

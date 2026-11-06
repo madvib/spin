@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../../utils/lookup.ts";
 import { a11yRules } from "./a11y.ts";
 import { alertRules } from "./alert.ts";
 import { badgeRules } from "./badge.ts";
@@ -44,7 +44,7 @@ import { textareaRules } from "./textarea.ts";
  * Shortcuts still have a place, for utility bundles a caller opts into by
  * name. They are not for components.
  */
-export function primitiveRules(roots: readonly string[]): Rule[] {
+export function primitiveRules(roots: readonly string[]): SpinRule[] {
   return [
     // The shared box is one component: `field` covers input and textarea,
     // because they are one box with two contents.

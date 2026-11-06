@@ -1,6 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import type { UnoGenerator } from "@unocss/core";
+import type { Theme } from "../../src/theme/theme-types.d.ts";
 import { createGenerator } from "@unocss/core";
 import { parseTokens } from "../../src/theme/index.ts";
 import { describeCatalog, spinPreset } from "../../src/compiler/index.ts";
@@ -366,9 +367,9 @@ function layered(): Promise<UnoGenerator> {
  * The question worth asking is whether OUR rules produce this utility on their
  * own, and that is answerable without reading a single pattern.
  */
-let spinOnlyGenerator: Promise<UnoGenerator> | undefined;
+let spinOnlyGenerator: Promise<UnoGenerator<Theme>> | undefined;
 
-function spinOnly(): Promise<UnoGenerator> {
+function spinOnly(): Promise<UnoGenerator<Theme>> {
   return spinOnlyGenerator ??= createGenerator({
     presets: [createSpinFactory(false)({ themes: { default: theme } })],
   });

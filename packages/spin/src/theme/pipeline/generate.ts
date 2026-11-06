@@ -20,7 +20,7 @@ import {
   indexTree,
   type TokenIndex,
 } from "./resolve.ts";
-import type { CssOptions, TokenLeaf, TokenNode, TokenTree } from "./types.ts";
+import type { CssOptions, TokenGroup, TokenLeaf, TokenNode, TokenTree } from "./types.ts";
 
 interface Block {
   selector: string;
@@ -306,10 +306,13 @@ function collectLeafNodes(node: TokenNode, out: TokenLeaf[]): void {
 /**
  * Generate TypeScript declarations for a token tree.
  *
- * Emits an interface from DTCG path to the value CSS will resolve to, plus the
- * two unions a consumer needs: the token paths themselves, and the custom
- * property names they are read through. A top-level `dark` group re-declares
- * existing tokens for dark mode rather than adding new ones, so it is omitted.
+ * Emits the nested `Theme` interface `ctx.theme` carries — every group an
+ * object, every scalar leaf a `var(--...)` string, every typography tuple
+ * the declaration record a rule spreads — plus the flat `ThemeTokens` map
+ * and the two unions a consumer needs: the token paths themselves, and the
+ * custom property names they are read through. A top-level `dark` group
+ * re-declares existing tokens for dark mode rather than adding new ones, so
+ * it is omitted.
  */
 export function generateTypes(tree: TokenTree): string {
   const leaves = baseLeaves(tree);
@@ -366,5 +369,86 @@ export function generateTypes(tree: TokenTree): string {
     "/** CSS custom properties every token is readable through. */",
     `export type ThemeCssVar = ${vars}`,
     "",
+    ...THEME_TYPE_DECL,
+    ...themeInterface(tree),
   ].join("\n");
 }
+
+/** The declaration record one typography tuple spends. Emitted once, above `Theme`. */
+const THEME_TYPE_DECL: string[] = [
+  "/** One typography tuple: the five declarations a rule spreads, and the five field references. */",
+  "export interface ThemeType {",
+  '  "font-family": string;',
+  '  "font-size": string;',
+  '  "font-weight": string;',
+  '  "letter-spacing": string;',
+  '  "line-height": string;',
+  "  readonly family: string;",
+  "  readonly size: string;",
+  "  readonly weight: string;",
+  "  readonly tracking: string;",
+  "  readonly leading: string;",
+  "}",
+  "",
+];
+
+/** The fields one typography tuple declares, with the CSS each spends. */
+const TYPE_FIELDS: ReadonlyArray<readonly [field: string, property: string]> = [
+  ["family", "font-family"],
+  ["size", "font-size"],
+  ["weight", "font-weight"],
+  ["tracking", "letter-spacing"],
+  ["leading", "line-height"],
+];
+
+/** Whether a group is the five-leaf typography tuple. */
+function isTypeTuple(node: TokenNode): node is TokenGroup {
+  if (node.kind !== "group" || node.children.length !== TYPE_FIELDS.length) {
+    return false;
+  }
+  return node.children.every((child, index) =>
+    child.kind === "token" && child.name === TYPE_FIELDS[index]?.[0]
+  );
+}
+
+/** A property name, quoted when JS cannot carry it bare. */
+function propKey(name: string): string {
+  return /^[A-Za-z_$][\w$]*$/.test(name) ? name : JSON.stringify(name);
+}
+
+/** The emitted lines of the nested `Theme` interface. */
+function themeInterface(tree: TokenTree): string[] {
+  const out: string[] = [
+    "/** The `ctx.theme` a rule reads: every token by its nested DTCG path. */",
+    "export interface Theme {",
+  ];
+  for (const node of tree) emitThemeNode(node, 1, out);
+  // The flat keys the dynamic utilities paste onto: `theme["color-primary"]`
+  // is the same reference `theme.color.primary` carries.
+  out.push("  [flat: `--${string}`]: string;");
+  out.push("  [key: string]: unknown;");
+  out.push("}");
+  out.push("");
+  return out;
+}
+
+function emitThemeNode(node: TokenNode, depth: number, out: string[]): void {
+  const pad = "  ".repeat(depth);
+  if (node.kind === "token") {
+    out.push(`${pad}${propKey(node.name)}?: string;`);
+    return;
+  }
+  const name = node.name;
+  const children = node.children;
+  // Groups and tuples are optional: a partial theme — a facet, a scaffold,
+  // a test fixture — omits whole groups, and a rule reading one must take
+  // the absent branch rather than crash on `undefined.font`.
+  if (isTypeTuple(node)) {
+    out.push(`${pad}${propKey(name)}?: ThemeType;`);
+    return;
+  }
+  out.push(`${pad}${propKey(name)}?: {`);
+  for (const child of children) emitThemeNode(child, depth + 1, out);
+  out.push(`${pad}};`);
+}
+

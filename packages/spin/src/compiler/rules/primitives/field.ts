@@ -1,11 +1,9 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule, ThemeContext } from "../../utils/lookup.ts";
 import {
   disabledPosture,
+  fallback,
   focusPaint,
   focusRing,
-  styleType,
-  withFallback,
 } from "./shared.ts";
 
 /**
@@ -39,30 +37,28 @@ export interface FieldTokens {
 }
 
 export function fieldTokens(ctx: ThemeContext | undefined): FieldTokens {
-  // The field's type is the field's own reading voice at body size: an input
-  // reads what a reader typed, so it reads at the body step. Style-less by
-  // design (no owned style names a field), so the rule names the body voice
-  // outright — never atoms.
-  const body = styleType(ctx, "body");
+  // The field's type is the field's own tuple — what a reader typed, read
+  // at the body step.
+  const body = ctx?.theme?.field?.type ?? ctx?.theme?.font?.style?.body;
   return {
-    spacing2: token(ctx, "spacing.2"),
-    radius: withFallback(ctx, "field.radius", "radius.md"),
-    fontFamily: body.family,
-    fontSize: body.size,
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    field: token(ctx, "color.field"),
+    spacing2: ctx?.theme?.spacing?.[2],
+    radius: fallback(ctx?.theme?.field?.radius, ctx?.theme?.radius?.md),
+    fontFamily: body?.["font-family"],
+    fontSize: body?.["font-size"],
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
+    field: ctx?.theme?.color?.field,
     // The field's own edge. A control must read as a control, so the line
     // it wears is the field's own ink (`field.border`), falling back to the
     // role the system keeps for it: one step stronger than a divider.
-    edge: withFallback(ctx, "field.border", "color.border-strong"),
-    border: token(ctx, "color.border"),
-    borderWidth: token(ctx, "border.width"),
-    duration: token(ctx, "motion.duration.fast"),
-    easing: token(ctx, "motion.easing.standard"),
-    primary: token(ctx, "color.primary"),
-    success: token(ctx, "color.semantic.success"),
-    error: token(ctx, "color.semantic.error"),
+    edge: fallback(ctx?.theme?.field?.border, ctx?.theme?.color?.["border-strong"]),
+    border: ctx?.theme?.color?.border,
+    borderWidth: ctx?.theme?.border?.width,
+    duration: ctx?.theme?.motion?.duration?.fast,
+    easing: ctx?.theme?.motion?.easing?.standard,
+    primary: ctx?.theme?.color?.primary,
+    success: ctx?.theme?.color?.semantic?.success,
+    error: ctx?.theme?.color?.semantic?.error,
   };
 }
 
@@ -110,8 +106,8 @@ export const BOX_TYPES =
  * shown as wrong: it gets the primary border, which says "live" without
  * claiming an answer. `false` is a pass and `true` is a failure.
  */
-export function fieldBox(): Rule {
-  const rule: Rule = [
+export function fieldBox(): SpinRule {
+  const rule: SpinRule = [
     /^(?:input|textarea|select)$/,
     function* (_m, context) {
       const {
@@ -209,21 +205,22 @@ export function fieldBox(): Rule {
       };
 
 
-      // The size voices, the same steps a button takes. A field's type and
+      // The size styles, the same steps a button takes. A field's type and
       // padding move with the step; a single-line control also lands on the
       // step's height, while a textarea keeps its own lines. Without this a
       // chrome control had to restate the small metrics at every call site.
-      // The type at each step is the field's reading voice at that step: sm
+      // The type at each step is the field's reading style at that step: sm
       // reads the label size through the label style, lg the subtitle size
-      // through the subtitle style (the button's s-lg voice), so moving the
+      // through the subtitle style (the button's s-lg style), so moving the
       // styles moves the sizes with them.
-      const label = styleType(context, "label");
-      const subtitle = styleType(context, "subtitle");
-      for (const [name, size, spaceToken] of [
-        ["s-sm", label.size, "spacing.1"],
-        ["s-lg", subtitle.size, "spacing.4"],
+      const label = context?.theme?.font?.style?.label;
+      const subtitle = context?.theme?.font?.style?.subtitle;
+      const space1 = context?.theme?.spacing?.[1];
+      const space4 = context?.theme?.spacing?.[4];
+      for (const [name, size, space] of [
+        ["s-sm", label?.["font-size"], space1],
+        ["s-lg", subtitle?.["font-size"], space4],
       ] as const) {
-        const space = token(context, spaceToken);
         if (size !== undefined) {
           yield {
             [context.symbols.selector]: () => `${FIELDS}.${name}`,

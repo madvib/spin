@@ -11,7 +11,7 @@ import type {
   ColorPickerContext,
   ColorPickerState,
 } from "./color-picker.state.ts";
-import type { ColorChannel } from "@zag-js/color-utils";
+import type { ColorChannel } from "./color.ts";
 import { initial } from "./color-picker.state.ts";
 import type { ColorPickerEvents } from "./color-picker.events.ts";
 import {

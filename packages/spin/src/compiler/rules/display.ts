@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   BACKDROP_BLUR,
   DISPLAY_VALUES,
@@ -12,7 +12,7 @@ export const DISPLAY_NAMES: readonly string[] = Object.keys(DISPLAY_VALUES);
 export const VISIBILITY_NAMES: readonly string[] = Object.keys(VISIBILITY);
 export const BACKDROP_BLUR_NAMES: readonly string[] = Object.keys(BACKDROP_BLUR);
 
-export function displayRules(): Rule[] {
+export function displayRules(): SpinRule[] {
   return staticRules(
     [
       ...DISPLAY_NAMES.filter(

@@ -1,7 +1,4 @@
-import type { Rule } from "@unocss/core";
-
-import { token } from "../../utils/lookup.ts";
-import { styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * The hover chip: a one-line note that floats beside its control.
@@ -15,21 +12,21 @@ import { styleType } from "./shared.ts";
  * The reads are narrow on purpose: the derivation records every token the
  * rule touches, so a shared helper would file sizes the chip never sets.
  */
-function tooltipRule(): Rule {
+function tooltipRule(): SpinRule {
   return [
     /^tooltip$/,
     function* (_m, ctx) {
-      // The chip reads the caption voice — small print, never body copy.
-      const caption = styleType(ctx, "caption");
-      const sizeXs = caption.size;
-      const text = token(ctx, "color.text");
-      const raised = token(ctx, "color.surface-raised");
-      const borderWidth = token(ctx, "border.width");
-      const border = token(ctx, "color.border");
-      const radiusSm = token(ctx, "radius.sm");
-      const stack = token(ctx, "z-index.dropdown");
-      const spacing1 = token(ctx, "spacing.1");
-      const spacing2 = token(ctx, "spacing.2");
+      // The chip reads the caption style — small print, never body copy.
+      const caption = ctx?.theme?.font?.style?.caption;
+      const sizeXs = caption?.["font-size"];
+      const text = ctx?.theme?.color?.text;
+      const raised = ctx?.theme?.color?.["surface-raised"];
+      const borderWidth = ctx?.theme?.border?.width;
+      const border = ctx?.theme?.color?.border;
+      const radiusSm = ctx?.theme?.radius?.sm;
+      const stack = ctx?.theme?.["z-index"]?.dropdown;
+      const spacing1 = ctx?.theme?.spacing?.[1];
+      const spacing2 = ctx?.theme?.spacing?.[2];
       yield {
         [ctx.symbols.selector]: () => "tooltip",
         visibility: "hidden",
@@ -60,7 +57,7 @@ function tooltipRule(): Rule {
   ];
 }
 
-export function tooltipRules(roots: readonly string[]): Rule[] {
+export function tooltipRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("tooltip")) return [];
   return [tooltipRule()];
 }

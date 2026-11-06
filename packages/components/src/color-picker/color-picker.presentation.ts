@@ -1,4 +1,4 @@
-import { type ColorChannel, parseColor } from "@zag-js/color-utils";
+import { type ColorChannel, parseColor } from "./color.ts";
 import {
   type ApiOf,
   ariaDisabled,

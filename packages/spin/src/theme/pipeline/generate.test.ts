@@ -397,6 +397,82 @@ test("generateThemeCss gives each theme the values of its own token set", () => 
     "#00ff00",
   );
 });
+test("two themes aliasing different styles emit distinct type vars per theme", () => {
+  const docFor = (buttonTarget: string, h1Target: string) => ({
+    font: {
+      family: { sans: { $type: "fontFamily", $value: "Inter" } },
+      size: {
+        md: { $type: "dimension", $value: "1rem" },
+        lg: { $type: "dimension", $value: "2rem" },
+      },
+      weight: { regular: { $type: "fontWeight", $value: 400 } },
+      tracking: { normal: { $type: "dimension", $value: "0em" } },
+      leading: { relaxed: { $type: "dimension", $value: 1.625 } },
+      style: {
+        label: {
+          $type: "typography",
+          $value: {
+            family: "{font.family.sans}",
+            size: "{font.size.md}",
+            weight: "{font.weight.regular}",
+            tracking: "{font.tracking.normal}",
+            leading: "{font.leading.relaxed}",
+          },
+        },
+        code: {
+          $type: "typography",
+          $value: {
+            family: "{font.family.sans}",
+            size: "{font.size.lg}",
+            weight: "{font.weight.regular}",
+            tracking: "{font.tracking.normal}",
+            leading: "{font.leading.relaxed}",
+          },
+        },
+        title: {
+          $type: "typography",
+          $value: {
+            family: "{font.family.sans}",
+            size: "{font.size.lg}",
+            weight: "{font.weight.regular}",
+            tracking: "{font.tracking.normal}",
+            leading: "{font.leading.relaxed}",
+          },
+        },
+      },
+    },
+    button: { type: { $type: "typography", $value: `{${buttonTarget}}` } },
+    element: { h1: { type: { $type: "typography", $value: `{${h1Target}}` } } },
+  });
+  const a = treeOf(parseTokens(docFor("font.style.label", "font.style.label")));
+  const b = treeOf(parseTokens(docFor("font.style.code", "font.style.title")));
+  const css = generateThemeCss({ a, b });
+  const valueBlock = (needle: string): CssBlock => {
+    const found = blocks(css).find((block) =>
+      block.selector.includes(needle) &&
+      block.declarations["--button-type-size"] !== undefined
+    );
+    if (found === undefined) throw new Error(`no value block for "${needle}"`);
+    return found;
+  };
+  deepStrictEqual(
+    valueBlock('"a"').declarations["--button-type-size"],
+    "var(--font-style-label-size)",
+  );
+  deepStrictEqual(
+    valueBlock('"b"').declarations["--button-type-size"],
+    "var(--font-style-code-size)",
+  );
+  deepStrictEqual(
+    valueBlock('"b"').declarations["--element-h1-type-size"],
+    "var(--font-style-title-size)",
+  );
+  deepStrictEqual(
+    valueBlock('"a"').declarations["--element-h1-type-size"],
+    "var(--font-style-label-size)",
+  );
+});
+
 
 /** True when `types` has a token key at exactly `path`, dotted segments and all. */
 function declaresPath(types: string, path: string): boolean {

@@ -1,13 +1,9 @@
 import {
   aliasTarget,
   cssVarName,
-  ELEMENT_STYLE_DEFAULTS,
-  FONT_MAP_DEFAULTS,
   indexTree,
-  OWNED_STYLES,
   ownedStyleFields,
   ownedStyleNames,
-  STYLE_REFERENCE_ROLES,
   valuesInMode,
 } from "@spinjs/spin/theme";
 import type { TokenTree } from "@spinjs/spin/theme";
@@ -554,8 +550,8 @@ export function styleGroups(tree: TokenTree): StyleGroup[] {
     else held.push(row);
   }
   const ordered = [
-    ...OWNED_STYLES.map((style) => style.name).filter((name) =>
-      names.has(name)
+    ...ownedStyleNames().filter((name) =>
+      names.has(name as string)
     ),
     ...[...names].filter((name) => !owned.has(name)),
   ];
@@ -650,126 +646,98 @@ export function styleEdits(text: string, name: string): string {
 }
 
 /**
- * The style an element reads: the default the contract states, unless the
- * theme re-pointed it in `font.map`.
+ * The style an element reads: the alias target of `element.<element>.type`.
  *
- * A re-point is one declaration — `font.map.h1 = "title"` — read back from
- * the map rather than from unanimous leaf aliases. A theme that never
- * states the map reads the default; `null` or `"none"` opts out.
+ * A `.type` token is the five-leaf tuple the parser fans out from one
+ * whole-style alias, so the `family` leaf carries the target outright:
+ * `element.p.type.family = "{font.style.body.family}"` reads as `body`.
+ * Absent, or not a `font.style` alias, reads as nothing — the route says
+ * so, not a default.
  */
 export function attachedStyle(
-  text: string,
+  tree: TokenTree,
   element: string,
 ): string | undefined {
-  const own = ELEMENT_STYLE_DEFAULTS[element] ?? FONT_MAP_DEFAULTS[element];
-  if (own === undefined) return undefined;
-  let doc: Record<string, unknown>;
-  try {
-    doc = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return own;
+  return typeTarget(tree, `element.${element}.type`);
+}
+
+/**
+ * The alias style one `.type` group points at, by dotted group path.
+ *
+ * The parser fans a whole-style alias out to five field aliases, so the
+ * `family` leaf carries the target: `<path>.family =
+ * "{font.style.<name>.family}"` reads as `<name>`. Anything else — absent,
+ * not an alias, outside `font.style` — is not a style target, and reads as
+ * nothing.
+ */
+
+export function typeTarget(tree: TokenTree, path: string): string | undefined {
+  const leaf = indexTree(tree).leaves[`${path}.family`];
+  if (leaf === undefined) return undefined;
+  const target = aliasTarget(leaf.value);
+  if (target === null) return undefined;
+  const prefix = "font.style.";
+  const suffix = ".family";
+  if (!target.startsWith(prefix) || !target.endsWith(suffix)) return undefined;
+  const name = target.slice(prefix.length, -suffix.length);
+  if (name.length === 0 || name.includes(".")) return undefined;
+  return name;
+}
+
+/**
+ * The element names that carry a `.type` tuple, in tree order.
+ *
+ * `element.p.type` is the five-leaf group the parser fans out from one
+ * whole-style alias; the `family` leaf is the witness, because every tuple
+ * carries one and only tuples carry one. First-seen order is the document's
+ * own, so the picker lists elements the way the theme states them.
+ */
+export function elementTargets(tree: TokenTree): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const leaf of Object.values(indexTree(tree).leaves)) {
+    const path = leaf.path;
+    if (
+      path.length !== 4 || path[0] !== "element" || path[2] !== "type" ||
+      path[3] !== "family"
+    ) continue;
+    const element = path[1] as string;
+    if (seen.has(element)) continue;
+    seen.add(element);
+    out.push(element);
   }
-  const font = doc["font"] as Record<string, unknown> | undefined;
-  const map = font?.["map"] as Record<string, unknown> | undefined;
-  const entry = map?.[element];
-  if (entry === null || entry === "none") return undefined;
-  if (typeof entry !== "string" || entry.trim().length === 0) return own;
-  const names = new Set(declaredStyles(text));
-  return names.has(entry) ? entry : own;
+  return out;
+}
+
+/**
+ * The dotted `.type` group paths outside `element` and `font.style`, in
+ * tree order.
+ *
+ * `button.type` or `button.s-sm.type` is the same five-leaf tuple an
+ * element carries — the `family` leaf is the witness — but the row it
+ * feeds names the group, not the leaf. `font.style` tuples are the aliases'
+ * targets, not references, so they stay out; `element` rows belong to the
+ * element picker.
+ */
+export function referenceTargets(tree: TokenTree): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const leaf of Object.values(indexTree(tree).leaves)) {
+    const path = leaf.path;
+    const last = path[path.length - 1];
+    const second = path[path.length - 2];
+    if (last !== "family" || second !== "type") continue;
+    if (path[0] === "element" || path[0] === "font") continue;
+    const group = path.slice(0, -1).join(".");
+    if (seen.has(group)) continue;
+    seen.add(group);
+    out.push(group);
+  }
+  return out;
 }
 
 /** One leaf edit, as the document spells it: a DTCG path and the value. */
 export interface StyleEdit {
   readonly path: readonly string[];
   readonly value: string;
-}
-
-/**
- * Re-point an element at another declared style.
- *
- * One declaration — `font.map.<element> = "<style>"` — so the element
- * follows the style live without touching the style's own tuple. The edit
- * is one undo step, and the gate judges it whole.
- */
-export function repointEdits(
-  text: string,
-  element: string,
-  style: string,
-): StyleEdit[] {
-  const own = ELEMENT_STYLE_DEFAULTS[element] ?? FONT_MAP_DEFAULTS[element];
-  if (own === undefined) {
-    throw new Error(`“${element}” is not an element the map attaches`);
-  }
-  if (!declaredStyles(text).includes(style)) {
-    throw new Error(`“${style}” is not a style this theme declares`);
-  }
-  return [{ path: ["font", "map", element], value: style }];
-}
-
-/**
- * Apply a map re-point: create `font.map.<element>` when absent, set it
- * when present. A map entry is a bare style name, not a token leaf — the
- * theme contract reads it as a reference, and the parser ignores the group.
- */
-export function applyMapEdit(text: string, element: string, style: string): string {
-  const doc = JSON.parse(text) as Record<string, unknown>;
-  const font = doc["font"] as Record<string, unknown> | undefined;
-  if (typeof font !== "object" || font === null) {
-    throw new Error("this theme declares no font group to map under");
-  }
-  let map = font["map"] as Record<string, unknown> | undefined;
-  if (map === undefined) {
-    map = {};
-    font["map"] = map;
-  } else if (typeof map !== "object" || map === null || Array.isArray(map)) {
-    throw new Error("font.map is not an object the map can be written under");
-  }
-  map[element] = style;
-  return JSON.stringify(doc, null, 2);
-}
-
-/**
- * Every style reference that names no declared style, in the module's words.
- *
- * The theme's own judgement, narrowed to the reference rows: the path first,
- * then what is wrong. A document that parses but declares no reference the
- * rows show is quiet here — the rows are empty, not broken.
- */
-export function danglingReferences(text: string): string[] {
-  const out: string[] = [];
-  let doc: Record<string, unknown>;
-  try {
-    doc = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return [];
-  }
-  const font = doc["font"] as Record<string, unknown> | undefined;
-  const styles = font?.["style"] as Record<string, unknown> | undefined;
-  const names = new Set(
-    typeof styles === "object" && styles !== null
-      ? Object.keys(styles).filter((key) => !key.startsWith("$"))
-      : [],
-  );
-  for (const role of STYLE_REFERENCE_ROLES) {
-    const segments = role.path.split(".");
-    let node: unknown = doc;
-    for (const segment of segments) {
-      if (typeof node !== "object" || node === null) break;
-      node = (node as Record<string, unknown>)[segment];
-    }
-    if (typeof node !== "object" || node === null || !("$value" in node)) {
-      continue;
-    }
-    const value = (node as Record<string, unknown>)["$value"];
-    if (typeof value !== "string" || value.trim().length === 0) {
-      out.push(`${role.path}: style reference must name a declared font.style`);
-      continue;
-    }
-    if (!names.has(value.trim())) {
-      out.push(
-        `${role.path}: style reference "${value.trim()}" names no declared font.style`,
-      );
-    }
-  }
-  return out;
 }

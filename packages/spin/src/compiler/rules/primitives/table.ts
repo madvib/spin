@@ -1,6 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType, withFallback } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { type ThemeContext } from "../../utils/lookup.ts";
 
 /**
  * Table — the first primitive with a strong opinion, and deliberately so.
@@ -36,7 +35,7 @@ import { styleType, withFallback } from "./shared.ts";
  * Scope stays `<th>` rather than `<thead>` for the sticky rule so a table
  * without a header block still gets header cells styled.
  */
-export function tableRules(roots: readonly string[]): Rule[] {
+export function tableRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("table")) return [];
   // `td` and `th` are claimed together by one rule and then split: uno keeps
   // only the first rule matching a token, so a separate rule per tag would
@@ -52,24 +51,29 @@ export function tableRules(roots: readonly string[]): Rule[] {
 }
 
 function tableTokens(ctx: ThemeContext | undefined) {
+  const theme = ctx?.theme;
+  // Both branches are read eagerly so the derivation records them: the
+  // table's own decision, then the scale step it defaults to.
+  const rule = theme?.table?.rule;
+  const border = theme?.color?.border;
+  const zebra = theme?.table?.zebra;
+  const sunken = theme?.color?.["surface-sunken"];
+  const headerPrimary = theme?.element?.th?.type;
+  const headerShared = theme?.font?.style?.["caption-strong"];
+  const captionPrimary = theme?.element?.caption?.type;
+  const captionShared = theme?.font?.style?.caption;
   return {
-    spacing2: token(ctx, "spacing.2"),
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    // The rule under a row, and the fill a striped row wears: the table's
-    // own decisions, each falling back to the scale it would otherwise
-    // wear — the page's hairline and the page's sunken step.
-    rule: withFallback(ctx, "table.rule", "color.border"),
-    zebra: withFallback(ctx, "table.zebra", "color.surface-sunken"),
-    raised: token(ctx, "color.surface-raised"),
-    // The table reads the body voice for its face and size; a header cell
-    // reads the caption-strong voice as a whole tuple, because a heading
-    // that weighs like its rows is a heading nobody finds.
-    table: styleType(ctx, "body"),
-    header: styleType(ctx, "caption-strong"),
-    caption: styleType(ctx, "caption"),
-    borderWidth: token(ctx, "border.width"),
-    strong: styleType(ctx, "body-strong"),
+    spacing2: theme?.spacing?.[2],
+    text: theme?.color?.text,
+    muted: theme?.color?.["text-muted"],
+    rule: rule ?? border,
+    zebra: zebra ?? sunken,
+    raised: theme?.color?.["surface-raised"],
+    table: theme?.font?.style?.body,
+    header: headerPrimary ?? headerShared,
+    caption: captionPrimary ?? captionShared,
+    borderWidth: theme?.border?.width,
+    strong: theme?.font?.style?.["body-strong"],
   };
 }
 
@@ -80,13 +84,13 @@ function tableTokens(ctx: ThemeContext | undefined) {
  * between cells that the row rules then have to cross, and a collapsed model
  * lets one rule run the full width of the table.
  */
-function tableRule(): Rule {
+function tableRule(): SpinRule {
   return [
     /^table$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.table.family;
-      const size = t.table.size;
+      const family = t.table?.["font-family"];
+      const size = t.table?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => "table",
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -121,13 +125,13 @@ function tableRule(): Rule {
  * with the row — a `border-bottom` on `<tr>` survives a collapsed model
  * inconsistently when cells have their own padding.
  */
-function cellRule(): Rule {
+function cellRule(): SpinRule {
   const cell = ":is(td, th)";
   return [
     /^(?:td|th)$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const footerWeight = t.strong.weight;
+      const footerWeight = t.strong?.["font-weight"];
       yield {
         [ctx.symbols.selector]: () => cell,
         ...(t.spacing2 !== undefined
@@ -185,24 +189,15 @@ function cellRule(): Rule {
  * Sticky is the opinion that pays for itself. A header that scrolls away turns
  * a twenty-row table into a guessing game about what each column holds.
  */
-function headerRule(): Rule {
+function headerRule(): SpinRule {
   return [
     /^th$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.header.family;
-      const size = t.header.size;
-      const weight = t.header.weight;
-      const tracking = t.header.tracking;
-      const leading = t.header.leading;
       yield {
         [ctx.symbols.selector]: () => "th",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
+        ...(t.header ?? {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
         "text-align": "start",
         // `collapse` clips a sticky cell's background, so the header needs its
         // own surface or rows show through it as they pass underneath.
@@ -241,23 +236,14 @@ function headerRule(): Rule {
  * A caption: quiet, above the table, and the only element allowed to sit
  * outside it.
  */
-function captionRule(): Rule {
+function captionRule(): SpinRule {
   return [
     /^caption$/,
     function* (_m, ctx) {
       const t = tableTokens(ctx);
-      const family = t.caption.family;
-      const size = t.caption.size;
-      const weight = t.caption.weight;
-      const tracking = t.caption.tracking;
-      const leading = t.caption.leading;
       yield {
         [ctx.symbols.selector]: () => "caption",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(t.caption ?? {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
         "text-align": "start",
         ...(t.spacing2 !== undefined
@@ -280,7 +266,7 @@ function captionRule(): Rule {
  * theme's notion of depth under a surface (`surface-sunken`) — one step
  * below the page, which a raised card or a field cannot supply.
  */
-function stripedRule(): Rule {
+function stripedRule(): SpinRule {
   return [
     /^striped$/,
     function* (_m, ctx) {
@@ -305,7 +291,7 @@ function stripedRule(): Rule {
  * opt-in: the table fits its container with fixed columns, cells wrap and
  * top-align, and long tokens break rather than forcing a scroller.
  */
-function wrapRule(): Rule {
+function wrapRule(): SpinRule {
   const table = `${"table"}.wrap`;
   return [
     /^wrap$/,

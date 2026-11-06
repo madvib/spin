@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { LOOP_STEP } from "../../theme/index.ts";
 import type { ThemeRef } from "../../theme/index.ts";
 import { TRANSITION_PROPERTY } from "../utils/vocabulary.ts";
@@ -23,7 +23,7 @@ export function transitionDurations(theme: ThemeRef): string[] {
   );
 }
 
-export function transitionRules(): Rule[] {
+export function transitionRules(): SpinRule[] {
   return [
     ...staticRules([...TRANSITION_NAMES], STATIC_DECLS),
     [

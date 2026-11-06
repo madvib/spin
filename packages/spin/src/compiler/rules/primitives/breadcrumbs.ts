@@ -1,6 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 
 /**
  * Breadcrumbs — the trail home, claimed as a class on the `<nav>`.
@@ -16,27 +15,27 @@ import { styleType } from "./shared.ts";
  * always looked like, so it is a literal typed beside the muted colour it
  * wears rather than a token the theme is asked to choose.
  */
-export function breadcrumbsRules(roots: readonly string[]): Rule[] {
+export function breadcrumbsRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("breadcrumbs")) return [];
   return [trailRule(), listRule(), boxRule(), arrowRule()];
 }
 
 /** The theme values breadcrumbs spends, resolved once per rule. */
 function tokens(ctx: ThemeContext | undefined) {
-  // The trail wears the label voice — the small-medium advisory type, read
+  // The trail wears the label style — the small-medium advisory type, read
   // outright: a theme moves its trails by moving the style.
-  const label = styleType(ctx, "label");
+  const label = ctx?.theme?.font?.style?.label;
   return {
-    sizeSm: label.size,
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    gap: token(ctx, "spacing.2"),
-    separatorGap: token(ctx, "spacing.1"),
-    spacing2: token(ctx, "spacing.2"),
-    raised: token(ctx, "color.surface-raised"),
-    border: token(ctx, "color.border"),
-    borderWidth: token(ctx, "border.width"),
-    radiusMd: token(ctx, "radius.md"),
+    sizeSm: label?.["font-size"],
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
+    gap: ctx?.theme?.spacing?.[2],
+    separatorGap: ctx?.theme?.spacing?.[1],
+    spacing2: ctx?.theme?.spacing?.[2],
+    raised: ctx?.theme?.color?.["surface-raised"],
+    border: ctx?.theme?.color?.border,
+    borderWidth: ctx?.theme?.border?.width,
+    radiusMd: ctx?.theme?.radius?.md,
   };
 }
 
@@ -49,7 +48,7 @@ function tokens(ctx: ThemeContext | undefined) {
  * descendant selectors rather than classes of their own: a separator or a
  * current page is a fact about an item, not a thing an author names.
  */
-function trailRule(): Rule {
+function trailRule(): SpinRule {
   return [
     /^breadcrumbs$/,
     function* (_m, ctx) {
@@ -128,7 +127,7 @@ function trailRule(): Rule {
  * leaves the first step sitting a couple of pixels high — a trail that reads
  * as broken. One baseline is what a trail is.
  */
-function listRule(): Rule {
+function listRule(): SpinRule {
   return [
     /^breadcrumbs-list$/,
     function* (_m, ctx) {
@@ -153,7 +152,7 @@ function listRule(): Rule {
  * edge — so a deep trail reads as one thing sitting in the page rather than
  * loose text. The inner list is untouched; the box is a wrapper's decision.
  */
-function boxRule(): Rule {
+function boxRule(): SpinRule {
   return [
     /^breadcrumbs-box$/,
     function* (_m, ctx) {
@@ -178,7 +177,7 @@ function boxRule(): Rule {
  * prose, the chevron reads as direction — the same trail with an opinion
  * about which way it runs.
  */
-function arrowRule(): Rule {
+function arrowRule(): SpinRule {
   return [
     /^breadcrumbs-arrow$/,
     function* (_m, ctx) {

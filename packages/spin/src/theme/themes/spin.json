@@ -1,4 +1,5 @@
 {
+  "$extends": "base",
   "$extensions": {
     "spin": {
       "fonts": [
@@ -309,71 +310,10 @@
     }
   },
   "spacing": {
-    "0": {
-      "$value": "0"
-    },
-    "1": {
-      "$value": "0.25rem"
-    },
-    "2": {
-      "$value": "0.5rem"
-    },
-    "3": {
-      "$value": "0.75rem"
-    },
-    "4": {
-      "$value": "1rem"
-    },
-    "5": {
-      "$value": "1.25rem"
-    },
-    "6": {
-      "$value": "1.5rem"
-    },
-    "7": {
-      "$value": "1.75rem"
-    },
-    "8": {
-      "$value": "2rem"
-    },
-    "10": {
-      "$value": "2.5rem"
-    },
-    "12": {
-      "$value": "3.0rem"
-    },
-    "14": {
-      "$value": "3.5rem"
-    },
-    "16": {
-      "$value": "4rem"
-    },
-    "20": {
-      "$value": "5.0rem"
-    },
-    "24": {
-      "$value": "6.0rem"
-    },
     "32": {
       "$value": "8rem",
       "$description": "The macro gap: the air between two sections of a page, which is where this theme puts its emphasis instead of putting a box around them."
     },
-    "36": {
-      "$value": "9rem"
-    },
-    "40": {
-      "$value": "10rem"
-    },
-    "56": {
-      "$value": "14rem"
-    },
-    "60": {
-      "$value": "15rem"
-    },
-    "64": {
-      "$value": "16rem"
-    },
-    "$type": "dimension",
     "$description": "The spacing scale. Every gap, pad and inset is one of these steps, and the roomiest step is the one that separates sections."
   },
   "font": {
@@ -407,7 +347,6 @@
       }
     },
     "size": {
-      "$type": "dimension",
       "2xs": {
         "$value": "0.6875rem",
         "$description": "The printed caption: small, set in caps and tracked open, the label above a field."
@@ -446,32 +385,13 @@
       },
       "$description": "Nine steps, and a jump at the top that is a scale rather than a size: a didone is measured in headlines, and the poster only gets one."
     },
-    "weight": {
-      "$type": "fontWeight",
-      "regular": {
-        "$value": 400
-      },
-      "medium": {
-        "$value": 500
-      },
-      "semibold": {
-        "$value": 600
-      },
-      "bold": {
-        "$value": 700
-      }
-    },
     "tracking": {
-      "$type": "dimension",
       "$description": "How far the letters sit from each other. A didone is spaced open where the hairlines need air and closed nowhere.",
       "tighter": {
         "$value": "-0.02em"
       },
       "tight": {
         "$value": "-0.01em"
-      },
-      "normal": {
-        "$value": "0em"
       },
       "wide": {
         "$value": "0.04em"
@@ -481,28 +401,6 @@
       },
       "widest": {
         "$value": "0.14em"
-      }
-    },
-    "leading": {
-      "$type": "dimension",
-      "$description": "How far the lines sit from each other. A theme has a real opinion here — the open end is what separates a poster from a wall of text — so the ramp is tokens rather than the handful of bare numbers the utilities would otherwise carry.",
-      "none": {
-        "$value": 1
-      },
-      "tight": {
-        "$value": 1.25
-      },
-      "snug": {
-        "$value": 1.375
-      },
-      "normal": {
-        "$value": 1.5
-      },
-      "relaxed": {
-        "$value": 1.625
-      },
-      "loose": {
-        "$value": 2
       }
     },
     "style": {
@@ -685,11 +583,7 @@
     }
   },
   "radius": {
-    "$type": "dimension",
     "$description": "Square geometry. A thread ends blunt: the poster has no round corners except where a control is a pill.",
-    "none": {
-      "$value": "0"
-    },
     "sm": {
       "$value": "0.125rem"
     },
@@ -698,58 +592,13 @@
     },
     "lg": {
       "$value": "0.375rem"
-    },
-    "full": {
-      "$value": "9999px"
     }
   },
   "opacity": {
-    "0": {
-      "$value": 0,
-      "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
-    },
-    "10": {
-      "$value": 0.1,
-      "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
-    },
-    "20": {
-      "$value": 0.2,
-      "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
-    },
-    "30": {
-      "$value": 0.3,
-      "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
-    },
-    "40": {
-      "$value": 0.4,
-      "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
-    },
     "50": {
       "$value": 0.5,
       "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about — and in this theme it is what a dead control wears."
-    },
-    "60": {
-      "$value": 0.6,
-      "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
-    },
-    "70": {
-      "$value": 0.7,
-      "$description": "Secondary content that must survive a projector or a bright room."
-    },
-    "80": {
-      "$value": 0.8,
-      "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
-    },
-    "90": {
-      "$value": 0.9,
-      "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
-    },
-    "100": {
-      "$value": 1,
-      "$description": "Fully shown. The default, named so a rule can say it rather than assume it."
-    },
-    "$type": "number",
-    "$description": "How much of a thing is shown, as a fraction. A theme owns this because the same fraction reads differently over a light surface than over a dark one, and because `disabled` is a decision about how present a dead control still looks."
+    }
   },
   "shadow": {
     "$type": "shadow",
@@ -774,42 +623,9 @@
       }
     }
   },
-  "breakpoint": {
-    "$type": "dimension",
-    "$description": "Viewport widths where layout steps change.",
-    "sm": {
-      "$value": "40rem"
-    },
-    "md": {
-      "$value": "48rem"
-    },
-    "lg": {
-      "$value": "64rem"
-    },
-    "xl": {
-      "$value": "80rem"
-    }
-  },
-  "z-index": {
-    "$type": "number",
-    "$description": "Stacking order. Layer, never a magic number at the call site.",
-    "base": {
-      "$value": 0
-    },
-    "dropdown": {
-      "$value": 1000
-    },
-    "modal": {
-      "$value": 2000
-    },
-    "toast": {
-      "$value": 3000
-    }
-  },
   "motion": {
     "$description": "Precise, and quick. Motion points; it does not perform — no overshoot, no bounce, and no loop that could read as a strobe.",
     "duration": {
-      "$type": "duration",
       "fast": {
         "$value": "120ms",
         "$description": "A state change the reader has already decided to expect: a hover, a press, a focus."
@@ -828,7 +644,6 @@
       }
     },
     "easing": {
-      "$type": "cubicBezier",
       "linear": {
         "$value": "linear",
         "$description": "No curve at all, for motion that is a loop rather than a gesture."
@@ -849,11 +664,6 @@
   },
   "button": {
     "$description": "Component tokens: the decisions a theme owns for its buttons. Spin's button is a printed caption on a block of ink — uppercase, tracked open, flat at rest, and lifted by a hard two pixels when it is touched.",
-    "edge": {
-      "$type": "color",
-      "$description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
-      "$value": "{color.border}"
-    },
     "shadow": {
       "$type": "shadow",
       "$description": "Nothing at rest. The block is printed on the page; a shadow would make it a photograph of a block.",
@@ -873,56 +683,16 @@
     }
   },
   "border": {
-    "$type": "dimension",
-    "$description": "Stroke weight. Every control and surface reads `width`, so a theme changes its edge weight in one place; the numbered steps above it are the ladder a layout reaches for when one edge needs to say more than the rest.",
     "width": {
       "$value": "1px",
       "$description": "The hairline every control and surface draws with — the thread itself."
-    },
-    "width-2": {
-      "$value": "2px",
-      "$description": "The emphasis edge: a control that must read as selected rather than merely bordered."
-    },
-    "width-4": {
-      "$value": "4px",
-      "$description": "The heavy edge. Rare on purpose — a stroke this thick is a statement, not a divider."
-    },
-    "width-8": {
-      "$value": "8px",
-      "$description": "The frame. A block drawn rather than outlined."
     }
   },
   "focus": {
-    "$type": "dimension",
-    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs. Its colour is the press blue, so the ring never argues with the ink around it.",
-    "width": {
-      "$value": "2px",
-      "$modes": {
-        "dark": "2px"
-      },
-      "$description": "The ring's stroke. Two pixels in both modes: a one-pixel ring reads as a rendering artifact rather than a decision."
-    },
-    "offset": {
-      "$value": "2px",
-      "$modes": {
-        "dark": "2px"
-      }
-    }
+    "$description": "The focus ring, shared by every interactive element: buttons, links, fields, summaries and dialogs. Its colour is the press blue, so the ring never argues with the ink around it."
   },
   "icon": {
-    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 16px prose is 2px.",
-    "sm": {
-      "$type": "dimension",
-      "$value": "0.875rem"
-    },
-    "md": {
-      "$type": "dimension",
-      "$value": "1.125rem"
-    },
-    "lg": {
-      "$type": "dimension",
-      "$value": "1.5rem"
-    }
+    "$description": "Glyph sizes, from the reader's own root rather than the element they sit in — a step has to be a jump, and an `em` step against 16px prose is 2px."
   },
   "badge": {
     "$description": "Component tokens: the decisions a theme owns for its badges. Spin's badge is a square tag with an edge drawn like thread — no pills.",
@@ -945,32 +715,12 @@
     }
   },
   "switch": {
-    "$description": "How physical a switch is: one scalar driving three inset shadows. Zero is flat and drawn; higher is lit and raised.",
     "depth": {
       "$type": "number",
       "$value": 0
     }
   },
-  "avatar": {
-    "$description": "How big an avatar is, as the edge of the square it fills. A theme owns the ladder because the size of a face is a design decision, not a product of some other token.",
-    "sm": {
-      "$type": "dimension",
-      "$value": "1.5rem",
-      "$description": "The size for a face in a list or a comment: it reads beside its label without leading the row."
-    },
-    "md": {
-      "$type": "dimension",
-      "$value": "2.5rem",
-      "$description": "The default: a face beside a name, or a profile header at rest."
-    },
-    "lg": {
-      "$type": "dimension",
-      "$value": "4rem",
-      "$description": "A face as the subject of a page: a profile header at the top of a long column."
-    }
-  },
   "card": {
-    "$description": "The card's own decisions: its corner, the air inside it, the ink of its edge, and the elevation it rests at. A card is not a button, and need not round the same way.",
     "radius": {
       "$type": "dimension",
       "$value": "{radius.lg}",
@@ -981,80 +731,19 @@
       "$value": "{spacing.5}",
       "$description": "The air inside the card, between its parts and around its edge."
     },
-    "border": {
-      "$type": "color",
-      "$value": "{color.border}",
-      "$description": "The ink of the card's own edge: the page's hairline, because a rule is all that separates one thing from the next here."
-    },
     "elevation": {
       "$type": "shadow",
       "$value": "none",
       "$description": "No elevation at all. A card is paper on paper, separated by a hairline and by air, and a shadow would make it a photograph of a sheet."
     }
   },
-  "alert": {
-    "$description": "The alert's own decisions: its corner, the air around its message, and the ink of the hairline it wears.",
-    "radius": {
-      "$type": "dimension",
-      "$value": "{radius.md}",
-      "$description": "The page's corner: a message is a box, and a box is not a pill."
-    },
-    "padding": {
-      "$type": "dimension",
-      "$value": "{spacing.2}",
-      "$description": "The air above and below the message."
-    },
-    "padding-inline": {
-      "$type": "dimension",
-      "$value": "{spacing.4}",
-      "$description": "The air beside the message, where it is read."
-    },
-    "edge": {
-      "$type": "color",
-      "$value": "{color.border}",
-      "$description": "The ink of the hairline on every side. The tone variants recolour the leading edge alone, so this one is the quiet frame around them."
-    }
-  },
-  "field": {
-    "$description": "The field's own decisions: its corner and the ink of its edge.",
-    "radius": {
-      "$type": "dimension",
-      "$value": "{radius.md}",
-      "$description": "The page's corner."
-    },
-    "border": {
-      "$type": "color",
-      "$value": "{color.border-strong}",
-      "$description": "The line a finger has to find: one step stronger than the dividers around it, or the control is not a control."
-    }
-  },
-  "table": {
-    "$description": "The table's own decisions: the weight of a column's heading, the ink of the rule under a row, and the fill a striped row wears.",
-    "rule": {
-      "$type": "color",
-      "$value": "{color.border}",
-      "$description": "The ink of the rule under a row: the page's hairline."
-    },
-    "zebra": {
-      "$type": "color",
-      "$value": "{color.surface-sunken}",
-      "$description": "The fill a striped row wears: one step below the page, so a reader can hold their place across a wide table."
-    }
-  },
+  "alert": {},
+  "field": {},
   "link": {
-    "$description": "The link's own decisions: the rule under it.",
     "underline": {
       "$type": "dimension",
       "$value": "0.0625em",
       "$description": "A hair, the width of the rule the rest of the theme draws with."
-    },
-    "offset": {
-      "$type": "dimension",
-      "$value": "0.2em"
     }
-  },
-  "modes": [
-    "light",
-    "dark"
-  ]
+  }
 }

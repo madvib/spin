@@ -25,27 +25,48 @@ import material from "./material.json" with { type: "json" };
 import neobrut from "./neobrut.json" with { type: "json" };
 import silk from "./silk.json" with { type: "json" };
 import spin from "./spin.json" with { type: "json" };
+import baseReference from "../base/reference.json" with { type: "json" };
+import baseElements from "../base/elements.json" with { type: "json" };
+import basePrimitives from "../base/primitives.json" with { type: "json" };
+import { expandExtends } from "../extends.ts";
 import { themeGroups } from "../contract/groups.ts";
 import type { ThemeDocument } from "../index.ts";
+
+/**
+ * The shared foundation every starter layers over: the reference scales,
+ * the intrinsic element voices, and the primitive defaults with their
+ * type aliases. The three documents hold disjoint top-level groups, so
+ * the foundation is their shallow union — no deep merge to disagree on.
+ */
+export const baseTheme: ThemeDocument = {
+  ...(baseReference as ThemeDocument),
+  ...(baseElements as ThemeDocument),
+  ...(basePrimitives as ThemeDocument),
+};
+
+/** A raw starter document, layered over the foundation it names. */
+function starter(doc: unknown): ThemeDocument {
+  return expandExtends(doc as ThemeDocument, { base: baseTheme });
+}
 
 /**
  * The baseline. Every scale step a component can spend is here, and it is the
  * theme the generated token types are derived from — so a token the baseline
  * does not state is not spendable by anything.
  */
-export const silkTheme = silk as ThemeDocument;
+export const silkTheme = starter(silk);
 
 /** A second direction: flat, high-chroma, heavy borders, hard shadows. */
-export const neobrutTheme = neobrut as ThemeDocument;
+export const neobrutTheme = starter(neobrut);
 
 /** Tonal & pill: indigo-tinted containers, pill controls, and 20px cards. */
-export const materialTheme = material as ThemeDocument;
+export const materialTheme = starter(material);
 
 /** Editorial & print: warm stone paper, Fraunces display serif, and crimson + cobalt inks. */
-export const spinTheme = spin as ThemeDocument;
+export const spinTheme = starter(spin);
 
 /** Tactile hardware & neumorphic: anodized aluminum by day, gunmetal by night, dual bevel shadows. */
-export const industrialTheme = industrial as ThemeDocument;
+export const industrialTheme = starter(industrial);
 
 /**
  * The compact density: a tighter spacing ramp with matching card and alert

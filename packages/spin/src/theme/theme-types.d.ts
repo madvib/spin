@@ -2,72 +2,6 @@
 
 /** Every token in the document, by DTCG path, with the value CSS resolves to. */
 export interface ThemeTokens {
-  "color.primary": "#1c62c2";
-  "color.secondary": "#1a2434";
-  "color.accent": "#006974";
-  "color.neutral.50": "#f7f8fb";
-  "color.neutral.100": "#f1f4f8";
-  "color.neutral.200": "#e4e8ef";
-  "color.neutral.300": "#cfd5de";
-  "color.neutral.400": "#a6afbb";
-  "color.neutral.500": "#78818f";
-  "color.neutral.600": "#525c6a";
-  "color.neutral.700": "#333e4d";
-  "color.neutral.800": "#1a2434";
-  "color.neutral.900": "#050d1c";
-  "color.semantic.success": "#26753e";
-  "color.semantic.warning": "#886108";
-  "color.semantic.error": "#a6312b";
-  "color.semantic.info": "#0e629a";
-  "color.surface": "{color.neutral.50}";
-  "color.surface-sunken": "{color.neutral.100}";
-  "color.surface-raised": "#ffffff";
-  "color.text": "{color.neutral.900}";
-  "color.text-muted": "{color.neutral.600}";
-  "color.border": "{color.neutral.200}";
-  "color.scrim": "rgb(15 19 30 / 45%)";
-  "color.on-primary": "#ffffff";
-  "color.focus-ring": "#1c62c2";
-  "color.link": "#1c62c2";
-  "color.on-secondary": "#ffffff";
-  "color.on-accent": "#ffffff";
-  "color.selected": "{color.text}";
-  "color.on-selected": "{color.surface}";
-  "color.on-semantic-success": "#ffffff";
-  "color.on-semantic-warning": "#ffffff";
-  "color.field": "#ffffff";
-  "color.border-strong": "#a6afbb";
-  "color.on-semantic-error": "#ffffff";
-  "color.on-danger": "{color.on-semantic-error}";
-  "color.on-semantic-info": "#ffffff";
-  "color.disabled": "{color.neutral.200}";
-  "color.on-disabled": "{color.neutral.600}";
-  "spacing.0": "0";
-  "spacing.1": "0.25rem";
-  "spacing.2": "0.5rem";
-  "spacing.3": "0.75rem";
-  "spacing.4": "1rem";
-  "spacing.5": "1.25rem";
-  "spacing.6": "1.5rem";
-  "spacing.7": "1.75rem";
-  "spacing.8": "2rem";
-  "spacing.10": "2.5rem";
-  "spacing.12": "3.0rem";
-  "spacing.14": "3.5rem";
-  "spacing.16": "4rem";
-  "spacing.20": "5.0rem";
-  "spacing.24": "6.0rem";
-  "spacing.36": "9rem";
-  "spacing.40": "10rem";
-  "spacing.56": "14rem";
-  "spacing.60": "15rem";
-  "spacing.64": "16rem";
-  "font.family.sans": "Inter, ui-sans-serif, system-ui, sans-serif";
-  "font.family.heading": "{font.family.sans}";
-  "font.family.body": "{font.family.sans}";
-  "font.family.serif": "ui-serif, Georgia, Cambria, serif";
-  "font.family.mono": "ui-monospace, SFMono-Regular, Menlo, monospace";
-  "font.family.brand": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif";
   "font.size.2xs": "0.625rem";
   "font.size.xs": "0.75rem";
   "font.size.sm": "0.875rem";
@@ -92,6 +26,12 @@ export interface ThemeTokens {
   "font.leading.normal": 1.5;
   "font.leading.relaxed": 1.625;
   "font.leading.loose": 2;
+  "font.family.sans": "Inter, ui-sans-serif, system-ui, sans-serif";
+  "font.family.heading": "{font.family.sans}";
+  "font.family.body": "{font.family.sans}";
+  "font.family.serif": "ui-serif, Georgia, Cambria, serif";
+  "font.family.mono": "ui-monospace, SFMono-Regular, Menlo, monospace";
+  "font.family.brand": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif";
   "font.style.display.family": "{font.family.serif}";
   "font.style.display.size": "{font.size.3xl}";
   "font.style.display.weight": "{font.weight.bold}";
@@ -172,11 +112,35 @@ export interface ThemeTokens {
   "font.style.card-title.weight": "{font.weight.semibold}";
   "font.style.card-title.tracking": "{font.tracking.normal}";
   "font.style.card-title.leading": "{font.leading.snug}";
+  "spacing.0": "0";
+  "spacing.1": "0.25rem";
+  "spacing.2": "0.5rem";
+  "spacing.3": "0.75rem";
+  "spacing.4": "1rem";
+  "spacing.5": "1.25rem";
+  "spacing.6": "1.5rem";
+  "spacing.7": "1.75rem";
+  "spacing.8": "2rem";
+  "spacing.10": "2.5rem";
+  "spacing.12": "3.0rem";
+  "spacing.14": "3.5rem";
+  "spacing.16": "4rem";
+  "spacing.20": "5.0rem";
+  "spacing.24": "6.0rem";
+  "spacing.36": "9rem";
+  "spacing.40": "10rem";
+  "spacing.56": "14rem";
+  "spacing.60": "15rem";
+  "spacing.64": "16rem";
   "radius.none": "0";
   "radius.sm": "0.25rem";
   "radius.md": "0.5rem";
   "radius.lg": "0.875rem";
   "radius.full": "9999px";
+  "border.width": "1px";
+  "border.width-2": "2px";
+  "border.width-4": "4px";
+  "border.width-8": "8px";
   "opacity.0": 0;
   "opacity.10": 0.1;
   "opacity.20": 0.2;
@@ -188,17 +152,6 @@ export interface ThemeTokens {
   "opacity.80": 0.8;
   "opacity.90": 0.9;
   "opacity.100": 1;
-  "shadow.sm": "0 1px 2px -1px rgb(15 19 30 / 0.08), 0 1px 3px 0 rgb(15 19 30 / 0.06)";
-  "shadow.md": "0 4px 8px -2px rgb(15 19 30 / 0.10), 0 2px 4px -2px rgb(15 19 30 / 0.06)";
-  "shadow.lg": "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)";
-  "breakpoint.sm": "40rem";
-  "breakpoint.md": "48rem";
-  "breakpoint.lg": "64rem";
-  "breakpoint.xl": "80rem";
-  "z-index.base": 0;
-  "z-index.dropdown": 1000;
-  "z-index.modal": 2000;
-  "z-index.toast": 3000;
   "motion.duration.fast": "150ms";
   "motion.duration.base": "250ms";
   "motion.duration.slow": "400ms";
@@ -207,40 +160,257 @@ export interface ThemeTokens {
   "motion.easing.standard": "cubic-bezier(0.2, 0, 0, 1)";
   "motion.easing.decelerate": "cubic-bezier(0, 0, 0, 1)";
   "motion.easing.accelerate": "cubic-bezier(0.3, 0, 1, 1)";
+  "breakpoint.sm": "40rem";
+  "breakpoint.md": "48rem";
+  "breakpoint.lg": "64rem";
+  "breakpoint.xl": "80rem";
+  "z-index.base": 0;
+  "z-index.dropdown": 1000;
+  "z-index.modal": 2000;
+  "z-index.toast": 3000;
+  "icon.sm": "0.875rem";
+  "icon.md": "1.125rem";
+  "icon.lg": "1.5rem";
+  "avatar.sm": "1.5rem";
+  "avatar.md": "2.5rem";
+  "avatar.lg": "4rem";
+  "focus.width": "2px";
+  "focus.offset": "2px";
+  "element.h1.type.family": "{font.style.display.family}";
+  "element.h1.type.size": "{font.style.display.size}";
+  "element.h1.type.weight": "{font.style.display.weight}";
+  "element.h1.type.tracking": "{font.style.display.tracking}";
+  "element.h1.type.leading": "{font.style.display.leading}";
+  "element.h2.type.family": "{font.style.title.family}";
+  "element.h2.type.size": "{font.style.title.size}";
+  "element.h2.type.weight": "{font.style.title.weight}";
+  "element.h2.type.tracking": "{font.style.title.tracking}";
+  "element.h2.type.leading": "{font.style.title.leading}";
+  "element.h3.type.family": "{font.style.heading.family}";
+  "element.h3.type.size": "{font.style.heading.size}";
+  "element.h3.type.weight": "{font.style.heading.weight}";
+  "element.h3.type.tracking": "{font.style.heading.tracking}";
+  "element.h3.type.leading": "{font.style.heading.leading}";
+  "element.h4.type.family": "{font.style.subtitle.family}";
+  "element.h4.type.size": "{font.style.subtitle.size}";
+  "element.h4.type.weight": "{font.style.subtitle.weight}";
+  "element.h4.type.tracking": "{font.style.subtitle.tracking}";
+  "element.h4.type.leading": "{font.style.subtitle.leading}";
+  "element.h5.type.family": "{font.style.label.family}";
+  "element.h5.type.size": "{font.style.label.size}";
+  "element.h5.type.weight": "{font.style.label.weight}";
+  "element.h5.type.tracking": "{font.style.label.tracking}";
+  "element.h5.type.leading": "{font.style.label.leading}";
+  "element.h6.type.family": "{font.style.overline.family}";
+  "element.h6.type.size": "{font.style.overline.size}";
+  "element.h6.type.weight": "{font.style.overline.weight}";
+  "element.h6.type.tracking": "{font.style.overline.tracking}";
+  "element.h6.type.leading": "{font.style.overline.leading}";
+  "element.p.type.family": "{font.style.body.family}";
+  "element.p.type.size": "{font.style.body.size}";
+  "element.p.type.weight": "{font.style.body.weight}";
+  "element.p.type.tracking": "{font.style.body.tracking}";
+  "element.p.type.leading": "{font.style.body.leading}";
+  "element.blockquote.type.family": "{font.style.quote.family}";
+  "element.blockquote.type.size": "{font.style.quote.size}";
+  "element.blockquote.type.weight": "{font.style.quote.weight}";
+  "element.blockquote.type.tracking": "{font.style.quote.tracking}";
+  "element.blockquote.type.leading": "{font.style.quote.leading}";
+  "element.code.type.family": "{font.style.code.family}";
+  "element.code.type.size": "{font.style.code.size}";
+  "element.code.type.weight": "{font.style.code.weight}";
+  "element.code.type.tracking": "{font.style.code.tracking}";
+  "element.code.type.leading": "{font.style.code.leading}";
+  "element.small.type.family": "{font.style.caption.family}";
+  "element.small.type.size": "{font.style.caption.size}";
+  "element.small.type.weight": "{font.style.caption.weight}";
+  "element.small.type.tracking": "{font.style.caption.tracking}";
+  "element.small.type.leading": "{font.style.caption.leading}";
+  "element.figcaption.type.family": "{font.style.caption-strong.family}";
+  "element.figcaption.type.size": "{font.style.caption-strong.size}";
+  "element.figcaption.type.weight": "{font.style.caption-strong.weight}";
+  "element.figcaption.type.tracking": "{font.style.caption-strong.tracking}";
+  "element.figcaption.type.leading": "{font.style.caption-strong.leading}";
+  "element.th.type.family": "{font.style.caption-strong.family}";
+  "element.th.type.size": "{font.style.caption-strong.size}";
+  "element.th.type.weight": "{font.style.caption-strong.weight}";
+  "element.th.type.tracking": "{font.style.caption-strong.tracking}";
+  "element.th.type.leading": "{font.style.caption-strong.leading}";
+  "element.caption.type.family": "{font.style.caption.family}";
+  "element.caption.type.size": "{font.style.caption.size}";
+  "element.caption.type.weight": "{font.style.caption.weight}";
+  "element.caption.type.tracking": "{font.style.caption.tracking}";
+  "element.caption.type.leading": "{font.style.caption.leading}";
+  "element.label.type.family": "{font.style.label.family}";
+  "element.label.type.size": "{font.style.label.size}";
+  "element.label.type.weight": "{font.style.label.weight}";
+  "element.label.type.tracking": "{font.style.label.tracking}";
+  "element.label.type.leading": "{font.style.label.leading}";
+  "element.legend.type.family": "{font.style.label.family}";
+  "element.legend.type.size": "{font.style.label.size}";
+  "element.legend.type.weight": "{font.style.label.weight}";
+  "element.legend.type.tracking": "{font.style.label.tracking}";
+  "element.legend.type.leading": "{font.style.label.leading}";
+  "element.dt.type.family": "{font.style.body-strong.family}";
+  "element.dt.type.size": "{font.style.body-strong.size}";
+  "element.dt.type.weight": "{font.style.body-strong.weight}";
+  "element.dt.type.tracking": "{font.style.body-strong.tracking}";
+  "element.dt.type.leading": "{font.style.body-strong.leading}";
+  "link.underline": "0.0625em";
+  "link.offset": "0.2em";
   "button.edge": "{color.border}";
   "button.shadow": "0 1px 2px 0 rgb(15 19 30 / 0.08)";
   "button.shadow-hover": "0 4px 12px -2px rgb(15 19 30 / 0.14)";
   "button.radius": "{radius.md}";
-  "border.width": "1px";
-  "border.width-2": "2px";
-  "border.width-4": "4px";
-  "border.width-8": "8px";
-  "focus.width": "2px";
-  "focus.offset": "2px";
-  "icon.sm": "0.875rem";
-  "icon.md": "1.125rem";
-  "icon.lg": "1.5rem";
-  "badge.edge": "{border.width}";
-  "badge.pill": unknown;
-  "checkbox.depth": 1.5;
-  "switch.depth": 1.5;
-  "avatar.sm": "1.5rem";
-  "avatar.md": "2.5rem";
-  "avatar.lg": "4rem";
+  "button.type.family": "{font.style.label.family}";
+  "button.type.size": "{font.style.label.size}";
+  "button.type.weight": "{font.style.label.weight}";
+  "button.type.tracking": "{font.style.label.tracking}";
+  "button.type.leading": "{font.style.label.leading}";
+  "button.s-sm.type.family": "{font.style.label.family}";
+  "button.s-sm.type.size": "{font.style.label.size}";
+  "button.s-sm.type.weight": "{font.style.label.weight}";
+  "button.s-sm.type.tracking": "{font.style.label.tracking}";
+  "button.s-sm.type.leading": "{font.style.label.leading}";
+  "button.s-lg.type.family": "{font.style.subtitle.family}";
+  "button.s-lg.type.size": "{font.style.subtitle.size}";
+  "button.s-lg.type.weight": "{font.style.subtitle.weight}";
+  "button.s-lg.type.tracking": "{font.style.subtitle.tracking}";
+  "button.s-lg.type.leading": "{font.style.subtitle.leading}";
+  "button.bare.type.family": "{font.style.label.family}";
+  "button.bare.type.size": "{font.style.label.size}";
+  "button.bare.type.weight": "{font.style.label.weight}";
+  "button.bare.type.tracking": "{font.style.label.tracking}";
+  "button.bare.type.leading": "{font.style.label.leading}";
+  "button.primary.type.family": "{font.style.label.family}";
+  "button.primary.type.size": "{font.style.label.size}";
+  "button.primary.type.weight": "{font.style.label.weight}";
+  "button.primary.type.tracking": "{font.style.label.tracking}";
+  "button.primary.type.leading": "{font.style.label.leading}";
+  "button.secondary.type.family": "{font.style.label.family}";
+  "button.secondary.type.size": "{font.style.label.size}";
+  "button.secondary.type.weight": "{font.style.label.weight}";
+  "button.secondary.type.tracking": "{font.style.label.tracking}";
+  "button.secondary.type.leading": "{font.style.label.leading}";
+  "button.outline.type.family": "{font.style.label.family}";
+  "button.outline.type.size": "{font.style.label.size}";
+  "button.outline.type.weight": "{font.style.label.weight}";
+  "button.outline.type.tracking": "{font.style.label.tracking}";
+  "button.outline.type.leading": "{font.style.label.leading}";
+  "button.ghost.type.family": "{font.style.label.family}";
+  "button.ghost.type.size": "{font.style.label.size}";
+  "button.ghost.type.weight": "{font.style.label.weight}";
+  "button.ghost.type.tracking": "{font.style.label.tracking}";
+  "button.ghost.type.leading": "{font.style.label.leading}";
+  "button.contrast.type.family": "{font.style.label.family}";
+  "button.contrast.type.size": "{font.style.label.size}";
+  "button.contrast.type.weight": "{font.style.label.weight}";
+  "button.contrast.type.tracking": "{font.style.label.tracking}";
+  "button.contrast.type.leading": "{font.style.label.leading}";
+  "button.danger.type.family": "{font.style.label.family}";
+  "button.danger.type.size": "{font.style.label.size}";
+  "button.danger.type.weight": "{font.style.label.weight}";
+  "button.danger.type.tracking": "{font.style.label.tracking}";
+  "button.danger.type.leading": "{font.style.label.leading}";
+  "stat.title.type.family": "{font.style.caption-strong.family}";
+  "stat.title.type.size": "{font.style.caption-strong.size}";
+  "stat.title.type.weight": "{font.style.caption-strong.weight}";
+  "stat.title.type.tracking": "{font.style.caption-strong.tracking}";
+  "stat.title.type.leading": "{font.style.caption-strong.leading}";
+  "stat.value.type.family": "{font.style.stat.family}";
+  "stat.value.type.size": "{font.style.stat.size}";
+  "stat.value.type.weight": "{font.style.stat.weight}";
+  "stat.value.type.tracking": "{font.style.stat.tracking}";
+  "stat.value.type.leading": "{font.style.stat.leading}";
+  "stat.desc.type.family": "{font.style.caption.family}";
+  "stat.desc.type.size": "{font.style.caption.size}";
+  "stat.desc.type.weight": "{font.style.caption.weight}";
+  "stat.desc.type.tracking": "{font.style.caption.tracking}";
+  "stat.desc.type.leading": "{font.style.caption.leading}";
   "card.radius": "{radius.lg}";
   "card.padding": "{spacing.4}";
   "card.border": "{color.border}";
   "card.elevation": "{shadow.md}";
+  "card.title.type.family": "{font.style.card-title.family}";
+  "card.title.type.size": "{font.style.card-title.size}";
+  "card.title.type.weight": "{font.style.card-title.weight}";
+  "card.title.type.tracking": "{font.style.card-title.tracking}";
+  "card.title.type.leading": "{font.style.card-title.leading}";
+  "card.description.type.family": "{font.style.label.family}";
+  "card.description.type.size": "{font.style.label.size}";
+  "card.description.type.weight": "{font.style.label.weight}";
+  "card.description.type.tracking": "{font.style.label.tracking}";
+  "card.description.type.leading": "{font.style.label.leading}";
   "alert.radius": "{radius.md}";
   "alert.padding": "{spacing.2}";
   "alert.padding-inline": "{spacing.4}";
   "alert.edge": "{color.border}";
+  "alert.type.family": "{font.style.label.family}";
+  "alert.type.size": "{font.style.label.size}";
+  "alert.type.weight": "{font.style.label.weight}";
+  "alert.type.tracking": "{font.style.label.tracking}";
+  "alert.type.leading": "{font.style.label.leading}";
   "field.radius": "{radius.md}";
   "field.border": "{color.border-strong}";
+  "field.type.family": "{font.style.body.family}";
+  "field.type.size": "{font.style.body.size}";
+  "field.type.weight": "{font.style.body.weight}";
+  "field.type.tracking": "{font.style.body.tracking}";
+  "field.type.leading": "{font.style.body.leading}";
+  "badge.edge": "{border.width}";
+  "badge.pill": unknown;
+  "badge.type.family": "{font.style.badge.family}";
+  "badge.type.size": "{font.style.badge.size}";
+  "badge.type.weight": "{font.style.badge.weight}";
+  "badge.type.tracking": "{font.style.badge.tracking}";
+  "badge.type.leading": "{font.style.badge.leading}";
   "table.rule": "{color.border}";
   "table.zebra": "{color.surface-sunken}";
-  "link.underline": "0.0625em";
-  "link.offset": "0.2em";
+  "checkbox.depth": 1.5;
+  "switch.depth": 1.5;
+  "color.primary": "#1c62c2";
+  "color.secondary": "#1a2434";
+  "color.accent": "#006974";
+  "color.neutral.50": "#f7f8fb";
+  "color.neutral.100": "#f1f4f8";
+  "color.neutral.200": "#e4e8ef";
+  "color.neutral.300": "#cfd5de";
+  "color.neutral.400": "#a6afbb";
+  "color.neutral.500": "#78818f";
+  "color.neutral.600": "#525c6a";
+  "color.neutral.700": "#333e4d";
+  "color.neutral.800": "#1a2434";
+  "color.neutral.900": "#050d1c";
+  "color.semantic.success": "#26753e";
+  "color.semantic.warning": "#886108";
+  "color.semantic.error": "#a6312b";
+  "color.semantic.info": "#0e629a";
+  "color.surface": "{color.neutral.50}";
+  "color.surface-sunken": "{color.neutral.100}";
+  "color.surface-raised": "#ffffff";
+  "color.text": "{color.neutral.900}";
+  "color.text-muted": "{color.neutral.600}";
+  "color.border": "{color.neutral.200}";
+  "color.scrim": "rgb(15 19 30 / 45%)";
+  "color.on-primary": "#ffffff";
+  "color.focus-ring": "#1c62c2";
+  "color.link": "#1c62c2";
+  "color.on-secondary": "#ffffff";
+  "color.on-accent": "#ffffff";
+  "color.selected": "{color.text}";
+  "color.on-selected": "{color.surface}";
+  "color.on-semantic-success": "#ffffff";
+  "color.on-semantic-warning": "#ffffff";
+  "color.field": "#ffffff";
+  "color.border-strong": "#a6afbb";
+  "color.on-semantic-error": "#ffffff";
+  "color.on-danger": "{color.on-semantic-error}";
+  "color.on-semantic-info": "#ffffff";
+  "color.disabled": "{color.neutral.200}";
+  "color.on-disabled": "{color.neutral.600}";
+  "shadow.sm": "0 1px 2px -1px rgb(15 19 30 / 0.08), 0 1px 3px 0 rgb(15 19 30 / 0.06)";
+  "shadow.md": "0 4px 8px -2px rgb(15 19 30 / 0.10), 0 2px 4px -2px rgb(15 19 30 / 0.06)";
+  "shadow.lg": "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)";
 }
 
 /**
@@ -250,7 +420,364 @@ export interface ThemeTokens {
  */
 
 /** DTCG paths of every token — the keys of `ThemeTokens`. */
-export type ThemeTokenPath = "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.tracking.tighter" | "font.tracking.tight" | "font.tracking.normal" | "font.tracking.wide" | "font.tracking.wider" | "font.tracking.widest" | "font.leading.none" | "font.leading.tight" | "font.leading.snug" | "font.leading.normal" | "font.leading.relaxed" | "font.leading.loose" | "font.style.display.family" | "font.style.display.size" | "font.style.display.weight" | "font.style.display.tracking" | "font.style.display.leading" | "font.style.title.family" | "font.style.title.size" | "font.style.title.weight" | "font.style.title.tracking" | "font.style.title.leading" | "font.style.heading.family" | "font.style.heading.size" | "font.style.heading.weight" | "font.style.heading.tracking" | "font.style.heading.leading" | "font.style.subtitle.family" | "font.style.subtitle.size" | "font.style.subtitle.weight" | "font.style.subtitle.tracking" | "font.style.subtitle.leading" | "font.style.lead.family" | "font.style.lead.size" | "font.style.lead.weight" | "font.style.lead.tracking" | "font.style.lead.leading" | "font.style.body.family" | "font.style.body.size" | "font.style.body.weight" | "font.style.body.tracking" | "font.style.body.leading" | "font.style.quote.family" | "font.style.quote.size" | "font.style.quote.weight" | "font.style.quote.tracking" | "font.style.quote.leading" | "font.style.code.family" | "font.style.code.size" | "font.style.code.weight" | "font.style.code.tracking" | "font.style.code.leading" | "font.style.label.family" | "font.style.label.size" | "font.style.label.weight" | "font.style.label.tracking" | "font.style.label.leading" | "font.style.caption.family" | "font.style.caption.size" | "font.style.caption.weight" | "font.style.caption.tracking" | "font.style.caption.leading" | "font.style.overline.family" | "font.style.overline.size" | "font.style.overline.weight" | "font.style.overline.tracking" | "font.style.overline.leading" | "font.style.stat.family" | "font.style.stat.size" | "font.style.stat.weight" | "font.style.stat.tracking" | "font.style.stat.leading" | "font.style.badge.family" | "font.style.badge.size" | "font.style.badge.weight" | "font.style.badge.tracking" | "font.style.badge.leading" | "font.style.body-strong.family" | "font.style.body-strong.size" | "font.style.body-strong.weight" | "font.style.body-strong.tracking" | "font.style.body-strong.leading" | "font.style.caption-strong.family" | "font.style.caption-strong.size" | "font.style.caption-strong.weight" | "font.style.caption-strong.tracking" | "font.style.caption-strong.leading" | "font.style.card-title.family" | "font.style.card-title.size" | "font.style.card-title.weight" | "font.style.card-title.tracking" | "font.style.card-title.leading" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "shadow.sm" | "shadow.md" | "shadow.lg" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "focus.width" | "focus.offset" | "icon.sm" | "icon.md" | "icon.lg" | "badge.edge" | "badge.pill" | "checkbox.depth" | "switch.depth" | "avatar.sm" | "avatar.md" | "avatar.lg" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "field.radius" | "field.border" | "table.rule" | "table.zebra" | "link.underline" | "link.offset"
+export type ThemeTokenPath = "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.tracking.tighter" | "font.tracking.tight" | "font.tracking.normal" | "font.tracking.wide" | "font.tracking.wider" | "font.tracking.widest" | "font.leading.none" | "font.leading.tight" | "font.leading.snug" | "font.leading.normal" | "font.leading.relaxed" | "font.leading.loose" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.style.display.family" | "font.style.display.size" | "font.style.display.weight" | "font.style.display.tracking" | "font.style.display.leading" | "font.style.title.family" | "font.style.title.size" | "font.style.title.weight" | "font.style.title.tracking" | "font.style.title.leading" | "font.style.heading.family" | "font.style.heading.size" | "font.style.heading.weight" | "font.style.heading.tracking" | "font.style.heading.leading" | "font.style.subtitle.family" | "font.style.subtitle.size" | "font.style.subtitle.weight" | "font.style.subtitle.tracking" | "font.style.subtitle.leading" | "font.style.lead.family" | "font.style.lead.size" | "font.style.lead.weight" | "font.style.lead.tracking" | "font.style.lead.leading" | "font.style.body.family" | "font.style.body.size" | "font.style.body.weight" | "font.style.body.tracking" | "font.style.body.leading" | "font.style.quote.family" | "font.style.quote.size" | "font.style.quote.weight" | "font.style.quote.tracking" | "font.style.quote.leading" | "font.style.code.family" | "font.style.code.size" | "font.style.code.weight" | "font.style.code.tracking" | "font.style.code.leading" | "font.style.label.family" | "font.style.label.size" | "font.style.label.weight" | "font.style.label.tracking" | "font.style.label.leading" | "font.style.caption.family" | "font.style.caption.size" | "font.style.caption.weight" | "font.style.caption.tracking" | "font.style.caption.leading" | "font.style.overline.family" | "font.style.overline.size" | "font.style.overline.weight" | "font.style.overline.tracking" | "font.style.overline.leading" | "font.style.stat.family" | "font.style.stat.size" | "font.style.stat.weight" | "font.style.stat.tracking" | "font.style.stat.leading" | "font.style.badge.family" | "font.style.badge.size" | "font.style.badge.weight" | "font.style.badge.tracking" | "font.style.badge.leading" | "font.style.body-strong.family" | "font.style.body-strong.size" | "font.style.body-strong.weight" | "font.style.body-strong.tracking" | "font.style.body-strong.leading" | "font.style.caption-strong.family" | "font.style.caption-strong.size" | "font.style.caption-strong.weight" | "font.style.caption-strong.tracking" | "font.style.caption-strong.leading" | "font.style.card-title.family" | "font.style.card-title.size" | "font.style.card-title.weight" | "font.style.card-title.tracking" | "font.style.card-title.leading" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "icon.sm" | "icon.md" | "icon.lg" | "avatar.sm" | "avatar.md" | "avatar.lg" | "focus.width" | "focus.offset" | "element.h1.type.family" | "element.h1.type.size" | "element.h1.type.weight" | "element.h1.type.tracking" | "element.h1.type.leading" | "element.h2.type.family" | "element.h2.type.size" | "element.h2.type.weight" | "element.h2.type.tracking" | "element.h2.type.leading" | "element.h3.type.family" | "element.h3.type.size" | "element.h3.type.weight" | "element.h3.type.tracking" | "element.h3.type.leading" | "element.h4.type.family" | "element.h4.type.size" | "element.h4.type.weight" | "element.h4.type.tracking" | "element.h4.type.leading" | "element.h5.type.family" | "element.h5.type.size" | "element.h5.type.weight" | "element.h5.type.tracking" | "element.h5.type.leading" | "element.h6.type.family" | "element.h6.type.size" | "element.h6.type.weight" | "element.h6.type.tracking" | "element.h6.type.leading" | "element.p.type.family" | "element.p.type.size" | "element.p.type.weight" | "element.p.type.tracking" | "element.p.type.leading" | "element.blockquote.type.family" | "element.blockquote.type.size" | "element.blockquote.type.weight" | "element.blockquote.type.tracking" | "element.blockquote.type.leading" | "element.code.type.family" | "element.code.type.size" | "element.code.type.weight" | "element.code.type.tracking" | "element.code.type.leading" | "element.small.type.family" | "element.small.type.size" | "element.small.type.weight" | "element.small.type.tracking" | "element.small.type.leading" | "element.figcaption.type.family" | "element.figcaption.type.size" | "element.figcaption.type.weight" | "element.figcaption.type.tracking" | "element.figcaption.type.leading" | "element.th.type.family" | "element.th.type.size" | "element.th.type.weight" | "element.th.type.tracking" | "element.th.type.leading" | "element.caption.type.family" | "element.caption.type.size" | "element.caption.type.weight" | "element.caption.type.tracking" | "element.caption.type.leading" | "element.label.type.family" | "element.label.type.size" | "element.label.type.weight" | "element.label.type.tracking" | "element.label.type.leading" | "element.legend.type.family" | "element.legend.type.size" | "element.legend.type.weight" | "element.legend.type.tracking" | "element.legend.type.leading" | "element.dt.type.family" | "element.dt.type.size" | "element.dt.type.weight" | "element.dt.type.tracking" | "element.dt.type.leading" | "link.underline" | "link.offset" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "button.type.family" | "button.type.size" | "button.type.weight" | "button.type.tracking" | "button.type.leading" | "button.s-sm.type.family" | "button.s-sm.type.size" | "button.s-sm.type.weight" | "button.s-sm.type.tracking" | "button.s-sm.type.leading" | "button.s-lg.type.family" | "button.s-lg.type.size" | "button.s-lg.type.weight" | "button.s-lg.type.tracking" | "button.s-lg.type.leading" | "button.bare.type.family" | "button.bare.type.size" | "button.bare.type.weight" | "button.bare.type.tracking" | "button.bare.type.leading" | "button.primary.type.family" | "button.primary.type.size" | "button.primary.type.weight" | "button.primary.type.tracking" | "button.primary.type.leading" | "button.secondary.type.family" | "button.secondary.type.size" | "button.secondary.type.weight" | "button.secondary.type.tracking" | "button.secondary.type.leading" | "button.outline.type.family" | "button.outline.type.size" | "button.outline.type.weight" | "button.outline.type.tracking" | "button.outline.type.leading" | "button.ghost.type.family" | "button.ghost.type.size" | "button.ghost.type.weight" | "button.ghost.type.tracking" | "button.ghost.type.leading" | "button.contrast.type.family" | "button.contrast.type.size" | "button.contrast.type.weight" | "button.contrast.type.tracking" | "button.contrast.type.leading" | "button.danger.type.family" | "button.danger.type.size" | "button.danger.type.weight" | "button.danger.type.tracking" | "button.danger.type.leading" | "stat.title.type.family" | "stat.title.type.size" | "stat.title.type.weight" | "stat.title.type.tracking" | "stat.title.type.leading" | "stat.value.type.family" | "stat.value.type.size" | "stat.value.type.weight" | "stat.value.type.tracking" | "stat.value.type.leading" | "stat.desc.type.family" | "stat.desc.type.size" | "stat.desc.type.weight" | "stat.desc.type.tracking" | "stat.desc.type.leading" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "card.title.type.family" | "card.title.type.size" | "card.title.type.weight" | "card.title.type.tracking" | "card.title.type.leading" | "card.description.type.family" | "card.description.type.size" | "card.description.type.weight" | "card.description.type.tracking" | "card.description.type.leading" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "alert.type.family" | "alert.type.size" | "alert.type.weight" | "alert.type.tracking" | "alert.type.leading" | "field.radius" | "field.border" | "field.type.family" | "field.type.size" | "field.type.weight" | "field.type.tracking" | "field.type.leading" | "badge.edge" | "badge.pill" | "badge.type.family" | "badge.type.size" | "badge.type.weight" | "badge.type.tracking" | "badge.type.leading" | "table.rule" | "table.zebra" | "checkbox.depth" | "switch.depth" | "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "shadow.sm" | "shadow.md" | "shadow.lg"
 
 /** CSS custom properties every token is readable through. */
-export type ThemeCssVar = "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-tracking-tighter" | "--font-tracking-tight" | "--font-tracking-normal" | "--font-tracking-wide" | "--font-tracking-wider" | "--font-tracking-widest" | "--font-leading-none" | "--font-leading-tight" | "--font-leading-snug" | "--font-leading-normal" | "--font-leading-relaxed" | "--font-leading-loose" | "--font-style-display-family" | "--font-style-display-size" | "--font-style-display-weight" | "--font-style-display-tracking" | "--font-style-display-leading" | "--font-style-title-family" | "--font-style-title-size" | "--font-style-title-weight" | "--font-style-title-tracking" | "--font-style-title-leading" | "--font-style-heading-family" | "--font-style-heading-size" | "--font-style-heading-weight" | "--font-style-heading-tracking" | "--font-style-heading-leading" | "--font-style-subtitle-family" | "--font-style-subtitle-size" | "--font-style-subtitle-weight" | "--font-style-subtitle-tracking" | "--font-style-subtitle-leading" | "--font-style-lead-family" | "--font-style-lead-size" | "--font-style-lead-weight" | "--font-style-lead-tracking" | "--font-style-lead-leading" | "--font-style-body-family" | "--font-style-body-size" | "--font-style-body-weight" | "--font-style-body-tracking" | "--font-style-body-leading" | "--font-style-quote-family" | "--font-style-quote-size" | "--font-style-quote-weight" | "--font-style-quote-tracking" | "--font-style-quote-leading" | "--font-style-code-family" | "--font-style-code-size" | "--font-style-code-weight" | "--font-style-code-tracking" | "--font-style-code-leading" | "--font-style-label-family" | "--font-style-label-size" | "--font-style-label-weight" | "--font-style-label-tracking" | "--font-style-label-leading" | "--font-style-caption-family" | "--font-style-caption-size" | "--font-style-caption-weight" | "--font-style-caption-tracking" | "--font-style-caption-leading" | "--font-style-overline-family" | "--font-style-overline-size" | "--font-style-overline-weight" | "--font-style-overline-tracking" | "--font-style-overline-leading" | "--font-style-stat-family" | "--font-style-stat-size" | "--font-style-stat-weight" | "--font-style-stat-tracking" | "--font-style-stat-leading" | "--font-style-badge-family" | "--font-style-badge-size" | "--font-style-badge-weight" | "--font-style-badge-tracking" | "--font-style-badge-leading" | "--font-style-body-strong-family" | "--font-style-body-strong-size" | "--font-style-body-strong-weight" | "--font-style-body-strong-tracking" | "--font-style-body-strong-leading" | "--font-style-caption-strong-family" | "--font-style-caption-strong-size" | "--font-style-caption-strong-weight" | "--font-style-caption-strong-tracking" | "--font-style-caption-strong-leading" | "--font-style-card-title-family" | "--font-style-card-title-size" | "--font-style-card-title-weight" | "--font-style-card-title-tracking" | "--font-style-card-title-leading" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--shadow-sm" | "--shadow-md" | "--shadow-lg" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--focus-width" | "--focus-offset" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--badge-edge" | "--badge-pill" | "--checkbox-depth" | "--switch-depth" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--field-radius" | "--field-border" | "--table-rule" | "--table-zebra" | "--link-underline" | "--link-offset"
+export type ThemeCssVar = "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-tracking-tighter" | "--font-tracking-tight" | "--font-tracking-normal" | "--font-tracking-wide" | "--font-tracking-wider" | "--font-tracking-widest" | "--font-leading-none" | "--font-leading-tight" | "--font-leading-snug" | "--font-leading-normal" | "--font-leading-relaxed" | "--font-leading-loose" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-style-display-family" | "--font-style-display-size" | "--font-style-display-weight" | "--font-style-display-tracking" | "--font-style-display-leading" | "--font-style-title-family" | "--font-style-title-size" | "--font-style-title-weight" | "--font-style-title-tracking" | "--font-style-title-leading" | "--font-style-heading-family" | "--font-style-heading-size" | "--font-style-heading-weight" | "--font-style-heading-tracking" | "--font-style-heading-leading" | "--font-style-subtitle-family" | "--font-style-subtitle-size" | "--font-style-subtitle-weight" | "--font-style-subtitle-tracking" | "--font-style-subtitle-leading" | "--font-style-lead-family" | "--font-style-lead-size" | "--font-style-lead-weight" | "--font-style-lead-tracking" | "--font-style-lead-leading" | "--font-style-body-family" | "--font-style-body-size" | "--font-style-body-weight" | "--font-style-body-tracking" | "--font-style-body-leading" | "--font-style-quote-family" | "--font-style-quote-size" | "--font-style-quote-weight" | "--font-style-quote-tracking" | "--font-style-quote-leading" | "--font-style-code-family" | "--font-style-code-size" | "--font-style-code-weight" | "--font-style-code-tracking" | "--font-style-code-leading" | "--font-style-label-family" | "--font-style-label-size" | "--font-style-label-weight" | "--font-style-label-tracking" | "--font-style-label-leading" | "--font-style-caption-family" | "--font-style-caption-size" | "--font-style-caption-weight" | "--font-style-caption-tracking" | "--font-style-caption-leading" | "--font-style-overline-family" | "--font-style-overline-size" | "--font-style-overline-weight" | "--font-style-overline-tracking" | "--font-style-overline-leading" | "--font-style-stat-family" | "--font-style-stat-size" | "--font-style-stat-weight" | "--font-style-stat-tracking" | "--font-style-stat-leading" | "--font-style-badge-family" | "--font-style-badge-size" | "--font-style-badge-weight" | "--font-style-badge-tracking" | "--font-style-badge-leading" | "--font-style-body-strong-family" | "--font-style-body-strong-size" | "--font-style-body-strong-weight" | "--font-style-body-strong-tracking" | "--font-style-body-strong-leading" | "--font-style-caption-strong-family" | "--font-style-caption-strong-size" | "--font-style-caption-strong-weight" | "--font-style-caption-strong-tracking" | "--font-style-caption-strong-leading" | "--font-style-card-title-family" | "--font-style-card-title-size" | "--font-style-card-title-weight" | "--font-style-card-title-tracking" | "--font-style-card-title-leading" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--focus-width" | "--focus-offset" | "--element-h1-type-family" | "--element-h1-type-size" | "--element-h1-type-weight" | "--element-h1-type-tracking" | "--element-h1-type-leading" | "--element-h2-type-family" | "--element-h2-type-size" | "--element-h2-type-weight" | "--element-h2-type-tracking" | "--element-h2-type-leading" | "--element-h3-type-family" | "--element-h3-type-size" | "--element-h3-type-weight" | "--element-h3-type-tracking" | "--element-h3-type-leading" | "--element-h4-type-family" | "--element-h4-type-size" | "--element-h4-type-weight" | "--element-h4-type-tracking" | "--element-h4-type-leading" | "--element-h5-type-family" | "--element-h5-type-size" | "--element-h5-type-weight" | "--element-h5-type-tracking" | "--element-h5-type-leading" | "--element-h6-type-family" | "--element-h6-type-size" | "--element-h6-type-weight" | "--element-h6-type-tracking" | "--element-h6-type-leading" | "--element-p-type-family" | "--element-p-type-size" | "--element-p-type-weight" | "--element-p-type-tracking" | "--element-p-type-leading" | "--element-blockquote-type-family" | "--element-blockquote-type-size" | "--element-blockquote-type-weight" | "--element-blockquote-type-tracking" | "--element-blockquote-type-leading" | "--element-code-type-family" | "--element-code-type-size" | "--element-code-type-weight" | "--element-code-type-tracking" | "--element-code-type-leading" | "--element-small-type-family" | "--element-small-type-size" | "--element-small-type-weight" | "--element-small-type-tracking" | "--element-small-type-leading" | "--element-figcaption-type-family" | "--element-figcaption-type-size" | "--element-figcaption-type-weight" | "--element-figcaption-type-tracking" | "--element-figcaption-type-leading" | "--element-th-type-family" | "--element-th-type-size" | "--element-th-type-weight" | "--element-th-type-tracking" | "--element-th-type-leading" | "--element-caption-type-family" | "--element-caption-type-size" | "--element-caption-type-weight" | "--element-caption-type-tracking" | "--element-caption-type-leading" | "--element-label-type-family" | "--element-label-type-size" | "--element-label-type-weight" | "--element-label-type-tracking" | "--element-label-type-leading" | "--element-legend-type-family" | "--element-legend-type-size" | "--element-legend-type-weight" | "--element-legend-type-tracking" | "--element-legend-type-leading" | "--element-dt-type-family" | "--element-dt-type-size" | "--element-dt-type-weight" | "--element-dt-type-tracking" | "--element-dt-type-leading" | "--link-underline" | "--link-offset" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--button-type-family" | "--button-type-size" | "--button-type-weight" | "--button-type-tracking" | "--button-type-leading" | "--button-s-sm-type-family" | "--button-s-sm-type-size" | "--button-s-sm-type-weight" | "--button-s-sm-type-tracking" | "--button-s-sm-type-leading" | "--button-s-lg-type-family" | "--button-s-lg-type-size" | "--button-s-lg-type-weight" | "--button-s-lg-type-tracking" | "--button-s-lg-type-leading" | "--button-bare-type-family" | "--button-bare-type-size" | "--button-bare-type-weight" | "--button-bare-type-tracking" | "--button-bare-type-leading" | "--button-primary-type-family" | "--button-primary-type-size" | "--button-primary-type-weight" | "--button-primary-type-tracking" | "--button-primary-type-leading" | "--button-secondary-type-family" | "--button-secondary-type-size" | "--button-secondary-type-weight" | "--button-secondary-type-tracking" | "--button-secondary-type-leading" | "--button-outline-type-family" | "--button-outline-type-size" | "--button-outline-type-weight" | "--button-outline-type-tracking" | "--button-outline-type-leading" | "--button-ghost-type-family" | "--button-ghost-type-size" | "--button-ghost-type-weight" | "--button-ghost-type-tracking" | "--button-ghost-type-leading" | "--button-contrast-type-family" | "--button-contrast-type-size" | "--button-contrast-type-weight" | "--button-contrast-type-tracking" | "--button-contrast-type-leading" | "--button-danger-type-family" | "--button-danger-type-size" | "--button-danger-type-weight" | "--button-danger-type-tracking" | "--button-danger-type-leading" | "--stat-title-type-family" | "--stat-title-type-size" | "--stat-title-type-weight" | "--stat-title-type-tracking" | "--stat-title-type-leading" | "--stat-value-type-family" | "--stat-value-type-size" | "--stat-value-type-weight" | "--stat-value-type-tracking" | "--stat-value-type-leading" | "--stat-desc-type-family" | "--stat-desc-type-size" | "--stat-desc-type-weight" | "--stat-desc-type-tracking" | "--stat-desc-type-leading" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--card-title-type-family" | "--card-title-type-size" | "--card-title-type-weight" | "--card-title-type-tracking" | "--card-title-type-leading" | "--card-description-type-family" | "--card-description-type-size" | "--card-description-type-weight" | "--card-description-type-tracking" | "--card-description-type-leading" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--alert-type-family" | "--alert-type-size" | "--alert-type-weight" | "--alert-type-tracking" | "--alert-type-leading" | "--field-radius" | "--field-border" | "--field-type-family" | "--field-type-size" | "--field-type-weight" | "--field-type-tracking" | "--field-type-leading" | "--badge-edge" | "--badge-pill" | "--badge-type-family" | "--badge-type-size" | "--badge-type-weight" | "--badge-type-tracking" | "--badge-type-leading" | "--table-rule" | "--table-zebra" | "--checkbox-depth" | "--switch-depth" | "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--shadow-sm" | "--shadow-md" | "--shadow-lg"
+
+/** One typography tuple: the five declarations a rule spreads, and the five field references. */
+export interface ThemeType {
+  "font-family": string;
+  "font-size": string;
+  "font-weight": string;
+  "letter-spacing": string;
+  "line-height": string;
+  readonly family: string;
+  readonly size: string;
+  readonly weight: string;
+  readonly tracking: string;
+  readonly leading: string;
+}
+
+/** The `ctx.theme` a rule reads: every token by its nested DTCG path. */
+export interface Theme {
+  font?: {
+    size?: {
+      "2xs"?: string;
+      xs?: string;
+      sm?: string;
+      md?: string;
+      lg?: string;
+      xl?: string;
+      "2xl"?: string;
+      "3xl"?: string;
+    };
+    weight?: {
+      regular?: string;
+      medium?: string;
+      semibold?: string;
+      bold?: string;
+    };
+    tracking?: {
+      tighter?: string;
+      tight?: string;
+      normal?: string;
+      wide?: string;
+      wider?: string;
+      widest?: string;
+    };
+    leading?: {
+      none?: string;
+      tight?: string;
+      snug?: string;
+      normal?: string;
+      relaxed?: string;
+      loose?: string;
+    };
+    family?: {
+      sans?: string;
+      heading?: string;
+      body?: string;
+      serif?: string;
+      mono?: string;
+      brand?: string;
+    };
+    style?: {
+      display?: ThemeType;
+      title?: ThemeType;
+      heading?: ThemeType;
+      subtitle?: ThemeType;
+      lead?: ThemeType;
+      body?: ThemeType;
+      quote?: ThemeType;
+      code?: ThemeType;
+      label?: ThemeType;
+      caption?: ThemeType;
+      overline?: ThemeType;
+      stat?: ThemeType;
+      badge?: ThemeType;
+      "body-strong"?: ThemeType;
+      "caption-strong"?: ThemeType;
+      "card-title"?: ThemeType;
+    };
+  };
+  spacing?: {
+    "0"?: string;
+    "1"?: string;
+    "2"?: string;
+    "3"?: string;
+    "4"?: string;
+    "5"?: string;
+    "6"?: string;
+    "7"?: string;
+    "8"?: string;
+    "10"?: string;
+    "12"?: string;
+    "14"?: string;
+    "16"?: string;
+    "20"?: string;
+    "24"?: string;
+    "36"?: string;
+    "40"?: string;
+    "56"?: string;
+    "60"?: string;
+    "64"?: string;
+  };
+  radius?: {
+    none?: string;
+    sm?: string;
+    md?: string;
+    lg?: string;
+    full?: string;
+  };
+  border?: {
+    width?: string;
+    "width-2"?: string;
+    "width-4"?: string;
+    "width-8"?: string;
+  };
+  opacity?: {
+    "0"?: string;
+    "10"?: string;
+    "20"?: string;
+    "30"?: string;
+    "40"?: string;
+    "50"?: string;
+    "60"?: string;
+    "70"?: string;
+    "80"?: string;
+    "90"?: string;
+    "100"?: string;
+  };
+  motion?: {
+    duration?: {
+      fast?: string;
+      base?: string;
+      slow?: string;
+      loop?: string;
+    };
+    easing?: {
+      linear?: string;
+      standard?: string;
+      decelerate?: string;
+      accelerate?: string;
+    };
+  };
+  breakpoint?: {
+    sm?: string;
+    md?: string;
+    lg?: string;
+    xl?: string;
+  };
+  "z-index"?: {
+    base?: string;
+    dropdown?: string;
+    modal?: string;
+    toast?: string;
+  };
+  icon?: {
+    sm?: string;
+    md?: string;
+    lg?: string;
+  };
+  avatar?: {
+    sm?: string;
+    md?: string;
+    lg?: string;
+  };
+  focus?: {
+    width?: string;
+    offset?: string;
+  };
+  element?: {
+    h1?: {
+      type?: ThemeType;
+    };
+    h2?: {
+      type?: ThemeType;
+    };
+    h3?: {
+      type?: ThemeType;
+    };
+    h4?: {
+      type?: ThemeType;
+    };
+    h5?: {
+      type?: ThemeType;
+    };
+    h6?: {
+      type?: ThemeType;
+    };
+    p?: {
+      type?: ThemeType;
+    };
+    blockquote?: {
+      type?: ThemeType;
+    };
+    code?: {
+      type?: ThemeType;
+    };
+    small?: {
+      type?: ThemeType;
+    };
+    figcaption?: {
+      type?: ThemeType;
+    };
+    th?: {
+      type?: ThemeType;
+    };
+    caption?: {
+      type?: ThemeType;
+    };
+    label?: {
+      type?: ThemeType;
+    };
+    legend?: {
+      type?: ThemeType;
+    };
+    dt?: {
+      type?: ThemeType;
+    };
+  };
+  link?: {
+    underline?: string;
+    offset?: string;
+  };
+  button?: {
+    edge?: string;
+    shadow?: string;
+    "shadow-hover"?: string;
+    radius?: string;
+    type?: ThemeType;
+    "s-sm"?: {
+      type?: ThemeType;
+    };
+    "s-lg"?: {
+      type?: ThemeType;
+    };
+    bare?: {
+      type?: ThemeType;
+    };
+    primary?: {
+      type?: ThemeType;
+    };
+    secondary?: {
+      type?: ThemeType;
+    };
+    outline?: {
+      type?: ThemeType;
+    };
+    ghost?: {
+      type?: ThemeType;
+    };
+    contrast?: {
+      type?: ThemeType;
+    };
+    danger?: {
+      type?: ThemeType;
+    };
+  };
+  stat?: {
+    title?: {
+      type?: ThemeType;
+    };
+    value?: {
+      type?: ThemeType;
+    };
+    desc?: {
+      type?: ThemeType;
+    };
+  };
+  card?: {
+    radius?: string;
+    padding?: string;
+    border?: string;
+    elevation?: string;
+    title?: {
+      type?: ThemeType;
+    };
+    description?: {
+      type?: ThemeType;
+    };
+  };
+  alert?: {
+    radius?: string;
+    padding?: string;
+    "padding-inline"?: string;
+    edge?: string;
+    type?: ThemeType;
+  };
+  field?: {
+    radius?: string;
+    border?: string;
+    type?: ThemeType;
+  };
+  badge?: {
+    edge?: string;
+    pill?: string;
+    type?: ThemeType;
+  };
+  table?: {
+    rule?: string;
+    zebra?: string;
+  };
+  checkbox?: {
+    depth?: string;
+  };
+  switch?: {
+    depth?: string;
+  };
+  color?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    neutral?: {
+      "50"?: string;
+      "100"?: string;
+      "200"?: string;
+      "300"?: string;
+      "400"?: string;
+      "500"?: string;
+      "600"?: string;
+      "700"?: string;
+      "800"?: string;
+      "900"?: string;
+    };
+    semantic?: {
+      success?: string;
+      warning?: string;
+      error?: string;
+      info?: string;
+    };
+    surface?: string;
+    "surface-sunken"?: string;
+    "surface-raised"?: string;
+    text?: string;
+    "text-muted"?: string;
+    border?: string;
+    scrim?: string;
+    "on-primary"?: string;
+    "focus-ring"?: string;
+    link?: string;
+    "on-secondary"?: string;
+    "on-accent"?: string;
+    selected?: string;
+    "on-selected"?: string;
+    "on-semantic-success"?: string;
+    "on-semantic-warning"?: string;
+    field?: string;
+    "border-strong"?: string;
+    "on-semantic-error"?: string;
+    "on-danger"?: string;
+    "on-semantic-info"?: string;
+    disabled?: string;
+    "on-disabled"?: string;
+  };
+  shadow?: {
+    sm?: string;
+    md?: string;
+    lg?: string;
+  };
+  [flat: `--${string}`]: string;
+  [key: string]: unknown;
+}

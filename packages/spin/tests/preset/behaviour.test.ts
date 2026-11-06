@@ -7,6 +7,7 @@ import {
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { parseTokens } from "../../src/theme/index.ts";
+import { starterThemes } from "../../src/theme/themes/index.ts";
 import { spinPreset } from "../../src/compiler/index.ts";
 import { splitTopLevel } from "../../src/compiler/rules/primitives/derive.ts";
 import { primitiveContracts } from "../../src/compiler/rules/primitives/manifest.ts";
@@ -26,14 +27,11 @@ import { primitiveContracts } from "../../src/compiler/rules/primitives/manifest
  * structurally rather than matched as a string.
  */
 
-const DEFAULT = new URL(
-  "../../src/theme/themes/silk.json",
-  import.meta.url,
-);
-const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
-  string,
-  unknown
->;
+// The expanded baseline: omission fixtures below delete groups from a
+// complete document, so the fixture is the resolved theme rather than the
+// sparse file — deleting from the sparse file would inherit the group back
+// from the base it layers over.
+const theme = starterThemes.silk as Record<string, unknown>;
 
 /** A theme that states a hover lift, for the decisions about movement. */
 const LIFTED = new URL(

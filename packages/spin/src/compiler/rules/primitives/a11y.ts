@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../../utils/lookup.ts";
 import { token } from "../../utils/lookup.ts";
 import { focusRing } from "./shared.ts";
 
@@ -23,7 +23,7 @@ import { focusRing } from "./shared.ts";
  * sighted user cannot see it — which makes `1px` load-bearing rather than
  * arbitrary. A theme may not restate it.
  */
-export function a11yRules(roots: readonly string[]): Rule[] {
+export function a11yRules(roots: readonly string[]): SpinRule[] {
   return [...cursorRules(roots), ...hiddenRules(roots)];
 }
 
@@ -36,7 +36,7 @@ export function a11yRules(roots: readonly string[]): Rule[] {
  * `pointer-events: none` would remove it from the tab order too, which is the
  * opposite of what the attribute is for.
  */
-function cursorRules(roots: readonly string[]): Rule[] {
+function cursorRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("a11y")) return [];
   return [
     [
@@ -70,7 +70,7 @@ function cursorRules(roots: readonly string[]): Rule[] {
  * puts it back. Without this rule the element is in the tree and invisible to
  * everyone, which is worse than either outcome alone.
  */
-function hiddenRules(roots: readonly string[]): Rule[] {
+function hiddenRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("a11y")) return [];
   return [
     [

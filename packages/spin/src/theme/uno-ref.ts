@@ -16,15 +16,37 @@
  * map — so there is no row to forget, and the readers that once kept such a
  * table (and the audits that grew around it) are gone.
  */
-
 import { cssVarName, indexTree } from "./pipeline/resolve.ts";
-import type { TokenTree } from "./pipeline/types.ts";
+import type { TokenLeaf, TokenTree } from "./pipeline/types.ts";
+
+/** The CSS properties one typography tuple spends, in declaration order. */
+const TYPE_PROPERTIES: ReadonlyArray<readonly [field: string, property: string]> = [
+  ["family", "font-family"],
+  ["size", "font-size"],
+  ["weight", "font-weight"],
+  ["tracking", "letter-spacing"],
+  ["leading", "line-height"],
+];
 
 /**
  * Every token of a tree, keyed by its custom property name without the
- * leading `--`, each value the `var()` reference to it.
+ * leading `--`, each value the `var()` reference to it — and under the same
+ * object, every token by its nested DTCG path.
+ *
+ * The flat keys are the dynamic surface: `named()` pastes a class suffix
+ * onto a family prefix and lands on one entry. The nested paths are the
+ * static surface: `theme.color.primary` reads as `var(--color-primary)`
+ * with a compile error when the path is misspelled. Both spell the same
+ * references, so the two surfaces cannot disagree.
+ *
+ * A `$type: "typography"` group reads as its five CSS declarations: the
+ * property keys are enumerable own properties, so `...theme.button.type`
+ * spreads the declarations into a rule object, while the five field names
+ * stay readable as single `var()` references through non-enumerable getters.
  */
-export type ThemeRef = Record<string, string>;
+export type ThemeRef = Record<string, string> & {
+  readonly [group: string]: unknown;
+};
 
 /**
  * The map key a dotted token path addresses.
@@ -38,11 +60,86 @@ export function themeKey(path: string): string {
   return path.split(".").join("-");
 }
 
+function refOf(leaf: TokenLeaf): string {
+  return `var(${cssVarName(leaf.path)})`;
+}
+
+/** The leaf at a dotted path, when the tree declares one there. */
+function leafAt(
+  leaves: Record<string, TokenLeaf>,
+  path: string[],
+): TokenLeaf | undefined {
+  return leaves[path.join(".")];
+}
+
+/**
+ * The typography tuple at `path`, when its five leaves are all declared:
+ * the five CSS declarations as enumerable properties, the five field
+ * references behind getters. Absent when any field is undeclared — a rule
+ * spreading the tuple spends what the theme decided and nothing else.
+ */
+function typeTuple(
+  leaves: Record<string, TokenLeaf>,
+  path: string[],
+): Record<string, string> | undefined {
+  const refs: string[] = [];
+  for (const [field] of TYPE_PROPERTIES) {
+    const leaf = leafAt(leaves, [...path, field]);
+    if (leaf === undefined) return undefined;
+    refs.push(refOf(leaf));
+  }
+  const tuple: Record<string, string> = {};
+  TYPE_PROPERTIES.forEach(([field, property], i) => {
+    const ref = refs[i] as string;
+    tuple[property] = ref;
+    Object.defineProperty(tuple, field, {
+      enumerable: false,
+      configurable: true,
+      get: () => ref,
+    });
+  });
+  return tuple;
+}
+
 export function themeRef(tree: TokenTree): ThemeRef {
-  const out: ThemeRef = {};
-  for (const leaf of Object.values(indexTree(tree).leaves)) {
+  const out: Record<string, unknown> = {};
+  const leaves = indexTree(tree).leaves;
+  for (const leaf of Object.values(leaves)) {
     const name = cssVarName(leaf.path);
     out[name.slice(2)] = `var(${name})`;
   }
-  return out;
+  // The nested paths, built over the same object: a group becomes the
+  // object its children hang under, a typography group the tuple above, a
+  // scalar leaf the reference. A group whose name collides with a leaf's —
+  // `button` the tunnel beside `button` the token — keeps both: the leaf's
+  // reference stays on the flat key, the tunnel on the nested path.
+  for (const node of tree) nest(node, leaves, out);
+  return out as ThemeRef;
+}
+
+function nest(
+  node: { kind: string; name: string; path: string[]; children?: unknown[] },
+  leaves: Record<string, TokenLeaf>,
+  into: Record<string, unknown>,
+): void {
+  if (node.kind === "token") {
+    const leaf = leafAt(leaves, node.path);
+    if (leaf !== undefined) into[node.name] = refOf(leaf);
+    return;
+  }
+  const tuple = typeTuple(leaves, node.path);
+  if (tuple !== undefined) {
+    into[node.name] = tuple;
+    return;
+  }
+  const group: Record<string, unknown> = {};
+  for (
+    const child of (node.children ?? []) as {
+      kind: string;
+      name: string;
+      path: string[];
+      children?: unknown[];
+    }[]
+  ) nest(child, leaves, group);
+  into[node.name] = group;
 }

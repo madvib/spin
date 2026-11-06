@@ -1,5 +1,5 @@
 import type { Variant } from "@unocss/core";
-import type { ThemeContext } from "../utils/lookup.ts";
+import type { Theme } from "../../theme/theme-types.d.ts";
 
 /**
  * Responsive prefixes, resolved against the theme's own breakpoint tokens.
@@ -20,10 +20,10 @@ import type { ThemeContext } from "../utils/lookup.ts";
  */
 export function breakpointVariant(
   edges: Readonly<Record<string, string>>,
-): Variant {
+): Variant<Theme> {
   return {
     name: "spin-breakpoint",
-    match(matcher: string, _ctx?: ThemeContext) {
+    match(matcher: string) {
       const max = matcher.startsWith("max-");
       const rest = max ? matcher.slice(4) : matcher;
       const colon = rest.indexOf(":");
@@ -50,5 +50,5 @@ export function breakpointVariant(
         },
       };
     },
-  } as Variant;
+  } as Variant<Theme>;
 }

@@ -19,6 +19,7 @@ import {
   initProject,
   isWired,
   listThemes,
+  loadProjectBrand,
   readConfig,
   readConfiguration,
   readTheme,
@@ -26,6 +27,7 @@ import {
   writeConfig,
   writeTheme,
 } from "../../src/project/index.ts";
+import { parseTokens } from "../../src/theme/index.ts";
 
 /** A root nothing has been written to. */
 async function root(): Promise<string> {
@@ -145,7 +147,7 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   deepStrictEqual(report.spin, true);
   deepStrictEqual(report.uno, true);
   deepStrictEqual(report.wired, true);
-  deepStrictEqual(report.themes, ["acme.json"]);
+  deepStrictEqual(report.themes, ["acme"]);
 
   // The config it wrote is one that applies spin — that is what "wired"
   // means, and the init test is where it is proven.
@@ -153,7 +155,7 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   deepStrictEqual(isWired(config), true);
   deepStrictEqual(config.includes("spin.vite()"), true);
 
-  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme.json"), "utf8")) as {
+  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme", "tokens.json"), "utf8")) as {
     modes?: unknown;
     $extends?: unknown;
     $extensions?: { spin?: { fonts?: readonly { family?: string }[] } };
@@ -180,7 +182,7 @@ test("init with vendor:true writes the full starter text", async () => {
     vendor: true,
   });
   deepStrictEqual(made.error, null);
-  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme.json"), "utf8")) as {
+  const writtenTheme = JSON.parse(await readFile(join(dir, "spin", "acme", "tokens.json"), "utf8")) as {
     $extends?: unknown;
     $extensions?: { spin?: { fonts?: readonly { family?: string }[] } };
   };
@@ -516,7 +518,7 @@ test("init and configuration respect custom themesDir, componentsDir, and prefix
 
   const report = await detectProject(dir);
   deepStrictEqual(report.spin, true);
-  deepStrictEqual(report.themes, ["acme.json"]);
+  deepStrictEqual(report.themes, ["acme"]);
 });
 test("a listed theme names where it is served from", async () => {
   const dir = await projectWithBrand();
@@ -604,3 +606,76 @@ test("config.json is not served as a theme", async () => {
   const report = await detectProject(dir);
   deepStrictEqual(report.themes, ["halide.json"]);
 });
+
+test("a brand directory composes its layers over its starter", async () => {
+  const dir = await root();
+  const brand = join(dir, "spin", "acme");
+  await mkdir(join(brand, "primitives"), { recursive: true });
+  await mkdir(join(brand, "themes"), { recursive: true });
+  await writeFile(
+    join(brand, "tokens.json"),
+    JSON.stringify({ $extends: "silk", modes: ["light", "dark"] }),
+  );
+  await writeFile(
+    join(brand, "elements.json"),
+    JSON.stringify({
+      element: { h1: { type: { $type: "typography", $value: "{font.style.title}" } } },
+    }),
+  );
+  await writeFile(
+    join(brand, "primitives", "button.json"),
+    JSON.stringify({ button: { radius: { $type: "dimension", $value: "0px" } } }),
+  );
+  await writeFile(
+    join(brand, "themes", "compact.spacing.json"),
+    JSON.stringify({ spacing: { $type: "dimension", 4: { $value: "0.875rem" } } }),
+  );
+
+  const facets = await loadProjectBrand(dir);
+  deepStrictEqual(Object.keys(facets.themes), ["acme"]);
+  const parsed = parseTokens(facets.themes["acme"] as Record<string, unknown>);
+  assert(parsed.ok, `brand must parse: ${!parsed.ok ? parsed.error : ""}`);
+  if (!parsed.ok) return;
+  const at = (path: string): unknown => {
+    const leaves: { path: string[]; value: unknown }[] = [];
+    const walk = (nodes: typeof parsed.tree): void => {
+      for (const node of nodes) {
+        if (node.kind === "token") leaves.push(node);
+        else walk(node.children);
+      }
+    };
+    walk(parsed.tree);
+    return leaves.find((leaf) => leaf.path.join(".") === path)?.value;
+  };
+  // The layers land in order: the starter's voice, re-pointed per layer.
+  deepStrictEqual(at("element.h1.type.family"), "{font.style.title.family}");
+  deepStrictEqual(at("button.radius"), "0px");
+  deepStrictEqual(at("button.type.family"), "{font.style.label.family}");
+  // The facet serves under its axis, validated on load.
+  deepStrictEqual(Object.keys(facets.spacings), ["compact"]);
+  const spacing = parseTokens(facets.spacings["compact"] as Record<string, unknown>);
+  assert(spacing.ok, "facet must parse");
+
+  const report = await detectProject(dir);
+  deepStrictEqual(report.themes, ["acme"]);
+});
+
+test("a brand facet carrying the wrong tokens is refused with its file", async () => {
+  const dir = await root();
+  const brand = join(dir, "spin", "acme");
+  await mkdir(join(brand, "themes"), { recursive: true });
+  await writeFile(
+    join(brand, "tokens.json"),
+    JSON.stringify({ $extends: "silk", modes: ["light", "dark"] }),
+  );
+  await writeFile(
+    join(brand, "themes", "nope.spacing.json"),
+    JSON.stringify({ color: { $type: "color", primary: { $value: "#ff0000" } } }),
+  );
+  await assert.rejects(
+    () => loadProjectBrand(dir),
+    /nope\.spacing\.json/,
+    "a spacing facet carrying color names its file",
+  );
+});
+

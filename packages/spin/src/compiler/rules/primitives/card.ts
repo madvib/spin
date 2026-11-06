@@ -1,6 +1,7 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
-import { styleType, withFallback, type StyleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
+import type { ThemeType } from "../../../theme/theme-types.d.ts";
+import { fallback } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -20,7 +21,7 @@ import { styleType, withFallback, type StyleType } from "./shared.ts";
  * rather than emitted as a dangling `var()`, and a shorthand whose parts all
  * resolve is stated only when every one of them does.
  */
-export function cardRules(roots: readonly string[]): Rule[] {
+export function cardRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("card")) return [];
   const card = "card";
   return [
@@ -61,7 +62,7 @@ const CARD_SIZES: ReadonlyArray<readonly [name: string, max: string]> = [
   ["card-wide", "48rem"],
 ];
 
-function cardSize(card: string, [name, max]: readonly [string, string]): Rule {
+function cardSize(card: string, [name, max]: readonly [string, string]): SpinRule {
   return [
     new RegExp(`^${name}$`),
     function* (_m, ctx) {
@@ -84,8 +85,8 @@ type Tokens = {
   readonly raised: string | undefined;
   readonly text: string | undefined;
   readonly muted: string | undefined;
-  readonly title: StyleType;
-  readonly description: StyleType;
+  readonly title: ThemeType | undefined;
+  readonly description: ThemeType | undefined;
 
   readonly shadow: string | undefined;
 };
@@ -101,22 +102,22 @@ type Tokens = {
  * browser's.
  *
  * The card's type is two styles, never atoms: the title wears the card-title
- * voice and the description the label voice (the advisory small-medium
+ * style and the description the label style (the advisory small-medium
  * type), each read as a whole tuple, outright.
  */
 function cardTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing: withFallback(ctx, "card.padding", "spacing.4"),
-    radius: withFallback(ctx, "card.radius", "radius.md"),
-    borderWidth: token(ctx, "border.width"),
-    border: withFallback(ctx, "card.border", "color.border"),
-    raised: token(ctx, "color.surface-raised"),
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    title: styleType(ctx, "card-title"),
-    description: styleType(ctx, "label"),
+    spacing: fallback(ctx?.theme?.card?.padding, ctx?.theme?.spacing?.[4]),
+    radius: fallback(ctx?.theme?.card?.radius, ctx?.theme?.radius?.md),
+    borderWidth: ctx?.theme?.border?.width,
+    border: fallback(ctx?.theme?.card?.border, ctx?.theme?.color?.border),
+    raised: ctx?.theme?.color?.["surface-raised"],
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
+    title: ctx?.theme?.card?.title?.type ?? ctx?.theme?.font?.style?.["card-title"],
+    description: ctx?.theme?.card?.description?.type ?? ctx?.theme?.font?.style?.label,
 
-    shadow: withFallback(ctx, "card.elevation", "shadow.md"),
+    shadow: fallback(ctx?.theme?.card?.elevation, ctx?.theme?.shadow?.md),
   };
 }
 
@@ -133,7 +134,7 @@ function cardTokens(ctx: ThemeContext | undefined): Tokens {
  * step is deliberately absent — a card is a container, not a control, and
  * the card-action child carries its own hover feedback.
  */
-function cardSurface(card: string): Rule {
+function cardSurface(card: string): SpinRule {
   return [
     /^card$/,
     function* (_m, ctx) {
@@ -178,12 +179,12 @@ function cardSurface(card: string): Rule {
  * the title's line. A header with no action leaves the second column empty;
  * a header with no description leaves the second row empty.
  */
-function cardHeader(): Rule {
+function cardHeader(): SpinRule {
   return [
     /^card-header$/,
     function* (_m, ctx) {
       const { spacing } = cardTokens(ctx);
-      const rowGap = token(ctx, "spacing.1");
+      const rowGap = ctx?.theme?.spacing?.[1];
       const header = "card-header";
       yield {
         [ctx.symbols.selector]: () => header,
@@ -211,27 +212,18 @@ function cardHeader(): Rule {
   ];
 }
 
-function cardTitle(): Rule {
+function cardTitle(): SpinRule {
   return [
     /^card-title$/,
     function* (_m, ctx) {
       const { title, text } = cardTokens(ctx);
-      // The title wears the card-title voice as a whole tuple — the name on
+      // The title wears the card-title style as a whole tuple — the name on
       // a card, set to be found inside a surface.
-      const family = title.family;
-      const size = title.size;
-      const weight = title.weight;
-      const tracking = title.tracking;
-      const leading = title.leading;
       yield {
         [ctx.symbols.selector]: () => "card-title",
         "grid-column": "1",
         "min-width": "0",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(title ?? {}),
         ...(text !== undefined ? { color: text } : {}),
       };
     },
@@ -239,15 +231,15 @@ function cardTitle(): Rule {
   ];
 }
 
-function cardDescription(): Rule {
+function cardDescription(): SpinRule {
   return [
     /^card-description$/,
     function* (_m, ctx) {
       const { description, muted } = cardTokens(ctx);
-      // The description wears the label voice — the advisory small-medium
+      // The description wears the label style — the advisory small-medium
       // type, read outright.
-      const size = description.size;
-      const weight = description.weight;
+      const size = description?.["font-size"];
+      const weight = description?.["font-weight"];
       yield {
         [ctx.symbols.selector]: () => "card-description",
         "grid-column": "1",
@@ -269,7 +261,7 @@ function cardDescription(): Rule {
  * of controls that is wider than the card pushes them out of it. A card that
  * cannot hold its own action is a card that is broken.
  */
-function cardAction(): Rule {
+function cardAction(): SpinRule {
   return [
     /^card-action$/,
     function* (_m, ctx) {
@@ -289,7 +281,7 @@ function cardAction(): Rule {
 }
 
 /** The body. Inline padding only — the surface owns the block spacing. */
-function cardContent(): Rule {
+function cardContent(): SpinRule {
   return [
     /^card-content$/,
     function* (_m, ctx) {
@@ -330,7 +322,7 @@ function cardContent(): Rule {
  * scale, so a theme with a wider scale would break every card in a narrow
  * column — the row that wraps is what keeps the card whole in all of them.
  */
-function cardFooter(): Rule {
+function cardFooter(): SpinRule {
   return [
     /^card-footer$/,
     function* (_m, ctx) {
@@ -361,7 +353,7 @@ function cardFooter(): Rule {
  * maximum width on an invisible surface is a constraint with nothing to
  * constrain.
  */
-function cardGhost(card: string): Rule {
+function cardGhost(card: string): SpinRule {
   return [
     /^card-ghost$/,
     function* (_m, ctx) {
@@ -383,7 +375,7 @@ function cardGhost(card: string): Rule {
  * block`); the figure owns only the bleed and the corners, so it claims no
  * element it does not own.
  */
-function cardFigure(): Rule {
+function cardFigure(): SpinRule {
   return [
     /^card-figure$/,
     function* (_m, ctx) {

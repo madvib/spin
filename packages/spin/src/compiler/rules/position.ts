@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { POSITION_UTILITIES } from "../utils/vocabulary.ts";
 import { STATIC_DECLS } from "../utils/declarations.ts";
 import { insetRule, staticRules } from "../utils/factories.ts";
@@ -8,7 +8,7 @@ export const POSITION_NAMES: readonly string[] = Object.keys(
   POSITION_UTILITIES,
 );
 
-export function positionRules(): Rule[] {
+export function positionRules(): SpinRule[] {
   // The inset family below takes an arbitrary value as well as a token:
   // `top-[3px]`, `inset-x-[calc(100%_-_2rem)]`. That branch lives in
   // `insetRule` with the grammar it accepts, since every axis here shares it;

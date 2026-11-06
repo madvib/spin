@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { primitiveContracts } from "./primitives/manifest.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 
@@ -19,8 +19,8 @@ import { named, type ThemeContext } from "../utils/lookup.ts";
  * distinguishes a component token from a scale utility, and it comes from the
  * manifest rather than a list here.
  */
-export function componentRules(roots: readonly string[]): Rule[] {
-  return roots.flatMap((root): Rule[] => {
+export function componentRules(roots: readonly string[]): SpinRule[] {
+  return roots.flatMap((root): SpinRule[] => {
     const component = primitiveContracts[root]?.component ?? [];
     const typeByStep: Record<string, string> = {};
     for (const token of component) {

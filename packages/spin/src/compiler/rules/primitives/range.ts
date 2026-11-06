@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+
 import { ALIVE, disabledPosture, focusPaint, focusRing } from "./shared.ts";
 
 /**
@@ -22,20 +22,20 @@ import { ALIVE, disabledPosture, focusPaint, focusRing } from "./shared.ts";
  * `::-moz-range-progress` carrying the fill. The tokens are the same on
  * both paths, so the two engines agree.
  */
-export function rangeRules(roots: readonly string[]): Rule[] {
+export function rangeRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("range")) return [];
   return [
     [
       /^range$/,
       function* (_m, ctx) {
-        const sunken = token(ctx, "color.surface-sunken");
-        const primary = token(ctx, "color.primary");
-        const surface = token(ctx, "color.surface");
-        const border = token(ctx, "color.border");
-        const borderWidth = token(ctx, "border.width");
-        const radius = token(ctx, "radius.full");
-        const grooveHeight = token(ctx, "spacing.1") ?? "0.375rem";
-        const thumbSize = token(ctx, "spacing.4") ?? "1rem";
+        const sunken = ctx?.theme?.color?.["surface-sunken"];
+        const primary = ctx?.theme?.color?.primary;
+        const surface = ctx?.theme?.color?.surface;
+        const border = ctx?.theme?.color?.border;
+        const borderWidth = ctx?.theme?.border?.width;
+        const radius = ctx?.theme?.radius?.full;
+        const grooveHeight = ctx?.theme?.spacing?.[1] ?? "0.375rem";
+        const thumbSize = ctx?.theme?.spacing?.[4] ?? "1rem";
         const ring = focusRing(ctx);
 
         // The fill ends where the thumb is: the share the control hands

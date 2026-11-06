@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 import { proseTokens } from "./shared.ts";
 
 /**
@@ -26,13 +26,13 @@ import { proseTokens } from "./shared.ts";
  * long list of sections or a run of metadata asks for. The weight is still the
  * theme's — the variant changes the style and nothing else.
  */
-export function hrRules(roots: readonly string[]): Rule[] {
+export function hrRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("hr")) return [];
   const base = "hr";
   return [hrRule(base), dividerVertical(base), dividerDashed(base)];
 }
 
-function hrRule(base: string): Rule {
+function hrRule(base: string): SpinRule {
   return [
     /^hr$/,
     function* (_m, ctx) {
@@ -62,10 +62,10 @@ function hrRule(base: string): Rule {
 /** The vertical rule's length, and the room it keeps beside it. */
 function dividerTokens(ctx: ThemeContext | undefined) {
   return {
-    length: token(ctx, "spacing.8"),
-    space: token(ctx, "spacing.4"),
-    width: token(ctx, "border.width"),
-    color: token(ctx, "color.border"),
+    length: ctx?.theme?.spacing?.[8],
+    space: ctx?.theme?.spacing?.[4],
+    width: ctx?.theme?.border?.width,
+    color: ctx?.theme?.color?.border,
   };
 }
 
@@ -79,7 +79,7 @@ function dividerTokens(ctx: ThemeContext | undefined) {
  * horizontal one's line as well otherwise — the block-start border the base
  * drew is still on the element.
  */
-function dividerVertical(base: string): Rule {
+function dividerVertical(base: string): SpinRule {
   return [
     /^divider-vertical$/,
     function* (_m, ctx) {
@@ -107,7 +107,7 @@ function dividerVertical(base: string): Rule {
  * weight and the colour are still the theme's and the only thing that changed
  * is whether the line is continuous.
  */
-function dividerDashed(base: string): Rule {
+function dividerDashed(base: string): SpinRule {
   return [
     /^divider-dashed$/,
     function* (_m, ctx) {

@@ -16,8 +16,8 @@
 import { readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import type { Rule } from "@unocss/core";
-import { indexTree, parseTokens, resolveAliases } from "../../../theme/index.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { cssVarName, indexTree, parseTokens, resolveAliases } from "../../../theme/index.ts";
 import type { ThemeCssVar } from "../../../theme/theme-types.d.ts";
 import type { ThemeDocument } from "../../../theme/index.ts";
 import { a11yRules } from "./a11y.ts";
@@ -63,18 +63,6 @@ import {
 import { primitiveClaims } from "./scopes.ts";
 
 /**
- * A recorded read, as its CSS variable name.
- *
- * The recording proxy observes the ONE property access a reader makes —
- * `theme["spacing-4"]` — and the flat map's keys are custom property names
- * without the leading `--`, so the variable is the recorded key itself,
- * prefixed.
- */
-function themePathToCssVar(path: string): string {
-  return `--${path}`;
-}
-
-/**
  * Create a recording theme proxy.
  *
  * The proxy records every property access path. A path is a leaf if no other
@@ -88,6 +76,11 @@ function themePathToCssVar(path: string): string {
  * typography is the case: it is optional, and a rule that sets a paragraph's
  * size only when the theme says so paints no size at all in a theme that
  * says nothing.
+ *
+ * Spreading a typography tuple records its five leaves: the proxy hands back
+ * an object whose enumerable keys are the five CSS properties, each the
+ * probe literal, so `...theme.button.type` yields the declarations a real
+ * theme would yield and the derivation sees the reads a real theme records.
  */
 function createProbeTheme(): { theme: unknown; paths: Set<string> } {
   const paths = new Set<string>();
@@ -104,8 +97,42 @@ function createProbeTheme(): { theme: unknown; paths: Set<string> } {
   // numeric comparison or `.toLowerCase()` actually call, so intercepting them
   // is what makes the value behave like the literal it stands for.
   const PROBE_VALUE = "#000000";
-  const makeProxy = (path: string[]): unknown =>
-    new Proxy(
+  // The five fields a typography tuple spreads, and the CSS each becomes.
+  const TUPLE_SPREAD: ReadonlyArray<readonly [field: string, property: string]> = [
+    ["family", "font-family"],
+    ["size", "font-size"],
+    ["weight", "font-weight"],
+    ["tracking", "letter-spacing"],
+    ["leading", "line-height"],
+  ];
+  /** True when every tuple field is declared under `path`. */
+  const isTuple = (path: string[]): boolean =>
+    TUPLE_SPREAD.every(([field]) =>
+      declaredVars.has(cssVarName([...path, field]))
+    );
+  const makeProxy = (path: string[]): unknown => {
+    // A declared tuple spreads its five declarations: spreading reads the
+    // enumerable keys, and each key's read records the leaf path. Field
+    // reads (`theme.button.type.size`) fall through to the proxy below.
+    if (path.length > 0 && isTuple(path)) {
+      const spread: Record<string, unknown> = {};
+      for (const [field, property] of TUPLE_SPREAD) {
+        paths.add([...path, field].join("."));
+        spread[property] = makeProxy([...path, field]);
+      }
+      return new Proxy(spread, {
+        get(target, prop) {
+          if (typeof prop === "symbol") return (target as never)[prop as never];
+          if (Object.hasOwn(target, prop)) return target[prop as string];
+          const newPath = [...path, String(prop)];
+          paths.add(newPath.join("."));
+          const name = cssVarName(newPath);
+          if (!declaredVars.has(name)) return undefined;
+          return makeProxy(newPath);
+        },
+      });
+    }
+    return new Proxy(
       {
         valueOf: () => PROBE_VALUE,
         toString: () => PROBE_VALUE,
@@ -117,14 +144,29 @@ function createProbeTheme(): { theme: unknown; paths: Set<string> } {
           const newPath = [...path, String(prop)];
           paths.add(newPath.join("."));
           // The baseline's answer: a token the baseline does not declare is
-          // absent, and the rule that reads it takes the other branch.
-          const name = `--${newPath.join("-").toLowerCase()}`;
-          if (!declaredVars.has(name)) return undefined;
+          // absent, and the rule that reads it takes the other branch. A
+          // path that prefixes a declared variable is a group tunnel, not a
+          // miss: `theme.font.style` is no token, but `theme.font.style.body`
+          // is, so the tunnel stays open.
+          const name = cssVarName(newPath);
+          if (!declaredVars.has(name) && !isPrefixOfDeclared(newPath)) {
+            return undefined;
+          }
           return makeProxy(newPath);
         },
       },
     );
+  };
   return { theme: makeProxy([]), paths };
+}
+
+/** True when a declared variable lives under `path`. */
+function isPrefixOfDeclared(path: string[]): boolean {
+  const prefix = `${cssVarName(path)}-`;
+  for (const name of declaredVars) {
+    if (name.startsWith(prefix)) return true;
+  }
+  return false;
 }
 
 /**
@@ -503,7 +545,7 @@ export function splitTopLevel(text: string): string[] {
  * Run a rule's generator with a probe ctx.
  */
 function runRule(
-  rule: Rule,
+  rule: SpinRule,
   probe: { theme: unknown; paths: Set<string> },
   label?: string,
 ): unknown[] {
@@ -548,7 +590,7 @@ function runRule(
 /**
  * The rule functions for each component, with the roots that enable them.
  */
-const RULE_SOURCES: Record<string, () => Rule[]> = {
+const RULE_SOURCES: Record<string, () => SpinRule[]> = {
   a11y: () => a11yRules(["a11y"]),
   alert: () => alertRules(["alert"]),
   badge: () => badgeRules(["badge"]),
@@ -593,7 +635,7 @@ export const declaredVars: ReadonlySet<string> = (() => {
     const parsed = parseTokens(doc);
     if (!parsed.ok) throw new Error(parsed.error);
     const vars = indexTree(resolveAliases(parsed.tree).tree).vars;
-    return new Set(Object.keys(vars).map((k) => `--${k}`));
+    return new Set(Object.values(vars).map((leaf) => cssVarName(leaf.path)));
   } catch (error) {
     // NOT a silent fallback. A derivation that cannot see the theme cannot
     // tell a real token from one a rule merely hoped for, and allowing
@@ -721,7 +763,7 @@ export function deriveRuleContract(
   // keeps the manifest honest when a token is RENAMED: the read stops being
   // declared, and the type rejects it at the next compile.
   const reads = leafPaths(probe.paths)
-    .map(themePathToCssVar)
+    .map((recorded) => cssVarName(recorded.split(".")))
     .filter((name): name is ThemeCssVar => declaredVars.has(name))
     .sort();
   // The tags are the CLAIM, not an observation: the scope says which

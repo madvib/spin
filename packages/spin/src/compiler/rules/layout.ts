@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   FLEX_UTILITIES,
   ORDER_UTILITIES,
@@ -13,6 +13,6 @@ export const LAYOUT_NAMES: readonly string[] = [
   ...ORDER_UTILITIES,
 ];
 
-export function layoutRules(): Rule[] {
+export function layoutRules(): SpinRule[] {
   return staticRules(LAYOUT_NAMES, STATIC_DECLS);
 }

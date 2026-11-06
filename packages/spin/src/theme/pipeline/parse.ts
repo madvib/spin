@@ -53,10 +53,10 @@ function dotted(path: string[]): string {
   return path.join(".");
 }
 /**
- * The fields one composite `$type: "typography"` `$value` carries, and the
- * token type each expands to. A style entry states the tuple once; the parser
- * fans it out to the five leaves the rules spend, so the composite and the
- * five-child group normalize to the same leaves.
+ * The fields a `$type: "typography"` token carries, wherever it sits, and the
+ * token type each expands to. A style under `font.style` states the tuple
+ * once; a `.type` token elsewhere states it or aliases a whole style —
+ * either way the parser fans it out to the five leaves the rules spend.
  */
 const STYLE_FIELD_TYPES: Record<string, TokenType> = {
   family: "fontFamily",
@@ -76,9 +76,11 @@ const STYLE_FIELDS: readonly string[] = [
 ];
 
 /**
- * Expand one composite typography tuple to the style group the five-child
- * form states outright. Values pass through verbatim — aliases stay aliases —
- * so resolution downstream cannot tell which form authored them.
+ * Expand one `$type: "typography"` token to the five-leaf group the rules
+ * spend, whatever form authored it. A composite object states the five fields
+ * outright; a whole-style alias fans out to the target's five fields, so
+ * resolution, validation, and CSS emission downstream cannot tell an alias
+ * from a restatement — each child is a standard leaf carrying a field alias.
  */
 function buildStyleTuple(
   raw: Record<string, unknown>,
@@ -86,7 +88,22 @@ function buildStyleTuple(
   description: string | undefined,
 ): Built {
   const here = dotted(path);
-  const composite = raw["$value"] as Record<string, unknown>;
+  const value = raw["$value"];
+  if (typeof value === "string") {
+    const match = /^\{([^{}]+)\}$/.exec(value.trim());
+    if (match === null) {
+      return {
+        ok: false,
+        error:
+          `token "${here}" declares $type "typography" with a $value that is neither a five-field object nor a whole-style alias like "{font.style.body}"`,
+      };
+    }
+    const target = (match[1] as string).trim();
+    const aliased: Record<string, unknown> = {};
+    for (const field of STYLE_FIELDS) aliased[field] = `{${target}.${field}}`;
+    return buildStyleGroup(raw, path, description, aliased);
+  }
+  const composite = value as Record<string, unknown>;
   const keys = Object.keys(composite);
   const complete = STYLE_FIELDS.every((field) =>
     Object.hasOwn(composite, field)
@@ -98,6 +115,15 @@ function buildStyleTuple(
         `token "${here}" declares $type "typography" with an object $value that must hold exactly family, size, weight, tracking and leading`,
     };
   }
+  return buildStyleGroup(raw, path, description, composite);
+}
+
+function buildStyleGroup(
+  raw: Record<string, unknown>,
+  path: string[],
+  description: string | undefined,
+  composite: Record<string, unknown>,
+): Built {
   const group: TokenGroup = {
     kind: "group",
     name: path[path.length - 1] as string,
@@ -194,11 +220,6 @@ function buildNode(
     const below = declared ?? inherited;
     let leaves = 0;
     for (const name of names) {
-      // `font.map` is a voice assignment table, not tokens: bare style names
-      // the contract reads as references. The parser skips it the way it
-      // skips document metadata — emitting it as tokens would mint
-      // `--font-map-*` variables nothing spends and reject the bare names.
-      if (here === "font" && name === "map") continue;
       const child = buildNode(raw[name] as unknown, [...path, name], below);
       if (!child.ok) return { ok: false, error: child.error };
       leaves += child.leaves;
@@ -207,10 +228,11 @@ function buildNode(
     return { ok: true, node: group, leaves };
   }
 
-  // A composite tuple states the five fields in one `$value` object where the
-  // group form states five child tokens. Both normalize to the same group,
-  // so the leaf path a caller reads says nothing about the form authored.
-  if (hasValue && declared === "typography" && isPlainObject(raw["$value"])) {
+  // A `$type: "typography"` token is always the five-leaf group, whatever
+  // form authored it: the composite object, the five-child group, or a
+  // whole-style alias fanning out to the target's fields. The leaf path a
+  // caller reads says nothing about the form authored.
+  if (hasValue && declared === "typography") {
     return buildStyleTuple(raw, path, description);
   }
 

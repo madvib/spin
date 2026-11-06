@@ -1,10 +1,10 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 
 /** Join — adjacent controls merged into one object, by class. */
 export function joinRules(
   roots: readonly string[],
-  ): Rule[] {
+  ): SpinRule[] {
   if (!roots.includes("join")) return [];
   return [joinContainer(), joinItem()];
 }
@@ -12,8 +12,8 @@ export function joinRules(
 /** The theme values join spends: the outer corner and the shared edge. */
 function joinTokens(ctx: ThemeContext | undefined) {
   return {
-    radius: token(ctx, "radius.md"),
-    borderWidth: token(ctx, "border.width"),
+    radius: ctx?.theme?.radius?.md,
+    borderWidth: ctx?.theme?.border?.width,
   };
 }
 
@@ -24,7 +24,7 @@ function joinTokens(ctx: ThemeContext | undefined) {
  * height, which is what lets a short button meet a taller field with no
  * step between them.
  */
-function joinContainer(): Rule {
+function joinContainer(): SpinRule {
   return [
     /^join$/,
     function* (_m, ctx) {
@@ -54,7 +54,7 @@ function joinContainer(): Rule {
  * the join squares the corners those rules draw and never restyles what they
  * paint, so a join of secondaries is still a join of secondaries.
  */
-function joinItem(): Rule {
+function joinItem(): SpinRule {
   return [
     /^join-item$/,
     function* (_m, ctx) {

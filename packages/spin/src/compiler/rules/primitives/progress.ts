@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 
 
 /**
@@ -40,7 +40,7 @@ import { type ThemeContext, token } from "../../utils/lookup.ts";
  */
 export function progressRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("progress")) return [];
   const progress = "progress";
   return [
@@ -52,12 +52,12 @@ export function progressRules(
 
 function tokens(ctx: ThemeContext | undefined) {
   return {
-    height: token(ctx, "spacing.1"),
-    radius: token(ctx, "radius.full"),
-    track: token(ctx, "color.surface-raised"),
-    primary: token(ctx, "color.primary"),
-    warning: token(ctx, "color.semantic.warning"),
-    error: token(ctx, "color.semantic.error"),
+    height: ctx?.theme?.spacing?.[1],
+    radius: ctx?.theme?.radius?.full,
+    track: ctx?.theme?.color?.["surface-raised"],
+    primary: ctx?.theme?.color?.primary,
+    warning: ctx?.theme?.color?.semantic?.warning,
+    error: ctx?.theme?.color?.semantic?.error,
     // A sweep is watched for the length of a load, not clicked through:
     // the motion ladder's steps are response times (150/250/400ms), and a
     // 150ms sweep is a strobe. The period is stated, like the skeleton's
@@ -73,7 +73,7 @@ function tokens(ctx: ThemeContext | undefined) {
  * a token, and a document only ever says `<progress>` — a `progress-value` rule
  * would never match, so the fill would never ship.
  */
-function barRule(progress: string): Rule {
+function barRule(progress: string): SpinRule {
   return [
     /^progress$/,
     function* (_m, ctx) {
@@ -191,7 +191,7 @@ function barRule(progress: string): Rule {
  * for a `<progress>` with no value, and the token is what a consumer writes to
  * ask for one on any control.
  */
-function indeterminateRule(progress: string): Rule[] {
+function indeterminateRule(progress: string): SpinRule[] {
   return [
     [
       /^(?:progress-indeterminate|progress-pending)$/,
@@ -253,7 +253,7 @@ function indeterminateRule(progress: string): Rule[] {
  * reader's attention already is, and a bar in the middle of a panel competes
  * with the content it is reporting on.
  */
-function ariaBusyRule(): Rule {
+function ariaBusyRule(): SpinRule {
   return [
     /^aria-busy$/,
     function* (_m, ctx) {

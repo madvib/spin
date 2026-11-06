@@ -21,7 +21,6 @@
     "@unocss/preset-tagify": "66.10.5",
     "@unocss/preset-wind4": "66.10.5",
     "@unocss/vite": "66.10.5",
-    "@zag-js/color-utils": "^1.44.0",
     "playwright-core": "^1.63.0",
     "typescript": "5.9.2",
     "unplugin": "^3.4.0",

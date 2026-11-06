@@ -1,6 +1,9 @@
-import type { Rule } from "@unocss/core";
-import { named, type ThemeContext, token } from "../../utils/lookup.ts";
-import type { ThemeTokenPath } from "../../../theme/theme-types.d.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { named, type ThemeContext } from "../../utils/lookup.ts";
+import type {
+  Theme,
+  ThemeTokenPath,
+} from "../../../theme/theme-types.d.ts";
 import {
   ALIVE,
   disabledPosture,
@@ -9,8 +12,6 @@ import {
   focusRing,
   spend,
   spentEntries,
-  styleReference,
-  styleType,
 } from "./shared.ts";
 
 /**
@@ -212,27 +213,22 @@ function deadVariantSelector(variant: VariantShape): string {
 }
 
 /**
- * The type a variant reads when the theme gives it one of its own.
+ * The type a variant reads.
  *
- * A variant with no `button.<name>.type` reference inherits the base: it
- * states no type and the cascade carries the button's voice. A variant the
- * theme re-points reads that style as a whole tuple — one token per
- * variant-type, never an override the base has to know about.
+ * The variant's own tuple first; the base button's tuple when the theme
+ * gives the variant none of its own — so re-pointing `button.type` moves
+ * every variant that does not override it, and a variant the theme styles
+ * reads that style as a whole. A theme with neither states no type and
+ * the cascade carries whatever the button wears.
  */
 function variantType(
   ctx: ThemeContext | undefined,
-  variant: string,
+  variant: Exclude<PaintedVariant, "s-sm" | "s-lg" | "icon">,
 ): Record<string, string | undefined> {
-  const style = styleReference(ctx, `button.${variant}.type`, undefined);
-  if (style === undefined) return {};
-  const s = styleType(ctx, style);
-  return {
-    ...(s.family !== undefined ? { "font-family": s.family } : {}),
-    ...(s.size !== undefined ? { "font-size": s.size } : {}),
-    ...(s.weight !== undefined ? { "font-weight": s.weight } : {}),
-    ...(s.tracking !== undefined ? { "letter-spacing": s.tracking } : {}),
-    ...(s.leading !== undefined ? { "line-height": s.leading } : {}),
-  };
+  const theme: Theme | undefined = ctx?.theme;
+  const s = theme?.button?.[variant]?.type ?? theme?.button?.type;
+  if (s === undefined) return {};
+  return { ...s };
 }
 
 /**
@@ -254,9 +250,9 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "primary",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.primary"),
-      "border-color": token(ctx, "color.primary"),
-      color: token(ctx, "color.on-primary"),
+      "background-color": ctx?.theme?.color?.primary,
+      "border-color": ctx?.theme?.color?.primary,
+      color: ctx?.theme?.color?.["on-primary"],
       ...variantType(ctx, "primary"),
     }),
   },
@@ -265,9 +261,9 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "secondary",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.secondary"),
-      "border-color": token(ctx, "color.border"),
-      color: token(ctx, "color.on-secondary"),
+      "background-color": ctx?.theme?.color?.secondary,
+      "border-color": ctx?.theme?.color?.border,
+      color: ctx?.theme?.color?.["on-secondary"],
       ...variantType(ctx, "secondary"),
     }),
   },
@@ -283,7 +279,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // a hard offset — a ghost carrying it is a black box floating over an
       // empty button.
       "box-shadow": "none",
-      color: token(ctx, "color.text"),
+      color: ctx?.theme?.color?.text,
       ...variantType(ctx, "ghost"),
     }),
   },
@@ -292,9 +288,9 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "danger",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.semantic.error"),
-      "border-color": token(ctx, "color.semantic.error"),
-      color: token(ctx, "color.on-semantic-error"),
+      "background-color": ctx?.theme?.color?.semantic?.error,
+      "border-color": ctx?.theme?.color?.semantic?.error,
+      color: ctx?.theme?.color?.["on-semantic-error"],
       ...variantType(ctx, "danger"),
     }),
   },
@@ -303,9 +299,9 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "contrast",
     inked: true,
     body: (ctx) => ({
-      "background-color": token(ctx, "color.text"),
-      "border-color": token(ctx, "color.text"),
-      color: token(ctx, "color.surface"),
+      "background-color": ctx?.theme?.color?.text,
+      "border-color": ctx?.theme?.color?.text,
+      color: ctx?.theme?.color?.surface,
       ...variantType(ctx, "contrast"),
     }),
   },
@@ -325,8 +321,8 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // 1.76:1 on its own sky). Every variant with no fill wears the page's
       // ink; this one wore a fill colour, which is a pairing the contract
       // does not promise.
-      "border-color": token(ctx, "color.accent"),
-      color: token(ctx, "color.text"),
+      "border-color": ctx?.theme?.color?.accent,
+      color: ctx?.theme?.color?.text,
       ...variantType(ctx, "outline"),
     }),
   },
@@ -335,18 +331,17 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "s-sm",
     inked: false,
     body: (ctx) => {
-      // A small button reads the style `button.s-sm.type` names — the label
-      // voice it already wears — as a whole tuple.
-      const style = styleReference(ctx, "button.s-sm.type", "label") as string;
-      const s = styleType(ctx, style);
-      const fontFamily = s.family;
-      const fontSize = s.size;
-      const fontWeight = s.weight;
-      const fontTracking = s.tracking;
-      const fontLeading = s.leading;
-      const spacing1 = token(ctx, "spacing.1");
-      const spacing2 = token(ctx, "spacing.2");
-      const borderWidth = token(ctx, "border.width");
+      // A small button reads `button.s-sm.type`, falling back to the label
+      // style it already wears — as a whole tuple.
+      const s = ctx?.theme?.button?.["s-sm"]?.type ?? ctx?.theme?.font?.style?.label;
+      const fontFamily = s?.["font-family"];
+      const fontSize = s?.["font-size"];
+      const fontWeight = s?.["font-weight"];
+      const fontTracking = s?.["letter-spacing"];
+      const fontLeading = s?.["line-height"];
+      const spacing1 = ctx?.theme?.spacing?.[1];
+      const spacing2 = ctx?.theme?.spacing?.[2];
+      const borderWidth = ctx?.theme?.border?.width;
       return {
         "padding-inline-start": spacing2,
         "padding-inline-end": spacing2,
@@ -372,18 +367,17 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "s-lg",
     inked: false,
     body: (ctx) => {
-      // A large button reads the style `button.s-lg.type` names — the
-      // subtitle voice at the large step — as a whole tuple.
-      const style = styleReference(ctx, "button.s-lg.type", "subtitle") as string;
-      const s = styleType(ctx, style);
-      const fontFamily = s.family;
-      const fontSize = s.size;
-      const fontWeight = s.weight;
-      const fontTracking = s.tracking;
-      const fontLeading = s.leading;
-      const spacing4 = token(ctx, "spacing.4");
-      const spacing8 = token(ctx, "spacing.8");
-      const borderWidth = token(ctx, "border.width");
+      // A large button reads `button.s-lg.type`, falling back to the
+      // subtitle style at the large step — as a whole tuple.
+      const s = ctx?.theme?.button?.["s-lg"]?.type ?? ctx?.theme?.font?.style?.subtitle;
+      const fontFamily = s?.["font-family"];
+      const fontSize = s?.["font-size"];
+      const fontWeight = s?.["font-weight"];
+      const fontTracking = s?.["letter-spacing"];
+      const fontLeading = s?.["line-height"];
+      const spacing4 = ctx?.theme?.spacing?.[4];
+      const spacing8 = ctx?.theme?.spacing?.[8];
+      const borderWidth = ctx?.theme?.border?.width;
       return {
         "padding-inline-start": spacing8,
         "padding-inline-end": spacing8,
@@ -435,7 +429,7 @@ const VARIANT_HOVER: Record<string, {
       "background-color": "transparent",
       "border-color": "transparent",
       "box-shadow": "none",
-      color: token(ctx, "color.text"),
+      color: ctx?.theme?.color?.text,
     }),
   },
   outline: {
@@ -445,10 +439,10 @@ const VARIANT_HOVER: Record<string, {
     // that put a fill colour on the page as a word would fail the same way
     // the resting label did.
     body: (ctx) => ({
-      "background-color": token(ctx, "color.accent"),
+      "background-color": ctx?.theme?.color?.accent,
       "box-shadow": "none",
-      "border-color": token(ctx, "color.accent"),
-      color: token(ctx, "color.on-accent"),
+      "border-color": ctx?.theme?.color?.accent,
+      color: ctx?.theme?.color?.["on-accent"],
     }),
   },
   bare: {
@@ -484,7 +478,7 @@ const VARIANT_FOCUS: Record<string, {
  * the preset's `primitives` option is the only switch, and a component that
  * is not enabled ships no rules.
  */
-export function buttonRules(roots: readonly string[]): Rule[] {
+export function buttonRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("button")) return [];
   return [
     // ---------- the button element ----------
@@ -497,23 +491,22 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // The base's tokens, read from the theme. One the theme omits reads
         // as undefined: the engine drops a single-token declaration, and a
         // compound one states itself only when every token in it resolves.
-        const spacing2 = token(ctx, "spacing.2");
-        const spacing4 = token(ctx, "spacing.4");
-        // The button's type is a whole style, never atoms: the base reads
-        // the style `button.type` names — the label voice unless the theme
-        // re-points it.
-        const style = styleReference(ctx, "button.type", "label") as string;
-        const s = styleType(ctx, style);
-        const fontFamily = s.family;
-        const fontSize = s.size;
-        const fontWeight = s.weight;
-        const fontTracking = s.tracking;
-        const fontLeading = s.leading;
-        const borderWidth = token(ctx, "border.width");
-        const surfaceRaised = token(ctx, "color.surface-raised");
-        const text = token(ctx, "color.text");
-        const duration = token(ctx, "motion.duration.fast");
-        const easing = token(ctx, "motion.easing.standard");
+        const spacing2 = ctx?.theme?.spacing?.[2];
+        const spacing4 = ctx?.theme?.spacing?.[4];
+        // The button's type is a whole tuple, never atoms: the base reads
+        // `button.type`, falling back to the label style.
+        const s = ctx?.theme?.button?.type
+          ?? ctx?.theme?.font?.style?.label;
+        const fontFamily = s?.["font-family"];
+        const fontSize = s?.["font-size"];
+        const fontWeight = s?.["font-weight"];
+        const fontTracking = s?.["letter-spacing"];
+        const fontLeading = s?.["line-height"];
+        const borderWidth = ctx?.theme?.border?.width;
+        const surfaceRaised = ctx?.theme?.color?.["surface-raised"];
+        const text = ctx?.theme?.color?.text;
+        const duration = ctx?.theme?.motion?.duration?.fast;
+        const easing = ctx?.theme?.motion?.easing?.standard;
         // The base. An array body because the rule states longhand border and
         // shadow entries beside the shorthand-free component spends.
         yield [
@@ -687,25 +680,25 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         // selector is specific enough to beat the base rule.
         yield {
           [ctx.symbols.selector]: () => '[type="reset"]',
-          "background-color": token(ctx, "color.surface-raised"),
-          "border-color": token(ctx, "color.border"),
+          "background-color": ctx?.theme?.color?.["surface-raised"],
+          "border-color": ctx?.theme?.color?.border,
           // The secondary's resting posture as well as its look: a reset
           // button's fill is a surface, and the base's resting shadow is the
           // loud variant's shout — a surface-filled button floating on
           // itself reads as a second primary action in a hard-edged theme.
           "box-shadow": "none",
-          color: token(ctx, "color.text"),
+          color: ctx?.theme?.color?.text,
         };
         yield {
           [ctx.symbols.selector]: () => '[type="reset"].outline',
           "background-color": "transparent",
-          "border-color": token(ctx, "color.accent"),
-          color: token(ctx, "color.primary"),
+          "border-color": ctx?.theme?.color?.accent,
+          color: ctx?.theme?.color?.primary,
         };
         yield {
           [ctx.symbols.selector]: () => `[type="reset"].outline:hover${ALIVE}`,
-          "background-color": token(ctx, "color.primary"),
-          color: token(ctx, "color.on-primary"),
+          "background-color": ctx?.theme?.color?.primary,
+          color: ctx?.theme?.color?.["on-primary"],
         };
       },
       { layer: "primitives", autocomplete: "button" },
@@ -715,7 +708,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
     // One rule per variant the manifest declares, each scoped to the button's
     // element group. The icon slot is the one variant that is not a button
     // variant — a class on a child element — so it gets the plain class.
-    ...VARIANT_NAMES.flatMap((variant): Rule[] => {
+    ...VARIANT_NAMES.flatMap((variant): SpinRule[] => {
       if (variant === ICON_SLOT) {
         return [
           [
@@ -728,7 +721,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
               // the font-size is the one declaration that reaches the glyph. In
               // `em`, so the glyph tracks the button's font-size across all
               // three of its sizes — the slot's sizing is a token now.
-              const size = token(ctx, "icon.md");
+              const size = ctx?.theme?.icon?.md;
               return {
                 [ctx.symbols.selector]: () => ".button-icon",
                 display: "inline-block",
@@ -747,14 +740,14 @@ export function buttonRules(roots: readonly string[]): Rule[] {
       const def = VARIANTS[variant];
       const hover = VARIANT_HOVER[variant];
       const focus = VARIANT_FOCUS[variant];
-      const rule: Rule = [
+      const rule: SpinRule = [
         new RegExp(`^${variant}$`),
         function* (_m, ctx) {
           yield {
             [ctx.symbols.selector]: () => variantSelector(def),
             ...def.body(ctx),
           };
-          // The paint and voice reset live one selector lighter than the
+          // The paint and style reset live one selector lighter than the
           // variant: at `:is(button, …).bare` (0,2,0) they would beat every
           // single-class utility, freezing the fill, edge, ink and face of
           // the control that opts out to paint itself. Here they beat the
@@ -825,7 +818,7 @@ export function buttonRules(roots: readonly string[]): Rule[] {
     [
       /^span$/,
       function* (_m, ctx) {
-        const borderWidth = token(ctx, "border.width");
+        const borderWidth = ctx?.theme?.border?.width;
         yield {
           [ctx.symbols.selector]: () => GROUP,
           display: "inline-flex",
@@ -841,13 +834,13 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:first-child`,
           "margin-inline-start": 0,
-          "border-start-start-radius": token(ctx, "radius.md"),
-          "border-end-start-radius": token(ctx, "radius.md"),
+          "border-start-start-radius": ctx?.theme?.radius?.md,
+          "border-end-start-radius": ctx?.theme?.radius?.md,
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:last-child`,
-          "border-start-end-radius": token(ctx, "radius.md"),
-          "border-end-end-radius": token(ctx, "radius.md"),
+          "border-start-end-radius": ctx?.theme?.radius?.md,
+          "border-end-end-radius": ctx?.theme?.radius?.md,
         };
         yield {
           [ctx.symbols.selector]: () => `${GROUP} > button:hover`,
@@ -856,9 +849,9 @@ export function buttonRules(roots: readonly string[]): Rule[] {
         yield {
           [ctx.symbols.selector]: () =>
             `${GROUP} > button[aria-pressed="true"]`,
-          "background-color": token(ctx, "color.primary"),
-          color: token(ctx, "color.on-primary"),
-          "border-color": token(ctx, "color.primary"),
+          "background-color": ctx?.theme?.color?.primary,
+          color: ctx?.theme?.color?.["on-primary"],
+          "border-color": ctx?.theme?.color?.primary,
           "z-index": 1,
         };
       },

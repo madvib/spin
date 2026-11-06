@@ -1,14 +1,13 @@
-import type { Rule } from "@unocss/core";
-import { proseTokens, styleType } from "./shared.ts";
-
+import type { SpinRule } from "../../utils/lookup.ts";
+import { proseTokens } from "./shared.ts";
 /** Keyboard input: a keycap for a key on the keyboard. */
-function kbdRule(): Rule {
+function kbdRule(): SpinRule {
   return [
     /^kbd$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const fam = styleType(ctx, "code").family;
-      const size = styleType(ctx, "caption").size;
+      const fam = ctx?.theme?.font?.style?.code?.["font-family"];
+      const size = ctx?.theme?.font?.style?.caption?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => "kbd",
         ...(fam !== undefined ? { "font-family": fam } : {}),
@@ -36,7 +35,7 @@ function kbdRule(): Rule {
   ];
 }
 
-export function kbdRules(roots: readonly string[]): Rule[] {
+export function kbdRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("kbd")) return [];
   return [kbdRule()];
 }

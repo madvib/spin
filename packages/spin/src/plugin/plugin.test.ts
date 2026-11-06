@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import type { ThemeDocument } from "../theme/index.ts";
 import { starterThemes } from "../theme/themes/index.ts";
-import { projectThemes, spin, themesFromDisk } from "./plugin.ts";
+import { projectThemes, spin } from "./plugin.ts";
+import { loadProjectBrand } from "../project/index.ts";
 /** A brand document and a local fork. The merge does not read them; one has to win. */
 const brandDoc = {
   color: { $type: "color", primary: { $value: "#111111" } },
@@ -55,14 +56,14 @@ describe("the themes a directory holds", () => {
 
   it("reads the local directory by stem", async () => {
     const root = await fixture();
-    const themes = await themesFromDisk(root);
-    assert.deepEqual(Object.keys(themes), ["local"]);
+    const facets = await loadProjectBrand(root);
+    assert.deepEqual(Object.keys(facets.themes), ["local"]);
   });
 
   it("refuses a specifier with the redirect to extends", async () => {
     const root = await fixture();
     await assert.rejects(
-      themesFromDisk(root, "@acme/kit/themes"),
+      loadProjectBrand(root, "@acme/kit/themes"),
       /shared trees arrive through extends, not paths: '@acme\/kit\/themes'/,
     );
   });

@@ -51,6 +51,9 @@ export {
 export { resolveProjectDir } from "./resolve-dir.ts";
 export type { ResolvedDir } from "./resolve-dir.ts";
 
+export { loadProjectBrand } from "./brand.ts";
+export type { ThemeFacets } from "./brand.ts";
+
 export { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
 
 export {

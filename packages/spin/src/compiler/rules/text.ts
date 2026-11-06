@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import {
   FONT_STYLE,
   LIST_STYLE,
@@ -30,6 +30,6 @@ export const TEXT_NAMES: readonly string[] = [
   ...Object.keys(LIST_STYLE),
 ];
 
-export function textRules(): Rule[] {
+export function textRules(): SpinRule[] {
   return staticRules([...TEXT_NAMES], STATIC_DECLS);
 }

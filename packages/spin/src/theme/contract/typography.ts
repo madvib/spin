@@ -4,10 +4,9 @@
  * A shared scale is a decision the whole system shares — spacing, type,
  * radius, shadow. A named STYLE is a complete tuple the theme declares under
  * `font.style.<name>`: the face, the size, the weight, the tracking, the
- * leading, and the ink. Elements read styles by default (see
- * `ELEMENT_STYLE_DEFAULTS` below); authors change style by changing element
- * or by attaching another declared style — never by per-field element
- * overrides, which TYPE-c deleted.
+ * leading, and the ink. Elements read their `element.<tag>.type` alias by
+ * default; authors change style by changing element or by re-pointing the
+ * alias — never by per-field element overrides, which TYPE-c deleted.
  *
  * The styles are REQUIRED (see the owned set below); the scales are the style
  * author's library — styles alias `{font.size.md}` instead of writing
@@ -18,6 +17,9 @@
  * aliases into the scales the tuple is built from, so moving a step moves
  * every style built from it.
  */
+
+import { parseTokens } from "../pipeline/parse.ts";
+import { silkTheme } from "../themes/index.ts";
 
 
 /**
@@ -34,100 +36,46 @@ export type NamedStyleField =
   | "tracking"
   | "leading"
   | "ink";
+/** The fields every owned style carries, as a type. */
 
 /**
- * The global paths a per-element decision falls back to.
- *
- * The ladder's steps, the family's slots, the weights, the tracking ramp
- * and the leading ramp — the vocabulary the system already has. A fallback
- * outside this set is a path the theme language does not have, and the type
- * says so at compile time.
- */
-export type GlobalTypePath =
-  | "font.family.sans"
-  | "font.family.heading"
-  | "font.family.body"
-  | "font.family.serif"
-  | "font.family.mono"
-  | "font.size.2xs"
-  | "font.size.xs"
-  | "font.size.sm"
-  | "font.size.md"
-  | "font.size.lg"
-  | "font.size.xl"
-  | "font.size.2xl"
-  | "font.size.3xl"
-  | "font.weight.regular"
-  | "font.weight.medium"
-  | "font.weight.semibold"
-  | "font.weight.bold"
-  | "font.tracking.tighter"
-  | "font.tracking.tight"
-  | "font.tracking.normal"
-  | "font.tracking.wide"
-  | "font.tracking.wider"
-  | "font.tracking.widest"
-  | "font.leading.none"
-  | "font.leading.tight"
-  | "font.leading.snug"
-  | "font.leading.normal"
-  | "font.leading.relaxed"
-  | "font.leading.loose";
-
-/** The element a named style is the default for, when it is one. */
-export type StyleDefaultElement =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "h6"
-  | "p"
-  | "blockquote"
-  | "code"
-  | "small"
-  | "strong"
-  | "figcaption";
-
-/** One named style the starters ship, and the element it styles by default. */
-export interface NamedStyleDeclaration {
-  /** The style's name: `body`, `display`, `caption`. */
-  readonly name: string;
-  /** The element that reads this style unless the theme says otherwise. */
-  readonly element?: StyleDefaultElement;
-  /** What the style is for, in the words an editor shows. */
-  readonly doc: string;
-}
-
-/**
- * The styles a theme owes: the owned set every starter implements.
+ * The styles a theme owes: the styles the baseline implements.
  *
  * The names are stable API — a theme that renames one breaks every consumer
  * of that name — so trimming below this set fails completeness. The tuple
- * each name carries is the theme's own: shared keys, free values.
+ * each name carries is the theme's own: shared keys, free values. Derived
+ * from the baseline document, in the order it states them, so the set is
+ * what the theme ships rather than what a table remembered.
  */
-export const OWNED_STYLES: readonly NamedStyleDeclaration[] = [
-  { name: "display", element: "h1", doc: "The display voice: the largest statement a page makes." },
-  { name: "title", element: "h2", doc: "The title voice: a section head, sized to be found." },
-  { name: "heading", element: "h3", doc: "The heading voice: a subsection head inside a section." },
-  { name: "subtitle", doc: "The subtitle voice: the sentence under a heading that frames what follows." },
-  { name: "lead", doc: "The lead voice: the sentence that introduces what follows." },
-  { name: "body", element: "p", doc: "The body voice: the default reading text." },
-  { name: "quote", element: "blockquote", doc: "The quotation voice: long-form editorial text set apart." },
-  { name: "code", element: "code", doc: "The code voice: machine text at a size that sits beside prose." },
-  { name: "label", element: "h4", doc: "The label voice: the name on a control or a field." },
-  { name: "caption", element: "small", doc: "The caption voice: small print under a figure or a table." },
-  { name: "overline", element: "h5", doc: "The overline voice: an eyebrow or category mark above copy." },
-  { name: "stat", doc: "The stat voice: the number a figure shows, set to be read at a glance." },
-  { name: "badge", doc: "The badge voice: the word on a pill, set small enough to sit inside one." },
-  { name: "body-strong", element: "strong", doc: "The strong voice: body copy with emphasis." },
-  { name: "caption-strong", element: "figcaption", doc: "The figure-caption voice: a caption that names its figure." },
-  { name: "card-title", doc: "The card-title voice: the name on a card, set to be found inside a surface." },
-];
+let ownedNames: readonly string[] | undefined;
 
-/** The owned names, in the order the starters state them. */
+/** The owned names, in the order the baseline states them. */
 export function ownedStyleNames(): readonly string[] {
-  return OWNED_STYLES.map((style) => style.name);
+  if (ownedNames === undefined) {
+    const parsed = parseTokens(silkTheme);
+    if (!parsed.ok) throw new Error(`contract: baseline does not parse: ${parsed.error}`);
+    const names: string[] = [];
+    const visit = (nodes: readonly unknown[]): void => {
+      for (const node of nodes) {
+        const n = node as {
+          kind: string;
+          name: string;
+          path: readonly string[];
+          children?: readonly unknown[];
+        };
+        if (n.kind === "group" && n.path.join(".") === "font.style") {
+          for (const child of n.children ?? []) {
+            names.push((child as { name: string }).name);
+          }
+          return;
+        }
+        if (n.kind === "group" && n.children !== undefined) visit(n.children);
+      }
+    };
+    visit(parsed.tree as readonly unknown[]);
+    ownedNames = names;
+  }
+  return ownedNames;
 }
 
 /** The fields every owned style carries: the complete tuple. */
@@ -136,212 +84,3 @@ export function ownedStyleFields(): readonly NamedStyleField[] {
 }
 
 
-/**
- * The chain a face falls back through.
- *
- * The display face falls back to the heading family, the heading family to
- * the body, and the body to the sans: a theme that names no display voice
- * still has a face for its headings, and a theme that names no body face
- * still has the sans. The chain is the contract's, so a rule reads one
- * answer for "what face does this element read" rather than spelling the
- * steps out again.
- *
- * A slot with no chain is a slot with no answer: a theme that names no
- * editorial face leaves a quotation in the face it inherits.
- */
-export const FACE_CHAINS: Readonly<
-  Partial<Record<GlobalTypePath, readonly GlobalTypePath[]>>
-> = {
-  "font.family.heading": ["font.family.body", "font.family.sans"],
-  "font.family.body": ["font.family.sans"],
-};
-
-
-/** The style an element reads by default.
- *
- * Stated once so the guide, the rules and the lint cannot disagree: a
- * heading reads the display style, a paragraph the body, code the code
- * style, and the small label the caption. A theme moves an element by
- * attaching another declared style or declaring a new one — never by
- * per-field element overrides, which TYPE-c deleted.
- *
- * This stays in core for web; the move to a platform-mapping layer (iOS
- * largeTitle to display and the like) is future work, not this stage.
- */
-export const ELEMENT_STYLE_DEFAULTS: Readonly<Record<string, string>> = {
-  h1: "display",
-  h2: "title",
-  h3: "heading",
-  h4: "label",
-  h5: "overline",
-  h6: "overline",
-  p: "body",
-  blockquote: "quote",
-  code: "code",
-  small: "caption",
-  strong: "body-strong",
-  figcaption: "caption-strong",
-};
-
-/** The named style an element reads unless the theme says otherwise. */
-export function elementStyleDefault(element: string): string | undefined {
-  return ELEMENT_STYLE_DEFAULTS[element];
-}
-
-/** The elements that read a named style by default, in reading order. */
-export function elementStyleElements(): readonly string[] {
-  return Object.keys(ELEMENT_STYLE_DEFAULTS);
-}
-
-/**
- * The voices elements and components read unless the theme says otherwise.
- *
- * One table for both: an element (`h1`) and a component (`button`,
- * `stat.value`, `card.title`) both read a named voice, and both re-point by
- * naming another. A theme moves a target by stating `font.map.<target>`;
- * a value of `null` or `"none"` opts out, leaving the target unvoiced.
- *
- * The element entries mirror `ELEMENT_STYLE_DEFAULTS` plus the table and
- * form voices the rules spend; the component entries mirror the style
- * reference defaults (`button.type`, `stat.title.type`) a theme re-points.
- */
-export const FONT_MAP_DEFAULTS: Readonly<Record<string, string>> = {
-  h1: "display",
-  h2: "title",
-  h3: "heading",
-  h4: "subtitle",
-  h5: "label",
-  h6: "overline",
-  p: "body",
-  blockquote: "quote",
-  code: "code",
-  small: "caption",
-  figcaption: "caption-strong",
-  th: "caption-strong",
-  caption: "caption",
-  label: "label",
-  legend: "label",
-  dt: "body-strong",
-  button: "label",
-  "button.s-sm": "label",
-  "button.s-lg": "subtitle",
-  "stat.title": "caption-strong",
-  "stat.value": "stat",
-  "stat.desc": "caption",
-  badge: "badge",
-  "card.title": "card-title",
-  "card.description": "label",
-  field: "body",
-  alert: "label",
-};
-
-/**
- * The voice a target reads: the theme's `font.map` over the defaults.
- *
- * A theme states `font.map.<target>` to re-point one target without
- * touching the voice itself; `null` or `"none"` opts out, so the target
- * reads no Spin voice. The legacy per-component references (`button.type`,
- * `stat.title.type` and their variant paths) still win where `font.map`
- * is silent, so a theme written against the reference roles keeps reading
- * what it named until it moves to the map.
- */
-export function resolveFontMap(doc: Record<string, unknown>): Record<string, string | null> {
-  const out: Record<string, string | null> = { ...FONT_MAP_DEFAULTS };
-  const stated = new Set<string>();
-  const font = doc["font"];
-  if (typeof font === "object" && font !== null) {
-    const map = (font as Record<string, unknown>)["map"];
-    if (typeof map === "object" && map !== null) {
-      for (const [target, name] of Object.entries(map as Record<string, unknown>)) {
-        stated.add(target);
-        if (name === null || name === "none") {
-          out[target] = null;
-          continue;
-        }
-        if (typeof name !== "string" || name.trim().length === 0) continue;
-        out[target] = name.trim();
-      }
-    }
-  }
-  const legacy = legacyReferenceOverrides(doc);
-  for (const [target, name] of Object.entries(legacy)) {
-    if (stated.has(target)) continue;
-    out[target] = name;
-  }
-  return out;
-}
-
-/**
- * The style names the legacy per-component references name.
- *
- * Stated as targets of the map (`button`, `button.s-sm`, `stat.title`) so a
- * theme that re-points through `button.type` keeps its voice until it moves
- * to `font.map`. Opt-outs (`null`, `"none"`, blank) are the map's to read:
- * a legacy reference that names nothing leaves the target on its default.
- */
-function legacyReferenceOverrides(doc: Record<string, unknown>): Record<string, string> {
-  const out: Record<string, string> = {};
-  const read = (path: string): string | undefined => {
-    const value = valueAt(doc, path.split("."));
-    if (typeof value !== "string") return undefined;
-    const name = value.trim();
-    return name.length === 0 || name === "none" ? undefined : name;
-  };
-  const shorthand: Readonly<Record<string, string>> = {
-    "button.type": "button",
-    "stat.title.type": "stat.title",
-  };
-  for (const [path, target] of Object.entries(shorthand)) {
-    const name = read(path);
-    if (name !== undefined) out[target] = name;
-  }
-  for (const path of referenceLeafPaths(doc, ["button"])) {
-    if (!path.endsWith(".type")) continue;
-    const name = read(path);
-    if (name === undefined) continue;
-    const middle = path.split(".").slice(1, -1).join(".");
-    out[middle.length === 0 ? "button" : `button.${middle}`] = name;
-  }
-  return out;
-}
-
-/** The leaf paths under a group, as dotted paths — groups included. */
-function referenceLeafPaths(doc: Record<string, unknown>, prefix: readonly string[]): string[] {
-  let node: unknown = doc;
-  for (const segment of prefix) {
-    if (typeof node !== "object" || node === null) return [];
-    node = (node as Record<string, unknown>)[segment];
-  }
-  const out: string[] = [];
-  const visit = (value: unknown, path: readonly string[]): void => {
-    if (typeof value !== "object" || value === null) {
-      out.push(path.join("."));
-      return;
-    }
-    const record = value as Record<string, unknown>;
-    if (typeof record["$value"] !== "undefined" || typeof record["$type"] === "string") {
-      out.push(path.join("."));
-      return;
-    }
-    for (const [key, child] of Object.entries(record)) {
-      if (key.startsWith("$")) continue;
-      visit(child, [...path, key]);
-    }
-  };
-  visit(node, [...prefix]);
-  return out;
-}
-
-/** The value at a dotted descent, when every step is a group. */
-function valueAt(doc: Record<string, unknown>, segments: readonly string[]): unknown {
-  let node: unknown = doc;
-  for (const segment of segments) {
-    if (typeof node !== "object" || node === null) return undefined;
-    node = (node as Record<string, unknown>)[segment];
-  }
-  if (typeof node === "object" && node !== null) {
-    const record = node as Record<string, unknown>;
-    if ("$value" in record) return record["$value"];
-  }
-  return node;
-}

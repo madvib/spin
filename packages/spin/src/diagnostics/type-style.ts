@@ -10,7 +10,30 @@
  * carries a suggestion whenever the theme declares any style at all.
  */
 
-import { ELEMENT_STYLE_DEFAULTS } from "../theme/index.ts";
+/**
+ * The style an element reads, from the values the theme emitted.
+ *
+ * The theme declares `element.<tag>.type` as whole-style aliases, so the
+ * emitted `--element-<tag>-type-*` tuple carries the same resolved values
+ * as the style it points at — the element's style is the declared style
+ * whose tuple matches all five fields. The lint suggests what the theme
+ * wired, not what a table remembered.
+ */
+function elementStyleIn(
+  values: ReadonlyMap<string, string>,
+  styles: readonly { name: string; values: ReadonlyMap<string, string> }[],
+  tag: string,
+): string | undefined {
+  const fields = ["family", "size", "weight", "tracking", "leading"] as const;
+  const element = fields.map((field) =>
+    values.get(`--element-${tag}-type-${field}`)
+  );
+  if (element.some((value) => value === undefined)) return undefined;
+  const found = styles.find((style) =>
+    fields.every((field, i) => style.values.get(field) === element[i])
+  );
+  return found?.name;
+}
 
 /** One declared style, with the tuple values the theme resolved for it. */
 export interface StyleTuple {
@@ -120,7 +143,7 @@ export function suggestTypeStyle(
   const styles = stylesIn(values);
   if (styles.length === 0) return undefined;
   if (tag !== undefined) {
-    const own = ELEMENT_STYLE_DEFAULTS[tag];
+    const own = elementStyleIn(values, styles, tag);
     if (own !== undefined && styles.some((style) => style.name === own)) {
       return `type-${own}`;
     }

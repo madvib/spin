@@ -1,11 +1,8 @@
-import type { Rule } from "@unocss/core";
-
-import { token } from "../../utils/lookup.ts";
-import { styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Label — the bare `<label>` as a captioned control.
- *
+
  * A label names its control: the text that says what it is, above the
  * input, select or textarea it wraps. The caption is the theme's advisory
  * type — small, medium, full ink — because a label that inherits whatever
@@ -13,34 +10,34 @@ import { styleType } from "./shared.ts";
  * The control fills the label's width; the label itself is a block, so it
  * takes the width its parent gives it.
  */
-export function labelRules(roots: readonly string[]): Rule[] {
+export function labelRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("label")) return [];
   return [labelRule()];
 }
 
-function labelRule(): Rule {
+function labelRule(): SpinRule {
   const label = "label";
   return [
     /^label$/,
     function* (_m, ctx) {
-      // The label wears the label voice outright — the name on a control.
-      const s = styleType(ctx, "label");
-      const fontFamily = s.family;
-      const fontSize = s.size;
-      const fontWeight = s.weight;
+      const primary = ctx?.theme?.element?.label?.type;
+      const shared = ctx?.theme?.font?.style?.label;
+      const s = primary ?? shared;
+      const fontFamily = s?.["font-family"];
+      const fontSize = s?.["font-size"];
+      const fontWeight = s?.["font-weight"];
+      const gap = ctx?.theme?.spacing?.[1];
+      const ink = ctx?.theme?.color?.text;
+      const checkGap = ctx?.theme?.spacing?.[2];
       yield {
         [ctx.symbols.selector]: () => label,
         display: "flex",
         "flex-direction": "column",
-        ...(token(ctx, "spacing.1") !== undefined
-          ? { gap: token(ctx, "spacing.1") }
-          : {}),
+        ...(gap !== undefined ? { gap } : {}),
         ...(fontFamily !== undefined ? { "font-family": fontFamily } : {}),
         ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
         ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
-        ...(token(ctx, "color.text") !== undefined
-          ? { color: token(ctx, "color.text") }
-          : {}),
+        ...(ink !== undefined ? { color: ink } : {}),
       };
       yield {
         [ctx.symbols.selector]: () =>
@@ -49,9 +46,7 @@ function labelRule(): Rule {
         "align-items": "center",
         width: "fit-content",
         cursor: "pointer",
-        ...(token(ctx, "spacing.2") !== undefined
-          ? { gap: token(ctx, "spacing.2") }
-          : {}),
+        ...(checkGap !== undefined ? { gap: checkGap } : {}),
       };
     },
     { layer: "primitives", autocomplete: "label" },

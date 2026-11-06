@@ -273,7 +273,7 @@ test("a field and a button share one control height", async () => {
   );
   deepStrictEqual(
     button["min-height"],
-    "calc(var(--font-style-label-size) + (2 * var(--spacing-2)) + (2 * var(--border-width)))",
+    "calc(var(--button-type-size) + (2 * var(--spacing-2)) + (2 * var(--border-width)))",
     "the button derives its floor from the label style",
   );
   deepStrictEqual(

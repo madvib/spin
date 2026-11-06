@@ -1137,7 +1137,7 @@ async function runInit(
     warn(result.error);
     return 2;
   }
-  write(`Initialized spin/${name}.json (${starter}, ${bundler})`);
+  write(`Initialized spin/${name}/tokens.json (${starter}, ${bundler})`);
   return 0;
 }
 

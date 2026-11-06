@@ -12,7 +12,7 @@
  * contract reads the parser back and the cycle must stay deferred.
  */
 
-import { starterThemes } from "./themes/index.ts";
+import { baseTheme, starterThemes } from "./themes/index.ts";
 import type { ThemeDocument } from "./pipeline/types.ts";
 
 /** True for the JSON objects a merge recurses into. */
@@ -62,27 +62,39 @@ export function mergeThemeDocuments(
 }
 
 /**
- * Resolve `"$extends": "<starter>"` to the full document it names.
+ * Resolve `"$extends"` to the full document it names, following the chain.
  *
  * A document without a string `$extends` is returned as written. A document
- * naming a starter is deep-merged over a clone of that starter, and the
- * `$extends` key is stripped from the output so downstream stages read a
- * plain document. An unknown starter throws, because a layer over nothing
- * is a theme that cannot build.
+ * naming a starter — or the `base` foundation a starter itself names — is
+ * deep-merged over a clone of that document, and expansion repeats until no
+ * `$extends` remains, so a project over a starter over the base reads as one
+ * document. The `$extends` key is stripped from the output so downstream
+ * stages read a plain document. An unknown name throws, because a layer over
+ * nothing is a theme that cannot build; a chain that never ends is a cycle,
+ * and it throws rather than looping.
  */
 export function expandExtends(
   doc: ThemeDocument,
-  builtins: Readonly<Record<string, ThemeDocument>> = starterThemes,
+  builtins: Readonly<Record<string, ThemeDocument>> = {
+    ...starterThemes,
+    base: baseTheme,
+  },
 ): ThemeDocument {
-  const name = doc["$extends"];
-  if (typeof name !== "string") return doc;
-  const base = builtins[name];
-  if (base === undefined) {
-    throw new Error(
-      `unknown starter "${name}" in $extends — expected one of ${
-        Object.keys(builtins).join(", ")
-      }`,
-    );
+  let current = doc;
+  for (let depth = 0; depth < 10; depth++) {
+    const name = current["$extends"];
+    if (typeof name !== "string") return current;
+    const base = builtins[name];
+    if (base === undefined) {
+      throw new Error(
+        `unknown starter "${name}" in $extends — expected one of ${
+          Object.keys(builtins).join(", ")
+        }`,
+      );
+    }
+    current = mergeThemeDocuments(base, current);
   }
-  return mergeThemeDocuments(base, doc);
+  throw new Error(
+    `"$extends" chain never ends — expected a document, found a cycle`,
+  );
 }

@@ -1,7 +1,4 @@
-import type { Rule } from "@unocss/core";
-
-import { token } from "../../utils/lookup.ts";
-import { styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Fieldset & legend — the bare grouping element and its title.
@@ -21,17 +18,21 @@ import { styleType } from "./shared.ts";
  * A theme that omits a token gets no declaration rather than a fallback the
  * theme did not choose — the drop-missing pattern every primitive follows.
  */
-export function fieldsetRules(roots: readonly string[]): Rule[] {
+export function fieldsetRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("fieldset")) return [];
   return [fieldsetRule()];
 }
 
-function fieldsetRule(): Rule {
+function fieldsetRule(): SpinRule {
   const fieldset = "fieldset";
   const legend = "legend";
   return [
     /^fieldset$/,
     function* (_m, ctx) {
+      const padding = ctx?.theme?.spacing?.[4];
+      const radius = ctx?.theme?.radius?.md;
+      const width = ctx?.theme?.border?.width;
+      const edge = ctx?.theme?.color?.border;
       const box: Record<string, string | undefined> = {
         display: "flex",
         "flex-direction": "column",
@@ -39,20 +40,15 @@ function fieldsetRule(): Rule {
         // full-width box reads as content escaping its group.
         "align-items": "stretch",
       };
-      if (token(ctx, "spacing.4") !== undefined) {
-        Object.assign(box, { padding: token(ctx, "spacing.4") });
+      if (padding !== undefined) {
+        Object.assign(box, { padding });
       }
-      if (token(ctx, "radius.md") !== undefined) {
-        Object.assign(box, { "border-radius": token(ctx, "radius.md") });
+      if (radius !== undefined) {
+        Object.assign(box, { "border-radius": radius });
       }
-      if (
-        token(ctx, "border.width") !== undefined &&
-        token(ctx, "color.border") !== undefined
-      ) {
+      if (width !== undefined && edge !== undefined) {
         Object.assign(box, {
-          border: `${token(ctx, "border.width")} solid ${
-            token(ctx, "color.border")
-          }`,
+          border: `${width} solid ${edge}`,
         });
       }
       yield {
@@ -61,16 +57,16 @@ function fieldsetRule(): Rule {
       };
 
       // The legend sits on the border: padding-inline lifts it clear of the
-      // edge, and it wears the label voice — the name on a control — so it
-      // reads as the group's name rather than a stray word inside it.
-      const s = styleType(ctx, "label");
-      const fontSize = s.size;
-      const fontWeight = s.weight;
+      // edge, and it wears the label style — the name on a control — so it
+      const primary = ctx?.theme?.element?.legend?.type;
+      const shared = ctx?.theme?.font?.style?.label;
+      const s = primary ?? shared;
+      const fontSize = s?.["font-size"];
+      const fontWeight = s?.["font-weight"];
+      const inset = ctx?.theme?.spacing?.[2];
       yield {
         [ctx.symbols.selector]: () => `${fieldset} > ${legend}`,
-        ...(token(ctx, "spacing.2") !== undefined
-          ? { "padding-inline": token(ctx, "spacing.2") }
-          : {}),
+        ...(inset !== undefined ? { "padding-inline": inset } : {}),
         ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
         ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
       };

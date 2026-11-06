@@ -1,5 +1,5 @@
 import { defaultTwin } from "@spinjs/runtime";
-import { type ColorChannel, parseColor } from "@zag-js/color-utils";
+import { type ColorChannel, parseColor } from "./color.ts";
 
 export type ColorFormat =
   | "hex"

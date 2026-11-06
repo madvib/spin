@@ -1,7 +1,6 @@
-import type { Rule } from "@unocss/core";
 import { FRACTIONS, INSET_KEYWORDS } from "./vocabulary.ts";
 import type { ThemeRef } from "../../theme/index.ts";
-import { named, namesIn, type ThemeContext } from "./lookup.ts";
+import { named, namesIn, type SpinRule, type ThemeContext } from "./lookup.ts";
 import { carriesRawColor } from "./color.ts";
 
 /**
@@ -17,17 +16,17 @@ export function orGroup(theme: ThemeRef, family: string): string {
 export function staticRules(
   names: readonly string[],
   decls: Record<string, Record<string, string>>,
-): Rule[] {
+): SpinRule[] {
   return names.map((
     name,
-  ): Rule => [name, decls[name] as Record<string, string>]);
+  ): SpinRule => [name, decls[name] as Record<string, string>]);
 }
 
 export function spacingRule(
   pattern: RegExp,
   props: string[],
   autocomplete: string,
-): Rule {
+): SpinRule {
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {
@@ -174,7 +173,7 @@ export function insetRule(
   pattern: RegExp,
   props: string[],
   autocomplete: string,
-): Rule {
+): SpinRule {
   return [
     pattern,
     ([, name]: string[], ctx?: ThemeContext) => {

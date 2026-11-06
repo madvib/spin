@@ -18,7 +18,6 @@ import {
   indexTree,
   type TokenIndex,
 } from "./resolve.ts";
-import { styleReferenceIssues } from "../contract/elements.ts";
 import {
   TOKEN_TYPES,
   type TokenLeaf,
@@ -273,11 +272,6 @@ export function validateTokens(
       message: `alias cycle: ${[...cycle, cycle[0] as string].join(" -> ")}`,
     });
   }
-
-  // A style reference that names no declared style is a theme error, not a
-  // silent fallback: the rule would spend the ladder while the theme claims
-  // a style, and the claim is what the author meant to move.
-  issues.push(...styleReferenceIssues(tree));
 
   issues.push(...duplicateVarIssues(leaves));
 

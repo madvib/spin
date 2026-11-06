@@ -118,6 +118,7 @@ export function wind4Theme(
   for (const [key, family] of WIND4_FAMILIES) {
     const group: Record<string, string> = {};
     for (const [name, ref] of Object.entries(vars)) {
+      if (typeof ref !== "string") continue;
       if (name.startsWith(`${family}-`)) {
         group[name.slice(family.length + 1)] = ref;
       }
@@ -125,6 +126,27 @@ export function wind4Theme(
     out[key] = group;
   }
   return out;
+}
+
+/**
+ * The theme a wind4 handler sees: its six nested groups and nothing else.
+ *
+ * wind4's resolver walks `theme[<first-segment>]` for every `var()` its
+ * output carries — `detectThemeValue` looks `var(--color-primary)` up as
+ * `theme.color.primary` and recurses into a string answer. Under a flat
+ * theme that lookup missed and the walk ended; under the nested theme the
+ * lookup hits the group's own `var()` and recurses forever. The six groups
+ * are the whole vocabulary wind4 reads (see `WIND4_FAMILIES`), so handing
+ * the handler exactly those is the seam as it always was.
+ */
+function wind4View(theme: unknown): Record<string, unknown> {
+  const view: Record<string, unknown> = {};
+  if (typeof theme !== "object" || theme === null) return view;
+  const source = theme as Record<string, unknown>;
+  for (const [key] of WIND4_FAMILIES) {
+    if (source[key] !== undefined) view[key] = source[key];
+  }
+  return view;
 }
 
 /**
@@ -147,7 +169,7 @@ export interface Wind4Exclusion {
 }
 
 /** A rule's identity: its utility name, or the pattern it matches on. */
-function nameOf(rule: Rule): string {
+function nameOf(rule: Rule<any>): string {
   return typeof rule[0] === "string" ? rule[0] : rule[0].source;
 }
 
@@ -167,7 +189,7 @@ function nameOf(rule: Rule): string {
  * `bg-gradient` and `bg-linear` — the gradient family is wind4's, and pinning
  * only `bg` would hand it to us and take `bg-gradient-to-r` with it.
  */
-function claimsOf(rule: Rule): string[] {
+function claimsOf(rule: Rule<any>): string[] {
   if (typeof rule[0] === "string") return [rule[0]];
   let rest = rule[0].source.replace(/^\^/, "");
   let claims = [""];
@@ -251,7 +273,7 @@ function claimsOf(rule: Rule): string[] {
  * `object-top` matched nothing — ours cannot answer them, wind4's was dropped.)
  */
 const EXACT_SOURCE = /^\^([a-z][a-z0-9-]*)\$$/;
-function exactName(rule: Rule): string | undefined {
+function exactName(rule: Rule<any>): string | undefined {
   if (typeof rule[0] === "string") return rule[0];
   return EXACT_SOURCE.exec(rule[0].source)?.[1];
 }
@@ -299,7 +321,7 @@ const ownedNamespaces: ReadonlySet<string> = (() => {
  * only the single utility it names — and only against a wind4 rule naming
  * that same utility, never against a rule claiming the family around it.
  */
-function covered(rule: Rule, claim: string): boolean {
+function covered(rule: Rule<any>, claim: string): boolean {
   if (ownedNamespaces.has(claim)) return true;
   if (!ownedExact.has(claim)) return false;
   return exactName(rule) === claim;
@@ -491,7 +513,7 @@ function undefinedRead(output: Inspected): string | undefined {
  * two TUPLE types and TypeScript cannot narrow a union of tuples from a
  * `typeof` test on one of its elements.
  */
-function isDynamic(rule: Rule): rule is DynamicRule {
+function isDynamic(rule: Rule<any>): rule is DynamicRule {
   return rule[0] instanceof RegExp;
 }
 
@@ -539,7 +561,7 @@ function guarded(
       if (hasRawColor(ctx.currentSelector)) return undefined;
       let value: unknown;
       try {
-        value = await handler(match, ctx);
+        value = await handler(match, { ...ctx, theme: wind4View(ctx.theme) });
       } catch {
         // A handler that cannot run without wind4's own theme — `backdrop-blur`
         // reads a `backdropBlur` table a spin theme does not carry, and its
@@ -616,7 +638,7 @@ const FONT_EXCLUDED_STATIC: Record<string, true> = {
   truncate: true,
 };
 
-function fontExcluded(rule: Rule): boolean {
+function fontExcluded(rule: Rule<any>): boolean {
   const source = nameOf(rule);
   if (FONT_EXCLUDED_STATIC[source] === true) return true;
   return FONT_EXCLUDED.some((pattern) => pattern.source === source);

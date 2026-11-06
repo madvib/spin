@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 
 
 /**
@@ -19,7 +19,7 @@ import { type ThemeContext, token } from "../../utils/lookup.ts";
  */
 export function panelRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("panel")) return [];
   const panel = "panel";
   const list = "panel-list";
@@ -48,8 +48,8 @@ export function panelRules(
           ...(t.gap !== undefined ? { gap: t.gap } : {}),
           "min-width": "0",
         };
-        const raised = token(ctx, "color.surface");
-        const muted = token(ctx, "color.text-muted");
+        const raised = ctx?.theme?.color?.surface;
+        const muted = ctx?.theme?.color?.["text-muted"];
         yield {
           [ctx.symbols.selector]: () =>
             `${panel} [data-highlighted]:not([data-disabled]), ${panel} [data-selected]:not([data-disabled])`,
@@ -61,7 +61,7 @@ export function panelRules(
         };
         yield {
           [ctx.symbols.selector]: () => `${panel} [data-disabled]`,
-          opacity: token(ctx, "opacity.50") ?? 0.55,
+          opacity: ctx?.theme?.opacity?.["50"] ?? 0.55,
           ...(muted !== undefined ? { color: muted } : {}),
           cursor: "not-allowed",
         };
@@ -73,14 +73,14 @@ export function panelRules(
 
 function panelTokens(ctx: ThemeContext | undefined) {
   return {
-    radius: token(ctx, "radius.lg"),
-    borderWidth: token(ctx, "border.width"),
-    border: token(ctx, "color.border"),
-    raised: token(ctx, "color.surface-raised"),
-    text: token(ctx, "color.text"),
-    shadow: token(ctx, "shadow.lg"),
-    pad: token(ctx, "spacing.2"),
-    gap: token(ctx, "spacing.1"),
+    radius: ctx?.theme?.radius?.lg,
+    borderWidth: ctx?.theme?.border?.width,
+    border: ctx?.theme?.color?.border,
+    raised: ctx?.theme?.color?.["surface-raised"],
+    text: ctx?.theme?.color?.text,
+    shadow: ctx?.theme?.shadow?.lg,
+    pad: ctx?.theme?.spacing?.[2],
+    gap: ctx?.theme?.spacing?.[1],
   };
 }
 

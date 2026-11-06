@@ -1,10 +1,12 @@
+import type { Rule, RuleContext } from "@unocss/core";
 import type { ThemeRef } from "../../theme/index.ts";
 import { themeKey } from "../../theme/index.ts";
-import type { ThemeTokenPath } from "../../theme/theme-types.d.ts";
+import type { Theme, ThemeTokenPath } from "../../theme/theme-types.d.ts";
 
-export interface ThemeContext {
-  theme?: unknown;
-}
+/** A rule over the spin theme: `ctx.theme` is the nested typed `Theme`. */
+export type SpinRule = Rule<Theme>;
+
+export interface ThemeContext extends Pick<RuleContext<Theme>, "theme" | "symbols"> {}
 
 /**
  * The theme map out of the rule context.
@@ -17,7 +19,7 @@ export interface ThemeContext {
 export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
   const theme = ctx?.theme;
   return typeof theme === "object" && theme !== null
-    ? theme as ThemeRef
+    ? theme as unknown as ThemeRef
     : undefined;
 }
 
@@ -30,8 +32,8 @@ export function themeOf(ctx: ThemeContext | undefined): ThemeRef | undefined {
  * undefined by design, and the caller states its own fallback.
  *
  * A theme names its tokens under the canonical paths and nowhere else: there
- * is no second spelling a reader has to know about. (TYPE-c: the
- * per-element typography paths are gone — elements read named styles.)
+ * is no second spelling a reader has to know about. The per-element
+ * typography paths are gone — elements read named styles.
  */
 export function token(
   ctx: ThemeContext | undefined,

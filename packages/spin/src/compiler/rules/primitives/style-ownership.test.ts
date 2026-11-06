@@ -10,11 +10,11 @@ import {
 } from "../../../theme/index.ts";
 
 /**
- * Styles own type: emitters spend `font.style.*`, never atoms.
+ * Type styles own type: emitters spend element and component tuples, never atoms.
  *
  * The 99px probe is the regression test for the whole stage: a theme that
- * moves a style's size moves every element that reads the style, because the
- * rules spend the style's variable rather than the ladder's. The assertions
+ * moves a style's size moves every element whose type defaults to the style,
+ * because the rules spend the element type's variable. The assertions
  * are about WHICH variable a rule spends, never about a value's text.
  */
 
@@ -125,8 +125,8 @@ test("the 99px probe: moving the body style's size moves the paragraph", async (
   const css = (await sheetFor("<p>a</p>", doc)).css;
   deepStrictEqual(
     declsFor(css, "p")["font-size"],
-    "var(--font-style-body-size)",
-    "a paragraph spends the body style's size, not the ladder's",
+    "var(--element-p-type-size)",
+    "a paragraph spends its element type's size, which defaults to the body style",
   );
   deepStrictEqual(
     resolveTheme(JSON.parse(JSON.stringify(doc))).values["font.style.body.size"],
@@ -135,31 +135,28 @@ test("the 99px probe: moving the body style's size moves the paragraph", async (
   );
 });
 
-test("a heading spends its default style, not the ladder step", async () => {
+test("a heading spends its element type, not the ladder step", async () => {
   const css = (await sheetFor("<h1>a</h1><h2>a</h2>", silk())).css;
   deepStrictEqual(
     declsFor(css, "h1")["font-size"],
-    "var(--font-style-display-size)",
+    "var(--element-h1-type-size)",
   );
   deepStrictEqual(
     declsFor(css, "h2")["font-size"],
-    "var(--font-style-title-size)",
+    "var(--element-h2-type-size)",
   );
 });
 
-test("small print, code, strong and quotations spend their styles; links inherit", async () => {
-  // `link.offset` is the contract's, but the starters predate it: the leaf
-  // is added the way a theme writes one until the starters carry it.
-  const doc = withLeaf("link.offset", "dimension", "0.2em");
+test("small print, code, strong and quotations spend their element types; links inherit", async () => {
   const css = (
     await sheetFor(
       "<small>a</small><code>a</code><a href=\"#\">a</a><strong>a</strong><blockquote>a</blockquote><figcaption>a</figcaption>",
-      doc,
+      silk(),
     )
   ).css;
-  deepStrictEqual(declsFor(css, "small")["font-size"], "var(--font-style-caption-size)");
-  deepStrictEqual(declsFor(css, "code")["font-size"], "var(--font-style-code-size)");
-  // A link is an inline modifier over inherited prose: it reads no style,
+  deepStrictEqual(declsFor(css, "small")["font-size"], "var(--element-small-type-size)");
+  deepStrictEqual(declsFor(css, "code")["font-size"], "var(--element-code-type-size)");
+  // A link is an inline modifier over inherited prose: it reads no type style,
   // so it resets no face, size, weight, tracking or leading of its own.
   const link = declsFor(css, "a");
   assert(!("font-size" in link), `a link inherits its size, got: ${JSON.stringify(link)}`);
@@ -188,22 +185,22 @@ test("small print, code, strong and quotations spend their styles; links inherit
   assert(!("line-height" in weight), `strong keeps its leading, got: ${JSON.stringify(weight)}`);
   deepStrictEqual(
     declsFor(css, "blockquote")["font-family"],
-    "var(--font-style-quote-family)",
+    "var(--element-blockquote-type-family)",
   );
   deepStrictEqual(
     declsFor(css, "figcaption")["font-size"],
-    "var(--font-style-caption-strong-size)",
+    "var(--element-figcaption-type-size)",
   );
 });
 
 test("a button spends the label style as a whole tuple", async () => {
   const css = (await sheetFor("<button>a</button>", silk())).css;
   const decls = declsFor(css, ":is(button,");
-  deepStrictEqual(decls["font-family"], "var(--font-style-label-family)");
-  deepStrictEqual(decls["font-size"], "var(--font-style-label-size)");
-  deepStrictEqual(decls["font-weight"], "var(--font-style-label-weight)");
-  deepStrictEqual(decls["letter-spacing"], "var(--font-style-label-tracking)");
-  deepStrictEqual(decls["line-height"], "var(--font-style-label-leading)");
+  deepStrictEqual(decls["font-family"], "var(--button-type-family)");
+  deepStrictEqual(decls["font-size"], "var(--button-type-size)");
+  deepStrictEqual(decls["font-weight"], "var(--button-type-weight)");
+  deepStrictEqual(decls["letter-spacing"], "var(--button-type-tracking)");
+  deepStrictEqual(decls["line-height"], "var(--button-type-leading)");
 });
 
 test("moving the label style moves the button", async () => {
@@ -214,7 +211,7 @@ test("moving the label style moves the button", async () => {
   const css = (await sheetFor("<button>a</button>", doc)).css;
   deepStrictEqual(
     declsFor(css, ":is(button,")["font-size"],
-    "var(--font-style-label-size)",
+    "var(--button-type-size)",
   );
   deepStrictEqual(
     resolveTheme(JSON.parse(JSON.stringify(doc))).values["font.style.label.size"],
@@ -222,13 +219,13 @@ test("moving the label style moves the button", async () => {
   );
 });
 
-test("a button re-points by naming another style", async () => {
-  const doc = withLeaf("button.type", "typography", "body");
+test("a button re-points by aliasing another style", async () => {
+  const doc = withLeaf("button.type", "typography", "{font.style.body}");
   const css = (await sheetFor("<button>a</button>", doc)).css;
   deepStrictEqual(
     declsFor(css, ":is(button,")["font-size"],
-    "var(--font-style-body-size)",
-    "button.type names the style the button reads",
+    "var(--button-type-size)",
+    "button.type is the tuple the button reads",
   );
 });
 
@@ -241,21 +238,21 @@ test("a stat's number, label and context spend their styles", async () => {
   ).css;
   deepStrictEqual(
     declsFor(css, ".stat-value")["font-size"],
-    "var(--font-style-stat-size)",
+    "var(--stat-value-type-size)",
   );
   deepStrictEqual(
     declsFor(css, ".stat-title")["font-size"],
-    "var(--font-style-caption-strong-size)",
-    "the label reads the style stat.title.type names — caption-strong unless re-pointed",
+    "var(--stat-title-type-size)",
+    "stat.title.type is the tuple the label reads",
   );
   deepStrictEqual(
     declsFor(css, ".stat-desc")["font-size"],
-    "var(--font-style-caption-size)",
+    "var(--stat-desc-type-size)",
   );
 });
 
-test("a stat label re-points by naming another style", async () => {
-  const doc = withLeaf("stat.title.type", "typography", "overline");
+test("a stat label re-points by aliasing another style", async () => {
+  const doc = withLeaf("stat.title.type", "typography", "{font.style.overline}");
   const css = (
     await sheetFor(
       "<div class=\"stat\"><div class=\"stat-title\">a</div></div>",
@@ -264,20 +261,20 @@ test("a stat label re-points by naming another style", async () => {
   ).css;
   deepStrictEqual(
     declsFor(css, ".stat-title")["font-size"],
-    "var(--font-style-overline-size)",
-    "stat.title.type names the style the label reads",
+    "var(--stat-title-type-size)",
+    "stat.title.type is the tuple the label reads",
   );
 });
 
 test("a dangling stat title reference is a theme error", async () => {
-  const doc = withLeaf("stat.title.type", "typography", "no-such-style");
+  const doc = withLeaf("stat.title.type", "typography", "{font.style.no-such-style}");
   const parsed = parseTokens(JSON.parse(JSON.stringify(doc)));
   assert(parsed.ok, `fixture must parse: ${!parsed.ok ? parsed.error : ""}`);
   if (!parsed.ok) return;
   const report = validateTokens(parsed.tree);
   assert(
     report.issues.some(
-      (issue) => issue.path === "stat.title.type" && /no-such-style/.test(issue.message),
+      (issue) => issue.path === "stat.title.type.family" && /no-such-style/.test(issue.message),
     ),
     `dangling stat.title.type must be reported, got: ${
       JSON.stringify(report.issues)
@@ -294,11 +291,11 @@ test("a badge spends the badge style, not the ladder step", async () => {
   const css = (await sheetFor('<badge>Tag</badge>', silk())).css;
   deepStrictEqual(
     declsFor(css, "badge")["font-size"],
-    "var(--font-style-badge-size)",
+    "var(--badge-type-size)",
   );
   deepStrictEqual(
     declsFor(css, "badge")["font-weight"],
-    "var(--font-style-badge-weight)",
+    "var(--badge-type-weight)",
   );
 });
 
@@ -310,7 +307,7 @@ test("moving the badge style moves the badge", async () => {
   const css = (await sheetFor("<badge>Tag</badge>", doc)).css;
   deepStrictEqual(
     declsFor(css, "badge")["font-size"],
-    "var(--font-style-badge-size)",
+    "var(--badge-type-size)",
     "a badge spends the badge style's size, not the ladder's",
   );
   deepStrictEqual(
@@ -320,15 +317,15 @@ test("moving the badge style moves the badge", async () => {
   );
 });
 
-test("a label spends the label style as a whole tuple", async () => {
+test("a label spends its element type as a whole tuple", async () => {
   const css = (await sheetFor("<label>a</label>", silk())).css;
   deepStrictEqual(
     declsFor(css, "label")["font-size"],
-    "var(--font-style-label-size)",
+    "var(--element-label-type-size)",
   );
   deepStrictEqual(
     declsFor(css, "label")["font-weight"],
-    "var(--font-style-label-weight)",
+    "var(--element-label-type-weight)",
   );
 });
 
@@ -340,8 +337,8 @@ test("moving the label style moves the label", async () => {
   const css = (await sheetFor("<label>a</label>", doc)).css;
   deepStrictEqual(
     declsFor(css, "label")["font-size"],
-    "var(--font-style-label-size)",
-    "a label spends the label style's size, not the ladder's",
+    "var(--element-label-type-size)",
+    "a label spends its element type's size, which defaults to the label style",
   );
   deepStrictEqual(
     resolveTheme(JSON.parse(JSON.stringify(doc))).values["font.style.label.size"],
@@ -359,23 +356,23 @@ test("a card title and description spend their styles", async () => {
   ).css;
   deepStrictEqual(
     declsFor(css, "card-title")["font-size"],
-    "var(--font-style-card-title-size)",
+    "var(--card-title-type-size)",
   );
   deepStrictEqual(
     declsFor(css, "card-description")["font-size"],
-    "var(--font-style-label-size)",
+    "var(--card-description-type-size)",
   );
 });
 
-test("a fieldset legend spends the label style", async () => {
+test("a fieldset legend spends its element type", async () => {
   const css = (await sheetFor("<fieldset><legend>a</legend></fieldset>", silk())).css;
   deepStrictEqual(
     declsFor(css, "legend")["font-size"],
-    "var(--font-style-label-size)",
+    "var(--element-legend-type-size)",
   );
   deepStrictEqual(
     declsFor(css, "legend")["font-weight"],
-    "var(--font-style-label-weight)",
+    "var(--element-legend-type-weight)",
   );
 });
 
@@ -383,7 +380,7 @@ test("an alert spends the label style", async () => {
   const css = (await sheetFor('<alert role="status">a</alert>', silk())).css;
   deepStrictEqual(
     declsFor(css, "alert")["font-size"],
-    "var(--font-style-label-size)",
+    "var(--alert-type-size)",
   );
   deepStrictEqual(
     declsFor(css, 'alert[role="alert"]')["font-weight"],
@@ -433,43 +430,73 @@ test("a skeleton text line spends the body style's size", async () => {
   );
 });
 
-test("a table header spends the caption-strong style", async () => {
+test("a table header spends its element type", async () => {
   const css = (
     await sheetFor("<table><tr><th>a</th></tr></table>", silk())
   ).css;
-  deepStrictEqual(declsFor(css, "th")["font-size"], "var(--font-style-caption-strong-size)");
+  deepStrictEqual(declsFor(css, "th")["font-size"], "var(--element-th-type-size)");
   deepStrictEqual(
     declsFor(css, "th")["font-weight"],
-    "var(--font-style-caption-strong-weight)",
+    "var(--element-th-type-weight)",
   );
 });
 
 test("one worked per-variant case: a danger button re-points on its own", async () => {
-  const doc = withLeaf("button.danger.type", "typography", "body-strong");
+  const doc = withLeaf("button.danger.type", "typography", "{font.style.body-strong}");
   const css = (
     await sheetFor("<button class=\"danger\">a</button>", doc)
   ).css;
   deepStrictEqual(
     declsFor(css, ".danger")["font-size"],
-    "var(--font-style-body-strong-size)",
-    "the variant reads the style its reference names",
+    "var(--button-danger-type-size)",
+    "the variant reads its own tuple",
   );
   const plain = (await sheetFor("<button class=\"danger\">a</button>", silk())).css;
+  deepStrictEqual(
+    declsFor(plain, ".danger")["font-size"],
+    "var(--button-danger-type-size)",
+    "the base declares danger.type, so the plain silk case reads the tuple too",
+  );
+});
+
+test("a variant with no tuple of its own reads the base button's tuple", async () => {
+  // Self-contained: expanded silk minus the danger group, so no layer
+  // inherits the tuple back. The variant falls through to button.type.
+  const { expandExtends } = await import("../../../theme/extends.ts");
+  const { baseTheme } = await import("../../../theme/themes/index.ts");
+  const doc = expandExtends(structuredClone(silk()), { base: baseTheme });
+  delete (doc["button"] as Record<string, unknown>)["danger"];
+  const css = (await sheetFor("<button class=\"danger\">a</button>", doc)).css;
+  deepStrictEqual(
+    declsFor(css, ".danger")["font-size"],
+    "var(--button-type-size)",
+    "a variant with no tuple follows the base button's re-pointing",
+  );
+});
+
+test("a variant with no tuple anywhere states no type and inherits", async () => {
+  const { expandExtends } = await import("../../../theme/extends.ts");
+  const { baseTheme } = await import("../../../theme/themes/index.ts");
+  const doc = expandExtends(structuredClone(silk()), { base: baseTheme });
+  const button = doc["button"] as Record<string, unknown>;
+  delete button["danger"];
+  delete button["type"];
+  const css = (await sheetFor("<button class=\"danger\">a</button>", doc)).css;
   assert(
-    !("font-size" in declsFor(plain, ".danger")),
-    "a variant with no reference inherits the base and states no type of its own",
+    !("font-size" in declsFor(css, ".danger")),
+    "with no tuple to read, the variant states no type and the cascade carries the base",
   );
 });
 
 test("a dangling style reference is a theme error", async () => {
-  const doc = withLeaf("button.type", "typography", "no-such-style");
+  const doc = withLeaf("button.type", "typography", "{font.style.no-such-style}");
   const parsed = parseTokens(JSON.parse(JSON.stringify(doc)));
   assert(parsed.ok, `fixture must parse: ${!parsed.ok ? parsed.error : ""}`);
   if (!parsed.ok) return;
   const report = validateTokens(parsed.tree);
   assert(
     report.issues.some(
-      (issue) => issue.path === "button.type" && /no-such-style/.test(issue.message),
+      (issue) => issue.path === "button.type.family" && /no-such-style/.test(issue.message),
     ),
     `dangling button.type must be reported, got: ${
       JSON.stringify(report.issues)
@@ -483,7 +510,7 @@ test("a dangling style reference is a theme error", async () => {
 });
 
 test("a reference to a declared style validates clean", async () => {
-  const doc = withLeaf("button.danger.type", "typography", "body-strong");
+  const doc = withLeaf("button.danger.type", "typography", "{font.style.body-strong}");
   const parsed = parseTokens(JSON.parse(JSON.stringify(doc)));
   assert(parsed.ok, `fixture must parse: ${!parsed.ok ? parsed.error : ""}`);
   if (!parsed.ok) return;

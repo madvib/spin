@@ -8,33 +8,28 @@ import {
   Show,
 } from "solid-js";
 import { FamilyField, firstFamily } from "../components/FamilyField.tsx";
-import {
-  elementStyleDefault,
-  elementStyleElements,
-  STYLE_REFERENCE_ROLES,
-} from "@spinjs/spin/theme";
 import { tokenStatus } from "../lib/live-edit.ts";
 import { activeMode, activeName, activeTree, noteRefusal, refusalFor, registry, setThemeText, themeText } from "../lib/store.ts";
 import {
-  applyMapEdit,
   attachedStyle,
+  elementTargets,
   groupTokens,
-  repointEdits,
+  referenceTargets,
   scaleRampEdits,
   styleEdits,
   styleGroups,
-  tokenRowAt,
   trimRefusal,
   trimStyle,
+  typeTarget,
   type StyleGroup,
   type TokenRow,
 } from "../lib/tokens.ts";
 import { SENTENCE } from "../lib/specimen-copy.ts";
 import {
-  createToken,
   editFontFamily,
   editToken,
   editTokens,
+  upsertToken,
 } from "../lib/editing.ts";
 import { facesOf, fontDeclarationFor, injectFontFaces, type CatalogFont } from "../lib/fonts.ts";
 import { spinClient } from "../lib/client.ts";
@@ -60,7 +55,7 @@ function stepName(path: string): string {
   return path.split(".").pop() ?? path;
 }
 
-/** Concise specimen phrases for each HTML element in the attachment map. */
+/** Concise specimen phrases for each HTML element in the attachment table. */
 const ELEMENT_SPECIMENS: Record<string, string> = {
   h1: "Heading 1",
   h2: "Heading 2",
@@ -142,7 +137,7 @@ export default function TypePage() {
       <Section
         title="Styles"
         fact={`${styleGroups(activeTree()).length} styles`}
-        info="Named type styles: the theme's complete tuples, spent with type-<name>. The owned set is the contract's — trim a user-extension style, never an owned name. Elements read their default style (see the attachment map below)."
+        info="Named type styles: the theme's complete tuples, spent with type-<name>. The owned set is the contract's — trim a user-extension style, never an owned name. Elements read their style through element.<name>.type (see Attachment below)."
       >
         <ul class="stack-sm">
           <For each={styleGroups(activeTree())}>
@@ -154,8 +149,8 @@ export default function TypePage() {
 
       <Section
         title="Attachment"
-        fact={`${elementStyleElements().length} elements`}
-        info="Which style each element reads. Re-pointing writes the style's own tuple as aliases at the new style, so the element follows it live — never per-field overrides."
+        fact={`${elementTargets(activeTree()).length} elements`}
+        info="Which style each element reads through its element.<name>.type alias. Re-pointing rewrites the alias, so the element follows the new style live — never per-field overrides."
       >
         <div class="overflow-auto">
           <table>
@@ -167,7 +162,7 @@ export default function TypePage() {
               </tr>
             </thead>
             <tbody>
-              <For each={elementStyleElements()}>
+              <For each={elementTargets(activeTree())}>
                 {(element) => <AttachmentRow element={element} />}
               </For>
             </tbody>
@@ -177,12 +172,12 @@ export default function TypePage() {
 
       <Section
         title="References"
-        fact={`${STYLE_REFERENCE_ROLES.length} references`}
-        info="The style names components read: button.type for every button, button.<variant>.type for one variant. A name that is no declared style is a theme error, said here."
+        fact={`${referenceTargets(activeTree()).length} references`}
+        info="The .type aliases components read: button.type for every button, button.<variant>.type for one variant. A target that names no declared style is a theme error, said here."
       >
         <ul class="stack-sm">
-          <For each={STYLE_REFERENCE_ROLES}>
-            {(role) => <ReferenceRow path={role.path} />}
+          <For each={referenceTargets(activeTree())}>
+            {(path) => <ReferenceRow path={path} />}
           </For>
         </ul>
       </Section>
@@ -573,48 +568,32 @@ function AddStyle() {
 /**
  * One element's attachment: the specimen it draws, and the style it reads.
  *
- * The specimen is the element itself, set in the attached style's
- * variables, so a row shows what the element reads rather than what the row
- * says it reads. The pick re-points the element — the default style's tuple
- * becomes aliases at the new style — and the gate judges the batch whole.
+ * The specimen wears the element's own .type variables, so a row shows what
+ * the element reads rather than what the row says it reads. The pick
+ * re-points the element's .type alias at the new style — created when the
+ * document lacks it, edited when it has it — and the gate judges the batch
+ * whole. There is no default marker: the tree is layered, so the attached
+ * style IS the answer.
  */
 function AttachmentRow(props: { element: string }) {
-  const attached = () => attachedStyle(themeText(), props.element) ?? elementStyleDefault(props.element);
-  const def = () => elementStyleDefault(props.element);
+  const attached = () => attachedStyle(activeTree(), props.element);
   const names = () => styleGroups(activeTree()).map((group) => group.name);
-  const specimen = (): Record<string, string> => {
-    const style = attached() ?? def() ?? "";
-    return {
-      "font-family": `var(--font-style-${style}-family)`,
-      "font-size": `var(--font-style-${style}-size)`,
-      "font-weight": `var(--font-style-${style}-weight)`,
-    };
-  };
+  const specimen = (): Record<string, string> => ({
+    "font-family": `var(--element-${props.element}-type-family)`,
+    "font-size": `var(--element-${props.element}-type-size)`,
+    "font-weight": `var(--element-${props.element}-type-weight)`,
+  });
   const repoint = (style: string): void => {
-    try {
-      repointEdits(themeText(), props.element, style);
-    } catch (err) {
-      noteRefusal(err instanceof Error ? err.message : String(err));
+    if (!names().includes(style)) {
+      noteRefusal(`“${style}” is not a style this theme declares.`);
       return;
     }
-    let next: string;
-    try {
-      next = applyMapEdit(themeText(), props.element, style);
-    } catch (err) {
-      noteRefusal(err instanceof Error ? err.message : String(err));
-      return;
-    }
-    setThemeText(next, [`font.map.${props.element}`]);
+    upsertToken(["element", props.element, "type"], "typography", `{font.style.${style}}`, "base");
   };
   return (
     <tr>
       <td>
-        <div class="row-sm">
-          <code>{`<${props.element}>`}</code>
-          <Show when={attached() !== def()}>
-            <Badge tone="primary">→ {attached()}</Badge>
-          </Show>
-        </div>
+        <code>{`<${props.element}>`}</code>
       </td>
       <td>
         <p class="truncate" style={specimen()}>
@@ -628,15 +607,14 @@ function AttachmentRow(props: { element: string }) {
             value={attached() ?? ""}
             onChange={(event) => repoint(event.currentTarget.value)}
           >
+            <Show when={attached() === undefined}>
+              <option value="">—</option>
+            </Show>
             <For each={names()}>
-              {(style) => (
-                <option value={style}>
-                  {style}{style === def() ? " (default)" : ""}
-                </option>
-              )}
+              {(style) => <option value={style}>{style}</option>}
             </For>
           </select>
-          <code>type-{attached()}</code>
+          <code>type-{attached() ?? "—"}</code>
         </div>
       </td>
     </tr>
@@ -644,20 +622,20 @@ function AttachmentRow(props: { element: string }) {
 }
 
 /**
- * One style reference: the name a component's type answers to, and whether
- * it names a declared style.
+ * One .type alias a component reads: the style it names, and whether that
+ * style is declared.
  *
- * The value is a bare name, edited as text and judged against the declared
- * styles: a name no style wears is a theme error, said on the row rather
- * than left silent. An undeclared reference clears the gate's way — the
- * document keeps its other problems repairable — and the row keeps saying
- * it until the name lands.
+ * The value is a whole-style alias, edited by picking the style it names
+ * and judged against the declared styles: a target no style wears is a
+ * theme error, said on the row rather than left silent. A missing alias is
+ * unset — the row shows "—" until a style is picked, which creates the
+ * token.
  */
 function ReferenceRow(props: { path: string }) {
-  const row = () => tokenRowAt(activeTree(), props.path, activeMode());
+  const target = () => typeTarget(activeTree(), props.path);
   const names = () => styleGroups(activeTree()).map((group) => group.name);
   const dangling = () => {
-    const value = row()?.value.trim() ?? "";
+    const value = target() ?? "";
     return value.length > 0 && !names().includes(value)
       ? `"${value}" names no declared font.style`
       : undefined;
@@ -665,38 +643,35 @@ function ReferenceRow(props: { path: string }) {
   const commit = (value: string): boolean => {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
-      noteRefusal(`${props.path}: a style reference names a declared font.style — an empty name says nothing.`);
+      noteRefusal(`${props.path}: a .type alias names a declared font.style — an empty name says nothing.`);
       return false;
     }
-    if (row() === undefined) {
-      return createToken(props.path.split("."), "typography", trimmed);
-    }
-    return editToken(props.path.split("."), trimmed, "base");
+    return upsertToken(props.path.split("."), "typography", `{font.style.${trimmed}}`, "base");
   };
   return (
     <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
       <div class="row-sm flex-wrap items-center gap-2">
         <code>{props.path}</code>
-        <Show when={row() === undefined}>
-          <Badge tone="info">inherits</Badge>
+        <Show when={target() === undefined}>
+          <Badge tone="info">unset</Badge>
         </Show>
       </div>
       <div data-studio-chrome="" class="row-sm flex-wrap gap-2">
         <select
           aria-label={`Style ${props.path} names`}
-          value={row()?.value.trim() ?? ""}
+          value={target() ?? ""}
           onChange={(event) => {
             commit(event.currentTarget.value);
           }}
         >
-          <Show when={row() === undefined}>
+          <Show when={target() === undefined}>
             <option value="">—</option>
           </Show>
           <For each={names()}>
             {(style) => <option value={style}>{style}</option>}
           </For>
         </select>
-        <code>type-{row()?.value.trim() ?? "—"}</code>
+        <code>type-{target() ?? "—"}</code>
       </div>
       <Show when={dangling() ?? refusalFor(props.path)}>
         {(message) => (

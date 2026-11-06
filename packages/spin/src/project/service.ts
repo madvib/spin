@@ -252,6 +252,28 @@ async function exists(path: string): Promise<boolean> {
 }
 
 /**
+ * The file a theme name reads and writes: the flat file when the project
+ * carries one, else the brand directory's identity file. A flat file wins
+ * over a brand of the same name — the fork is explicit, and the build
+ * serves the same winner.
+ */
+async function themeFile(dir: string, name: string): Promise<string | null> {
+  const { join } = await import("node:path");
+  const { stat } = await import("node:fs/promises");
+  const flat = join(dir, `${name}.json`);
+  if (await exists(flat)) return flat;
+  const brand = join(dir, name, "tokens.json");
+  try {
+    if ((await stat(join(dir, name))).isDirectory() && await exists(brand)) {
+      return brand;
+    }
+  } catch {
+    // No brand by that name.
+  }
+  return null;
+}
+
+/**
  * What a root holds: the project's report.
  *
  * One walk, because `detect` and `current` differ only in which root they
@@ -263,7 +285,7 @@ async function exists(path: string): Promise<boolean> {
  * hold themes it has not wired up yet.
  */
 export async function detectProject(root: string): Promise<ProjectReport> {
-  const { readdir, readFile } = await import("node:fs/promises");
+  const { readdir, readFile, stat } = await import("node:fs/promises");
   const { join, basename } = await import("node:path");
   const { existsSync } = await import("node:fs");
   const { path: here, file } = await themesDirOf(root);
@@ -274,8 +296,29 @@ export async function detectProject(root: string): Promise<ProjectReport> {
       themes = basename(here).endsWith(".json") ? [basename(here)] : [];
     } else {
       try {
-        themes = (await readdir(here)).filter((e) => e.endsWith(".json") && e !== CONFIG_FILENAME)
-          .sort();
+        const entries = await readdir(here);
+        const listed: string[] = [];
+        for (const entry of entries) {
+          if (entry === CONFIG_FILENAME) continue;
+          if (entry.endsWith(".json")) {
+            listed.push(entry);
+            continue;
+          }
+          // A brand directory reads as its name: the build serves the
+          // composed layers under it, so the report names the brand.
+          try {
+            const full = join(here, entry);
+            if (
+              (await stat(full)).isDirectory() &&
+              existsSync(join(full, "tokens.json"))
+            ) {
+              listed.push(entry);
+            }
+          } catch {
+            // Not a brand: unlisted, like an unreadable file.
+          }
+        }
+        themes = listed.sort();
       } catch {
         themes = [];
       }
@@ -407,7 +450,14 @@ export async function initProject(
       themesDir,
       vendor: options.vendor,
     });
-    await writeFile(join(dir, `${options.name}.json`), files[`${options.name}.json`], "utf8");
+    const { dirname } = await import("node:path");
+    for (const [rel, text] of Object.entries(files)) {
+      // The build config scaffolds beside the themes directory, not in it.
+      if (!rel.startsWith(`${options.name}/`)) continue;
+      const file = join(dir, rel);
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, text, "utf8");
+    }
     if (existing !== null) {
       if (!isWired(existingText!)) {
         await writeFile(existing, wireConfigText(existingText!, bundler, opts), "utf8");
@@ -578,15 +628,21 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
   }
   const themes: ProjectTheme[] = [];
   for (const entry of entries.sort()) {
-    if (!entry.endsWith(".json") || entry === CONFIG_FILENAME) continue;
+    if (entry === CONFIG_FILENAME) continue;
+    // A flat theme file reads as its stem; a brand directory reads as its
+    // identity file. Facet files are not themes and are skipped here.
+    const stem = entry.endsWith(".json") ? entry.slice(0, -".json".length) : entry;
+    if (stem.endsWith(".palette") || stem.endsWith(".spacing")) continue;
+    const resolved = file ? join(dir, entry) : await themeFile(dir, stem);
+    if (resolved === null) continue;
     let text: string;
     try {
-      text = await readFile(file ? dir : join(dir, entry), "utf8");
+      text = await readFile(file ? dir : resolved, "utf8");
     } catch {
       continue;
     }
     themes.push({
-      name: entry.replace(/\.json$/, ""),
+      name: stem,
       text,
       // Project-relative, so a path a developer sees never carries the
       // machine's filesystem layout: a screenshot, a log line, an issue
@@ -630,9 +686,9 @@ export async function readTheme(
       if (basename(dir, ".json") !== name) throw new Error("other theme");
       return { text: await readFile(dir, "utf8") };
     }
-    return {
-      text: await readFile(join(dir, `${name}.json`), "utf8"),
-    };
+    const resolved = await themeFile(dir, name);
+    if (resolved === null) throw new Error("no such theme");
+    return { text: await readFile(resolved, "utf8") };
   } catch {
     const brand = config === null ? {} : await brandThemes(root, config);
     const document = brand[name];
@@ -667,7 +723,7 @@ export async function writeTheme(
   if (config?.verbatimThemes != null) {
     return { error: verbatimRefusal(config, name) };
   }
-  if (!await exists(join(dir, `${name}.json`))) {
+  if ((await themeFile(dir, name)) === null) {
     const brand = config === null ? {} : await brandThemes(root, config);
     if (brand[name] !== undefined) {
       return {
@@ -678,7 +734,8 @@ export async function writeTheme(
   }
   try {
     await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, `${name}.json`), text, "utf8");
+    const resolved = (await themeFile(dir, name)) ?? join(dir, `${name}.json`);
+    await writeFile(resolved, text, "utf8");
     return { error: null };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
@@ -706,7 +763,8 @@ export async function removeTheme(
   if (config?.verbatimThemes != null) {
     return { error: verbatimRefusal(config, name) };
   }
-  if (!await exists(join(dir, `${name}.json`))) {
+  const resolved = await themeFile(dir, name);
+  if (resolved === null) {
     const brand = config === null ? {} : await brandThemes(root, config);
     if (brand[name] !== undefined) {
       return {
@@ -716,7 +774,12 @@ export async function removeTheme(
     }
   }
   try {
-    await rm(join(dir, `${name}.json`));
+    // A brand directory goes whole: its layers are one theme, and a
+    // tokens-less directory is a brand the build cannot serve.
+    const target = resolved !== null && resolved.endsWith(`${name}/tokens.json`)
+      ? join(dir, name)
+      : join(dir, `${name}.json`);
+    await rm(target, { recursive: true });
     return { error: null };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
@@ -748,8 +811,10 @@ export async function copyTheme(
     return { error: verbatimRefusal(config, to) };
   }
   try {
-    const source = join(dir, `${from}.json`);
     // Read first so a missing source is an error, not an empty file.
+    // A brand source copies its identity file: the fork starts where the
+    // brand's own tokens start, and the layers stay the brand's.
+    const source = (await themeFile(dir, from)) ?? join(dir, `${from}.json`);
     let text: string;
     try {
       text = await readFile(source, "utf8");
@@ -767,10 +832,10 @@ export async function copyTheme(
     // work with no warning and no undo, so a taken name is an error the
     // studio can show. A brand-only target is the explicit fork a write
     // refuses to be: the copy lands as a local file beside the brand.
-    const target = join(dir, `${to}.json`);
-    if (await exists(target)) {
+    if ((await themeFile(dir, to)) !== null) {
       return { error: `a theme named ${to} already exists` };
     }
+    const target = join(dir, `${to}.json`);
     await writeFile(target, text, "utf8");
     return { error: null };
   } catch (err) {

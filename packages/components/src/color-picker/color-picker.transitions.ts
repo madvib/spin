@@ -8,7 +8,7 @@ import {
   serialize,
 } from "./color-picker.state.ts";
 import { isFormat } from "./color-picker.state.ts";
-import type { ColorChannel } from "@zag-js/color-utils";
+import type { ColorChannel } from "./color.ts";
 
 type ColorPickerAssign<
   K extends keyof ColorPickerEvents = keyof ColorPickerEvents,

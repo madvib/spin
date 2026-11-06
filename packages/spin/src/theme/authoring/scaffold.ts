@@ -15,7 +15,7 @@
 
 import { ELEMENT_ROLES } from "../contract/elements.ts";
 import { BASE_ROLES, baselineScales } from "../contract/roles.ts";
-import { OWNED_STYLES, ownedStyleFields } from "../contract/typography.ts";
+import { ownedStyleFields, ownedStyleNames } from "../contract/typography.ts";
 import type { TokenLeaf, TokenTree, TokenType } from "../pipeline/types.ts";
 
 /** A declaration a scaffold can write: the path, the type, the value. */
@@ -41,11 +41,11 @@ function declarations(): readonly Scaffoldable[] {
  * scaffold's is deliberately unfinished.
  */
 function ownedDeclarations(): readonly Scaffoldable[] {
-  return OWNED_STYLES.flatMap((style) =>
+  return ownedStyleNames().flatMap((name) =>
     ownedStyleFields().map((field) => ({
-      path: `font.style.${style.name}.${field}`,
+      path: `font.style.${name}.${field}`,
       type: ownedFieldType(field),
-      value: ownedLiteral(style.name, field),
+      value: ownedLiteral(name, field),
     }))
   );
 }

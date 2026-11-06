@@ -254,7 +254,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(init.error, null);
     const detect = await client.project.detect({ root: fresh });
     deepStrictEqual(detect.spin, true, "init created the directory");
-    deepStrictEqual(detect.themes, ["first.json"], "and seeded one theme");
+    deepStrictEqual(detect.themes, ["first"], "and seeded one theme");
     // And the build config, which is the other half of a project: the daemon
     // composes theme's document with the preset's config because it is the
     // only thing that knows a project needs both.

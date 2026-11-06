@@ -71,37 +71,10 @@ export {
   themeSchema,
 } from "./contract/roles.ts";
 export { contractGroups, themeGroups } from "./contract/groups.ts";
-export {
-  ELEMENT_ROLES,
-  STYLE_REFERENCE_ROLES,
-  declaredStyleNames,
-  elementFallback,
-  elementPaths,
-  elementRole,
-  isStyleReferencePath,
-  resolveStyleReference,
-  styleReferenceIssues,
-  styleReferencePaths,
-  styleReferenceRole,
-} from "./contract/elements.ts";
+export { ELEMENT_ROLES, elementPaths } from "./contract/elements.ts";
 export type { ElementDeclaration } from "./contract/elements.ts";
-export {
-  ELEMENT_STYLE_DEFAULTS,
-  elementStyleDefault,
-  elementStyleElements,
-  FACE_CHAINS,
-  FONT_MAP_DEFAULTS,
-  OWNED_STYLES,
-  ownedStyleFields,
-  ownedStyleNames,
-  resolveFontMap,
-} from "./contract/typography.ts";
-export type {
-  GlobalTypePath,
-  NamedStyleDeclaration,
-  NamedStyleField,
-  StyleDefaultElement,
-} from "./contract/typography.ts";
+export { ownedStyleFields, ownedStyleNames } from "./contract/typography.ts";
+export type { NamedStyleField } from "./contract/typography.ts";
 export { spinThemeJsonSchema, validateLegibility } from "./contract/schema.ts";
 export {
   LOOP_DURATION,

@@ -389,39 +389,65 @@ const STYLE_FIELDS: readonly string[] = [
 ];
 
 /**
- * Whether a group is a serialized style tuple: a group under
- * `font.style.<name>` whose children are exactly the five style leaves.
- * Composite tuples and five-child groups normalize to the same tree, so the
- * serializer writes the compact form back whatever form authored it.
+ * Whether a group is a style tuple: a `$type: "typography"` group whose
+ * children are exactly the five style leaves. Composites, five-child groups,
+ * and whole-style aliases all normalize to this tree, so the serializer
+ * writes the compact form back whatever form authored it.
  */
 function isStyleTuple(node: TokenGroup): boolean {
-  if (node.kind !== "group" || node.path.length !== 3) return false;
-  if (node.path[0] !== "font" || node.path[1] !== "style") return false;
+  if (node.kind !== "group") return false;
   if (node.children.length !== STYLE_FIELDS.length) return false;
   return node.children.every((child, index) =>
     child.kind === "token" &&
     child.name === STYLE_FIELDS[index] &&
-    child.path.length === 4 &&
-    child.path[3] === STYLE_FIELDS[index]
+    child.path.length === node.path.length + 1 &&
+    child.path[child.path.length - 1] === STYLE_FIELDS[index]
   );
 }
 
 /**
+ * The whole-style target a tuple's five field aliases share, when they share
+ * one: five leaves reading `{font.style.body.family}` through
+ * `{font.style.body.leading}` are the alias `{font.style.body}` written out.
+ */
+function sharedStyleTarget(node: TokenGroup): string | undefined {
+  const targets: string[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i];
+    if (child?.kind !== "token" || typeof child.value !== "string") return undefined;
+    const match = /^\{([^{}]+)\}$/.exec(child.value.trim());
+    if (match === null) return undefined;
+    const target = (match[1] as string).trim();
+    if (!target.endsWith(`.${STYLE_FIELDS[i]}`)) return undefined;
+    targets.push(target.slice(0, target.length - (STYLE_FIELDS[i] as string).length - 1));
+  }
+  const first = targets[0];
+  if (first === undefined || first.length === 0) return undefined;
+  return targets.every((target) => target === first) ? first : undefined;
+}
+
+/**
  * Serialize one style tuple as the compact composite token: one
- * `$type: "typography"` carrying the five fields in a single `$value`. The
+ * `$type: "typography"` carrying the five fields in a single `$value` — or
+ * the whole-style alias when the five leaves read one target's fields. The
  * leaves' descriptions stay on the document's leaves no longer — the tuple
  * is the owned voice, and the tuple's own `$description` says what it is.
  */
 function styleTupleToJson(node: TokenGroup): unknown {
+  const out: Record<string, unknown> = {
+    $type: "typography",
+  };
+  if (node.description !== undefined) out.$description = node.description;
+  const target = sharedStyleTarget(node);
+  if (target !== undefined) {
+    out.$value = `{${target}}`;
+    return out;
+  }
   const value: Record<string, unknown> = {};
   for (const child of node.children) {
     if (child.kind !== "token") continue;
     value[child.name] = child.value;
   }
-  const out: Record<string, unknown> = {
-    $type: "typography",
-  };
-  if (node.description !== undefined) out.$description = node.description;
   out.$value = value;
   // A `$modes` the tuple's leaves share is the tuple's variation, stated
   // once beside the value rather than five times across it.

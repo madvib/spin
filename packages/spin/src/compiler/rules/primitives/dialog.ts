@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { type ThemeContext, token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import type { ThemeContext } from "../../utils/lookup.ts";
 
 
 /**
@@ -51,7 +51,7 @@ import { type ThemeContext, token } from "../../utils/lookup.ts";
  */
 export function dialogRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("dialog")) return [];
   const dialog = "dialog";
   return [
@@ -242,16 +242,16 @@ export function dialogRules(
 
 function tokens(ctx: ThemeContext | undefined) {
   return {
-    spacing2: token(ctx, "spacing.2"),
-    spacing4: token(ctx, "spacing.4"),
-    radius: token(ctx, "radius.lg"),
-    text: token(ctx, "color.text"),
-    raised: token(ctx, "color.surface-raised"),
-    border: token(ctx, "color.border"),
-    scrim: token(ctx, "color.scrim"),
-    borderWidth: token(ctx, "border.width"),
-    shadow: token(ctx, "shadow.lg"),
-    duration: token(ctx, "motion.duration.fast"),
-    easing: token(ctx, "motion.easing.standard"),
+    spacing2: ctx?.theme?.spacing?.[2],
+    spacing4: ctx?.theme?.spacing?.[4],
+    radius: ctx?.theme?.radius?.lg,
+    text: ctx?.theme?.color?.text,
+    raised: ctx?.theme?.color?.["surface-raised"],
+    border: ctx?.theme?.color?.border,
+    scrim: ctx?.theme?.color?.scrim,
+    borderWidth: ctx?.theme?.border?.width,
+    shadow: ctx?.theme?.shadow?.lg,
+    duration: ctx?.theme?.motion?.duration?.fast,
+    easing: ctx?.theme?.motion?.easing?.standard,
   };
 }

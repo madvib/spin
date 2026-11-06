@@ -1,5 +1,5 @@
-import type { Rule } from "@unocss/core";
-import { proseTokens, spacing, styleType } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { proseTokens, spacing } from "./shared.ts";
 import { paintedTag } from "./scope.ts";
 
 /**
@@ -23,7 +23,7 @@ import { paintedTag } from "./scope.ts";
  * document's furniture: the document says how a figure is set, and a figure
  * outside a document column is only a block of flow.
  */
-function figureRule(): Rule {
+function figureRule(): SpinRule {
   return [
     /^figure$/,
     function* (_m, ctx) {
@@ -44,24 +44,21 @@ function figureRule(): Rule {
 /**
  * A caption.
  *
- * Its TYPE — the caption-strong voice it reads in — is typography, and the
+ * Its TYPE — the caption-strong style it reads in — is typography, and the
  * theme's everywhere: a caption is a caption wherever it sits. A theme moves
  * its captions by moving the style.
  *
  * Its PLACE — centred under the figure it belongs to — is the document's
  * furniture, because a caption is centred in a column and nowhere else.
  */
-function figcaptionRule(): Rule {
+function figcaptionRule(): SpinRule {
   return [
     /^figcaption$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "caption-strong");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
+      const primary = ctx?.theme?.element?.figcaption?.type;
+      const shared = ctx?.theme?.font?.style?.["caption-strong"];
+      const s = primary ?? shared;
       yield {
         [ctx.symbols.selector]: () => "figcaption",
         // The gap the caption leaves under the figure it belongs to: the
@@ -69,11 +66,7 @@ function figcaptionRule(): Rule {
         ...(t.spacing1 !== undefined
           ? { "margin-block-start": t.spacing1 }
           : {}),
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(s ?? {}),
         ...(t.muted !== undefined ? { color: t.muted } : {}),
       };
       yield {
@@ -87,7 +80,7 @@ function figcaptionRule(): Rule {
 }
 
 /** Media never overflows its column, and raster/video carry the card's corner. */
-function mediaRule(tag: string): Rule {
+function mediaRule(tag: string): SpinRule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
@@ -106,7 +99,7 @@ function mediaRule(tag: string): Rule {
   ];
 }
 
-function embeddedRule(tag: string): Rule {
+function embeddedRule(tag: string): SpinRule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
@@ -125,7 +118,7 @@ function embeddedRule(tag: string): Rule {
   ];
 }
 
-export function mediaRules(): Rule[] {
+export function mediaRules(): SpinRule[] {
   return [
     figureRule(),
     figcaptionRule(),

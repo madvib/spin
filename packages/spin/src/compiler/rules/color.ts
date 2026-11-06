@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
 import { hasRawColor } from "../utils/color.ts";
@@ -56,7 +56,7 @@ function colorOf(
   return undefined;
 }
 
-export function colorRules(): Rule[] {
+export function colorRules(): SpinRule[] {
   return [
     [
       /^bg-(.+)$/,

@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { staticRules } from "../utils/factories.ts";
 import { spacingRule } from "../utils/factories.ts";
 
@@ -27,7 +27,7 @@ export const MARGIN_AUTO_NAMES: readonly string[] = AUTO_AXES.map(([name]) =>
   name
 );
 
-export function spacingRules(): Rule[] {
+export function spacingRules(): SpinRule[] {
   return [
     spacingRule(/^p-(.+)$/, ["padding"], "p-$spacing"),
     spacingRule(/^m-(.+)$/, ["margin"], "m-$spacing"),
@@ -115,8 +115,8 @@ export const GUTTER_NAMES: readonly string[] = GUTTER_AXES.map(([name]) =>
   name
 );
 
-function gutterRules(): Rule[] {
-  return GUTTER_AXES.map(([name, property]): Rule => [
+function gutterRules(): SpinRule[] {
+  return GUTTER_AXES.map(([name, property]): SpinRule => [
     name,
     { [property]: "var(--grid-gutter)" },
   ]);

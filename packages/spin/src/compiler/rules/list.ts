@@ -14,10 +14,10 @@
  * is the vertical counterpart for when the element default is not enough.
  */
 
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { proseTokens } from "./primitives/shared.ts";
 
-export function listRules(): Rule[] {
+export function listRules(): SpinRule[] {
   return [
     // A horizontal list: no markers, no spacing, one line.
     [

@@ -185,9 +185,10 @@ function remedyOf(family: Family, variants: readonly string[]): string {
  * out of a spacing override on a control is the variant and not a step.
  *
  * The variants are found by what they set: the variant that sets the
- * element's size is the one that speaks about its size. A variant the
- * element already wears is not offered — telling an author to use the
- * variant they are using is not advice.
+ * element's padding is the one that speaks about its size — type alone is
+ * not size, and every tone variant sets type now that each carries its own
+ * tuple. A variant the element already wears is not offered — telling an
+ * author to use the variant they are using is not advice.
  */
 function sizeVariants(
   facts: Facts,
@@ -209,7 +210,9 @@ function sizeVariants(
         node.ancestors ?? [],
         [name],
       );
-      if (!declarations.has("font-size")) continue;
+      // Physical, not logical: the surface reports what the rule sets after
+      // Uno resolves the longhands.
+      if (!declarations.has("padding-left")) continue;
       out.push(name);
     }
   }

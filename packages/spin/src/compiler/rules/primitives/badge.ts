@@ -1,6 +1,6 @@
-import type { Rule } from "@unocss/core";
-import { named, token } from "../../utils/lookup.ts";
-import { styleType, withFallback } from "./shared.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
+import { named } from "../../utils/lookup.ts";
+import { fallback } from "./shared.ts";
 
 /**
  * Badge — a small status label.
@@ -18,7 +18,7 @@ import { styleType, withFallback } from "./shared.ts";
  */
 export function badgeRules(
   roots: readonly string[],
-): Rule[] {
+): SpinRule[] {
   if (!roots.includes("badge")) return [];
   return [
     badgeBase(),
@@ -29,20 +29,20 @@ export function badgeRules(
 }
 
 /** The shared shape every tone keeps: a small inline pill. */
-function badgeBase(): Rule {
+function badgeBase(): SpinRule {
   const badge = "badge";
   return [
     /^badge$/,
     function* (_m, ctx) {
-      const spacing2 = token(ctx, "spacing.2");
-      const spacing1 = token(ctx, "spacing.1");
-      const borderWidth = token(ctx, "border.width");
-      const borderColor = token(ctx, "color.border");
-      // The badge wears the badge voice outright — the word on a pill.
-      const s = styleType(ctx, "badge");
-      const sizeXs = s.size;
-      const weightMedium = s.weight;
-      const edge = withFallback(ctx, "badge.edge", "border.width") ??
+      const spacing2 = ctx?.theme?.spacing?.[2];
+      const spacing1 = ctx?.theme?.spacing?.[1];
+      const borderWidth = ctx?.theme?.border?.width;
+      const borderColor = ctx?.theme?.color?.border;
+      // The badge wears its own tuple — the word on a pill.
+      const s = ctx?.theme?.badge?.type ?? ctx?.theme?.font?.style?.badge;
+      const sizeXs = s?.["font-size"];
+      const weightMedium = s?.["font-weight"];
+      const edge = fallback(ctx?.theme?.badge?.edge, ctx?.theme?.border?.width) ??
         borderWidth;
       // `badge.pill` is a boolean token. The rule context carries references,
       // not values — every deck builds one shared rule — so the decision
@@ -52,7 +52,7 @@ function badgeBase(): Rule {
       // branch computes to its own square. Presence asks once for the whole
       // system; the browser answers per deck.
       const pill = named(ctx, "badge", "pill") !== undefined;
-      const pillRadius = token(ctx, "radius.full");
+      const pillRadius = ctx?.theme?.radius?.full;
       yield {
         [ctx.symbols.selector]: () => badge,
         display: "inline-flex",
@@ -112,7 +112,7 @@ const TONES: ReadonlyArray<{
   { name: "info", fill: "semantic-info", on: "on-semantic-info" },
 ];
 
-function badgeTones(): Rule[] {
+function badgeTones(): SpinRule[] {
   const badge = "badge";
   return TONES.flatMap((tone) => {
     const { name, fill, on, edge } = tone;
@@ -181,7 +181,7 @@ function badgeTones(): Rule[] {
  * and the padding steps that go with it, plus a min-height that accounts
  * for the border so the pill's height is its content plus its edge.
  */
-function badgeSizes(): Rule[] {
+function badgeSizes(): SpinRule[] {
   const badge = "badge";
   const SIZES: ReadonlyArray<{
     name: string;
@@ -208,12 +208,12 @@ function badgeSizes(): Rule[] {
   return SIZES.map((size) => [
     new RegExp(`^${size.name}$`),
     function* (_m, ctx) {
-      // The badge's sizes are the badge voice at its steps: sm keeps the
+      // The badge's sizes are the badge style at its steps: sm keeps the
       // badge style's own 2xs, lg takes the label step — read through the
       // styles' sizes, so moving the styles moves the sizes with them.
-      const voice = styleType(ctx, "badge");
-      const label = styleType(ctx, "label");
-      const fontSize = size.fontSize === "2xs" ? voice.size : label.size;
+      const style = ctx?.theme?.badge?.type ?? ctx?.theme?.font?.style?.badge;
+      const label = ctx?.theme?.font?.style?.label;
+      const fontSize = size.fontSize === "2xs" ? style?.["font-size"] : label?.["font-size"];
       const spacingInline = named(ctx, "spacing", size.spacingInline);
       const spacingBlock = named(ctx, "spacing", size.spacingBlock);
       yield {
@@ -239,7 +239,7 @@ function badgeSizes(): Rule[] {
       };
     },
     { layer: "primitives", autocomplete: size.name },
-  ]) as Rule[];
+  ]) as SpinRule[];
 }
 
 /**
@@ -248,7 +248,7 @@ function badgeSizes(): Rule[] {
  * awareness needed, because the tone is already on the badge and this only
  * carries the glyph.
  */
-function badgeClose(): Rule[] {
+function badgeClose(): SpinRule[] {
   const badge = "badge";
   return [
     [

@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Prose — the bare content tags, and a `<prose>` container around them.
@@ -57,7 +57,7 @@ import { codeRules } from "./prose-code.ts";
  * document with only `<p>` emits only the paragraph rule) is per-tag, not
  * per-component, so unused elements still emit nothing.
  */
-export function proseRules(): Rule[] {
+export function proseRules(): SpinRule[] {
   return [
     bodyRule(),
     proseContainerRule(),
@@ -70,7 +70,7 @@ export function proseRules(): Rule[] {
 }
 
 /** The opt-in column: a measure, and a spacing that sits flush at its edges. */
-function proseContainerRule(): Rule {
+function proseContainerRule(): SpinRule {
   return [
     /^prose$/,
     function* (_m, ctx) {

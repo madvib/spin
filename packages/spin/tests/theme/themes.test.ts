@@ -337,11 +337,11 @@ test("a theme states its modes at the root", async () => {
   // this theme carry a dark override set?" cannot tell a base-that-is-dark
   // from a theme that never declares one. `modes` says what it serves.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
-    const doc = JSON.parse(
-      await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8"),
-    );
+    // The served document, not the sparse file: a starter layers over the
+    // base, and the modes it serves are what the resolved document states.
+    const doc = starterThemes[name] as Record<string, unknown>;
     deepStrictEqual(
-      doc.modes,
+      doc["modes"],
       modes,
       `${name}: root modes must say what it serves`,
     );
@@ -389,11 +389,9 @@ test("a theme declares the modes it actually has", async () => {
   // group's presence — and adding a mode is a change to the theme document,
   // which is the one file a theme owns.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
-    const doc = JSON.parse(
-      await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8"),
-    );
+    const doc = starterThemes[name] as ThemeDocument;
     deepStrictEqual(
-      [...themeModes(doc as ThemeDocument)],
+      [...themeModes(doc)],
       modes,
       `${name}: the reported modes must follow from its root field`,
     );

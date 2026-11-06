@@ -7,14 +7,12 @@
  */
 
 import { definePreset } from "@unocss/core";
-import type { Preset, UserShortcuts } from "@unocss/core";
+import type { Preset, UserShortcuts, Variant } from "@unocss/core";
+import type { Theme } from "../theme/theme-types.d.ts";
 import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
 import {
   parseTokens,
-  resolveStyleReference,
-  styleReferencePaths,
-  themeKey,
   themeRef,
   validateLegibility,
   validateTokens,
@@ -34,7 +32,7 @@ import {
 } from "./extractors.ts";
 import { wind4Layers, wind4Theme } from "./wind4.ts";
 import { orGroup } from "./utils/factories.ts";
-import { styleNames } from "./utils/lookup.ts";
+import { styleNames, type SpinRule } from "./utils/lookup.ts";
 import { breakpointEdges, spinVariants } from "./variants/index.ts";
 
 /** Options for {@link spinPreset}. */
@@ -116,8 +114,8 @@ function assertComplete(
 
 export function createSpinFactory(
   layerWind4: boolean,
-): (options?: SpinPresetOptions) => Preset {
-  const factory = definePreset(
+): (options?: SpinPresetOptions) => Preset<Theme> {
+  const factory = definePreset<SpinPresetOptions, Theme>(
     (options: SpinPresetOptions = {}) => {
       if ("classless" in options) {
         throw new Error(
@@ -179,15 +177,6 @@ export function createSpinFactory(
       const merged = Object.values(trees).reduce<TokenTree>((all, t) => [...all, ...t], []);
       const vars = themeRef(merged);
       const theme = { ...vars, ...wind4Theme(vars) } as unknown as ThemeRef;
-      // Style references resolve to their literal names here, not in the
-      // rules: a reference carries a NAME (`label`), and CSS cannot spend a
-      // name — only a rule that knows which style to read can. The map
-      // carries the name the theme declared, or nothing when it declared
-      // none; the rule falls back to the default style or inherits.
-      for (const path of styleReferencePaths()) {
-        const name = resolveStyleReference(merged, path);
-        if (name !== undefined) theme[themeKey(path)] = name;
-      }
       // Breakpoint VALUES, resolved: a media query cannot read a custom
       // property, so the variant needs the literal width the theme declared.
       const edges = breakpointEdges(Object.values(trees));
@@ -197,8 +186,8 @@ export function createSpinFactory(
 
       return {
         name: "spin",
-        theme,
-        variants: [...spinVariants({ breakpoints: edges }), ...wind4.variants],
+        theme: theme as unknown as Theme,
+        variants: [...spinVariants({ breakpoints: edges }), ...(wind4.variants as Variant<Theme>[])],
         // The project's own compositions, and only those. Spin ships no
         // shortcuts of its own: a class the project's config declares is a
         // class the project produces, and uno's `shortcuts` option is how
@@ -221,7 +210,10 @@ export function createSpinFactory(
         // through.
         rules: [
           ...spinRules(componentRoots),
-          ...wind4.rules,
+          // wind4's rules read `theme` through their own nested vocabulary —
+          // `wind4Theme` above — so their `object` theme parameter is the seam
+          // working, not a type to unify.
+          ...(wind4.rules as unknown as SpinRule[]),
         ],
         preflights: buildPreflights(
           { trees, documents, paletteTrees, paletteDocuments, spacingTrees },
@@ -248,7 +240,7 @@ export function createSpinFactory(
             "z-$zIndex",
             "duration-$motionDuration",
             "ease-$motionEasing",
-            // TYPE-b: no `text-$fontSize` / `font-$fontFamily` templates — the
+            // No `text-$fontSize` / `font-$fontFamily` templates — the
             // raw utilities are gone, and completion offers named styles.
             "type-$fontStyle",
             "rounded-$radius",
@@ -258,7 +250,7 @@ export function createSpinFactory(
             colors: orGroup(theme, "color"),
             spacing: orGroup(theme, "spacing"),
             opacity: orGroup(theme, "opacity"),
-            // TYPE-c: `tracking`/`leading` shorthands gone with the rules.
+            // `tracking`/`leading` shorthands gone with the rules.
             breakpoint: orGroup(theme, "breakpoint"),
             zIndex: orGroup(theme, "z-index"),
             motionDuration: "(" + transitionDurations(theme).join("|") + ")",
@@ -270,5 +262,5 @@ export function createSpinFactory(
       };
     },
   );
-  return (options?: SpinPresetOptions) => factory(options) as unknown as Preset;
+  return (options?: SpinPresetOptions) => factory(options);
 }

@@ -1,5 +1,4 @@
-import type { Rule } from "@unocss/core";
-import { token } from "../../utils/lookup.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * Textarea — a field box that wraps and can be resized by the author.
@@ -10,14 +9,14 @@ import { token } from "../../utils/lookup.ts";
  * derived from the spacing scale because no utility expresses a height
  * computed from two steps — a textarea sized to one line is not a textarea.
  */
-export function textareaRules(roots: readonly string[]): Rule[] {
+export function textareaRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("field")) return [];
   return [
     [
       /^textarea$/,
       function* (_m, ctx) {
-        const spacing16 = token(ctx, "spacing.16");
-        const spacing4 = token(ctx, "spacing.4");
+        const spacing16 = ctx?.theme?.spacing?.[16];
+        const spacing4 = ctx?.theme?.spacing?.[4];
         yield {
           [ctx.symbols.selector]: () => "textarea",
           display: "block",

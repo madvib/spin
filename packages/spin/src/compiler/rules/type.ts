@@ -1,4 +1,4 @@
-import type { Rule } from "@unocss/core";
+import type { SpinRule } from "../utils/lookup.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
@@ -16,7 +16,7 @@ import { named, type ThemeContext } from "../utils/lookup.ts";
  * nothing and the rule abstains, which is what makes an unknown style an
  * unknown class rather than a silent empty declaration.
  */
-export function namedTypeRules(): Rule[] {
+export function namedTypeRules(): SpinRule[] {
   return [
     [
       /^type-(.+)$/,

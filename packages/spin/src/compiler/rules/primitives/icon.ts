@@ -1,6 +1,5 @@
-import type { Rule } from "@unocss/core";
-import type { ThemeTokenPath } from "../../../theme/theme-types.d.ts";
-import { withFallback } from "./shared.ts";
+import { named, type SpinRule } from "../../utils/lookup.ts";
+import { fallback } from "./shared.ts";
 
 /**
  * The icon sizes, as generated rules.
@@ -34,19 +33,22 @@ import { withFallback } from "./shared.ts";
 /** The size steps the `icon` group declares, smallest first. */
 const STEPS = ["sm", "md", "lg"] as const;
 
-const ICON_FALLBACK: Readonly<Record<"sm" | "md" | "lg", ThemeTokenPath>> = {
-  sm: "font.size.sm",
-  md: "font.size.md",
-  lg: "font.size.xl",
+const ICON_FALLBACK_STEP: Readonly<Record<"sm" | "md" | "lg", string>> = {
+  sm: "sm",
+  md: "md",
+  lg: "xl",
 };
 
-export function iconRules(roots: readonly string[]): Rule[] {
+export function iconRules(roots: readonly string[]): SpinRule[] {
   if (!roots.includes("icon")) return [];
-  return STEPS.map((step): Rule[] => [
+  return STEPS.map((step): SpinRule[] => [
     [
       new RegExp(`^icon-${step}$`),
       (_m, ctx) => {
-        const size = withFallback(ctx, `icon.${step}`, ICON_FALLBACK[step]);
+        const size = fallback(
+          named(ctx, "icon", step),
+          named(ctx, "font-size", ICON_FALLBACK_STEP[step]),
+        );
         return {
           [ctx.symbols.selector]: () => `.icon-${step}`,
           // An icon class from `preset-icons` sizes the glyph `1em` square

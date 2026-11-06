@@ -1,7 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import {
-  FACE_CHAINS,
   ownedStyleFields,
   ownedStyleNames,
   indexTree,
@@ -11,7 +10,6 @@ import {
   themeSchema,
   validateTokens,
 } from "../index.ts";
-import { FONT_MAP_DEFAULTS, resolveFontMap } from "./typography.ts";
 import { starterThemes } from "../themes/index.ts";
 import type { ThemeDocument, TokenLeaf } from "../pipeline/types.ts";
 
@@ -123,9 +121,9 @@ test("the type scales are not required paths", () => {
 });
 
 /**
- * The voice audit: no two declared styles may carry the same tuple.
+ * The style audit: no two declared styles may carry the same tuple.
  *
- * Two names over one tuple are one voice with two names, and a theme that
+ * Two names over one tuple are one style with two names, and a theme that
  * keeps both invites the second guess every re-point has to rule out. The
  * check reads the resolved tuple — the alias targets, not the alias text —
  * so two styles built from the same steps fail even when they spell the
@@ -165,9 +163,9 @@ test("no two styles share a tuple", () => {
   }
 });
 
-test("starters disagree: at least two voices differ per style", () => {
+test("starters disagree: at least two themes differ per style", () => {
   // The starters are five directions, not five copies: a style that reads
-  // the same everywhere is a voice no starter owns. Two differing voices
+  // the same everywhere is a style no starter owns. Two differing tuples
   // per style keeps the set honest without pinning which theme differs.
   for (const name of ownedStyleNames()) {
     const tuples = new Set(
@@ -175,12 +173,12 @@ test("starters disagree: at least two voices differ per style", () => {
     );
     assert(
       tuples.size >= 2,
-      `${name} reads the same in every starter — a voice no starter owns`,
+      `${name} reads the same in every starter — a style no starter owns`,
     );
   }
 });
 
-test("the owned set is sixteen voices with no link", () => {
+test("the owned set is sixteen styles with no link", () => {
   deepStrictEqual([...ownedStyleNames()], [
     "display",
     "title",
@@ -201,45 +199,3 @@ test("the owned set is sixteen voices with no link", () => {
   ]);
 });
 
-test("the font map voices elements and components by default", () => {
-  deepStrictEqual(FONT_MAP_DEFAULTS["h1"], "display");
-  deepStrictEqual(FONT_MAP_DEFAULTS["p"], "body");
-  deepStrictEqual(FONT_MAP_DEFAULTS["small"], "caption");
-  deepStrictEqual(FONT_MAP_DEFAULTS["figcaption"], "caption-strong");
-  deepStrictEqual(FONT_MAP_DEFAULTS["button"], "label");
-  deepStrictEqual(FONT_MAP_DEFAULTS["button.s-lg"], "subtitle");
-  deepStrictEqual(FONT_MAP_DEFAULTS["stat.title"], "caption-strong");
-  deepStrictEqual(FONT_MAP_DEFAULTS["stat.value"], "stat");
-  deepStrictEqual(FONT_MAP_DEFAULTS["stat.desc"], "caption");
-  deepStrictEqual(FONT_MAP_DEFAULTS["badge"], "badge");
-  deepStrictEqual(FONT_MAP_DEFAULTS["card.title"], "card-title");
-  deepStrictEqual(FONT_MAP_DEFAULTS["field"], "body");
-  deepStrictEqual(FONT_MAP_DEFAULTS["alert"], "label");
-});
-
-test("resolveFontMap merges font.map over the defaults", () => {
-  const merged = resolveFontMap({
-    font: { map: { h1: "title", p: "none", small: null } },
-  });
-  deepStrictEqual(merged["h1"], "title");
-  deepStrictEqual(merged["p"], null);
-  deepStrictEqual(merged["small"], null);
-  deepStrictEqual(merged["h2"], FONT_MAP_DEFAULTS["h2"]);
-  deepStrictEqual(merged["button"], FONT_MAP_DEFAULTS["button"]);
-});
-
-test("resolveFontMap reads legacy component references under their map targets", () => {
-  const merged = resolveFontMap({
-    button: { type: { $type: "typography", $value: "body" } },
-    stat: { title: { type: { $type: "typography", $value: "overline" } } },
-  });
-  deepStrictEqual(merged["button"], "body");
-  deepStrictEqual(merged["stat.title"], "overline");
-  // The map wins where both speak: the legacy reference is the fallback,
-  // never an override of a stated mapping.
-  const stated = resolveFontMap({
-    font: { map: { button: "subtitle" } },
-    button: { type: { $type: "typography", $value: "body" } },
-  });
-  deepStrictEqual(stated["button"], "subtitle");
-});

@@ -17,8 +17,9 @@
  */
 
 import { paintedTag } from "./scope.ts";
-import { proseTokens, spacing, styleType } from "./shared.ts";
-import type { Rule } from "@unocss/core";
+import { proseTokens, spacing } from "./shared.ts";
+import type { ThemeType } from "../../../theme/theme-types.d.ts";
+import type { SpinRule } from "../../utils/lookup.ts";
 
 /**
  * A block of a document.
@@ -32,14 +33,14 @@ function block(tag: string): string {
   return paintedTag("prose", "descendant", tag);
 }
 
-function bodyRule(): Rule {
+function bodyRule(): SpinRule {
   return [
     /^body$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "body");
-      const family = s.family;
-      const size = s.size;
+      const s: ThemeType | undefined = ctx?.theme?.font?.style?.body;
+      const family = s?.["font-family"];
+      const size = s?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => paintedTag("body", "global", "body"),
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -56,32 +57,24 @@ function bodyRule(): Rule {
 
 /**
  * Body copy: the spacing below it, and the type it reads in.
- *
- * The paragraph's TYPE is the body's — it inherits the owned set — and the
- * paragraph states what it inherits, so a class that says otherwise is a
- * second opinion the lint can see. The paragraph reads the body style
- * outright: the face, the size, the weight, the tracking and the leading a
- * paragraph wears are the body voice's, and a theme moves its paragraphs by
- * moving the style.
  */
-function paragraphRule(): Rule {
+function paragraphRule(): SpinRule {
   return [
     /^p$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "body");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
+      const primary = ctx?.theme?.element?.p?.type;
+      const shared = ctx?.theme?.font?.style?.body;
+      const s: ThemeType | undefined = primary ?? shared;
       yield {
         [ctx.symbols.selector]: () => "p",
-        ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(s?.["line-height"] !== undefined
+          ? { "line-height": s["line-height"] }
+          : { "line-height": "1.65" }),
+        ...(s?.["letter-spacing"] !== undefined ? { "letter-spacing": s["letter-spacing"] } : {}),
+        ...(s?.["font-family"] !== undefined ? { "font-family": s["font-family"] } : {}),
+        ...(s?.["font-size"] !== undefined ? { "font-size": s["font-size"] } : {}),
+        ...(s?.["font-weight"] !== undefined ? { "font-weight": s["font-weight"] } : {}),
         ...spacing(t),
       };
     },
@@ -89,30 +82,22 @@ function paragraphRule(): Rule {
   ];
 }
 
-/** A list: the shared spacing, its indent, and the type its rows read in.
- *
- * A list's TYPE is the body's, as the paragraph's is: the rows read the
- * body style outright, and the list states what it inherits so spacing/type
- * overrides have an owner.
- */
-function listRule(tag: string): Rule {
+/** A list: the shared spacing, its indent, and the type its rows read in. */
+function listRule(tag: string): SpinRule {
   return [
     new RegExp(`^${tag}$`),
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "body");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
+      const s: ThemeType | undefined = ctx?.theme?.font?.style?.body;
       yield {
         [ctx.symbols.selector]: () => tag,
-        ...(leading !== undefined ? { "line-height": leading } : { "line-height": "1.65" }),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
+        ...(s?.["line-height"] !== undefined
+          ? { "line-height": s["line-height"] }
+          : { "line-height": "1.65" }),
+        ...(s?.["letter-spacing"] !== undefined ? { "letter-spacing": s["letter-spacing"] } : {}),
+        ...(s?.["font-family"] !== undefined ? { "font-family": s["font-family"] } : {}),
+        ...(s?.["font-size"] !== undefined ? { "font-size": s["font-size"] } : {}),
+        ...(s?.["font-weight"] !== undefined ? { "font-weight": s["font-weight"] } : {}),
         ...spacing(t),
         "list-style-type": tag === "ol" ? "decimal" : "disc",
         ...(t.spacing4 !== undefined
@@ -135,16 +120,16 @@ function listRule(tag: string): Rule {
  * Nothing here changes rendered output for themes that state nothing: the
  * values stated are the values already inherited, now written down.
  */
-function listItemRule(): Rule {
+function listItemRule(): SpinRule {
   const li = "li";
   return [
     /^li$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "body");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
+      const s: ThemeType | undefined = ctx?.theme?.font?.style?.body;
+      const family = s?.["font-family"];
+      const size = s?.["font-size"];
+      const weight = s?.["font-weight"];
       yield {
         [ctx.symbols.selector]: () => li,
         ...(family !== undefined ? { "font-family": family } : {}),
@@ -162,7 +147,7 @@ function listItemRule(): Rule {
   ];
 }
 
-function definitionListRule(): Rule {
+function definitionListRule(): SpinRule {
   return [
     /^dl$/,
     function* (_m, ctx) {
@@ -175,12 +160,14 @@ function definitionListRule(): Rule {
   ];
 }
 
-function termRule(): Rule {
+function termRule(): SpinRule {
   return [
     /^dt$/,
     function* (_m, ctx) {
-      const s = styleType(ctx, "body-strong");
-      const weight = s.weight;
+      const primary = ctx?.theme?.element?.dt?.type;
+      const shared = ctx?.theme?.font?.style?.["body-strong"];
+      const s: ThemeType | undefined = primary ?? shared;
+      const weight = s?.["font-weight"];
       yield {
         [ctx.symbols.selector]: () => "dt",
         ...(weight !== undefined ? { "font-weight": weight } : {}),
@@ -190,7 +177,7 @@ function termRule(): Rule {
   ];
 }
 
-function definitionRule(): Rule {
+function definitionRule(): SpinRule {
   return [
     /^dd$/,
     function* (_m, ctx) {
@@ -216,44 +203,20 @@ function definitionRule(): Rule {
 
 /**
  * A quotation.
- *
- * Two treatments, and they belong to different owners.
- *
- * The quotation's VOICE — the face it reads in and the spacing it sits in — is
- * typography, and typography is the theme's everywhere: a quotation in a
- * sidebar reads in the same face as a quotation in a document. The quotation
- * reads the quote style outright, and a theme moves its quotations by moving
- * the style.
- *
- * The quotation's TREATMENT — the muted ink it reads in and the inset it is
- * set in — is the document's furniture. It is a long-form column's way of
- * setting a quotation apart, and it belongs inside the column: a quotation
- * outside one is the author's, and reads like the body around it.
- *
- * The footer that carries the attribution is reached through the quotation,
- * so an ordinary `<footer>` elsewhere is not styled as one. The attribution
- * is small print, so it reads the caption style.
  */
-function blockquoteRule(): Rule {
+function blockquoteRule(): SpinRule {
   const inset = block("blockquote");
   return [
     /^blockquote$/,
     function* (_m, ctx) {
       const t = proseTokens(ctx);
-      const s = styleType(ctx, "quote");
-      const family = s.family;
-      const size = s.size;
-      const weight = s.weight;
-      const tracking = s.tracking;
-      const leading = s.leading;
-      const footerSize = styleType(ctx, "caption").size;
+      const primary = ctx?.theme?.element?.blockquote?.type;
+      const shared = ctx?.theme?.font?.style?.quote;
+      const s: ThemeType | undefined = primary ?? shared;
+      const footerSize = ctx?.theme?.font?.style?.caption?.["font-size"];
       yield {
         [ctx.symbols.selector]: () => "blockquote",
-        ...(family !== undefined ? { "font-family": family } : {}),
-        ...(size !== undefined ? { "font-size": size } : {}),
-        ...(weight !== undefined ? { "font-weight": weight } : {}),
-        ...(tracking !== undefined ? { "letter-spacing": tracking } : {}),
-        ...(leading !== undefined ? { "line-height": leading } : {}),
+        ...(s ?? {}),
         ...spacing(t),
       };
       yield {
@@ -279,7 +242,7 @@ function blockquoteRule(): Rule {
 }
 
 /** The block family, in emission order. See `proseRules` on why. */
-export function blockRules(): Rule[] {
+export function blockRules(): SpinRule[] {
   return [
     paragraphRule(),
     listRule("ul"),

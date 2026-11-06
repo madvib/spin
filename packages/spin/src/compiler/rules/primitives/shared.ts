@@ -3,10 +3,6 @@ import {
   type ThemeContext,
   token,
 } from "../../utils/lookup.ts";
-import {
-  FACE_CHAINS,
-  type GlobalTypePath,
-} from "../../../theme/index.ts";
 import type { ThemeTokenPath } from "../../../theme/theme-types.d.ts";
 /**
  * Primitives always claim their bare tags: `<button>` is a button and
@@ -49,115 +45,20 @@ export function spend(
 }
 
 /**
- * A token a component spends, and the shared scale it falls back to.
+ * A component token, and the shared scale it falls back to.
  *
- * The fallback is read on its own — not inside the `??` — so the derivation
- * that records what a rule spends sees both. A token the rule only reaches
- * when the theme is silent is still a token the rule spends, and a manifest
- * that leaves it out is a manifest that understates the contract.
+ * Both arguments evaluate before the call, so the derivation that records
+ * what a rule spends sees both. A token the rule only reaches when the theme
+ * is silent is still a token the rule spends, and a manifest that leaves it
+ * out is a manifest that understates the contract.
  */
-export function withFallback(
-  ctx: ThemeContext | undefined,
-  path: ThemeTokenPath,
-  fallback: ThemeTokenPath,
+export function fallback(
+  primary: string | undefined,
+  shared: string | undefined,
 ): string | undefined {
-  const value = token(ctx, path);
-  const shared = token(ctx, fallback);
-  return value ?? shared;
+  return primary ?? shared;
 }
 
-/* ------------------------------------------------------------- the faces -- */
-
-/**
- * The face a role reads, following the contract's chain.
- *
- * The display face falls back to the heading family, the heading family to
- * the body, and the body to the sans: a theme that names no display voice
- * still has a face for its headings, and a theme that names no body face
- * still has the sans. The chain is the contract's, so the answer is one
- * lookup rather than three, and a rule cannot spell the steps differently
- * from another rule.
- */
-export function face(
-  ctx: ThemeContext | undefined,
-  path: GlobalTypePath,
-): string | undefined {
-  const chain = [path, ...(FACE_CHAINS[path] ?? [])];
-  // Every candidate is read, not only the one that answers: a token the rule
-  // reaches when the theme is silent is still a token the rule spends, and a
-  // manifest that leaves it out understates the contract.
-  const values = chain.map((candidate) => token(ctx, candidate));
-  let nested: string | undefined;
-  for (let i = values.length - 1; i >= 0; i -= 1) {
-    const value = values[i];
-    if (value === undefined) continue;
-    if (typeof value !== "string" || nested === undefined) nested = `${value}`;
-    else if (value.endsWith(")")) nested = `${value.slice(0, -1)}, ${nested})`;
-    else return value;
-  }
-  return nested;
-}
-
-/* ------------------------------------------------------- the named styles -- */
-
-/**
- * What one named style's tuple is, as the theme states it.
- *
- * Only what the theme STATES. A field the theme does not declare is absent
- * here, and the declaration that reads it is dropped: styles are required,
- * so a theme that moves one style's size moves every element that reads the
- * style and nothing else.
- */
-export interface StyleType {
-  readonly family: string | undefined;
-  readonly size: string | undefined;
-  readonly weight: string | undefined;
-  readonly tracking: string | undefined;
-  readonly leading: string | undefined;
-}
-
-/**
- * The tuple one named style reads, as the theme states it.
- *
- * The five decisions are read together because a theme states them together:
- * `font.style.body.family` through `font.style.body.leading` are one
- * style's answer. Styles are required, so there is no fallback: a field the
- * theme does not state is absent, and the rule drops its declaration.
- */
-export function styleType(
-  ctx: ThemeContext | undefined,
-  style: string,
-): StyleType {
-  return {
-    family: named(ctx, "font-style", `${style}-family`),
-    size: named(ctx, "font-style", `${style}-size`),
-    weight: named(ctx, "font-style", `${style}-weight`),
-    tracking: named(ctx, "font-style", `${style}-tracking`),
-    leading: named(ctx, "font-style", `${style}-leading`),
-  };
-}
-
-/**
- * The style a component reference names, or the default when the theme
- * states no reference.
- *
- * A reference token (`button.type`) carries a style NAME, not CSS: the
- * factory resolves declared references to their literal names when it builds
- * the theme map, so by the time a rule reads, the value is the name or the
- * token is absent. Absent with a default is the common case — a theme that
- * says nothing about the button's type gets the label voice. Absent without
- * one is a variant that inherits: it states no type of its own.
- */
-export function styleReference(
-  ctx: ThemeContext | undefined,
-  path: string,
-  fallback: string | undefined,
-): string | undefined {
-  const segments = path.split(".");
-  const name = segments.pop() as string;
-  const family = segments.join("-");
-  return named(ctx, family, name) ?? fallback;
-}
 
 /**
  * A spent declaration map as CSS entry tuples.
@@ -198,8 +99,8 @@ export function spentEntries(
 export function disabledPosture(
   ctx: ThemeContext | undefined,
 ): Record<string, string | undefined> {
-  const fill = token(ctx, "color.disabled");
-  const ink = token(ctx, "color.on-disabled");
+  const fill = ctx?.theme?.color?.disabled;
+  const ink = ctx?.theme?.color?.["on-disabled"];
   return {
     ...(fill !== undefined ? { "background-color": fill } : {}),
     ...(ink !== undefined ? { color: ink, "border-color": ink } : {}),
@@ -241,9 +142,9 @@ export interface FocusRing {
 /** The focus ring, read from the theme. */
 export function focusRing(ctx: ThemeContext | undefined): FocusRing {
   return {
-    width: token(ctx, "focus.width"),
-    offset: token(ctx, "focus.offset"),
-    color: token(ctx, "color.focus-ring"),
+    width: ctx?.theme?.focus?.width,
+    offset: ctx?.theme?.focus?.offset,
+    color: ctx?.theme?.color?.["focus-ring"],
   };
 }
 
@@ -293,7 +194,7 @@ export type Entry = [property: string, value: string | undefined];
  * cycle, and a binding unavailable at module init is a runtime failure in a
  * build script, which is the worst place to find one.
  *
- * The prose rules read their styles outright through `styleType`; what remains
+ * The prose rules read their styles outright through `ctx.theme`; what remains
  * here is the paint and spacing no style owns.
  */
 
@@ -321,25 +222,25 @@ export interface Tokens {
 
 export function proseTokens(ctx: ThemeContext | undefined): Tokens {
   return {
-    spacing1: token(ctx, "spacing.1"),
-    spacing2: token(ctx, "spacing.2"),
-    spacing4: token(ctx, "spacing.4"),
-    radiusSm: token(ctx, "radius.sm"),
-    radiusMd: token(ctx, "radius.md"),
-    text: token(ctx, "color.text"),
-    muted: token(ctx, "color.text-muted"),
-    surface: token(ctx, "color.surface"),
-    raised: token(ctx, "color.surface-raised"),
-    border: token(ctx, "color.border"),
-    link: token(ctx, "color.link"),
-    accent: token(ctx, "color.accent"),
-    onAccent: token(ctx, "color.on-accent"),
-    success: token(ctx, "color.semantic.success"),
-    error: token(ctx, "color.semantic.error"),
-    focusRing: token(ctx, "color.focus-ring"),
-    borderWidth: token(ctx, "border.width"),
-    focusWidth: token(ctx, "focus.width"),
-    focusOffset: token(ctx, "focus.offset"),
+    spacing1: ctx?.theme?.spacing?.[1],
+    spacing2: ctx?.theme?.spacing?.[2],
+    spacing4: ctx?.theme?.spacing?.[4],
+    radiusSm: ctx?.theme?.radius?.sm,
+    radiusMd: ctx?.theme?.radius?.md,
+    text: ctx?.theme?.color?.text,
+    muted: ctx?.theme?.color?.["text-muted"],
+    surface: ctx?.theme?.color?.surface,
+    raised: ctx?.theme?.color?.["surface-raised"],
+    border: ctx?.theme?.color?.border,
+    link: ctx?.theme?.color?.link,
+    accent: ctx?.theme?.color?.accent,
+    onAccent: ctx?.theme?.color?.["on-accent"],
+    success: ctx?.theme?.color?.semantic?.success,
+    error: ctx?.theme?.color?.semantic?.error,
+    focusRing: ctx?.theme?.color?.["focus-ring"],
+    borderWidth: ctx?.theme?.border?.width,
+    focusWidth: ctx?.theme?.focus?.width,
+    focusOffset: ctx?.theme?.focus?.offset,
   };
 }
 
