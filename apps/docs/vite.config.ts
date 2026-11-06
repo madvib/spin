@@ -182,7 +182,7 @@ function buildGettingStartedMarkdown(routePath: string): string | undefined {
         "",
         "```bash",
         "npx spin component copy select basic",
-        "# writes lib/components/select/basic.html -> <app-select-basic>",
+        "# writes src/lib/components/select/basic.html -> <app-select-basic>",
         "```",
         "",
         "## 4. Open the Studio",
@@ -218,7 +218,7 @@ function buildGettingStartedMarkdown(routePath: string): string | undefined {
         "- `--starter` (default `spin`): Shipped starter theme to seed from (`spin`, `silk`, `material`, `neobrut`, `industrial`).",
         "- `--bundler` (default `auto-detected`): Target bundler config (`vite`, `rspack`, `webpack`, `rollup`, `rolldown`, `esbuild`, `bun`).",
         "- `--themes-dir` (default `spin/`): Directory where DTCG theme JSON documents live.",
-        "- `--components-dir` (default `lib/components/`): Directory where project `.html` components live.",
+        "- `--components-dir` (default `src/lib/components/`): Directory where project `.html` components live.",
         "- `--prefix` (default `derived` from `package.json` name, fallback `app`): Custom-element tag prefix.",
         "- `--url` (default `in-process`): Connect to a running Studio daemon instead of running in-process.",
         "- `-y, --yes`: Skip interactive prompts and accept defaults.",
@@ -269,15 +269,15 @@ function buildGettingStartedMarkdown(routePath: string): string | undefined {
         "",
         "- `spin/*.json`: DTCG theme documents declaring your palette, scales, modes, and element overrides.",
         "- `spin/config.json`: Optional project seating configuration (`activeTheme` and `themeOrder`) written by the Studio.",
-        "- `lib/components/*.html`: Vendored and custom HTML components compiled into `<prefix>-<name>` custom elements.",
+        "- `src/lib/components/*.html`: Vendored and custom HTML components compiled into `<prefix>-<name>` custom elements.",
         "- `src/spin-components.d.ts`: Auto-generated DOM and JSX type declarations for your project components.",
       ].join("\n");
     case "/docs/getting-started/paths":
       return [
         "## Entry points at a glance",
         "",
-        "- **`spin.vite()` / `spin.<bundler>()`** (Full app + Studio): Token stylesheet, classless primitives, `spin/*.json` discovery, `lib/components/*.html` compiler and types, plus live Studio overlay on Vite.",
-        "- **`spin.vite({ extends: brand })`** (Multi-app brand): Layers a shared brand package's themes and components beneath local `spin/*.json` and `lib/components/*.html` overrides.",
+        "- **`spin.vite()` / `spin.<bundler>()`** (Full app + Studio): Token stylesheet, classless primitives, `spin/*.json` discovery, `src/lib/components/*.html` compiler and types, plus live Studio overlay on Vite.",
+        "- **`spin.vite({ extends: brand })`** (Multi-app brand): Layers a shared brand package's themes and components beneath local `spin/*.json` and `src/lib/components/*.html` overrides.",
         "- **`spinPreset({ themes })`** (Stylesheet only): Drops into an existing `uno.config.ts` for token CSS, utilities, and element rules from explicit theme objects.",
         "- **`npx spin studio`** (Standalone daemon): Serves the visual theme editor at `/studio/` and RPC daemon at `/rpc` without running an application bundler.",
         "- **`spin lint / theme / component / mcp`** (CLI & Agent tools): Source lints, theme validation gates, component scaffolding, and the stdio MCP server.",
@@ -290,7 +290,7 @@ function buildGettingStartedMarkdown(routePath: string): string | undefined {
         "",
         "## Shared brand packages (`extends`)",
         "",
-        "Multi-app teams can publish a shared brand package exporting `{ themes, componentsDir }` and pass it via `extends`. Local `spin/<name>.json` and `lib/components/<name>.html` override brand entries by name:",
+        "Multi-app teams can publish a shared brand package exporting `{ themes, componentsDir }` and pass it via `extends`. Local `spin/<name>.json` and `src/lib/components/<name>.html` override brand entries by name:",
         "",
         "```ts",
         GETTING_STARTED_SNIPPETS.brandExport,
@@ -1126,7 +1126,7 @@ export default defineConfig({
       content: {
         filesystem: [
           resolve(here, "src/**/*.{tsx,ts}"),
-          resolve(here, "lib/components/**/*.html"),
+          resolve(here, "src/lib/components/**/*.html"),
         ],
         pipeline: {
           include: [/\.(tsx?|html)($|\?)/],

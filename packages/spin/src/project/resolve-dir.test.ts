@@ -35,8 +35,8 @@ test("a local path joins the root", async () => {
     file: false,
   });
   deepStrictEqual(
-    await resolveProjectDir(root, "lib/components", "components"),
-    { path: join(root, "lib/components"), file: false },
+    await resolveProjectDir(root, "src/lib/components", "components"),
+    { path: join(root, "src/lib/components"), file: false },
   );
 });
 

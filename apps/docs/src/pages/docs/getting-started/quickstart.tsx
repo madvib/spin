@@ -55,7 +55,7 @@ export default function Quickstart(): JSX.Element {
           Native tags and Spin elements (<code>&lt;card&gt;</code>,{" "}
           <code>&lt;button class="primary"&gt;</code>,{" "}
           <code>&lt;input&gt;</code>) arrive styled by the theme. Copy stateful
-          components into <code>lib/components/</code> when you need interactive
+          components into <code>src/lib/components/</code> when you need interactive
           behavior:
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
@@ -67,7 +67,7 @@ export default function Quickstart(): JSX.Element {
           <Code
             code="npx spin component copy select basic"
             lang="bash"
-            title="Writes lib/components/select/basic.html -> <app-select-basic>"
+            title="Writes src/lib/components/select/basic.html -> <app-select-basic>"
           />
         </div>
       </Section>

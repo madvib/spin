@@ -111,9 +111,9 @@ describe("daemon components over HTTP", () => {
       root: dir,
     });
     deepStrictEqual(copied.error, null);
-    deepStrictEqual(copied.file, join("lib", "components", "tree-view", "basic.html"));
+    deepStrictEqual(copied.file, join("src", "lib", "components", "tree-view", "basic.html"));
     deepStrictEqual(copied.tag, "*-tree-view-basic", "the copy names its wildcard tag for a nameless root");
-    const written = join(dir, "lib", "components", "tree-view", "basic.html");
+    const written = join(dir, "src", "lib", "components", "tree-view", "basic.html");
     assert(existsSync(written), "the file lands in the project");
     assert(
       readFileSync(written, "utf8").includes('from "@spinjs/components"'),

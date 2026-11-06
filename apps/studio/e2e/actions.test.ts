@@ -986,7 +986,7 @@ test("component detail: code switch both ways, copy to project and take away", a
     // The button wears the tag (`<reference-slider-basic>`); the file lands
     // under the component's own directory by example stem.
     const stem = copied.slice("tag:<".length, -">".length).split("-").pop() ?? "";
-    const file = join(root, "lib/components/slider", `${stem}.html`);
+    const file = join(root, "src/lib/components/slider", `${stem}.html`);
     try {
       assert(await there(file), `the copied example never landed: ${file}`);
     } finally {

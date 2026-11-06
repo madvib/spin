@@ -14,7 +14,7 @@ function scaffoldArg(options?: { themesDir?: string; componentsDir?: string; pre
   if (options?.themesDir !== undefined && options.themesDir !== "spin") {
     parts.push(`themesDir: ${JSON.stringify(options.themesDir)}`);
   }
-  if (options?.componentsDir !== undefined && options.componentsDir !== "lib/components") {
+  if (options?.componentsDir !== undefined && options.componentsDir !== "src/lib/components") {
     parts.push(`componentsDir: ${JSON.stringify(options.componentsDir)}`);
   }
   if (options?.prefix !== undefined && options.prefix !== "") {

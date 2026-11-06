@@ -59,7 +59,7 @@ const commandItems = (): readonly PropEntry[] => [
       <>
         Lists components (<code>list</code>), prints a machine's{" "}
         <code>contract</code>, or copies an example recipe (<code>copy</code>)
-        into <code>lib/components/</code>.
+        into <code>src/lib/components/</code>.
       </>
     ),
     detail: "Flags: --root, --url, --format text|json",
@@ -113,7 +113,7 @@ const pluginOptions = (): readonly PropEntry[] => [
     name: "extends",
     badge: "{ themes?, componentsDir? }",
     description:
-      "Shared brand layer imported as values, overlaid by the project's local spin/*.json and lib/components/*.html.",
+      "Shared brand layer imported as values, overlaid by the project's local spin/*.json and src/lib/components/*.html.",
   },
   {
     name: "presets",
@@ -176,7 +176,7 @@ const pluginOptions = (): readonly PropEntry[] => [
   {
     name: "componentsDir",
     badge: "string",
-    defaultValue: '"lib/components"',
+    defaultValue: '"src/lib/components"',
     description: "Local project directory holding authored .html components.",
   },
   {

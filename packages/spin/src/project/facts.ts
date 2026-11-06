@@ -22,7 +22,7 @@ import { configScaffoldText } from "../plugin/config.ts";
  */
 export const PROJECT_DIR = "spin";
 
-export const COMPONENTS_DIR = "lib/components";
+export const COMPONENTS_DIR = "src/lib/components";
 
 export function defaultPrefix(packageName?: string): string {
   let base = packageName ?? "";

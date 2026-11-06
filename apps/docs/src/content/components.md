@@ -10,11 +10,11 @@ npx spin component contract select
 npx spin component copy select basic
 ```
 
-Copying writes `lib/components/select.html`. On the next build or dev start, the Spin plugin compiles it into `<app-select>` (using your configured `--prefix`) and updates `src/spin-components.d.ts`.
+Copying writes `src/lib/components/select.html`. On the next build or dev start, the Spin plugin compiles it into `<app-select>` (using your configured `--prefix`) and updates `src/spin-components.d.ts`.
 
 ## Registering project components
 
-Import the virtual module once in your application entry to register all compiled custom elements in `lib/components/*.html`:
+Import the virtual module once in your application entry to register all compiled custom elements in `src/lib/components/*.html`:
 
 ```ts
 // src/main.ts

@@ -5,7 +5,7 @@
  */
 /// <reference types="@spinjs/spin/elements" />
 
-declare module "lib/components/*.html" {
+declare module "src/lib/components/*.html" {
   const tag: string;
   export default tag;
 }

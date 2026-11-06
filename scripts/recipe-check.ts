@@ -33,7 +33,7 @@ import * as components from "../packages/components/src/index.ts";
  * transport (defs, actions), never author markup. */
 const VAR_GRANDFATHERED: ReadonlySet<string> = new Set([]);
 const ROOT = "packages/components/src";
-const STUDIO_COMPONENTS = "apps/studio/lib/components";
+const STUDIO_COMPONENTS = "apps/studio/src/lib/components";
 async function* walkFiles(root: string, exts: string[]): AsyncGenerator<{ path: string; isFile: boolean }> {
   const entries = await readdir(root, { withFileTypes: true });
   for (const e of entries) {

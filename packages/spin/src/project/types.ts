@@ -221,7 +221,7 @@ export interface InitProjectOptions {
   readonly bundler?: BundlerKind;
   /** The themes directory. Defaults to `"spin"`. */
   readonly themesDir?: string;
-  /** The components directory. Defaults to `"lib/components"`. */
+  /** The components directory. Defaults to `"src/lib/components"`. */
   readonly componentsDir?: string;
   /** The component prefix. */
   readonly prefix?: string;

@@ -565,7 +565,7 @@ export interface SpinPluginOptions {
   readonly themesDir?: string;
   /**
    * Project directory holding user-authored `.html` components, resolved
-   * against the project root. Default `"lib/components"`. Local paths
+   * against the project root. Default `"src/lib/components"`. Local paths
    * only — shared trees arrive through `extends`, never through this
    * path.
    */
@@ -790,7 +790,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     // The walk is expensive and content changes rarely; the safelist is
     // rebuilt every time because an overlay write can introduce tokens
     // whose utilities must resolve even though no file changed.
-    const componentsDir = options.componentsDir ?? options.extends?.componentsDir ?? "lib/components";
+    const componentsDir = options.componentsDir ?? options.extends?.componentsDir ?? "src/lib/components";
     const content = options.content ?? {};
     // The toolchain's own sources are content in every app: example modules
     // carry the glyph names and utilities the example markup spends, the

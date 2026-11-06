@@ -134,7 +134,7 @@ export default defineConfig(({ command }) => ({
           // with the markup that uses it.
           "vite.config.ts",
           "src/**/*.{tsx,ts}",
-          "lib/components/**/*.{html,ts}",
+          "src/lib/components/**/*.{html,ts}",
           "../../packages/spin/src/kit/**/*.{tsx,ts}",
         ],
         pipeline: {

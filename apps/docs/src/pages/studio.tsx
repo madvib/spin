@@ -194,7 +194,7 @@ export default function Studio(): JSX.Element {
         </p>
         <p>
           Each machine example carries <strong>copy to project</strong>, which
-          writes the recipe into <code>lib/components/</code> through the
+          writes the recipe into <code>src/lib/components/</code> through the
           daemon — the same bytes <code>npx spin component copy</code> writes,
           vendored from the page that shows them.
         </p>

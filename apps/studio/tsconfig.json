@@ -22,8 +22,8 @@
       "~/*": [
         "./src/*"
       ],
-      "lib/components/*.html": [
-        "./lib/components/*.html"
+      "src/lib/components/*.html": [
+        "./src/lib/components/*.html"
       ],
       "@spinjs/components/examples": [
         "../../packages/components/src/examples.ts"

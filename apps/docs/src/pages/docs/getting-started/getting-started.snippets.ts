@@ -20,7 +20,7 @@ import acme from "../spin/acme.json" with { type: "json" };
 
 export const acmeBrand = {
   themes: { acme },
-  componentsDir: new URL("../lib/components", import.meta.url).pathname,
+  componentsDir: new URL("../src/lib/components", import.meta.url).pathname,
 };`,
   viteExtends: `import { spin } from "@spinjs/spin/vite";
 import { acmeBrand } from "@acme/brand/spin";
@@ -65,7 +65,7 @@ export default defineConfig({
   studioServe: `npx spin studio`,
   viteOptions: `spin.vite({
   themesDir: "spin",
-  componentsDir: "lib/components",
+  componentsDir: "src/lib/components",
   prefix: "app",
   shortcuts: {
     "page-shell": "mx-auto w-full max-w-screen-lg px-6 py-10",

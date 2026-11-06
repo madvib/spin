@@ -12,7 +12,7 @@ npm install @spinjs/components @spinjs/runtime
 npx spin component copy select basic
 ```
 
-The copy lands at `lib/components/select.html`. The Spin plugin compiles it
+The copy lands at `src/lib/components/select.html`. The Spin plugin compiles it
 into a standard custom element (`<app-select>`) with zero framework lock-in;
 `import "spin/components"` registers every project component, and the plugin
 generates `src/spin-components.d.ts` for DOM and JSX typechecking.

@@ -2,7 +2,7 @@
  * The studio's own controls: the theme under edit, the mode it is shown in,
  * and the edge the host's drawer takes.
  *
- * All three are studio elements (`apps/studio/lib/components/`), each
+ * All three are studio elements (`apps/studio/src/lib/components/`), each
  * delegating to a `@spinjs/components` machine. The studio binds the
  * project's own facts — names, modes, the seat — and the machine owns
  * open/highlight/select. The preview surface scopes `data-theme`/`data-mode`

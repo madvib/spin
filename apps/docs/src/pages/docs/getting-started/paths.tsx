@@ -13,13 +13,13 @@ const ENTRY_PATHS: readonly PropEntry[] = [
     name: "spin.vite() / spin.<bundler>()",
     badge: "Full app + Studio",
     description:
-      "Provides the token stylesheet, bare-tag primitives, spin/*.json discovery, project lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
+      "Provides the token stylesheet, bare-tag primitives, spin/*.json discovery, project src/lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
   },
   {
     name: "spin.vite({ extends: brand })",
     badge: "Multi-app brand",
     description:
-      "Layers a shared brand package's themes and components beneath local spin/*.json and lib/components/*.html overrides.",
+      "Layers a shared brand package's themes and components beneath local spin/*.json and src/lib/components/*.html overrides.",
   },
   {
     name: "spinPreset({ themes })",
@@ -61,7 +61,7 @@ export default function Paths(): JSX.Element {
           <code>spin.rollup()</code>, <code>spin.rolldown()</code>,{" "}
           <code>spin.esbuild()</code>, and <code>spin.bun()</code>. It compiles{" "}
           <code>spin/styles.css</code>, discovers <code>spin/*.json</code>,
-          transforms <code>lib/components/**/*.html</code> into custom elements,
+          transforms <code>src/lib/components/**/*.html</code> into custom elements,
           and mounts the Studio in development.
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
@@ -89,7 +89,7 @@ export default function Paths(): JSX.Element {
           <code>{"spin.vite({ extends: brand })"}</code> (or any{" "}
           <code>{"spin.<bundler>({ extends: brand })"}</code>). Local{" "}
           <code>spin/&lt;name&gt;.json</code> themes and{" "}
-          <code>lib/components/&lt;name&gt;.html</code> components take
+          <code>src/lib/components/&lt;name&gt;.html</code> components take
           precedence over brand entries of the same name, and un-forked brand
           themes open read-only in the Studio with a one-click copy into local{" "}
           <code>spin/</code>:

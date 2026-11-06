@@ -642,7 +642,7 @@ export default function StylingElements(): JSX.Element {
           interactions; and when a widget needs multi-part state orchestration,
           keyboard navigation, and roving focus — a combobox, select, tabs,
           dialog, or menu — you <strong>vendor a state-machine component</strong>{" "}
-          into <code>lib/components/</code> with{" "}
+          into <code>src/lib/components/</code> with{" "}
           <code>npx spin component copy &lt;name&gt; &lt;example&gt;</code> so
           you own its markup the same way shadcn/ui vendors templates while the
           theme and primitives still style every part inside it (see the{" "}

@@ -2,7 +2,7 @@
  * A project's themes or components directory, resolved to the filesystem.
  *
  * Either value in the configuration is a local path (`spin`,
- * `lib/components`) joined to the project root. Shared trees do not
+ * `src/lib/components`) joined to the project root. Shared trees do not
  * arrive through paths — they arrive through `extends`, as imported
  * values — so a value that looks like a package specifier is refused
  * with the redirect rather than resolved.

@@ -26,9 +26,9 @@ import { spinCompositions } from "../packages/spin/src/compositions.ts";
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [
   "packages/components/src",
-  "apps/studio/lib/components",
+  "apps/studio/src/lib/components",
   "apps/docs/examples",
-  "apps/docs/lib/components",
+  "apps/docs/src/lib/components",
 ];
 
 /** A `class="..."` attribute's value, minus anything dynamic. */

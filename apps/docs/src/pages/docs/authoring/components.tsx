@@ -100,7 +100,7 @@ export default function AuthoringComponents(): JSX.Element {
 
       <Section id="demo" title="Live controller demo">
         <p class="max-w-prose">
-          The select below is <code>lib/components/select.html</code> in this
+          The select below is <code>src/lib/components/select.html</code> in this
           docs app — compiled to <code>&lt;docs-select&gt;</code> and driven
           through <code>createSpinComponent</code>.
         </p>

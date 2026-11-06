@@ -69,7 +69,7 @@ async function main(): Promise<void> {
     for await (const entry of walkFiles(ROOT + "packages/components/src", [".html"])) {
       if (entry.isFile) paths.push(entry.path);
     }
-    for await (const entry of walkFiles(ROOT + "apps/studio/lib/components", [".html"])) {
+    for await (const entry of walkFiles(ROOT + "apps/studio/src/lib/components", [".html"])) {
       if (entry.isFile) paths.push(entry.path);
     }
     for (const path of paths) {

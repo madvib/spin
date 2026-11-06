@@ -360,10 +360,10 @@ describe("the spin MCP server", () => {
     deepStrictEqual(copied.isError, undefined);
     deepStrictEqual(
       (jsonOf(copied) as { file: string }).file,
-      join("lib", "components", "tree-view", "basic.html"),
+      join("src", "lib", "components", "tree-view", "basic.html"),
     );
     assert(
-      existsSync(join(dir, "lib", "components", "tree-view", "basic.html")),
+      existsSync(join(dir, "src", "lib", "components", "tree-view", "basic.html")),
       "the file lands in the project",
     );
   });

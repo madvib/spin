@@ -47,7 +47,7 @@ const layerItems = (): readonly PropEntry[] => [
   },
   {
     name: "4. Interactive Components (@spinjs/components)",
-    badge: "lib/components/",
+    badge: "src/lib/components/",
     description: (
       <>
         Headless state machines paired with copyable <code>.html</code>{" "}

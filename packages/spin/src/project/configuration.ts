@@ -76,7 +76,7 @@ export function configurationIn(
     return null;
   };
   const themesDir = literalOf("themesDir", themesDirValue?.text) ?? "spin";
-  const componentsDir = literalOf("componentsDir", componentsDirValue?.text) ?? "lib/components";
+  const componentsDir = literalOf("componentsDir", componentsDirValue?.text) ?? "src/lib/components";
   let prefix: string | null = null;
   if (prefixValue !== undefined) {
     const prefixRaw = prefixValue.text.trim();

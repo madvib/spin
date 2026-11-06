@@ -206,7 +206,7 @@ Options for init:
   --starter <starter>    spin | silk | material | neobrut | industrial (default: spin)
   --bundler <bundler>    vite | rspack | webpack | rollup | rolldown | esbuild | bun (default: detected)
   --themes-dir <dir>     themes directory (default: spin)
-  --components-dir <dir> components directory (default: lib/components)
+  --components-dir <dir> components directory (default: src/lib/components)
   --prefix <prefix>      component prefix (default: derived)
   --root <dir>           the project root (default: the current directory)
   --url <url>            the daemon to dial (default: in-process)

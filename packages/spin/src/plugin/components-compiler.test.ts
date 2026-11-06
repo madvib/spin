@@ -126,23 +126,23 @@ test("a script-bound bridge renders its seed items", async () => {
 
 test("project tags carry the prefix and the path under the components dir", () => {
   deepStrictEqual(
-    tagForProjectFile("/root/lib/components/color-picker.html", "lib/components", "studio"),
+    tagForProjectFile("/root/src/lib/components/color-picker.html", "src/lib/components", "studio"),
     "studio-color-picker",
   );
   deepStrictEqual(
-    tagForProjectFile("/root/lib/components/forms/login.html", "lib/components", "studio"),
+    tagForProjectFile("/root/src/lib/components/forms/login.html", "src/lib/components", "studio"),
     "studio-forms-login",
   );
   deepStrictEqual(
-    tagForProjectFile("/root/lib/components/spin-modal.html", "lib/components", "studio"),
+    tagForProjectFile("/root/src/lib/components/spin-modal.html", "src/lib/components", "studio"),
     "spin-modal",
   );
 });
 
 test("the registration module imports every file from the project root", () => {
   deepStrictEqual(
-    renderComponentsModule(["lib/components/a.html", "lib/components/b.html"]),
-    'import "/lib/components/a.html";\nimport "/lib/components/b.html";\n',
+    renderComponentsModule(["src/lib/components/a.html", "src/lib/components/b.html"]),
+    'import "/src/lib/components/a.html";\nimport "/src/lib/components/b.html";\n',
   );
 });
 
@@ -164,15 +164,15 @@ test("discovery reads the local tree and refuses a specifier", async () => {
   const { join } = await import("node:path");
   const { rejects } = await import("node:assert/strict");
   const root = await mkdtemp(join(tmpdir(), "spin-disc-"));
-  await mkdir(join(root, "lib/components/greet"), { recursive: true });
+  await mkdir(join(root, "src/lib/components/greet"), { recursive: true });
   await writeFile(
     join(root, "package.json"),
     JSON.stringify({ name: "probe" }),
   );
-  await writeFile(join(root, "lib/components/greet/basic.html"), "<p>hi</p>");
+  await writeFile(join(root, "src/lib/components/greet/basic.html"), "<p>hi</p>");
   deepStrictEqual(
-    await projectComponentFiles(root, "lib/components"),
-    ["lib/components/greet/basic.html"],
+    await projectComponentFiles(root, "src/lib/components"),
+    ["src/lib/components/greet/basic.html"],
   );
   await rejects(
     projectComponentFiles(root, "@acme/kit/components"),

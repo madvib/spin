@@ -18,7 +18,7 @@ export default {
 ```
 
 One `spin.vite()` call wires the whole chain: the `uno.css` stylesheet, the
-`lib/components/*.html` transform into custom elements, the generated
+`src/lib/components/*.html` transform into custom elements, the generated
 `src/spin-components.d.ts`, theme discovery from `spin/*.json`, and the
 Studio beside your dev server (`studio: false` disables it). The same
 options work in all seven shapes: `spin.vite()`, `spin.rspack()`,

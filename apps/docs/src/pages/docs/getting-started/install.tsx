@@ -32,43 +32,43 @@ const BUNDLER_TABS: Readonly<
     name: "Vite",
     file: "vite.config.ts",
     code: GETTING_STARTED_SNIPPETS.vite,
-    note: "Compiles spin/styles.css, transforms lib/components/**/*.html, and mounts the Studio at /__spin/studio/.",
+    note: "Compiles spin/styles.css, transforms src/lib/components/**/*.html, and mounts the Studio at /__spin/studio/.",
   },
   rspack: {
     name: "Rspack",
     file: "rspack.config.ts",
     code: GETTING_STARTED_SNIPPETS.rspack,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   webpack: {
     name: "webpack",
     file: "webpack.config.mjs",
     code: GETTING_STARTED_SNIPPETS.webpack,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   rollup: {
     name: "Rollup",
     file: "rollup.config.mjs",
     code: GETTING_STARTED_SNIPPETS.rollup,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   rolldown: {
     name: "Rolldown",
     file: "rolldown.config.ts",
     code: GETTING_STARTED_SNIPPETS.rolldown,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   esbuild: {
     name: "esbuild",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.esbuild,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   bun: {
     name: "Bun",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.bun,
-    note: "Compiles spin/styles.css and transforms lib/components/**/*.html.",
+    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
   },
   unocss: {
     name: "UnoCSS",
@@ -142,7 +142,7 @@ const PLUGIN_OPTIONS: readonly PropEntry[] = [
   {
     name: "componentsDir",
     badge: "string",
-    defaultValue: '"lib/components"',
+    defaultValue: '"src/lib/components"',
     description: "Local directory containing .html components compiled into custom elements.",
   },
   {
@@ -228,7 +228,7 @@ const initFlags = (): readonly PropEntry[] => [
   },
   {
     name: "--components-dir",
-    defaultValue: "lib/components/",
+    defaultValue: "src/lib/components/",
     description: "Directory where project .html components live.",
   },
   {
@@ -329,7 +329,7 @@ export default function Install(): JSX.Element {
                 "Optional project seating configuration (activeTheme and themeOrder) written by the Studio.",
             },
             {
-              name: "lib/components/**/*.html",
+              name: "src/lib/components/**/*.html",
               badge: "components",
               description: (
                 <>

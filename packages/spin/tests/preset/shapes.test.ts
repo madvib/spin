@@ -33,7 +33,7 @@ const brand = {
 
 const OPTIONS: SpinPluginOptions = {
   extends: { themes: brand, componentsDir: "lib/brand" },
-  componentsDir: "lib/components",
+  componentsDir: "src/lib/components",
   prefix: "acme",
   themesDir: "spin-nonexistent",
   safelist: false,
