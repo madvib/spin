@@ -219,6 +219,35 @@ export function createSpinFactory(
           { trees, documents, paletteTrees, paletteDocuments, spacingTrees },
         ),
         transformers: [transformerDirectives(), transformerVariantGroup()],
+        // State variant precedence: UnoCSS sorts same-rule utilities by
+        // `util.sort` before falling back to selector localeCompare (which
+        // sorted `.aria-*` before `.data-*`, `.focus:*`, and `.hover:*`).
+        postprocess: [
+          (util) => {
+            if ((util.layer ?? "default") !== "default") return;
+            if (util.sort != null) return;
+            const s = util.selector;
+            if (/:disabled\b|\[aria-disabled\b|\[data-disabled\b/.test(s)) {
+              util.sort = 60;
+              util.noMerge = true;
+            } else if (/\[aria-(selected|pressed|checked|current|expanded)=/.test(s)) {
+              util.sort = 50;
+              util.noMerge = true;
+            } else if (/:active\b|\[data-active\b/.test(s)) {
+              util.sort = 40;
+              util.noMerge = true;
+            } else if (/\[data-/.test(s)) {
+              util.sort = 30;
+              util.noMerge = true;
+            } else if (/:focus(?:-visible|-within)?\b/.test(s)) {
+              util.sort = 20;
+              util.noMerge = true;
+            } else if (/:hover\b/.test(s)) {
+              util.sort = 10;
+              util.noMerge = true;
+            }
+          },
+        ],
         // Declared order: reset (-100) → theme vars + body (-90) → primitives
         // (-50) → utilities (default 0). Without this, unregistered layer
         // names fall to 0 and localeCompare re-sorts, so primitives CSS lands

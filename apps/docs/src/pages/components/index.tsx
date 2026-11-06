@@ -165,10 +165,10 @@ export default function ComponentsIndex(): JSX.Element {
                 {(row) => (
                     <A
                       href={row.href}
-                      class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong"
+                      class="group flex h-full flex-col gap-3 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong sm:flex-row sm:items-stretch sm:gap-4"
                     >
-                    <span class="flex w-24 shrink-0 flex-col items-start gap-1">
-                      <span class="flex items-center gap-2 type-body-strong">
+                    <span class="flex shrink-0 flex-row items-center justify-between gap-2 sm:w-28 sm:flex-col sm:items-start sm:justify-start sm:gap-1">
+                      <span class="flex min-w-0 items-center gap-2 type-body-strong">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-muted`}
                           aria-hidden="true"

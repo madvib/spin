@@ -25,10 +25,10 @@ test("every example renders its groups and rows through the live state", () => {
       `${stem} must render one row per option`,
     );
     assert.ok(
-      html.includes("row.highlighted") &&
-        html.includes("row.selected") &&
+      html.includes("data-[highlighted]") &&
+        html.includes("aria-[selected=true]") &&
         !html.includes("getItemState"),
-      `${stem} must light the highlight and the committed pick from the live row state`,
+      `${stem} must light the highlight and the committed pick from the live attributes, never the row snapshot`,
     );
   }
 });

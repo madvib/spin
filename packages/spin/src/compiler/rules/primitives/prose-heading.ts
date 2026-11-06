@@ -64,8 +64,8 @@ function headingRules(): SpinRule[] {
     })),
     headingRule("h2", "title", "h2"),
     headingRule("h3", "heading", "h3"),
-    headingRule("h4", "subtitle", "h4"),
-    headingRule("h5", "label", "h5"),
+    headingRule("h4", "label", "h4"),
+    headingRule("h5", "overline", "h5"),
     headingRule("h6", "overline", "h6"),
   ];
 }

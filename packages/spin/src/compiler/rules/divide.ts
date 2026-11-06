@@ -36,11 +36,18 @@ export function divideRules(): SpinRule[] {
   return [
     [
       /^divide-([xy])(?:-(0|2|4|8))?$/,
-      ([, axis, width]: string[]) => {
+      ([, axis, width]: string[], ctx?: ThemeContext) => {
         const prop = axis === "x" ? "border-left-width" : "border-top-width";
         const value = DIVIDE_WIDTHS[width ?? ""];
         if (!value) return undefined;
-        return { [symbols.selector]: divideChildren, [prop]: value };
+        if (width === "0") return { [symbols.selector]: divideChildren, [prop]: value };
+        const borderColor = ctx?.theme?.color?.border;
+        return {
+          [symbols.selector]: divideChildren,
+          [prop]: value,
+          "border-style": "solid",
+          ...(borderColor !== undefined ? { "border-color": borderColor } : {}),
+        };
       },
       { autocomplete: "divide-(x|y)-(0|2|4|8)" },
     ],

@@ -37,10 +37,7 @@ const CARD_ANATOMY_SNIPPET = `<card>
     <label for="oncall-channel">Escalation channel</label>
     <input id="oncall-channel" type="text" value="#incidents-primary" />
     <label for="webhook-url">Webhook endpoint</label>
-    <field>
-      <span class="i-lucide-webhook icon-sm" aria-hidden="true"></span>
-      <input id="webhook-url" type="url" placeholder="https://hooks.acme.dev/incidents" />
-    </field>
+    <input id="webhook-url" type="url" placeholder="https://hooks.acme.dev/incidents" />
   </card-content>
   <card-footer class="justify-end">
     <button type="button" class="ghost">Cancel</button>
@@ -359,7 +356,7 @@ function readStyleToken(
 
 export default function StylingElements(): JSX.Element {
   return (
-    <main class="flex flex-col">
+    <main class="flex min-w-0 flex-col">
       <PageHeader
         title="Classless Elements"
         lede="What are primitives and how do I build with them? Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time."
@@ -427,17 +424,11 @@ export default function StylingElements(): JSX.Element {
                     value="#incidents-primary"
                   />
                   <label for="demo-webhook-url">Webhook endpoint</label>
-                  <field>
-                    <span
-                      class="i-lucide-webhook icon-sm"
-                      aria-hidden="true"
-                    />
-                    <input
-                      id="demo-webhook-url"
-                      type="url"
-                      placeholder="https://hooks.acme.dev/incidents"
-                    />
-                  </field>
+                  <input
+                    id="demo-webhook-url"
+                    type="url"
+                    placeholder="https://hooks.acme.dev/incidents"
+                  />
                 </card-content>
                 <card-footer class="justify-end">
                   <button type="button" class="ghost">

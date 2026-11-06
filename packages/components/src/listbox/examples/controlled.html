@@ -36,7 +36,7 @@ const machine = listbox({
           {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
         <template for={machine.getRows(block)} as={row} key={row.value}>
           <div
-            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate", { "bg-surface": row.highlighted, "bg-selected text-on-selected": row.selected, "cursor-not-allowed opacity-50": row.disabled }]}
+            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
             {...machine.getItemProps(row)}
           >
             <span class="min-w-0 flex-1 truncate"

@@ -195,16 +195,6 @@ const itemStateOf = (scope: ScopeLike, row: ListboxRow): ListboxItemState => ({
   selected: scope.context.value.includes(row.value),
 });
 
-/** Rows the `.html` templates iterate: each carries the live highlight,
- * selection, and disabled state as plain properties, so the markup reads
- * `row.highlighted`, `row.selected`, and `row.disabled` directly. */
-const enrichRows = (context: ListboxContext, rows: readonly ListboxRow[]): readonly ListboxRow[] =>
-  rows.map((row) => ({
-    ...row,
-    disabled: context.disabled || row.disabled,
-    highlighted: context.highlightedValue === row.value,
-    selected: context.value.includes(row.value),
-  }));
 
 const step = (scope: ScopeLike, delta: 1 | -1): string | null => {
   const list = rowsOf(scope.context);
@@ -553,12 +543,11 @@ export const def = {
   },
   methods: {
     getBlocks: {
-      call: (context: ListboxContext) =>
-        blocksOf(rowsOf(context)).map((block) => ({ ...block, rows: enrichRows(context, block.rows) })),
+      call: (context: ListboxContext) => blocksOf(rowsOf(context)),
     },
     getRows: {
-      call: (context: ListboxContext, _state, [block]: [block: ListboxBlock]) =>
-        enrichRows(context, block.rows.filter((row) => typeof row === "object" && row !== null)),
+      call: (_context: ListboxContext, _state, [block]: [block: ListboxBlock]) =>
+        block.rows.filter((row) => typeof row === "object" && row !== null),
     },
     getItemState: {
       call: (context: ListboxContext, _state, [row]: [row: ListboxRow]) => {

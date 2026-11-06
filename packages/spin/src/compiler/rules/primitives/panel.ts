@@ -52,7 +52,7 @@ export function panelRules(
         const muted = ctx?.theme?.color?.["text-muted"];
         yield {
           [ctx.symbols.selector]: () =>
-            `${panel} [data-highlighted]:not([data-disabled]), ${panel} [data-selected]:not([data-disabled])`,
+            `${panel} [data-highlighted]:not([data-disabled]):not([aria-selected="true"]), ${panel} [data-selected]:not([data-disabled]):not([aria-selected="true"])`,
           ...(raised !== undefined ? { "background-color": raised } : {}),
         };
         yield {

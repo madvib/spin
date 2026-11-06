@@ -5,14 +5,14 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "@spinjs/spin/vite";
-import { catppuccinPalette, compactSpacing, parseTokens, starterThemes } from "@spinjs/spin/theme";
+import { spin } from "../../packages/spin/src/plugin/plugin.ts";
+import { catppuccinPalette, compactSpacing, parseTokens, starterThemes } from "../../packages/spin/src/theme/index.ts";
 import {
   describeCatalog,
   SECTIONS,
   utilitiesFor,
-} from "@spinjs/spin/preset";
-import { animationContract } from "@spinjs/spin/animation";
+} from "../../packages/spin/src/compiler/index.ts";
+import { animationContract } from "../../packages/spin/src/animation/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { ALL_DOCS_PAGES, DOCS_GROUPS } from "./src/nav.ts";
 import {

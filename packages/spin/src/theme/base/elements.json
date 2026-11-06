@@ -24,15 +24,15 @@
     "h4": {
       "type": {
         "$type": "typography",
-        "$description": "The style a fourth-level heading reads. The subtitle style, unless the theme names another.",
-        "$value": "{font.style.subtitle}"
+        "$description": "The style a fourth-level heading reads. The label style, unless the theme names another.",
+        "$value": "{font.style.label}"
       }
     },
     "h5": {
       "type": {
         "$type": "typography",
-        "$description": "The style a fifth-level heading reads. The label style, unless the theme names another.",
-        "$value": "{font.style.label}"
+        "$description": "The style a fifth-level heading reads. The overline style, unless the theme names another.",
+        "$value": "{font.style.overline}"
       }
     },
     "h6": {

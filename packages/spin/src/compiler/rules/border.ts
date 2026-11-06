@@ -73,7 +73,13 @@ export function borderRules(): SpinRule[] {
         const prop = BORDER_SIDES[side ?? ""];
         const value = BORDER_WIDTHS[width ?? ""];
         if (!prop || !value) return undefined;
-        return { [prop]: value };
+        if (width === "0") return { [prop]: value };
+        const borderColor = ctx?.theme?.color?.border;
+        return {
+          [prop]: value,
+          "border-style": borderTheme?.style ?? "solid",
+          ...(borderColor !== undefined ? { "border-color": borderColor } : {}),
+        };
       },
       { autocomplete: `border-(${SIDE_ALTERNATION})-(0|2|4|8)` },
     ],

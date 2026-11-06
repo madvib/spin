@@ -54,7 +54,7 @@ export function CodeFrame(props: {
 
   return (
     <div
-      class={`overflow-hidden rounded-lg border bg-surface shadow-sm ${
+      class={`max-w-full overflow-hidden rounded-lg border bg-surface shadow-sm ${
         props.class ?? ""
       }`}
     >
@@ -83,7 +83,7 @@ export function CodeFrame(props: {
           </button>
         </Show>
       </div>
-      <pre class="overflow-x-auto border-0 bg-surface p-4 type-code">
+      <pre class="m-0 max-w-full overflow-x-auto rounded-none border-0 bg-surface p-4 type-code">
         <code>
           <For each={tokens()}>
             {(token) => (

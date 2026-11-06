@@ -339,7 +339,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
   const events = (): readonly (readonly [string, string])[] =>
     Object.entries(handle()?.events ?? {}).map(([dom, contract]) => [dom, contract.on] as const);
   return (
-    <main class="px-6 py-6">
+    <main class="min-w-0 px-4 py-6 sm:px-6">
       <Show when={category()}>
         <p class="uppercase text-muted">{category()}</p>
       </Show>
@@ -347,9 +347,11 @@ function MachineDetail(props: { name: string }): JSX.Element {
       <p>
         <Chip>{controller() ? "controller" : "machine"}</Chip>
       </p>
-      <Code code={`npx spin component copy ${props.name} basic`} lang="bash" />
+      <div class="my-3">
+        <Code code={`npx spin component copy ${props.name} basic`} lang="bash" />
+      </div>
       <Show when={(manifest()?.parts ?? []).length > 0}>
-        <p>Parts</p>
+        <p class="mt-4 mb-1 type-label text-muted">Parts</p>
         <div class="flex flex-wrap gap-2">
           <For each={manifest()?.parts ?? []}>
             {(part) => <Chip>{part}</Chip>}
@@ -357,7 +359,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
         </div>
       </Show>
       <Show when={(manifest()?.slots ?? []).length > 0}>
-        <p>Slots</p>
+        <p class="mt-4 mb-1 type-label text-muted">Slots</p>
         <div class="flex flex-wrap gap-2">
           <For each={manifest()?.slots ?? []}>
             {(slot) => <Chip>{slot}</Chip>}
