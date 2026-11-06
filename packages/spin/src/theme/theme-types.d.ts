@@ -2,6 +2,52 @@
 
 /** Every token in the document, by DTCG path, with the value CSS resolves to. */
 export interface ThemeTokens {
+  "color.text": "{color.neutral.900}";
+  "color.text-muted": "{color.neutral.600}";
+  "color.surface": "{color.neutral.50}";
+  "color.surface-raised": "#ffffff";
+  "color.border": "{color.neutral.200}";
+  "color.primary": "#1c62c2";
+  "color.secondary": "#1a2434";
+  "color.accent": "#006974";
+  "color.semantic.success": "#26753e";
+  "color.semantic.warning": "#886108";
+  "color.semantic.error": "#a6312b";
+  "color.semantic.info": "#0e629a";
+  "color.on-primary": "#ffffff";
+  "color.on-secondary": "#ffffff";
+  "color.on-accent": "#ffffff";
+  "color.selected": "{color.text}";
+  "color.on-selected": "{color.surface}";
+  "color.on-semantic-error": "#ffffff";
+  "color.on-semantic-success": "#ffffff";
+  "color.on-semantic-warning": "#ffffff";
+  "color.on-semantic-info": "#ffffff";
+  "color.disabled": "{color.neutral.200}";
+  "color.on-disabled": "{color.neutral.600}";
+  "color.focus-ring": "#1c62c2";
+  "color.link": "#1c62c2";
+  "color.neutral.50": "#f7f8fb";
+  "color.neutral.100": "#f1f4f8";
+  "color.neutral.200": "#e4e8ef";
+  "color.neutral.300": "#cfd5de";
+  "color.neutral.400": "#a6afbb";
+  "color.neutral.500": "#78818f";
+  "color.neutral.600": "#525c6a";
+  "color.neutral.700": "#333e4d";
+  "color.neutral.800": "#1a2434";
+  "color.neutral.900": "#050d1c";
+  "color.surface-sunken": "{color.neutral.100}";
+  "color.scrim": "rgb(15 19 30 / 45%)";
+  "color.field": "#ffffff";
+  "color.border-strong": "#a6afbb";
+  "color.on-danger": "{color.on-semantic-error}";
+  "font.family.sans": "Inter, ui-sans-serif, system-ui, sans-serif";
+  "font.family.heading": "{font.family.sans}";
+  "font.family.body": "{font.family.sans}";
+  "font.family.serif": "ui-serif, Georgia, Cambria, serif";
+  "font.family.mono": "ui-monospace, SFMono-Regular, Menlo, monospace";
+  "font.family.brand": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif";
   "font.size.2xs": "0.625rem";
   "font.size.xs": "0.75rem";
   "font.size.sm": "0.875rem";
@@ -26,12 +72,6 @@ export interface ThemeTokens {
   "font.leading.normal": 1.5;
   "font.leading.relaxed": 1.625;
   "font.leading.loose": 2;
-  "font.family.sans": "Inter, ui-sans-serif, system-ui, sans-serif";
-  "font.family.heading": "{font.family.sans}";
-  "font.family.body": "{font.family.sans}";
-  "font.family.serif": "ui-serif, Georgia, Cambria, serif";
-  "font.family.mono": "ui-monospace, SFMono-Regular, Menlo, monospace";
-  "font.family.brand": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif";
   "font.style.display.family": "{font.family.serif}";
   "font.style.display.size": "{font.size.3xl}";
   "font.style.display.weight": "{font.weight.bold}";
@@ -112,6 +152,8 @@ export interface ThemeTokens {
   "font.style.card-title.weight": "{font.weight.semibold}";
   "font.style.card-title.tracking": "{font.tracking.normal}";
   "font.style.card-title.leading": "{font.leading.snug}";
+  "focus.width": "2px";
+  "focus.offset": "2px";
   "spacing.0": "0";
   "spacing.1": "0.25rem";
   "spacing.2": "0.5rem";
@@ -141,16 +183,44 @@ export interface ThemeTokens {
   "border.width-2": "2px";
   "border.width-4": "4px";
   "border.width-8": "8px";
+  "border.style.solid.width": "{border.width}";
+  "border.style.solid.style": "solid";
+  "border.style.solid.color": "{color.border}";
+  "border.style.strong.width": "{border.width}";
+  "border.style.strong.style": "solid";
+  "border.style.strong.color": "{color.border-strong}";
+  "border.style.dashed.width": "{border.width}";
+  "border.style.dashed.style": "dashed";
+  "border.style.dashed.color": "{color.border}";
+  "border.style.dotted.width": "{border.width}";
+  "border.style.dotted.style": "dotted";
+  "border.style.dotted.color": "{color.border}";
+  "border.style.double.width": "{border.width-4}";
+  "border.style.double.style": "double";
+  "border.style.double.color": "{color.border}";
+  "border.style.none.width": "0px";
+  "border.style.none.style": "none";
+  "border.style.none.color": "#000000";
   "opacity.0": 0;
+  "opacity.5": 0.05;
   "opacity.10": 0.1;
+  "opacity.15": 0.15;
   "opacity.20": 0.2;
+  "opacity.25": 0.25;
   "opacity.30": 0.3;
+  "opacity.35": 0.35;
   "opacity.40": 0.4;
+  "opacity.45": 0.45;
   "opacity.50": 0.5;
+  "opacity.55": 0.55;
   "opacity.60": 0.6;
+  "opacity.65": 0.65;
   "opacity.70": 0.7;
+  "opacity.75": 0.75;
   "opacity.80": 0.8;
+  "opacity.85": 0.85;
   "opacity.90": 0.9;
+  "opacity.95": 0.95;
   "opacity.100": 1;
   "motion.duration.fast": "150ms";
   "motion.duration.base": "250ms";
@@ -174,8 +244,6 @@ export interface ThemeTokens {
   "avatar.sm": "1.5rem";
   "avatar.md": "2.5rem";
   "avatar.lg": "4rem";
-  "focus.width": "2px";
-  "focus.offset": "2px";
   "element.h1.type.family": "{font.style.display.family}";
   "element.h1.type.size": "{font.style.display.size}";
   "element.h1.type.weight": "{font.style.display.weight}";
@@ -368,46 +436,6 @@ export interface ThemeTokens {
   "table.zebra": "{color.surface-sunken}";
   "checkbox.depth": 1.5;
   "switch.depth": 1.5;
-  "color.primary": "#1c62c2";
-  "color.secondary": "#1a2434";
-  "color.accent": "#006974";
-  "color.neutral.50": "#f7f8fb";
-  "color.neutral.100": "#f1f4f8";
-  "color.neutral.200": "#e4e8ef";
-  "color.neutral.300": "#cfd5de";
-  "color.neutral.400": "#a6afbb";
-  "color.neutral.500": "#78818f";
-  "color.neutral.600": "#525c6a";
-  "color.neutral.700": "#333e4d";
-  "color.neutral.800": "#1a2434";
-  "color.neutral.900": "#050d1c";
-  "color.semantic.success": "#26753e";
-  "color.semantic.warning": "#886108";
-  "color.semantic.error": "#a6312b";
-  "color.semantic.info": "#0e629a";
-  "color.surface": "{color.neutral.50}";
-  "color.surface-sunken": "{color.neutral.100}";
-  "color.surface-raised": "#ffffff";
-  "color.text": "{color.neutral.900}";
-  "color.text-muted": "{color.neutral.600}";
-  "color.border": "{color.neutral.200}";
-  "color.scrim": "rgb(15 19 30 / 45%)";
-  "color.on-primary": "#ffffff";
-  "color.focus-ring": "#1c62c2";
-  "color.link": "#1c62c2";
-  "color.on-secondary": "#ffffff";
-  "color.on-accent": "#ffffff";
-  "color.selected": "{color.text}";
-  "color.on-selected": "{color.surface}";
-  "color.on-semantic-success": "#ffffff";
-  "color.on-semantic-warning": "#ffffff";
-  "color.field": "#ffffff";
-  "color.border-strong": "#a6afbb";
-  "color.on-semantic-error": "#ffffff";
-  "color.on-danger": "{color.on-semantic-error}";
-  "color.on-semantic-info": "#ffffff";
-  "color.disabled": "{color.neutral.200}";
-  "color.on-disabled": "{color.neutral.600}";
   "shadow.sm": "0 1px 2px -1px rgb(15 19 30 / 0.08), 0 1px 3px 0 rgb(15 19 30 / 0.06)";
   "shadow.md": "0 4px 8px -2px rgb(15 19 30 / 0.10), 0 2px 4px -2px rgb(15 19 30 / 0.06)";
   "shadow.lg": "0 16px 40px -8px rgb(15 19 30 / 0.16), 0 4px 12px -4px rgb(15 19 30 / 0.08)";
@@ -420,10 +448,10 @@ export interface ThemeTokens {
  */
 
 /** DTCG paths of every token — the keys of `ThemeTokens`. */
-export type ThemeTokenPath = "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.tracking.tighter" | "font.tracking.tight" | "font.tracking.normal" | "font.tracking.wide" | "font.tracking.wider" | "font.tracking.widest" | "font.leading.none" | "font.leading.tight" | "font.leading.snug" | "font.leading.normal" | "font.leading.relaxed" | "font.leading.loose" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.style.display.family" | "font.style.display.size" | "font.style.display.weight" | "font.style.display.tracking" | "font.style.display.leading" | "font.style.title.family" | "font.style.title.size" | "font.style.title.weight" | "font.style.title.tracking" | "font.style.title.leading" | "font.style.heading.family" | "font.style.heading.size" | "font.style.heading.weight" | "font.style.heading.tracking" | "font.style.heading.leading" | "font.style.subtitle.family" | "font.style.subtitle.size" | "font.style.subtitle.weight" | "font.style.subtitle.tracking" | "font.style.subtitle.leading" | "font.style.lead.family" | "font.style.lead.size" | "font.style.lead.weight" | "font.style.lead.tracking" | "font.style.lead.leading" | "font.style.body.family" | "font.style.body.size" | "font.style.body.weight" | "font.style.body.tracking" | "font.style.body.leading" | "font.style.quote.family" | "font.style.quote.size" | "font.style.quote.weight" | "font.style.quote.tracking" | "font.style.quote.leading" | "font.style.code.family" | "font.style.code.size" | "font.style.code.weight" | "font.style.code.tracking" | "font.style.code.leading" | "font.style.label.family" | "font.style.label.size" | "font.style.label.weight" | "font.style.label.tracking" | "font.style.label.leading" | "font.style.caption.family" | "font.style.caption.size" | "font.style.caption.weight" | "font.style.caption.tracking" | "font.style.caption.leading" | "font.style.overline.family" | "font.style.overline.size" | "font.style.overline.weight" | "font.style.overline.tracking" | "font.style.overline.leading" | "font.style.stat.family" | "font.style.stat.size" | "font.style.stat.weight" | "font.style.stat.tracking" | "font.style.stat.leading" | "font.style.badge.family" | "font.style.badge.size" | "font.style.badge.weight" | "font.style.badge.tracking" | "font.style.badge.leading" | "font.style.body-strong.family" | "font.style.body-strong.size" | "font.style.body-strong.weight" | "font.style.body-strong.tracking" | "font.style.body-strong.leading" | "font.style.caption-strong.family" | "font.style.caption-strong.size" | "font.style.caption-strong.weight" | "font.style.caption-strong.tracking" | "font.style.caption-strong.leading" | "font.style.card-title.family" | "font.style.card-title.size" | "font.style.card-title.weight" | "font.style.card-title.tracking" | "font.style.card-title.leading" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "opacity.0" | "opacity.10" | "opacity.20" | "opacity.30" | "opacity.40" | "opacity.50" | "opacity.60" | "opacity.70" | "opacity.80" | "opacity.90" | "opacity.100" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "icon.sm" | "icon.md" | "icon.lg" | "avatar.sm" | "avatar.md" | "avatar.lg" | "focus.width" | "focus.offset" | "element.h1.type.family" | "element.h1.type.size" | "element.h1.type.weight" | "element.h1.type.tracking" | "element.h1.type.leading" | "element.h2.type.family" | "element.h2.type.size" | "element.h2.type.weight" | "element.h2.type.tracking" | "element.h2.type.leading" | "element.h3.type.family" | "element.h3.type.size" | "element.h3.type.weight" | "element.h3.type.tracking" | "element.h3.type.leading" | "element.h4.type.family" | "element.h4.type.size" | "element.h4.type.weight" | "element.h4.type.tracking" | "element.h4.type.leading" | "element.h5.type.family" | "element.h5.type.size" | "element.h5.type.weight" | "element.h5.type.tracking" | "element.h5.type.leading" | "element.h6.type.family" | "element.h6.type.size" | "element.h6.type.weight" | "element.h6.type.tracking" | "element.h6.type.leading" | "element.p.type.family" | "element.p.type.size" | "element.p.type.weight" | "element.p.type.tracking" | "element.p.type.leading" | "element.blockquote.type.family" | "element.blockquote.type.size" | "element.blockquote.type.weight" | "element.blockquote.type.tracking" | "element.blockquote.type.leading" | "element.code.type.family" | "element.code.type.size" | "element.code.type.weight" | "element.code.type.tracking" | "element.code.type.leading" | "element.small.type.family" | "element.small.type.size" | "element.small.type.weight" | "element.small.type.tracking" | "element.small.type.leading" | "element.figcaption.type.family" | "element.figcaption.type.size" | "element.figcaption.type.weight" | "element.figcaption.type.tracking" | "element.figcaption.type.leading" | "element.th.type.family" | "element.th.type.size" | "element.th.type.weight" | "element.th.type.tracking" | "element.th.type.leading" | "element.caption.type.family" | "element.caption.type.size" | "element.caption.type.weight" | "element.caption.type.tracking" | "element.caption.type.leading" | "element.label.type.family" | "element.label.type.size" | "element.label.type.weight" | "element.label.type.tracking" | "element.label.type.leading" | "element.legend.type.family" | "element.legend.type.size" | "element.legend.type.weight" | "element.legend.type.tracking" | "element.legend.type.leading" | "element.dt.type.family" | "element.dt.type.size" | "element.dt.type.weight" | "element.dt.type.tracking" | "element.dt.type.leading" | "link.underline" | "link.offset" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "button.type.family" | "button.type.size" | "button.type.weight" | "button.type.tracking" | "button.type.leading" | "button.s-sm.type.family" | "button.s-sm.type.size" | "button.s-sm.type.weight" | "button.s-sm.type.tracking" | "button.s-sm.type.leading" | "button.s-lg.type.family" | "button.s-lg.type.size" | "button.s-lg.type.weight" | "button.s-lg.type.tracking" | "button.s-lg.type.leading" | "button.bare.type.family" | "button.bare.type.size" | "button.bare.type.weight" | "button.bare.type.tracking" | "button.bare.type.leading" | "button.primary.type.family" | "button.primary.type.size" | "button.primary.type.weight" | "button.primary.type.tracking" | "button.primary.type.leading" | "button.secondary.type.family" | "button.secondary.type.size" | "button.secondary.type.weight" | "button.secondary.type.tracking" | "button.secondary.type.leading" | "button.outline.type.family" | "button.outline.type.size" | "button.outline.type.weight" | "button.outline.type.tracking" | "button.outline.type.leading" | "button.ghost.type.family" | "button.ghost.type.size" | "button.ghost.type.weight" | "button.ghost.type.tracking" | "button.ghost.type.leading" | "button.contrast.type.family" | "button.contrast.type.size" | "button.contrast.type.weight" | "button.contrast.type.tracking" | "button.contrast.type.leading" | "button.danger.type.family" | "button.danger.type.size" | "button.danger.type.weight" | "button.danger.type.tracking" | "button.danger.type.leading" | "stat.title.type.family" | "stat.title.type.size" | "stat.title.type.weight" | "stat.title.type.tracking" | "stat.title.type.leading" | "stat.value.type.family" | "stat.value.type.size" | "stat.value.type.weight" | "stat.value.type.tracking" | "stat.value.type.leading" | "stat.desc.type.family" | "stat.desc.type.size" | "stat.desc.type.weight" | "stat.desc.type.tracking" | "stat.desc.type.leading" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "card.title.type.family" | "card.title.type.size" | "card.title.type.weight" | "card.title.type.tracking" | "card.title.type.leading" | "card.description.type.family" | "card.description.type.size" | "card.description.type.weight" | "card.description.type.tracking" | "card.description.type.leading" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "alert.type.family" | "alert.type.size" | "alert.type.weight" | "alert.type.tracking" | "alert.type.leading" | "field.radius" | "field.border" | "field.type.family" | "field.type.size" | "field.type.weight" | "field.type.tracking" | "field.type.leading" | "badge.edge" | "badge.pill" | "badge.type.family" | "badge.type.size" | "badge.type.weight" | "badge.type.tracking" | "badge.type.leading" | "table.rule" | "table.zebra" | "checkbox.depth" | "switch.depth" | "color.primary" | "color.secondary" | "color.accent" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.surface" | "color.surface-sunken" | "color.surface-raised" | "color.text" | "color.text-muted" | "color.border" | "color.scrim" | "color.on-primary" | "color.focus-ring" | "color.link" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.field" | "color.border-strong" | "color.on-semantic-error" | "color.on-danger" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "shadow.sm" | "shadow.md" | "shadow.lg"
+export type ThemeTokenPath = "color.text" | "color.text-muted" | "color.surface" | "color.surface-raised" | "color.border" | "color.primary" | "color.secondary" | "color.accent" | "color.semantic.success" | "color.semantic.warning" | "color.semantic.error" | "color.semantic.info" | "color.on-primary" | "color.on-secondary" | "color.on-accent" | "color.selected" | "color.on-selected" | "color.on-semantic-error" | "color.on-semantic-success" | "color.on-semantic-warning" | "color.on-semantic-info" | "color.disabled" | "color.on-disabled" | "color.focus-ring" | "color.link" | "color.neutral.50" | "color.neutral.100" | "color.neutral.200" | "color.neutral.300" | "color.neutral.400" | "color.neutral.500" | "color.neutral.600" | "color.neutral.700" | "color.neutral.800" | "color.neutral.900" | "color.surface-sunken" | "color.scrim" | "color.field" | "color.border-strong" | "color.on-danger" | "font.family.sans" | "font.family.heading" | "font.family.body" | "font.family.serif" | "font.family.mono" | "font.family.brand" | "font.size.2xs" | "font.size.xs" | "font.size.sm" | "font.size.md" | "font.size.lg" | "font.size.xl" | "font.size.2xl" | "font.size.3xl" | "font.weight.regular" | "font.weight.medium" | "font.weight.semibold" | "font.weight.bold" | "font.tracking.tighter" | "font.tracking.tight" | "font.tracking.normal" | "font.tracking.wide" | "font.tracking.wider" | "font.tracking.widest" | "font.leading.none" | "font.leading.tight" | "font.leading.snug" | "font.leading.normal" | "font.leading.relaxed" | "font.leading.loose" | "font.style.display.family" | "font.style.display.size" | "font.style.display.weight" | "font.style.display.tracking" | "font.style.display.leading" | "font.style.title.family" | "font.style.title.size" | "font.style.title.weight" | "font.style.title.tracking" | "font.style.title.leading" | "font.style.heading.family" | "font.style.heading.size" | "font.style.heading.weight" | "font.style.heading.tracking" | "font.style.heading.leading" | "font.style.subtitle.family" | "font.style.subtitle.size" | "font.style.subtitle.weight" | "font.style.subtitle.tracking" | "font.style.subtitle.leading" | "font.style.lead.family" | "font.style.lead.size" | "font.style.lead.weight" | "font.style.lead.tracking" | "font.style.lead.leading" | "font.style.body.family" | "font.style.body.size" | "font.style.body.weight" | "font.style.body.tracking" | "font.style.body.leading" | "font.style.quote.family" | "font.style.quote.size" | "font.style.quote.weight" | "font.style.quote.tracking" | "font.style.quote.leading" | "font.style.code.family" | "font.style.code.size" | "font.style.code.weight" | "font.style.code.tracking" | "font.style.code.leading" | "font.style.label.family" | "font.style.label.size" | "font.style.label.weight" | "font.style.label.tracking" | "font.style.label.leading" | "font.style.caption.family" | "font.style.caption.size" | "font.style.caption.weight" | "font.style.caption.tracking" | "font.style.caption.leading" | "font.style.overline.family" | "font.style.overline.size" | "font.style.overline.weight" | "font.style.overline.tracking" | "font.style.overline.leading" | "font.style.stat.family" | "font.style.stat.size" | "font.style.stat.weight" | "font.style.stat.tracking" | "font.style.stat.leading" | "font.style.badge.family" | "font.style.badge.size" | "font.style.badge.weight" | "font.style.badge.tracking" | "font.style.badge.leading" | "font.style.body-strong.family" | "font.style.body-strong.size" | "font.style.body-strong.weight" | "font.style.body-strong.tracking" | "font.style.body-strong.leading" | "font.style.caption-strong.family" | "font.style.caption-strong.size" | "font.style.caption-strong.weight" | "font.style.caption-strong.tracking" | "font.style.caption-strong.leading" | "font.style.card-title.family" | "font.style.card-title.size" | "font.style.card-title.weight" | "font.style.card-title.tracking" | "font.style.card-title.leading" | "focus.width" | "focus.offset" | "spacing.0" | "spacing.1" | "spacing.2" | "spacing.3" | "spacing.4" | "spacing.5" | "spacing.6" | "spacing.7" | "spacing.8" | "spacing.10" | "spacing.12" | "spacing.14" | "spacing.16" | "spacing.20" | "spacing.24" | "spacing.36" | "spacing.40" | "spacing.56" | "spacing.60" | "spacing.64" | "radius.none" | "radius.sm" | "radius.md" | "radius.lg" | "radius.full" | "border.width" | "border.width-2" | "border.width-4" | "border.width-8" | "border.style.solid.width" | "border.style.solid.style" | "border.style.solid.color" | "border.style.strong.width" | "border.style.strong.style" | "border.style.strong.color" | "border.style.dashed.width" | "border.style.dashed.style" | "border.style.dashed.color" | "border.style.dotted.width" | "border.style.dotted.style" | "border.style.dotted.color" | "border.style.double.width" | "border.style.double.style" | "border.style.double.color" | "border.style.none.width" | "border.style.none.style" | "border.style.none.color" | "opacity.0" | "opacity.5" | "opacity.10" | "opacity.15" | "opacity.20" | "opacity.25" | "opacity.30" | "opacity.35" | "opacity.40" | "opacity.45" | "opacity.50" | "opacity.55" | "opacity.60" | "opacity.65" | "opacity.70" | "opacity.75" | "opacity.80" | "opacity.85" | "opacity.90" | "opacity.95" | "opacity.100" | "motion.duration.fast" | "motion.duration.base" | "motion.duration.slow" | "motion.duration.loop" | "motion.easing.linear" | "motion.easing.standard" | "motion.easing.decelerate" | "motion.easing.accelerate" | "breakpoint.sm" | "breakpoint.md" | "breakpoint.lg" | "breakpoint.xl" | "z-index.base" | "z-index.dropdown" | "z-index.modal" | "z-index.toast" | "icon.sm" | "icon.md" | "icon.lg" | "avatar.sm" | "avatar.md" | "avatar.lg" | "element.h1.type.family" | "element.h1.type.size" | "element.h1.type.weight" | "element.h1.type.tracking" | "element.h1.type.leading" | "element.h2.type.family" | "element.h2.type.size" | "element.h2.type.weight" | "element.h2.type.tracking" | "element.h2.type.leading" | "element.h3.type.family" | "element.h3.type.size" | "element.h3.type.weight" | "element.h3.type.tracking" | "element.h3.type.leading" | "element.h4.type.family" | "element.h4.type.size" | "element.h4.type.weight" | "element.h4.type.tracking" | "element.h4.type.leading" | "element.h5.type.family" | "element.h5.type.size" | "element.h5.type.weight" | "element.h5.type.tracking" | "element.h5.type.leading" | "element.h6.type.family" | "element.h6.type.size" | "element.h6.type.weight" | "element.h6.type.tracking" | "element.h6.type.leading" | "element.p.type.family" | "element.p.type.size" | "element.p.type.weight" | "element.p.type.tracking" | "element.p.type.leading" | "element.blockquote.type.family" | "element.blockquote.type.size" | "element.blockquote.type.weight" | "element.blockquote.type.tracking" | "element.blockquote.type.leading" | "element.code.type.family" | "element.code.type.size" | "element.code.type.weight" | "element.code.type.tracking" | "element.code.type.leading" | "element.small.type.family" | "element.small.type.size" | "element.small.type.weight" | "element.small.type.tracking" | "element.small.type.leading" | "element.figcaption.type.family" | "element.figcaption.type.size" | "element.figcaption.type.weight" | "element.figcaption.type.tracking" | "element.figcaption.type.leading" | "element.th.type.family" | "element.th.type.size" | "element.th.type.weight" | "element.th.type.tracking" | "element.th.type.leading" | "element.caption.type.family" | "element.caption.type.size" | "element.caption.type.weight" | "element.caption.type.tracking" | "element.caption.type.leading" | "element.label.type.family" | "element.label.type.size" | "element.label.type.weight" | "element.label.type.tracking" | "element.label.type.leading" | "element.legend.type.family" | "element.legend.type.size" | "element.legend.type.weight" | "element.legend.type.tracking" | "element.legend.type.leading" | "element.dt.type.family" | "element.dt.type.size" | "element.dt.type.weight" | "element.dt.type.tracking" | "element.dt.type.leading" | "link.underline" | "link.offset" | "button.edge" | "button.shadow" | "button.shadow-hover" | "button.radius" | "button.type.family" | "button.type.size" | "button.type.weight" | "button.type.tracking" | "button.type.leading" | "button.s-sm.type.family" | "button.s-sm.type.size" | "button.s-sm.type.weight" | "button.s-sm.type.tracking" | "button.s-sm.type.leading" | "button.s-lg.type.family" | "button.s-lg.type.size" | "button.s-lg.type.weight" | "button.s-lg.type.tracking" | "button.s-lg.type.leading" | "button.bare.type.family" | "button.bare.type.size" | "button.bare.type.weight" | "button.bare.type.tracking" | "button.bare.type.leading" | "button.primary.type.family" | "button.primary.type.size" | "button.primary.type.weight" | "button.primary.type.tracking" | "button.primary.type.leading" | "button.secondary.type.family" | "button.secondary.type.size" | "button.secondary.type.weight" | "button.secondary.type.tracking" | "button.secondary.type.leading" | "button.outline.type.family" | "button.outline.type.size" | "button.outline.type.weight" | "button.outline.type.tracking" | "button.outline.type.leading" | "button.ghost.type.family" | "button.ghost.type.size" | "button.ghost.type.weight" | "button.ghost.type.tracking" | "button.ghost.type.leading" | "button.contrast.type.family" | "button.contrast.type.size" | "button.contrast.type.weight" | "button.contrast.type.tracking" | "button.contrast.type.leading" | "button.danger.type.family" | "button.danger.type.size" | "button.danger.type.weight" | "button.danger.type.tracking" | "button.danger.type.leading" | "stat.title.type.family" | "stat.title.type.size" | "stat.title.type.weight" | "stat.title.type.tracking" | "stat.title.type.leading" | "stat.value.type.family" | "stat.value.type.size" | "stat.value.type.weight" | "stat.value.type.tracking" | "stat.value.type.leading" | "stat.desc.type.family" | "stat.desc.type.size" | "stat.desc.type.weight" | "stat.desc.type.tracking" | "stat.desc.type.leading" | "card.radius" | "card.padding" | "card.border" | "card.elevation" | "card.title.type.family" | "card.title.type.size" | "card.title.type.weight" | "card.title.type.tracking" | "card.title.type.leading" | "card.description.type.family" | "card.description.type.size" | "card.description.type.weight" | "card.description.type.tracking" | "card.description.type.leading" | "alert.radius" | "alert.padding" | "alert.padding-inline" | "alert.edge" | "alert.type.family" | "alert.type.size" | "alert.type.weight" | "alert.type.tracking" | "alert.type.leading" | "field.radius" | "field.border" | "field.type.family" | "field.type.size" | "field.type.weight" | "field.type.tracking" | "field.type.leading" | "badge.edge" | "badge.pill" | "badge.type.family" | "badge.type.size" | "badge.type.weight" | "badge.type.tracking" | "badge.type.leading" | "table.rule" | "table.zebra" | "checkbox.depth" | "switch.depth" | "shadow.sm" | "shadow.md" | "shadow.lg"
 
 /** CSS custom properties every token is readable through. */
-export type ThemeCssVar = "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-tracking-tighter" | "--font-tracking-tight" | "--font-tracking-normal" | "--font-tracking-wide" | "--font-tracking-wider" | "--font-tracking-widest" | "--font-leading-none" | "--font-leading-tight" | "--font-leading-snug" | "--font-leading-normal" | "--font-leading-relaxed" | "--font-leading-loose" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-style-display-family" | "--font-style-display-size" | "--font-style-display-weight" | "--font-style-display-tracking" | "--font-style-display-leading" | "--font-style-title-family" | "--font-style-title-size" | "--font-style-title-weight" | "--font-style-title-tracking" | "--font-style-title-leading" | "--font-style-heading-family" | "--font-style-heading-size" | "--font-style-heading-weight" | "--font-style-heading-tracking" | "--font-style-heading-leading" | "--font-style-subtitle-family" | "--font-style-subtitle-size" | "--font-style-subtitle-weight" | "--font-style-subtitle-tracking" | "--font-style-subtitle-leading" | "--font-style-lead-family" | "--font-style-lead-size" | "--font-style-lead-weight" | "--font-style-lead-tracking" | "--font-style-lead-leading" | "--font-style-body-family" | "--font-style-body-size" | "--font-style-body-weight" | "--font-style-body-tracking" | "--font-style-body-leading" | "--font-style-quote-family" | "--font-style-quote-size" | "--font-style-quote-weight" | "--font-style-quote-tracking" | "--font-style-quote-leading" | "--font-style-code-family" | "--font-style-code-size" | "--font-style-code-weight" | "--font-style-code-tracking" | "--font-style-code-leading" | "--font-style-label-family" | "--font-style-label-size" | "--font-style-label-weight" | "--font-style-label-tracking" | "--font-style-label-leading" | "--font-style-caption-family" | "--font-style-caption-size" | "--font-style-caption-weight" | "--font-style-caption-tracking" | "--font-style-caption-leading" | "--font-style-overline-family" | "--font-style-overline-size" | "--font-style-overline-weight" | "--font-style-overline-tracking" | "--font-style-overline-leading" | "--font-style-stat-family" | "--font-style-stat-size" | "--font-style-stat-weight" | "--font-style-stat-tracking" | "--font-style-stat-leading" | "--font-style-badge-family" | "--font-style-badge-size" | "--font-style-badge-weight" | "--font-style-badge-tracking" | "--font-style-badge-leading" | "--font-style-body-strong-family" | "--font-style-body-strong-size" | "--font-style-body-strong-weight" | "--font-style-body-strong-tracking" | "--font-style-body-strong-leading" | "--font-style-caption-strong-family" | "--font-style-caption-strong-size" | "--font-style-caption-strong-weight" | "--font-style-caption-strong-tracking" | "--font-style-caption-strong-leading" | "--font-style-card-title-family" | "--font-style-card-title-size" | "--font-style-card-title-weight" | "--font-style-card-title-tracking" | "--font-style-card-title-leading" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--opacity-0" | "--opacity-10" | "--opacity-20" | "--opacity-30" | "--opacity-40" | "--opacity-50" | "--opacity-60" | "--opacity-70" | "--opacity-80" | "--opacity-90" | "--opacity-100" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--focus-width" | "--focus-offset" | "--element-h1-type-family" | "--element-h1-type-size" | "--element-h1-type-weight" | "--element-h1-type-tracking" | "--element-h1-type-leading" | "--element-h2-type-family" | "--element-h2-type-size" | "--element-h2-type-weight" | "--element-h2-type-tracking" | "--element-h2-type-leading" | "--element-h3-type-family" | "--element-h3-type-size" | "--element-h3-type-weight" | "--element-h3-type-tracking" | "--element-h3-type-leading" | "--element-h4-type-family" | "--element-h4-type-size" | "--element-h4-type-weight" | "--element-h4-type-tracking" | "--element-h4-type-leading" | "--element-h5-type-family" | "--element-h5-type-size" | "--element-h5-type-weight" | "--element-h5-type-tracking" | "--element-h5-type-leading" | "--element-h6-type-family" | "--element-h6-type-size" | "--element-h6-type-weight" | "--element-h6-type-tracking" | "--element-h6-type-leading" | "--element-p-type-family" | "--element-p-type-size" | "--element-p-type-weight" | "--element-p-type-tracking" | "--element-p-type-leading" | "--element-blockquote-type-family" | "--element-blockquote-type-size" | "--element-blockquote-type-weight" | "--element-blockquote-type-tracking" | "--element-blockquote-type-leading" | "--element-code-type-family" | "--element-code-type-size" | "--element-code-type-weight" | "--element-code-type-tracking" | "--element-code-type-leading" | "--element-small-type-family" | "--element-small-type-size" | "--element-small-type-weight" | "--element-small-type-tracking" | "--element-small-type-leading" | "--element-figcaption-type-family" | "--element-figcaption-type-size" | "--element-figcaption-type-weight" | "--element-figcaption-type-tracking" | "--element-figcaption-type-leading" | "--element-th-type-family" | "--element-th-type-size" | "--element-th-type-weight" | "--element-th-type-tracking" | "--element-th-type-leading" | "--element-caption-type-family" | "--element-caption-type-size" | "--element-caption-type-weight" | "--element-caption-type-tracking" | "--element-caption-type-leading" | "--element-label-type-family" | "--element-label-type-size" | "--element-label-type-weight" | "--element-label-type-tracking" | "--element-label-type-leading" | "--element-legend-type-family" | "--element-legend-type-size" | "--element-legend-type-weight" | "--element-legend-type-tracking" | "--element-legend-type-leading" | "--element-dt-type-family" | "--element-dt-type-size" | "--element-dt-type-weight" | "--element-dt-type-tracking" | "--element-dt-type-leading" | "--link-underline" | "--link-offset" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--button-type-family" | "--button-type-size" | "--button-type-weight" | "--button-type-tracking" | "--button-type-leading" | "--button-s-sm-type-family" | "--button-s-sm-type-size" | "--button-s-sm-type-weight" | "--button-s-sm-type-tracking" | "--button-s-sm-type-leading" | "--button-s-lg-type-family" | "--button-s-lg-type-size" | "--button-s-lg-type-weight" | "--button-s-lg-type-tracking" | "--button-s-lg-type-leading" | "--button-bare-type-family" | "--button-bare-type-size" | "--button-bare-type-weight" | "--button-bare-type-tracking" | "--button-bare-type-leading" | "--button-primary-type-family" | "--button-primary-type-size" | "--button-primary-type-weight" | "--button-primary-type-tracking" | "--button-primary-type-leading" | "--button-secondary-type-family" | "--button-secondary-type-size" | "--button-secondary-type-weight" | "--button-secondary-type-tracking" | "--button-secondary-type-leading" | "--button-outline-type-family" | "--button-outline-type-size" | "--button-outline-type-weight" | "--button-outline-type-tracking" | "--button-outline-type-leading" | "--button-ghost-type-family" | "--button-ghost-type-size" | "--button-ghost-type-weight" | "--button-ghost-type-tracking" | "--button-ghost-type-leading" | "--button-contrast-type-family" | "--button-contrast-type-size" | "--button-contrast-type-weight" | "--button-contrast-type-tracking" | "--button-contrast-type-leading" | "--button-danger-type-family" | "--button-danger-type-size" | "--button-danger-type-weight" | "--button-danger-type-tracking" | "--button-danger-type-leading" | "--stat-title-type-family" | "--stat-title-type-size" | "--stat-title-type-weight" | "--stat-title-type-tracking" | "--stat-title-type-leading" | "--stat-value-type-family" | "--stat-value-type-size" | "--stat-value-type-weight" | "--stat-value-type-tracking" | "--stat-value-type-leading" | "--stat-desc-type-family" | "--stat-desc-type-size" | "--stat-desc-type-weight" | "--stat-desc-type-tracking" | "--stat-desc-type-leading" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--card-title-type-family" | "--card-title-type-size" | "--card-title-type-weight" | "--card-title-type-tracking" | "--card-title-type-leading" | "--card-description-type-family" | "--card-description-type-size" | "--card-description-type-weight" | "--card-description-type-tracking" | "--card-description-type-leading" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--alert-type-family" | "--alert-type-size" | "--alert-type-weight" | "--alert-type-tracking" | "--alert-type-leading" | "--field-radius" | "--field-border" | "--field-type-family" | "--field-type-size" | "--field-type-weight" | "--field-type-tracking" | "--field-type-leading" | "--badge-edge" | "--badge-pill" | "--badge-type-family" | "--badge-type-size" | "--badge-type-weight" | "--badge-type-tracking" | "--badge-type-leading" | "--table-rule" | "--table-zebra" | "--checkbox-depth" | "--switch-depth" | "--color-primary" | "--color-secondary" | "--color-accent" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-surface" | "--color-surface-sunken" | "--color-surface-raised" | "--color-text" | "--color-text-muted" | "--color-border" | "--color-scrim" | "--color-on-primary" | "--color-focus-ring" | "--color-link" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-field" | "--color-border-strong" | "--color-on-semantic-error" | "--color-on-danger" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--shadow-sm" | "--shadow-md" | "--shadow-lg"
+export type ThemeCssVar = "--color-text" | "--color-text-muted" | "--color-surface" | "--color-surface-raised" | "--color-border" | "--color-primary" | "--color-secondary" | "--color-accent" | "--color-semantic-success" | "--color-semantic-warning" | "--color-semantic-error" | "--color-semantic-info" | "--color-on-primary" | "--color-on-secondary" | "--color-on-accent" | "--color-selected" | "--color-on-selected" | "--color-on-semantic-error" | "--color-on-semantic-success" | "--color-on-semantic-warning" | "--color-on-semantic-info" | "--color-disabled" | "--color-on-disabled" | "--color-focus-ring" | "--color-link" | "--color-neutral-50" | "--color-neutral-100" | "--color-neutral-200" | "--color-neutral-300" | "--color-neutral-400" | "--color-neutral-500" | "--color-neutral-600" | "--color-neutral-700" | "--color-neutral-800" | "--color-neutral-900" | "--color-surface-sunken" | "--color-scrim" | "--color-field" | "--color-border-strong" | "--color-on-danger" | "--font-family-sans" | "--font-family-heading" | "--font-family-body" | "--font-family-serif" | "--font-family-mono" | "--font-family-brand" | "--font-size-2xs" | "--font-size-xs" | "--font-size-sm" | "--font-size-md" | "--font-size-lg" | "--font-size-xl" | "--font-size-2xl" | "--font-size-3xl" | "--font-weight-regular" | "--font-weight-medium" | "--font-weight-semibold" | "--font-weight-bold" | "--font-tracking-tighter" | "--font-tracking-tight" | "--font-tracking-normal" | "--font-tracking-wide" | "--font-tracking-wider" | "--font-tracking-widest" | "--font-leading-none" | "--font-leading-tight" | "--font-leading-snug" | "--font-leading-normal" | "--font-leading-relaxed" | "--font-leading-loose" | "--font-style-display-family" | "--font-style-display-size" | "--font-style-display-weight" | "--font-style-display-tracking" | "--font-style-display-leading" | "--font-style-title-family" | "--font-style-title-size" | "--font-style-title-weight" | "--font-style-title-tracking" | "--font-style-title-leading" | "--font-style-heading-family" | "--font-style-heading-size" | "--font-style-heading-weight" | "--font-style-heading-tracking" | "--font-style-heading-leading" | "--font-style-subtitle-family" | "--font-style-subtitle-size" | "--font-style-subtitle-weight" | "--font-style-subtitle-tracking" | "--font-style-subtitle-leading" | "--font-style-lead-family" | "--font-style-lead-size" | "--font-style-lead-weight" | "--font-style-lead-tracking" | "--font-style-lead-leading" | "--font-style-body-family" | "--font-style-body-size" | "--font-style-body-weight" | "--font-style-body-tracking" | "--font-style-body-leading" | "--font-style-quote-family" | "--font-style-quote-size" | "--font-style-quote-weight" | "--font-style-quote-tracking" | "--font-style-quote-leading" | "--font-style-code-family" | "--font-style-code-size" | "--font-style-code-weight" | "--font-style-code-tracking" | "--font-style-code-leading" | "--font-style-label-family" | "--font-style-label-size" | "--font-style-label-weight" | "--font-style-label-tracking" | "--font-style-label-leading" | "--font-style-caption-family" | "--font-style-caption-size" | "--font-style-caption-weight" | "--font-style-caption-tracking" | "--font-style-caption-leading" | "--font-style-overline-family" | "--font-style-overline-size" | "--font-style-overline-weight" | "--font-style-overline-tracking" | "--font-style-overline-leading" | "--font-style-stat-family" | "--font-style-stat-size" | "--font-style-stat-weight" | "--font-style-stat-tracking" | "--font-style-stat-leading" | "--font-style-badge-family" | "--font-style-badge-size" | "--font-style-badge-weight" | "--font-style-badge-tracking" | "--font-style-badge-leading" | "--font-style-body-strong-family" | "--font-style-body-strong-size" | "--font-style-body-strong-weight" | "--font-style-body-strong-tracking" | "--font-style-body-strong-leading" | "--font-style-caption-strong-family" | "--font-style-caption-strong-size" | "--font-style-caption-strong-weight" | "--font-style-caption-strong-tracking" | "--font-style-caption-strong-leading" | "--font-style-card-title-family" | "--font-style-card-title-size" | "--font-style-card-title-weight" | "--font-style-card-title-tracking" | "--font-style-card-title-leading" | "--focus-width" | "--focus-offset" | "--spacing-0" | "--spacing-1" | "--spacing-2" | "--spacing-3" | "--spacing-4" | "--spacing-5" | "--spacing-6" | "--spacing-7" | "--spacing-8" | "--spacing-10" | "--spacing-12" | "--spacing-14" | "--spacing-16" | "--spacing-20" | "--spacing-24" | "--spacing-36" | "--spacing-40" | "--spacing-56" | "--spacing-60" | "--spacing-64" | "--radius-none" | "--radius-sm" | "--radius-md" | "--radius-lg" | "--radius-full" | "--border-width" | "--border-width-2" | "--border-width-4" | "--border-width-8" | "--border-style-solid-width" | "--border-style-solid-style" | "--border-style-solid-color" | "--border-style-strong-width" | "--border-style-strong-style" | "--border-style-strong-color" | "--border-style-dashed-width" | "--border-style-dashed-style" | "--border-style-dashed-color" | "--border-style-dotted-width" | "--border-style-dotted-style" | "--border-style-dotted-color" | "--border-style-double-width" | "--border-style-double-style" | "--border-style-double-color" | "--border-style-none-width" | "--border-style-none-style" | "--border-style-none-color" | "--opacity-0" | "--opacity-5" | "--opacity-10" | "--opacity-15" | "--opacity-20" | "--opacity-25" | "--opacity-30" | "--opacity-35" | "--opacity-40" | "--opacity-45" | "--opacity-50" | "--opacity-55" | "--opacity-60" | "--opacity-65" | "--opacity-70" | "--opacity-75" | "--opacity-80" | "--opacity-85" | "--opacity-90" | "--opacity-95" | "--opacity-100" | "--motion-duration-fast" | "--motion-duration-base" | "--motion-duration-slow" | "--motion-duration-loop" | "--motion-easing-linear" | "--motion-easing-standard" | "--motion-easing-decelerate" | "--motion-easing-accelerate" | "--breakpoint-sm" | "--breakpoint-md" | "--breakpoint-lg" | "--breakpoint-xl" | "--z-index-base" | "--z-index-dropdown" | "--z-index-modal" | "--z-index-toast" | "--icon-sm" | "--icon-md" | "--icon-lg" | "--avatar-sm" | "--avatar-md" | "--avatar-lg" | "--element-h1-type-family" | "--element-h1-type-size" | "--element-h1-type-weight" | "--element-h1-type-tracking" | "--element-h1-type-leading" | "--element-h2-type-family" | "--element-h2-type-size" | "--element-h2-type-weight" | "--element-h2-type-tracking" | "--element-h2-type-leading" | "--element-h3-type-family" | "--element-h3-type-size" | "--element-h3-type-weight" | "--element-h3-type-tracking" | "--element-h3-type-leading" | "--element-h4-type-family" | "--element-h4-type-size" | "--element-h4-type-weight" | "--element-h4-type-tracking" | "--element-h4-type-leading" | "--element-h5-type-family" | "--element-h5-type-size" | "--element-h5-type-weight" | "--element-h5-type-tracking" | "--element-h5-type-leading" | "--element-h6-type-family" | "--element-h6-type-size" | "--element-h6-type-weight" | "--element-h6-type-tracking" | "--element-h6-type-leading" | "--element-p-type-family" | "--element-p-type-size" | "--element-p-type-weight" | "--element-p-type-tracking" | "--element-p-type-leading" | "--element-blockquote-type-family" | "--element-blockquote-type-size" | "--element-blockquote-type-weight" | "--element-blockquote-type-tracking" | "--element-blockquote-type-leading" | "--element-code-type-family" | "--element-code-type-size" | "--element-code-type-weight" | "--element-code-type-tracking" | "--element-code-type-leading" | "--element-small-type-family" | "--element-small-type-size" | "--element-small-type-weight" | "--element-small-type-tracking" | "--element-small-type-leading" | "--element-figcaption-type-family" | "--element-figcaption-type-size" | "--element-figcaption-type-weight" | "--element-figcaption-type-tracking" | "--element-figcaption-type-leading" | "--element-th-type-family" | "--element-th-type-size" | "--element-th-type-weight" | "--element-th-type-tracking" | "--element-th-type-leading" | "--element-caption-type-family" | "--element-caption-type-size" | "--element-caption-type-weight" | "--element-caption-type-tracking" | "--element-caption-type-leading" | "--element-label-type-family" | "--element-label-type-size" | "--element-label-type-weight" | "--element-label-type-tracking" | "--element-label-type-leading" | "--element-legend-type-family" | "--element-legend-type-size" | "--element-legend-type-weight" | "--element-legend-type-tracking" | "--element-legend-type-leading" | "--element-dt-type-family" | "--element-dt-type-size" | "--element-dt-type-weight" | "--element-dt-type-tracking" | "--element-dt-type-leading" | "--link-underline" | "--link-offset" | "--button-edge" | "--button-shadow" | "--button-shadow-hover" | "--button-radius" | "--button-type-family" | "--button-type-size" | "--button-type-weight" | "--button-type-tracking" | "--button-type-leading" | "--button-s-sm-type-family" | "--button-s-sm-type-size" | "--button-s-sm-type-weight" | "--button-s-sm-type-tracking" | "--button-s-sm-type-leading" | "--button-s-lg-type-family" | "--button-s-lg-type-size" | "--button-s-lg-type-weight" | "--button-s-lg-type-tracking" | "--button-s-lg-type-leading" | "--button-bare-type-family" | "--button-bare-type-size" | "--button-bare-type-weight" | "--button-bare-type-tracking" | "--button-bare-type-leading" | "--button-primary-type-family" | "--button-primary-type-size" | "--button-primary-type-weight" | "--button-primary-type-tracking" | "--button-primary-type-leading" | "--button-secondary-type-family" | "--button-secondary-type-size" | "--button-secondary-type-weight" | "--button-secondary-type-tracking" | "--button-secondary-type-leading" | "--button-outline-type-family" | "--button-outline-type-size" | "--button-outline-type-weight" | "--button-outline-type-tracking" | "--button-outline-type-leading" | "--button-ghost-type-family" | "--button-ghost-type-size" | "--button-ghost-type-weight" | "--button-ghost-type-tracking" | "--button-ghost-type-leading" | "--button-contrast-type-family" | "--button-contrast-type-size" | "--button-contrast-type-weight" | "--button-contrast-type-tracking" | "--button-contrast-type-leading" | "--button-danger-type-family" | "--button-danger-type-size" | "--button-danger-type-weight" | "--button-danger-type-tracking" | "--button-danger-type-leading" | "--stat-title-type-family" | "--stat-title-type-size" | "--stat-title-type-weight" | "--stat-title-type-tracking" | "--stat-title-type-leading" | "--stat-value-type-family" | "--stat-value-type-size" | "--stat-value-type-weight" | "--stat-value-type-tracking" | "--stat-value-type-leading" | "--stat-desc-type-family" | "--stat-desc-type-size" | "--stat-desc-type-weight" | "--stat-desc-type-tracking" | "--stat-desc-type-leading" | "--card-radius" | "--card-padding" | "--card-border" | "--card-elevation" | "--card-title-type-family" | "--card-title-type-size" | "--card-title-type-weight" | "--card-title-type-tracking" | "--card-title-type-leading" | "--card-description-type-family" | "--card-description-type-size" | "--card-description-type-weight" | "--card-description-type-tracking" | "--card-description-type-leading" | "--alert-radius" | "--alert-padding" | "--alert-padding-inline" | "--alert-edge" | "--alert-type-family" | "--alert-type-size" | "--alert-type-weight" | "--alert-type-tracking" | "--alert-type-leading" | "--field-radius" | "--field-border" | "--field-type-family" | "--field-type-size" | "--field-type-weight" | "--field-type-tracking" | "--field-type-leading" | "--badge-edge" | "--badge-pill" | "--badge-type-family" | "--badge-type-size" | "--badge-type-weight" | "--badge-type-tracking" | "--badge-type-leading" | "--table-rule" | "--table-zebra" | "--checkbox-depth" | "--switch-depth" | "--shadow-sm" | "--shadow-md" | "--shadow-lg"
 
 /** One typography tuple: the five declarations a rule spreads, and the five field references. */
 export interface ThemeType {
@@ -439,9 +467,73 @@ export interface ThemeType {
   readonly leading: string;
 }
 
+/** One border tuple: the three declarations a rule spreads, and the three field references. */
+export interface ThemeBorder {
+  "border-width": string;
+  "border-style": string;
+  "border-color": string;
+  readonly width: string;
+  readonly style: string;
+  readonly color: string;
+}
+
 /** The `ctx.theme` a rule reads: every token by its nested DTCG path. */
 export interface Theme {
+  color?: {
+    text?: string;
+    "text-muted"?: string;
+    surface?: string;
+    "surface-raised"?: string;
+    border?: string;
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    semantic?: {
+      success?: string;
+      warning?: string;
+      error?: string;
+      info?: string;
+    };
+    "on-primary"?: string;
+    "on-secondary"?: string;
+    "on-accent"?: string;
+    selected?: string;
+    "on-selected"?: string;
+    "on-semantic-error"?: string;
+    "on-semantic-success"?: string;
+    "on-semantic-warning"?: string;
+    "on-semantic-info"?: string;
+    disabled?: string;
+    "on-disabled"?: string;
+    "focus-ring"?: string;
+    link?: string;
+    neutral?: {
+      "50"?: string;
+      "100"?: string;
+      "200"?: string;
+      "300"?: string;
+      "400"?: string;
+      "500"?: string;
+      "600"?: string;
+      "700"?: string;
+      "800"?: string;
+      "900"?: string;
+    };
+    "surface-sunken"?: string;
+    scrim?: string;
+    field?: string;
+    "border-strong"?: string;
+    "on-danger"?: string;
+  };
   font?: {
+    family?: {
+      sans?: string;
+      heading?: string;
+      body?: string;
+      serif?: string;
+      mono?: string;
+      brand?: string;
+    };
     size?: {
       "2xs"?: string;
       xs?: string;
@@ -474,14 +566,6 @@ export interface Theme {
       relaxed?: string;
       loose?: string;
     };
-    family?: {
-      sans?: string;
-      heading?: string;
-      body?: string;
-      serif?: string;
-      mono?: string;
-      brand?: string;
-    };
     style?: {
       display?: ThemeType;
       title?: ThemeType;
@@ -500,6 +584,10 @@ export interface Theme {
       "caption-strong"?: ThemeType;
       "card-title"?: ThemeType;
     };
+  };
+  focus?: {
+    width?: string;
+    offset?: string;
   };
   spacing?: {
     "0"?: string;
@@ -535,18 +623,36 @@ export interface Theme {
     "width-2"?: string;
     "width-4"?: string;
     "width-8"?: string;
+    style?: {
+      solid?: ThemeBorder;
+      strong?: ThemeBorder;
+      dashed?: ThemeBorder;
+      dotted?: ThemeBorder;
+      double?: ThemeBorder;
+      none?: ThemeBorder;
+    };
   };
   opacity?: {
     "0"?: string;
+    "5"?: string;
     "10"?: string;
+    "15"?: string;
     "20"?: string;
+    "25"?: string;
     "30"?: string;
+    "35"?: string;
     "40"?: string;
+    "45"?: string;
     "50"?: string;
+    "55"?: string;
     "60"?: string;
+    "65"?: string;
     "70"?: string;
+    "75"?: string;
     "80"?: string;
+    "85"?: string;
     "90"?: string;
+    "95"?: string;
     "100"?: string;
   };
   motion?: {
@@ -584,10 +690,6 @@ export interface Theme {
     sm?: string;
     md?: string;
     lg?: string;
-  };
-  focus?: {
-    width?: string;
-    offset?: string;
   };
   element?: {
     h1?: {
@@ -726,52 +828,6 @@ export interface Theme {
   };
   switch?: {
     depth?: string;
-  };
-  color?: {
-    primary?: string;
-    secondary?: string;
-    accent?: string;
-    neutral?: {
-      "50"?: string;
-      "100"?: string;
-      "200"?: string;
-      "300"?: string;
-      "400"?: string;
-      "500"?: string;
-      "600"?: string;
-      "700"?: string;
-      "800"?: string;
-      "900"?: string;
-    };
-    semantic?: {
-      success?: string;
-      warning?: string;
-      error?: string;
-      info?: string;
-    };
-    surface?: string;
-    "surface-sunken"?: string;
-    "surface-raised"?: string;
-    text?: string;
-    "text-muted"?: string;
-    border?: string;
-    scrim?: string;
-    "on-primary"?: string;
-    "focus-ring"?: string;
-    link?: string;
-    "on-secondary"?: string;
-    "on-accent"?: string;
-    selected?: string;
-    "on-selected"?: string;
-    "on-semantic-success"?: string;
-    "on-semantic-warning"?: string;
-    field?: string;
-    "border-strong"?: string;
-    "on-semantic-error"?: string;
-    "on-danger"?: string;
-    "on-semantic-info"?: string;
-    disabled?: string;
-    "on-disabled"?: string;
   };
   shadow?: {
     sm?: string;

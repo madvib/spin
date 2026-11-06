@@ -192,6 +192,39 @@
     "width-8": {
       "$value": "8px",
       "$description": "The frame. A block drawn rather than outlined."
+    },
+    "style": {
+      "$description": "Named border tuples: the width, style and ink of an edge in one token. A rule spreads the tuple; a theme restates one field to move every border built from it.",
+      "solid": {
+        "$type": "border",
+        "$description": "Default solid border.",
+        "$value": { "width": "{border.width}", "style": "solid", "color": "{color.border}" }
+      },
+      "strong": {
+        "$type": "border",
+        "$description": "Emphasized strong border.",
+        "$value": { "width": "{border.width}", "style": "solid", "color": "{color.border-strong}" }
+      },
+      "dashed": {
+        "$type": "border",
+        "$description": "Dashed border.",
+        "$value": { "width": "{border.width}", "style": "dashed", "color": "{color.border}" }
+      },
+      "dotted": {
+        "$type": "border",
+        "$description": "Dotted border.",
+        "$value": { "width": "{border.width}", "style": "dotted", "color": "{color.border}" }
+      },
+      "double": {
+        "$type": "border",
+        "$description": "Double-line border.",
+        "$value": { "width": "{border.width-4}", "style": "double", "color": "{color.border}" }
+      },
+      "none": {
+        "$type": "border",
+        "$description": "Hidden border.",
+        "$value": { "width": "0px", "style": "none", "color": "#000000" }
+      }
     }
   },
   "opacity": {
@@ -199,41 +232,81 @@
       "$value": 0,
       "$description": "Gone, not merely faint. The step a rule reaches for when the element should not be painted at all."
     },
+    "5": {
+      "$value": 0.05,
+      "$description": "Barely there: a wash of colour behind content that must stay fully legible."
+    },
     "10": {
       "$value": 0.1,
       "$description": "A ghost: present in the DOM, gone from the eye. Reserved for decoration."
+    },
+    "15": {
+      "$value": 0.15,
+      "$description": "A whisper above the ghost step: decoration that must survive a bright room."
     },
     "20": {
       "$value": 0.2,
       "$description": "Disabled. Low enough to stop a control being pressed, high enough to keep its label readable beside live controls."
     },
+    "25": {
+      "$value": 0.25,
+      "$description": "A quarter: the step between disabled and dimmed, for scrims that must not flatten what they cover."
+    },
     "30": {
       "$value": 0.3,
       "$description": "A disabled control on a dark surface, where the same fraction reads lighter than it does on a light one."
+    },
+    "35": {
+      "$value": 0.35,
+      "$description": "Between dimmed and half: a track filling, a hint gaining weight."
     },
     "40": {
       "$value": 0.4,
       "$description": "The dimmed step: a placeholder image, a track before it is filled, a hint of content."
     },
+    "45": {
+      "$value": 0.45,
+      "$description": "Just under half: content that yields without disappearing."
+    },
     "50": {
       "$value": 0.5,
       "$description": "Half. The step most rules ask for, so it is the one a theme is most likely to have an opinion about."
+    },
+    "55": {
+      "$value": 0.55,
+      "$description": "Just over half: content that asserts itself without taking over."
     },
     "60": {
       "$value": 0.6,
       "$description": "Muted but still read: text on a disabled field that the reader is expected to transcribe."
     },
+    "65": {
+      "$value": 0.65,
+      "$description": "Between muted and secondary: emphasis that has not yet arrived."
+    },
     "70": {
       "$value": 0.7,
       "$description": "Secondary content that must survive a projector or a bright room."
+    },
+    "75": {
+      "$value": 0.75,
+      "$description": "Three quarters: a scrim that dims without hiding, a wash that tints without covering."
     },
     "80": {
       "$value": 0.8,
       "$description": "A hair under full strength: the hover state of something that should feel nearly solid."
     },
+    "85": {
+      "$value": 0.85,
+      "$description": "Almost there: an overlay the reader looks through without noticing."
+    },
     "90": {
       "$value": 0.9,
       "$description": "Almost opaque. The step for a scrim that must dim what is behind it without appearing to."
+    },
+    "95": {
+      "$value": 0.95,
+      "$description": "A breath under full: a veil that reads as solid until it moves."
     },
     "100": {
       "$value": 1,

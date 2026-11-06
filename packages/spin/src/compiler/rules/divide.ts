@@ -1,27 +1,40 @@
 import { symbols } from "@unocss/core";
 import type { SpinRule } from "../utils/lookup.ts";
-import { DIVIDE_WIDTHS } from "../utils/vocabulary.ts";
 import { divideChildren } from "../utils/factories.ts";
 import { named, type ThemeContext } from "../utils/lookup.ts";
 import { hasRawColor } from "../utils/color.ts";
 
-/** Every width the divide rule accepts, as the class suffix it matches. */
-const WIDTHS = Object.keys(DIVIDE_WIDTHS).filter((w) => w !== "");
+/**
+ * The width suffixes the theme's `border` family declares, read off the
+ * flat theme map: `width` is the bare axis, `width-0` is `-0`, and each
+ * `width-<n>` is `-<n>`. A width the theme does not declare is never named.
+ */
+function widthSuffixes(theme: Record<string, unknown>): string[] {
+  const suffixes = new Set<string>(["", "-0"]);
+  for (const key of Object.keys(theme)) {
+    if (key.startsWith("border-width-")) {
+      suffixes.add(`-${key.slice("border-width-".length)}`);
+    }
+  }
+  return [...suffixes];
+}
 
 /**
  * Every `divide-*` name these rules match.
  *
  * Three forms, because the two rules accept three things: an axis with a
- * width (`divide-x-4`), a bare axis (`divide-x` — the one-pixel divide), and a
- * colour (`divide-primary`, which is the SAME rule with a colour where the
- * width goes). The previous list had the first and omitted the other two, so
- * the reference advertised a name that did nothing and hid every colour
- * divide.
+ * width (`divide-x-4`), a bare axis (`divide-x` — the theme's own hairline),
+ * and a colour (`divide-primary`, which is the SAME rule with a colour where
+ * the width goes). The widths are the theme's `border` ladder, so a weight
+ * the theme does not declare is never advertised.
  */
-export function divideNames(colors: readonly string[] = []): readonly string[] {
+export function divideNames(
+  colors: readonly string[] = [],
+  theme: Record<string, unknown> = {},
+): readonly string[] {
   return [
     ...["x", "y"].flatMap((axis) =>
-      [undefined, ...WIDTHS].map((w) => `divide-${axis}${w ? `-${w}` : ""}`)
+      widthSuffixes(theme).map((suffix) => `divide-${axis}${suffix}`)
     ),
     ...colors
       .filter((c) => c !== "border" && c !== "text" && c !== "text-muted")
@@ -29,18 +42,26 @@ export function divideNames(colors: readonly string[] = []): readonly string[] {
   ];
 }
 
-/** The axis-width names, for a caller with no theme to read colours from. */
-export const DIVIDE_NAMES: readonly string[] = divideNames();
-
 export function divideRules(): SpinRule[] {
   return [
     [
-      /^divide-([xy])(?:-(0|2|4|8))?$/,
+      /^divide-([xy])(?:-(0|\d+))?$/,
       ([, axis, width]: string[], ctx?: ThemeContext) => {
         const prop = axis === "x" ? "border-left-width" : "border-top-width";
-        const value = DIVIDE_WIDTHS[width ?? ""];
-        if (!value) return undefined;
-        if (width === "0") return { [symbols.selector]: divideChildren, [prop]: value };
+        if (width === undefined) {
+          const value = ctx?.theme?.border?.width;
+          if (value === undefined) return undefined;
+          const borderColor = ctx?.theme?.color?.border;
+          return {
+            [symbols.selector]: divideChildren,
+            [prop]: value,
+            "border-style": "solid",
+            ...(borderColor !== undefined ? { "border-color": borderColor } : {}),
+          };
+        }
+        if (width === "0") return { [symbols.selector]: divideChildren, [prop]: "0px" };
+        const value = named(ctx, "border", `width-${width}`);
+        if (value === undefined) return undefined;
         const borderColor = ctx?.theme?.color?.border;
         return {
           [symbols.selector]: divideChildren,

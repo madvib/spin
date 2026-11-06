@@ -1,29 +1,36 @@
+import { baseTheme } from "../../theme/themes/index.ts";
 import type { SpinRule } from "../utils/lookup.ts";
-import {
-  OPACITY_STEPS,
-  OPACITY_UTILITIES,
-  opacityValue,
-} from "../utils/vocabulary.ts";
-
-export const OPACITY_NAMES: readonly string[] = OPACITY_UTILITIES;
+import { named, type ThemeContext } from "../utils/lookup.ts";
 
 /**
- * The opacity utilities.
- *
- * Exact-name rules, one per conventional step, whose value reads the theme's
- * own step with the conventional fraction as its fallback. The read travels
- * as a `var(..., fallback)` rather than being resolved at generation time
- * because `opacity-*` is a namespace wind4 also serves through a dynamic
- * pattern, and an exact name is the only shape that outranks a pattern — so
- * the theme's answer has to travel inside the value, the same way every other
- * token reference does. A theme that states no step resolves to the fraction
- * the table always carried.
+ * Baseline opacity steps, read directly from `baseTheme.opacity` in DTCG so
+ * the theme package is the single source of truth while exact-name rules
+ * outrank wind4's dynamic `opacity-*` pattern and carry the baseline fraction
+ * as a `var()` fallback when a minimal theme omits `opacity`.
  */
+const BASE_OPACITY: ReadonlyArray<readonly [step: string, fallback: string]> =
+  Object.entries(
+    (baseTheme["opacity"] ?? {}) as Record<string, { $value?: unknown }>,
+  )
+    .filter(([key, node]) => !key.startsWith("$") && node?.$value !== undefined)
+    .map(([step, node]) => [step, String(node.$value)] as const);
+
 export function opacityRules(): SpinRule[] {
-  return OPACITY_STEPS.map((step): SpinRule => [
-    `opacity-${step}`,
-    {
-      opacity: `var(--opacity-${step}, ${opacityValue(`opacity-${step}`)})`,
-    },
-  ]);
+  return [
+    ...BASE_OPACITY.map(([step, fallback]): SpinRule => [
+      `opacity-${step}`,
+      {
+        opacity: `var(--opacity-${step}, ${fallback})`,
+      },
+    ]),
+    [
+      /^opacity-(.+)$/,
+      ([, step]: string[], ctx?: ThemeContext) => {
+        const token = named(ctx, "opacity", step);
+        if (token) return { opacity: token };
+        return undefined;
+      },
+      { autocomplete: "opacity-$opacity" },
+    ],
+  ];
 }

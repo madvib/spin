@@ -1,13 +1,12 @@
 import type { TokenTree } from "../theme/index.ts";
 import { themeRef } from "../theme/index.ts";
 import { namesIn, styleNames } from "./utils/lookup.ts";
-import { BORDER_NAMES } from "./rules/border.ts";
+import { borderNames } from "./rules/border.ts";
 import { BACKDROP_BLUR_NAMES, DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
 import { divideNames } from "./rules/divide.ts";
 import { GRID_NAMES } from "./rules/grid.ts";
 import { INTERACTIVITY_NAMES } from "./rules/interactivity.ts";
 import { LAYOUT_NAMES } from "./rules/layout.ts";
-import { OPACITY_NAMES } from "./rules/opacity.ts";
 import { OVERFLOW_NAMES } from "./rules/overflow.ts";
 import { POSITION_NAMES } from "./rules/position.ts";
 import { SIZING_NAMES } from "./rules/sizing.ts";
@@ -107,7 +106,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
         "border-transparent",
         "border-current",
         "border-currentColor",
-        ...BORDER_NAMES,
+        ...borderNames(theme),
       ],
     },
     {
@@ -212,7 +211,11 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
         ...prefixed(["ease-"], namesIn(theme, "motion-easing")),
       ],
     },
-    { id: "opacity", title: "Opacity", utilities: [...OPACITY_NAMES] },
+    {
+      id: "opacity",
+      title: "Opacity",
+      utilities: prefixed(["opacity-"], namesIn(theme, "opacity")),
+    },
     { id: "overflow", title: "Overflow", utilities: [...OVERFLOW_NAMES] },
     {
       id: "position",
@@ -252,7 +255,7 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
     {
       id: "divide",
       title: "Divide",
-      utilities: [...divideNames(namesIn(theme, "color"))],
+      utilities: [...divideNames(namesIn(theme, "color"), theme)],
     },
     {
       id: "variants",

@@ -45,35 +45,6 @@ export const DISPLAY_VALUES: Record<string, string> = {
 /** Display utilities. Derived from `DISPLAY_VALUES` so the two cannot disagree. */
 export const DISPLAY_UTILITIES: readonly string[] = Object.keys(DISPLAY_VALUES);
 
-export const OPACITY_STEPS = [
-  0,
-  5,
-  10,
-  15,
-  20,
-  25,
-  30,
-  35,
-  40,
-  45,
-  50,
-  55,
-  60,
-  65,
-  70,
-  75,
-  80,
-  85,
-  90,
-  95,
-  100,
-] as const;
-
-/** Opacity utilities. Derived from `OPACITY_STEPS`. */
-export const OPACITY_UTILITIES: readonly string[] = OPACITY_STEPS.map(
-  (step) => `opacity-${step}`,
-);
-
 /**
  * Track sizing.
  *
@@ -109,10 +80,6 @@ export const GRID_FLOW = [
   "grid-flow-row-dense",
   "grid-flow-col-dense",
 ] as const;
-
-export function opacityValue(utility: string): string {
-  return String(Number(utility.slice("opacity-".length)) / 100);
-}
 
 export const FRACTIONS: Record<string, string> = {
   "1/2": "50%",
@@ -409,22 +376,6 @@ export const INTERACTIVITY_UTILITIES: string[] = [
   ...Object.keys(ANIMATION).map((name) => `animation-${name}`),
 ];
 
-export const DIVIDE_WIDTHS: Record<string, string> = {
-  "": "1px",
-  "0": "0",
-  "2": "2px",
-  "4": "4px",
-  "8": "8px",
-};
-
-export const BORDER_WIDTHS: Record<string, string> = {
-  "": "1px",
-  "0": "0",
-  "2": "2px",
-  "4": "4px",
-  "8": "8px",
-};
-
 export const BORDER_SIDES: Record<string, string> = {
   "": "border-width",
   "t": "border-top-width",
@@ -488,12 +439,4 @@ export const OUTLINE: Record<string, string> = {
   "outline-solid": "outline-style: solid",
   "outline-dashed": "outline-style: dashed",
   "outline-dotted": "outline-style: dotted",
-};
-
-export const BORDER_STYLES: Record<string, string> = {
-  "border-solid": "solid",
-  "border-dashed": "dashed",
-  "border-dotted": "dotted",
-  "border-double": "double",
-  "border-none": "none",
 };

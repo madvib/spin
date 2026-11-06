@@ -390,6 +390,16 @@ const THEME_TYPE_DECL: string[] = [
   "  readonly leading: string;",
   "}",
   "",
+  "/** One border tuple: the three declarations a rule spreads, and the three field references. */",
+  "export interface ThemeBorder {",
+  '  "border-width": string;',
+  '  "border-style": string;',
+  '  "border-color": string;',
+  "  readonly width: string;",
+  "  readonly style: string;",
+  "  readonly color: string;",
+  "}",
+  "",
 ];
 
 /** The fields one typography tuple declares, with the CSS each spends. */
@@ -401,6 +411,13 @@ const TYPE_FIELDS: ReadonlyArray<readonly [field: string, property: string]> = [
   ["leading", "line-height"],
 ];
 
+/** The fields one border tuple declares, with the CSS each spends. */
+const BORDER_FIELDS: ReadonlyArray<readonly [field: string, property: string]> = [
+  ["width", "border-width"],
+  ["style", "border-style"],
+  ["color", "border-color"],
+];
+
 /** Whether a group is the five-leaf typography tuple. */
 function isTypeTuple(node: TokenNode): node is TokenGroup {
   if (node.kind !== "group" || node.children.length !== TYPE_FIELDS.length) {
@@ -408,6 +425,16 @@ function isTypeTuple(node: TokenNode): node is TokenGroup {
   }
   return node.children.every((child, index) =>
     child.kind === "token" && child.name === TYPE_FIELDS[index]?.[0]
+  );
+}
+
+/** Whether a group is the three-leaf border tuple. */
+function isBorderTuple(node: TokenNode): node is TokenGroup {
+  if (node.kind !== "group" || node.children.length !== BORDER_FIELDS.length) {
+    return false;
+  }
+  return node.children.every((child, index) =>
+    child.kind === "token" && child.name === BORDER_FIELDS[index]?.[0]
   );
 }
 
@@ -445,6 +472,10 @@ function emitThemeNode(node: TokenNode, depth: number, out: string[]): void {
   // the absent branch rather than crash on `undefined.font`.
   if (isTypeTuple(node)) {
     out.push(`${pad}${propKey(name)}?: ThemeType;`);
+    return;
+  }
+  if (isBorderTuple(node)) {
+    out.push(`${pad}${propKey(name)}?: ThemeBorder;`);
     return;
   }
   out.push(`${pad}${propKey(name)}?: {`);

@@ -225,7 +225,6 @@ export function createSpinFactory(
         postprocess: [
           (util) => {
             if ((util.layer ?? "default") !== "default") return;
-            if (util.sort != null) return;
             const s = util.selector;
             if (/:disabled\b|\[aria-disabled\b|\[data-disabled\b/.test(s)) {
               util.sort = 60;

@@ -11,7 +11,6 @@ import {
   GRID_FLOW,
   GRID_SPANS,
   GRID_TRACKS,
-  OPACITY_UTILITIES,
   OVERFLOW_UTILITIES,
   POSITION_UTILITIES,
   STATIC_UTILITIES,
@@ -32,7 +31,6 @@ test("every table entry has a declaration", () => {
   // fails here rather than at some consumer's build.
   const named = [
     ...DISPLAY_UTILITIES,
-    ...OPACITY_UTILITIES,
     ...OVERFLOW_UTILITIES,
     ...GRID_TRACKS,
     ...GRID_SPANS,
@@ -72,11 +70,24 @@ test("a declaration states at least one property", () => {
   }
 });
 
-test("an opacity utility is its percentage divided by a hundred", () => {
-  // The one table whose values are computed rather than written, which makes
-  // it the one worth pinning.
-  deepStrictEqual(STATIC_DECLS["opacity-50"]?.opacity, "0.5");
-  deepStrictEqual(STATIC_DECLS["opacity-100"]?.opacity, "1");
+test("an opacity utility resolves through the theme's own step", async () => {
+  // Opacity is no longer vocabulary: the step comes from the theme, so the
+  // value must read the theme's token rather than naming a fraction.
+  const parsed = parseTokens({
+    opacity: { $type: "number", 50: { $value: 0.5 } },
+  });
+  if (!parsed.ok) throw new Error(parsed.error);
+  const document = JSON.parse(
+    treeToJson([...scaffold(), ...parsed.tree]),
+  );
+  const uno = await createGenerator({
+    presets: [spinPreset({ themes: { default: document } })],
+  });
+  const { css } = await uno.generate("opacity-50");
+  assert(
+    /opacity:\s*var\(--opacity-50(?:,\s*0\.5)?\)/.test(css),
+    `opacity-50 must read the theme's step, got:\n${css}`,
+  );
 });
 
 test("grid tracks are fixed counts, spans mirror them", () => {

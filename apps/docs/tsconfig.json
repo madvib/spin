@@ -39,6 +39,7 @@
       ],
       "@spinjs/spin/api": ["../../packages/spin/src/api/index.ts"],
       "@spinjs/spin/skill": ["../../packages/spin/src/skill/index.ts"],
+      "@spinjs/spin/animation": ["../../packages/spin/src/animation/index.ts"],
       "@spin/check": ["../../internal/check/harness.ts"]
     }
   },

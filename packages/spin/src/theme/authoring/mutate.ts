@@ -466,6 +466,90 @@ function styleTupleToJson(node: TokenGroup): unknown {
   return out;
 }
 
+/**
+ * The fields one composite border tuple carries, in the order it states
+ * them. Kept beside the parser's own list rather than imported from it, so
+ * the two forms agree by test rather than by sharing a private constant.
+ */
+const BORDER_FIELDS: readonly string[] = ["width", "style", "color"];
+
+/**
+ * Whether a group is a border tuple: a `$type: "border"` group whose
+ * children are exactly the three border leaves. Composites and
+ * whole-border aliases all normalize to this tree, so the serializer
+ * writes the compact form back whatever form authored it.
+ */
+function isBorderTuple(node: TokenGroup): boolean {
+  if (node.kind !== "group") return false;
+  if (node.children.length !== BORDER_FIELDS.length) return false;
+  return node.children.every((child, index) =>
+    child.kind === "token" &&
+    child.name === BORDER_FIELDS[index] &&
+    child.path.length === node.path.length + 1 &&
+    child.path[child.path.length - 1] === BORDER_FIELDS[index]
+  );
+}
+
+/**
+ * The whole-border target a tuple's three field aliases share, when they
+ * share one: three leaves reading `{border.style.solid.width}` through
+ * `{border.style.solid.color}` are the alias `{border.style.solid}`
+ * written out.
+ */
+function sharedBorderTarget(node: TokenGroup): string | undefined {
+  const targets: string[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i];
+    if (child?.kind !== "token" || typeof child.value !== "string") return undefined;
+    const match = /^\{([^{}]+)\}$/.exec(child.value.trim());
+    if (match === null) return undefined;
+    const target = (match[1] as string).trim();
+    if (!target.endsWith(`.${BORDER_FIELDS[i]}`)) return undefined;
+    targets.push(target.slice(0, target.length - (BORDER_FIELDS[i] as string).length - 1));
+  }
+  const first = targets[0];
+  if (first === undefined || first.length === 0) return undefined;
+  return targets.every((target) => target === first) ? first : undefined;
+}
+
+/**
+ * Serialize one border tuple as the compact composite token: one
+ * `$type: "border"` carrying the three fields in a single `$value` — or
+ * the whole-border alias when the three leaves read one target's fields.
+ */
+function borderTupleToJson(node: TokenGroup): unknown {
+  const out: Record<string, unknown> = {
+    $type: "border",
+  };
+  if (node.description !== undefined) out.$description = node.description;
+  const target = sharedBorderTarget(node);
+  if (target !== undefined) {
+    out.$value = `{${target}}`;
+    return out;
+  }
+  const value: Record<string, unknown> = {};
+  for (const child of node.children) {
+    if (child.kind !== "token") continue;
+    value[child.name] = child.value;
+  }
+  out.$value = value;
+  // A `$modes` the tuple's leaves share is the tuple's variation, stated
+  // once beside the value rather than three times across it.
+  const modes = node.children[0]?.kind === "token"
+    ? node.children[0].modes
+    : undefined;
+  if (
+    modes !== undefined &&
+    node.children.every((child) =>
+      child.kind === "token" &&
+      JSON.stringify(child.modes) === JSON.stringify(modes)
+    )
+  ) {
+    out.$modes = modes;
+  }
+  return out;
+}
+
 function nodeToJson(node: TokenNode): unknown {
   if (node.kind === "token") {
     const out: Record<string, unknown> = {
@@ -481,6 +565,9 @@ function nodeToJson(node: TokenNode): unknown {
   // so serializing the leaves back as five children would grow every file
   // the parser touched.
   if (isStyleTuple(node)) return styleTupleToJson(node);
+  // A border tuple round-trips as the compact composite whatever form
+  // authored it, just like a style tuple.
+  if (isBorderTuple(node)) return borderTupleToJson(node);
   const out: Record<string, unknown> = {};
   if (node.type !== undefined) out.$type = node.type;
   for (const child of node.children) {

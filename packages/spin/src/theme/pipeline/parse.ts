@@ -151,6 +151,105 @@ function buildStyleGroup(
   return { ok: true, node: group, leaves: group.children.length };
 }
 
+/**
+ * The fields a `$type: "border"` token carries, wherever it sits, and the
+ * token type each expands to. A border under `border.style` states the tuple
+ * once; a token elsewhere aliases a whole border — either way the parser
+ * fans it out to the three leaves the rules spend.
+ */
+const BORDER_FIELD_TYPES: Record<string, TokenType> = {
+  width: "dimension",
+  style: "strokeStyle",
+  color: "color",
+};
+
+/** The fields every composite border tuple must carry, in order. */
+const BORDER_FIELDS: readonly string[] = ["width", "style", "color"];
+
+/**
+ * Expand one `$type: "border"` token to the three-leaf group the rules
+ * spend, whatever form authored it. A composite object states the three
+ * fields outright; a whole-border alias fans out to the target's three
+ * fields, so resolution, validation, and CSS emission downstream cannot
+ * tell an alias from a restatement — each child is a standard leaf
+ * carrying a field alias.
+ */
+function buildBorderTuple(
+  raw: Record<string, unknown>,
+  path: string[],
+  description: string | undefined,
+): Built {
+  const here = dotted(path);
+  const value = raw["$value"];
+  if (typeof value === "string") {
+    const match = /^\{([^{}]+)\}$/.exec(value.trim());
+    if (match === null) {
+      return {
+        ok: false,
+        error:
+          `token "${here}" declares $type "border" with a $value that is neither a three-field object nor a whole-border alias like "{border.style.solid}"`,
+      };
+    }
+    const target = (match[1] as string).trim();
+    const aliased: Record<string, unknown> = {};
+    for (const field of BORDER_FIELDS) aliased[field] = `{${target}.${field}}`;
+    return buildBorderGroup(raw, path, description, aliased);
+  }
+  if (!isPlainObject(value)) {
+    return {
+      ok: false,
+      error:
+        `token "${here}" declares $type "border" with a $value that is neither a three-field object nor a whole-border alias like "{border.style.solid}"`,
+    };
+  }
+  const composite = value as Record<string, unknown>;
+  const keys = Object.keys(composite);
+  const complete = BORDER_FIELDS.every((field) =>
+    Object.hasOwn(composite, field)
+  ) && keys.every((key) => Object.hasOwn(BORDER_FIELD_TYPES, key));
+  if (!complete) {
+    return {
+      ok: false,
+      error:
+        `token "${here}" declares $type "border" with an object $value that must hold exactly width, style and color`,
+    };
+  }
+  return buildBorderGroup(raw, path, description, composite);
+}
+
+function buildBorderGroup(
+  raw: Record<string, unknown>,
+  path: string[],
+  description: string | undefined,
+  composite: Record<string, unknown>,
+): Built {
+  const group: TokenGroup = {
+    kind: "group",
+    name: path[path.length - 1] as string,
+    path,
+    children: [],
+  };
+  group.type = "border";
+  if (description !== undefined) group.description = description;
+  // A composite tuple varies as one: a `$modes` beside it belongs to every
+  // field, so each leaf carries it and the serializer keeps the group form.
+  const modes = isPlainObject(raw["$modes"])
+    ? raw["$modes"] as Record<string, unknown>
+    : undefined;
+  for (const field of BORDER_FIELDS) {
+    const leaf: TokenLeaf = {
+      kind: "token",
+      name: field,
+      path: [...path, field],
+      type: BORDER_FIELD_TYPES[field] as TokenType,
+      value: composite[field],
+    };
+    if (modes !== undefined) leaf.modes = modes;
+    group.children.push(leaf);
+  }
+  return { ok: true, node: group, leaves: group.children.length };
+}
+
 type Built =
   | { ok: true; node: TokenNode; leaves: number }
   | { ok: false; error: string };
@@ -234,6 +333,19 @@ function buildNode(
   // caller reads says nothing about the form authored.
   if (hasValue && declared === "typography") {
     return buildStyleTuple(raw, path, description);
+  }
+
+  // A `$type: "border"` token is always the three-leaf group, whatever form
+  // authored it: the composite object or a whole-border alias fanning out
+  // to the target's fields.
+  if (
+    hasValue &&
+    declared === "border" &&
+    (isPlainObject(raw["$value"]) ||
+      (typeof raw["$value"] === "string" &&
+        /^\{([^{}]+)\}$/.test(raw["$value"].trim())))
+  ) {
+    return buildBorderTuple(raw, path, description);
   }
 
   const type = declared ?? inherited;

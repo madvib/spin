@@ -26,23 +26,30 @@ import neobrut from "./neobrut.json" with { type: "json" };
 import silk from "./silk.json" with { type: "json" };
 import spin from "./spin.json" with { type: "json" };
 import baseReference from "../base/reference.json" with { type: "json" };
+import baseRoles from "../base/roles.json" with { type: "json" };
 import baseElements from "../base/elements.json" with { type: "json" };
 import basePrimitives from "../base/primitives.json" with { type: "json" };
-import { expandExtends } from "../extends.ts";
+import { expandExtends, mergeThemeDocuments } from "../extends.ts";
 import { themeGroups } from "../contract/groups.ts";
 import type { ThemeDocument } from "../index.ts";
 
 /**
  * The shared foundation every starter layers over: the reference scales,
- * the intrinsic element voices, and the primitive defaults with their
- * type aliases. The three documents hold disjoint top-level groups, so
- * the foundation is their shallow union — no deep merge to disagree on.
+ * the role placeholders, the intrinsic element voices, and the primitive
+ * defaults with their type aliases. `reference` and `roles` both state
+ * `font` and `focus` — the scales beside the role placeholders — so they
+ * deep-merge group by group rather than shallow-unioning.
  */
-export const baseTheme: ThemeDocument = {
-  ...(baseReference as ThemeDocument),
-  ...(baseElements as ThemeDocument),
-  ...(basePrimitives as ThemeDocument),
-};
+export const baseTheme: ThemeDocument = mergeThemeDocuments(
+  mergeThemeDocuments(
+    mergeThemeDocuments(
+      baseRoles as ThemeDocument,
+      baseReference as ThemeDocument,
+    ),
+    baseElements as ThemeDocument,
+  ),
+  basePrimitives as ThemeDocument,
+);
 
 /** A raw starter document, layered over the foundation it names. */
 function starter(doc: unknown): ThemeDocument {

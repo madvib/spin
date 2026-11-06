@@ -684,9 +684,9 @@ test("overflow-auto resolves to auto overflow", async () => {
   );
 });
 
-test("border-2 resolves to two pixel width", async () => {
+test("border-2 resolves to the border-width-2 token variable", async () => {
   const css = await cssFor("border-2");
-  assertSets(css, "border-2", "border-width", "2px");
+  assertTokenDriven(css, "border-2", "border-width");
 });
 
 test("absolute resolves to absolute position", async () => {
@@ -1113,5 +1113,130 @@ test("no emitted declaration is a self-referential custom property", async () =>
     css.match(selfReference),
     null,
     `a custom property is declared as a read of itself; it resolves to nothing at computed-value time:\n${css}`,
+  );
+});
+
+/**
+ * A utility as its emitted selector spells it.
+ *
+ * Uno escapes the specials in a class name (`.hover\:bg-primary`), and an
+ * attribute value may arrive quoted (`[aria-pressed="true"]`) or bare
+ * (`[aria-pressed=true]`) depending on the variant that produced it. The
+ * pattern tolerates an optional backslash before every special and optional
+ * quotes around an attribute value, so it names the utility without pinning
+ * the escaping.
+ */
+function selectorPattern(utility: string): RegExp {
+  let out = "";
+  for (const ch of utility) {
+    if (/[A-Za-z0-9_-]/.test(ch)) {
+      out += ch;
+    } else if (ch === "=") {
+      out += "\\\\?=['\"]?";
+    } else if (ch === "]") {
+      out += "['\"]?\\\\?\\]";
+    } else {
+      out += `\\\\?\\${ch}`;
+    }
+  }
+  return new RegExp(`\\.${out}(?![\\w-])`);
+}
+
+test("state variants sort in interaction precedence order and never merge into base fills", async () => {
+  // One realistic option row: resting fills beside every state that can
+  // recolour it. Several states share a token with a resting fill —
+  // `hover:bg-surface-raised` and `bg-surface-raised` carry identical
+  // declarations — which is exactly when uno merges two utilities into one
+  // selector list and the hover fill starts applying at rest. The preset's
+  // postprocess marks every state rule `noMerge` to refuse that merge, and
+  // sorts the states weakest-first so the stronger state wins their tie.
+  // This test owns both halves of that contract.
+  const fills = [
+    "bg-primary",
+    "bg-selected",
+    "bg-surface",
+    "bg-surface-raised",
+  ];
+  const states = [
+    "hover:bg-surface-raised",
+    "focus:bg-surface-raised",
+    "data-[highlighted]:bg-surface",
+    "active:bg-surface-sunken",
+    "aria-[pressed=true]:bg-primary",
+    "aria-[pressed=true]:text-on-primary",
+    "aria-[selected=true]:bg-selected",
+    "aria-[selected=true]:text-on-selected",
+    "disabled:bg-disabled",
+  ];
+  const uno = await generatorFor({
+    themes: { default: workingTreeDocument() },
+  });
+  const { css } = await uno.generate(
+    `<panel><panel-list><div class="${[...fills, ...states].join(" ")}">option</div></panel-list></panel>`,
+  );
+
+  // Every utility in the fixture emitted a rule. Without this, the checks
+  // below would pass vacuously — a state that matched nothing merges with
+  // nothing and sorts nowhere.
+  for (const utility of [...fills, ...states]) {
+    assert(
+      css.search(selectorPattern(utility)) !== -1,
+      `${utility} emitted no rule in:\n${css}`,
+    );
+  }
+
+  // No state rule merged into a resting fill: a block naming a base fill
+  // names only the base. A merged block would read
+  // `.bg-surface-raised, .hover\:bg-surface-raised:hover`, and the hover
+  // fill would paint before any pointer arrived.
+  for (const fill of fills) {
+    const base = new RegExp(`\\.${fill}(?![\\w-])`);
+    for (const [, selector] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!base.test(selector)) continue;
+      assert(
+        !/\\:|\[(?:data|aria)-|:(?:hover|focus|active|disabled)\b/.test(selector),
+        `${fill} shares its block with a state variant, so the state fill applies at rest: ${selector}`,
+      );
+    }
+  }
+
+  // Interaction precedence, weakest first: at equal specificity the later
+  // rule wins, so hover yields to focus, focus to the highlight, the
+  // highlight to the aria states, and everything to disabled.
+  const hoverAt = css.search(selectorPattern("hover:bg-surface-raised"));
+  const focusAt = css.search(selectorPattern("focus:bg-surface-raised"));
+  const highlightedAt = css.search(
+    selectorPattern("data-[highlighted]:bg-surface"),
+  );
+  const pressedAt = css.search(
+    selectorPattern("aria-[pressed=true]:bg-primary"),
+  );
+  const selectedAt = css.search(
+    selectorPattern("aria-[selected=true]:bg-selected"),
+  );
+  const disabledAt = css.search(selectorPattern("disabled:bg-disabled"));
+  assert(
+    hoverAt < focusAt,
+    `hover must sort before focus so focus wins their tie, got ${hoverAt} and ${focusAt} in:\n${css}`,
+  );
+  assert(
+    focusAt < highlightedAt,
+    `focus must sort before the highlight so the highlight wins their tie, got ${focusAt} and ${highlightedAt} in:\n${css}`,
+  );
+  assert(
+    highlightedAt < pressedAt && highlightedAt < selectedAt,
+    `the highlight must sort before the aria states so selection wins its tie, got ${highlightedAt} against ${pressedAt} and ${selectedAt} in:\n${css}`,
+  );
+  assert(
+    pressedAt < disabledAt && selectedAt < disabledAt,
+    `the aria states must sort before disabled so disabled wins every tie, got ${pressedAt} and ${selectedAt} against ${disabledAt} in:\n${css}`,
+  );
+
+  // A selected row keeps its fill under the panel's hover highlight: the
+  // highlight rule refuses rows the application marked selected, so moving
+  // the pointer across a panel never paints over the current selection.
+  assert(
+    /panel\s+\[data-highlighted\][^{]*:not\(\s*\[aria-selected\s*=\s*("true"|'true'|true)\s*\]\)/.test(css),
+    `panel [data-highlighted] must carry :not([aria-selected="true"]) so a selected option is never overwritten by hover:\n${css}`,
   );
 });

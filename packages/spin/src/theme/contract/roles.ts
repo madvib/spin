@@ -7,6 +7,11 @@
  * read against more than one surface. Everything else derives:
  * `requiredPaths()` for validation, `themeSchema()` for the JSON Schema, and
  * `scaffoldTheme()` for a minimal document.
+ *
+ * The declarations live in `../base/roles.json`, not in this file: DTCG JSON
+ * is the single source of truth, and this module walks it. A role added to
+ * the JSON is required by the schema and validated by the contract in the
+ * same change, with no TypeScript table to remember beside it.
  */
 
 import { TOKEN_TYPES } from "../pipeline/types.ts";
@@ -15,6 +20,7 @@ import { parseTokens } from "../pipeline/parse.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
 import { ownedStyleFields, ownedStyleNames } from "./typography.ts";
 import baseline from "../themes/silk.json" with { type: "json" };
+import rolesDoc from "../base/roles.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
 export interface LegibilityFloor {
@@ -65,19 +71,15 @@ export const PALETTE_ROOTS: Record<string, true> = {
 /**
  * The per-element tokens a mode may restate: the inks and elevations an
  * element wears, each with a global fallback. A geometry sibling (`radius`,
- * `padding`, `depth`, `pill`) is the theme's one decision.
+ * `padding`, `depth`, `pill`) is the theme's one decision. Derived from the
+ * element roles a mode may restate — every `color` or `shadow` element token
+ * — so the list and the elements cannot disagree.
  */
-export const PALETTE_ELEMENT_PATHS: Record<string, true> = {
-  "button.edge": true,
-  "button.shadow": true,
-  "button.shadow-hover": true,
-  "card.border": true,
-  "card.elevation": true,
-  "alert.edge": true,
-  "field.border": true,
-  "table.rule": true,
-  "table.zebra": true,
-};
+export const PALETTE_ELEMENT_PATHS: Record<string, true> = Object.fromEntries(
+  ELEMENT_ROLES.filter((role) => role.type === "color" || role.type === "shadow").map(
+    (role) => [role.path, true],
+  ),
+);
 
 /**
  * Whether a mode may restate the token at a dotted path.
@@ -94,294 +96,86 @@ export function isPaletteTokenPath(path: string): boolean {
     Object.hasOwn(PALETTE_ELEMENT_PATHS, path);
 }
 
-
-/** Body ink on the page. */
-const TEXT_ON_SURFACE: LegibilityFloor = {
-  fg: "color.text",
-  bg: "color.surface",
-  min: 4.5,
-};
-/**
- * Body ink on the raised sheet above the page.
- *
- * The same promise asked again: a card is a surface the reader reads on, and
- * a theme whose ink holds on the page but not on the card has a card nobody
- * can read.
- */
-const TEXT_ON_RAISED: LegibilityFloor = {
-  fg: "color.text",
-  bg: "color.surface-raised",
-  min: 4.5,
-};
-/** The secondary style on the page. */
-const MUTED_ON_SURFACE: LegibilityFloor = {
-  fg: "color.text-muted",
-  bg: "color.surface",
-  min: 3,
-};
-/** The secondary style on the raised sheet above the page. */
-const MUTED_ON_RAISED: LegibilityFloor = {
-  fg: "color.text-muted",
-  bg: "color.surface-raised",
-  min: 3,
-};
-
-/**
- * A status colour on the page.
- *
- * The floor is the TEXT one, not the non-text one, because a status colour is
- * worn as ink as often as it is worn as a fill: an error message in the
- * prose, a warning beside a field, a success beside a number. Read as a
- * slab on the page it only has to be visible; read as a word it has to be
- * legible, so it owes four and a half to one.
- */
-function statusFloor(name: string): LegibilityFloor {
-  return { fg: `color.semantic.${name}`, bg: "color.surface", min: 4.5 };
+/** A raw roles.json node, as authored. */
+interface RolesNode {
+  readonly $type?: unknown;
+  readonly $value?: unknown;
+  readonly $description?: unknown;
+  readonly $extensions?: unknown;
+  readonly [key: string]: unknown;
 }
 
-/**
- * The ink on a fill, and the floor that holds it there.
- *
- * Both sides are dotted paths under `color`: the ink is a role of its own
- * (`on-semantic-error`) and the fill is the token it sits on
- * (`semantic.error`).
- */
-function inkFloor(ink: string, fill: string): LegibilityFloor {
-  return { fg: `color.${ink}`, bg: `color.${fill}`, min: 4.5 };
+/** The legibility floors a node declares under `$extensions.spin.floors`. */
+function floorsOf(node: RolesNode): readonly LegibilityFloor[] | undefined {
+  const extensions = node.$extensions;
+  if (typeof extensions !== "object" || extensions === null) return undefined;
+  const spin = (extensions as Record<string, unknown>)["spin"];
+  if (typeof spin !== "object" || spin === null) return undefined;
+  const floors = (spin as Record<string, unknown>)["floors"];
+  if (!Array.isArray(floors)) return undefined;
+  const out: LegibilityFloor[] = [];
+  for (const floor of floors) {
+    if (typeof floor !== "object" || floor === null) continue;
+    const entry = floor as Record<string, unknown>;
+    if (
+      typeof entry["fg"] !== "string" || typeof entry["bg"] !== "string" ||
+      typeof entry["min"] !== "number"
+    ) continue;
+    out.push({ fg: entry["fg"] as string, bg: entry["bg"] as string, min: entry["min"] as number });
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+/** Every role declaration roles.json states, in the order it states them. */
+function readDeclaredRoles(): ReadonlyArray<Omit<RoleDeclaration, "floor">> {
+  const out: Array<Omit<RoleDeclaration, "floor">> = [];
+  const walk = (node: unknown, path: string[], inherited: TokenType | undefined): void => {
+    if (typeof node !== "object" || node === null || Array.isArray(node)) return;
+    const record = node as RolesNode;
+    const type = typeof record.$type === "string"
+      ? (record.$type as TokenType)
+      : inherited;
+    if (Object.hasOwn(record, "$value")) {
+      if (type === undefined) {
+        throw new Error(`contract: role ${path.join(".")} declares no $type`);
+      }
+      const value = record.$value;
+      if (typeof value !== "string") {
+        throw new Error(`contract: role ${path.join(".")} has no string scaffold value`);
+      }
+      const doc = typeof record.$description === "string"
+        ? record.$description
+        : path.join(".");
+      const floors = floorsOf(record);
+      out.push({
+        path: path.join("."),
+        type,
+        value,
+        doc,
+        ...(floors === undefined ? {} : { floors }),
+      });
+      return;
+    }
+    for (const key of Object.keys(record)) {
+      if (key.startsWith("$")) continue;
+      walk(record[key], [...path, key], type);
+    }
+  };
+  const root = rolesDoc as unknown as Record<string, unknown>;
+  for (const key of Object.keys(root)) {
+    if (key.startsWith("$")) continue;
+    walk(root[key], [key], undefined);
+  }
+  return out;
 }
 
 /**
  * Roles a theme must declare regardless of which components it enables: the
  * palette, the contrast floors that make a palette usable, and the focus ring
- * every interactive element shares.
+ * every interactive element shares. Derived from `../base/roles.json` — the
+ * single source of truth — so no TypeScript table can drift from it.
  */
-const DECLARED_ROLES: readonly Omit<RoleDeclaration, "floor">[] = [
-  {
-    path: "color.text",
-    type: "color",
-    value: "#111111",
-    doc: "Default body text.",
-    floors: [TEXT_ON_SURFACE, TEXT_ON_RAISED],
-  },
-  {
-    path: "color.text-muted",
-    type: "color",
-    value: "#555555",
-    doc: "Secondary text.",
-    floors: [MUTED_ON_SURFACE, MUTED_ON_RAISED],
-  },
-  {
-    path: "color.surface",
-    type: "color",
-    value: "#ffffff",
-    doc: "Page background.",
-  },
-  {
-    path: "color.surface-raised",
-    type: "color",
-    value: "#f0f0f0",
-    doc: "Raised surfaces.",
-  },
-  {
-    path: "color.border",
-    type: "color",
-    value: "#999999",
-    doc: "Hairlines and dividers.",
-  },
-  {
-    path: "color.primary",
-    type: "color",
-    value: "#333333",
-    doc: "Primary actions.",
-    // A filled button is the densest text-on-color pairing in the system and
-    // the one most often authored wrong: a bright primary needs a dark
-    // foreground, a near-black primary needs a light one.
-    floors: [inkFloor("on-primary", "primary")],
-  },
-  {
-    path: "color.secondary",
-    type: "color",
-    value: "#444444",
-    doc: "Secondary actions.",
-    // The secondary fill is a fill like any other, and the badge spends it as
-    // a pill with a word on it. Without an ink of its own the label is
-    // whatever the browser paints.
-    floors: [inkFloor("on-secondary", "secondary")],
-  },
-  {
-    path: "color.accent",
-    type: "color",
-    value: "#555555",
-    doc: "Supporting emphasis.",
-    // The accent fill is the badge's third tone and the one most often left
-    // to chance: an accent is a bright colour by definition, and a bright
-    // fill with the wrong ink is a badge nobody can read.
-    floors: [inkFloor("on-accent", "accent")],
-  },
-  {
-    path: "color.semantic.success",
-    type: "color",
-    value: "#1a7f37",
-    doc: "Success status.",
-    floors: [statusFloor("success")],
-  },
-  {
-    path: "color.semantic.warning",
-    type: "color",
-    value: "#9a6700",
-    doc: "Warning status.",
-    floors: [statusFloor("warning")],
-  },
-  {
-    path: "color.semantic.error",
-    type: "color",
-    value: "#b42318",
-    doc: "Error status.",
-    floors: [statusFloor("error")],
-  },
-  {
-    path: "color.semantic.info",
-    type: "color",
-    value: "#175cd3",
-    doc: "Info status.",
-    floors: [statusFloor("info")],
-  },
-  {
-    path: "color.on-primary",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on a primary fill.",
-  },
-  {
-    path: "color.on-secondary",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on a secondary fill.",
-  },
-  {
-    path: "color.on-accent",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on an accent fill.",
-  },
-  {
-    path: "color.selected",
-    type: "color",
-    value: "#111111",
-    doc: "Selected state fill.",
-    floors: [inkFloor("on-selected", "selected")],
-  },
-  {
-    path: "color.on-selected",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on a selected fill.",
-  },
-  {
-    // One ink, one name: the semantic fills pair with `on-semantic-*`, and a
-    // second `on-danger` for the same red made two answers to one question
-    // while the starters disagreed on which was right. The danger button and
-    // the danger badge spend THIS role, so the ink a scaffold writes is the
-    // ink the surfaces wear. `color.on-danger` is a legacy alias a theme may
-    // keep declaring; nothing reads it.
-    path: "color.on-semantic-error",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on an error fill.",
-    floors: [inkFloor("on-semantic-error", "semantic.error")],
-  },
-  {
-    // The ink on the success fill, and the floor that holds it there.
-    //
-    // The badge spends this pairing: a success badge is a filled pill with a
-    // word on it, and the word is unreadable if the ink is not chosen for the
-    // fill. A theme that pairs the ink loosely ships a badge nobody can read,
-    // and the floor is what says so before the badge is drawn.
-    path: "color.on-semantic-success",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on a success fill.",
-    floors: [inkFloor("on-semantic-success", "semantic.success")],
-  },
-  {
-    // The ink on the warning fill. A warning is the one badge whose fill is
-    // usually the palest in the palette, so it is the one whose ink is
-    // usually chosen wrong: white on a pale amber measures under 2:1.
-    path: "color.on-semantic-warning",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on a warning fill.",
-    floors: [inkFloor("on-semantic-warning", "semantic.warning")],
-  },
-  {
-    // The ink on the info fill.
-    path: "color.on-semantic-info",
-    type: "color",
-    value: "#ffffff",
-    doc: "Text on an info fill.",
-    floors: [inkFloor("on-semantic-info", "semantic.info")],
-  },
-  {
-    // The fill a dead control wears, and the ink that reads on it. A
-    // disabled control is not a dimmer control: dimming spends opacity on
-    // the WHOLE element, so the ink dims with the fill and a white label on
-    // a blue button lands at 1.56:1 — a button nobody can read. The pair
-    // keeps a dead control legible, which is the whole point of pairing
-    // every fill with an ink.
-    path: "color.disabled",
-    type: "color",
-    value: "#e0e0e0",
-    doc: "The fill a dead control wears.",
-    floors: [inkFloor("on-disabled", "disabled")],
-  },
-  {
-    path: "color.on-disabled",
-    type: "color",
-    value: "#3a3a3a",
-    doc: "The ink on a dead control's fill.",
-  },
-  {
-    // Non-text indicator, so it needs the 3:1 floor rather than the text floor
-    // even though it is a color.
-    path: "color.focus-ring",
-    type: "color",
-    value: "#333333",
-    doc: "Focus indicator.",
-    floors: [{ fg: "color.focus-ring", bg: "color.surface", min: 3 }],
-  },
-  {
-    // A control's fill color is not a usable link color: a theme whose primary
-    // equals its text makes every link invisible in body copy while its
-    // buttons look perfect.
-    path: "color.link",
-    type: "color",
-    value: "#175cd3",
-    doc: "Prose links.",
-    // The role's warning made mechanical: a link that cannot be read on the
-    // page it sits on fails validation like any other text.
-    floors: [{ fg: "color.link", bg: "color.surface", min: 4.5 }],
-  },
-  {
-    path: "font.family.sans",
-    type: "fontFamily",
-    value: "system-ui, sans-serif",
-    doc: "Body and UI text.",
-  },
-  // The focus ring is shared by every interactive element rather than owned by
-  // the button: a link, a field, a summary and a dialog all need one.
-  {
-    path: "focus.width",
-    type: "dimension",
-    value: "2px",
-    doc: "Focus ring width.",
-  },
-  {
-    path: "focus.offset",
-    type: "dimension",
-    value: "2px",
-    doc: "Focus ring offset.",
-  },
-];
+const DECLARED_ROLES: readonly Omit<RoleDeclaration, "floor">[] = readDeclaredRoles();
 
 /**
  * The roles a theme must declare, each with its headline floor derived from
@@ -474,6 +268,7 @@ export function baselineScales(): readonly BaselineScale[] {
         n.path.length > 0 &&
         (optionalRoots.has(n.path[0] as string) ||
           dotted.startsWith("font.style.") ||
+          dotted.startsWith("border.style.") ||
           n.path[0] === "opacity" ||
           dotted.startsWith("font.size.") ||
           dotted.startsWith("font.weight.") ||

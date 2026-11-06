@@ -1,0 +1,219 @@
+{
+  "$description": "The roles a theme must declare: the palette, the contrast floors that make a palette usable, and the focus ring every interactive element shares. Each entry carries the path, type, scaffold placeholder, documentation, and the $extensions.spin.floors it owes. The TypeScript contract derives BASE_ROLES from this document, so this file — not a TS array — is the single source of truth.",
+  "color": {
+    "$type": "color",
+    "text": {
+      "$value": "#111111",
+      "$description": "Default body text.",
+      "$extensions": {
+        "spin": {
+          "floors": [
+            { "fg": "color.text", "bg": "color.surface", "min": 4.5 },
+            { "fg": "color.text", "bg": "color.surface-raised", "min": 4.5 }
+          ]
+        }
+      }
+    },
+    "text-muted": {
+      "$value": "#555555",
+      "$description": "Secondary text.",
+      "$extensions": {
+        "spin": {
+          "floors": [
+            { "fg": "color.text-muted", "bg": "color.surface", "min": 3 },
+            { "fg": "color.text-muted", "bg": "color.surface-raised", "min": 3 }
+          ]
+        }
+      }
+    },
+    "surface": {
+      "$value": "#ffffff",
+      "$description": "Page background."
+    },
+    "surface-raised": {
+      "$value": "#f0f0f0",
+      "$description": "Raised surfaces."
+    },
+    "border": {
+      "$value": "#999999",
+      "$description": "Hairlines and dividers."
+    },
+    "primary": {
+      "$value": "#333333",
+      "$description": "Primary actions.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-primary", "bg": "color.primary", "min": 4.5 }]
+        }
+      }
+    },
+    "secondary": {
+      "$value": "#444444",
+      "$description": "Secondary actions.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-secondary", "bg": "color.secondary", "min": 4.5 }]
+        }
+      }
+    },
+    "accent": {
+      "$value": "#555555",
+      "$description": "Supporting emphasis.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-accent", "bg": "color.accent", "min": 4.5 }]
+        }
+      }
+    },
+    "semantic": {
+      "success": {
+        "$value": "#1a7f37",
+        "$description": "Success status.",
+        "$extensions": {
+          "spin": {
+            "floors": [{ "fg": "color.semantic.success", "bg": "color.surface", "min": 4.5 }]
+          }
+        }
+      },
+      "warning": {
+        "$value": "#9a6700",
+        "$description": "Warning status.",
+        "$extensions": {
+          "spin": {
+            "floors": [{ "fg": "color.semantic.warning", "bg": "color.surface", "min": 4.5 }]
+          }
+        }
+      },
+      "error": {
+        "$value": "#b42318",
+        "$description": "Error status.",
+        "$extensions": {
+          "spin": {
+            "floors": [{ "fg": "color.semantic.error", "bg": "color.surface", "min": 4.5 }]
+          }
+        }
+      },
+      "info": {
+        "$value": "#175cd3",
+        "$description": "Info status.",
+        "$extensions": {
+          "spin": {
+            "floors": [{ "fg": "color.semantic.info", "bg": "color.surface", "min": 4.5 }]
+          }
+        }
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$description": "Text on a primary fill."
+    },
+    "on-secondary": {
+      "$value": "#ffffff",
+      "$description": "Text on a secondary fill."
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$description": "Text on an accent fill."
+    },
+    "selected": {
+      "$value": "#111111",
+      "$description": "Selected state fill.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-selected", "bg": "color.selected", "min": 4.5 }]
+        }
+      }
+    },
+    "on-selected": {
+      "$value": "#ffffff",
+      "$description": "Text on a selected fill."
+    },
+    "on-semantic-error": {
+      "$value": "#ffffff",
+      "$description": "Text on an error fill.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-semantic-error", "bg": "color.semantic.error", "min": 4.5 }]
+        }
+      }
+    },
+    "on-semantic-success": {
+      "$value": "#ffffff",
+      "$description": "Text on a success fill.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-semantic-success", "bg": "color.semantic.success", "min": 4.5 }]
+        }
+      }
+    },
+    "on-semantic-warning": {
+      "$value": "#ffffff",
+      "$description": "Text on a warning fill.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-semantic-warning", "bg": "color.semantic.warning", "min": 4.5 }]
+        }
+      }
+    },
+    "on-semantic-info": {
+      "$value": "#ffffff",
+      "$description": "Text on an info fill.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-semantic-info", "bg": "color.semantic.info", "min": 4.5 }]
+        }
+      }
+    },
+    "disabled": {
+      "$value": "#e0e0e0",
+      "$description": "The fill a dead control wears.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.on-disabled", "bg": "color.disabled", "min": 4.5 }]
+        }
+      }
+    },
+    "on-disabled": {
+      "$value": "#3a3a3a",
+      "$description": "The ink on a dead control's fill."
+    },
+    "focus-ring": {
+      "$value": "#333333",
+      "$description": "Focus indicator.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.focus-ring", "bg": "color.surface", "min": 3 }]
+        }
+      }
+    },
+    "link": {
+      "$value": "#175cd3",
+      "$description": "Prose links.",
+      "$extensions": {
+        "spin": {
+          "floors": [{ "fg": "color.link", "bg": "color.surface", "min": 4.5 }]
+        }
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "system-ui, sans-serif",
+        "$description": "Body and UI text."
+      }
+    }
+  },
+  "focus": {
+    "$type": "dimension",
+    "width": {
+      "$value": "2px",
+      "$description": "Focus ring width."
+    },
+    "offset": {
+      "$value": "2px",
+      "$description": "Focus ring offset."
+    }
+  }
+}

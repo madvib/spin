@@ -3,19 +3,18 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import type { UnoGenerator } from "@unocss/core";
 import type { Theme } from "../../src/theme/theme-types.d.ts";
 import { createGenerator } from "@unocss/core";
-import { parseTokens } from "../../src/theme/index.ts";
+import { parseTokens, themeRef } from "../../src/theme/index.ts";
 import { describeCatalog, spinPreset } from "../../src/compiler/index.ts";
 import { createSpinFactory } from "../../src/compiler/factory.ts";
 import { wind4Exclusions } from "../../src/compiler/wind4.ts";
 import { claimedClasses, claims, selectorFor } from "../../src/compiler/utils/claimed.ts";
-import { BORDER_NAMES } from "../../src/compiler/rules/border.ts";
-import { BORDER_STYLE_NAMES } from "../../src/compiler/rules/border.ts";
+import { borderNames } from "../../src/compiler/rules/border.ts";
+import { namesIn } from "../../src/compiler/utils/lookup.ts";
 import { DISPLAY_NAMES } from "../../src/compiler/rules/display.ts";
-import { DIVIDE_NAMES } from "../../src/compiler/rules/divide.ts";
+import { divideNames } from "../../src/compiler/rules/divide.ts";
 import { GRID_NAMES } from "../../src/compiler/rules/grid.ts";
 import { INTERACTIVITY_NAMES } from "../../src/compiler/rules/interactivity.ts";
 import { LAYOUT_NAMES } from "../../src/compiler/rules/layout.ts";
-import { OPACITY_NAMES } from "../../src/compiler/rules/opacity.ts";
 import { OVERFLOW_NAMES } from "../../src/compiler/rules/overflow.ts";
 import { POSITION_NAMES } from "../../src/compiler/rules/position.ts";
 import { SHADOW_NAMES } from "../../src/compiler/rules/shadow.ts";
@@ -55,21 +54,24 @@ const catalog = describeCatalog(parsed.tree);
 
 /**
  * Every name the RULES claim — the `*_NAMES` each rule file exports, which is
- * where the catalog gets its names from too.
+ * where the catalog gets its names from too. The border, divide and opacity
+ * names are theme-derived (the same functions the catalog calls), so a width
+ * or step the theme does not declare is claimed by neither.
  */
+const themeRefMap = themeRef(parsed.tree);
+const themeColors = namesIn(themeRefMap, "color");
 const CLAIMED_BY_RULES: readonly string[] = [
-  ...BORDER_NAMES,
+  ...borderNames(themeRefMap),
   ...DISPLAY_NAMES,
-  ...DIVIDE_NAMES,
+  ...divideNames(themeColors, themeRefMap),
   ...GRID_NAMES,
   ...INTERACTIVITY_NAMES,
   ...LAYOUT_NAMES,
-  ...OPACITY_NAMES,
+  ...namesIn(themeRefMap, "opacity").map((step) => `opacity-${step}`),
   ...OVERFLOW_NAMES,
   ...POSITION_NAMES,
   ...TEXT_NAMES,
   ...TRANSITION_NAMES,
-  ...BORDER_STYLE_NAMES,
   ...TYPOGRAPHY_NAMES,
   ...SHADOW_NAMES,
   ...SIZING_NAMES,
@@ -454,9 +456,9 @@ const CONSUMER_SUPPLIED: readonly string[] = ["--grid-gutter"];
  *
  * The catalog is derived from the rules, so it cannot name a utility the
  * system does not produce — which is precisely why it could not catch
- * `border-b`. That name came from `BORDER_STYLE_NAMES`, the catalog believed
- * it, and the rule's character class had an omitted `b` so nothing matched it.
- * One rule, one catalog entry, no error, and `deno check` green throughout.
+ * `border-b`. That name was catalogued while the side pattern's character
+ * class had an omitted `b`, so nothing matched it. One advertised name, no
+ * rule, no error, and `deno check` green throughout.
  *
  * The catalog proves a name is ADVERTISED. This proves it WORKS.
  */

@@ -4,7 +4,6 @@ import {
   ALIGN_ITEMS,
   ALIGN_SELF,
   ANIMATION,
-  BORDER_STYLES,
   BOX_SIZING,
   CURSOR,
   DISPLAY_UTILITIES,
@@ -14,8 +13,6 @@ import {
   FLEX_WRAPS,
   JUSTIFY_CONTENT,
   LIST_STYLE,
-  OPACITY_UTILITIES,
-  opacityValue,
   ORDER_STEPS,
   ORDER_VALUES,
   OUTLINE,
@@ -78,9 +75,6 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
   ),
   ...Object.fromEntries(
     DISPLAY_UTILITIES.map((name) => [name, { display: DISPLAY_VALUES[name] }]),
-  ),
-  ...Object.fromEntries(
-    OPACITY_UTILITIES.map((name) => [name, { opacity: opacityValue(name) }]),
   ),
   ...Object.fromEntries(
     Object.entries(FLEX_DIRECTIONS).map(([name, value]) => [
@@ -165,12 +159,6 @@ export const STATIC_DECLS: Record<string, Record<string, string>> = {
     Object.entries(LIST_STYLE).map(([name, value]) => [
       name,
       { "list-style-type": value },
-    ]),
-  ),
-  ...Object.fromEntries(
-    Object.entries(BORDER_STYLES).map(([name, value]) => [
-      name,
-      { "border-style": value },
     ]),
   ),
   ...Object.fromEntries(

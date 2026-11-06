@@ -28,6 +28,13 @@ const TYPE_PROPERTIES: ReadonlyArray<readonly [field: string, property: string]>
   ["leading", "line-height"],
 ];
 
+/** The CSS properties one border tuple spends, in declaration order. */
+const BORDER_PROPERTIES: ReadonlyArray<readonly [field: string, property: string]> = [
+  ["width", "border-width"],
+  ["style", "border-style"],
+  ["color", "border-color"],
+];
+
 /**
  * Every token of a tree, keyed by its custom property name without the
  * leading `--`, each value the `var()` reference to it — and under the same
@@ -101,6 +108,35 @@ function typeTuple(
   return tuple;
 }
 
+/**
+ * The border tuple at `path`, when its three leaves are all declared:
+ * the three CSS declarations as enumerable properties, the three field
+ * references behind getters. Absent when any field is undeclared — a rule
+ * spreading the tuple spends what the theme decided and nothing else.
+ */
+function borderTuple(
+  leaves: Record<string, TokenLeaf>,
+  path: string[],
+): Record<string, string> | undefined {
+  const refs: string[] = [];
+  for (const [field] of BORDER_PROPERTIES) {
+    const leaf = leafAt(leaves, [...path, field]);
+    if (leaf === undefined) return undefined;
+    refs.push(refOf(leaf));
+  }
+  const tuple: Record<string, string> = {};
+  BORDER_PROPERTIES.forEach(([field, property], i) => {
+    const ref = refs[i] as string;
+    tuple[property] = ref;
+    Object.defineProperty(tuple, field, {
+      enumerable: false,
+      configurable: true,
+      get: () => ref,
+    });
+  });
+  return tuple;
+}
+
 export function themeRef(tree: TokenTree): ThemeRef {
   const out: Record<string, unknown> = {};
   const leaves = indexTree(tree).leaves;
@@ -127,7 +163,7 @@ function nest(
     if (leaf !== undefined) into[node.name] = refOf(leaf);
     return;
   }
-  const tuple = typeTuple(leaves, node.path);
+  const tuple = typeTuple(leaves, node.path) ?? borderTuple(leaves, node.path);
   if (tuple !== undefined) {
     into[node.name] = tuple;
     return;
