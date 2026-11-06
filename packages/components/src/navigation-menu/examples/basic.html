@@ -45,7 +45,7 @@ const machine = navigationMenu({
           <span>{row.label}</span>
           <span
             aria-hidden="true"
-            class={["i-lucide-chevron-down type-caption text-text-muted transition-transform duration-fast", { "rotate-180 text-primary": machine.value === row.value }]}
+            class={["i-lucide-chevron-down type-caption text-muted transition-transform duration-fast", { "rotate-180 text-primary": machine.value === row.value }]}
           ></span>
         </a>
 
@@ -57,7 +57,7 @@ const machine = navigationMenu({
             <span class="type-label">{row.label}</span>
             <badge variant="neutral">{row.badge}</badge>
           </div>
-          <p class="text-text-muted">{row.description}</p>
+          <p class="text-muted">{row.description}</p>
           <a
             class="bare mt-3 inline-flex items-center gap-1 text-primary no-underline hover:underline"
             href={row.ctaHref}

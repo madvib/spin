@@ -16,7 +16,7 @@ export default function Studio(): JSX.Element {
     <main class="flex h-full min-h-0 flex-col">
       <div class="mx-auto w-full max-w-screen-lg px-6 pt-10">
         <h1>Using the Studio</h1>
-        <p class="max-w-prose text-text-muted">
+        <p class="max-w-prose text-muted">
           The Studio is Spin's theme editor: change a color, a type ramp, an
           icon, or a spacing step, and the running page repaints before anything
           is saved. When it is right, save; the theme document lands in{" "}
@@ -27,7 +27,7 @@ export default function Studio(): JSX.Element {
         <iframe
           title="Spin theme studio, editing this site"
           src={`${import.meta.env.BASE_URL}__spin/studio/${app}`}
-          class="h-[70dvh] w-full rounded-md border border-border bg-surface-raised shadow-md"
+          class="h-[70dvh] w-full rounded-md border bg-surface-raised shadow-md"
         />
       </div>
       <div class="mx-auto w-full max-w-screen-lg px-6 pb-10 md:pb-16">

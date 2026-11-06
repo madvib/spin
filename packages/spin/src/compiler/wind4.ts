@@ -498,7 +498,7 @@ function undefinedRead(output: Inspected): string | undefined {
     ) {
       const name = hit[1];
       const defined = definedNamespaces.some((namespace) =>
-        name === namespace || name.startsWith(namespace + "-")
+        name === "--grid-gutter" || name.startsWith(namespace + "-")
       );
       if (!local.has(name) && !defined) return name;
     }
@@ -641,6 +641,7 @@ const FONT_EXCLUDED_STATIC: Record<string, true> = {
 function fontExcluded(rule: Rule<any>): boolean {
   const source = nameOf(rule);
   if (FONT_EXCLUDED_STATIC[source] === true) return true;
+  if (typeof rule[0] === "string" && FONT_EXCLUDED.some((pattern) => pattern.test(source))) return true;
   return FONT_EXCLUDED.some((pattern) => pattern.source === source);
 }
 

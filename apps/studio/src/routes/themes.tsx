@@ -24,10 +24,10 @@ const GROUPS: ReadonlyArray<
 ];
 
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 const DRAWER_LINK =
-  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 function NavBody(props: {
   listClass: () => string;
@@ -59,8 +59,8 @@ export default function ThemesLayout(props: { children?: JSX.Element }) {
   const drawer = () => inDrawer();
   const navClass = () =>
     drawer()
-      ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
-      : "flex w-full shrink-0 flex-col gap-3 border-b border-border bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
+      ? "flex shrink-0 flex-col gap-2 border-b bg-surface-raised p-3"
+      : "flex w-full shrink-0 flex-col gap-3 border-b bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
   const listClass = () =>
     drawer()
       ? "flex flex-wrap gap-x-2 gap-y-1"

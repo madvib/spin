@@ -7,7 +7,7 @@ const machine = angleSlider({ value: "45", step: "10", ariaLabel: "Angle" });
 <div class="mx-auto flex w-full max-w-[20rem] items-center justify-center"
   {...machine.getRootProps()}>
   <div
-    class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border border-solid border-border bg-surface-raised"
+    class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border bg-surface-raised"
     {...machine.getControlProps()}
   >
     <span
@@ -35,7 +35,7 @@ const machine = angleSlider({ value: "45", step: "10", ariaLabel: "Angle" });
       {...machine.getValueTextProps()}>
       <span
         class="stat-value tabular-nums">{machine.value}°</span>
-      <span class="type-caption text-text-muted">degrees</span>
+      <span class="type-caption text-muted">degrees</span>
     </span>
   </div>
   <input {...machine.getHiddenInputProps()} />

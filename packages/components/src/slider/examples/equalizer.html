@@ -9,14 +9,14 @@ const air = slider({ value: [80], orientation: "vertical" });
 </script>
 
 <div
-  class="mx-auto w-full max-w-md rounded-lg border border-solid border-border bg-surface-raised p-4">
+  class="mx-auto w-full max-w-md rounded-lg border bg-surface-raised p-4">
   <div class="mb-3 flex items-center justify-between">
     <span class="type-label">5-Band Equalizer</span>
-    <span class="type-caption text-text-muted">Studio Preset</span>
+    <span class="type-caption text-muted">Studio Preset</span>
   </div>
   <div class="grid grid-cols-5 gap-4">
     <div class="flex flex-col items-center gap-2" {...sub.getRootProps()}>
-      <span class="type-code text-text-muted">{sub.getThumbValue(0)}</span>
+      <span class="type-code text-muted">{sub.getThumbValue(0)}</span>
       <div
         class="relative flex h-36 w-4 touch-none flex-col items-center select-none"
         {...sub.getControlProps()}>
@@ -33,10 +33,10 @@ const air = slider({ value: [80], orientation: "vertical" });
           <input {...sub.getHiddenInputProps(row)} />
         </template>
       </div>
-      <span class="text-text-muted" {...sub.getLabelProps()}>60Hz</span>
+      <span class="text-muted" {...sub.getLabelProps()}>60Hz</span>
     </div>
     <div class="flex flex-col items-center gap-2" {...low.getRootProps()}>
-      <span class="type-code text-text-muted">{low.getThumbValue(0)}</span>
+      <span class="type-code text-muted">{low.getThumbValue(0)}</span>
       <div
         class="relative flex h-36 w-4 touch-none flex-col items-center select-none"
         {...low.getControlProps()}>
@@ -53,10 +53,10 @@ const air = slider({ value: [80], orientation: "vertical" });
           <input {...low.getHiddenInputProps(row)} />
         </template>
       </div>
-      <span class="text-text-muted" {...low.getLabelProps()}>250Hz</span>
+      <span class="text-muted" {...low.getLabelProps()}>250Hz</span>
     </div>
     <div class="flex flex-col items-center gap-2" {...mid.getRootProps()}>
-      <span class="type-code text-text-muted">{mid.getThumbValue(0)}</span>
+      <span class="type-code text-muted">{mid.getThumbValue(0)}</span>
       <div
         class="relative flex h-36 w-4 touch-none flex-col items-center select-none"
         {...mid.getControlProps()}>
@@ -73,10 +73,10 @@ const air = slider({ value: [80], orientation: "vertical" });
           <input {...mid.getHiddenInputProps(row)} />
         </template>
       </div>
-      <span class="text-text-muted" {...mid.getLabelProps()}>1kHz</span>
+      <span class="text-muted" {...mid.getLabelProps()}>1kHz</span>
     </div>
     <div class="flex flex-col items-center gap-2" {...high.getRootProps()}>
-      <span class="type-code text-text-muted">{high.getThumbValue(0)}</span>
+      <span class="type-code text-muted">{high.getThumbValue(0)}</span>
       <div
         class="relative flex h-36 w-4 touch-none flex-col items-center select-none"
         {...high.getControlProps()}>
@@ -93,10 +93,10 @@ const air = slider({ value: [80], orientation: "vertical" });
           <input {...high.getHiddenInputProps(row)} />
         </template>
       </div>
-      <span class="text-text-muted" {...high.getLabelProps()}>4kHz</span>
+      <span class="text-muted" {...high.getLabelProps()}>4kHz</span>
     </div>
     <div class="flex flex-col items-center gap-2" {...air.getRootProps()}>
-      <span class="type-code text-text-muted">{air.getThumbValue(0)}</span>
+      <span class="type-code text-muted">{air.getThumbValue(0)}</span>
       <div
         class="relative flex h-36 w-4 touch-none flex-col items-center select-none"
         {...air.getControlProps()}>
@@ -113,7 +113,7 @@ const air = slider({ value: [80], orientation: "vertical" });
           <input {...air.getHiddenInputProps(row)} />
         </template>
       </div>
-      <span class="text-text-muted" {...air.getLabelProps()}>16kHz</span>
+      <span class="text-muted" {...air.getLabelProps()}>16kHz</span>
     </div>
   </div>
 </div>

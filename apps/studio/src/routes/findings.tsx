@@ -136,7 +136,7 @@ export default function FindingsPage() {
       <Show when={notice() !== null}>
         <div
           role="status"
-          class="rounded-md border border-border bg-surface-raised px-3 py-2 type-body"
+          class="rounded-md border bg-surface-raised px-3 py-2 type-body"
         >
           {notice()}
         </div>
@@ -145,7 +145,7 @@ export default function FindingsPage() {
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="type-caption-strong text-text-muted">
+            <span class="type-caption-strong text-muted">
               Theme checks
             </span>
             <Badge
@@ -160,7 +160,7 @@ export default function FindingsPage() {
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="type-caption-strong text-text-muted">
+            <span class="type-caption-strong text-muted">
               Source lints
             </span>
             <Badge tone={findings().length === 0 ? "primary" : "warning"}>
@@ -173,7 +173,7 @@ export default function FindingsPage() {
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="type-caption-strong text-text-muted">Repetition</span>
+            <span class="type-caption-strong text-muted">Repetition</span>
             <Badge tone="info">{repetition().length}</Badge>
           </div>
           <p class="m-0">
@@ -182,7 +182,7 @@ export default function FindingsPage() {
         </Frame>
         <Frame class="stack-xs p-3">
           <div class="split">
-            <span class="type-caption-strong text-text-muted">
+            <span class="type-caption-strong text-muted">
               Class order
             </span>
             <Badge tone="info">{order().length}</Badge>
@@ -199,15 +199,15 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={report() === undefined}>
-              <p class="m-0 text-text-muted">reading the source…</p>
+              <p class="m-0 text-muted">reading the source…</p>
             </Match>
             <Match when={report.error !== undefined}>
-              <p class="m-0 text-text-muted">
+              <p class="m-0 text-muted">
                 The findings could not be read. Is the API running?
               </p>
             </Match>
             <Match when={findings().length === 0}>
-              <p class="m-0 text-text-muted">
+              <p class="m-0 text-muted">
                 Nothing to report: every class in the project's source is one
                 the theme can produce, and no class fights a decision the theme
                 has already made.
@@ -222,7 +222,7 @@ export default function FindingsPage() {
             </Match>
           </Switch>
           <Show when={(report()?.unreadable.length ?? 0) > 0}>
-            <p class="m-0 text-text-muted">
+            <p class="m-0 text-muted">
               {report()?.unreadable.join(", ")} could not be read.
             </p>
           </Show>
@@ -237,10 +237,10 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={corpus() === undefined}>
-              <p class="m-0 text-text-muted">reading the source…</p>
+              <p class="m-0 text-muted">reading the source…</p>
             </Match>
             <Match when={repetition().length === 0}>
-              <p class="m-0 text-text-muted">
+              <p class="m-0 text-muted">
                 Nothing repeats: no composition is written twice.
               </p>
             </Match>
@@ -263,10 +263,10 @@ export default function FindingsPage() {
         <Frame class="p-4">
           <Switch>
             <Match when={corpus() === undefined}>
-              <p class="m-0 text-text-muted">reading the source…</p>
+              <p class="m-0 text-muted">reading the source…</p>
             </Match>
             <Match when={order().length === 0}>
-              <p class="m-0 text-text-muted">
+              <p class="m-0 text-muted">
                 Every class list is in the order the stylesheet writes them.
               </p>
             </Match>

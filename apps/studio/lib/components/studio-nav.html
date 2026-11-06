@@ -6,7 +6,7 @@ const machine = menu({});
 
 <div class="relative shrink-0">
   <button
-    class="bare inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-text-muted hover:bg-surface"
+    class="bare inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-muted hover:bg-surface"
     aria-label="Navigate"
     data-testid="studio-nav"
     {...machine.getTriggerProps()}
@@ -15,12 +15,12 @@ const machine = menu({});
   </button>
   <div class="absolute left-0 z-dropdown w-max" {...machine.getPositionerProps()}>
     <div
-      class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      class="rounded-lg border bg-surface-raised p-1 shadow-lg"
       {...machine.getContentProps()}
     >
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-text-muted"
+          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-muted"
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div
@@ -30,10 +30,10 @@ const machine = menu({});
             >
               <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
               <span aria-hidden="true"
-                class={["shrink-0 type-caption text-text-muted", { "rotate-90": machine.openSubmenu === row.value }]}
+                class={["shrink-0 type-caption text-muted", { "rotate-90": machine.openSubmenu === row.value }]}
                 {...machine.getItemSubmenuIndicatorProps(row)}><span class="inline-block i-lucide-chevron-right type-caption" aria-hidden="true"></span></span>
               <panel
-                class="absolute start-full top-0 ms-2 min-w-40 rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+                class="absolute start-full top-0 ms-2 min-w-40"
                 show={machine.openSubmenu === row.value}
                 {...machine.getSubmenuContentProps(row)}>
                 <template for={machine.getSubmenuBlocks(row)} as={sub} key={sub.id}>

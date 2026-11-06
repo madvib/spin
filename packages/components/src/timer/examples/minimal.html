@@ -13,7 +13,7 @@ const machine = timer({
      show={unit.type === "minutes" || unit.type === "seconds"}>
      <div class="flex flex-col items-center" {...machine.getItemProps({ type: unit.type })}>
       <span class="min-w-[2ch] text-center" {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-     </div><span aria-hidden="true" class="text-text-muted" {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
+     </div><span aria-hidden="true" class="text-muted" {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
     </div>
    </template>
   </div>

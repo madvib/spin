@@ -21,7 +21,7 @@ function SignalDemo(): JSX.Element {
     setShown(count());
   });
   return (
-    <div class="grid gap-4 rounded-lg border border-border bg-surface-raised p-4 md:grid-cols-2">
+    <div class="grid gap-4 rounded-lg border bg-surface-raised p-4 md:grid-cols-2">
       <div>
         <p>
           Count: <code>{shown()}</code> · Doubled:{" "}
@@ -30,14 +30,14 @@ function SignalDemo(): JSX.Element {
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
+            class="bare rounded-md border bg-surface px-3 py-1 type-code"
             onClick={() => count(count() + 1)}
           >
             count(count() + 1)
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
+            class="bare rounded-md border bg-surface px-3 py-1 type-code"
             onClick={() => count(0)}
           >
             count(0)
@@ -45,7 +45,7 @@ function SignalDemo(): JSX.Element {
         </div>
       </div>
       <div>
-        <p class="uppercase text-text-muted">
+        <p class="uppercase text-muted">
           Effect log (newest first)
         </p>
         <ul class="flow-list">

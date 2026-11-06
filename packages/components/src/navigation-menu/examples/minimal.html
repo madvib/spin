@@ -26,22 +26,22 @@ const machine = navigationMenu({
 </script>
 
 <nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="row-list gap-1 rounded-full border border-solid border-border bg-surface p-1" {...machine.getListProps()}>
+  <ul class="row-list gap-1 rounded-full border bg-surface p-1" {...machine.getListProps()}>
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
-          class={["bare inline-flex items-center gap-1 rounded-full px-3 py-1 text-text-muted no-underline transition-colors duration-fast ease-decelerate", { "bg-surface-raised shadow-sm": machine.value === row.value }]}
+          class={["bare inline-flex items-center gap-1 rounded-full px-3 py-1 text-muted no-underline transition-colors duration-fast ease-decelerate", { "bg-surface-raised shadow-sm": machine.value === row.value }]}
           {...machine.getLinkProps(row)}
         >
           <span>{row.label}</span>
         </a>
 
         <div
-          class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-md transition duration-fast ease-decelerate"
+          class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border bg-surface-raised p-3 shadow-md transition duration-fast ease-decelerate"
           {...machine.getItemContentProps(row)}
         >
           <p>{row.label}</p>
-          <p class="mt-1 text-text-muted">{row.summary}</p>
+          <p class="mt-1 text-muted">{row.summary}</p>
         </div>
       </li>
     </template>

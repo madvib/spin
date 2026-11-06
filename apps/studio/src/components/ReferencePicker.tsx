@@ -130,7 +130,7 @@ export function ReferencePicker(props: {
             {(target) => (
               <button
                 type="button"
-                class="bare h-5 flex-1 cursor-pointer rounded-sm border border-border p-0 transition-transform hover:scale-105"
+                class="bare h-5 flex-1 cursor-pointer rounded-sm border p-0 transition-transform hover:scale-105"
                 classList={{
                   "border-2 border-primary": props.current === target.path,
                 }}

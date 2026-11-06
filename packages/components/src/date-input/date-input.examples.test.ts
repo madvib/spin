@@ -32,7 +32,7 @@ test("segments highlight one at a time and placeholders read muted", () => {
     "the highlight must key on the focused segment, not whole-input focus",
   );
   assert.ok(
-    html.includes("text-text-muted"),
+    html.includes("text-muted"),
     "placeholders must read muted against filled segments",
   );
   assert.ok(

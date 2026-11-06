@@ -169,7 +169,7 @@ function TopNav(props: {
       class={`shrink-0 z-dropdown flex h-[3.5rem] items-center justify-between gap-2 border-b px-4 md:gap-4 md:px-6 ${
         isHome()
           ? "border-transparent bg-transparent"
-          : "border-border bg-surface"
+          : "border bg-surface"
       }`}
     >
       <div class="flex min-w-0 items-center gap-4">
@@ -184,7 +184,7 @@ function TopNav(props: {
                 class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
                   current(section.active)
                     ? "bg-surface-raised type-body-strong"
-                    : "text-text-muted"
+                    : "text-muted"
                 }`}
               >
                 {section.title}
@@ -198,7 +198,7 @@ function TopNav(props: {
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
-          class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 type-code text-text-muted transition-colors hover:bg-surface-raised"
+          class="bare inline-flex items-center gap-2 rounded-lg border bg-surface px-2 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
         >
           <span>Search...</span>
           <kbd>⌘K</kbd>
@@ -210,7 +210,7 @@ function TopNav(props: {
         onClick={props.onToggleMobileNav}
         aria-expanded={props.mobileNavOpen}
         aria-label="Toggle navigation menu"
-        class="bare inline-flex items-center justify-center rounded-lg border border-solid border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised md:hidden"
+        class="bare inline-flex items-center justify-center rounded-lg border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised md:hidden"
       >
         <span
           class={
@@ -324,21 +324,21 @@ function Layout(props: RouteSectionProps): JSX.Element {
             aria-label="Mobile navigation"
             class="absolute inset-0 z-modal flex flex-col gap-4 overflow-y-auto bg-surface px-4 py-4 md:hidden"
           >
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
               <button
                 type="button"
                 onClick={() => {
                   setMobileNavOpen(false);
                   setSearchOpen(true);
                 }}
-                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border border-solid border-border bg-surface px-3 py-1 type-code text-text-muted transition-colors hover:bg-surface-raised"
+                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border bg-surface px-3 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
               >
                 <span class="i-lucide-search icon-sm" aria-hidden="true" />
                 <span>Search...</span>
               </button>
               <ThemePicker />
             </div>
-            <div class="flex flex-wrap gap-1 border-b border-border pb-3">
+            <div class="flex flex-wrap gap-1 border-b pb-3">
               <For each={TOP_SECTIONS}>
                 {(section) => (
                   <A
@@ -351,7 +351,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                           location.pathname.startsWith(`${prefix}/`),
                       )
                         ? "bg-surface-raised type-body-strong"
-                        : "text-text-muted"
+                        : "text-muted"
                     }`}
                   >
                     {section.title}

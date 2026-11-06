@@ -70,7 +70,7 @@ export default function TokenRow_(props: {
           <Show when={status().aliasOf}>
             {(target) => (
               <span
-                class="rounded-sm bg-surface-sunken px-1 py-0 type-code text-text-muted"
+                class="rounded-sm bg-surface-sunken px-1 py-0 type-code text-muted"
                 title={`Points at ${target()}`}
               >
                 → {target()}

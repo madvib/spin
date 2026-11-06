@@ -9,7 +9,7 @@ const machine = colorPicker({
 </script>
 
 <div
-  class="w-full rounded-lg border border-solid border-border bg-surface-raised p-4"
+  class="w-full rounded-lg border bg-surface-raised p-4"
   {...machine.getRootProps()}
 >
   <div class="mb-3 flex items-center justify-between gap-2">
@@ -17,13 +17,13 @@ const machine = colorPicker({
       {...machine.getLabelProps()}
     ><slot name="label">Colour</slot></span>
     <span
-      class="rounded-md border border-solid border-border bg-surface px-2 py-1 type-code"
+      class="rounded-md border bg-surface px-2 py-1 type-code"
       {...machine.getValueTextProps()}
     >{machine.valueAsString}</span>
   </div>
   <div class="flex flex-col gap-3" {...machine.getContentProps()}>
     <div
-      class="relative h-40 w-full rounded-md border border-solid border-border"
+      class="relative h-40 w-full rounded-md border"
       {...machine.getAreaProps()}
     >
       <div
@@ -49,11 +49,11 @@ const machine = colorPicker({
       {...machine.getChannelSliderProps({ channel: "hue" })}
     >
       <span
-        class="w-12 type-caption text-text-muted"
+        class="w-12 type-caption text-muted"
         {...machine.getChannelSliderLabelProps({ channel: "hue" })}
       >Hue</span>
       <div
-        class="relative h-3 flex-1 rounded-full border border-solid border-border"
+        class="relative h-3 flex-1 rounded-full border"
         {...machine.getChannelSliderTrackProps({ channel: "hue" })}
       >
         <div

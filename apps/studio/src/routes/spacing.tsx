@@ -109,7 +109,7 @@ export default function SpacingPage() {
         <Show
           when={steps.rows().length > 0}
           fallback={
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme declares no spacing steps yet.
             </p>
           }
@@ -158,7 +158,7 @@ export default function SpacingPage() {
                             </span>
                             <code
                               data-studio-chrome=""
-                              class="w-24 shrink-0 truncate text-text-muted"
+                              class="w-24 shrink-0 truncate text-muted"
                             >
                               {entry.row.path}
                             </code>
@@ -188,7 +188,7 @@ export default function SpacingPage() {
                             </code>
                             <span
                               data-studio-chrome=""
-                              class="w-12 shrink-0 text-right type-code text-text-muted tabular-nums"
+                              class="w-12 shrink-0 text-right type-code text-muted tabular-nums"
                             >
                               {shownPx() !== undefined
                                 ? `${Math.round(shownPx()!)}px`
@@ -196,7 +196,7 @@ export default function SpacingPage() {
                             </span>
                             <code
                               data-studio-chrome=""
-                              class="w-12 shrink-0 text-right text-text-muted tabular-nums"
+                              class="w-12 shrink-0 text-right text-muted tabular-nums"
                             >
                               {ratioAt(index())}
                             </code>
@@ -228,11 +228,11 @@ export default function SpacingPage() {
                           <span class="type-body-strong">
                             Step {stepOf(entry().row.path)}
                           </span>
-                          <code class="text-text-muted">
+                          <code class="text-muted">
                             {entry().row.path}
                           </code>
                         </div>
-                        <span class="rounded-md bg-surface-sunken px-2 py-0 type-code text-text-muted tabular-nums">
+                        <span class="rounded-md bg-surface-sunken px-2 py-0 type-code text-muted tabular-nums">
                           {Math.round(shownPx())}px
                         </span>
                       </div>
@@ -284,7 +284,7 @@ export default function SpacingPage() {
         <Show
           when={breakpoints.rows().length > 0}
           fallback={
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme declares no breakpoints yet.
             </p>
           }
@@ -292,7 +292,7 @@ export default function SpacingPage() {
           <Frame class="stack">
             <div
               data-studio-specimen=""
-              class="stack-sm rounded-md border border-border bg-surface-sunken p-4"
+              class="stack-sm rounded-md border bg-surface-sunken p-4"
             >
               <For each={breakpoints.rows()}>
                 {(row) => {
@@ -313,7 +313,7 @@ export default function SpacingPage() {
                           }}
                         />
                       </div>
-                      <code class="w-16 shrink-0 text-right text-text-muted tabular-nums">
+                      <code class="w-16 shrink-0 text-right text-muted tabular-nums">
                         {shown()}
                       </code>
                     </div>
@@ -363,10 +363,10 @@ function StepFigures(props: {
   const step = () => stepOf(props.row.path);
   return (
     <div class="stack-sm">
-      <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
+      <div class="stack-xs rounded-md border bg-surface-sunken p-3">
         <div class="split items-center">
           <span class="type-caption-strong">Container padding</span>
-          <code class="text-text-muted">{`p-${step()}`}</code>
+          <code class="text-muted">{`p-${step()}`}</code>
         </div>
         <div
           class="spin-preview overflow-hidden rounded-sm border border-dashed bg-surface"
@@ -381,13 +381,13 @@ function StepFigures(props: {
           />
         </div>
       </div>
-      <div class="stack-xs rounded-md border border-border bg-surface-sunken p-3">
+      <div class="stack-xs rounded-md border bg-surface-sunken p-3">
         <div class="split items-center">
           <span class="type-caption-strong">Stack / row gap</span>
-          <code class="text-text-muted">{`gap-${step()}`}</code>
+          <code class="text-muted">{`gap-${step()}`}</code>
         </div>
         <div
-          class="spin-preview flex items-center overflow-hidden rounded-sm border border-border bg-surface p-2"
+          class="spin-preview flex items-center overflow-hidden rounded-sm border bg-surface p-2"
           style={{ gap: `var(${props.row.variable})` }}
         >
           <div

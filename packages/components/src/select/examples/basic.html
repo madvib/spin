@@ -28,14 +28,14 @@ const machine = select({
       </span>
       <span
         aria-hidden="true"
-        class={["shrink-0 text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
+        class={["shrink-0 text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
         {...machine.getTriggerIndicatorProps()}
       ><span class="i-lucide-chevron-down type-caption" aria-hidden="true"></span></span>
     </button>
     <button
       aria-hidden="true"
       tabindex="-1"
-      class="flex h-6 w-6 shrink-0 items-center justify-center ghost icon s-sm text-text-muted transition-colors duration-fast ease-decelerate hover:bg-surface"
+      class="flex h-6 w-6 shrink-0 items-center justify-center ghost icon s-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface"
       {...machine.getClearTriggerProps()}
     ><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
   </div>

@@ -124,10 +124,10 @@ const SCREEN_MARKUP = `<div class="flex flex-col gap-4">
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const KIND = "type-code text-text-muted";
+const KIND = "type-code text-muted";
 const BADGE =
-  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
-const LEAD = "mb-8 max-w-screen-md text-text-muted";
+  "shrink-0 rounded-lg border bg-surface-raised px-2 py-1 type-code text-muted";
+const LEAD = "mb-8 max-w-screen-md text-muted";
 
 /**
  * The four columns, side by side, each as wide as the page allows it.
@@ -150,7 +150,7 @@ const GRID =
 /** One theme's column: the name, and the renderings under it. */
 const COLUMN = "flex min-w-0 flex-col gap-2";
 const THEME_NAME = "m-0 truncate type-body-strong";
-const MODE_LABEL = "type-code text-text-muted";
+const MODE_LABEL = "type-code text-muted";
 
 /**
  * The screen's own frame.
@@ -162,11 +162,11 @@ const MODE_LABEL = "type-code text-text-muted";
  * nothing else painted is the theme's ink and not the app's.
  */
 const SCREEN =
-  "rounded-md border border-solid border-border bg-surface p-2";
+  "rounded-md border bg-surface p-2";
 
 /** What a column says when its theme never reached the page. */
 const NOT_RENDERED =
-  "rounded-md border border-dashed border-solid border-border bg-surface p-2 text-text-muted";
+  "rounded-md border border-dashed bg-surface p-2 text-muted";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE.

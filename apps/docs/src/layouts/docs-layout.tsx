@@ -30,12 +30,12 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
           <div class="flex flex-col gap-1">
             <span
               class={`px-2 pb-1 type-caption-strong uppercase ${
-                isGroupActive(group.items) ? "text-primary" : "text-text-muted"
+                isGroupActive(group.items) ? "text-primary" : "text-muted"
               }`}
             >
               {group.label}
             </span>
-            <div class="flex flex-col border-s border-border ms-2 ps-2">
+            <div class="flex flex-col border-s ms-2 ps-2">
               <For each={group.items}>
                 {(item) => (
                   <A
@@ -44,7 +44,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
                     onClick={() => props.onSelect?.()}
                     class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
                     activeClass="bg-surface-raised type-body-strong"
-                    inactiveClass="text-text-muted"
+                    inactiveClass="text-muted"
                   >
                     {item.title}
                   </A>
@@ -176,7 +176,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
       class="flex h-full min-h-0 w-full items-start overflow-y-auto bg-surface"
     >
       <nav
-        class="sticky top-0 hidden h-full w-60 shrink-0 flex-col overflow-y-auto border-e border-border px-4 py-8 md:flex"
+        class="sticky top-0 hidden h-full w-60 shrink-0 flex-col overflow-y-auto border-e px-4 py-8 md:flex"
         aria-label="Documentation"
       >
         <DocsRail />
@@ -189,15 +189,15 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
           <Show when={navContext().prev || navContext().next}>
             <nav
               aria-label="Pagination"
-              class="mt-14 grid gap-4 border-t border-border pt-8 sm:grid-cols-2"
+              class="mt-14 grid gap-4 border-t pt-8 sm:grid-cols-2"
             >
               <Show when={navContext().prev} fallback={<div />}>
                 {(prev) => (
                   <A
                     href={prev().href}
-                    class="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
+                    class="flex flex-col gap-1 rounded-lg border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong hover:bg-surface-raised"
                   >
-                    <span class="type-caption uppercase text-text-muted">
+                    <span class="type-caption uppercase text-muted">
                       ← {prev().groupLabel}
                     </span>
                     <span class="type-body-strong">{prev().title}</span>
@@ -208,9 +208,9 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                 {(next) => (
                   <A
                     href={next().href}
-                    class="flex flex-col items-end gap-1 rounded-lg border border-border bg-surface p-4 text-right no-underline transition-colors duration-fast hover:border-border-strong hover:bg-surface-raised"
+                    class="flex flex-col items-end gap-1 rounded-lg border bg-surface p-4 text-right no-underline transition-colors duration-fast hover:border-strong hover:bg-surface-raised"
                   >
-                    <span class="type-caption uppercase text-text-muted">
+                    <span class="type-caption uppercase text-muted">
                       {next().groupLabel} →
                     </span>
                     <span class="type-body-strong">{next().title}</span>

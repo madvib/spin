@@ -31,7 +31,7 @@ function Failure(props: { error: unknown; reset: () => void }) {
   return (
     <div role="alert" class="stack panel m-4 max-w-[42rem]">
       <h1>The studio hit an error</h1>
-      <p class="text-text-muted">
+      <p class="text-muted">
         The page could not be drawn. The theme being edited is untouched —
         nothing it holds was lost, and the file on disk is as it was.
       </p>

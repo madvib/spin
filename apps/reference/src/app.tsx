@@ -87,11 +87,11 @@ function useTheme(): ThemeState {
  * taller than its labels.
  */
 const SURFACE_LINK =
-  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong aria-[current]:border-border-strong aria-[current]:bg-surface-raised";
+  "flex-1 min-h-0 justify-center rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-muted not-italic shadow-none cursor-pointer hover:border-strong aria-[current]:border-strong aria-[current]:bg-surface-raised";
 
 /** The group either switch or toggle is drawn in. */
 const SEGMENT_GROUP =
-  "flex shrink-0 gap-1 rounded-md border border-solid border-border p-1";
+  "flex shrink-0 gap-1 rounded-md border p-1";
 
 /**
  * The quiet rail row every entry shares: a hole until it is current, at which
@@ -113,7 +113,7 @@ const SEGMENT_GROUP =
  * the whole tile; only where the glyph sits changes.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised aria-[current]:border-border-strong aria-[current]:bg-surface-raised";
+  "flex w-full items-center gap-2 justify-start ghost rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-muted not-italic shadow-none cursor-pointer hover:bg-surface-raised aria-[current]:border-strong aria-[current]:bg-surface-raised";
 
 /**
  * The band a run of rows is bucketed into.
@@ -144,14 +144,14 @@ const RAIL_HEAD =
   "mb-2 flex items-center gap-2 px-2 pt-3 type-heading normal-case first:mt-0";
 
 /** What the rail says when the search has left it nothing to say. */
-const RAIL_EMPTY = "px-2 py-1 type-caption text-text-muted";
+const RAIL_EMPTY = "px-2 py-1 type-caption text-muted";
 
 /**
  * The glyph beside a page title: the small step in ink, so it supports the
  * heading rather than competing with it. Sized in `em` by the theme, like
  * every other glyph.
  */
-const TITLE_ICON = "icon-sm mt-1 shrink-0 text-text-muted";
+const TITLE_ICON = "icon-sm mt-1 shrink-0 text-muted";
 
 /**
  * The sub-heading every section of a page carries. Same rule as the rail's:
@@ -165,7 +165,7 @@ const SUBHEAD = "mt-8 mb-2 normal-case first:mt-0";
  * line, an icon and a box, and no chrome beyond the field itself.
  */
 const SEARCH_FIELD =
-  "flex min-w-0 items-center gap-2 rounded-md border border-solid border-border bg-field px-2 py-1 type-caption";
+  "flex min-w-0 items-center gap-2 rounded-md border bg-field px-2 py-1 type-caption";
 // The field primitive pads and borders every `<input>` it claims, so a
 // control inside a chrome of its own is a box within a box: the input spends
 // its border and its padding here, and the field it sits in supplies both.
@@ -174,7 +174,7 @@ const SEARCH_INPUT =
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-muted not-italic shadow-none cursor-pointer hover:border-strong";
 
 /**
  * The panel every specimen sits in: ONE box, one surface, and only as much
@@ -187,7 +187,7 @@ const QUIET_BUTTON =
  * dialog — still gets its room by the panel growing, never by the padding.
  */
 const SPECIMEN_PANEL =
-  "min-h-16 rounded-md border border-dashed border-solid border-border bg-surface p-6 shadow-sm";
+  "min-h-16 rounded-md border border-dashed bg-surface p-6 shadow-sm";
 
 /** The measure a specimen's content is set at. */
 const SPECIMEN_MEASURE = "max-w-md [--spacing-16:12rem]";
@@ -215,21 +215,21 @@ function PrimitivePage(props: { id: string; onLoad?: string }) {
                 <h2>
                   {f().title}
                 </h2>
-                <div class="type-code text-text-muted">
+                <div class="type-code text-muted">
                   {f().kind}
                 </div>
                 <Show when={f().id.startsWith("component-")}>
-                  <div class="mt-1 type-caption text-text-muted">
+                  <div class="mt-1 type-caption text-muted">
                     {componentRequirement(f().id)}
                   </div>
                 </Show>
               </div>
             </div>
-            <span class="shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted">
+            <span class="shrink-0 rounded-lg border bg-surface-raised px-2 py-1 type-code text-muted">
               {f().examples.length} examples
             </span>
           </header>
-          <p class="max-w-screen-md text-text-muted">
+          <p class="max-w-screen-md text-muted">
             {f().note}
           </p>
           <For each={[...f().examples]}>
@@ -261,7 +261,7 @@ function FeaturedSpecimen(props: { id: string }) {
   return (
     <section class="flex min-w-0 flex-col gap-2">
       <div class="flex items-center gap-2">
-        <i class={`${ICONS[props.id]} icon-md text-text-muted`} />
+        <i class={`${ICONS[props.id]} icon-md text-muted`} />
         <h4>{page.title}</h4>
       </div>
       <div class={SPECIMEN_PANEL}>
@@ -292,15 +292,15 @@ function IndexRow(props: { id: string }) {
     <button
       type="button"
       onClick={() => (location.hash = `#/components/${props.id}`)}
-      class="secondary s-sm flex w-full items-center gap-2 text-left hover:border-border-strong"
+      class="secondary s-sm flex w-full items-center gap-2 text-left hover:border-strong"
     >
       <i
-        class={`${ICONS[props.id]} icon-md shrink-0 text-text-muted`}
+        class={`${ICONS[props.id]} icon-md shrink-0 text-muted`}
       />
       <span class="min-w-0 flex-1 truncate type-body">
         {page.title}
       </span>
-      <span class="shrink-0 type-code text-text-muted">
+      <span class="shrink-0 type-code text-muted">
         {page.examples.length}
       </span>
     </button>
@@ -328,10 +328,10 @@ function LandingPage() {
           <Web class="h-5 w-5 shrink-0 text-primary" />
           <h2>Primitives</h2>
         </div>
-        <div class="type-code text-text-muted">
+        <div class="type-code text-muted">
           spin reference · {PRIMITIVES.length + COMPONENTS.length} components
         </div>
-        <p class="max-w-screen-md text-text-muted">
+        <p class="max-w-screen-md text-muted">
           A verification layer and primitives for agent-authored UI. The tag is
           the component and the theme is the only value source: nothing in this
           app carries a color, a space or a radius that is not a token.
@@ -340,7 +340,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="max-w-screen-md text-text-muted">
+        <p class="max-w-screen-md text-muted">
           Three of the{" "}
           {PRIMITIVES.length}, rendered from the markup a consumer writes — no
           wrapper, no adapter, the rules beside the rule they came from.
@@ -354,7 +354,7 @@ function LandingPage() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Index</h3>
-        <p class="max-w-screen-md text-text-muted">
+        <p class="max-w-screen-md text-muted">
           Every component, alphabetical, with the number of examples each one
           carries.
         </p>
@@ -391,12 +391,12 @@ function LandingPage() {
  */
 function AppHeader(props: { state: ThemeState }) {
   return (
-    <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b border-solid border-border bg-surface px-4 pt-2 pb-2">
+    <div class="sticky top-0 z-dropdown -mx-4 -mt-4 mb-2 flex flex-col gap-1 border-b bg-surface px-4 pt-2 pb-2">
       <div class="flex items-center gap-2 py-4">
         <Logo size="sm" />
       </div>
       <div class="flex items-center gap-2">
-        <span class="shrink-0 type-code text-text-muted">theme</span>
+        <span class="shrink-0 type-code text-muted">theme</span>
         <ThemePicker
           state={props.state}
           class="min-w-0 flex-1"
@@ -509,7 +509,7 @@ function Rail(props: {
   );
 
   return (
-    <nav class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col border-e border-solid border-border">
+    <nav class="sticky top-0 flex h-screen w-[16rem] shrink-0 flex-col border-e">
       <div class="shrink-0 px-4 pt-4 pb-3">
         <AppHeader state={props.state} />
         <div class={SEGMENT_GROUP}>
@@ -540,7 +540,7 @@ function Rail(props: {
         </div>
         <Show when={!montage()}>
           <label class={SEARCH_FIELD}>
-            <i class="i-lucide-search icon-sm shrink-0 text-text-muted" />
+            <i class="i-lucide-search icon-sm shrink-0 text-muted" />
             <input
               type="search"
               value={props.query()}
@@ -557,7 +557,7 @@ function Rail(props: {
                   type="button"
                   aria-pressed={kindFilter() === kind}
                   onClick={() => setKindFilter(kind)}
-                  class="bare rounded-sm px-2 py-1 type-caption text-text-muted aria-[pressed=true]:bg-surface-raised"
+                  class="bare rounded-sm px-2 py-1 type-caption text-muted aria-[pressed=true]:bg-surface-raised"
                 >
                   {kind === "all" ? "all" : kind === "primitive" ? "primitives" : "interactive"}
                 </button>
@@ -612,7 +612,7 @@ function Rail(props: {
                     class={RAIL_LINK}
                   >
                     <span class="min-w-0 truncate">{group.label}</span>
-                    <span class="ms-auto shrink-0 type-code text-text-muted">
+                    <span class="ms-auto shrink-0 type-code text-muted">
                       {group.count}
                     </span>
                   </button>
@@ -640,7 +640,7 @@ function Rail(props: {
                         </Show>
                         <span class="min-w-0 truncate">{row.title}</span>
                         <Show when={row.count !== undefined}>
-                          <span class="ms-auto shrink-0 type-code text-text-muted">
+                          <span class="ms-auto shrink-0 type-code text-muted">
                             {row.count}
                           </span>
                         </Show>

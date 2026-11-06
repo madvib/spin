@@ -22,7 +22,7 @@ const THEME_MOTION_SNIPPET = `<button type="button" class="primary">
 
 const STATE_TRANSITION_SNIPPET = `<div
   tabindex="0"
-  class="rounded-md border border-border bg-surface-raised px-4 py-3 text-text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
+  class="rounded-md border bg-surface-raised px-4 py-3 text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
 >
   Hover or focus to transition state
 </div>`;
@@ -130,7 +130,7 @@ export default function StylingAnimation(): JSX.Element {
               <div class="flex min-h-32 min-w-0 flex-col items-center justify-center p-4">
                 <div
                   tabindex="0"
-                  class="cursor-pointer rounded-md border border-border bg-surface-raised px-4 py-3 text-text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
+                  class="cursor-pointer rounded-md border bg-surface-raised px-4 py-3 text-muted transition-colors duration-fast ease-standard hover:border-primary hover:bg-surface"
                 >
                   Hover or focus to transition state
                 </div>
@@ -184,7 +184,7 @@ export default function StylingAnimation(): JSX.Element {
           <A href="/docs/tooling/check">browser checks</A>.
         </p>
 
-        <div class="flex min-w-0 flex-wrap items-center gap-4 rounded-lg border border-border bg-surface-raised px-4 py-3">
+        <div class="flex min-w-0 flex-wrap items-center gap-4 rounded-lg border bg-surface-raised px-4 py-3">
           <div class="row-sm min-w-0">
             <span
               class="i-lucide-loader icon-sm shrink-0 animate-spin text-primary"
@@ -199,7 +199,7 @@ export default function StylingAnimation(): JSX.Element {
             />
             <code class="break-all">animate-pulse</code>
           </div>
-          <span class="type-caption min-w-0 text-text-muted">
+          <span class="type-caption min-w-0 text-muted">
             Paced at the theme&apos;s loop step (&ge; <code>250ms</code>) and
             stopped under <code>@media (prefers-reduced-motion: reduce)</code>.
           </span>

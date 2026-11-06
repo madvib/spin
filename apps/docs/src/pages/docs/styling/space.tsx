@@ -76,7 +76,7 @@ const ICON_STEPS: readonly IconStepSpec[] = [
 type PreviewWidth = "compact" | "sm" | "md" | "lg";
 
 
-const DENSITY_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+const DENSITY_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
   <strong>Release pipeline</strong>
   <div class="flex flex-wrap items-center gap-4">
     <button type="button" class="primary">Promote build</button>
@@ -85,7 +85,7 @@ const DENSITY_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border borde
 </div>
 
 <!-- Same markup on the compact facet: spacing tightens, colors and fonts hold -->
-<div data-spacing="compact" class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+<div data-spacing="compact" class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
   <strong>Release pipeline</strong>
   <div class="flex flex-wrap items-center gap-4">
     <button type="button" class="primary">Promote build</button>
@@ -93,7 +93,7 @@ const DENSITY_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border borde
   </div>
 </div>`;
 
-const RESPONSIVE_SPECIMEN_SNIPPET = `<div class="mx-auto w-full max-w-screen-lg rounded-lg border border-border bg-surface p-4">
+const RESPONSIVE_SPECIMEN_SNIPPET = `<div class="mx-auto w-full max-w-screen-lg rounded-lg border bg-surface p-4">
   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
     <strong>Edge regions</strong>
     <badge variant="info" class="max-md:inline-flex md:hidden">Compact view</badge>
@@ -111,7 +111,7 @@ const ANCHORED_PANEL_SNIPPET = `<div class="isolate relative">
     <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary text-on-primary"></span>
   </button>
 
-  <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right rounded-md border border-border bg-surface-raised p-3 shadow-lg">
+  <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right rounded-md border bg-surface-raised p-3 shadow-lg">
     <strong>Pinned to trigger</strong>
     <small>Opens in the top layer under --release-menu</small>
   </div>
@@ -123,7 +123,7 @@ const BARE_ESCAPE_SNIPPET = `<!-- Standard ghost button: keeps button height, pa
 <!-- Unpainted bare trigger: keeps <button> semantics, strips button chrome -->
 <button
   type="button"
-  class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 type-code text-text-muted"
+  class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
 >
   <span>Command palette</span>
   <kbd>⌘K</kbd>
@@ -190,8 +190,8 @@ export default function StylingSpace(): JSX.Element {
           <code>gap-1.5</code>).
         </p>
 
-        <div class="my-2 flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
-          <div class="m-0 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-surface p-4">
+        <div class="my-2 flex flex-col gap-3 rounded-lg border bg-surface-raised p-4">
+          <div class="m-0 flex flex-wrap items-center justify-between gap-2 rounded-md border bg-surface p-4">
             <div class="flex flex-wrap items-center gap-2">
               <strong>Live box on the active scale</strong>
               <small>
@@ -206,7 +206,7 @@ export default function StylingSpace(): JSX.Element {
             </div>
           </div>
 
-          <div class="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-surface p-3">
+          <div class="flex min-w-0 flex-col gap-2 rounded-md border bg-surface p-3">
             <For each={SPACING_LADDER}>
               {(item) => (
                 <div class="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -259,7 +259,7 @@ export default function StylingSpace(): JSX.Element {
             code={DENSITY_SNIPPET}
             preview={
               <div class="grid min-w-0 gap-3 sm:grid-cols-2">
-                <div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+                <div class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
                   <strong>Release pipeline</strong>
                   <div class="flex flex-wrap items-center gap-4">
                     <button type="button" class="primary">
@@ -270,7 +270,7 @@ export default function StylingSpace(): JSX.Element {
                 </div>
                 <div
                   data-spacing="compact"
-                  class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4"
+                  class="flex flex-col gap-4 rounded-lg border bg-surface p-4"
                 >
                   <strong>Release pipeline</strong>
                   <div class="flex flex-wrap items-center gap-4">
@@ -366,7 +366,7 @@ export default function StylingSpace(): JSX.Element {
             preview={
               <div class="flex flex-col gap-3">
                 <div
-                  class={`mx-auto w-full rounded-lg border border-border bg-surface p-4 ${stageWidthClass()}`}
+                  class={`mx-auto w-full rounded-lg border bg-surface p-4 ${stageWidthClass()}`}
                 >
                   <div
                     class={
@@ -489,9 +489,9 @@ export default function StylingSpace(): JSX.Element {
               </>
             }
             preview={
-              <div class="isolate relative flex min-h-36 flex-col items-start justify-center gap-2 rounded-lg border border-border bg-surface p-4">
+              <div class="isolate relative flex min-h-36 flex-col items-start justify-center gap-2 rounded-lg border bg-surface p-4">
                 <Show when={panelOpen() && anchorArea() === "top"}>
-                  <div class="z-dropdown position-anchor-release-menu position-area-top flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
+                  <div class="z-dropdown position-anchor-release-menu position-area-top flex flex-col gap-1 rounded-md border bg-surface-raised p-3 shadow-lg">
                     <div class="flex items-center justify-between gap-3">
                       <strong>Pinned above trigger</strong>
                       <code>position-area-top</code>
@@ -521,7 +521,7 @@ export default function StylingSpace(): JSX.Element {
                   </small>
                 </div>
                 <Show when={panelOpen() && anchorArea() === "bottom"}>
-                  <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3 shadow-lg">
+                  <div class="z-dropdown position-anchor-release-menu position-area-bottom-span-right flex flex-col gap-1 rounded-md border bg-surface-raised p-3 shadow-lg">
                     <div class="flex items-center justify-between gap-3">
                       <strong>Pinned below trigger</strong>
                       <code>position-area-bottom-span-right</code>
@@ -548,7 +548,7 @@ export default function StylingSpace(): JSX.Element {
         <div class="my-2 grid min-w-0 gap-3 sm:grid-cols-3">
           <For each={ICON_STEPS}>
             {(item) => (
-              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised px-3 py-3">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border bg-surface-raised px-3 py-3">
                 <div class="flex min-w-0 items-center gap-2">
                   <span
                     class={`${item.glyphClass} ${item.sizeClass} shrink-0 text-primary`}
@@ -583,7 +583,7 @@ export default function StylingSpace(): JSX.Element {
           paint, any <code>bare</code> box that adds a fill (
           <code>bg-primary</code>, <code>bg-surface</code>) names its paired
           foreground ink (<code>text-on-primary</code>,{" "}
-          <code>text-text-muted</code>) explicitly — reach for{" "}
+          <code>text-muted</code>) explicitly — reach for{" "}
           <code>bare</code> only when <code>.secondary</code> or{" "}
           <code>.ghost</code> still carries more chrome than the surface allows:
         </p>
@@ -594,13 +594,13 @@ export default function StylingSpace(): JSX.Element {
             code={BARE_ESCAPE_SNIPPET}
             preview={
               <div class="flex flex-col gap-3">
-                <div class="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface p-4">
+                <div class="flex flex-wrap items-center gap-3 rounded-md border bg-surface p-4">
                   <button type="button" class="ghost">
                     Ghost action
                   </button>
                   <button
                     type="button"
-                    class="bare inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 type-code text-text-muted"
+                    class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
                   >
                     <span>Command palette</span>
                     <kbd>⌘K</kbd>
@@ -616,7 +616,7 @@ export default function StylingSpace(): JSX.Element {
                   <code>.ghost</code>
                   <code>bare</code>
                   <code>bg-surface</code>
-                  <code>text-text-muted</code>
+                  <code>text-muted</code>
                   <code>bg-primary</code>
                   <code>text-on-primary</code>
                 </div>

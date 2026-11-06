@@ -7,12 +7,12 @@
 <div class="grid w-full gap-2">
   <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
-    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
+    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
 <div class={["flex items-center justify-between gap-2 bg-surface-sunken p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
           <span class="h-2 w-2 shrink-0 rounded-full bg-semantic-success" aria-hidden="true"></span>
           <span class="truncate type-label">Sarah Johnson</span>
-          <span data-timer class="shrink-0 type-code text-text-muted">00:12:34</span>
+          <span data-timer class="shrink-0 type-code text-muted">00:12:34</span>
         </div>
         <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
           <button class="ghost icon s-sm hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
@@ -26,7 +26,7 @@
         <badge class="absolute right-2 top-2 flex h-12 w-16 items-center justify-center" variant="neutral">You</badge>
         <badge class="absolute left-2 top-2 type-code" variant="neutral">12:41</badge>
         <div class="absolute inset-x-0 bottom-3 flex justify-center">
-          <div class="flex items-center gap-3 rounded-full border border-solid border-border bg-surface px-4 py-2">
+          <div class="flex items-center gap-3 rounded-full border bg-surface px-4 py-2">
             <button type="button" data-mute aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-mic type-code" aria-hidden="true"></span></button>
             <button data-video aria-pressed="false" class="secondary icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-video type-code" aria-hidden="true"></span></button>
             <button data-hangup class="danger icon s-sm flex h-10 max-h-10 min-h-0 w-10 items-center justify-center"><span class="i-lucide-phone-off type-code" aria-hidden="true"></span></button>

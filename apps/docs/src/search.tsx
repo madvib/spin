@@ -245,7 +245,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
         <Show when={hits().length === 0}>
           <li
             role="presentation"
-            class="px-3 py-6 text-center text-text-muted"
+            class="px-3 py-6 text-center text-muted"
           >
             No matches for “{query()}”.
           </li>
@@ -253,7 +253,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
         <For each={grouped()}>
           {(group) => (
             <>
-              <li role="presentation" class="px-2 pt-2 pb-1 text-text-muted">
+              <li role="presentation" class="px-2 pt-2 pb-1 text-muted">
                 {group.label}
               </li>
               <For each={group.items}>
@@ -268,7 +268,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                     class={`flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-3 py-2 ${
                       item.idx === clampedActive()
                         ? "bg-surface-raised"
-                        : "text-text-muted"
+                        : "text-muted"
                     }`}
                   >
                     <span class="min-w-0">
@@ -281,7 +281,7 @@ export function SearchDialog(props: SearchDialogProps): JSX.Element {
                         </span>
                       </Show>
                     </span>
-                    <span class="shrink-0 type-caption uppercase text-text-muted">
+                    <span class="shrink-0 type-caption uppercase text-muted">
                       {item.entry.category}
                     </span>
                   </li>

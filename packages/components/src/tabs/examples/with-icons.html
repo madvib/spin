@@ -26,17 +26,17 @@ const machine = tabs({
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
  {...machine.getRootProps()}>
  <div
-  class="relative mb-4 flex w-fit gap-8 border-b border-solid border-border"
+  class="relative mb-4 flex w-fit gap-8 border-b"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex items-center gap-2 border-b-2 border-solid px-1 py-2 type-label transition-colors aria-[selected=true]:border-primary aria-[selected=false]:border-transparent aria-[selected=false]:text-text-muted"
+    class="bare flex items-center gap-2 border-b-2 border-solid px-1 py-2 type-label transition-colors aria-[selected=true]:border-primary aria-[selected=false]:border-transparent aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
    ><span class="i-lucide-house type-code" aria-hidden="true" show={row.value === "overview"}></span><span class="i-lucide-folder-open type-code" aria-hidden="true" show={row.value === "projects"}></span><span class="i-lucide-package type-code" aria-hidden="true" show={row.value === "packages"}></span><span>{row.label}</span></button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class="text-center text-text-muted"
+  <p class="text-center text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

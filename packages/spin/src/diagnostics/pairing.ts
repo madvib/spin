@@ -52,9 +52,10 @@ export function checkNoUnpairedInk(
         fills.set(state, [...(fills.get(state) ?? []), fill]);
       }
     } else if (core.startsWith("text-")) {
-      const ink = core.slice(5).split("/")[0] as string;
-      if (facts.colors.has(ink)) {
-        inks.set(state, [...(inks.get(state) ?? []), ink]);
+      const raw = core.slice(5).split("/")[0] as string;
+      const tokenName = facts.colors.has(raw) ? raw : facts.colors.has("text-" + raw) ? "text-" + raw : undefined;
+      if (tokenName !== undefined) {
+        inks.set(state, [...(inks.get(state) ?? []), raw]);
       }
     }
   }

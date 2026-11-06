@@ -12,12 +12,12 @@ const machine = toggleGroup({
 
 <div class="mx-auto flex w-full max-w-md justify-center">
   <div
-    class={["inline-flex items-center gap-1 rounded-lg border border-solid border-border bg-surface-raised p-1", { "flex-col": machine.orientation === "vertical" }]}
+    class={["inline-flex items-center gap-1 rounded-lg border bg-surface-raised p-1", { "flex-col": machine.orientation === "vertical" }]}
     {...machine.getRootProps()}
   >
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["bare flex items-center gap-2 rounded-md px-3 py-1 transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["bare flex items-center gap-2 rounded-md px-3 py-1 transition-all hover:bg-surface", { "bg-surface shadow-sm": machine.getItemState(row).pressed, "text-muted": !machine.getItemState(row).pressed, "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getItemProps(row)}
       ><span aria-hidden="true"><span show={row.value === "grid"} class="inline-block i-lucide-layout-grid type-body"></span><span show={row.value === "list"} class="inline-block i-lucide-list type-body"></span><span show={row.value === "calendar"} class="inline-block i-lucide-calendar type-body"></span></span>{row.label}</button>
     </template>

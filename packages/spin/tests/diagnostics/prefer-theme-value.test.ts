@@ -61,7 +61,7 @@ test("a painted descendant is offered the theme's value, not a variant", () => {
   // The card's variants belong to the card; the title the card paints is
   // not the card, so there is no variant to offer it. The card is spin's own
   // element, so it is read with the `spin` dial.
-  const [finding] = override("card-title", "text-text-muted", SPIN);
+  const [finding] = override("card-title", "text-muted", SPIN);
   deepStrictEqual(finding?.data["family"], "skin");
   deepStrictEqual(finding?.data["remedy"], "Use the theme's value.");
 });
@@ -102,7 +102,7 @@ test("a layout utility is free on an element that paints", () => {
 
 test("a utility on a raw element is free", () => {
   // Nothing paints a `div`, so nothing decides how it looks.
-  deepStrictEqual(override("div", "bg-primary text-text-muted rounded-md"), []);
+  deepStrictEqual(override("div", "bg-primary text-muted rounded-md"), []);
 });
 
 test("a utility over a decision the element does not own is free", () => {
@@ -302,7 +302,7 @@ test("an element inside a document column is the column's", () => {
   deepStrictEqual(finding?.data["cls"], "text-link");
   // The muted ink the column states is what the element already says, so
   // naming it changes nothing: the redundancy rule reports it instead.
-  const [dead] = redundant("blockquote", "text-text-muted", undefined, column);
+  const [dead] = redundant("blockquote", "text-muted", undefined, column);
   deepStrictEqual(dead?.messageId, "redundant");
   deepStrictEqual(dead?.data["properties"], "color");
 });
@@ -312,7 +312,7 @@ test("an element inside a column that does not own it is free", () => {
   // ordinary box is not inside a document column.
   const column: AncestorFacts[] = [{ tag: "div", classes: [] }];
   deepStrictEqual(
-    override("blockquote", "text-text-muted", undefined, column),
+    override("blockquote", "text-muted", undefined, column),
     [],
   );
 });
@@ -321,6 +321,6 @@ test("an element a primitive only lays out is not painted", () => {
   // The button joins a group of controls in a `span`. The group container
   // is laid out, not painted: nothing decides how it looks, so a utility on
   // it is the author's.
-  deepStrictEqual(override("span", "rounded-sm border text-text-muted"), []);
+  deepStrictEqual(override("span", "rounded-sm border text-muted"), []);
 });
 

@@ -16,10 +16,10 @@ const machine = pinInput({
         class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
-      <span show={cell === 2} class="type-body text-text-muted">-</span>
+      <span show={cell === 2} class="type-body text-muted">-</span>
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
   <p
-    class="text-text-muted">Enter the 6-digit code from your authenticator app</p>
+    class="text-muted">Enter the 6-digit code from your authenticator app</p>
 </div>

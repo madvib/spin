@@ -7,17 +7,17 @@ const machine = colorPicker({
 });
 </script>
 <div
-  class="mx-auto w-full max-w-[16rem] rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-[16rem] rounded-lg border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
     <label
       {...machine.getLabelProps()}>Spectrum</label>
-    <span class="type-code text-text-muted"
+    <span class="type-code text-muted"
       {...machine.getValueTextProps()}>{machine.valueAsString}</span>
   </div>
   <div class="flex flex-col gap-3" {...machine.getContentProps()}>
     <div
-      class="relative h-36 w-full rounded-lg border border-solid border-border"
+      class="relative h-36 w-full rounded-lg border"
       {...machine.getAreaProps()}>
       <div class="absolute inset-0 rounded-lg"
         {...machine.getAreaBackgroundProps()}>
@@ -32,21 +32,21 @@ const machine = colorPicker({
     </div>
     <div class="flex items-center gap-2"
       {...machine.getChannelSliderProps({ channel: "hue" })}>
-      <span class="w-10 type-caption text-text-muted"
+      <span class="w-10 type-caption text-muted"
         {...machine.getChannelSliderLabelProps({ channel: "hue" })}>Hue</span>
       <div
-        class="relative h-3 flex-1 rounded-full border border-solid border-border"
+        class="relative h-3 flex-1 rounded-full border"
         {...machine.getChannelSliderTrackProps({ channel: "hue" })}>
         <div
           class="absolute h-4 w-4 rounded-full border-2 border-solid border-on-primary shadow-lg"
           {...machine.getChannelSliderThumbProps({ channel: "hue" })}></div>
       </div>
-      <span class="w-8 text-right type-code text-text-muted"
+      <span class="w-8 text-right type-code text-muted"
         {...machine.getChannelSliderValueTextProps({ channel: "hue" })}>{machine.getChannelValue("hue")}</span>
     </div>
     <div class="flex items-center gap-2">
       <span aria-hidden="true"
-        class="h-7 w-7 shrink-0 rounded-md border border-solid border-border"
+        class="h-7 w-7 shrink-0 rounded-md border"
         {...machine.getSwatchProps({ value: machine.valueAsString })}></span>
       <input
         class="w-full"

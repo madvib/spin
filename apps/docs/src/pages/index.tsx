@@ -425,19 +425,19 @@ export default function Home(): JSX.Element {
             onPointerEnter={keepTileHoverCardOpen}
             onPointerLeave={scheduleCloseTileHoverCard}
           >
-            <div class="overflow-hidden rounded-md border border-border-strong bg-surface-raised shadow-lg">
-              <div class="flex min-h-[8rem] items-center justify-center overflow-visible border-b border-border bg-surface p-4">
+            <div class="overflow-hidden rounded-md border-strong bg-surface-raised shadow-lg">
+              <div class="flex min-h-[8rem] items-center justify-center overflow-visible border-b bg-surface p-4">
                 <div class="flex w-full min-w-0 flex-col items-center text-center [&>*]:text-left" innerHTML={tile().mountHtml} />
               </div>
               <div class="flex items-center justify-between gap-2 px-4 py-2">
                 <span class="flex min-w-0 items-center gap-2 type-body">
                   <span
-                    class={`inline-block h-4 w-4 ${tile().icon} shrink-0 text-text-muted`}
+                    class={`inline-block h-4 w-4 ${tile().icon} shrink-0 text-muted`}
                     aria-hidden="true"
                   />
                   <span class="truncate">{tile().name}</span>
                 </span>
-                <span class="shrink-0 type-code text-text-muted">
+                <span class="shrink-0 type-code text-muted">
                   {tile().meta}
                 </span>
               </div>
@@ -454,7 +454,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => selectStage(1)}
-              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 type-code shadow-md transition-colors duration-fast hover:border-primary"
+              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border-strong bg-surface-raised px-3 py-1 type-code shadow-md transition-colors duration-fast hover:border-primary"
             >
               <span class="h-2 w-2 rounded-full bg-primary text-on-primary" />
               <span>Scroll</span>
@@ -463,7 +463,7 @@ export default function Home(): JSX.Element {
           }
         >
           <div
-            class="pointer-events-auto inline-flex w-fit items-center gap-1 rounded-full border border-border-strong bg-surface-raised px-2 py-1 shadow-md sm:gap-2"
+            class="pointer-events-auto inline-flex w-fit items-center gap-1 rounded-full border-strong bg-surface-raised px-2 py-1 shadow-md sm:gap-2"
             role="group"
             aria-label="Stage controls"
           >
@@ -520,7 +520,7 @@ export default function Home(): JSX.Element {
               class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption transition-colors duration-fast ${
                 autoPlay()
                   ? "bg-primary text-on-primary"
-                  : "text-text-muted hover:bg-surface"
+                  : "text-muted hover:bg-surface"
               }`}
               title={autoPlay() ? "Pause auto-play" : "Auto-play stages"}
               aria-label="Toggle auto-play"
@@ -531,7 +531,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => setReweaveKey((k) => k + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption text-text-muted hover:bg-surface hover:text-primary"
+              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption text-muted hover:bg-surface hover:text-primary"
               title="Replay current ring weave"
               aria-label="Replay current ring weave"
             >
@@ -553,7 +553,7 @@ export default function Home(): JSX.Element {
               style={{ "max-width": "42rem" }}
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-4"
             >
-              <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-border-strong bg-surface-raised px-3 py-1 type-code text-text-muted shadow-sm">
+              <span class="inline-flex w-fit max-w-full items-center gap-2 rounded-full border-strong bg-surface-raised px-3 py-1 type-code text-muted shadow-sm">
                 <span class="h-2 w-2 shrink-0 rounded-full bg-primary text-on-primary" />
                 <span class="truncate">
                   Themes · Styled HTML · {MACHINE_COUNT} Components · Any Stack
@@ -565,7 +565,7 @@ export default function Home(): JSX.Element {
                   UI that holds together.
                 </h1>
 
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Define your colors, type, and spacing once. Spin compiles your
                   theme into styled HTML elements, Tailwind-compatible utilities,
                   and {MACHINE_COUNT} interactive components for React, Solid,
@@ -590,14 +590,14 @@ export default function Home(): JSX.Element {
                 </A>
               </div>
 
-              <div class="flex w-full max-w-full items-center gap-1 rounded-md border border-border-strong bg-surface-raised p-1 shadow-sm">
+              <div class="flex w-full max-w-full items-center gap-1 rounded-md border-strong bg-surface-raised p-1 shadow-sm">
                 <docs-select ref={setSelectEl} id="install-pm" />
                 <button
                   type="button"
                   onClick={copyInstall}
                   class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 type-code hover:bg-surface"
                 >
-                  <span class="shrink-0 text-text-muted">$</span>
+                  <span class="shrink-0 text-muted">$</span>
                   <span class="min-w-0 flex-1 truncate text-left">
                     {installCommand()}
                   </span>
@@ -605,7 +605,7 @@ export default function Home(): JSX.Element {
                     class={
                       copiedCmd()
                         ? "inline-block h-4 w-4 shrink-0 i-lucide-check text-semantic-success"
-                        : "inline-block h-4 w-4 shrink-0 i-lucide-copy text-text-muted"
+                        : "inline-block h-4 w-4 shrink-0 i-lucide-copy text-muted"
                     }
                     aria-hidden="true"
                   />
@@ -613,7 +613,7 @@ export default function Home(): JSX.Element {
               </div>
 
               <div class="hidden max-w-full flex-wrap items-center gap-1 sm:flex">
-                <span class="pr-1 type-code text-text-muted">
+                <span class="pr-1 type-code text-muted">
                   Theme:
                 </span>
                 <For each={starterList}>
@@ -624,7 +624,7 @@ export default function Home(): JSX.Element {
                       class={`bare rounded-full border px-2 py-1 type-code transition-colors duration-fast ${
                         theme() === name
                           ? "border-primary bg-primary type-body-strong text-on-primary"
-                          : "border-border bg-surface-raised text-text-muted hover:border-border-strong"
+                          : "border bg-surface-raised text-muted hover:border-strong"
                       }`}
                     >
                       {name}
@@ -651,15 +651,15 @@ export default function Home(): JSX.Element {
                 <h2>
                   Restyle your app without touching markup.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Swap palettes, typefaces, radii, or shadows in one place and
                   every element, utility, and component follows — with light
                   and dark contrast verified at build time.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
-                <div class="flex flex-wrap items-center gap-2 border-b border-border pb-2">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
+                <div class="flex flex-wrap items-center gap-2 border-b pb-2">
                   <For each={DTCG_SAMPLES}>
                     {(sample, idx) => {
                       const active = () => selectedDtcgIdx() === idx();
@@ -670,7 +670,7 @@ export default function Home(): JSX.Element {
                           class={`bare rounded-md border px-2 py-1 type-code transition-colors duration-fast ${
                             active()
                               ? "border-primary bg-primary type-body-strong text-on-primary"
-                              : "border-border bg-surface hover:border-border-strong"
+                              : "border bg-surface hover:border-strong"
                           }`}
                         >
                           {sample.path}
@@ -692,12 +692,12 @@ export default function Home(): JSX.Element {
                     }
                   >
                     <span
-                      class={`h-8 w-8 shrink-0 rounded-md border border-border ${currentDtcg().sampleClass}`}
+                      class={`h-8 w-8 shrink-0 rounded-md border ${currentDtcg().sampleClass}`}
                       aria-hidden="true"
                     />
                   </Show>
                   <div class="flex min-w-0 flex-col gap-1 type-code">
-                    <span class="text-text-muted">
+                    <span class="text-muted">
                       {cssVarOf(currentDtcg().path)}
                     </span>
                     <strong class="truncate">
@@ -706,8 +706,8 @@ export default function Home(): JSX.Element {
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 border-t border-border pt-2 type-caption">
-                  <span class="truncate text-text-muted">
+                <div class="flex items-center justify-between gap-4 border-t pt-2 type-caption">
+                  <span class="truncate text-muted">
                     {currentDtcg().pairing}
                   </span>
                   <A
@@ -737,7 +737,7 @@ export default function Home(): JSX.Element {
                 <h2>
                   Tailwind syntax, locked to your tokens.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Write the classes you already know — <code>p-4</code>,{" "}
                   <code>bg-surface-raised</code>, <code>rounded-lg</code> —
                   wired to your theme. Off-scale values and raw hex codes
@@ -745,14 +745,14 @@ export default function Home(): JSX.Element {
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() =>
                       setUtilPad((p) => (p === "p-3" ? "p-5" : "p-3"))
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilPad()}
                   </button>
@@ -763,7 +763,7 @@ export default function Home(): JSX.Element {
                         r === "rounded-lg" ? "rounded-sm" : "rounded-lg",
                       )
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilRadius()}
                   </button>
@@ -776,7 +776,7 @@ export default function Home(): JSX.Element {
                           : "bg-surface-raised",
                       )
                     }
-                    class="bare rounded-md border border-border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilSurface()}
                   </button>
@@ -787,7 +787,7 @@ export default function Home(): JSX.Element {
                     class={`bare rounded-md border px-2 py-1 type-code ${
                       utilTryInvalid()
                         ? "border-primary bg-primary text-on-primary"
-                        : "border-border bg-surface text-text-muted"
+                        : "border bg-surface text-muted"
                     }`}
                   >
                     + p-13
@@ -795,7 +795,7 @@ export default function Home(): JSX.Element {
                 </div>
 
                 <div
-                  class={`flex max-w-full flex-col gap-1 border border-border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
+                  class={`flex max-w-full flex-col gap-1 border-strong transition-all duration-fast ${utilPad()} ${utilRadius()} ${utilSurface()}`}
                 >
                   <div class="flex items-center justify-between gap-3">
                     <strong>
@@ -817,7 +817,7 @@ export default function Home(): JSX.Element {
                 </div>
 
                 <div class="flex items-center justify-between gap-4 type-caption">
-                  <span class="type-code text-text-muted">
+                  <span class="type-code text-muted">
                     Closed token scale
                   </span>
                   <A
@@ -847,7 +847,7 @@ export default function Home(): JSX.Element {
                 <h2>
                   Write standard HTML. Skip the class soup.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Native tags like <code>&lt;button&gt;</code>,{" "}
                   <code>&lt;input&gt;</code>, <code>&lt;dialog&gt;</code>, and{" "}
                   <code>&lt;table&gt;</code> arrive styled by your theme —
@@ -855,8 +855,8 @@ export default function Home(): JSX.Element {
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:p-4">
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border-strong bg-surface-raised p-3 shadow-sm sm:p-4">
+                <div class="flex items-center justify-between gap-2 border-b pb-1 sm:pb-2">
                   <div class="flex shrink-0 items-center gap-2">
                     <button type="button" class="s-sm">
                       Save
@@ -868,7 +868,7 @@ export default function Home(): JSX.Element {
                   <code class="shrink-0">&lt;button&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                <div class="flex items-center justify-between gap-2 border-b pb-1 sm:pb-2">
                   <label class="shrink-0 whitespace-nowrap">
                     <input
                       type="checkbox"
@@ -883,7 +883,7 @@ export default function Home(): JSX.Element {
                   <code class="shrink-0">role="switch"</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                <div class="flex items-center justify-between gap-2 border-b pb-1 sm:pb-2">
                   <div class="flex shrink-0 items-center gap-2">
                     <progress value={progressVal()} max={100} class="w-16 sm:w-20" />
                     <button
@@ -899,7 +899,7 @@ export default function Home(): JSX.Element {
                   <code class="shrink-0">&lt;progress&gt;</code>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 border-b border-border pb-1 sm:pb-2">
+                <div class="flex items-center justify-between gap-2 border-b pb-1 sm:pb-2">
                   <div class="flex shrink-0 items-center gap-2">
                     <badge class="badge-success">Ready</badge>
                     <badge class="badge-neutral">CSS</badge>
@@ -909,7 +909,7 @@ export default function Home(): JSX.Element {
                 </div>
 
                 <div class="flex items-center justify-between gap-4 type-caption">
-                  <span class="type-code text-text-muted">
+                  <span class="type-code text-muted">
                     {ELEMENT_COUNT} styled elements
                   </span>
                   <A
@@ -939,7 +939,7 @@ export default function Home(): JSX.Element {
                 <h2>
                   Interactive components for any framework.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Selects, comboboxes, dialogs, menus, tabs, and date pickers —
                   driven by statecharts, styled by your theme, and mounted in
                   React, Solid, Vue, Svelte, or HTML.
@@ -957,7 +957,7 @@ export default function Home(): JSX.Element {
                       onPointerLeave={scheduleCloseTileHoverCard}
                       onFocus={(e) => openTileHoverCard(tile, e.currentTarget)}
                       onBlur={scheduleCloseTileHoverCard}
-                      class="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 type-caption no-underline shadow-sm transition-colors duration-fast hover:border-primary"
+                      class="inline-flex w-fit items-center gap-2 rounded-md border bg-surface-raised px-3 py-1 type-caption no-underline shadow-sm transition-colors duration-fast hover:border-primary"
                     >
                       <span
                         class={`inline-block h-4 w-4 ${tile.icon} text-primary`}
@@ -967,7 +967,7 @@ export default function Home(): JSX.Element {
                         {tile.name}
                       </span>
                       <span
-                        class="inline-block h-3 w-3 i-lucide-arrow-up-right text-text-muted"
+                        class="inline-block h-3 w-3 i-lucide-arrow-up-right text-muted"
                         aria-hidden="true"
                       />
                     </A>
@@ -1000,15 +1000,15 @@ export default function Home(): JSX.Element {
                 <h2>
                   Guardrails for humans and coding agents.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Spin's linter, browser checks, and MCP server catch invalid
                   classes, hardcoded hex colors, and broken contrast
                   automatically.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
-                <div class="flex items-center justify-between gap-4 border-b border-border pb-2">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
+                <div class="flex items-center justify-between gap-4 border-b pb-2">
                   <badge
                     class={
                       remainingFindings() === 0
@@ -1039,7 +1039,7 @@ export default function Home(): JSX.Element {
                           onClick={() => toggleFix(item.id)}
                           class={`bare flex w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
                             isFixed()
-                              ? "border-border bg-surface"
+                              ? "border bg-surface"
                               : "border-primary bg-surface"
                           }`}
                         >
@@ -1089,44 +1089,44 @@ export default function Home(): JSX.Element {
                 <h2>
                   Edit your theme against the live app.
                 </h2>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Spin Studio mounts beside your dev server: tweak palettes,
                   type, icons, or spacing and watch real pages repaint before
                   saving to <code>spin/</code>.
                 </p>
               </div>
 
-              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border border-border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
+              <div class="flex w-full max-w-full flex-col gap-2 rounded-lg border-strong bg-surface-raised p-3 shadow-sm sm:gap-3 sm:p-4">
                 <div class="grid grid-cols-2 gap-2">
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
+                  <div class="flex flex-col gap-1 rounded-md border bg-surface p-2 sm:p-3">
                     <span class="type-code text-primary">
                       Theme &amp; Type
                     </span>
-                    <span class="type-caption text-text-muted">
+                    <span class="type-caption text-muted">
                       Palettes &amp; scales
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
+                  <div class="flex flex-col gap-1 rounded-md border bg-surface p-2 sm:p-3">
                     <span class="type-code text-primary">
                       Contrast Gate
                     </span>
-                    <span class="type-caption text-text-muted">
+                    <span class="type-caption text-muted">
                       AA / AAA matrix
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
+                  <div class="flex flex-col gap-1 rounded-md border bg-surface p-2 sm:p-3">
                     <span class="type-code text-primary">
                       Icons &amp; Motion
                     </span>
-                    <span class="type-caption text-text-muted">
+                    <span class="type-caption text-muted">
                       Glyphs &amp; easing
                     </span>
                   </div>
-                  <div class="flex flex-col gap-1 rounded-md border border-border bg-surface p-2 sm:p-3">
+                  <div class="flex flex-col gap-1 rounded-md border bg-surface p-2 sm:p-3">
                     <span class="type-code text-primary">
                       Recipes
                     </span>
-                    <span class="type-caption text-text-muted">
+                    <span class="type-caption text-muted">
                       Copyable markup
                     </span>
                   </div>

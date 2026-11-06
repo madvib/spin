@@ -80,9 +80,9 @@ function other(tag: string, classes: string) {
 
 test("a variant that clears the fill leaves the ink to the author", () => {
   // The bare button has no fill, so the ink the base declares — the ink on
-  // the primary fill — is not the button's ink. `text-text-muted` is the
+  // the primary fill — is not the button's ink. `text-muted` is the
   // author's own answer, and the rule says nothing about it.
-  deepStrictEqual(override("button", "bare text-text-muted"), []);
+  deepStrictEqual(override("button", "bare text-muted"), []);
 });
 
 test("the size on an opted-out element is the author's own", () => {
@@ -100,7 +100,7 @@ test("a class the variant cleared is not dead weight", () => {
   // And without the variant the class IS what the element says.
   const [finding] = redundant("button", "border");
   deepStrictEqual(finding?.messageId, "redundant");
-  deepStrictEqual(finding?.data["properties"], "border-width, border-style");
+  deepStrictEqual(finding?.data["properties"], "border-width, border-style, border-color");
 });
 
 test("the variant's own answer is dead weight", () => {

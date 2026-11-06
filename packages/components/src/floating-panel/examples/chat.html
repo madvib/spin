@@ -7,18 +7,18 @@
 <div class="grid w-full gap-2">
   <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
-    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
-      <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
+    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
+      <div class={["flex items-center justify-between gap-2 border-b border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
-          <span class="i-lucide-grip-vertical shrink-0 type-code text-text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-grip-vertical shrink-0 type-code text-muted" aria-hidden="true"></span>
           <span class="truncate type-label">Customer Support</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
       </div>
-      <div class="flex items-center gap-2 border-b border-border px-4 py-2">
+      <div class="flex items-center gap-2 border-b border px-4 py-2">
           <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary type-caption-strong text-on-primary">CS</span>
           <div class="min-w-0"><p>Customer Support</p><p class="text-semantic-success">Online</p></div>
         </div>
@@ -27,7 +27,7 @@
         <div class="max-w-[80%] justify-self-end rounded-md rounded-sm bg-primary px-3 py-2 text-on-primary">Hi, I have a question about your product.</div>
         <div class="max-w-[80%] rounded-md rounded-sm bg-surface px-3 py-2">Happy to help! What would you like to know?</div>
       </div>
-      <div class="flex gap-2 border-t border-border bg-surface p-3">
+      <div class="flex gap-2 border-t border bg-surface p-3">
         <input data-chat-input type="text" placeholder="Type a message…" class="bare min-w-0 flex-1 px-3 py-2" />
         <button data-send class="bare flex h-8 max-h-8 min-h-0 w-8 items-center justify-center hover:bg-primary"><span class="i-lucide-send type-code" aria-hidden="true"></span></button>
       </div>

@@ -150,11 +150,13 @@ test("a class the project declares is known beside the starters", () => {
 test("text-text is unknown and carries the edit that drops it", () => {
   // T5 (remove `text-text`): the catalog no longer names it and no rule
   // emits it, so the closed vocabulary reports it like any dead class —
-  // while the sibling `text-text-muted` and the `color.text` token's other
-  // spellings stay known.
+  // and the stuttered `text-text-muted` and `border-border` spellings are
+  // dead with it — while `text-muted` and `border-strong` stay known.
   const facts = factsFor(Object.values(starterThemes));
   deepStrictEqual(reported(facts, "text-text"), ["text-text"]);
-  deepStrictEqual(reported(facts, "text-text-muted"), []);
+  deepStrictEqual(reported(facts, "text-text-muted"), ["text-text-muted"]);
+  deepStrictEqual(reported(facts, "border-border"), ["border-border"]);
+  deepStrictEqual(reported(facts, "text-muted border-strong"), []);
   const node: ClassFacts = {
     tag: "div",
     classes: ["text-text"],
@@ -170,7 +172,6 @@ test("text-text is unknown and carries the edit that drops it", () => {
   deepStrictEqual(finding?.messageId, "unknown");
   deepStrictEqual(finding?.fix, { range: [0, 9], text: "" });
 });
-
 test("a removed raw size is unknown while the named style stays known", () => {
   // TYPE-b (remove raw type utilities): no rule emits `text-xs`, and the
   // catalog never names it, so the closed vocabulary reports it like any

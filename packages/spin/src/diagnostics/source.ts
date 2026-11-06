@@ -360,7 +360,7 @@ function findingsIn(file: string, code: string): Diagnostic[] {
   if (file.endsWith(".html") || file.endsWith(".htm")) {
     return lintMarkup(file, code, {
       rules: RULE_NAMES,
-      semantic: { strictness: "strict", semanticTags: "native" },
+      semantic: { strictness: "strict", semanticTags: "all" },
     });
   }
   try {

@@ -26,11 +26,11 @@ const machine = tabs({
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
  {...machine.getRootProps()}>
  <div
-  class="mb-4 flex w-fit rounded-lg border border-solid border-border p-1"
+  class="mb-4 flex w-fit rounded-lg border p-1"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex items-center gap-2 rounded-md px-4 py-1 type-label transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-text-muted"
+    class="bare flex items-center gap-2 rounded-md px-4 py-1 type-label transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
    >
     <span class="i-lucide-inbox type-code" aria-hidden="true"
@@ -44,7 +44,7 @@ const machine = tabs({
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class="text-center text-text-muted"
+  <p class="text-center text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

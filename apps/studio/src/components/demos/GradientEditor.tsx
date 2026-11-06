@@ -103,7 +103,7 @@ export default function GradientEditor(props: {
               />
               <button
                 type="button"
-                class="secondary s-sm shrink-0 text-text-muted hover:border-primary"
+                class="secondary s-sm shrink-0 text-muted hover:border-primary"
                 title="Remove this stop"
                 aria-label={`Remove stop ${index() + 1}`}
                 onClick={() => removeStop(index())}
@@ -117,19 +117,19 @@ export default function GradientEditor(props: {
       <div class="row-sm items-center gap-3">
         <button
           type="button"
-          class="secondary s-sm shrink-0 text-text-muted hover:border-primary"
+          class="secondary s-sm shrink-0 text-muted hover:border-primary"
           onClick={() => addStop()}
         >
           add a stop
         </button>
         <span
-          class="block h-10 w-36 rounded-md border border-border"
+          class="block h-10 w-36 rounded-md border"
           style={specimen()}
           aria-hidden="true"
         />
       </div>
       <Show when={props.composite.stops.length === 0}>
-        <p class="text-text-muted">
+        <p class="text-muted">
           A gradient with no stops paints nothing.
         </p>
       </Show>

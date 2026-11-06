@@ -20,7 +20,7 @@ Clearing variants release ownership: a `ghost` button owns no background or ink,
 a `bare` alert owns neither, a `card-ghost` owns no surface. Pair custom fills
 and inks on those freely — the rules see the cleared ownership and stay quiet.
 
-`bg-surface*` backgrounds allow the default ink and `text-text-muted` — surfaces are
+`bg-surface*` backgrounds allow the default ink and `text-muted` — surfaces are
 the default ground, not a fill with a paired ink. Every other fill demands its
 `text-on-<fill>`, in every state prefix you write (`hover:bg-accent` demands
 `hover:text-on-accent`).

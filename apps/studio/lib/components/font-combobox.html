@@ -7,7 +7,7 @@ const machine = combobox({});
 <div class="relative w-full" {...machine.getRootProps()}>
   <div class="relative" {...machine.getControlProps()}>
     <input
-      class="w-full pr-16 placeholder:text-text-muted"
+      class="w-full pr-16 placeholder:text-muted"
       data-testid="font-combobox-input"
       {...machine.getInputProps()}
     />
@@ -26,13 +26,13 @@ const machine = combobox({});
       {...machine.getPositionerProps()}
     >
       <div
-        class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg"
+        class="overflow-hidden rounded-lg border bg-surface-raised shadow-lg"
         {...machine.getContentProps()}
       >
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
                   class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"

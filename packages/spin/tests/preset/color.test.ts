@@ -445,10 +445,13 @@ test("a class carries a colour only inside its brackets", () => {
 });
 
 /**
- * T5 (remove `text-text`): the `color.text` token stays, but no rule emits
- * a `text-text` utility for it. The token still resolves in its surviving
- * spellings — `text-text-muted` names `color.text-muted`, and body reads
- * `color.text` through the theme, not through a class.
+ * The `color.text` token stays, but no rule emits a `text-text` utility for
+ * it. The token still resolves in its surviving spellings — `text-muted`
+ * names `color.text-muted`, and body reads `color.text` through the theme,
+ * not through a class. The stuttered spellings (`text-text`,
+ * `text-text-muted`) and their border siblings (`border-border`,
+ * `border-border-strong`) emit no rule; `text-muted` and `border-strong`
+ * paint the roles.
  */
 test("text-text emits no rule while the text token and its sibling stay", async () => {
   const uno = await createGenerator({
@@ -464,11 +467,38 @@ test("text-text emits no rule while the text token and its sibling stay", async 
     !alpha.css.includes(".text-text"),
     "text-text/80 names the same removed ink through the alpha suffix",
   );
-  const muted = await uno.generate("text-text-muted", { preflights: false });
+  const stuttered = await uno.generate("text-text-muted", { preflights: false });
+  assert.ok(
+    !stuttered.css.includes(".text-text-muted"),
+    "text-text-muted is dead — the utility is text-muted",
+  );
+  const muted = await uno.generate("text-muted", { preflights: false });
   assert.match(
     muted.css,
     /color:\s*var\(--color-text-muted\)/,
-    "text-text-muted still paints the muted ink",
+    "text-muted still paints the muted ink",
+  );
+  const mutedAlpha = await uno.generate("text-muted/80", { preflights: false });
+  assert.match(
+    mutedAlpha.css,
+    /color-mix\(in srgb, var\(--color-text-muted\) 80%, transparent\)/,
+    "text-muted/80 thins the muted ink",
+  );
+  const borderDead = await uno.generate("border-border", { preflights: false });
+  assert.ok(
+    !borderDead.css.includes(".border-border"),
+    "border-border is dead — the utility is the bare border",
+  );
+  const strongStuttered = await uno.generate("border-border-strong", { preflights: false });
+  assert.ok(
+    !strongStuttered.css.includes(".border-border-strong"),
+    "border-border-strong is dead — the utility is border-strong",
+  );
+  const strong = await uno.generate("border-strong", { preflights: false });
+  assert.match(
+    strong.css,
+    /border-color:\s*var\(--color-border-strong\)/,
+    "border-strong still paints the strong edge",
   );
   const styled = await uno.generate("type-body", { preflights: false });
   assert.match(styled.css, /font-size/, "the declared style still sizes type");

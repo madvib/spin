@@ -62,7 +62,7 @@ import { createSpinComponent } from "@spinjs/components/solid";
  * without the row shouting.
  */
 const ROW =
-  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left type-body text-text-muted hover:bg-surface-sunken aria-selected:bg-surface-sunken";
+  "flex min-h-0 w-full items-center justify-start gap-2 rounded-md border border-transparent bg-transparent px-2 py-1 text-left type-body text-muted hover:bg-surface-sunken aria-selected:bg-surface-sunken";
 
 /**
  * The panel's own frame.
@@ -71,7 +71,7 @@ const ROW =
  * where it was, and the panel floats over the page.
  */
 const PANEL =
-  "absolute top-full start-0 z-dropdown mt-1 w-max max-w-[80vw] max-h-[16rem] overflow-y-auto rounded-md border border-border bg-surface-raised p-1 shadow-lg";
+  "absolute top-full start-0 z-dropdown mt-1 w-max max-w-[80vw] max-h-[16rem] overflow-y-auto rounded-md border bg-surface-raised p-1 shadow-lg";
 
 /**
  * Which panel is open.
@@ -183,7 +183,7 @@ function Panel(props: {
         aria-expanded={open()}
         aria-label={props.label}
         title={props.label}
-        class="secondary s-sm row-sm min-w-0 gap-2 text-text-muted hover:border-primary"
+        class="secondary s-sm row-sm min-w-0 gap-2 text-muted hover:border-primary"
         onClick={() => {
           if (open()) hide();
           else show();
@@ -322,7 +322,7 @@ export function StepField(props: {
   );
   const shown = createMemo(() => current()?.name ?? props.value);
   return (
-    <label class="stack-sm text-text-muted">
+    <label class="stack-sm text-muted">
       {props.label}
       <Show
         when={props.steps.length > 0}
@@ -383,14 +383,14 @@ export function ColourField(props: {
   // document. `on` so the effect answers the value, not the draft.
   createEffect(on(() => props.value, (value) => setDraft(value)));
   return (
-    <label class="stack-sm text-text-muted">
+    <label class="stack-sm text-muted">
       {props.label}
       <div class="row-sm gap-2">
         <Panel
           label={`${props.label}: ${props.value}`}
           trigger={
             <span
-              class="block h-5 w-8 shrink-0 rounded-sm border border-border"
+              class="block h-5 w-8 shrink-0 rounded-sm border"
               style={{ background: props.value }}
               aria-hidden="true"
             />
@@ -410,7 +410,7 @@ export function ColourField(props: {
                   }}
                 >
                   <span
-                    class="block h-5 w-5 shrink-0 rounded-sm border border-border"
+                    class="block h-5 w-5 shrink-0 rounded-sm border"
                     style={{ background: step.value }}
                     aria-hidden="true"
                   />
@@ -445,7 +445,7 @@ export function TextField(props: {
   placeholder?: string;
 }) {
   return (
-    <label class="stack-sm text-text-muted">
+    <label class="stack-sm text-muted">
       {props.label}
       <input
         type="text"
@@ -481,7 +481,7 @@ export function ChoiceField(props: {
 }) {
   const known = createMemo(() => props.choices.includes(props.value));
   return (
-    <label class="stack-sm text-text-muted">
+    <label class="stack-sm text-muted">
       {props.label}
       <Panel
         label={`${props.label}: ${props.value}`}
@@ -558,7 +558,7 @@ export default function CompositeEditor(props: {
       <Show
         when={parts()}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This value is not a {props.type} the studio can take apart.
           </p>
         }

@@ -12,12 +12,12 @@ const machine = tabs({
 
 <div class="inline-flex shrink-0" {...machine.getRootProps()}>
   <div
-    class="inline-flex items-center gap-1 rounded-md border border-border bg-surface p-1"
+    class="inline-flex items-center gap-1 rounded-md border bg-surface p-1"
     {...machine.getListProps()}
   >
     <template for={machine.items} as={row} key={row.value}>
       <button
-        class="bare rounded-sm px-2 py-1 type-caption-strong transition-colors duration-fast aria-[selected=true]:bg-primary aria-[selected=true]:text-on-primary aria-[selected=false]:text-text-muted"
+        class="bare rounded-sm px-2 py-1 type-caption-strong transition-colors duration-fast aria-[selected=true]:bg-primary aria-[selected=true]:text-on-primary aria-[selected=false]:text-muted"
         {...machine.getTriggerProps(row)}
       >{row.label}</button>
     </template>

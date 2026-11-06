@@ -72,7 +72,7 @@ export function ExamplePreview(props: ExamplePreviewProps): JSX.Element {
 
   return (
     <div
-      class={`relative w-full overflow-hidden rounded-lg border border-border bg-surface shadow-sm ${
+      class={`relative w-full overflow-hidden rounded-lg border bg-surface shadow-sm ${
         props.height ?? "h-[24rem]"
       }`}
     >

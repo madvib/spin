@@ -27,17 +27,17 @@ const ROLE_SWATCHES: readonly RoleSwatch[] = [
     job: "Page surface",
     sample: "Default canvas & body ink",
     detail: "Secondary caption in muted ink",
-    boxClass: "border border-border bg-surface",
-    detailClass: "text-text-muted",
-    tokens: ["bg-surface", "text-text-muted", "border-border"],
+    boxClass: "border bg-surface",
+    detailClass: "text-muted",
+    tokens: ["bg-surface", "text-muted", "border"],
   },
   {
     job: "Raised surface",
     sample: "Card or elevated sheet",
     detail: "Hairline border separates layers",
-    boxClass: "border border-border bg-surface-raised",
-    detailClass: "text-text-muted",
-    tokens: ["bg-surface-raised", "border-border"],
+    boxClass: "border bg-surface-raised",
+    detailClass: "text-muted",
+    tokens: ["bg-surface-raised", "border"],
   },
   {
     job: "Primary role",
@@ -144,11 +144,11 @@ const ALPHA_RAMP: readonly AlphaStep[] = [
   { step: "0%", utility: "bg-primary/0", swatchClass: "bg-primary/0" },
 ];
 
-const MODE_SPECIMEN_SNIPPET = `<div data-theme="spin" data-mode="dark" class="rounded-lg border border-border bg-surface p-4">
-  <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
+const MODE_SPECIMEN_SNIPPET = `<div data-theme="spin" data-mode="dark" class="rounded-lg border bg-surface p-4">
+  <div class="flex items-center justify-between gap-3 rounded-md border bg-surface-raised p-3">
     <div>
       <strong>Release channel</strong>
-      <div class="text-text-muted">Production traffic is healthy</div>
+      <div class="text-muted">Production traffic is healthy</div>
     </div>
     <span class="rounded-sm bg-semantic-success px-2 py-1 text-on-semantic-success">
       Healthy
@@ -177,8 +177,8 @@ export default function StylingColor(): JSX.Element {
 
       <Section id="roles" title="Roles, not colors">
         <p class="max-w-prose">
-          Write <code>bg-primary</code>, <code>text-text-muted</code>, and{" "}
-          <code>border-border</code> to name the job an element performs on the
+          Write <code>bg-primary</code>, <code>text-muted</code>, and{" "}
+          <code>border</code> to name the job an element performs on the
           page, never the pigment it wears. The theme chooses what primary is;
           your markup chooses where primary goes. Switch starter themes or
           toggle light and dark mode in the top bar and every swatch below
@@ -188,7 +188,7 @@ export default function StylingColor(): JSX.Element {
         <div class="my-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <For each={ROLE_SWATCHES}>
             {(item) => (
-              <div class="flex flex-col justify-between gap-2 rounded-lg border border-border bg-surface p-2">
+              <div class="flex flex-col justify-between gap-2 rounded-lg border bg-surface p-2">
                 <div
                   class={`flex min-h-24 flex-col justify-between rounded-md p-3 ${item.boxClass}`}
                 >
@@ -228,7 +228,7 @@ export default function StylingColor(): JSX.Element {
         <div class="my-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <For each={PAIRED_FILLS}>
             {(pair) => (
-              <div class="flex flex-col justify-between gap-2 rounded-lg border border-border bg-surface p-2">
+              <div class="flex flex-col justify-between gap-2 rounded-lg border bg-surface p-2">
                 <div
                   class={`flex items-center justify-between rounded-md px-3 py-3 ${pair.swatchClass}`}
                 >
@@ -300,9 +300,9 @@ export default function StylingColor(): JSX.Element {
               <div
                 data-theme={theme()}
                 data-mode={specimenMode()}
-                class="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4"
+                class="flex flex-col gap-3 rounded-lg border bg-surface p-4"
               >
-                <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-raised p-3">
+                <div class="flex items-center justify-between gap-3 rounded-md border bg-surface-raised p-3">
                   <div class="flex flex-col gap-1">
                     <strong>Release channel</strong>
                     <small>Production traffic is healthy</small>
@@ -327,28 +327,28 @@ export default function StylingColor(): JSX.Element {
         <p class="max-w-prose">
           Append an <code>/0</code>–<code>/100</code> alpha suffix such as{" "}
           <code>bg-surface/80</code>, <code>bg-primary/60</code>, or{" "}
-          <code>border-border/50</code> to mix any color role toward
+          <code>border/50</code> to mix any color role toward
           transparency via <code>color-mix(in srgb, …)</code> so the color stays
           the theme&apos;s while only the strength is yours:
         </p>
 
-        <div class="my-2 flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/50 bg-surface/80 px-3 py-2">
+        <div class="my-2 flex flex-col gap-3 rounded-lg border bg-surface-raised p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border/50 bg-surface/80 px-3 py-2">
             <span class="type-body-strong">
               Floating bar thinned over raised canvas
             </span>
             <div class="flex flex-wrap items-center gap-1">
               <code>bg-surface/80</code>
-              <code>border-border/50</code>
+              <code>border/50</code>
             </div>
           </div>
 
           <div class="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             <For each={ALPHA_RAMP}>
               {(item) => (
-                <div class="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-surface p-2">
+                <div class="flex min-w-0 flex-col gap-2 rounded-md border bg-surface p-2">
                   <div
-                    class={`h-12 w-full rounded-sm border border-border/50 ${item.swatchClass}`}
+                    class={`h-12 w-full rounded-sm border/50 ${item.swatchClass}`}
                   />
                   <div class="flex min-w-0 flex-wrap items-center justify-between gap-1">
                     <code class="break-all">{item.utility}</code>
@@ -382,7 +382,7 @@ export default function StylingColor(): JSX.Element {
           alongside them:
         </p>
 
-        <div class="my-2 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface-raised p-4">
+        <div class="my-2 flex flex-wrap items-center gap-3 rounded-lg border bg-surface-raised p-4">
           <div class="inline-flex items-center gap-2 rounded-md border border-current px-3 py-1 type-body text-primary">
             <span>Inherits primary ink</span>
             <code>border-current</code>

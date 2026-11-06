@@ -5,7 +5,7 @@ const machine = slider({ value: [20, 80] });
 </script>
 
 <div class="mx-auto w-full max-w-md" {...machine.getRootProps()}>
-  <div class="mb-4 type-code text-text-muted"
+  <div class="mb-4 type-code text-muted"
     {...machine.getValueTextProps()}>{machine.getThumbValue(0)} - {machine.getThumbValue(1)}</div>
   <div
     class="relative flex h-4 w-full touch-none items-center select-none"

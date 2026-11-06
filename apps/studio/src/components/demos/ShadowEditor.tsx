@@ -57,7 +57,7 @@ export default function ShadowEditor(props: {
         when={!isNone()}
         fallback={
           <>
-            <span class="rounded-sm bg-surface-sunken px-2 py-1 type-code text-text-muted">
+            <span class="rounded-sm bg-surface-sunken px-2 py-1 type-code text-muted">
               none
             </span>
             <button
@@ -72,7 +72,7 @@ export default function ShadowEditor(props: {
           </>
         }
       >
-        <label class="row-sm items-center gap-1 text-text-muted">
+        <label class="row-sm items-center gap-1 text-muted">
           <span>x</span>
           <input
             type="text"
@@ -82,7 +82,7 @@ export default function ShadowEditor(props: {
             onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 text-text-muted">
+        <label class="row-sm items-center gap-1 text-muted">
           <span>y</span>
           <input
             type="text"
@@ -92,7 +92,7 @@ export default function ShadowEditor(props: {
             onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 text-text-muted">
+        <label class="row-sm items-center gap-1 text-muted">
           <span>blur</span>
           <input
             type="text"
@@ -104,7 +104,7 @@ export default function ShadowEditor(props: {
             }
           />
         </label>
-        <label class="row-sm items-center gap-1 text-text-muted">
+        <label class="row-sm items-center gap-1 text-muted">
           <span>spread</span>
           <input
             type="text"
@@ -120,7 +120,7 @@ export default function ShadowEditor(props: {
           value={draft().hex}
           onCommit={(hex) => commit({ ...draft(), hex })}
         />
-        <label class="row-sm items-center gap-1 text-text-muted">
+        <label class="row-sm items-center gap-1 text-muted">
           <span>α</span>
           <input
             type="text"
@@ -145,7 +145,7 @@ export default function ShadowEditor(props: {
         </label>
         <button
           type="button"
-          class="bare px-1 type-code normal-case text-text-muted"
+          class="bare px-1 type-code normal-case text-muted"
           title="Remove shadow (set to none)"
           onClick={() => props.onCommit("none")}
         >

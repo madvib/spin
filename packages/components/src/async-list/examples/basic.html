@@ -50,7 +50,7 @@ const machine = asyncList({
   </div>
 
   <div
-    class="relative max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate"
+    class="relative max-h-60 overflow-y-auto rounded-lg border bg-surface-raised shadow-sm transition-shadow duration-fast ease-decelerate"
     {...machine.getListProps()}
   >
     <div class="relative p-1">
@@ -64,11 +64,11 @@ const machine = asyncList({
           {...machine.getItemProps(row)}
         >
           <span class="min-w-0 flex-1 truncate">{row.label}</span>
-          <span class="type-caption text-text-muted tabular-nums">{row.value}</span>
+          <span class="type-caption text-muted tabular-nums">{row.value}</span>
         </div>
       </template>
       <span
-        class={["px-2 py-6 text-center type-body text-text-muted transition-colors duration-fast ease-decelerate", { "block": machine.empty, "hidden": !machine.empty }]}
+        class={["px-2 py-6 text-center type-body text-muted transition-colors duration-fast ease-decelerate", { "block": machine.empty, "hidden": !machine.empty }]}
         {...machine.getEmptyProps()}>Nothing loaded yet</span>
       <div class="h-[1px]" {...machine.getSentinelProps()}></div>
     </div>
@@ -82,7 +82,7 @@ const machine = asyncList({
   </div>
 
   <div
-    class={["mt-2 rounded-md border border-solid border-border bg-surface px-3 py-2 type-body transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
+    class={["mt-2 rounded-md border bg-surface px-3 py-2 type-body transition-colors duration-fast ease-decelerate", { "block": machine.error !== undefined, "hidden": machine.error === undefined }]}
     {...machine.getErrorProps()}
   >Something went wrong.</div>
 </div>

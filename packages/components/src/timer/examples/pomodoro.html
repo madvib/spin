@@ -20,12 +20,12 @@ const machine = timer({
      <span class="min-w-[2ch] text-center"
       {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
     </div>
-    <span aria-hidden="true" class="stat-value text-text-muted"
+    <span aria-hidden="true" class="stat-value text-muted"
      {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
    </template>
   </div>
   <div
-   class="mt-1 text-center type-caption text-text-muted">25 minutes of focused work</div>
+   class="mt-1 text-center type-caption text-muted">25 minutes of focused work</div>
   <div class="mt-3 flex items-center justify-center gap-2"
    {...machine.getControlProps()}>
    <button

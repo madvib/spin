@@ -6,14 +6,14 @@
 
 <div class="w-full" {...machine.getRootProps()}>
   <div class="mb-1 flex items-center gap-2">
-    <span class="i-lucide-mouse-pointer-2 text-text-muted" aria-hidden="true"></span>
+    <span class="i-lucide-mouse-pointer-2 text-muted" aria-hidden="true"></span>
     <label class="transition-colors duration-fast ease-decelerate" {...machine.getLabelProps()}>Double-click me to edit</label>
   </div>
 
-  <div class="relative rounded-md border border-solid border-border bg-surface-raised transition-shadow duration-fast ease-decelerate" {...machine.getAreaProps()}>
+  <div class="relative rounded-md border bg-surface-raised transition-shadow duration-fast ease-decelerate" {...machine.getAreaProps()}>
     <span show={!machine.editing} class="block min-w-0 cursor-text px-2 py-1 type-body transition-colors duration-fast ease-decelerate hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
-    <input show={machine.editing} class="w-full bg-transparent px-2 py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-text-muted" {...machine.getInputProps()} />
+    <input show={machine.editing} class="w-full bg-transparent px-2 py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-muted" {...machine.getInputProps()} />
   </div>
 
-  <p class="text-text-muted">Double-click the text above to start editing</p>
+  <p class="text-muted">Double-click the text above to start editing</p>
 </div>

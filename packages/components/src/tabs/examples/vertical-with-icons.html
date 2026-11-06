@@ -30,7 +30,7 @@ const machine = tabs({
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare flex items-center gap-2 rounded-md px-3 py-2 text-left type-label transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
+    class="bare flex items-center gap-2 rounded-md px-3 py-2 text-left type-label transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
    >
     <span class="i-lucide-house type-code" aria-hidden="true"
@@ -44,9 +44,9 @@ const machine = tabs({
   </template>
  </div>
  <div
-  class="flex-1 rounded-lg border border-solid border-border bg-surface p-4">
+  class="flex-1 rounded-lg border bg-surface p-4">
   <template for={machine.items} as={row} key={row.value}>
-   <p class="text-text-muted"
+   <p class="text-muted"
     {...machine.getContentProps(row)}>{row.content}</p>
   </template>
  </div>

@@ -49,7 +49,7 @@ export function FindingGroups(props: {
                 <Marker />
                 <span class="min-w-0">{group.title}</span>
               </h2>
-              <span class="shrink-0 type-caption text-text-muted">
+              <span class="shrink-0 type-caption text-muted">
                 {group.findings.length}
               </span>
             </div>
@@ -85,12 +85,12 @@ export function FindingRow(props: {
   onFix: () => void;
 }) {
   return (
-    <li class="stack-sm border-b border-border py-3 last:border-b-0">
+    <li class="stack-sm border-b py-3 last:border-b-0">
       <div class="row-sm flex-wrap gap-x-3 gap-y-1">
         <code class="min-w-0 truncate">
           {props.finding.file}:{props.finding.line}:{props.finding.column}
         </code>
-        <span class="shrink-0 type-caption uppercase text-text-muted">
+        <span class="shrink-0 type-caption uppercase text-muted">
           {props.finding.severity}
         </span>
       </div>
@@ -98,7 +98,7 @@ export function FindingRow(props: {
       <Show
         when={props.finding.remedy}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             Nothing to apply — the rule offers no edit for this one.
           </p>
         }
@@ -107,7 +107,7 @@ export function FindingRow(props: {
           <Show
             when={props.finding.fixable}
             fallback={
-              <p class="text-text-muted">
+              <p class="text-muted">
                 No automatic fix — {remedy()}
               </p>
             }
@@ -169,12 +169,12 @@ function RepetitionRow(props: {
 }) {
   const [name, setName] = createSignal(props.row.suggested);
   return (
-    <li class="stack-sm border-b border-border py-3 last:border-b-0">
+    <li class="stack-sm border-b py-3 last:border-b-0">
       <div class="stack-sm min-w-0">
         <code class="block break-words">
           {props.row.classes.join(" ")}
         </code>
-        <span class="type-caption text-text-muted">
+        <span class="type-caption text-muted">
           {props.row.count} times · {props.row.files.join(", ")}
         </span>
       </div>
@@ -222,7 +222,7 @@ export function ClassOrders(props: {
     <div class="stack-sm">
       <For each={props.order}>
         {(file) => (
-          <li class="stack-sm border-b border-border py-3 last:border-b-0">
+          <li class="stack-sm border-b py-3 last:border-b-0">
             <div class="split">
               <code class="min-w-0 truncate">{file.file}</code>
               <button
@@ -239,10 +239,10 @@ export function ClassOrders(props: {
               <For each={file.attributes}>
                 {(attribute) => (
                   <li>
-                    <span class="text-text-muted">
+                    <span class="text-muted">
                       {attribute.classes.join(" ")}
                     </span>
-                    <span aria-hidden="true" class="text-text-muted">→</span>
+                    <span aria-hidden="true" class="text-muted">→</span>
                     <span>{attribute.ordered.join(" ")}</span>
                   </li>
                 )}

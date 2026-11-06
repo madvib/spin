@@ -34,7 +34,7 @@ test("every specimen draws the panel surface from utilities", () => {
     const html = read(stem);
     const at = html.indexOf("{...ctl.getContentProps()}");
     const tag = html.slice(at, html.indexOf(">", at));
-    for (const cls of ["rounded-lg", "border", "border-border", "bg-surface-raised", "shadow-lg"]) {
+    for (const cls of ["rounded-lg", "border", "bg-surface-raised", "shadow-lg"]) {
       assert.ok(
         tag.includes(cls),
         `${stem} must carry the ${cls} surface utility`,

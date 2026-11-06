@@ -10,7 +10,7 @@ const machine = numberInput({ defaultValue: "3.14159", step: "0.001" });
       class={["transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
       {...machine.getLabelProps()}>Precision Value</label>
     <span
-      class="type-caption text-text-muted tabular-nums transition-colors duration-fast"
+      class="type-caption text-muted tabular-nums transition-colors duration-fast"
       {...machine.getValueTextProps()}>{machine.value}</span>
   </div>
 
@@ -20,7 +20,7 @@ const machine = numberInput({ defaultValue: "3.14159", step: "0.001" });
       {...machine.getDecrementTriggerProps()}
     ><span aria-hidden="true"><span class="inline-block icon-sm i-lucide-minus" aria-hidden="true"></span></span></button>
     <input
-      class={["w-[5rem] tabular-nums", { "ring-2 ring-border-strong": machine.focused, "border-border-strong text-primary": machine.invalid, "opacity-50": machine.disabled }]}
+      class={["w-[5rem] tabular-nums", { "ring-2 ring-border-strong": machine.focused, "border-strong text-primary": machine.invalid, "opacity-50": machine.disabled }]}
       {...machine.getInputProps()}
     />
     <button
@@ -29,5 +29,5 @@ const machine = numberInput({ defaultValue: "3.14159", step: "0.001" });
     ><span aria-hidden="true"><span class="inline-block icon-sm i-lucide-plus" aria-hidden="true"></span></span></button>
   </div>
 
-  <div class="type-caption text-text-muted">Step: 0.001, up to 5 decimal places</div>
+  <div class="type-caption text-muted">Step: 0.001, up to 5 decimal places</div>
 </div>

@@ -18,7 +18,7 @@ import {
 } from "../../../ui/index.ts";
 import cssMd from "../../../content/css-edges.md?raw";
 
-const COMPOSITION_BEFORE_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+const COMPOSITION_BEFORE_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
   <div class="flex items-center justify-between gap-4">
     <strong>Release pipeline</strong>
     <badge variant="success">Ready</badge>
@@ -29,7 +29,7 @@ const COMPOSITION_BEFORE_SNIPPET = `<div class="flex flex-col gap-4 rounded-lg b
   </div>
 </div>`;
 
-const COMPOSITION_AFTER_SNIPPET = `<div class="stack rounded-lg border border-border bg-surface p-4">
+const COMPOSITION_AFTER_SNIPPET = `<div class="stack rounded-lg border bg-surface p-4">
   <div class="split">
     <strong>Release pipeline</strong>
     <badge variant="success">Ready</badge>
@@ -136,8 +136,8 @@ const PAIRED_ROLES: readonly {
   {
     label: "surface-raised",
     fill: "bg-surface-raised",
-    ink: "text-text-muted",
-    classes: "border border-border bg-surface-raised text-text-muted",
+    ink: "text-muted",
+    classes: "border bg-surface-raised text-muted",
   },
 ];
 
@@ -205,7 +205,7 @@ export default function StylingUtilities(): JSX.Element {
             title="Before — raw utilities on every container"
             code={COMPOSITION_BEFORE_SNIPPET}
             preview={
-              <div class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+              <div class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
                 <div class="flex items-center justify-between gap-4">
                   <strong>Release pipeline</strong>
                   <badge variant="success">Ready</badge>
@@ -224,7 +224,7 @@ export default function StylingUtilities(): JSX.Element {
             title="After — named compositions (stack, split, row)"
             code={COMPOSITION_AFTER_SNIPPET}
             preview={
-              <div class="stack rounded-lg border border-border bg-surface p-4">
+              <div class="stack rounded-lg border bg-surface p-4">
                 <div class="split">
                   <strong>Release pipeline</strong>
                   <badge variant="success">Ready</badge>

@@ -30,11 +30,11 @@ const machine = toast({
     {...machine.getToastProps(row)}
    >
     <div
-     class="flex items-start gap-3 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg">
+     class="flex items-start gap-3 rounded-lg border bg-surface-raised p-4 shadow-lg">
      <div class="min-w-0 flex-1">
       <div class="type-label"
        {...machine.getTitleProps(row)}>{row.title}</div>
-      <div class="type-body text-text-muted"
+      <div class="type-body text-muted"
        {...machine.getDescriptionProps(row)}>{row.description}</div>
      </div>
      <button

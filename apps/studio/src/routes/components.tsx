@@ -65,7 +65,7 @@ const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
  * nothing at all, which is what the row used to be.
  */
 const RAIL_LINK =
-  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "flex w-full items-center gap-2 justify-start rounded-md border border-solid border-transparent bg-transparent p-2 text-left type-body normal-case text-muted no-underline cursor-pointer hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 /**
  * The band a run of rows is bucketed into.
@@ -95,7 +95,7 @@ const RAIL_BAND =
  * strong edge, full ink — so a reader who knows the rail knows it collapsed.
  */
 const DRAWER_LINK =
-  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
+  "inline-flex items-center gap-1 rounded-md border border-solid border-transparent px-2 py-1 type-body no-underline text-muted hover:border-primary hover:bg-surface-raised data-[current]:border-primary data-[current]:bg-surface-sunken";
 
 /**
  * The group heading, as the drawer wears it.
@@ -134,17 +134,17 @@ function NavBody(props: {
 }) {
   return (
     <>
-      <h2 classList={{ "text-text-muted": props.drawer() }}>
+      <h2 classList={{ "text-muted": props.drawer() }}>
         Components
       </h2>
-      <div role="group" aria-label="Component kind" class="flex w-fit min-w-0 shrink-0 gap-1 rounded-md border border-solid border-border p-1">
+      <div role="group" aria-label="Component kind" class="flex w-fit min-w-0 shrink-0 gap-1 rounded-md border p-1">
         <For each={(["all", "primitive", "machine"] as const)}>
           {(kind) => (
             <button
               type="button"
               aria-pressed={props.kindFilter() === kind}
               onClick={() => props.setKindFilter(kind)}
-              class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised"
+              class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-muted aria-[pressed=true]:border aria-[pressed=true]:bg-surface-raised"
             >
               {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
             </button>
@@ -153,7 +153,7 @@ function NavBody(props: {
       </div>
       <label class="relative flex min-w-0 items-center">
         <span
-          class="i-lucide-search icon-sm pointer-events-none absolute start-2 shrink-0 text-text-muted"
+          class="i-lucide-search icon-sm pointer-events-none absolute start-2 shrink-0 text-muted"
           aria-hidden="true"
         />
         <input
@@ -165,7 +165,7 @@ function NavBody(props: {
           class="min-w-0 flex-1 ps-7"
         />
       </label>
-      <div class="flex items-center justify-between gap-2 type-caption text-text-muted">
+      <div class="flex items-center justify-between gap-2 type-caption text-muted">
         <span>components</span>
         <span class="type-code">
           {props.needle() === "" ? `${props.total()}` : `${props.shown().length} of ${props.total()}`}
@@ -176,7 +176,7 @@ function NavBody(props: {
           <Show
             when={props.shown().length > 0}
             fallback={
-              <p class="text-text-muted">
+              <p class="text-muted">
                 No component matches “{props.query()}”.
               </p>
             }
@@ -224,10 +224,10 @@ function NavBody(props: {
         }
       >
         <Match when={library() === undefined}>
-          <p class="text-text-muted">loading…</p>
+          <p class="text-muted">loading…</p>
         </Match>
         <Match when={(library() ?? []).length === 0}>
-          <p class="text-text-muted">
+          <p class="text-muted">
             No components. Is the daemon running?
           </p>
         </Match>
@@ -272,8 +272,8 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
    */
   const navClass = () =>
     drawer()
-      ? "flex shrink-0 flex-col gap-2 border-b border-border bg-surface-raised p-3"
-      : "flex w-full shrink-0 flex-col gap-3 border-b border-border bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
+      ? "flex shrink-0 flex-col gap-2 border-b bg-surface-raised p-3"
+      : "flex w-full shrink-0 flex-col gap-3 border-b bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
   const listClass = () =>
     drawer()
       ? "flex flex-wrap gap-x-2 gap-y-1"

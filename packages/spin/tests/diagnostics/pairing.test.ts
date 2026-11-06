@@ -98,7 +98,7 @@ test("a fill from every family fires with its own paired ink", () => {
 test("absence is per state: a resting ink does not cover a hover fill", () => {
   // The states are different paintings: the resting ink sits on the surface
   // while the hover fill arrives under the pointer with nothing on it.
-  const [report] = reportsFor("bg-surface-raised text-text-muted hover:bg-accent");
+  const [report] = reportsFor("bg-surface-raised text-muted hover:bg-accent");
   deepStrictEqual(report?.messageId, "absence");
   deepStrictEqual(report?.data, { fill: "accent", expected: "text-on-accent" });
 });

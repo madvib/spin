@@ -9,19 +9,19 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
  <label class="mb-1 block"
   {...machine_tags.getLabelProps()}>Frameworks</label>
  <div
-  class="flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1"
+  class="flex flex-wrap items-center gap-1 rounded-md border bg-surface-raised p-1"
   {...machine_tags.getControlProps()}>
   <template for={machine_tags.getTags()} as={row}
    key={row.value + ":" + row.occurrence}>
    <span
-    class={["inline-flex items-center gap-1 rounded-sm border border-solid border-border bg-surface py-1 pl-2 pr-1 type-caption", { "border-primary text-primary": machine_tags.getItemState(row).highlighted }]}
+    class={["inline-flex items-center gap-1 rounded-sm border bg-surface py-1 pl-2 pr-1 type-caption", { "border-primary text-primary": machine_tags.getItemState(row).highlighted }]}
     {...machine_tags.getItemProps(row)}>
     <span class="inline-flex items-center gap-1"
      {...machine_tags.getItemPreviewProps(row)}>
      <span class="truncate"
       {...machine_tags.getItemTextProps(row)}>{row.value}</span>
      <button
-      class="bare inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-text-muted"
+      class="bare inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-muted"
       {...machine_tags.getItemDeleteTriggerProps(row)}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
     </span>
     <input
@@ -38,7 +38,7 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
    <div class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top"
     {...machine_combobox.getPositionerProps()}>
     <div
-     class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg"
+     class="overflow-hidden rounded-lg border bg-surface-raised shadow-lg"
      {...machine_combobox.getContentProps()}>
      <div class="max-h-60 overflow-y-auto p-1"
       {...machine_combobox.getListProps()}>
@@ -57,7 +57,7 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
    </div>
   </div>
   <button aria-label="Clear tags"
-   class="bare inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-text-muted"
+   class="bare inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-muted"
    {...machine_tags.getClearTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
  </div>
  <input {...machine_tags.getHiddenInputProps()} />

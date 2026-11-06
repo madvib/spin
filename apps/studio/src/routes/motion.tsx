@@ -359,7 +359,7 @@ function EasingChart(props: {
             "max-width": "100%",
             "aspect-ratio": "1",
           }}
-          class="shrink-0 touch-none rounded-md border border-border bg-surface-sunken"
+          class="shrink-0 touch-none rounded-md border bg-surface-sunken"
           role="img"
           aria-label="every easing this theme declares, drawn on one chart; the selected curve carries draggable control points"
         >
@@ -528,11 +528,11 @@ function EasingChart(props: {
                       <span class="type-code">
                         {lane.path.split(".").pop()}
                       </span>
-                      <code class="text-text-muted">{lane.utility}</code>
+                      <code class="text-muted">{lane.utility}</code>
                     </span>
                     <Show when={lane.points}>
                       {(points) => (
-                        <span class="type-code text-text-muted tabular-nums">
+                        <span class="type-code text-muted tabular-nums">
                           {Math.round(bezierY(points(), 0.5) * 100)}% at t=0.5
                         </span>
                       )}
@@ -572,7 +572,7 @@ function LoopButton(props: {
       class={`bare rounded-md border px-2 py-1 type-caption ${
         props.running
           ? `border-transparent ${props.paint}`
-          : "ghost border-border text-text-muted"
+          : "ghost border text-muted"
       }`}
       onClick={props.onToggle}
     >
@@ -655,7 +655,7 @@ export default function MotionPage() {
         <Show
           when={durations.rows().length > 0}
           fallback={
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme declares no durations yet.
             </p>
           }
@@ -692,13 +692,13 @@ export default function MotionPage() {
         <Show
           when={easings().length > 0}
           fallback={
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme declares no easings yet.
             </p>
           }
         >
           <Frame class="stack min-w-0">
-            <div class="min-w-0 rounded-md border border-border bg-surface-sunken p-3">
+            <div class="min-w-0 rounded-md border bg-surface-sunken p-3">
               <EasingChart
                 lanes={lanesFor(easings(), easingUtility, true)}
                 ink={colour("color.accent") ?? "currentColor"}
@@ -730,7 +730,7 @@ export default function MotionPage() {
         <Show
           when={transitions().length > 0}
           fallback={
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme declares no transitions yet.
             </p>
           }

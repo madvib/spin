@@ -468,7 +468,7 @@ function StyleCard(props: { group: StyleGroup }) {
     setThemeText(next, [`font.style.${name()}`]);
   };
   return (
-    <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
+    <li class="stack-sm rounded-md border bg-surface-raised p-4">
       <div class="row-sm flex-wrap items-center gap-2">
         <span class="type-label">{name()}</span>
         <Show when={props.group.owned}>
@@ -490,7 +490,7 @@ function StyleCard(props: { group: StyleGroup }) {
           </button>
         </Show>
       </div>
-      <div data-studio-specimen="" class="rounded-md border border-border bg-surface p-3">
+      <div data-studio-specimen="" class="rounded-md border bg-surface p-3">
         <p class="truncate" style={specimen()}>
           {SENTENCE}
         </p>
@@ -649,7 +649,7 @@ function ReferenceRow(props: { path: string }) {
     return upsertToken(props.path.split("."), "typography", `{font.style.${trimmed}}`, "base");
   };
   return (
-    <li class="stack-sm rounded-md border border-border bg-surface-raised p-4">
+    <li class="stack-sm rounded-md border bg-surface-raised p-4">
       <div class="row-sm flex-wrap items-center gap-2">
         <code>{props.path}</code>
         <Show when={target() === undefined}>

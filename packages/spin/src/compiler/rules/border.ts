@@ -1,4 +1,4 @@
-import type { SpinRule } from "../utils/lookup.ts";
+import type { SpinRule, ThemeContext } from "../utils/lookup.ts";
 import {
   BORDER_SIDES,
   BORDER_STYLES,
@@ -48,11 +48,26 @@ export function borderRules(): SpinRule[] {
     ...staticRules([...BORDER_STYLE_NAMES], STATIC_DECLS),
     [
       BORDER_SIDE_PATTERN,
-      ([, side, width]: string[]) => {
+      ([, side, width]: string[], ctx?: ThemeContext) => {
+        // `border.style` is not a token (no theme declares it) — the cast
+        // reads an extension a theme MAY carry, defaulting to `solid`.
+        const borderTheme = ctx?.theme?.border as { width?: string; style?: string } | undefined;
         if (side === undefined && width === undefined) {
+          const borderColor = ctx?.theme?.color?.border;
           return {
-            "border-width": BORDER_WIDTHS[""],
-            "border-style": "solid",
+            "border-width": borderTheme?.width ?? BORDER_WIDTHS[""],
+            "border-style": borderTheme?.style ?? "solid",
+            ...(borderColor !== undefined ? { "border-color": borderColor } : {}),
+          };
+        }
+        if (side !== undefined && width === undefined) {
+          const prop = BORDER_SIDES[side];
+          if (!prop) return undefined;
+          const borderColor = ctx?.theme?.color?.border;
+          return {
+            [prop]: borderTheme?.width ?? BORDER_WIDTHS[""],
+            "border-style": borderTheme?.style ?? "solid",
+            ...(borderColor !== undefined ? { "border-color": borderColor } : {}),
           };
         }
         const prop = BORDER_SIDES[side ?? ""];

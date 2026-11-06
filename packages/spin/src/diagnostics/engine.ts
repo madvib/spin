@@ -35,6 +35,7 @@ import { checkPreferElement } from "./prefer-element.ts";
 import { checkPreferThemeValue } from "./prefer-theme-value.ts";
 import { factsForFile } from "./provider.ts";
 import {
+  collectExpressionBranches,
   type GateContext,
   type GateNode,
   renderMessage,
@@ -309,73 +310,116 @@ function lintComponentIr(
       for (const child of node.body) visit(child);
       return;
     }
+    const branchesOfAttr = (
+      attr: { readonly value: AttrValue } | undefined,
+    ): { resting: string[]; conditional: string[][]; all: string[] } => {
+      if (attr === undefined) return { resting: [], conditional: [], all: [] };
+      if (attr.value.kind === "static") {
+        const resting = classTokensOf(attr.value);
+        return { resting, conditional: [], all: [...resting] };
+      }
+      try {
+        const ast = normalize(
+          parseSource(`(${attr.value.expr})`, {
+            sourceType: "module",
+            plugins: ["typescript"],
+          }),
+        ) as { program?: { body?: { expression?: unknown }[] } };
+        const exprNode = ast.program?.body?.[0]?.expression;
+        const resting: string[] = [];
+        const conditional: string[][] = [];
+        collectExpressionBranches(exprNode, resting, conditional, true);
+        const seen = new Set<string>();
+        const all: string[] = [];
+        for (const cls of [...resting, ...conditional.flat()]) {
+          if (seen.has(cls)) continue;
+          seen.add(cls);
+          all.push(cls);
+        }
+        return { resting, conditional, all };
+      } catch {
+        const resting = classTokensOf(attr.value);
+        return { resting, conditional: [], all: [...resting] };
+      }
+    };
     const classAttr = node.attrs.find((attr) => attr.name === "class");
-    if (classAttr !== undefined) {
-      const classes = classTokensOf(classAttr.value as AttrValue);
-      if (classes.length > 0) {
-        const position = positionOfSpan(code, node.span.start);
-        const factsNode: ClassFacts = {
-          tag: node.tag,
-          classes,
-          escaped: node.attrs.some((attr) => attr.name === "data-spin-escape"),
+    const parsedBranches = branchesOfAttr(classAttr as { readonly value: AttrValue } | undefined);
+    if (parsedBranches.all.length > 0) {
+      const position = positionOfSpan(code, node.span.start);
+      const escaped = node.attrs.some((attr) => attr.name === "data-spin-escape");
+      const ancestorFacts = ancestors.map((frame): AncestorFacts => ({
+        tag: frame.tag,
+        classes: frame.classes,
+      }));
+      const allNode: ClassFacts = {
+        tag: node.tag,
+        classes: parsedBranches.all,
+        escaped,
+        position,
+        ancestors: ancestorFacts,
+      };
+      const restingNode: ClassFacts = {
+        tag: node.tag,
+        classes: parsedBranches.resting,
+        escaped,
+        position,
+        ancestors: ancestorFacts,
+      };
+      if (run.rules.includes("closed-vocabulary")) {
+        pushFindings(
+          out,
+          filename,
+          "closed-vocabulary",
           position,
-          ancestors: ancestors.map((frame): AncestorFacts => ({
-            tag: frame.tag,
-            classes: frame.classes,
-          })),
-        };
-        if (run.rules.includes("closed-vocabulary")) {
-          pushFindings(
-            out,
-            filename,
-            "closed-vocabulary",
-            position,
-            checkClosedVocabulary(facts, factsNode),
-          );
-        }
-        if (run.rules.includes("no-redundant-class")) {
-          pushFindings(
-            out,
-            filename,
-            "no-redundant-class",
-            position,
-            checkNoRedundantClass(facts, factsNode, run.semantic),
-          );
-        }
-        if (run.rules.includes("prefer-theme-value")) {
-          pushFindings(
-            out,
-            filename,
-            "prefer-theme-value",
-            position,
-            checkPreferThemeValue(facts, factsNode, run.semantic),
-          );
-        }
-        if (run.rules.includes("prefer-element")) {
-          pushFindings(
-            out,
-            filename,
-            "prefer-element",
-            position,
-            checkPreferElement(facts, factsNode, run.semantic),
-          );
-        }
-        if (run.rules.includes("no-unpaired-ink")) {
-          pushFindings(
-            out,
-            filename,
-            "no-unpaired-ink",
-            position,
-            checkNoUnpairedInk(facts, factsNode),
-          );
+          checkClosedVocabulary(facts, allNode),
+        );
+      }
+      if (run.rules.includes("no-redundant-class")) {
+        pushFindings(
+          out,
+          filename,
+          "no-redundant-class",
+          position,
+          checkNoRedundantClass(facts, restingNode, run.semantic),
+        );
+      }
+      if (run.rules.includes("prefer-theme-value")) {
+        pushFindings(
+          out,
+          filename,
+          "prefer-theme-value",
+          position,
+          checkPreferThemeValue(facts, restingNode, run.semantic),
+        );
+      }
+      if (run.rules.includes("prefer-element")) {
+        pushFindings(
+          out,
+          filename,
+          "prefer-element",
+          position,
+          checkPreferElement(facts, restingNode, run.semantic),
+        );
+      }
+      if (run.rules.includes("no-unpaired-ink") && node.children.length > 0) {
+        const seen = new Set<string>();
+        const branches = [
+          parsedBranches.resting,
+          ...parsedBranches.conditional.map((b) => [...parsedBranches.resting, ...b]),
+        ];
+        for (const branch of branches) {
+          for (const finding of checkNoUnpairedInk(facts, { ...restingNode, classes: branch })) {
+            const key = `${finding.messageId}:${JSON.stringify(finding.data)}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            pushFindings(out, filename, "no-unpaired-ink", position, [finding]);
+          }
         }
       }
     }
     const frame: AncestorFrame = {
       tag: node.tag,
-      classes: classAttr === undefined
-        ? []
-        : classTokensOf(classAttr.value as AttrValue),
+      classes: parsedBranches.resting,
     };
     ancestors.push(frame);
     for (const child of node.children) visit(child);

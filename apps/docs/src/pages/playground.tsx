@@ -32,7 +32,7 @@ const FRAMEWORKS: readonly PlaygroundFramework[] = [
 ];
 
 const PRESET_PILL =
-  "bare cursor-pointer rounded-full border px-3 py-1 type-caption transition-colors duration-fast aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary aria-[pressed=true]:type-body-strong aria-[pressed=true]:text-on-primary border-border bg-surface text-text-muted";
+  "bare cursor-pointer rounded-full border px-3 py-1 type-caption transition-colors duration-fast aria-[pressed=true]:border-primary aria-[pressed=true]:bg-primary aria-[pressed=true]:type-body-strong aria-[pressed=true]:text-on-primary border bg-surface text-muted";
 
 export default function PlaygroundPage(): JSX.Element {
   const [preset, setPreset] = createSignal(0);
@@ -42,13 +42,13 @@ export default function PlaygroundPage(): JSX.Element {
 
   return (
     <div class="flex h-full flex-col bg-surface">
-      <div class="flex h-12 shrink-0 items-center gap-3 overflow-x-auto border-b border-border bg-surface-raised px-4">
+      <div class="flex h-12 shrink-0 items-center gap-3 overflow-x-auto border-b bg-surface-raised px-4">
         <div
           class="flex shrink-0 items-center gap-1"
           role="group"
           aria-label="framework"
         >
-          <span class="me-1 type-code uppercase text-text-muted">
+          <span class="me-1 type-code uppercase text-muted">
             runtime
           </span>
           <For each={FRAMEWORKS}>
@@ -64,7 +64,7 @@ export default function PlaygroundPage(): JSX.Element {
             )}
           </For>
         </div>
-        <span class="h-4 shrink-0 border-e border-border" aria-hidden="true" />
+        <span class="h-4 shrink-0 border-e" aria-hidden="true" />
         <div
           class="flex shrink-0 items-center gap-1"
           role="group"

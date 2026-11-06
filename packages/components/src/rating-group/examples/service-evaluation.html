@@ -5,14 +5,14 @@ const machine = ratingGroup({ value: "4", count: 5 });
 </script>
 
 <div
-  class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-sm rounded-lg border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
     <div>
       <strong
         {...machine.getLabelProps()}>Support Quality</strong>
       <p
-        class="text-text-muted">How was your recent support interaction?</p>
+        class="text-muted">How was your recent support interaction?</p>
     </div>
     <span
       class="rounded-full bg-surface px-3 py-1 type-code">{machine.value} / {machine.count}</span>

@@ -116,8 +116,8 @@ test("indicators style each state in exactly one key", () => {
     const statik = tag.slice(tag.indexOf('class={["') + 9, tag.indexOf('", {'));
     assert.ok(
       !statik.includes("bg-") &&
-        !statik.includes("text-text-muted") &&
-        !statik.includes("border-border") &&
+        !statik.includes("text-muted") &&
+        !statik.includes("border ") &&
         !statik.includes("border-primary"),
       `${stem} example must keep state color out of the indicator's static classes — a static bg beats the conditional in the cascade`,
     );

@@ -51,7 +51,7 @@ export default {
     spin.vite({
       shortcuts: {
         "my-stack": "flex flex-col gap-4",
-        "my-panel": "bg-surface-raised border border-border rounded-md p-6",
+        "my-panel": "bg-surface-raised border border-strong rounded-md p-6",
       },
     }),
   ],

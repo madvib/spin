@@ -634,14 +634,14 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       ref={(node) => {
         container = node;
       }}
-      class={`relative w-full overflow-hidden rounded-lg border border-border bg-surface shadow-sm ${
+      class={`relative w-full overflow-hidden rounded-lg border bg-surface shadow-sm ${
         props.height ?? "h-[28rem]"
       }`}
     >
       <Show when={props.studio === true && ready()}>
         <button
           type="button"
-          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border border-border bg-surface-raised px-3 py-1 type-code shadow-sm"
+          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border bg-surface-raised px-3 py-1 type-code shadow-sm"
           onClick={() => {
             studioConnected = false;
             setStudioOpen((open) => !open);

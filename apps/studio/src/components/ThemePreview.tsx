@@ -56,7 +56,7 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
     <Show
       when={!invalid()}
       fallback={
-        <div class="rounded-md border border-border min-h-24" />
+        <div class="rounded-md border min-h-24" />
       }
     >
       <div

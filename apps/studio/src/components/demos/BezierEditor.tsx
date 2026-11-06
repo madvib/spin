@@ -40,7 +40,7 @@ export default function BezierEditor(props: {
     >
       <div class="row-sm flex-wrap items-center gap-2">
         {(["x1", "y1", "x2", "y2"] as const).map((key) => (
-          <label class="row-sm items-center gap-1 text-text-muted">
+          <label class="row-sm items-center gap-1 text-muted">
             <span>{key}</span>
             <input
               type="number"

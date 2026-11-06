@@ -185,5 +185,11 @@ function carriersOf(
     }
     if (carries && !found.includes(scope.tag)) found.push(scope.tag);
   }
+  // A shared palette ink names no element: `--color-text-muted` is worn by
+  // `<card-description>`, `<stat-title>`, `<blockquote>` and more, so
+  // `text-muted` on a `<span>` is not a reach for any one of them. A
+  // dedicated ink worn by a single element (`text-link` -> `<a>`) still
+  // names its owner.
+  if (decision === "ink" && found.length > 1) return [];
   return found;
 }

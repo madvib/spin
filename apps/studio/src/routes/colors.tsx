@@ -244,14 +244,14 @@ function RolePicker(props: {
     <Show
       when={props.role}
       fallback={
-        <p class="text-text-muted">
+        <p class="text-muted">
           This theme declares no colour roles yet.
         </p>
       }
     >
       {(role) => (
         <div
-          class="stack rounded-md border border-border bg-surface-raised p-4"
+          class="stack rounded-md border bg-surface-raised p-4"
           data-testid="color-inspector"
         >
           <div class="stack-sm">
@@ -259,7 +259,7 @@ function RolePicker(props: {
               <h2 class="truncate" title={role().path}>
                 {humanName(role().path)}
               </h2>
-              <span class="row-sm type-code text-text-muted">
+              <span class="row-sm type-code text-muted">
                 <span class="truncate">{role().path}</span>
                 <CopyButton text={role().path} label={`Copy ${role().path}`} />
               </span>
@@ -272,7 +272,7 @@ function RolePicker(props: {
                 const onFill = () => role().path === pair().fill.path;
                 return (
                   <div
-                    class="grid grid-cols-2 gap-1 rounded-md border border-border bg-surface p-1"
+                    class="grid grid-cols-2 gap-1 rounded-md border bg-surface p-1"
                     role="group"
                     aria-label="Paired role target"
                   >
@@ -281,7 +281,7 @@ function RolePicker(props: {
                       class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
                       classList={{
                         "bg-surface-raised shadow-sm": onFill(),
-                        "text-text-muted": !onFill(),
+                        "text-muted": !onFill(),
                       }}
                       onClick={() => props.onSelectRole(pair().fill.path)}
                     >
@@ -293,7 +293,7 @@ function RolePicker(props: {
                       class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
                       classList={{
                         "bg-surface-raised shadow-sm": !onFill(),
-                        "text-text-muted": onFill(),
+                        "text-muted": onFill(),
                       }}
                       onClick={() => props.onSelectRole(pair().ink.path)}
                     >
@@ -331,8 +331,8 @@ function RolePicker(props: {
           </Show>
 
           <Show when={pairs().length > 0}>
-            <div class="stack-sm border-t border-border pt-3">
-              <span class="type-caption-strong text-text-muted">Legibility checks</span>
+            <div class="stack-sm border-t pt-3">
+              <span class="type-caption-strong text-muted">Legibility checks</span>
               <div class="row-sm flex-wrap">
                 <For each={pairs()}>
                   {(floor) => (
@@ -411,7 +411,7 @@ function InspectorSpecimen(props: {
 
   return (
     <div
-      class="split rounded-md border border-border px-3 py-2"
+      class="split rounded-md border px-3 py-2"
       style={{
         background: bg(),
         color: fg(),
@@ -485,9 +485,9 @@ function SlotEditor(props: {
     );
   }
   return (
-    <div class="stack rounded-md border border-border bg-surface p-3">
+    <div class="stack rounded-md border bg-surface p-3">
       <div class="stack-sm">
-        <span class="type-caption-strong text-text-muted">Color</span>
+        <span class="type-caption-strong text-muted">Color</span>
         <div class="split">
           <ColorField
             bare
@@ -503,8 +503,8 @@ function SlotEditor(props: {
         </div>
       </div>
 
-      <div class="stack-sm border-t border-border pt-3">
-        <span class="type-caption-strong text-text-muted">Theme swatch</span>
+      <div class="stack-sm border-t pt-3">
+        <span class="type-caption-strong text-muted">Theme swatch</span>
         <ReferencePicker
           targets={props.targets.filter((t) => t.path !== props.role.path)}
           current={props.value.reference}
@@ -549,7 +549,7 @@ function CopyValue(props: { value: string; label: string }) {
       <Show when={copied()} fallback={<span>{props.value}</span>}>
         <span>copied</span>
       </Show>
-      <span class="i-lucide-copy icon-sm text-text-muted" aria-hidden="true" />
+      <span class="i-lucide-copy icon-sm text-muted" aria-hidden="true" />
     </button>
   );
 }
@@ -668,7 +668,7 @@ function RoleCardView(props: {
 
   return (
     <div
-      class="relative flex flex-col justify-between gap-3 rounded-md border border-border p-3 transition-colors"
+      class="relative flex flex-col justify-between gap-3 rounded-md border p-3 transition-colors"
       classList={{
         "border-primary border-2 shadow-lg": selectedAny(),
       }}
@@ -922,7 +922,7 @@ function PairChip(props: {
   return (
     <button
       type="button"
-      class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border border-border p-0"
+      class="bare relative z-10 shrink-0 cursor-pointer rounded-sm border p-0"
       classList={{ "border-semantic-error border-2": !holds() }}
       style={{ background: bg() }}
       title={label()}
@@ -953,7 +953,7 @@ function FloorFix(props: {
 }) {
   const slot = (): "light" | "dark" => props.mode === "dark" ? "dark" : "light";
   return (
-    <div class="stack-sm rounded-md border border-border bg-surface p-3">
+    <div class="stack-sm rounded-md border bg-surface p-3">
       <div class="split type-caption">
         <span>
           {humanName(props.floor.fg)} on {humanName(props.floor.bg)} is {props.floor.ratio.toFixed(2)}:1 — needs {props.floor.min}:1.
@@ -973,7 +973,7 @@ function FloorFix(props: {
       <Show
         when={props.floor.remedy !== null}
         fallback={
-          <span class="type-caption text-text-muted">No automatic fix — adjust the background fill first.</span>
+          <span class="type-caption text-muted">No automatic fix — adjust the background fill first.</span>
         }
       >
         <button
@@ -1037,18 +1037,18 @@ function Ramp() {
         </button>
       }
     >
-      <div class="stack rounded-md border border-border bg-surface-raised p-3">
+      <div class="stack rounded-md border bg-surface-raised p-3">
           <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
             <For each={steps()}>
               {(step) => {
                 const rolesUsing = () => consumers().get(step.path) ?? [];
                 return (
                   <div
-                    class="stack-xs rounded-sm border border-border bg-surface p-1"
+                    class="stack-xs rounded-sm border bg-surface p-1"
                     title={`${step.step} · ${valueInMode(step) ?? ""} — ${usedBy(step.path)}`}
                   >
                     <div
-                      class="h-8 w-full rounded-sm border border-border"
+                      class="h-8 w-full rounded-sm border"
                       classList={{ "opacity-60": rolesUsing().length === 0 }}
                       style={{ background: valueInMode(step) ?? "" }}
                     />
@@ -1056,7 +1056,7 @@ function Ramp() {
                       <span class="type-code">
                         {step.step}
                       </span>
-                      <span class="truncate type-caption text-text-muted">
+                      <span class="truncate type-caption text-muted">
                         {rolesUsing()[0] ?? "—"}
                       </span>
                     </div>
@@ -1066,9 +1066,9 @@ function Ramp() {
             </For>
           </div>
         <Show when={open()}>
-          <div class="split flex-wrap gap-2 border-t border-border pt-2">
+          <div class="split flex-wrap gap-2 border-t pt-2">
             <div class="row-sm">
-              <span class="type-caption text-text-muted">Seed hue</span>
+              <span class="type-caption text-muted">Seed hue</span>
               <ColorField
                 bare
                 value={base()}
@@ -1105,7 +1105,7 @@ function Ramp() {
 function InUse() {
   return (
     <Section title="Palette in use">
-      <div class="row-sm flex-wrap items-center gap-3 rounded-md border border-border bg-surface-raised p-4">
+      <div class="row-sm flex-wrap items-center gap-3 rounded-md border bg-surface-raised p-4">
         <button type="button">Primary</button>
         <button type="button" class="danger">Danger</button>
         <badge variant="success">Success</badge>

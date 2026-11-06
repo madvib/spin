@@ -84,16 +84,16 @@ export default function ThemesValidation(): JSX.Element {
         <h3 id="contrast-floors">
           Enforced WCAG contrast pairs ({FLOORS.length})
         </h3>
-        <p class="max-w-prose text-text-muted">
+        <p class="max-w-prose text-muted">
           Every pair below is checked in every mode the theme declares:
         </p>
         <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <For each={FLOORS}>
             {(floor) => (
-              <div class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-raised px-3 py-2 type-code">
+              <div class="flex items-center justify-between gap-2 rounded-md border bg-surface-raised px-3 py-2 type-code">
                 <span class="truncate">
                   {floor.fg}{" "}
-                  <span class="text-text-muted">on</span> {floor.bg}
+                  <span class="text-muted">on</span> {floor.bg}
                 </span>
                 <span class="badge shrink-0">≥ {floor.min}:1</span>
               </div>

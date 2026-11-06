@@ -11,7 +11,7 @@ import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
 import { PageHeader, Section, Specimen, starterDoc } from "../../../ui/index.ts";
 
-const TRANSFERS_SNIPPET = `<div class="rounded-lg border border-border bg-surface p-4">
+const TRANSFERS_SNIPPET = `<div class="rounded-lg border bg-surface p-4">
   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
     <div>
       <strong>Edge routing</strong>
@@ -19,22 +19,22 @@ const TRANSFERS_SNIPPET = `<div class="rounded-lg border border-border bg-surfac
     </div>
     <div
       tabindex="0"
-      class="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
+      class="inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
     >
       <strong>Inspect routes</strong>
       <kbd>⌘K</kbd>
     </div>
   </div>
   <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-    <div class="rounded-md border border-border bg-surface-raised p-3">
+    <div class="rounded-md border bg-surface-raised p-3">
       <strong>us-east</strong>
       <small class="block">14 ms p95</small>
     </div>
-    <div class="rounded-md border border-border bg-surface-raised p-3">
+    <div class="rounded-md border bg-surface-raised p-3">
       <strong>eu-central</strong>
       <small class="block">19 ms p95</small>
     </div>
-    <div class="rounded-md border border-border bg-surface-raised p-3">
+    <div class="rounded-md border bg-surface-raised p-3">
       <strong>ap-northeast</strong>
       <small class="block">27 ms p95</small>
     </div>
@@ -45,7 +45,7 @@ const PRINCIPLE_BUILD_SNIPPET = `[spin] \`p-13\` in src/App.tsx generates no CSS
 [spin] \`bg-blue-500\` in src/App.tsx generates no CSS — it is not in the spin vocabulary. Drop it.`;
 
 const ARBITRARY_SNIPPET = `<!-- Numeric measurements resolve as a designed escape for one-off geometry -->
-<div class="relative rounded-md border border-border bg-surface/80 p-3 w-[13rem]">
+<div class="relative rounded-md border bg-surface/80 p-3 w-[13rem]">
   <span class="absolute top-[3px] right-2 h-2 w-2 rounded-full bg-primary text-on-primary"></span>
   <strong>Pinned rail</strong>
   <small class="block">w-[13rem] · top-[3px]</small>
@@ -87,7 +87,7 @@ const ADDITIONS_SNIPPET = `<!-- 1. Horizontal and vertical UI lists without bull
 <!-- 2. Top-layer anchor positioning pinned to its trigger -->
 <div class="isolate relative">
   <button type="button" class="anchor-region-menu">Region target</button>
-  <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right rounded-md border border-border bg-surface-raised p-3 shadow-md">
+  <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right rounded-md border bg-surface-raised p-3 shadow-md">
     <strong>Pinned to --region-menu</strong>
   </div>
 </div>
@@ -156,7 +156,7 @@ const ABSENCE_ITEMS: readonly AbsenceItem[] = [
     reason: () => (
       <>
         Reach for semantic color roles (<code>bg-surface</code>,{" "}
-        <code>bg-primary</code>, <code>text-text-muted</code>) and a declared{" "}
+        <code>bg-primary</code>, <code>text-muted</code>) and a declared{" "}
         type style (<code>type-body</code>, <code>type-caption</code>), or add
         a token to <code>spin/&lt;name&gt;.json</code>. Default numbered color
         palettes and bracketed color or font-size literals are omitted so
@@ -211,7 +211,7 @@ export default function StylingTailwind(): JSX.Element {
             code={TRANSFERS_SNIPPET}
             preview={
               <div class="flex min-w-0 flex-col gap-3">
-                <div class="rounded-lg border border-border bg-surface p-4">
+                <div class="rounded-lg border bg-surface p-4">
                   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
                       <strong>Edge routing</strong>
@@ -221,22 +221,22 @@ export default function StylingTailwind(): JSX.Element {
                     </div>
                     <div
                       tabindex="0"
-                      class="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
+                      class="inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-2 transition-colors duration-fast hover:bg-surface-raised"
                     >
                       <strong>Inspect routes</strong>
                       <kbd>⌘K</kbd>
                     </div>
                   </div>
                   <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                    <div class="rounded-md border bg-surface-raised p-3">
                       <strong>us-east</strong>
                       <small class="block">14 ms p95</small>
                     </div>
-                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                    <div class="rounded-md border bg-surface-raised p-3">
                       <strong>eu-central</strong>
                       <small class="block">19 ms p95</small>
                     </div>
-                    <div class="rounded-md border border-border bg-surface-raised p-3">
+                    <div class="rounded-md border bg-surface-raised p-3">
                       <strong>ap-northeast</strong>
                       <small class="block">27 ms p95</small>
                     </div>
@@ -280,7 +280,7 @@ export default function StylingTailwind(): JSX.Element {
             lang="bash"
             preview={
               <div class="flex min-w-0 flex-col gap-3">
-                <div class="rounded-md border border-border bg-surface p-4">
+                <div class="rounded-md border bg-surface p-4">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <strong>Resolved against {theme()}</strong>
                     <badge variant="success">Build green</badge>
@@ -295,7 +295,7 @@ export default function StylingTailwind(): JSX.Element {
                     <code>bg-surface-raised</code>
                   </div>
                 </div>
-                <div class="rounded-md border border-border bg-surface p-3">
+                <div class="rounded-md border bg-surface p-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <strong>Undeclared step or palette class</strong>
                     <badge variant="danger">Build error</badge>
@@ -346,7 +346,7 @@ export default function StylingTailwind(): JSX.Element {
             code={ARBITRARY_SNIPPET}
             preview={
               <div class="flex min-w-0 flex-col gap-3">
-                <div class="relative w-[13rem] rounded-md border border-border bg-surface/80 p-3">
+                <div class="relative w-[13rem] rounded-md border bg-surface/80 p-3">
                   <span
                     class="absolute top-[3px] right-2 h-2 w-2 rounded-full bg-primary text-on-primary"
                     aria-hidden="true"
@@ -357,7 +357,7 @@ export default function StylingTailwind(): JSX.Element {
                     <code>top-[3px]</code>
                   </small>
                 </div>
-                <div class="flex flex-col gap-2 rounded-md border border-border bg-surface p-3">
+                <div class="flex flex-col gap-2 rounded-md border bg-surface p-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-1">
                       <code>w-[13rem]</code>
@@ -384,7 +384,7 @@ export default function StylingTailwind(): JSX.Element {
         <p class="max-w-prose">
           Write each color utility once (<code>bg-surface</code>,{" "}
           <code>bg-surface-raised</code>,{" "}
-          <code>bg-primary text-on-primary</code>, <code>border-border</code>)
+          <code>bg-primary text-on-primary</code>, <code>border</code>)
           and switch modes with <code>data-mode=&quot;light&quot;</code> or{" "}
           <code>data-mode=&quot;dark&quot;</code> on <code>&lt;html&gt;</code>{" "}
           or any nested container — never by scattering <code>dark:</code>{" "}
@@ -398,7 +398,7 @@ export default function StylingTailwind(): JSX.Element {
         <div class="my-2">
           <Specimen
             title="Same markup in both modes — zero dark: classes"
-            code={`<!-- One class list, two honest answers -->\n<div data-theme="<theme>" data-mode="light|dark" class="rounded-md border border-border bg-surface p-4">\n  <button type="button" class="primary">Primary action</button>\n</div>`}
+            code={`<!-- One class list, two honest answers -->\n<div data-theme="<theme>" data-mode="light|dark" class="rounded-md border bg-surface p-4">\n  <button type="button" class="primary">Primary action</button>\n</div>`}
             controls={
               <>
                 <code>data-mode=&quot;{activeMode()}&quot;</code>
@@ -435,7 +435,7 @@ export default function StylingTailwind(): JSX.Element {
                 <div>
                   <strong>Same class list in both modes</strong>
                   <small class="block">
-                    <code>bg-surface</code> · <code>border-border</code> ·{" "}
+                    <code>bg-surface</code> · <code>border</code> ·{" "}
                     <code>bg-primary text-on-primary</code>
                   </small>
                 </div>
@@ -588,7 +588,7 @@ export default function StylingTailwind(): JSX.Element {
                     <button type="button" class="s-sm anchor-region-menu">
                       Region target
                     </button>
-                    <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right mt-1 inline-flex items-center gap-2 rounded-md border border-border bg-surface-raised px-3 py-1 shadow-md">
+                    <div class="z-dropdown position-anchor-region-menu position-area-bottom-span-right mt-1 inline-flex items-center gap-2 rounded-md border bg-surface-raised px-3 py-1 shadow-md">
                       <strong>Pinned to --region-menu</strong>
                     </div>
                   </div>
@@ -621,7 +621,7 @@ export default function StylingTailwind(): JSX.Element {
         <div class="my-2 grid gap-3 sm:grid-cols-2">
           <For each={ABSENCE_ITEMS}>
             {(item) => (
-              <div class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-surface-raised p-4">
+              <div class="flex flex-col justify-between gap-3 rounded-lg border bg-surface-raised p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div class="flex flex-wrap items-center gap-1">
                     <small>Tailwind:</small>

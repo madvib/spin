@@ -55,8 +55,8 @@ export default function ThemesModes(): JSX.Element {
       <Section id="modes" title="How modes work">
         <p class="max-w-prose">
           In Spin, you write your markup once using semantic roles (
-          <code>bg-surface</code>, <code>text-text-muted</code>,{" "}
-          <code>border-border</code>). You never write{" "}
+          <code>bg-surface</code>, <code>text-muted</code>,{" "}
+          <code>border</code>). You never write{" "}
           <code>dark:bg-slate-900 dark:text-slate-100</code> in templates.
           When <code>data-mode="dark"</code> is set on{" "}
           <code>&lt;html&gt;</code> — or on a specific container — the CSS
@@ -75,12 +75,12 @@ export default function ThemesModes(): JSX.Element {
               <div
                 data-theme={demoTheme()}
                 data-mode={mode()}
-                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
+                class="flex flex-col gap-2 rounded-md border bg-surface-raised p-4"
               >
-                <span class="type-code text-text-muted">
+                <span class="type-code text-muted">
                   data-mode="{mode()}" (page)
                 </span>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Inherits the page's current mode.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
@@ -91,12 +91,12 @@ export default function ThemesModes(): JSX.Element {
               <div
                 data-theme={demoTheme()}
                 data-mode={oppositeMode()}
-                class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4"
+                class="flex flex-col gap-2 rounded-md border bg-surface-raised p-4"
               >
-                <span class="type-code text-text-muted">
+                <span class="type-code text-muted">
                   data-mode="{oppositeMode()}" (subtree)
                 </span>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   Scoped to the opposite mode on this container.
                 </p>
                 <div class="flex items-center gap-2 pt-1">
@@ -150,9 +150,9 @@ export default function ThemesModes(): JSX.Element {
                 data-palette="catppuccin"
                 data-spacing="compact"
                 data-mode={oppositeMode()}
-                class="flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-surface p-4"
+                class="flex min-w-0 flex-col gap-4 rounded-lg border bg-surface p-4"
               >
-                <span class="type-code text-text-muted">
+                <span class="type-code text-muted">
                   data-palette="catppuccin" data-spacing="compact"
                   data-mode="{oppositeMode()}"
                 </span>

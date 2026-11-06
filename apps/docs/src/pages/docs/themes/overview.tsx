@@ -144,8 +144,8 @@ export default function ThemesOverview(): JSX.Element {
           site.
         </p>
 
-        <div class="my-4 flex flex-col gap-4 rounded-lg border border-border bg-surface-raised p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+        <div class="my-4 flex flex-col gap-4 rounded-lg border bg-surface-raised p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
             <div class="flex flex-wrap items-center gap-2">
               <For each={starters}>
                 {(item) => {
@@ -157,7 +157,7 @@ export default function ThemesOverview(): JSX.Element {
                       class={`bare cursor-pointer rounded-md border px-3 py-1 transition-colors duration-fast ${
                         isSelected()
                           ? "border-primary bg-primary text-on-primary type-body-strong"
-                          : "border-border bg-surface text-text-muted hover:border-border-strong type-code"
+                          : "border bg-surface text-muted hover:border-strong type-code"
                       }`}
                     >
                       {item.name}
@@ -189,7 +189,7 @@ export default function ThemesOverview(): JSX.Element {
               </div>
             </div>
             <Show when={selected().thesis}>
-              <p class="max-w-prose text-text-muted">
+              <p class="max-w-prose text-muted">
                 {selected().thesis}
               </p>
             </Show>
@@ -197,7 +197,7 @@ export default function ThemesOverview(): JSX.Element {
             <div
               data-theme={selected().name}
               data-mode={selected().modes[0] ?? "light"}
-              class="grid grid-cols-2 gap-2 rounded-md border border-border bg-surface p-3 sm:grid-cols-3 md:grid-cols-6"
+              class="grid grid-cols-2 gap-2 rounded-md border bg-surface p-3 sm:grid-cols-3 md:grid-cols-6"
             >
               <For each={SWATCH_ROLES}>
                 {(role) => {
@@ -206,12 +206,12 @@ export default function ThemesOverview(): JSX.Element {
                   return (
                     <div class="flex flex-col gap-1">
                       <div
-                        class={`h-8 w-full rounded-sm border border-border ${role.bgClass}`}
+                        class={`h-8 w-full rounded-sm border ${role.bgClass}`}
                       />
                       <span class="type-caption-strong">
                         {role.label}
                       </span>
-                      <span class="truncate type-code text-text-muted">
+                      <span class="truncate type-code text-muted">
                         {swatch()?.value ?? "—"}
                       </span>
                     </div>
@@ -223,8 +223,8 @@ export default function ThemesOverview(): JSX.Element {
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <For each={selected().signature}>
                 {(entry) => (
-                  <div class="flex flex-col gap-1 rounded-sm border border-border bg-surface p-2">
-                    <span class="type-code text-text-muted">
+                  <div class="flex flex-col gap-1 rounded-sm border bg-surface p-2">
+                    <span class="type-code text-muted">
                       {entry.path}
                     </span>
                     <span class="truncate type-caption-strong">

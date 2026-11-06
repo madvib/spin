@@ -89,7 +89,7 @@ function Swatch(props: {
 }) {
   const swatch = (
     <span
-      class={`flex w-full flex-col items-start justify-end gap-1 rounded-md border border-border p-2 text-left ${
+      class={`flex w-full flex-col items-start justify-end gap-1 rounded-md border p-2 text-left ${
         props.tall ? "h-24" : "h-16"
       }`}
       style={{ background: props.chip.value }}
@@ -161,7 +161,7 @@ export function Hex(props: { value: string; pill?: boolean; ink?: string }) {
       class={
         props.pill
           ? "bare relative z-10 h-4 cursor-pointer truncate rounded-md p-0 type-code opacity-70 hover:opacity-100"
-          : "bare h-4 w-16 shrink-0 cursor-pointer overflow-hidden p-0 text-right type-code tabular-nums text-text-muted"
+          : "bare h-4 w-16 shrink-0 cursor-pointer overflow-hidden p-0 text-right type-code tabular-nums text-muted"
       }
       style={props.ink ? { color: props.ink } : undefined}
       title={props.value}

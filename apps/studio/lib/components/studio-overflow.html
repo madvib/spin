@@ -6,7 +6,7 @@ const machine = menu({});
 
 <div class="relative shrink-0">
   <button
-    class="bare inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface"
+    class="bare inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface"
     aria-label="Studio options"
     data-testid="studio-overflow"
     {...machine.getTriggerProps()}
@@ -15,12 +15,12 @@ const machine = menu({});
   </button>
   <div class="absolute right-0 z-dropdown w-max" {...machine.getPositionerProps()}>
     <div
-      class="rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      class="rounded-lg border bg-surface-raised p-1 shadow-lg"
       {...machine.getContentProps()}
     >
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-text-muted"
+          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-muted"
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div

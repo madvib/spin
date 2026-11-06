@@ -19,12 +19,12 @@ const machine = tabs({
 <div class="w-full" {...machine.getRootProps()}>
   <div
     aria-label="Bundler"
-    class="flex flex-wrap gap-1 rounded-lg border border-border bg-surface-sunken p-1"
+    class="flex flex-wrap gap-1 rounded-lg border bg-surface-sunken p-1"
     {...machine.getListProps()}
   >
     <template for={machine.items} as={row} key={row.value}>
       <button
-        class="bare rounded-md px-3 py-1 type-caption-strong transition-colors duration-fast aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-text-muted"
+        class="bare rounded-md px-3 py-1 type-caption-strong transition-colors duration-fast aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-muted"
         {...machine.getTriggerProps(row)}
       >{row.label}</button>
     </template>

@@ -14,7 +14,7 @@ const machine = toggleGroup({
   <div class="inline-flex items-center gap-1" {...machine.getRootProps()}>
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["bare rounded-md px-3 py-2 transition-all hover:bg-surface", { "bg-surface-raised": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed }]}
+        class={["bare rounded-md px-3 py-2 transition-all hover:bg-surface", { "bg-surface-raised": machine.getItemState(row).pressed, "text-muted": !machine.getItemState(row).pressed }]}
         {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>

@@ -44,7 +44,7 @@ const machine = navigationMenu({
 </script>
 
 <nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="row-list gap-1 rounded-lg border border-solid border-border bg-surface p-1" {...machine.getListProps()}>
+  <ul class="row-list gap-1 rounded-lg border bg-surface p-1" {...machine.getListProps()}>
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
@@ -54,34 +54,34 @@ const machine = navigationMenu({
           <span>{row.label}</span>
           <span
             aria-hidden="true"
-            class={["i-lucide-chevron-down type-caption text-text-muted transition-transform duration-fast", { "rotate-180 text-primary": machine.value === row.value }]}
+            class={["i-lucide-chevron-down type-caption text-muted transition-transform duration-fast", { "rotate-180 text-primary": machine.value === row.value }]}
           ></span>
         </a>
 
         <div
-          class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg transition duration-fast ease-decelerate"
+          class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border bg-surface-raised p-4 shadow-lg transition duration-fast ease-decelerate"
           {...machine.getItemContentProps(row)}
         >
           <div class="flex items-center justify-between gap-2">
-            <span class="uppercase text-text-muted">{row.category}</span>
+            <span class="uppercase text-muted">{row.category}</span>
             <badge variant="info">{row.badge}</badge>
           </div>
           <p class="mt-1">{row.label}</p>
-          <p class="mt-1 text-text-muted">{row.description}</p>
-          <div class="mt-3 flex flex-col gap-1 border-t border-solid border-border pt-2">
+          <p class="mt-1 text-muted">{row.description}</p>
+          <div class="mt-3 flex flex-col gap-1 border-t pt-2">
             <a
               class="bare flex items-center justify-between rounded-md px-2 py-1 type-body no-underline transition-colors hover:bg-surface"
               href={row.primaryHref}
             >
               <span>{row.primaryLabel}</span>
-              <span aria-hidden="true" class="i-lucide-arrow-up-right type-caption text-text-muted"></span>
+              <span aria-hidden="true" class="i-lucide-arrow-up-right type-caption text-muted"></span>
             </a>
             <a
               class="bare flex items-center justify-between rounded-md px-2 py-1 type-body no-underline transition-colors hover:bg-surface"
               href={row.secondaryHref}
             >
               <span>{row.secondaryLabel}</span>
-              <span aria-hidden="true" class="i-lucide-arrow-up-right type-caption text-text-muted"></span>
+              <span aria-hidden="true" class="i-lucide-arrow-up-right type-caption text-muted"></span>
             </a>
           </div>
         </div>

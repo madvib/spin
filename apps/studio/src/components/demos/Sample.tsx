@@ -37,13 +37,13 @@ export default function Sample(props: { section: string; utility: string }) {
           props.section === "gap" ||
           props.section === "sizing"}
       >
-        <div class="border border-border">
+        <div class="border">
           <div class={`h-8 bg-surface ${u()}`} />
         </div>
       </Match>
       {/* Position needs a stage with room to move in. */}
       <Match when={props.section === "position"}>
-        <div class="relative h-16 overflow-hidden border border-border">
+        <div class="relative h-16 overflow-hidden border">
           <div class={`absolute h-8 w-16 bg-primary text-on-primary ${u()}`} />
         </div>
       </Match>
@@ -76,7 +76,7 @@ export default function Sample(props: { section: string; utility: string }) {
       </Match>
       {/* Overflow needs long content in a short box. */}
       <Match when={props.section === "overflow"}>
-        <div class={`h-16 overflow-hidden border border-border ${u()}`}>
+        <div class={`h-16 overflow-hidden border ${u()}`}>
           <div class="h-[8rem] bg-surface">tall content</div>
         </div>
       </Match>
@@ -84,7 +84,7 @@ export default function Sample(props: { section: string; utility: string }) {
       <Match
         when={u() === "hidden" || u() === "invisible" || u() === "collapse"}
       >
-        <div class="border border-border p-2">
+        <div class="border p-2">
           <span class={u()}>now you see it</span>
         </div>
       </Match>
@@ -96,7 +96,7 @@ export default function Sample(props: { section: string; utility: string }) {
       </Match>
       {/* Borders need a neutral edge so the utility's own edge shows. */}
       <Match when={props.section === "border"}>
-        <div class={`h-8 w-full border border-border ${u()}`} />
+        <div class={`h-8 w-full border ${u()}`} />
       </Match>
       {/* Motion renders through the play rig on the motion page. */}
       <Match when={props.section === "transitions"}>

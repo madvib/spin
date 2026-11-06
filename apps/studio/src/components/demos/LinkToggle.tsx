@@ -16,7 +16,7 @@ export default function LinkToggle(
     <span class="inline-flex items-center">
       <button
         type="button"
-        class="secondary s-sm row-sm shrink-0 type-caption text-text-muted"
+        class="secondary s-sm row-sm shrink-0 type-caption text-muted"
         classList={{
           "bg-transparent": !linked(),
           "border-primary": linked(),

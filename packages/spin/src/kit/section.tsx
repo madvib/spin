@@ -64,7 +64,7 @@ export function Section(props: {
           <Marker tone={props.tone} />
           <Show when={props.id} fallback={<span class="min-w-0">{props.title}</span>}>
             {(id) => (
-              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="type-code text-text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
+              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="type-code text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
             )}
           </Show>
           <Show when={props.info}>
@@ -72,7 +72,7 @@ export function Section(props: {
               <span class="relative inline-flex items-center">
                 <button
                   type="button"
-                  class="bare peer inline-flex items-center text-text-muted"
+                  class="bare peer inline-flex items-center text-muted"
                   aria-label={info()}
                 >
                   <span
@@ -89,16 +89,16 @@ export function Section(props: {
         </h2>
         <div class="flex shrink-0 items-center gap-2">
           <Show when={props.fact}>
-            <span class="type-body text-text-muted">{props.fact}</span>
+            <span class="type-body text-muted">{props.fact}</span>
           </Show>
           {props.aside}
         </div>
       </div>
       <Show when={props.note}>
-        <p class="max-w-screen-md text-text-muted">{props.note}</p>
+        <p class="max-w-screen-md text-muted">{props.note}</p>
       </Show>
       <Show when={props.muted} fallback={props.children}>
-        <div class="flex flex-col gap-4 text-text-muted">{props.children}</div>
+        <div class="flex flex-col gap-4 text-muted">{props.children}</div>
       </Show>
     </section>
   );
@@ -149,7 +149,7 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`m-0 overflow-x-auto rounded-md border border-border bg-surface p-4 type-code text-text-muted ${
+        class={`m-0 overflow-x-auto rounded-md border bg-surface p-4 type-code text-muted ${
           props.class ? ` ${props.class}` : ""
         }`}
       >

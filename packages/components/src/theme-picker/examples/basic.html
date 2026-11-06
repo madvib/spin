@@ -15,16 +15,16 @@ const machine = themePicker({
 
 <div class="relative inline-block" {...machine.getRootProps()}>
   <button
-    class="bare inline-flex items-center gap-2 rounded-lg border border-solid border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised"
+    class="bare inline-flex items-center gap-2 rounded-lg border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised"
     {...machine.getTriggerProps()}
   >
     <span class="inline-flex h-4 items-center gap-1" {...machine.getTriggerSwatchProps()}>
-      <span class="h-2 w-2 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+      <span class="h-2 w-2 shrink-0 rounded-full border bg-surface"></span>
       <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
       <span class="h-2 w-2 shrink-0 rounded-full bg-text"></span>
     </span>
     <span {...machine.getTriggerLabelProps()}>{machine.value}</span>
-    <span class="inline-block i-lucide-chevron-down icon-sm text-text-muted" {...machine.getTriggerIndicatorProps()}></span>
+    <span class="inline-block i-lucide-chevron-down icon-sm text-muted" {...machine.getTriggerIndicatorProps()}></span>
   </button>
   <div class="absolute z-dropdown" {...machine.getPositionerProps()}>
     <panel
@@ -37,12 +37,12 @@ const machine = themePicker({
             {...machine.getItemProps(row)}
           >
             <span class="inline-flex h-4 items-center gap-1" {...machine.getItemSwatchProps(row)}>
-              <span class="h-3 w-3 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+              <span class="h-3 w-3 shrink-0 rounded-full border bg-surface"></span>
               <span class="h-3 w-3 shrink-0 rounded-full bg-primary"></span>
               <span class="h-3 w-3 shrink-0 rounded-full bg-text"></span>
             </span>
             <span class="flex-1" {...machine.getItemLabelProps(row)}>{row.label}</span>
-            <span class="inline-block i-lucide-sun h-3 w-3 text-text-muted" show={machine.getItemState(row).dualMode}></span>
+            <span class="inline-block i-lucide-sun h-3 w-3 text-muted" show={machine.getItemState(row).dualMode}></span>
             <span class="inline-block i-lucide-check h-4 w-4 text-primary" show={machine.getItemState(row).selected} {...machine.getItemIndicatorProps(row)}></span>
           </div>
         </template>

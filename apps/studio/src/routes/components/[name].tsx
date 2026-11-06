@@ -252,7 +252,7 @@ export default function ComponentPage() {
             fallback={
               <div>
                 <h1 class="capitalize">{params.name}</h1>
-                <p class="text-text-muted">Loading…</p>
+                <p class="text-muted">Loading…</p>
               </div>
             }
           >
@@ -275,7 +275,7 @@ export default function ComponentPage() {
                     Boolean(component.examples?.note)
                   }
                 >
-                  <p class="mt-1 max-w-screen-md text-text-muted">
+                  <p class="mt-1 max-w-screen-md text-muted">
                     {component.examples?.note}
                   </p>
                 </Show>
@@ -290,7 +290,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showApi()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised"
+                        : "border bg-surface-raised"
                     }`}
                     onClick={() => setShowApi((v) => !v)}
                   >
@@ -309,7 +309,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showTokens()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised"
+                        : "border bg-surface-raised"
                     }`}
                     onClick={() => setShowTokens((v) => !v)}
                   >
@@ -323,7 +323,7 @@ export default function ComponentPage() {
                     class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showClasses()
                         ? "border-transparent bg-primary text-on-primary"
-                        : "border-border bg-surface-raised"
+                        : "border bg-surface-raised"
                     }`}
                     onClick={() => setShowClasses((v) => !v)}
                   >
@@ -339,12 +339,12 @@ export default function ComponentPage() {
             <Show when={showClasses() && classRowsFor(component).length > 0}>
               <div
                 data-studio-chrome=""
-                class="mb-4 w-fit max-w-full overflow-x-auto rounded-md border border-border bg-surface text-left type-caption"
+                class="mb-4 w-fit max-w-full overflow-x-auto rounded-md border bg-surface text-left type-caption"
                 aria-label="Classes and tags"
               >
                 <table class="m-0 w-full border-collapse text-left">
                   <thead>
-                    <tr class="border-b border-border bg-surface-raised text-text-muted">
+                    <tr class="border-b bg-surface-raised text-muted">
                       <th class="whitespace-nowrap px-3 py-2">
                         Class / Tag
                       </th>
@@ -359,16 +359,16 @@ export default function ComponentPage() {
                   <tbody>
                     <For each={classRowsFor(component)}>
                       {(item) => (
-                        <tr class="border-b border-border last:border-b-0">
+                        <tr class="border-b last:border-b-0">
                           <td class="whitespace-nowrap px-3 py-1 type-code text-primary">
                             <code>{item.name}</code>
                           </td>
-                          <td class="whitespace-nowrap px-3 py-1 type-caption text-text-muted">
-                            <span class="inline-flex items-center rounded-sm border border-border bg-surface-raised px-2 py-0 type-caption">
+                          <td class="whitespace-nowrap px-3 py-1 type-caption text-muted">
+                            <span class="inline-flex items-center rounded-sm border bg-surface-raised px-2 py-0 type-caption">
                               {item.kind}
                             </span>
                           </td>
-                          <td class="px-3 py-1 text-text-muted">
+                          <td class="px-3 py-1 text-muted">
                             {item.description}
                           </td>
                         </tr>
@@ -385,14 +385,14 @@ export default function ComponentPage() {
             >
               <div
                 data-studio-chrome=""
-                class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4"
+                class="my-4 stack-sm rounded-md border bg-surface-raised p-4"
                 aria-label="Machine contract"
               >
                 <div class="flex items-center justify-between">
                   <h2>Machine API</h2>
                   <button
                     type="button"
-                    class="bare p-0 text-text-muted"
+                    class="bare p-0 text-muted"
                     onClick={() => setShowApi(false)}
                   >
                     close
@@ -408,13 +408,13 @@ export default function ComponentPage() {
                     {([tier, names]) => (
                       <Show when={names.length > 0}>
                         <div class="flex flex-wrap items-baseline gap-2">
-                          <span class="w-20 shrink-0 type-caption text-text-muted">
+                          <span class="w-20 shrink-0 type-caption text-muted">
                             {tier}
                           </span>
                           <div class="flex flex-wrap gap-1">
                             <For each={names}>
                               {(name) => (
-                                <code class="rounded-sm border border-border bg-surface px-1 py-0">
+                                <code class="rounded-sm border bg-surface px-1 py-0">
                                   {name}
                                 </code>
                               )}
@@ -428,7 +428,7 @@ export default function ComponentPage() {
               </div>
             </Show>
             <Show when={showTokens() && declaredTokens().length > 0}>
-              <div data-studio-chrome="" class="my-4 stack-sm rounded-md border border-border bg-surface-raised p-4">
+              <div data-studio-chrome="" class="my-4 stack-sm rounded-md border bg-surface-raised p-4">
                 <div class="flex items-center justify-between">
                   <h2>Component tokens</h2>
                   <button
@@ -438,13 +438,13 @@ export default function ComponentPage() {
                     // loudest action in it. Without it the theme's own
                     // primary fill and hard shadow reach a control that
                     // meant to read as a link.
-                    class="bare p-0 text-text-muted"
+                    class="bare p-0 text-muted"
                     onClick={() => setShowTokens(false)}
                   >
                     close
                   </button>
                 </div>
-                <p class="text-text-muted">
+                <p class="text-muted">
                   The tokens this component declares as its own — edited inline
                   while you interact with the specimens below, or created here
                   when the theme currently relies on the shared scale.
@@ -469,7 +469,7 @@ export default function ComponentPage() {
                                 </span>
                               </div>
                               <div class="row-sm min-w-0 shrink-0 items-center justify-end gap-2">
-                                <span class="type-code text-text-muted">
+                                <span class="type-code text-muted">
                                   {entry.type} · falls back to {entry.value}
                                 </span>
                                 <Badge tone="warning">not declared</Badge>

@@ -20,7 +20,7 @@ export function PropList(props: {
 }): JSX.Element {
   return (
     <div
-      class={`flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface ${
+      class={`flex flex-col divide-y divide-border overflow-hidden rounded-lg border bg-surface ${
         props.class ?? ""
       }`}
     >
@@ -32,7 +32,7 @@ export function PropList(props: {
                 <code>{item.name}</code>
                 <Show when={item.badge}>
                   {(badge) => (
-                    <span class="rounded-sm border border-border bg-surface px-2 py-1 type-code text-text-muted">
+                    <span class="rounded-sm border bg-surface px-2 py-1 type-code text-muted">
                       {badge()}
                     </span>
                   )}
@@ -45,18 +45,18 @@ export function PropList(props: {
               </div>
               <Show when={item.defaultValue}>
                 {(def) => (
-                  <span class="type-code text-text-muted">
+                  <span class="type-code text-muted">
                     default: <code>{def()}</code>
                   </span>
                 )}
               </Show>
             </div>
-            <div class="type-body text-text-muted">
+            <div class="type-body text-muted">
               {item.description}
             </div>
             <Show when={item.detail}>
               {(detail) => (
-                <div class="pt-1 type-code text-text-muted">
+                <div class="pt-1 type-code text-muted">
                   {detail()}
                 </div>
               )}

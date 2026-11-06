@@ -418,7 +418,7 @@ export default function OverviewPage() {
           {(failure) => (
             <section class="stack-sm panel" aria-label="No project">
               <h2>There is no project here</h2>
-              <p class="text-text-muted">
+              <p class="text-muted">
                 The studio edits a project on disk, and the daemon it is talking
                 to is not serving one: {problemText(failure())}
               </p>
@@ -429,19 +429,19 @@ export default function OverviewPage() {
           {(report) => (
             <section class="stack-sm panel" aria-label="First run">
               <h2>This folder is not a spin project yet</h2>
-              <p class="text-text-muted">
+              <p class="text-muted">
                 A project is a folder with a <code>spin/</code>{" "}
                 directory in it. The daemon is serving{" "}
                 <code class="break-all">{report().root}</code>, and that folder
                 has no such directory — so the themes below are the built-ins,
                 and nothing here is the project's own yet.
               </p>
-              <p class="text-text-muted">
+              <p class="text-muted">
                 Creating the project writes the directory, a first theme, and
                 the bundler config that wires the Spin plugin into the build.
               </p>
               <div class="row-sm">
-                <label for="project-theme-name" class="text-text-muted">
+                <label for="project-theme-name" class="text-muted">
                   First theme
                 </label>
                 <input
@@ -473,7 +473,7 @@ export default function OverviewPage() {
             </alert>
           </Show>
           <div class="flex justify-end">
-            <span class="type-caption text-text-muted">
+            <span class="type-caption text-muted">
               {summaries().length} themes
             </span>
           </div>
@@ -499,7 +499,7 @@ export default function OverviewPage() {
                 return (
                 <article
                   data-testid="theme-card"
-                  class="flex min-h-40 flex-col gap-2 rounded-lg border border-border bg-surface-raised p-3"
+                  class="flex min-h-40 flex-col gap-2 rounded-lg border bg-surface-raised p-3"
                   classList={{
                     "border-primary border-2": summary.name === activeName(),
                   }}
@@ -579,7 +579,7 @@ export default function OverviewPage() {
                       group.chips.length > 0
                     )}
                     fallback={
-                      <p class="text-text-muted">
+                      <p class="text-muted">
                         No palette declared yet.
                       </p>
                     }
@@ -592,10 +592,10 @@ export default function OverviewPage() {
                       >
                         {(group) => (
                           <div class="flex items-center gap-2">
-                            <span class="w-10 shrink-0 type-code text-text-muted" style={{ color: cardMuted() }}>
+                            <span class="w-10 shrink-0 type-code text-muted" style={{ color: cardMuted() }}>
                               {group.mode}
                             </span>
-                            <div class="flex h-6 flex-1 overflow-hidden rounded-sm border border-border">
+                            <div class="flex h-6 flex-1 overflow-hidden rounded-sm border">
                               <For each={group.chips}>
                                 {(chip) => (
                                   <span
@@ -615,7 +615,7 @@ export default function OverviewPage() {
                       </For>
                     </div>
                   </Show>
-                  <p class="mt-auto truncate text-text-muted" style={{ color: cardMuted() }}>
+                  <p class="mt-auto truncate text-muted" style={{ color: cardMuted() }}>
                     {summary.tokens} tokens · {summary.file ?? "@spinjs/spin/theme"}
                   </p>
                 </article>
@@ -627,12 +627,12 @@ export default function OverviewPage() {
         <section class="stack-sm panel" aria-label="Project">
           <h2>Project</h2>
           <Show when={config()?.file === null}>
-            <p class="text-text-muted">
+            <p class="text-muted">
               Defaults — save to write spin/config.json.
             </p>
           </Show>
           <div class="row-sm">
-            <label for="project-active-theme" class="text-text-muted">
+            <label for="project-active-theme" class="text-muted">
               Active theme
             </label>
             <select
@@ -718,7 +718,7 @@ export default function OverviewPage() {
             above and below it is the theme's rhythm. */
         }
         <hr class="w-full" />
-        <footer class="stack-sm type-caption text-text-muted">
+        <footer class="stack-sm type-caption text-muted">
           <div class="flex flex-wrap gap-x-4 gap-y-1">
             <span>{active()?.file ?? "@spinjs/spin/theme"}</span>
             <span>{active()?.tokens ?? 0} tokens</span>
@@ -768,7 +768,7 @@ function ConcernCard(props: {
 }) {
   return (
     <article
-      class="stack-sm rounded-lg border border-border bg-surface-raised p-4"
+      class="stack-sm rounded-lg border bg-surface-raised p-4"
       // The span rides the ARTICLE, because the article is the grid item —
       // and it follows the drawer, which drops the grid to a single column
       // where a span would conjure a second one.
@@ -809,7 +809,7 @@ function PaletteCard(props: { chips: readonly Chip[]; wide?: boolean }) {
       <Show
         when={props.chips.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no palette roles yet.
           </p>
         }
@@ -851,13 +851,13 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
       <Show
         when={props.steps.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no surface ladder yet.
           </p>
         }
       >
         <div
-          class="flex flex-1 flex-col rounded-md border border-border p-2"
+          class="flex flex-1 flex-col rounded-md border p-2"
           style={{ background: recessed()?.value ?? page()?.value ?? "transparent" }}
         >
           <span
@@ -867,7 +867,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
             {toHex(recessed()?.value ?? page()?.value ?? "") ?? recessed()?.value ?? page()?.value ?? ""}
           </span>
           <div
-            class="flex flex-1 flex-col rounded-md border border-border p-2"
+            class="flex flex-1 flex-col rounded-md border p-2"
             style={{ background: page()?.value ?? "transparent" }}
           >
             <span
@@ -877,7 +877,7 @@ function SurfaceCard(props: { steps: readonly Chip[] }) {
               {toHex(page()?.value ?? "") ?? page()?.value ?? ""}
             </span>
             <div
-              class="flex flex-1 flex-col justify-end rounded-md border border-border p-2"
+              class="flex flex-1 flex-col justify-end rounded-md border p-2"
               style={{ background: raised()?.value ?? "transparent" }}
             >
               <span
@@ -911,7 +911,7 @@ function TypeCard(props: { faces: readonly Face[] }) {
       <Show
         when={props.faces.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no faces yet.
           </p>
         }
@@ -919,12 +919,12 @@ function TypeCard(props: { faces: readonly Face[] }) {
         <div class="stack-sm">
           <For each={props.faces}>
             {(face) => (
-              <div class="stack-sm border-b border-border pb-2 last:border-b-0">
+              <div class="stack-sm border-b pb-2 last:border-b-0">
                 <div class="split">
                   <code>
                     {`font.family.${face.slot}`}
                   </code>
-                  <span class="truncate type-caption text-text-muted">
+                  <span class="truncate type-caption text-muted">
                     {face.stack}
                   </span>
                 </div>
@@ -961,7 +961,7 @@ function RadiusLadder(props: { rows: readonly TokenRow[] }) {
       <For each={props.rows}>
         {(row, index) => (
           <div
-            class="absolute rounded-md border border-border bg-surface"
+            class="absolute rounded-md border bg-surface"
             style={{
               // Each step is inset a little further than the last, so the
               // shapes nest: the sharp corner is the outermost, the round
@@ -997,7 +997,7 @@ function ShapeCard(props: {
       <Show
         when={!empty()}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no radius or shadow steps yet.
           </p>
         }
@@ -1022,7 +1022,7 @@ function ShapeCard(props: {
           </Show>
           <Show when={props.shadow.length > 0}>
             <div class="stack-sm">
-              <span class="type-caption-strong uppercase text-text-muted">
+              <span class="type-caption-strong uppercase text-muted">
                 Lift
               </span>
               <div class="flex flex-wrap items-end gap-3 rounded-md bg-surface-sunken p-3">
@@ -1082,7 +1082,7 @@ function SpaceCard(props: {
       <Show
         when={props.steps.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no spacing steps yet.
           </p>
         }
@@ -1145,7 +1145,7 @@ function MotionCard(props: {
       <Show
         when={props.durations.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares no durations yet, so nothing here has a time to
             take.
           </p>
@@ -1197,7 +1197,7 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
       <Show
         when={props.samples.length > 0}
         fallback={
-          <p class="text-text-muted">The library has not answered.</p>
+          <p class="text-muted">The library has not answered.</p>
         }
       >
         <div class="stack-sm">
@@ -1208,7 +1208,7 @@ function ElementsCard(props: { samples: readonly ElementSample[] }) {
                   {`<${sample.component}> · ${sample.row.name}`}
                 </code>
                 <div
-                  class="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border p-3"
+                  class="flex flex-wrap items-center gap-2 rounded-md border border-dashed border p-3"
                   // The daemon scopes every rule it generates for a theme —
                   // tag rules included — under `.spin-preview`, and the
                   // preview pane carries it: the theme dresses what is

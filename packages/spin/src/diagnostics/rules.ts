@@ -375,7 +375,7 @@ function expressionBranches(
  * decides whether a bare `{...}` unwraps (an attribute holding an object
  * directly) — nested objects are always branches.
  */
-function collectExpressionBranches(
+export function collectExpressionBranches(
   node: unknown,
   resting: string[],
   conditional: string[][],

@@ -34,7 +34,7 @@ export default function Check(): JSX.Element {
         <div class="mt-3 flex flex-wrap gap-2">
           <For each={STATES}>{(state) => <Chip>{state}</Chip>}</For>
         </div>
-        <div class="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-raised p-4">
+        <div class="mt-4 flex flex-wrap items-center gap-2 rounded-lg border bg-surface-raised p-4">
           <For each={STATES}>
             {(state) => (
               <button

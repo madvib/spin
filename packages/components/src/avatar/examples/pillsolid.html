@@ -6,16 +6,16 @@
 </script>
 
 
-<div class="flex items-center gap-2 rounded-full border border-solid border-border bg-surface px-4 py-2">
+<div class="flex items-center gap-2 rounded-full border bg-surface px-4 py-2">
   <div class="flex">
-    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken type-label text-text-muted" {...face1.getRootProps()}>
+    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken type-label text-muted" {...face1.getRootProps()}>
       <img show={face1.src !== "" && face1.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face1.getImageProps()} />
       <span show={!face1.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face1.getFallbackProps()}>JD</span>
     </span>
-    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken type-label text-text-muted" {...face2.getRootProps()}>
+    <span class="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-sunken type-label text-muted" {...face2.getRootProps()}>
       <img show={face2.src !== "" && face2.status !== "error"} class="h-full w-full object-cover" draggable="false" {...face2.getImageProps()} />
       <span show={!face2.loaded} aria-hidden="true" class="grid h-full w-full place-items-center" {...face2.getFallbackProps()}>SM</span>
     </span>
   </div>
-  <span class="type-label text-text-muted">+3</span>
+  <span class="type-label text-muted">+3</span>
 </div>

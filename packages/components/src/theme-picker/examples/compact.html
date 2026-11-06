@@ -15,7 +15,7 @@ const machine = themePicker({
 
 <div class="relative inline-flex" {...machine.getRootProps()}>
   <button
-    class="bare inline-flex items-center gap-1 rounded-md px-2 py-1 text-text-muted transition-colors hover:bg-surface"
+    class="bare inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted transition-colors hover:bg-surface"
     {...machine.getTriggerProps()}
   >
     <span class="inline-block i-lucide-palette h-4 w-4"></span>
@@ -23,7 +23,7 @@ const machine = themePicker({
   </button>
   <div class="absolute z-dropdown" {...machine.getPositionerProps()}>
     <div
-      class="rounded-lg border border-solid border-border bg-surface p-1 shadow-lg"
+      class="rounded-lg border bg-surface p-1 shadow-lg"
       {...machine.getContentProps()}
     >
       <div {...machine.getListProps()}>

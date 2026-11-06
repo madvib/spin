@@ -259,7 +259,8 @@ Options for check:
   -h, --help               this text
 
 Paths may be files or directories. The files read are the JavaScript and
-TypeScript ones: .js, .jsx, .mjs, .cjs, .ts, .tsx.
+TypeScript ones (.js, .jsx, .mjs, .cjs, .ts, .tsx) and the component files
+beside them (.html, but never an index.html document shell).
 
 Exit codes:
   0  nothing to report, or only warnings

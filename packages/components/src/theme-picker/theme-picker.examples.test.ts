@@ -44,7 +44,7 @@ test("selected borders style each state in exactly one key", () => {
     const tag = html.slice(html.lastIndexOf("<button", at), at);
     const statik = tag.slice(tag.indexOf('class={["') + 9, tag.indexOf('", {'));
     assert.ok(
-      !statik.includes("border-border") && !statik.includes("border-primary"),
+      !statik.includes("border-primary"),
       `${stem} example must keep border color out of the static classes — a static border beats the conditional in the cascade`,
     );
     assert.ok(

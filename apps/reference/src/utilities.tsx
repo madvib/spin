@@ -375,7 +375,7 @@ function mechanismOf(name: string): string {
   return UNCLAIMED;
 }
 
-const CAP = "type-code text-text-muted";
+const CAP = "type-code text-muted";
 
 /** Three distinct fills, so which item is which is never a guess. */
 const FILL = ["neutral-300", "primary", "neutral-400"] as const;
@@ -386,17 +386,17 @@ const FILL = ["neutral-300", "primary", "neutral-400"] as const;
  * so a frame sized in them collapses to its content.
  */
 const BOX =
-  "relative h-16 w-1/3 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
+  "relative h-16 w-1/3 shrink-0 rounded-sm border bg-surface-raised p-1";
 const TALL =
-  "relative h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
+  "relative h-16 w-1/4 shrink-0 rounded-sm border bg-surface-raised p-1";
 const NARROW =
-  "relative h-16 w-16 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
+  "relative h-16 w-16 shrink-0 rounded-sm border bg-surface-raised p-1";
 const FLEXBOX = `${BOX} flex`;
 const TALLFLEX = `${TALL} flex`;
 const NARROWFLEX = `${NARROW} flex`;
 const TALLGRID = `${TALL} grid`;
 const LINES = `${NARROW} flex flex-col flex-wrap`;
-const CARD = "absolute h-8 w-16 rounded-sm border border-solid border-border";
+const CARD = "absolute h-8 w-16 rounded-sm border";
 
 /** Three items, because one item cannot show a distribution. */
 function Tiles(props: { n: number; cls?: string; size?: string }) {
@@ -496,7 +496,7 @@ function Figure(props: {
  *  the positioning schemes differ from each other. */
 function Frame(props: { children: JSX.Element }) {
   return (
-    <div class="relative h-16 w-1/2 min-w-0 rounded-sm border border-dashed border-solid border-border bg-surface">
+    <div class="relative h-16 w-1/2 min-w-0 rounded-sm border border-dashed bg-surface">
       {props.children}
     </div>
   );
@@ -528,7 +528,7 @@ interface Mechanism {
 }
 
 const OVERFLOW_BOX =
-  "relative flex h-16 w-1/4 shrink-0 rounded-sm border border-solid border-border bg-surface-raised p-1";
+  "relative flex h-16 w-1/4 shrink-0 rounded-sm border bg-surface-raised p-1";
 
 const MECHANISMS: readonly Mechanism[] = [
   {
@@ -1227,7 +1227,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "inset":
       return (
         <UnderTest
-          base="inline-flex h-16 w-1/4 items-center justify-center rounded-sm border border-solid border-border bg-surface"
+          base="inline-flex h-16 w-1/4 items-center justify-center rounded-sm border bg-surface"
           cls={cls()}
         >
           <b class="block h-4 w-4 rounded-sm bg-accent" />
@@ -1239,9 +1239,9 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "sizes":
       return (
         <span class="inline-flex items-end gap-2">
-          <i class="block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-neutral-300" />
+          <i class="block h-8 w-8 shrink-0 rounded-sm border bg-neutral-300" />
           <UnderTest
-            base="block h-8 w-16 shrink-0 rounded-sm border border-solid border-border bg-surface-raised"
+            base="block h-8 w-16 shrink-0 rounded-sm border bg-surface-raised"
             cls={cls()}
           />
         </span>
@@ -1253,7 +1253,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "row":
       return (
         <UnderTest
-          base="inline-flex h-16 w-1/3 rounded-sm border border-solid border-border bg-surface p-2"
+          base="inline-flex h-16 w-1/3 rounded-sm border bg-surface p-2"
           cls={cls()}
         >
           <b class="block h-4 w-4 shrink-0 rounded-sm bg-neutral-300" />
@@ -1268,7 +1268,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       const columns = columnsOf(props.name);
       return (
         <UnderTest
-          base="inline-grid w-1/3 gap-1 rounded-sm border border-solid border-border bg-surface p-1"
+          base="inline-grid w-1/3 gap-1 rounded-sm border bg-surface p-1"
           cls={cls()}
         >
           <For each={Array.from({ length: columns }, (_, i) => i)}>
@@ -1286,15 +1286,15 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
         <span class="relative block h-16 w-1/4 shrink-0">
           <b class="absolute top-0 left-0 block">
             <UnderTest
-              base="block h-8 w-16 rounded-sm border border-solid border-border bg-neutral-300"
+              base="block h-8 w-16 rounded-sm border bg-neutral-300"
               cls={cls()}
             />
           </b>
           <b class="absolute top-2 left-2 block">
-            <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-neutral-400" />
+            <i class="block h-8 w-16 rounded-sm border bg-neutral-400" />
           </b>
           <b class="absolute top-4 left-4 block">
-            <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-surface-raised" />
+            <i class="block h-8 w-16 rounded-sm border bg-surface-raised" />
           </b>
         </span>
       );
@@ -1318,7 +1318,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "fill": {
       const ink = inkOn(props.name);
       const base =
-        "inline-flex h-16 w-full min-w-0 items-center justify-center rounded-sm border border-solid border-border";
+        "inline-flex h-16 w-full min-w-0 items-center justify-center rounded-sm border";
       if (ink !== "") {
         return (
           <span class="block w-full min-w-0">
@@ -1342,7 +1342,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       return (
         <span class="inline-flex h-16 w-full min-w-0 items-center justify-center rounded-md bg-surface p-4">
           <UnderTest
-            base="block h-8 w-16 rounded-md border border-solid border-border bg-surface-raised"
+            base="block h-8 w-16 rounded-md border bg-surface-raised"
             cls={cls()}
           />
         </span>
@@ -1352,7 +1352,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
        opacity reads as partial instead of as a bug. */
     case "faded":
       return (
-        <span class="relative block h-16 w-full min-w-0 overflow-hidden rounded-sm border border-solid border-border">
+        <span class="relative block h-16 w-full min-w-0 overflow-hidden rounded-sm border">
           <i class="absolute inset-0 flex">
             <For each={Array.from({ length: 8 }, (_, i) => i)}>
               {(i) => (
@@ -1390,7 +1390,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
       return (
         <span class="inline-flex items-center gap-2">
           <UnderTest base="block h-8 w-16 bg-surface-raised" cls={cls()} />
-          <i class="block h-8 w-16 rounded-sm border border-solid border-border bg-surface-raised" />
+          <i class="block h-8 w-16 rounded-sm border bg-surface-raised" />
         </span>
       );
 
@@ -1399,7 +1399,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "ruled":
       return (
         <UnderTest
-          base="inline-flex w-1/3 flex-col overflow-hidden rounded-sm border border-solid border-border bg-surface-raised"
+          base="inline-flex w-1/3 flex-col overflow-hidden rounded-sm border bg-surface-raised"
           cls={cls()}
         >
           <b class="flex items-center gap-2 px-2 py-2 type-caption">top row</b>
@@ -1412,7 +1412,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "clipped":
       return (
         <UnderTest
-          base="relative block h-16 w-1/3 rounded-sm border border-solid border-border bg-surface-raised"
+          base="relative block h-16 w-1/3 rounded-sm border bg-surface-raised"
           cls={cls()}
         >
           <b class="block h-16 w-full rounded-sm bg-accent p-2 type-code text-on-accent">
@@ -1425,7 +1425,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "said":
       return (
         <UnderTest
-          base="inline-flex w-full min-w-0 items-start gap-2 rounded-sm border border-solid border-border p-2 type-caption text-text-muted"
+          base="inline-flex w-full min-w-0 items-start gap-2 rounded-sm border p-2 type-caption text-muted"
           cls={cls()}
           tag="span"
         >
@@ -1444,39 +1444,39 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
  * ────────────────────────────────────────────────────────────────────────── */
 
 const PAGE_HEAD = "mb-8 flex items-start justify-between gap-4";
-const KIND = "type-code text-text-muted";
+const KIND = "type-code text-muted";
 const BADGE =
-  "shrink-0 rounded-lg border border-solid border-border bg-surface-raised px-2 py-1 type-code text-text-muted";
+  "shrink-0 rounded-lg border bg-surface-raised px-2 py-1 type-code text-muted";
 const SECTION = "mb-8";
 const SUBHEAD = "mt-8 mb-2 normal-case first:mt-0";
-const PROSE = "max-w-screen-md text-text-muted";
+const PROSE = "max-w-screen-md text-muted";
 const FAMILY_DEMO =
-  "flex flex-wrap items-start gap-4 rounded-lg border border-solid border-border bg-surface-raised p-4";
-const LEGEND = "mt-2 type-code text-text-muted";
+  "flex flex-wrap items-start gap-4 rounded-lg border bg-surface-raised p-4";
+const LEGEND = "mt-2 type-code text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
 const LABEL =
-  "mb-1 type-caption-strong normal-case text-text-muted";
+  "mb-1 type-caption-strong normal-case text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
-  "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border border-solid border-border bg-surface p-4";
+  "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border bg-surface p-4";
 const SCALE_STAGE =
-  "flex min-h-16 w-full min-w-0 items-center justify-center overflow-hidden rounded-lg border border-solid border-border bg-surface-raised p-8";
+  "flex min-h-16 w-full min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-surface-raised p-8";
 const SCALE_CONTROLS = "mt-4 flex flex-wrap items-start gap-8";
 const SCALE_GROUP = "flex flex-col items-start gap-2";
 const SCALE_BUTTONS = "flex flex-wrap gap-1";
 const DECL =
-  "mt-4 max-w-full overflow-x-auto rounded-md border border-solid border-border bg-surface-raised px-2 py-2 type-code text-text-muted";
+  "mt-4 max-w-full overflow-x-auto rounded-md border bg-surface-raised px-2 py-2 type-code text-muted";
 const DECL_NAME = "type-code";
 const NAME_LIST = "grid grid-cols-4 gap-2";
 const SWATCH_GRID = "mt-4 grid grid-cols-4 gap-2";
 const NOTE_BOX =
-  "mt-4 max-w-screen-md rounded-md border border-solid border-border bg-surface-raised p-4 text-text-muted";
+  "mt-4 max-w-screen-md rounded-md border bg-surface-raised p-4 text-muted";
 const PANEL =
-  "mb-8 rounded-lg border border-solid border-border bg-surface p-4";
-const MONO_MUTED = "type-code text-text-muted";
-const RAIL_COUNT = "shrink-0 type-code text-text-muted";
+  "mb-8 rounded-lg border bg-surface p-4";
+const MONO_MUTED = "type-code text-muted";
+const RAIL_COUNT = "shrink-0 type-code text-muted";
 const CHIP =
-  "inline-flex min-h-0 items-center gap-1 rounded-full border border-solid border-border bg-surface-raised px-2 py-1 type-code normal-case whitespace-nowrap text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-border-strong";
+  "inline-flex min-h-0 items-center gap-1 rounded-full border bg-surface-raised px-2 py-1 type-code normal-case whitespace-nowrap text-muted not-italic shadow-none cursor-pointer hover:border-strong disabled:cursor-not-allowed disabled:opacity-40 aria-[current]:border-strong";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE PAGE — families, scales, and the layout surface.
@@ -1512,15 +1512,15 @@ function Swatch(props: {
     ? props.name.slice(3)
     : props.name.slice(5);
   return (
-    <div class="flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised p-2">
+    <div class="flex items-center gap-2 rounded-md border bg-surface-raised p-2">
       <i
-        class={`block h-8 w-8 shrink-0 rounded-sm border border-solid border-border bg-${bare}`}
+        class={`block h-8 w-8 shrink-0 rounded-sm border bg-${bare}`}
       />
       <span class="min-w-0">
         <code class="block truncate">
           {props.name}
         </code>
-        <span class="block truncate type-code text-text-muted">
+        <span class="block truncate type-code text-muted">
           {props.values[bare] ?? ""}
         </span>
       </span>
@@ -1639,7 +1639,7 @@ function VariantsBench() {
         >
           hover, focus and press me
         </button>
-        <span class="inline-flex w-1/3 shrink-0 items-start gap-2 rounded-sm border border-dashed border-solid border-border p-2 type-caption text-text-muted">
+        <span class="inline-flex w-1/3 shrink-0 items-start gap-2 rounded-sm border border-dashed p-2 type-caption text-muted">
           nothing here is a still picture: every state below exists only while a
           pointer is over it, it holds focus, or it is pressed
         </span>
@@ -1654,7 +1654,7 @@ function InteractivityBench() {
     <div class={PANEL}>
       <div class={LABEL}>try these rather than look at them</div>
       <div class={RAIL_WRAP}>
-        <div class="flex h-16 w-1/3 shrink-0 cursor-grab flex-col gap-1 overflow-auto rounded-md border border-solid border-border bg-surface-raised p-2 select-none resize-y">
+        <div class="flex h-16 w-1/3 shrink-0 cursor-grab flex-col gap-1 overflow-auto rounded-md border bg-surface-raised p-2 select-none resize-y">
           <span class={MONO_MUTED}>grab · scroll · resize</span>
           <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>
             {(i) => (
@@ -1664,14 +1664,14 @@ function InteractivityBench() {
             )}
           </For>
         </div>
-        <div class="w-1/3 shrink-0 rounded-md border border-solid border-border bg-surface-raised p-2 select-text">
+        <div class="w-1/3 shrink-0 rounded-md border bg-surface-raised p-2 select-text">
           <span class={MONO_MUTED}>drag across this text</span>
           <p>
             Selection is a property of the pointer and the document, not of a
             picture.
           </p>
         </div>
-        <span class="pointer-events-none w-1/4 shrink-0 rounded-md border border-dashed border-solid border-border p-2 type-caption text-text-muted">
+        <span class="pointer-events-none w-1/4 shrink-0 rounded-md border border-dashed p-2 type-caption text-muted">
           pointer-events-none: this box cannot be pointed at, and cannot be
           proven by a screenshot.
         </span>
@@ -2108,11 +2108,11 @@ export function UtilitiesPage(props: { group: string }) {
  * ────────────────────────────────────────────────────────────────────────── */
 
 const SPECIMEN_PANEL =
-  "flex min-h-16 items-center rounded-md border border-dashed border-solid border-border bg-surface p-8";
+  "flex min-h-16 items-center rounded-md border border-dashed bg-surface p-8";
 
 /** The quiet way out of a specimen: a link-shaped button. */
 const QUIET_BUTTON =
-  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-text-muted not-italic shadow-none cursor-pointer hover:border-border-strong";
+  "self-start inline-flex min-h-0 items-center gap-1 rounded-md border border-solid border-transparent bg-transparent px-2 py-1 type-code normal-case text-muted not-italic shadow-none cursor-pointer hover:border-strong";
 
 /** The fills the palette is made of, each with the foreground it is paired
  *  with by the theme — the label is the class, so the tile is also the name. */
@@ -2205,7 +2205,7 @@ function SpacingSpecimen() {
         {(cls) => (
           <figure class="flex flex-col items-start gap-1">
             <div
-              class={`inline-block rounded-sm border border-dashed border-solid border-border bg-surface ${cls}`}
+              class={`inline-block rounded-sm border border-dashed bg-surface ${cls}`}
             >
               <b class="block h-4 w-4 rounded-sm bg-accent" />
             </div>
@@ -2225,7 +2225,7 @@ function BorderSpecimen() {
           {(cls) => (
             <figure class="flex flex-col items-start gap-1">
               <div
-                class={`block h-12 w-20 border border-solid border-border bg-surface-raised ${cls}`}
+                class={`block h-12 w-20 border bg-surface-raised ${cls}`}
               />
               <code>{cls}</code>
             </figure>
@@ -2237,7 +2237,7 @@ function BorderSpecimen() {
           {(cls) => (
             <figure class="flex flex-col items-start gap-1">
               <div
-                class={`block h-12 w-20 rounded-md border border-solid border-border bg-surface-raised ${cls}`}
+                class={`block h-12 w-20 rounded-md border bg-surface-raised ${cls}`}
               />
               <code>{cls}</code>
             </figure>
@@ -2289,17 +2289,17 @@ function SectionCard(props: { section: Section; count: number }) {
     <button
       type="button"
       onClick={() => (location.hash = `#/utilities/${props.section.id}`)}
-      class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-border-strong"
+      class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-strong"
     >
       <span class="flex w-full items-center gap-2">
           <span class="type-body-strong">
           {props.section.title}
         </span>
-        <span class="ms-auto shrink-0 type-code text-text-muted">
+        <span class="ms-auto shrink-0 type-code text-muted">
           {props.count}
         </span>
       </span>
-      <span class="type-caption text-text-muted">{props.section.blurb}</span>
+      <span class="type-caption text-muted">{props.section.blurb}</span>
     </button>
   );
 }
@@ -2328,7 +2328,7 @@ export function UtilitiesLanding() {
         </div>
         <span class={BADGE}>{total()} names</span>
       </header>
-      <p class="max-w-screen-md text-text-muted">
+      <p class="max-w-screen-md text-muted">
         Every page on this side is drawn by the utilities it describes: the
         chrome around a demonstration wears the surface being demonstrated, so a
         utility that breaks breaks the showcase with it.
@@ -2336,7 +2336,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Sections</h3>
-        <p class="max-w-screen-md text-text-muted">
+        <p class="max-w-screen-md text-muted">
           The surface cut by what a reader is looking for, not by which file the
           rule lives in.
         </p>
@@ -2354,7 +2354,7 @@ export function UtilitiesLanding() {
 
       <section class="mb-8">
         <h3 class={SUBHEAD}>Specimens</h3>
-        <p class="max-w-screen-md text-text-muted">
+        <p class="max-w-screen-md text-muted">
           Four of the{" "}
           {SECTIONS.length}, each one built out of the utilities it names — the
           demo is the class rather than a picture of it.

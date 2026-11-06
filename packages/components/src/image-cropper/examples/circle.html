@@ -5,11 +5,11 @@ const machine = imageCropper({ cropShape: "circle" });
 </script>
 <div class="w-full" {...machine.getRootProps()}>
   <div
-    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken select-none transition-colors duration-fast ease-decelerate"
+    class="relative h-60 w-full touch-none overflow-hidden rounded-lg border bg-surface-sunken select-none transition-colors duration-fast ease-decelerate"
     {...machine.getViewportProps()}
   >
     <div
-      class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-raised text-text-muted"
+      class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-raised text-muted"
       {...machine.getImageProps()}
     >
       <span class="i-lucide-image icon-lg text-primary" aria-hidden="true"></span>

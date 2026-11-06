@@ -48,17 +48,17 @@ export default function PreferencesPage() {
         <Frame>
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="stack-xs">
-              <span class="type-caption text-text-muted">Root</span>
+              <span class="type-caption text-muted">Root</span>
               <code class="truncate">{project()?.root ?? "—"}</code>
             </div>
             <div class="stack-xs">
-              <span class="type-caption text-text-muted">Preset status</span>
+              <span class="type-caption text-muted">Preset status</span>
               <code class="truncate">
                 {project()?.wired ? "spinPreset wired" : "not wired"}
               </code>
             </div>
             <div class="stack-xs">
-              <span class="type-caption text-text-muted">Themes</span>
+              <span class="type-caption text-muted">Themes</span>
               <span class="type-body">
                 {registry()?.filter((t) => t.file !== null).length ?? 0} project
                 {" · "}
@@ -67,7 +67,7 @@ export default function PreferencesPage() {
               </span>
             </div>
             <div class="stack-xs">
-              <span class="type-caption text-text-muted">Themes directory</span>
+              <span class="type-caption text-muted">Themes directory</span>
               <code class="truncate">
                 {project()?.spin ? "spin/" : "not initialized"}
               </code>
@@ -93,7 +93,7 @@ export default function PreferencesPage() {
             </div>
             <div class="stack-sm min-w-[12rem] flex-1">
               <DrawerEdge />
-              <p class="text-text-muted">
+              <p class="text-muted">
                 The studio asks the host which edge it is on rather than
                 guessing from its own width, so a drawer on the right is a
                 drawer on the right.
@@ -114,7 +114,7 @@ export default function PreferencesPage() {
               {(chip) => (
                 <figure class="stack-sm w-20">
                   <span
-                    class="block h-10 w-full rounded-md border border-border"
+                    class="block h-10 w-full rounded-md border"
                     // The studio's OWN colour, painted by its resolved value:
                     // a utility can only paint the active theme's tokens, and
                     // these are the colours the tool around the page wears.
@@ -151,7 +151,7 @@ function EdgeFigure(props: { edge: "left" | "right"; chosen: boolean }) {
     }`;
   return (
     <figure class="stack-sm w-24">
-      <div class="flex h-24 gap-1 rounded-md border border-border bg-surface p-1">
+      <div class="flex h-24 gap-1 rounded-md border bg-surface p-1">
         {props.edge === "left" && <div class={strip()} />}
         <div class="flex-1 rounded-sm bg-surface-sunken" />
         {props.edge === "right" && <div class={strip()} />}

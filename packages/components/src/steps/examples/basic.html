@@ -12,7 +12,7 @@ const machine = steps({
  <div class="mb-3 flex items-center justify-between gap-2">
   <span class="type-label">Checkout</span>
   <span
-   class="type-caption text-text-muted">Step {machine.value + 1} of {machine.count}</span>
+   class="type-caption text-muted">Step {machine.value + 1} of {machine.count}</span>
  </div>
 
  <ol class="row-list items-start gap-1" {...machine.getListProps()}>
@@ -23,7 +23,7 @@ const machine = steps({
      class="bare flex shrink-0 items-center gap-3 bg-transparent text-left"
      {...machine.getTriggerProps(row)}
     ><span
-      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-label", { "border-border bg-surface-raised text-text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
+      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-label", { "border bg-surface-raised text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
       {...machine.getIndicatorProps(row)}
      ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check type-code"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="type-label">{machine.getItemTitle(row)}</span></button><span aria-hidden="true" class={["mx-3 h-1 flex-1 bg-border", { "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
    </li>
@@ -41,7 +41,7 @@ const machine = steps({
 
  <div class="mt-3 hidden" {...machine.getContentProps(machine.value)}>
   <p
-   class="rounded-md border border-solid border-border bg-surface-raised p-3">{machine.getItemTitle(machine.value)}</p>
+   class="rounded-md border bg-surface-raised p-3">{machine.getItemTitle(machine.value)}</p>
  </div>
 
  <div class="mt-3 flex items-center gap-2">

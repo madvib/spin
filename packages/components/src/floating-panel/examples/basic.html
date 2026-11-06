@@ -7,20 +7,20 @@
 <div class="grid w-full justify-items-center gap-2">
   <button class="mb-2 w-full max-w-[20rem] justify-self-center secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
-    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
-      <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
+    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
+      <div class={["flex items-center justify-between gap-2 border-b border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
-          <span class="i-lucide-grip-vertical shrink-0 type-code text-text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-grip-vertical shrink-0 type-code text-muted" aria-hidden="true"></span>
           <span class="truncate type-label">Basic Panel</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
-          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
+          <button class="ghost flex h-6 max-h-6 min-h-0 w-6 items-center justify-center p-0 text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-2 p-4">
         <p>A panel that moves, resizes, minimizes, and closes.</p>
-        <ul class="grid gap-1 text-text-muted">
+        <ul class="grid gap-1 text-muted">
           <li>Draggable header</li>
           <li>Resizable edges</li>
           <li>Minimize, maximize, restore</li>

@@ -19,26 +19,26 @@ const machine = listbox({
 
 <div class="w-64 max-w-full" {...machine.getRootProps()}>
   <label
-    class={["block transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled, "text-primary": machine.focused }]}
+    class={["block transition-colors duration-fast ease-decelerate", { "opacity-50 cursor-not-allowed": machine.disabled }]}
     {...machine.getLabelProps()}
   >Languages</label>
 
   <span
-    class={["block type-body text-text-muted transition-colors duration-fast ease-decelerate", { "hidden": machine.empty }]}
+    class={["block type-body text-muted transition-colors duration-fast ease-decelerate", { "hidden": machine.empty }]}
     {...machine.getValueTextProps()}
   >{machine.valueAsString}</span>
 
-  <div
-    class={["max-h-60 overflow-y-auto rounded-lg border border-solid border-border bg-surface-raised p-1 transition-colors duration-fast ease-decelerate", { "opacity-60": machine.disabled, "hidden": machine.empty }]}
+  <panel
+    class="max-h-60 overflow-y-auto"
     {...machine.getContentProps()}
   >
     <template for={machine.getBlocks()} as={block} key={block.id}>
       <div class="py-1" {...machine.getItemGroupProps(block)}>
-        <span class="block px-2 py-1 type-caption-strong text-text-muted"
+        <span class="block px-2 py-1 type-caption-strong text-muted"
           {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
         <template for={machine.getRows(block)} as={row} key={row.value}>
           <div
-            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate data-[highlighted]:bg-surface aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected", { "cursor-not-allowed opacity-50": machine.disabled }]}
+            class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate", { "bg-surface": row.highlighted, "bg-selected text-on-selected": row.selected, "cursor-not-allowed opacity-50": row.disabled }]}
             {...machine.getItemProps(row)}
           >
             <span class="min-w-0 flex-1 truncate"
@@ -52,5 +52,5 @@ const machine = listbox({
         </template>
       </div>
     </template>
-  </div>
+  </panel>
 </div>

@@ -16,10 +16,10 @@ const machine = timer({
       {...machine.getItemProps({ type: unit.type })}>
       <span class="stat-value tabular-nums"
        {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
-      <span class="type-caption text-text-muted"
+      <span class="type-caption text-muted"
        {...machine.getItemLabelProps({ type: unit.type })}>{unit.label}</span>
      </div>
-     <span aria-hidden="true" class="stat-value text-text-muted"
+     <span aria-hidden="true" class="stat-value text-muted"
       {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
     </div>
    </template>

@@ -17,7 +17,7 @@ const machine = steps({
      class="bare flex shrink-0 items-center gap-3 bg-transparent text-left"
      {...machine.getTriggerProps(row)}
     ><span
-      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-label", { "border-border bg-surface-raised text-text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
+      class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-label", { "border bg-surface-raised text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
       {...machine.getIndicatorProps(row)}
      ><span class="i-lucide-user type-code" aria-hidden="true" show={row === 0}></span><span class="i-lucide-settings type-code" aria-hidden="true" show={row === 1}></span><span class="i-lucide-refresh-cw type-code" aria-hidden="true" show={row === 2}></span><span class="i-lucide-check type-code" aria-hidden="true" show={row === 3}></span></span><span class="type-label">{machine.getItemTitle(row)}</span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 h-1 flex-1", { "bg-border": machine.getItemState(row).completed === false, "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
    </li>

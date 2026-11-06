@@ -16,11 +16,11 @@ const machine = themePicker({
 <div class="flex flex-wrap items-center gap-2" {...machine.getRootProps()}>
   <template for={machine.getItems()} as={row} key={row.value}>
     <button
-      class={["bare inline-flex items-center gap-2 rounded-full border border-solid bg-surface px-3 py-1 transition-colors", { "border-border": machine.getItemState(row).selected === false, "border-primary ring-1 ring-primary": machine.getItemState(row).selected }]}
+      class={["bare inline-flex items-center gap-2 rounded-full border bg-surface px-3 py-1 transition-colors", { "border": machine.getItemState(row).selected === false, "border-primary ring-1 ring-primary": machine.getItemState(row).selected }]}
       {...machine.getItemProps(row)}
     >
       <span class="inline-flex h-3 items-center gap-1" {...machine.getItemSwatchProps(row)}>
-        <span class="h-2 w-2 shrink-0 rounded-full border border-solid border-border bg-surface"></span>
+        <span class="h-2 w-2 shrink-0 rounded-full border bg-surface"></span>
         <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
         <span class="h-2 w-2 shrink-0 rounded-full bg-text"></span>
       </span>

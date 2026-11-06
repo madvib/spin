@@ -20,9 +20,9 @@ const machine = navigationMenu({
           {...machine.getLinkProps(row)}>{row.label}</a>
 
         <div
-          class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border border-solid border-border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate"
+          class="absolute left-0 top-full z-dropdown mt-1 w-60 origin-top-left rounded-lg border bg-surface-raised p-2 shadow-lg transition duration-fast ease-decelerate"
           {...machine.getItemContentProps(row)}>
-          <p class="text-text-muted">{row.label} panel</p>
+          <p class="text-muted">{row.label} panel</p>
           <a class="mt-2 block" {...machine.getLinkProps(row)}>Open {row.label}</a>
         </div>
       </li>

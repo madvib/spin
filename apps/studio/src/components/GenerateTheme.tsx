@@ -150,13 +150,13 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
             {(r) => (
               <button
                 type="button"
-                class="bare flex min-w-0 flex-1 items-center gap-2 rounded-md border border-solid border-border p-2 text-left"
+                class="bare flex min-w-0 flex-1 items-center gap-2 rounded-md border p-2 text-left"
                 classList={{ "border-primary border-2": role() === r }}
                 aria-pressed={role() === r}
                 onClick={() => setRole(r)}
               >
                 <span
-                  class="h-8 w-8 shrink-0 rounded-md border border-solid border-border"
+                  class="h-8 w-8 shrink-0 rounded-md border"
                   style={{ background: toHex(shownFor(r)) ?? shownFor(r) }}
                 />
                 <span class="min-w-0">
@@ -211,7 +211,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                   class="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-body-strong"
                   classList={{
                     "border-primary bg-primary text-on-primary": index() <= step(),
-                    "border-border bg-surface-raised text-text-muted": index() > step(),
+                    "border bg-surface-raised text-muted": index() > step(),
                   }}
                   aria-current={index() === step() ? "step" : undefined}
                 >
@@ -230,7 +230,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                 {(theme) => (
                   <button
                     type="button"
-                    class="bare min-w-0 overflow-hidden rounded-md border border-solid border-border p-1 text-left"
+                    class="bare min-w-0 overflow-hidden rounded-md border p-1 text-left"
                     classList={{ "border-primary border-2": starterName() === theme.name }}
                     aria-pressed={starterName() === theme.name}
                     onClick={() => setStarterName(theme.name)}
@@ -241,7 +241,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
               </For>
               <button
                 type="button"
-                class="bare min-w-0 overflow-hidden rounded-md border border-solid border-border p-1 text-left"
+                class="bare min-w-0 overflow-hidden rounded-md border p-1 text-left"
                 classList={{ "border-primary border-2": starterName() === "Blank" }}
                 aria-pressed={starterName() === "Blank"}
                 onClick={() => setStarterName("Blank")}
@@ -287,7 +287,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
           </Show>
         </div>
 
-        <div class="flex items-center justify-between gap-4 border-t border-border pt-4">
+        <div class="flex items-center justify-between gap-4 border-t pt-4">
           <button
             type="button"
             class="secondary disabled:opacity-50"

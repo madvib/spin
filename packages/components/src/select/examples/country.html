@@ -30,11 +30,11 @@ const machine = select({
         </template>
       </span>
       <span aria-hidden="true"
-        class={["shrink-0 text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
+        class={["shrink-0 text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
         {...machine.getTriggerIndicatorProps()}><span class="i-lucide-chevron-down type-caption" aria-hidden="true"></span></span>
     </button>
     <button aria-hidden="true" tabindex="-1"
-      class="flex h-6 w-6 shrink-0 items-center justify-center ghost icon s-sm text-text-muted transition-colors duration-fast ease-decelerate hover:bg-surface"
+      class="flex h-6 w-6 shrink-0 items-center justify-center ghost icon s-sm text-muted transition-colors duration-fast ease-decelerate hover:bg-surface"
       {...machine.getClearTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
   </div>
 
@@ -42,7 +42,7 @@ const machine = select({
     class={["absolute z-dropdown left-0 top-full mt-1 w-full origin-top-left transition duration-fast ease-decelerate min-w-[12rem]", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
     {...machine.getPositionerProps()}>
     <div
-      class="max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-solid border-border bg-surface-raised p-1 shadow-lg"
+      class="max-h-56 overflow-y-auto overscroll-contain rounded-lg border bg-surface-raised p-1 shadow-lg"
       {...machine.getContentProps()}>
       <div role="group" class="flex flex-col p-1" {...machine.getListProps()}>
         <template for={machine.getRows()} as={row} key={row.value}>

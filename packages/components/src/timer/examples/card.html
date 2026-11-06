@@ -7,7 +7,7 @@ const machine = timer({
 </script>
 <div class="mx-auto w-full max-w-[20rem]" {...machine.getRootProps()}>
  <div
-  class="rounded-lg border border-solid border-border bg-surface-raised p-4"
+  class="rounded-lg border bg-surface-raised p-4"
   {...machine.getAreaProps()}>
   <div
    class="mb-3 flex items-center gap-2"><span class="i-lucide-clock text-primary"></span><span class="type-label">Meeting Timer</span></div>
@@ -16,10 +16,10 @@ const machine = timer({
     <div class="flex flex-col items-center"
      {...machine.getItemProps({ type: unit.type })}>
      <span
-      class="rounded-md border border-solid border-border bg-surface px-3 py-2 stat-value tabular-nums"
+      class="rounded-md border bg-surface px-3 py-2 stat-value tabular-nums"
       {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
     </div>
-    <span aria-hidden="true" class="mx-1 text-text-muted"
+    <span aria-hidden="true" class="mx-1 text-muted"
      {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
    </template>
   </div>

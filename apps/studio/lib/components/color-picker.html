@@ -9,16 +9,16 @@ const machine = colorPicker({
 
 <div class="relative inline-flex shrink-0" {...machine.getRootProps()}>
   <button
-    class="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border border-solid border-border bg-surface px-2 hover:border-primary"
+    class="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border bg-surface px-2 hover:border-primary"
     {...machine.getTriggerProps()}
   >
     <span
       aria-hidden="true"
-      class="block h-4 w-4 shrink-0 rounded-sm border border-solid border-border"
+      class="block h-4 w-4 shrink-0 rounded-sm border"
       {...machine.getSwatchProps({ value: machine.valueAsString })}
     ></span>
     <span>Pick color</span>
-    <span class="i-lucide-pipette icon-sm text-text-muted" aria-hidden="true"></span>
+    <span class="i-lucide-pipette icon-sm text-muted" aria-hidden="true"></span>
     <span class="sr-only" {...machine.getValueTextProps()}>{machine.valueAsString}</span>
   </button>
   <div
@@ -27,12 +27,12 @@ const machine = colorPicker({
     {...machine.getPositionerProps()}
   >
     <div
-      class="w-60 rounded-lg border border-solid border-border bg-surface-raised p-3 shadow-lg"
+      class="w-60 rounded-lg border bg-surface-raised p-3 shadow-lg"
       {...machine.getContentProps()}
     >
       <div class="flex flex-col gap-3">
         <div
-          class="relative h-36 w-full rounded-md border border-solid border-border"
+          class="relative h-36 w-full rounded-md border"
           {...machine.getAreaProps()}
         >
           <div
@@ -58,11 +58,11 @@ const machine = colorPicker({
           {...machine.getChannelSliderProps({ channel: "hue" })}
         >
           <span
-            class="w-10 type-caption text-text-muted"
+            class="w-10 type-caption text-muted"
             {...machine.getChannelSliderLabelProps({ channel: "hue" })}
           >Hue</span>
           <div
-            class="relative h-3 flex-1 rounded-full border border-solid border-border"
+            class="relative h-3 flex-1 rounded-full border"
             {...machine.getChannelSliderTrackProps({ channel: "hue" })}
           >
             <div

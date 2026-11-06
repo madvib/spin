@@ -64,12 +64,13 @@ function catalogStyleNames(theme: Record<string, string>): string[] {
  */
 export function describeCatalog(tree: TokenTree): CatalogSection[] {
   const theme = themeRef(tree);
+  const colorNames = namesIn(theme, "color");
   return [
     {
       id: "background",
       title: "Background",
       utilities: [
-        ...prefixed(["bg-"], namesIn(theme, "color")),
+        ...prefixed(["bg-"], colorNames),
         "bg-transparent",
         "bg-current",
         "bg-currentColor",
@@ -79,11 +80,14 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "text-color",
       title: "Text color",
       utilities: [
-        // T5 (remove `text-text`): the catalog never names it, so the
-        // vocabulary built from the catalog cannot produce it — while
-        // `color.text` stays a token and `text-text-muted` stays a utility.
-        ...prefixed(["text-"], namesIn(theme, "color")).filter(
-          (utility) => utility !== "text-text",
+        // The default ink needs no naming, so the catalog never names
+        // `text-text` — while `color.text` stays a token and `text-muted`
+        // (`color.text-muted`) stays a utility.
+        ...prefixed(
+          ["text-"],
+          colorNames
+            .filter((name) => name !== "text")
+            .map((name) => name === "text-muted" ? "muted" : name),
         ),
         "text-transparent",
         "text-current",
@@ -94,7 +98,12 @@ export function describeCatalog(tree: TokenTree): CatalogSection[] {
       id: "border",
       title: "Border",
       utilities: [
-        ...prefixed(["border-"], namesIn(theme, "color")),
+        ...prefixed(
+          ["border-"],
+          colorNames
+            .filter((name) => name !== "border")
+            .map((name) => name === "border-strong" ? "strong" : name),
+        ),
         "border-transparent",
         "border-current",
         "border-currentColor",

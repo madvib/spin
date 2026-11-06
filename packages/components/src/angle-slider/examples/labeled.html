@@ -10,24 +10,24 @@ const machine = angleSlider({ value: "121" });
   <div class="relative p-8">
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[50%] top-[5.3%]">0°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[50%] top-[5.3%]">0°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[81.6%] top-[18.4%]">45°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[81.6%] top-[18.4%]">45°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[94.7%] top-[50%]">90°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[94.7%] top-[50%]">90°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[81.6%] top-[81.6%]">135°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[81.6%] top-[81.6%]">135°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[50%] top-[94.7%]">180°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[50%] top-[94.7%]">180°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[18.4%] top-[81.6%]">225°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[18.4%] top-[81.6%]">225°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[5.3%] top-[50%]">270°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[5.3%] top-[50%]">270°</span>
       <span
-        class="absolute -translate-1/2 type-code text-text-muted left-[18.4%] top-[18.4%]">315°</span>
+        class="absolute -translate-1/2 type-code text-muted left-[18.4%] top-[18.4%]">315°</span>
     </div>
     <div
-      class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border border-solid border-border bg-surface-raised"
+      class="relative flex h-[15rem] w-[15rem] items-center justify-center rounded-full border bg-surface-raised"
       {...machine.getControlProps()}
     >
       <span
@@ -55,7 +55,7 @@ const machine = angleSlider({ value: "121" });
         {...machine.getValueTextProps()}>
         <span
           class="stat-value tabular-nums">{machine.value}°</span>
-        <span class="type-caption text-text-muted">degrees</span>
+        <span class="type-caption text-muted">degrees</span>
       </span>
     </div>
   </div>

@@ -309,7 +309,7 @@ export function Markdown(
           }
           if (block.kind === "table") {
             return (
-              <div class="my-4 overflow-x-auto rounded-lg border border-border">
+              <div class="my-4 overflow-x-auto rounded-lg border">
                 <table class="wrap">
                   <thead>
                     <tr>

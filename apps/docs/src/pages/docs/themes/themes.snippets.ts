@@ -24,9 +24,9 @@ export const THEMES_SNIPPETS = {
     <!-- marketing panel: Catppuccin ink, dark answer -->
   </aside>
 </div>`,
-  composedSubtree: `<div data-palette="catppuccin" data-spacing="compact" data-mode="dark" class="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+  composedSubtree: `<div data-palette="catppuccin" data-spacing="compact" data-mode="dark" class="flex flex-col gap-4 rounded-lg border bg-surface p-4">
   <strong>Release pipeline</strong>
-  <p class="text-text-muted">Ink from Catppuccin, rhythm from compact, mode scoped to this card.</p>
+  <p class="text-muted">Ink from Catppuccin, rhythm from compact, mode scoped to this card.</p>
   <div class="flex flex-wrap items-center gap-4">
     <button type="button" class="primary">Promote build</button>
     <button type="button">Compare diff</button>
@@ -104,13 +104,13 @@ export const plugins = [
   subtreeMode: `<div class="grid gap-4 md:grid-cols-2">
   <article class="card" data-theme="silk" data-mode="light">
     <h3>Light Container</h3>
-    <p class="type-caption text-text-muted">Rendered with data-mode="light".</p>
+    <p class="type-caption text-muted">Rendered with data-mode="light".</p>
     <button class="primary">Primary Action</button>
   </article>
 
   <article class="card" data-theme="silk" data-mode="dark">
     <h3>Dark Subtree</h3>
-    <p class="type-caption text-text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
+    <p class="type-caption text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
     <button class="primary">Primary Action</button>
   </article>
 </div>`,

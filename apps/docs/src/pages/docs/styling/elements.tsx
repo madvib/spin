@@ -506,7 +506,7 @@ export default function StylingElements(): JSX.Element {
           gzipped):
         </p>
 
-        <div class="my-2 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div class="my-2 overflow-x-auto rounded-lg border bg-surface">
           <table>
             <thead>
               <tr>
@@ -591,7 +591,7 @@ export default function StylingElements(): JSX.Element {
                     <span>Chrome-free (.bare)</span>
                   </button>
                 </div>
-                <div class="flex flex-col gap-2 border-t border-border pt-3">
+                <div class="flex flex-col gap-2 border-t pt-3">
                   <small>
                     Active starter component tokens on <code>&lt;button&gt;</code>{" "}
                     and <code>&lt;card&gt;</code>:

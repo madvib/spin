@@ -6,11 +6,11 @@ const machine = combobox({});
 
 <div class="relative w-full" {...machine.getRootProps()}>
   <div class="relative" {...machine.getControlProps()}>
-    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-text-muted" aria-hidden="true">
+    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-muted" aria-hidden="true">
       <span class="inline-block icon-sm i-lucide-search"></span>
     </span>
     <input
-      class="w-full pl-8 pr-16 placeholder:text-text-muted"
+      class="w-full pl-8 pr-16 placeholder:text-muted"
       data-testid="command-palette-input"
       {...machine.getInputProps()}
     />
@@ -25,13 +25,13 @@ const machine = combobox({});
       {...machine.getPositionerProps()}
     >
       <div
-        class="overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg"
+        class="overflow-hidden rounded-lg border bg-surface-raised shadow-lg"
         {...machine.getContentProps()}
       >
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
                   class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"
@@ -41,7 +41,7 @@ const machine = combobox({});
                   <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
                   <span
                     aria-hidden="true"
-                    class="shrink-0 type-caption text-text-muted"
+                    class="shrink-0 type-caption text-muted"
                     {...machine.getItemIndicatorProps(row)}
                   ><span class="inline-block icon-sm i-lucide-chevron-right" aria-hidden="true"></span></span>
                 </div>

@@ -75,7 +75,7 @@ export function ConcernPage(props: {
             <h1>{props.title}</h1>
             {props.action}
           </div>
-          {props.note ? <p class="max-w-screen-md text-text-muted">{props.note}</p> : null}
+          {props.note ? <p class="max-w-screen-md text-muted">{props.note}</p> : null}
         </header>
         {props.children}
       </div>
@@ -131,7 +131,7 @@ export function TokenLine(props: {
     tokenStatus(themeText(), projectText(), props.path, activeMode())
   );
   return (
-    <li data-studio-chrome="" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0">
+    <li data-studio-chrome="" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b py-3 last:border-b-0">
       <div class="row-sm min-w-[10rem] shrink-0">
         <code class="truncate">
           {props.path}
@@ -141,7 +141,7 @@ export function TokenLine(props: {
             <span class="inline-flex items-center">
               <span
                 tabindex="0"
-                class="rounded-sm bg-surface-sunken px-1 py-1 type-code text-text-muted"
+                class="rounded-sm bg-surface-sunken px-1 py-1 type-code text-muted"
               >
                 → {target()}
               </span>
@@ -253,8 +253,8 @@ export function Badge(props: {
  */
 export function TokenChip(props: { path: string; value: string }) {
   return (
-    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border border-border bg-surface-raised px-1 py-1">
-      <span class="truncate type-code text-text-muted">
+    <span class="inline-flex max-w-full items-baseline gap-2 rounded-sm border bg-surface-raised px-1 py-1">
+      <span class="truncate type-code text-muted">
         {props.path}
       </span>
       <span class="shrink-0 type-code">{props.value}</span>

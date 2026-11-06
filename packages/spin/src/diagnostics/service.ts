@@ -137,6 +137,9 @@ export async function filesUnder(path: string): Promise<string[]> {
         continue;
       }
       if (SOURCE.test(entry.name)) {
+        // An `index.html` is a document shell, not a component: the walk
+        // leaves it out, while a path that names it directly is still read.
+        if (entry.name === "index.html") continue;
         out.push(child);
         continue;
       }

@@ -47,7 +47,7 @@ const TOKENS = `
   <card-content>
     <div class="grid grid-cols-2 gap-2">
       <div class="rounded-md bg-primary p-3 type-label text-on-primary">primary</div>
-      <div class="rounded-md border border-solid border-border bg-surface p-3 type-label">surface</div>
+      <div class="rounded-md border bg-surface p-3 type-label">surface</div>
       <div class="rounded-md bg-semantic-success p-3 type-label text-on-semantic-success">success</div>
       <div class="rounded-md bg-semantic-warning p-3 type-label text-on-semantic-warning">warning</div>
       <div class="rounded-md bg-semantic-error p-3 type-label text-on-semantic-error">error</div>
@@ -79,7 +79,7 @@ const DIALOG = `
       <header>
         <h2>Confirm deployment</h2>
       </header>
-      <p class="type-caption text-text-muted">Promote build 2.4.0 to all production regions?</p>
+      <p class="type-caption text-muted">Promote build 2.4.0 to all production regions?</p>
       <footer>
         <button value="cancel">Cancel</button>
         <button class="primary" value="confirm">Deploy now</button>

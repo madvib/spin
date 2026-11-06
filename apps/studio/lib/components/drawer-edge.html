@@ -11,10 +11,10 @@ const machine = toggleGroup({
 </script>
 
 <div class="row-sm gap-2" role="group" aria-label="Drawer edge" {...machine.getRootProps()}>
-  <span class="text-text-muted">Drawer</span>
+  <span class="text-muted">Drawer</span>
   <template for={machine.getItems()} as={row} key={row.value}>
     <button
-      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary": machine.value.includes(row.value), "text-text-muted": !machine.value.includes(row.value) }]}
+      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary": machine.value.includes(row.value), "text-muted": !machine.value.includes(row.value) }]}
       data-edge={row.value}
       {...machine.getItemProps(row)}
     >

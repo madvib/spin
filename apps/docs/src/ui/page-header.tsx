@@ -97,7 +97,7 @@ export function PageHeader(props: {
   };
 
   return (
-    <header class="mb-8 flex flex-col gap-3 border-b border-border pb-6">
+    <header class="mb-8 flex flex-col gap-3 border-b pb-6">
       <div
         data-md-ignore="true"
         class="flex flex-wrap items-center justify-between gap-2"
@@ -110,7 +110,7 @@ export function PageHeader(props: {
             {(ex) => (
               <A
                 href={`/playground?example=${ex()}`}
-                class="inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 type-code no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
+                class="inline-flex items-center gap-1 rounded-md border bg-surface-raised px-2 py-1 type-code no-underline transition-colors duration-fast hover:border-primary hover:text-primary"
               >
                 <span class="i-lucide-play icon-sm" aria-hidden="true" />
                 <span>Playground</span>
@@ -120,7 +120,7 @@ export function PageHeader(props: {
           <button
             type="button"
             onClick={onCopyMarkdown}
-            class="bare inline-flex items-center gap-1 rounded-md border border-border bg-surface-raised px-2 py-1 type-code text-text-muted transition-colors duration-fast hover:border-border-strong"
+            class="bare inline-flex items-center gap-1 rounded-md border bg-surface-raised px-2 py-1 type-code text-muted transition-colors duration-fast hover:border-strong"
           >
             <span
               class={
@@ -143,7 +143,7 @@ export function PageHeader(props: {
       </div>
       <h1>{props.title}</h1>
       <Show when={props.lede}>
-        <p class="max-w-prose text-text-muted">{props.lede}</p>
+        <p class="max-w-prose text-muted">{props.lede}</p>
       </Show>
     </header>
   );
@@ -172,7 +172,7 @@ export function Section(props: {
 
 export function Chip(props: { children: JSX.Element }): JSX.Element {
   return (
-    <span class="rounded-sm border border-border bg-surface-raised px-2 py-1 type-code text-text-muted">
+    <span class="rounded-sm border bg-surface-raised px-2 py-1 type-code text-muted">
       {props.children}
     </span>
   );

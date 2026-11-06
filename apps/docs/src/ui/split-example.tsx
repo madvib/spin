@@ -33,12 +33,12 @@ export function SplitExample(props: {
   });
 
   return (
-    <div class="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2">
+    <div class="overflow-hidden rounded-lg border bg-surface shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b bg-surface-raised px-4 py-2">
         <div class="flex flex-col">
           <span class="type-code">{props.title}</span>
           <Show when={props.description}>
-            <span class="type-caption text-text-muted">{props.description}</span>
+            <span class="type-caption text-muted">{props.description}</span>
           </Show>
         </div>
         <div class="flex items-center gap-2">

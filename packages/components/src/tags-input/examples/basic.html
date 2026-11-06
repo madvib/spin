@@ -11,12 +11,12 @@ const machine = tags({
   class={["mb-1 block transition-opacity duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
   {...machine.getLabelProps()}>Skills</label>
  <div
-  class={["flex flex-wrap items-center gap-1 rounded-md border border-solid border-border bg-surface-raised p-1 transition-shadow duration-fast ease-decelerate", { "ring-2 ring-border-strong": machine.focused }]}
+  class={["flex flex-wrap items-center gap-1 rounded-md border bg-surface-raised p-1 transition-shadow duration-fast ease-decelerate", { "ring-2 ring-border-strong": machine.focused }]}
   {...machine.getControlProps()}>
   <template for={machine.getTags()} as={row}
    key={row.value + ":" + row.occurrence}>
    <span
-    class={["inline-flex items-center gap-1 rounded-sm border border-solid border-border bg-surface py-1 pl-2 pr-1 type-caption transition-colors duration-fast ease-decelerate", { "border-primary text-primary": machine.getItemState(row).highlighted }]}
+    class={["inline-flex items-center gap-1 rounded-sm border bg-surface py-1 pl-2 pr-1 type-caption transition-colors duration-fast ease-decelerate", { "border-primary text-primary": machine.getItemState(row).highlighted }]}
     {...machine.getItemProps(row)}>
     <span class="inline-flex items-center gap-1"
      {...machine.getItemPreviewProps(row)}>

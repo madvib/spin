@@ -4,8 +4,8 @@ import { classOf } from "./bind.ts";
 
 test("a class list's string is the classes", () => {
   deepStrictEqual(
-    classOf(["mb-4 text-sm", { "text-primary": true }]),
-    "mb-4 text-sm text-primary",
+    classOf(["mb-4 text-sm", { "bg-primary": true }]),
+    "mb-4 text-sm bg-primary",
   );
 });
 
@@ -28,5 +28,26 @@ test("a class list with nothing truthy is empty", () => {
 });
 
 test("a plain string is the class", () => {
-  deepStrictEqual(classOf("mb-4 text-sm"), "mb-4 text-sm");
+  deepStrictEqual(classOf("mb-4 bg-primary"), "mb-4 bg-primary");
+});
+
+test("a later utility evicts an earlier one in the same family", () => {
+  deepStrictEqual(
+    classOf(["scale-50 opacity-0", { "scale-100 opacity-100": true }]),
+    "scale-100 opacity-100",
+  );
+});
+
+test("a later fill keeps its ink: the earlier fill loses both", () => {
+  deepStrictEqual(
+    classOf(["px-2 py-1", { "bg-surface": true, "bg-selected text-on-selected": true }]),
+    "px-2 py-1 bg-selected text-on-selected",
+  );
+});
+
+test("a surface fill evicts the earlier fill and its stranded ink", () => {
+  deepStrictEqual(
+    classOf(["px-2 py-1", { "bg-selected text-on-selected": true, "bg-surface": true }]),
+    "px-2 py-1 bg-surface",
+  );
 });

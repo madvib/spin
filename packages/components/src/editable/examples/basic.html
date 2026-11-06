@@ -13,7 +13,7 @@
   </div>
 
   <div
-    class="relative rounded-md border border-solid border-border bg-surface-raised transition-shadow duration-fast ease-decelerate"
+    class="relative rounded-md border bg-surface-raised transition-shadow duration-fast ease-decelerate"
     {...machine.getAreaProps()}
   >
     <span show={!machine.editing}
@@ -21,7 +21,7 @@
       {...machine.getPreviewProps()}
     >{machine.valueText}</span>
     <input show={machine.editing}
-      class="w-full bg-transparent px-2 py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-text-muted"
+      class="w-full bg-transparent px-2 py-1 outline-none transition-colors duration-fast ease-decelerate placeholder:text-muted"
       {...machine.getInputProps()}
     />
   </div>

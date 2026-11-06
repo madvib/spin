@@ -19,7 +19,7 @@ const machine = pinInput({
     </template>
   </div>
   <input {...machine.getHiddenInputProps()} />
-  <p class="text-text-muted">Enter a 4-digit PIN (don't use 1234)</p>
+  <p class="text-muted">Enter a 4-digit PIN (don't use 1234)</p>
   <p class="text-semantic-error"
     show={machine.valueAsString === "1234"}>This PIN is too common. Please choose a different one.</p>
 </div>

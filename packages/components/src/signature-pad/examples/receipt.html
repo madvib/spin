@@ -4,12 +4,12 @@ import { signaturePad } from "../signature-pad.presentation.ts";
 const machine = signaturePad({});
 </script>
 <div
-  class="mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-sm rounded-lg border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div
-    class="mb-3 flex items-center justify-between border-b border-solid border-border pb-3">
+    class="mb-3 flex items-center justify-between border-b pb-3">
     <div>
-      <span class="block type-caption text-text-muted">Merchant Receipt #4821</span>
+      <span class="block type-caption text-muted">Merchant Receipt #4821</span>
       <span
         class="type-label">Cloud Compute — Annual</span>
     </div>
@@ -18,7 +18,7 @@ const machine = signaturePad({});
   <label class="mb-1 block"
     {...machine.getLabelProps()}>Cardholder Signature</label>
   <div
-    class={["relative h-36 w-full touch-none overflow-hidden rounded-lg border border-solid border-border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
+    class={["relative h-36 w-full touch-none overflow-hidden rounded-lg border bg-surface select-none transition-colors duration-fast ease-decelerate", { "opacity-50": machine.disabled }]}
     {...machine.getControlProps()}
   >
     <svg {...machine.getSegmentProps()}>
@@ -29,7 +29,7 @@ const machine = signaturePad({});
         {...machine.getSegmentPathProps({ path: machine.currentPath })}></path>
     </svg>
     <span show={machine.empty && !machine.drawing}
-      class="pointer-events-none absolute inset-0 flex items-center justify-center type-caption text-text-muted"
+      class="pointer-events-none absolute inset-0 flex items-center justify-center type-caption text-muted"
       {...machine.getGuideProps()}>Sign to authorize payment</span>
     <button show={!machine.empty && !machine.drawing}
       class="absolute right-2 top-2 ghost icon s-sm transition-colors duration-fast ease-decelerate"

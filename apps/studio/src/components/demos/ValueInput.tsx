@@ -515,7 +515,7 @@ function TextTransformControl(props: {
       id={props.id}
       role="group"
       aria-label={props.label ?? "Text transform"}
-      class="row-sm items-center rounded-md border border-border bg-surface p-1"
+      class="row-sm items-center rounded-md border bg-surface p-1"
     >
       <For each={TEXT_TRANSFORM_OPTIONS}>
         {(option) => {
@@ -527,7 +527,7 @@ function TextTransformControl(props: {
               class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case shadow-none ${
                 active()
                   ? "border-transparent bg-primary text-on-primary"
-                  : "bare border-transparent text-text-muted"
+                  : "bare border-transparent text-muted"
               }`}
               onClick={() => {
                 if (!active()) props.onCommit(option);

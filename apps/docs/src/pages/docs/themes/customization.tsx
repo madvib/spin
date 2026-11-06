@@ -142,12 +142,12 @@ export default function ThemesCustomization(): JSX.Element {
           aliases:
         </p>
 
-        <div class="my-4 grid grid-cols-2 gap-2 rounded-md border border-border bg-surface-raised p-3 sm:grid-cols-5">
+        <div class="my-4 grid grid-cols-2 gap-2 rounded-md border bg-surface-raised p-3 sm:grid-cols-5">
           <For each={ACTIVE_SWATCHES}>
             {(item) => (
-              <div class="flex items-center gap-2 rounded-sm border border-border bg-surface p-2">
+              <div class="flex items-center gap-2 rounded-sm border bg-surface p-2">
                 <span
-                  class={`h-5 w-5 shrink-0 rounded-sm border border-border ${item.bg}`}
+                  class={`h-5 w-5 shrink-0 rounded-sm border ${item.bg}`}
                 />
                 <span class="truncate type-code">
                   {item.label}
@@ -202,7 +202,7 @@ export default function ThemesCustomization(): JSX.Element {
             title="Re-pointing styles in spin/<name>.json"
           />
         </div>
-        <p class="max-w-prose text-text-muted">
+        <p class="max-w-prose text-muted">
            Spin supports per-element overrides on {groups.length} element
           groups (see the full list in{" "}
           <A href="/docs/themes/reference#element-tokens">

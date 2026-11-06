@@ -106,7 +106,7 @@ function BundlerPicker(): JSX.Element {
         lang="ts"
         title={current().file}
       />
-      <p class="text-text-muted">{current().note}</p>
+      <p class="text-muted">{current().note}</p>
     </div>
   );
 }

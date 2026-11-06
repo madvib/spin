@@ -125,7 +125,7 @@ export default function ComponentsIndex(): JSX.Element {
   return (
     <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
       <h1>Components</h1>
-      <p class="text-text-muted max-w-prose">
+      <p class="text-muted max-w-prose">
         Every element spin paints — live, in the theme the rail has set. Open
         one to copy the markup, see the classes it answers to, and check what it
         reads from the theme.
@@ -142,7 +142,7 @@ export default function ComponentsIndex(): JSX.Element {
               class={`rounded-md px-3 py-1 no-underline transition-colors duration-fast ${
                 kind() === entry.id
                   ? "bg-primary text-on-primary type-body-strong"
-                  : "text-text-muted hover:bg-surface type-body"
+                  : "text-muted hover:bg-surface type-body"
               }`}
             >
               {entry.label}{" "}
@@ -165,24 +165,24 @@ export default function ComponentsIndex(): JSX.Element {
                 {(row) => (
                     <A
                       href={row.href}
-                      class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border border-solid border-border bg-surface p-4 no-underline transition-colors duration-fast hover:border-border-strong"
+                      class="group flex h-full items-stretch gap-4 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong"
                     >
                     <span class="flex w-24 shrink-0 flex-col items-start gap-1">
                       <span class="flex items-center gap-2 type-body-strong">
                         <i
-                          class={`${row.icon} icon-md shrink-0 text-text-muted`}
+                          class={`${row.icon} icon-md shrink-0 text-muted`}
                           aria-hidden="true"
                         />
                         <span class="truncate">{row.name}</span>
                       </span>
-                      <span class="shrink-0 type-caption text-text-muted">
+                      <span class="shrink-0 type-caption text-muted">
                         {row.meta}
                       </span>
                     </span>
                     <Show
                       when={row.mountHtml !== ""}
                       fallback={
-                        <span class="flex min-h-20 flex-1 items-center justify-center type-caption text-text-muted">
+                        <span class="flex min-h-20 flex-1 items-center justify-center type-caption text-muted">
                           utility family
                         </span>
                       }

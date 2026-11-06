@@ -261,7 +261,7 @@ export default function ThemesReference(): JSX.Element {
         <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <For each={typeEntries}>
             {(entry) => (
-              <div class="flex flex-col gap-1 rounded-md border border-border bg-surface-raised p-3">
+              <div class="flex flex-col gap-1 rounded-md border bg-surface-raised p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <span class="type-code">
                     {entry.name}
@@ -326,7 +326,7 @@ export default function ThemesReference(): JSX.Element {
         <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
           <For each={elements}>
             {(group) => (
-              <div class="flex flex-col gap-2 rounded-md border border-border bg-surface-raised p-4">
+              <div class="flex flex-col gap-2 rounded-md border bg-surface-raised p-4">
                 <div class="flex items-baseline justify-between gap-2">
                   <span class="type-code">
                     {group}

@@ -5,7 +5,7 @@ const machine = motionStage({});
 </script>
 
 <div {...machine.getRootProps()}>
-  <div class="split items-center border-b border-border pb-3">
+  <div class="split items-center border-b pb-3">
     <div class="row-sm items-center gap-2" {...machine.getToolbarProps()}>
       <button
         class="secondary s-sm row-sm whitespace-nowrap"
@@ -35,13 +35,13 @@ const machine = motionStage({});
       </button>
     </div>
   </div>
-  <ul class="flow-list divide-y divide-border" {...machine.getTrackListProps()}>
+  <ul class="flow-list divide-y" {...machine.getTrackListProps()}>
     <template for={machine.getLanes()} as={lane} key={lane.id}>
       <li class="stack-xs py-3" {...machine.getLaneProps(lane)}>
         <div class="split flex-wrap items-center gap-3">
           <div class="row-sm flex-wrap items-baseline gap-2">
             <code>{lane.path}</code>
-            <code class="whitespace-nowrap text-text-muted">{lane.utility}</code>
+            <code class="whitespace-nowrap text-muted">{lane.utility}</code>
           </div>
           <slot name={lane.id}></slot>
         </div>

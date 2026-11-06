@@ -24,8 +24,8 @@ export function Specimen(props: {
   const both = () => props.mode === "both";
 
   return (
-    <div class="w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-raised px-4 py-2">
+    <div class="w-full min-w-0 max-w-full overflow-hidden rounded-lg border bg-surface shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b bg-surface-raised px-4 py-2">
         <div class="flex min-w-0 flex-col">
           <span class="type-code">{props.title}</span>
           <Show when={props.description}>

@@ -12,7 +12,7 @@ const machine = carousel({
 </script>
 
 <div
-  class="relative mx-auto w-full max-w-sm rounded-lg border border-solid border-border bg-surface-raised p-4"
+  class="relative mx-auto w-full max-w-sm rounded-lg border bg-surface-raised p-4"
   {...machine.getRootProps()}>
   <div
     class={["flex gap-2 py-1 snap-x snap-mandatory overflow-x-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing snap-none scroll-auto": machine.isDragging }]}
@@ -24,11 +24,11 @@ const machine = carousel({
         {...machine.getItemProps(row)}
       >
         <div
-          class="relative flex min-h-[10rem] flex-col justify-between rounded-md border border-solid border-border bg-surface p-6">
+          class="relative flex min-h-[10rem] flex-col justify-between rounded-md border bg-surface p-6">
           <span class="w-fit rounded-full bg-surface-sunken px-2 py-1 type-code text-primary">{row.tag}</span>
           <div class="mt-4">
             <div class="type-lead">{row.label}</div>
-            <div class="mt-1 type-body text-text-muted">{row.content}</div>
+            <div class="mt-1 type-body text-muted">{row.content}</div>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ const machine = carousel({
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["bare h-2 w-2 rounded-full p-0 border-border bg-surface transition-all duration-base ease-standard", { "w-4 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
+          class={["bare h-2 w-2 rounded-full p-0 border bg-surface transition-all duration-base ease-standard", { "w-4 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}></button>
       </template>
     </div>

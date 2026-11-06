@@ -61,9 +61,9 @@ function vocabulary(): Set<string> {
 }
 
 test("text-text fails the production build as a dead class", async () => {
-  // T5 (remove `text-text`): the catalog no longer names it, so the build
-  // error treats it like any dead class — while `text-text-muted` stays
-  // producible and clean.
+  // The stuttered spellings are dead: the catalog names `text-muted` and
+  // `border-strong`, never `text-text`, `text-text-muted`, `border-border`,
+  // or `border-border-strong`.
   const root = await fixture({
     "spin/local.json": JSON.stringify(starterThemes.silk),
     "src/index.html": '<div class="bg-surface text-text">hi</div>\n',

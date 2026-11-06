@@ -7,17 +7,17 @@ const machine = colorPicker({
 });
 </script>
 <div
-  class="mx-auto w-full max-w-[16rem] rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-sm"
+  class="mx-auto w-full max-w-[16rem] rounded-lg border bg-surface-raised p-4 shadow-sm"
   {...machine.getRootProps()}>
   <div class="mb-3 flex items-center justify-between">
     <label
       {...machine.getLabelProps()}>Brand Swatches</label>
-    <span class="type-code text-text-muted"
+    <span class="type-code text-muted"
       {...machine.getValueTextProps()}>{machine.valueAsString}</span>
   </div>
   <div class="flex flex-col gap-3" {...machine.getContentProps()}>
     <div
-      class="relative h-36 w-full rounded-md border border-solid border-border"
+      class="relative h-36 w-full rounded-md border"
       {...machine.getAreaProps()}>
       <div class="absolute inset-0 rounded-md"
         {...machine.getAreaBackgroundProps()}>
@@ -31,17 +31,17 @@ const machine = colorPicker({
         {...machine.getAreaThumbProps()}></div>
     </div>
     <div class="grid grid-cols-6 gap-2" {...machine.getSwatchGroupProps()}>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#ef4444" })}></button>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#f59e0b" })}></button>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#10b981" })}></button>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#3b82f6" })}></button>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#8b5cf6" })}></button>
-      <button class="bare h-6 w-6 rounded-md border border-solid border-border"
+      <button class="bare h-6 w-6 rounded-md border"
         {...machine.getSwatchTriggerProps({ value: "#ec4899" })}></button>
     </div>
     <input type="hidden" {...machine.getHiddenInputProps()} />

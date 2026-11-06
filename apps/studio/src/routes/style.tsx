@@ -207,7 +207,7 @@ export default function StylePage() {
                     path={row.path}
                     specimen={
                       <div
-                        class="h-6 w-24 rounded-sm border border-border"
+                        class="h-6 w-24 rounded-sm border"
                         style={{ background: `var(${row.variable})` }}
                       />
                     }
@@ -283,7 +283,7 @@ function Family(props: {
       <Show
         when={props.rows.length > 0}
         fallback={
-          <p class="text-text-muted">
+          <p class="text-muted">
             This theme declares none of these yet.
           </p>
         }
@@ -291,7 +291,7 @@ function Family(props: {
         <Frame class="stack">
           <div
             data-studio-specimen=""
-            class="rounded-md border border-border bg-surface-sunken p-4"
+            class="rounded-md border bg-surface-sunken p-4"
           >
             {props.figure}
           </div>
@@ -369,7 +369,7 @@ function RadiusFigure(props: {
                 <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-text-muted tabular-nums">
+                <code class="text-muted tabular-nums">
                   {props.shownOf(row)}
                 </code>
               </figcaption>
@@ -388,7 +388,7 @@ function LiftFigure(props: { rows: readonly TokenRow[] }) {
         {(row) => (
           <figure class="stack-xs items-center">
             <div
-              class="flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-border bg-surface p-3"
+              class="flex w-full flex-col items-center justify-center gap-1 rounded-lg border bg-surface p-3"
               style={{
                 "min-height": "4.75rem",
                 "box-shadow": `var(${row.variable})`,
@@ -397,7 +397,7 @@ function LiftFigure(props: { rows: readonly TokenRow[] }) {
               <span class="type-code">
                 {stepOf(row.path)}
               </span>
-              <code class="text-text-muted">
+              <code class="text-muted">
                 shadow-{suffixOf(row.path)}
               </code>
             </div>
@@ -439,7 +439,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
           return (
             <div
               class={`
-                absolute rounded-md border border-border px-3 py-2 shadow-sm
+                absolute rounded-md border px-3 py-2 shadow-sm
                 ${isWinner() ? "bg-primary" : "bg-surface-raised"}
               `}
               style={{
@@ -462,7 +462,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
                 <span
                   class={`
                     type-code tabular-nums
-                    ${isWinner() ? "text-on-primary" : "text-text-muted"}
+                    ${isWinner() ? "text-on-primary" : "text-muted"}
                   `}
                 >
                   {row.value}
@@ -494,7 +494,7 @@ function OpacityFigure(props: {
               style={{ "min-width": "4rem" }}
             >
               <div
-                class="h-12 w-full rounded-md border border-border bg-surface p-1"
+                class="h-12 w-full rounded-md border bg-surface p-1"
                 style={{ height: "3rem" }}
               >
                 <div
@@ -509,7 +509,7 @@ function OpacityFigure(props: {
                 <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-text-muted tabular-nums">
+                <code class="text-muted tabular-nums">
                   {pct()}
                 </code>
               </figcaption>
@@ -546,7 +546,7 @@ function BorderFigure(props: {
                 <span class="type-code">
                 {stepOf(row.path)}
               </span>
-                <code class="text-text-muted tabular-nums">
+                <code class="text-muted tabular-nums">
                 {row.value}
               </code>
             </figcaption>
@@ -570,7 +570,7 @@ function FocusFigure(props: {
             style={{ "min-width": "7rem" }}
           >
             <div
-              class="flex h-12 w-full items-center justify-center rounded-md border border-border bg-surface"
+              class="flex h-12 w-full items-center justify-center rounded-md border bg-surface"
               style={{ height: "3.25rem" }}
             >
               <button
@@ -592,7 +592,7 @@ function FocusFigure(props: {
                 <span class="type-code">
                 {stepOf(row.path)}
               </span>
-                <code class="text-text-muted tabular-nums">
+                <code class="text-muted tabular-nums">
                 {row.value}
               </code>
             </figcaption>

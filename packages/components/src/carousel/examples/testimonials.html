@@ -12,7 +12,7 @@ const machine = carousel({
 </script>
 
 <div
-  class="relative mx-auto w-full max-w-[32rem] rounded-lg border border-solid border-border bg-surface-raised p-4"
+  class="relative mx-auto w-full max-w-[32rem] rounded-lg border bg-surface-raised p-4"
   {...machine.getRootProps()}>
   <div
     class={["flex gap-2 py-1 snap-x snap-mandatory overflow-x-auto scroll-smooth cursor-grab select-none", { "cursor-grabbing snap-none scroll-auto": machine.isDragging }]}
@@ -24,7 +24,7 @@ const machine = carousel({
         {...machine.getItemProps(row)}
       >
         <div
-          class="flex min-h-[8rem] flex-col items-center justify-center rounded-md border border-solid border-border bg-surface p-6 text-center">
+          class="flex min-h-[8rem] flex-col items-center justify-center rounded-md border bg-surface p-6 text-center">
           <span class="i-lucide-quote icon-lg text-primary"
             aria-hidden="true"></span>
           <p class="italic">"{row.content}"</p>
@@ -36,7 +36,7 @@ const machine = carousel({
             <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary type-caption-strong text-on-primary">{row.initials}</span>
             <div class="text-left">
               <div class="type-label">{row.label}</div>
-              <div class="type-caption text-text-muted">{row.role}</div>
+              <div class="type-caption text-muted">{row.role}</div>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ const machine = carousel({
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["bare h-2 w-2 rounded-full p-0 border-border bg-surface transition-all duration-base ease-standard", { "w-4 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
+          class={["bare h-2 w-2 rounded-full p-0 border bg-surface transition-all duration-base ease-standard", { "w-4 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}></button>
       </template>
     </div>
@@ -68,7 +68,7 @@ const machine = carousel({
       class={["ghost icon s-sm", { "text-primary": machine.isPlaying, "ring-2 ring-border-strong": machine.focused }]}
       {...machine.getAutoplayTriggerProps()}>▶</button>
     <template for={machine.getProgressRows()} as={row} key={row.value}>
-      <span class="type-caption text-text-muted"
+      <span class="type-caption text-muted"
         {...machine.getProgressTextProps()}>{row.value}</span>
     </template>
     <button

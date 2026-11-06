@@ -79,7 +79,7 @@ import CommandPalette from "./CommandPalette.tsx";
  * it — the same separation the mark has from the concerns in the rail.
  */
 const BAR =
-  "flex h-10 shrink-0 items-center gap-2 border-b border-border bg-surface-raised px-3";
+  "flex h-10 shrink-0 items-center gap-2 border-b bg-surface-raised px-3";
 
 /**
  * A glyph button in the bar.
@@ -92,7 +92,7 @@ const BAR =
  * one smudge.
  */
 const ICON_BUTTON =
-  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-text-muted hover:bg-surface disabled:opacity-50";
+  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-muted hover:bg-surface disabled:opacity-50";
 
 /**
  * The three verbs, and the air between them.
@@ -249,7 +249,7 @@ export default function TopBar() {
         aria-label="Editing"
         class="flex min-w-0 flex-[2_2_0%] items-center justify-center"
       >
-        <p class="min-w-0 truncate text-center text-text-muted">
+        <p class="min-w-0 truncate text-center text-muted">
           <span class="whitespace-nowrap">
             Editing <strong>{theme()}</strong>
           </span>
@@ -425,7 +425,7 @@ export default function TopBar() {
                 Close
               </button>
             </div>
-            <p class="text-text-muted">
+            <p class="text-muted">
               This theme is read-only here. Save your edits as a project
               theme in <code>spin/</code>.
             </p>

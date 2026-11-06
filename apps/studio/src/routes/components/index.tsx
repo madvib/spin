@@ -60,18 +60,18 @@ export default function ComponentsIndex() {
       <div class="mx-auto max-w-screen-lg stack-lg">
         <header class="stack-sm">
           <h1>Components</h1>
-          <p class="max-w-screen-md text-text-muted">
+          <p class="max-w-screen-md text-muted">
             Every primitive and interactive component in the library. Pick one
             to inspect its variants, interactive examples, and tokens.
           </p>
-          <div role="group" aria-label="Component kind" class="flex w-fit shrink-0 gap-1 rounded-md border border-solid border-border p-1">
+          <div role="group" aria-label="Component kind" class="flex w-fit shrink-0 gap-1 rounded-md border p-1">
             <For each={(["all", "primitive", "machine"] as const)}>
               {(kind) => (
                 <button
                   type="button"
                   aria-pressed={kindFilter() === kind}
                   onClick={() => setKindFilter(kind)}
-                  class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-text-muted aria-[pressed=true]:border-border aria-[pressed=true]:bg-surface-raised"
+                  class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-muted aria-[pressed=true]:border aria-[pressed=true]:bg-surface-raised"
                 >
                   {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
                 </button>
@@ -100,7 +100,7 @@ export default function ComponentsIndex() {
                       {(row) => (
                         <A
                           href={`/components/${row.name}`}
-                          class="stack-sm rounded-lg border border-border bg-surface-raised p-4 no-underline hover:border-primary"
+                          class="stack-sm rounded-lg border bg-surface-raised p-4 no-underline hover:border-primary"
                         >
                           <span class="flex items-center gap-2">
                             <i
@@ -111,7 +111,7 @@ export default function ComponentsIndex() {
                               {displayComponentName(row.name)}
                             </strong>
                           </span>
-                          <span class="flex items-center justify-between type-caption text-text-muted">
+                          <span class="flex items-center justify-between type-caption text-muted">
                             <span>
                               {row.component?.examples?.rows.length ?? 0}{" "}
                               examples
@@ -133,10 +133,10 @@ export default function ComponentsIndex() {
         }
       >
         <Match when={library() === undefined}>
-          <p class="text-text-muted">loading…</p>
+          <p class="text-muted">loading…</p>
         </Match>
         <Match when={(library() ?? []).length === 0}>
-          <p class="text-text-muted">
+          <p class="text-muted">
             No components. Is the API running?
           </p>
         </Match>

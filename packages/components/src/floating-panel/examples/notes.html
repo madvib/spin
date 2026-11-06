@@ -7,43 +7,43 @@
 <div class="grid w-full gap-2">
   <button class="mb-2 secondary s-sm" {...machine.getTriggerProps()}>Open panel</button>
   <div class="relative h-[24rem] w-full" {...machine.getPositionerProps()}>
-    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
-      <div class={["flex items-center justify-between gap-2 border-b border-border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
+    <div class={["absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg border bg-surface-raised shadow-lg", { "pointer-events-none invisible scale-95 opacity-0": !machine.isOpen, "h-12 overflow-hidden": machine.stage === "minimized", "h-full w-full": machine.stage === "maximized" }]} {...machine.getContentProps()}>
+      <div class={["flex items-center justify-between gap-2 border-b border p-3 cursor-grab", { "cursor-grabbing": machine.dragging }]} {...machine.getDragTriggerProps()}>
         <div class="flex min-w-0 items-center gap-2">
-          <span class="i-lucide-grip-vertical shrink-0 type-code text-text-muted" aria-hidden="true"></span>
+          <span class="i-lucide-grip-vertical shrink-0 type-code text-muted" aria-hidden="true"></span>
           <span class="truncate type-label">Notes</span>
         </div>
-        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
-          <button class="ghost icon s-sm text-text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
+        <div class="flex shrink-0 items-center gap-1"><button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "minimized" })}><span class="i-lucide-minus type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "maximized" })}><span class="i-lucide-square type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getStageTriggerProps({ stage: "default" })}><span class="i-lucide-copy type-caption" aria-hidden="true"></span></button>
+          <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
       </div>
 <div class="grid min-h-0 flex-1 grid-cols-[13rem_1fr] overflow-hidden">
-        <div class="grid min-h-0 content-start gap-2 overflow-y-auto border-r border-border bg-surface p-3">
-          <div class="flex items-center gap-2 rounded-md border border-solid border-border bg-surface-raised px-3 py-2 type-caption text-text-muted"><span class="i-lucide-search type-code" aria-hidden="true"></span><span>Search notes…</span></div>
+        <div class="grid min-h-0 content-start gap-2 overflow-y-auto border-r border bg-surface p-3">
+          <div class="flex items-center gap-2 rounded-md border bg-surface-raised px-3 py-2 type-caption text-muted"><span class="i-lucide-search type-code" aria-hidden="true"></span><span>Search notes…</span></div>
           <button type="button" data-new class="bare s-sm flex min-h-0 items-center justify-center gap-1 type-label hover:bg-primary"><span class="i-lucide-plus type-code" aria-hidden="true"></span>New Note</button>
           <div data-notes class="grid content-start gap-1">
             <button type="button" data-note="0" class="bare secondary grid justify-items-start gap-1 whitespace-normal text-left">
               <p>Meeting Notes</p>
-              <p class="text-text-muted">Discussed project timeline and deliverables…</p>
-              <p class="text-text-muted">Today</p>
+              <p class="text-muted">Discussed project timeline and deliverables…</p>
+              <p class="text-muted">Today</p>
             </button>
             <button type="button" data-note="1" class="bare grid justify-items-start gap-1 whitespace-normal p-3 text-left hover:bg-surface">
               <p>Ideas</p>
-              <p class="text-text-muted">New feature ideas for the dashboard…</p>
-              <p class="text-text-muted">Yesterday</p>
+              <p class="text-muted">New feature ideas for the dashboard…</p>
+              <p class="text-muted">Yesterday</p>
             </button>
             <button type="button" data-note="2" class="bare grid justify-items-start gap-1 whitespace-normal p-3 text-left hover:bg-surface">
               <p>Shopping List</p>
-              <p class="text-text-muted">Milk, Bread, Eggs, Coffee beans…</p>
-              <p class="text-text-muted">2 days ago</p>
+              <p class="text-muted">Milk, Bread, Eggs, Coffee beans…</p>
+              <p class="text-muted">2 days ago</p>
             </button>
           </div>
         </div>
 <div class="grid min-h-0 content-start gap-3 overflow-y-auto p-4">
-          <p class="flex items-center gap-2 text-text-muted"><span class="i-lucide-pencil type-code" aria-hidden="true"></span><span data-edited>Last edited Today</span></p>
-          <input data-title value="Meeting Notes" class="bare w-full min-w-0 border-transparent bg-transparent py-1 type-body-strong hover:border-border focus:border-primary" />
-          <textarea data-body rows="6" class="bare min-h-0 w-full resize-none border-transparent bg-transparent py-1 hover:border-border focus:border-primary">Discussed project timeline and deliverables…</textarea>
+          <p class="flex items-center gap-2 text-muted"><span class="i-lucide-pencil type-code" aria-hidden="true"></span><span data-edited>Last edited Today</span></p>
+          <input data-title value="Meeting Notes" class="bare w-full min-w-0 border-transparent bg-transparent py-1 type-body-strong hover:border focus:border-primary" />
+          <textarea data-body rows="6" class="bare min-h-0 w-full resize-none border-transparent bg-transparent py-1 hover:border focus:border-primary">Discussed project timeline and deliverables…</textarea>
         </div>
       </div>
                   <button class="bare absolute p-0 inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>

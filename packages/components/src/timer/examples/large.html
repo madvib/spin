@@ -15,7 +15,7 @@ const machine = timer({
      <span class="min-w-[2ch] text-center"
       {...machine.getItemValueProps({ type: unit.type })}>{machine.formattedTime[unit.type]}</span>
     </div>
-    <span aria-hidden="true" class="text-text-muted"
+    <span aria-hidden="true" class="text-muted"
      {...machine.getSeparatorProps({ after: unit.type, last: unit.last })}>:</span>
    </template>
   </div>

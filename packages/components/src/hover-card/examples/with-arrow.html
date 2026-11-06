@@ -7,15 +7,15 @@ const ctl = hoverCard();
 <div class="flex items-center justify-center gap-8 p-12"
   {...ctl.getRootProps()}>
   <span {...ctl.getTriggerProps()}
-    class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-solid border-border bg-surface-raised px-3 py-2 type-body transition-colors hover:bg-surface">
+    class="inline-flex cursor-pointer items-center gap-2 rounded-lg border bg-surface-raised px-3 py-2 type-body transition-colors hover:bg-surface">
     <span class="i-lucide-info icon-sm text-primary" aria-hidden="true"></span>
     <span class="type-label">Information</span>
   </span>
 
   <div {...ctl.getContentProps()}
-    class="fixed m-0 rounded-lg border border-solid border-border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
+    class="fixed m-0 rounded-lg border bg-surface-raised p-4 shadow-lg max-w-[20rem]">
     <span aria-hidden="true"
-      class="absolute -top-1 left-6 h-2 w-2 rotate-45 border-b-0 border-r-0 border-l border-t border-solid border-border bg-surface-raised"></span>
+      class="absolute -top-1 left-6 h-2 w-2 rotate-45 border-b-0 border-r-0 border-l border-t bg-surface-raised"></span>
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-2">
         <span class="i-lucide-info icon-sm text-primary"
@@ -23,7 +23,7 @@ const ctl = hoverCard();
         <strong>Information</strong>
       </div>
       <p
-        class="text-text-muted">This is an informational message with an arrow pointing to the trigger element.</p>
+        class="text-muted">This is an informational message with an arrow pointing to the trigger element.</p>
     </div>
   </div>
 </div>

@@ -6,14 +6,14 @@ const ctl = hoverCard();
 
 <div class="flex items-center gap-4 p-6" {...ctl.getRootProps()}>
   <span {...ctl.getTriggerProps()}
-    class="block h-[8rem] w-[8rem] cursor-pointer overflow-hidden rounded-lg border border-solid border-border bg-surface-sunken">
+    class="block h-[8rem] w-[8rem] cursor-pointer overflow-hidden rounded-lg border bg-surface-sunken">
     <span
       class="grid h-full w-full place-items-center transition-transform hover:scale-105"
       aria-hidden="true"><span class="i-lucide-headphones icon-lg"></span></span>
   </span>
 
   <div {...ctl.getContentProps()}
-    class="fixed m-0 max-w-[20rem] w-full overflow-hidden rounded-lg border border-solid border-border bg-surface-raised shadow-lg max-w-[20rem]">
+    class="fixed m-0 max-w-[20rem] w-full overflow-hidden rounded-lg border bg-surface-raised shadow-lg max-w-[20rem]">
     <div class="grid aspect-square w-full place-items-center bg-surface-sunken">
       <span class="i-lucide-headphones icon-lg"
         aria-hidden="true"></span>
@@ -21,11 +21,11 @@ const ctl = hoverCard();
     <div class="flex flex-col gap-4 p-4">
       <div class="flex flex-col gap-2">
         <h3>Premium Wireless Headphones</h3>
-        <p class="text-text-muted">High-quality wireless headphones with active noise cancellation and 30-hour battery life.</p>
+        <p class="text-muted">High-quality wireless headphones with active noise cancellation and 30-hour battery life.</p>
       </div>
       <div class="flex items-center justify-between">
         <p>$299</p>
-        <p class="text-text-muted">★★★★☆ (4.8)</p>
+        <p class="text-muted">★★★★☆ (4.8)</p>
       </div>
       <button class="w-full s-sm">Add to Cart</button>
     </div>

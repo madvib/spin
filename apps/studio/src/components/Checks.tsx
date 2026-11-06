@@ -99,7 +99,7 @@ function severityOf(found: readonly Check[]): Severity | undefined {
  * badge is what says how bad it is.
  */
 const BUTTON =
-  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface";
+  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface";
 
 export default function Checks() {
   /**
@@ -216,7 +216,7 @@ export default function Checks() {
           <Show
             when={findings().length > 0}
             fallback={
-              <p class="text-text-muted">
+              <p class="text-muted">
                 Nothing to report: the document parses, and every value it
                 declares clears the floors.
               </p>
@@ -234,7 +234,7 @@ export default function Checks() {
                         {finding.path === "" ? "(document)" : finding.path}
                       </code>
                     </A>
-                    <p class="text-text-muted">{finding.message}</p>
+                    <p class="text-muted">{finding.message}</p>
                     {
                       /*
                         What would put it right.
@@ -250,7 +250,7 @@ export default function Checks() {
                     <Show when={finding.remedy}>
                       {(remedy) => (
                         <div class="row-sm flex-wrap">
-                          <span class="text-text-muted">
+                          <span class="text-muted">
                             {remedyText(remedy())}
                           </span>
                           <button

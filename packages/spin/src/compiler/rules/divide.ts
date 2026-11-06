@@ -23,7 +23,9 @@ export function divideNames(colors: readonly string[] = []): readonly string[] {
     ...["x", "y"].flatMap((axis) =>
       [undefined, ...WIDTHS].map((w) => `divide-${axis}${w ? `-${w}` : ""}`)
     ),
-    ...colors.map((c) => `divide-${c}`),
+    ...colors
+      .filter((c) => c !== "border" && c !== "text" && c !== "text-muted")
+      .map((c) => `divide-${c === "border-strong" ? "strong" : c}`),
   ];
 }
 
@@ -48,9 +50,20 @@ export function divideRules(): SpinRule[] {
         // As `bg-`: a raw colour is a design decision, and a design decision
         // is a token. `divide-[#fff]` is dead on arrival — it produces no
         // CSS at all, and the ordinary vocabulary rule catches it the way
-        // it catches a typo.
+        // it catches a typo. The stuttered roles (`divide-border`,
+        // `divide-text`, `divide-text-muted`) are dead with it — the
+        // strong divide is `divide-strong` (`color.border-strong`).
         if (hasRawColor(name)) return undefined;
-        const ref = named(ctx, "color", name);
+        if (
+          name === "border" || name.startsWith("border/") ||
+          name === "border-strong" || name.startsWith("border-strong/") ||
+          name === "text" || name.startsWith("text/") ||
+          name === "text-muted" || name.startsWith("text-muted/")
+        ) return undefined;
+        const mapped = name === "strong"
+          ? "border-strong"
+          : name.startsWith("strong/") ? `border-${name}` : name;
+        const ref = named(ctx, "color", mapped);
         if (!ref) return undefined;
         return {
           [symbols.selector]: divideChildren,

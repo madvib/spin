@@ -24,7 +24,7 @@ const machine = cascade({
       </span>
       <span
         aria-hidden="true"
-        class={["shrink-0 text-text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
+        class={["shrink-0 text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
         {...machine.getIndicatorProps()}
       ><span class="i-lucide-chevron-down type-caption" aria-hidden="true"></span></span>
     </button>
@@ -58,7 +58,7 @@ const machine = cascade({
                 {...machine.getItemTextProps(row)}>{row.label}</span>
               <span
                 aria-hidden="true"
-                class="shrink-0 text-text-muted"
+                class="shrink-0 text-muted"
                 hidden={!row.hasChildren}
               ><span class="i-lucide-chevron-right type-caption" aria-hidden="true"></span></span>
               <span

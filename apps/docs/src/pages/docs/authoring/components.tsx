@@ -40,27 +40,27 @@ function ControllerDemo(): JSX.Element {
     ),
   );
   return (
-    <div class="grid gap-4 rounded-lg border border-border bg-surface-raised p-4 md:grid-cols-2">
+    <div class="grid gap-4 rounded-lg border bg-surface-raised p-4 md:grid-cols-2">
       <div>
         <docs-select ref={setElement} id="guide-components-demo" />
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
+            class="bare rounded-md border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.setOpen(true)}
           >
             ctl.commands.setOpen(true)
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
+            class="bare rounded-md border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.close()}
           >
             ctl.commands.close()
           </button>
           <button
             type="button"
-            class="bare rounded-md border border-border bg-surface px-3 py-1 type-code"
+            class="bare rounded-md border bg-surface px-3 py-1 type-code"
             onClick={() => ctl.commands.clearValue()}
           >
             ctl.commands.clearValue()

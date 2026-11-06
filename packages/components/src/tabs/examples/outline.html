@@ -13,17 +13,17 @@ const machine = tabs({
 
 <div class="mx-auto flex w-full max-w-md flex-col items-center"
  {...machine.getRootProps()}>
- <div class="mb-4 flex w-fit overflow-hidden rounded-lg border border-solid border-border"
+ <div class="mb-4 flex w-fit overflow-hidden rounded-lg border"
   {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare px-4 py-2 type-label transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-text-muted"
+    class="bare px-4 py-2 type-label transition-colors aria-[selected=true]:bg-surface aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>
-  <p class="text-center text-text-muted"
+  <p class="text-center text-muted"
    {...machine.getContentProps(row)}>{row.content}</p>
  </template>
 </div>

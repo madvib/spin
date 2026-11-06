@@ -13,11 +13,11 @@ const machine = toggleGroup({
 </script>
 
 <div class="mx-auto flex w-full max-w-md justify-center">
-  <div class="inline-flex overflow-hidden border border-solid border-border rounded-lg"
+  <div class="inline-flex overflow-hidden border rounded-lg"
     {...machine.getRootProps()}>
     <template for={machine.getItems()} as={row} key={row.value}>
       <button
-        class={["bare border-r border-border px-4 py-2 transition-all last:border-r-0 hover:bg-surface", { "bg-surface-raised": machine.getItemState(row).pressed, "text-text-muted": !machine.getItemState(row).pressed }]}
+        class={["bare border-r px-4 py-2 transition-all last:border-r-0 hover:bg-surface", { "bg-surface-raised": machine.getItemState(row).pressed, "text-muted": !machine.getItemState(row).pressed }]}
         {...machine.getItemProps(row)}
       >{row.label}</button>
     </template>

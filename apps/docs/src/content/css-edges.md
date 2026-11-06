@@ -10,7 +10,7 @@ The lint reads your project's themes and enforces the closed vocabulary in your 
 
 Every fill token in your theme has a paired foreground ink role verified against WCAG contrast floors in every declared mode:
 
-- **Surfaces:** `bg-surface`, `bg-surface-raised`, `bg-surface-sunken` (with `text-text-muted` for secondary copy — the default ink needs no naming)
+- **Surfaces:** `bg-surface`, `bg-surface-raised`, `bg-surface-sunken` (with `text-muted` for secondary copy — the default ink needs no naming)
 - **Alpha modifier (`/0`–`/100`):** Any theme color supports an opacity percentage suffix (`bg-surface/80`, `border-primary/40`), compiling to `color-mix(in srgb, var(--color-surface) 80%, transparent)` without minting a new color token.
 
 Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or any container subtree. There is no `dark:` utility prefix — `bg-surface` and the default ink resolve to the active mode's tokens automatically.

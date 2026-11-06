@@ -95,7 +95,7 @@ function GridSwitch(props: {
               <li class="m-0">
                 <button
                   type="button"
-                  class="secondary s-sm stack-sm w-full items-center py-2 text-text-muted hover:border-primary"
+                  class="secondary s-sm stack-sm w-full items-center py-2 text-muted hover:border-primary"
                   classList={{
                     "border-primary": props.copied ===
                         iconUtility(entry) ||
@@ -117,15 +117,15 @@ function GridSwitch(props: {
       }
     >
       <Match when={props.loading}>
-        <p class="text-text-muted">loading catalogue…</p>
+        <p class="text-muted">loading catalogue…</p>
       </Match>
       <Match when={props.errored}>
-        <p class="text-text-muted">
+        <p class="text-muted">
           No glyphs. Is the API running?
         </p>
       </Match>
       <Match when={props.results.length === 0}>
-        <p class="text-text-muted">
+        <p class="text-muted">
           {props.emptyQuery.trim() === ""
             ? "This collection is empty."
             : `No glyph name contains “${props.emptyQuery.trim()}”.`}
@@ -165,7 +165,7 @@ function LibraryBrowser(props: {
                     class="bare row-sm min-w-0 flex-1 items-center gap-3 text-left"
                     onClick={() => props.onSelect(icon)}
                   >
-                    <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2">
+                    <span class="flex shrink-0 items-center justify-center rounded-md border bg-surface-sunken p-2">
                       <span
                         class="block [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
                         style={{ width: props.box, height: props.box }}
@@ -177,14 +177,14 @@ function LibraryBrowser(props: {
                       <span class="block truncate type-label">
                         {icon.name}
                       </span>
-                      <span class="block truncate type-caption text-text-muted">
+                      <span class="block truncate type-caption text-muted">
                         {attributionText(icon.attribution)}
                       </span>
                     </span>
                   </button>
                   <button
                     type="button"
-                    class="secondary s-sm shrink-0 type-caption text-text-muted"
+                    class="secondary s-sm shrink-0 type-caption text-muted"
                     aria-label={`Remove ${icon.name} from the library`}
                     onClick={() => props.onUnkeep(icon.name)}
                   >
@@ -198,20 +198,20 @@ function LibraryBrowser(props: {
       }
     >
       <Match when={props.saved === undefined}>
-        <p class="text-text-muted">reading the library…</p>
+        <p class="text-muted">reading the library…</p>
       </Match>
       <Match when={(props.saved ?? []).length === 0}>
         <card class="stack-xs p-5">
           <p class="m-0">
             No saved icons in this project yet
           </p>
-          <p class="m-0 text-text-muted">
+          <p class="m-0 text-muted">
             Select any glyph in the Available tab and press “Keep in library” to vendor its SVG into spin/icons/.
           </p>
         </card>
       </Match>
       <Match when={filtered().length === 0}>
-        <p class="text-text-muted">
+        <p class="text-muted">
           {`No saved icon matches “${props.query.trim()}”.`}
         </p>
       </Match>
@@ -280,16 +280,16 @@ function InspectorAside(props: {
 }) {
   const groupValues = createMemo(() => props.sizes.rows().map((r) => r.value));
   return (
-    <aside class="stack-lg min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-surface-raised p-5 sm:p-6">
+    <aside class="stack-lg min-h-0 flex-1 overflow-y-auto rounded-lg border bg-surface-raised p-5 sm:p-6">
       <Show when={props.chosen}>
         {(entry) => (
-          <section class="stack rounded-lg border border-border bg-surface p-4">
+          <section class="stack rounded-lg border bg-surface p-4">
             <div class="split flex-wrap items-start gap-3">
               <div class="stack-xs min-w-0">
                 <p class="m-0 truncate">
                   {entry().collection} · {entry().name}
                 </p>
-                <code class="truncate text-text-muted">
+                <code class="truncate text-muted">
                   {iconUtility(entry())}
                 </code>
               </div>
@@ -316,7 +316,7 @@ function InspectorAside(props: {
                   const currentVal = () =>
                     props.sizes.shown(`icon.${step.step}`, step.value);
                   return (
-                    <div class="stack-xs items-center justify-end rounded-md border border-border bg-surface-sunken p-3">
+                    <div class="stack-xs items-center justify-end rounded-md border bg-surface-sunken p-3">
                       <Glyph
                         entry={entry()}
                         box={cssLength(currentVal())}
@@ -324,7 +324,7 @@ function InspectorAside(props: {
                       <span class="type-code">
                         {step.step}
                       </span>
-                      <code class="text-text-muted">
+                      <code class="text-muted">
                         {currentVal()}
                       </code>
                     </div>
@@ -333,7 +333,7 @@ function InspectorAside(props: {
               </For>
             </div>
             <Show when={props.notice !== null}>
-              <p class="m-0 text-text-muted" role="status">
+              <p class="m-0 text-muted" role="status">
                 {props.notice}
               </p>
             </Show>
@@ -364,7 +364,7 @@ function InspectorAside(props: {
                     <div class="row-sm items-center gap-3">
                       <Show when={props.chosen}>
                         {(entry) => (
-                          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface p-2">
+                          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border bg-surface p-2">
                             <Glyph
                               entry={entry()}
                               box={cssLength(liveVal())}
@@ -376,7 +376,7 @@ function InspectorAside(props: {
                         <span class="type-label">
                           {stepName()}
                         </span>
-                        <code class="text-text-muted">{row.path}</code>
+                        <code class="text-muted">{row.path}</code>
                       </div>
                     </div>
                     <ValueInput
@@ -405,13 +405,13 @@ function InspectorAside(props: {
             <h2>Saved icons</h2>
           </div>
           <div class="row-sm">
-            <span class="type-caption text-text-muted">
+            <span class="type-caption text-muted">
               {props.saved?.length ?? 0} kept
             </span>
             <Show when={(props.saved?.length ?? 0) > 0}>
               <button
                 type="button"
-                class="bare type-caption text-text-muted"
+                class="bare type-caption text-muted"
                 onClick={props.onOpenLibrary}
               >
                 Open library
@@ -424,9 +424,9 @@ function InspectorAside(props: {
             <ul class="stack-sm">
               <For each={props.saved ?? []}>
                 {(icon) => (
-                  <li class="split items-center gap-3 rounded-md border border-border bg-surface p-3">
+                  <li class="split items-center gap-3 rounded-md border bg-surface p-3">
                     <div class="row-sm min-w-0 flex-1 items-center gap-3">
-                      <span class="flex shrink-0 items-center justify-center rounded-md border border-border bg-surface-sunken p-2">
+                      <span class="flex shrink-0 items-center justify-center rounded-md border bg-surface-sunken p-2">
                         <span
                           class="block [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
                           style={{ width: props.box, height: props.box }}
@@ -438,14 +438,14 @@ function InspectorAside(props: {
                         <span class="block truncate type-label">
                           {icon.name}
                         </span>
-                        <span class="block truncate type-caption text-text-muted">
+                        <span class="block truncate type-caption text-muted">
                           {attributionText(icon.attribution)}
                         </span>
                       </span>
                     </div>
                     <button
                       type="button"
-                      class="secondary s-sm shrink-0 type-caption text-text-muted"
+                      class="secondary s-sm shrink-0 type-caption text-muted"
                       aria-label={`Remove ${icon.name} from the library`}
                       onClick={() => props.onUnkeep(icon.name)}
                     >
@@ -458,10 +458,10 @@ function InspectorAside(props: {
           }
         >
           <Match when={props.saved === undefined}>
-            <p class="text-text-muted">reading the library…</p>
+            <p class="text-muted">reading the library…</p>
           </Match>
           <Match when={(props.saved ?? []).length === 0}>
-            <p class="text-text-muted">
+            <p class="text-muted">
               Nothing kept yet.
             </p>
           </Match>
@@ -599,14 +599,14 @@ export default function IconsPage() {
       data-studio-chrome=""
       class="flex min-h-0 min-w-0 flex-1 flex-col bg-surface"
     >
-      <header class="stack-sm shrink-0 border-b border-border bg-surface-raised px-4 py-3 sm:px-6">
+      <header class="stack-sm shrink-0 border-b bg-surface-raised px-4 py-3 sm:px-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="row-sm flex-wrap items-center gap-3">
             <h1>Icons</h1>
             <div
               role="tablist"
               aria-label="Icon view"
-              class="row-sm shrink-0 rounded-md border border-border bg-surface-sunken p-1"
+              class="row-sm shrink-0 rounded-md border bg-surface-sunken p-1"
             >
               <button
                 type="button"
@@ -615,7 +615,7 @@ export default function IconsPage() {
                 class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "available",
-                  "text-text-muted": tab() !== "available",
+                  "text-muted": tab() !== "available",
                 }}
                 onClick={() => setTab("available")}
               >
@@ -628,7 +628,7 @@ export default function IconsPage() {
                 class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "library",
-                  "text-text-muted": tab() !== "library",
+                  "text-muted": tab() !== "library",
                 }}
                 onClick={() => setTab("library")}
               >
@@ -656,7 +656,7 @@ export default function IconsPage() {
                     classList={{
                       "border-primary": size() ===
                         step.step,
-                      "border-border text-text-muted": size() !== step.step,
+                      "border text-muted": size() !== step.step,
                     }}
                     onClick={() => setSize(step.step)}
                   >
@@ -675,7 +675,7 @@ export default function IconsPage() {
               aria-pressed={picked() === ""}
               classList={{
                 "border-primary": picked() === "",
-                "border-border text-text-muted": picked() !== "",
+                "border text-muted": picked() !== "",
               }}
               onClick={() => setPicked("")}
             >
@@ -690,7 +690,7 @@ export default function IconsPage() {
                   classList={{
                     "border-primary": picked() ===
                       collection,
-                    "border-border text-text-muted": picked() !== collection,
+                    "border text-muted": picked() !== collection,
                   }}
                   onClick={() => setPicked(collection)}
                 >

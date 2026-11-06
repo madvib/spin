@@ -54,12 +54,12 @@ export function CodeFrame(props: {
 
   return (
     <div
-      class={`overflow-hidden rounded-lg border border-border bg-surface shadow-sm ${
+      class={`overflow-hidden rounded-lg border bg-surface shadow-sm ${
         props.class ?? ""
       }`}
     >
-      <div class="flex items-center justify-between gap-2 border-b border-border bg-surface-raised px-3 py-1">
-        <span class="type-caption text-text-muted">
+      <div class="flex items-center justify-between gap-2 border-b bg-surface-raised px-3 py-1">
+        <span class="type-caption text-muted">
           {headerLabel()}
         </span>
         <Show when={showCopy()}>
@@ -69,7 +69,7 @@ export function CodeFrame(props: {
             aria-label={
               props.title ? `Copy ${props.title}` : "Copy code snippet"
             }
-            class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-text-muted transition-colors duration-fast hover:bg-surface"
+            class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-muted transition-colors duration-fast hover:bg-surface"
           >
             <span
               class={
