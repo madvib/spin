@@ -1,7 +1,7 @@
 import { COMPONENT_GROUPS, COMPONENT_ICONS, CONTROLLERS } from "@spinjs/components";
 import { exampleSources, mountTag } from "@spinjs/components/examples";
 import "@spinjs/components/examples";
-import { EXAMPLE_ONLOAD } from "@spinjs/spin/kit";
+import { EXAMPLE_ONLOAD } from "@spinjs/spin/examples";
 
 import type { PrimitivePage } from "./primitives.ts";
 

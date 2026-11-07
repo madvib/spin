@@ -196,7 +196,6 @@ const SPIN_SUBPATHS: readonly PropEntry[] = [
   { name: "@spinjs/spin/mcp", badge: "mcp", description: "Stdio MCP server for coding agents." },
   { name: "@spinjs/spin/eslint · /oxlint", badge: "linter", description: "Editor and CI plugins for the six spin/* rules." },
   { name: "@spinjs/spin/animation", badge: "motion", description: "Theme-driven keyframes and animationContract." },
-  { name: "@spinjs/spin/kit", badge: "ui kit", description: "Shared chrome components: ThemePicker, Logo, CodeBlock, Specimen." },
 ];
 
 const COMPONENT_SUBPATHS: readonly PropEntry[] = [

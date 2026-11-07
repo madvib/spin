@@ -4,7 +4,7 @@ import {
   formatExampleHtml,
   tokenizeCode,
   tokenizeHtml,
-} from "../../src/kit/code.ts";
+} from "./code.ts";
 
 test("formatting strips the template literal's air and keeps the markup", () => {
   const source = `

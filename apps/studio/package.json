@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@spin/check": "workspace:*",
     "@solidjs/meta": "^0.28.0",
     "@solidjs/router": "^1.0.0",
+    "@spin/check": "workspace:*",
+    "@spinjs/kit": "workspace:*",
     "@spinjs/spin": "workspace:*",
     "playwright-core": "^1.63.0",
     "solid-js": "^1.9.3"

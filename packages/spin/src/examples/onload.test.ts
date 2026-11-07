@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { parseHTML } from "@spinjs/runtime/testing";
 import { def as comboboxDef } from "@spinjs/components/combobox";
-import { EXAMPLE_ONLOAD } from "./mount-glue.ts";
+import { EXAMPLE_ONLOAD } from "./onload.ts";
 type RubricPart = { id?: string } & Record<string, unknown>;
 const segmentsOf = (def: {
   parts: Record<string, RubricPart>;

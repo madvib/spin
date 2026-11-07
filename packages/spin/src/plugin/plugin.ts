@@ -187,6 +187,11 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       targets: [pkg("./plugin.ts")],
     },
     {
+      find: "@spinjs/spin/examples",
+      replacement: pkg("../examples/index.ts"),
+      targets: [pkg("../examples/index.ts")],
+    },
+    {
       find: "@spinjs/spin/eslint",
       replacement: pkg("../diagnostics/eslint.ts"),
       targets: [source.diagnosticsIndex],
@@ -200,16 +205,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spinjs/spin/mcp",
       replacement: pkg("../mcp/main.ts"),
       targets: [source.apiIndex],
-    },
-    {
-      find: "@spinjs/spin/kit/skill",
-      replacement: pkg("../kit/skill.ts"),
-      targets: [pkg("../kit/skill.ts")],
-    },
-    {
-      find: "@spinjs/spin/kit",
-      replacement: pkg("../kit/index.ts"),
-      targets: [pkg("../kit/index.ts")],
     },
     {
       find: "@spinjs/spin/api/procedures",
@@ -273,16 +268,6 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       find: "@spinjs/theme",
       replacement: source.themeIndex,
       targets: [source.themeIndex],
-    },
-    {
-      find: "@spinjs/spin/kit",
-      replacement: pkg("../kit/index.ts"),
-      targets: [pkg("../kit/index.ts")],
-    },
-    {
-      find: "@spinjs/kit",
-      replacement: pkg("../kit/index.ts"),
-      targets: [pkg("../kit/index.ts")],
     },
     {
       find: "@spinjs/animation",

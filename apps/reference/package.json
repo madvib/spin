@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "solid-js": "^1.9.3",
+    "@spin/check": "workspace:*",
+    "@spinjs/kit": "workspace:*",
     "@spinjs/spin": "workspace:*",
-    "@spin/check": "workspace:*"
+    "solid-js": "^1.9.3"
   },
   "scripts": {
     "dev": "vite dev",

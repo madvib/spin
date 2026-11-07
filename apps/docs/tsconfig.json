@@ -21,7 +21,7 @@
       "@spinjs/components/examples": [
         "../../packages/components/src/examples.ts"
       ],
-      "@spinjs/kit": ["../../packages/spin/src/kit/index.ts"],
+      "@spinjs/kit": ["../../internal/kit/src/index.ts"],
       "@spinjs/preset": ["../../packages/spin/src/compiler/index.ts"],
       "@spinjs/preset/config": [
         "../../packages/spin/src/plugin/config.ts"
@@ -32,13 +32,13 @@
       "@spinjs/spin/elements": [
         "../../packages/spin/src/compiler/elements.d.ts"
       ],
-      "@spinjs/spin/kit": ["../../packages/spin/src/kit/index.ts"],
       "@spinjs/spin/theme": ["../../packages/spin/src/theme/index.ts"],
       "@spinjs/spin/theme/themes": [
         "../../packages/spin/src/theme/themes/index.ts"
       ],
       "@spinjs/spin/api": ["../../packages/spin/src/api/index.ts"],
       "@spinjs/spin/skill": ["../../packages/spin/src/skill/index.ts"],
+      "@spinjs/spin/examples": ["../../packages/spin/src/examples/index.ts"],
       "@spinjs/spin/animation": ["../../packages/spin/src/animation/index.ts"],
       "@spinjs/spin/project": ["../../packages/spin/src/project/index.ts"],
       "@spin/check": ["../../internal/check/harness.ts"]

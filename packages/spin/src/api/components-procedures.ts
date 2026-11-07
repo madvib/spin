@@ -13,7 +13,7 @@ import {
   primitiveReadsByGroup,
 } from "../compiler/rules/primitives/manifest.ts";
 import { componentExamples } from "../compiler/rules/primitives/examples-index.ts";
-import { EXAMPLE_ONLOAD } from "../kit/mount-glue.ts";
+import { EXAMPLE_ONLOAD } from "../examples/onload.ts";
 import { componentsContract } from "./components-contract.ts";
 import { prefixOf, readConfiguration } from "../project/index.ts";
 import {

@@ -35,7 +35,10 @@
         "../../packages/spin/src/theme/themes/index.ts"
       ],
       "@spinjs/kit": [
-        "../../packages/spin/src/kit/index.ts"
+        "../../internal/kit/src/index.ts"
+      ],
+      "@spinjs/spin/examples": [
+        "../../packages/spin/src/examples/index.ts"
       ],
       "@spinjs/api/client": [
         "../../packages/spin/src/api/client.ts"

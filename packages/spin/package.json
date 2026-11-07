@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/spin",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
   "type": "module",
   "license": "MIT",
@@ -130,17 +130,6 @@
       "types": "./src/animation/index.ts",
       "default": "./src/animation/index.ts"
     },
-    "./kit": {
-      "types": "./src/kit/index.ts",
-      "default": "./src/kit/index.ts"
-    },
-    "./kit/skill": {
-      "types": "./src/kit/skill.ts",
-      "default": "./src/kit/skill.ts"
-    },
-    "./kit/solid": {
-      "types": "./src/kit/solid-server.d.ts"
-    },
     "./skill": {
       "types": "./src/theme/skill/index.ts",
       "default": "./src/theme/skill/index.ts"
@@ -155,6 +144,10 @@
     "./lsp": {
       "types": "./src/lsp/main.ts",
       "default": "./src/lsp/main.ts"
+    },
+    "./examples": {
+      "types": "./src/examples/index.ts",
+      "default": "./src/examples/index.ts"
     }
   },
   "files": [
@@ -183,7 +176,6 @@
     "@unocss/preset-wind4": "66.10.5",
     "@unocss/transformer-directives": "66.10.5",
     "@unocss/transformer-variant-group": "66.10.5",
-    "animejs": "4.5.0",
     "hono": "^4.13.13",
     "unplugin": "^3.4.0",
     "valibot": "^1.0.0",
@@ -339,23 +331,16 @@
         "types": "./dist/theme/skill/authoring.d.ts",
         "default": "./dist/theme/skill/authoring.js"
       },
-      "./kit": {
-        "types": "./dist/kit/index.d.ts",
-        "default": "./dist/kit/index.js"
-      },
-      "./kit/skill": {
-        "types": "./dist/kit/skill.d.ts",
-        "default": "./dist/kit/skill.js"
-      },
-      "./kit/solid": {
-        "types": "./dist/kit/solid-server.d.ts"
-      },
       "./elements": {
         "types": "./dist/compiler/elements.d.ts"
       },
       "./lsp": {
         "types": "./dist/lsp/main.d.ts",
         "default": "./dist/lsp/main.js"
+      },
+      "./examples": {
+        "types": "./dist/examples/index.d.ts",
+        "default": "./dist/examples/index.js"
       }
     }
   },

@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "../../src/theme/themes/index.ts";
-import { createThemeState } from "../../src/kit/theme-state.ts";
+import { starterThemes } from "@spinjs/spin/theme/themes";
+import { createThemeState } from "./theme-state.ts";
 
 /**
  * The theme state an app creates over its own documents.

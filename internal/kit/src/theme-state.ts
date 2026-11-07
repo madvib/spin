@@ -14,7 +14,7 @@
  */
 import { createEffect, createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
-import { starterThemes, themeModes } from "../theme/themes/index.ts";
+import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
 
 export type StarterName = keyof typeof starterThemes;
 

@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "apps/*",
-    "internal/check"
+    "internal/check",
+    "internal/kit"
   ],
   "type": "module",
   "dependencies": {

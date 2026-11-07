@@ -6,6 +6,7 @@
   "dependencies": {
     "@jibe/embed": "0.4.0",
     "@solidjs/router": "^1.0.0",
+    "@spinjs/kit": "workspace:*",
     "@spinjs/spin": "workspace:*",
     "animejs": "4.5.0",
     "solid-js": "^1.9.3"
