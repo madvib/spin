@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/runtime",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "description": "The component runtime: signals, bridges, elements, and directives.",
   "type": "module",
   "license": "MIT",
@@ -46,7 +46,6 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true,
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

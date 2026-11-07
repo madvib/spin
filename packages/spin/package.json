@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/spin",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
   "type": "module",
   "license": "MIT",
@@ -208,7 +208,6 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true,
     "exports": {
       "./package.json": {
         "default": "./package.json"
@@ -339,6 +338,17 @@
       "./skill/authoring": {
         "types": "./dist/theme/skill/authoring.d.ts",
         "default": "./dist/theme/skill/authoring.js"
+      },
+      "./kit": {
+        "types": "./dist/kit/index.d.ts",
+        "default": "./dist/kit/index.js"
+      },
+      "./kit/skill": {
+        "types": "./dist/kit/skill.d.ts",
+        "default": "./dist/kit/skill.js"
+      },
+      "./kit/solid": {
+        "types": "./dist/kit/solid-server.d.ts"
       },
       "./elements": {
         "types": "./dist/compiler/elements.d.ts"

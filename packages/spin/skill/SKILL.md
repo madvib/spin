@@ -143,6 +143,35 @@ the same sentence. Status colours brighter than the brand. A fill with no ink of
 its own, so the label is whatever the browser paints. A white ink on a pale
 amber badge, because the pairing was never measured.
 
+### font
+
+**For.** The voices, the scale, the weights, the tracking.
+
+**Good.** One UI family used with conviction, and one display family that speaks
+only where a display may speak. A scale whose steps are real decisions, with a
+display step that is a jump rather than an increment. Hierarchy from weight and
+size, so no second typeface is spent on making headings look different. Labels
+set small and tracked open. Tabular figures where numbers are read in columns.
+
+**Lazy.** The same sans everywhere and a second family that differs only in
+weight. A scale that runs fourteen, fifteen, sixteen, eighteen, twenty,
+twenty-two. A display step one and a half times the body. Tracking applied to
+everything, so the prose looks spaced out.
+
+### focus
+
+**For.** The ring every interactive element shares: buttons, links, fields,
+summaries, dialogs.
+
+**Good.** A width that is visible, because a one pixel ring reads as a rendering
+artifact rather than a decision. An offset that separates the ring from the
+control it is on. A colour that does not mean anything else, usually the accent
+or the link colour, and never the destructive red.
+
+**Lazy.** The ring inherits the control's own colour and disappears on the
+coloured control it is drawn on. Or the ring is dropped in favour of a colour
+change, which nobody using a keyboard can follow.
+
 ### spacing
 
 **For.** The rhythm and the density. Every gap, pad and inset is one step of
@@ -160,21 +189,6 @@ cavernous and nothing sits in between. Or so many near duplicates, fourteen and
 fifteen and sixteen, that the choice becomes arbitrary and the rhythm stops
 existing.
 
-### font
-
-**For.** The voices, the scale, the weights, the tracking.
-
-**Good.** One UI family used with conviction, and one display family that speaks
-only where a display may speak. A scale whose steps are real decisions, with a
-display step that is a jump rather than an increment. Hierarchy from weight and
-size, so no second typeface is spent on making headings look different. Labels
-set small and tracked open. Tabular figures where numbers are read in columns.
-
-**Lazy.** The same sans everywhere and a second family that differs only in
-weight. A scale that runs fourteen, fifteen, sixteen, eighteen, twenty,
-twenty-two. A display step one and a half times the body. Tracking applied to
-everything, so the prose looks spaced out.
-
 ### radius
 
 **For.** The shape of the corners. This is a character, and it is one of the
@@ -188,6 +202,18 @@ the steps says something on its own.
 **Lazy.** One radius everywhere, so nothing can be said about the theme. Or a
 ladder of arbitrary values, two and six and ten, that spells no character and
 reads as an accident.
+
+### border
+
+**For.** The stroke weight every control and surface draws with.
+
+**Good.** One hairline as the default, and two or three heavier steps that mean
+something: the edge of a selected control, the frame of a block. The colour
+matters as much as the width, because a hairline that is too strong turns every
+surface into a box.
+
+**Lazy.** One width everywhere, so a divider and a field's edge read the same
+and the page has no hierarchy of lines.
 
 ### opacity
 
@@ -203,19 +229,25 @@ still has to say what it says, and has chosen the ink that goes on it.
 whatever the rule asked for. Dimming with opacity spends it on the whole
 element, so the label dims with the fill and the control stops being readable.
 
-### shadow
+### motion
 
-**For.** The elevation ladder. Either a ladder, or nothing.
+**For.** The timing signature. Motion points; it does not perform.
 
-**Good.** A ladder with meanings: resting, raised, and the overlay that sits
-above everything. Each step says what height is in this theme. Or `none` at
-every step, with the separation carried by hairlines and air, which is a
-decision and often the better one. A hard offset with no blur reads as print; a
-diffuse shadow reads as light. Pick one and stay in it.
+**Good.** Four durations with names that say what they are for: fast for a state
+change the reader has already decided to expect, base for a transition, slow for
+a panel, and loop for the endless ones — the skeleton's pulse, the spinner, the
+status dot. Two or three curves: an entrance that eases out, an exit that eases
+in, and a standard that lands a press. The loop is a step of its own, so a theme
+that wants a two-second pulse says so without making every panel's transition
+two seconds long, and it never sits below the floor below which an endless
+animation reads as a strobe. The loop is not a transition: `duration-loop` is
+not a class, because a transition that takes as long as a pulse is not what a
+transition is. The endless animations spend the loop directly.
 
-**Lazy.** The same shadow at every step, so every box is a box. A shadow on
-every surface, so nothing is a surface. Three shadows stacked on a card that
-never has to float.
+**Lazy.** A sheet of near-identical durations, or one duration for everything. A
+bounce on a control that should land. A loop faster than a quarter of a second.
+A slow transition carrying the loop, so every page that uses `duration-slow`
+inherits a pulse.
 
 ### breakpoint
 
@@ -239,25 +271,42 @@ be inserted between two without renumbering the world.
 **Lazy.** Arbitrary numbers, or one number for everything, so a dropdown and a
 toast fight and the document order decides.
 
-### motion
+### icon
 
-**For.** The timing signature. Motion points; it does not perform.
+**For.** The glyph sizes.
 
-**Good.** Four durations with names that say what they are for: fast for a state
-change the reader has already decided to expect, base for a transition, slow for
-a panel, and loop for the endless ones — the skeleton's pulse, the spinner, the
-status dot. Two or three curves: an entrance that eases out, an exit that eases
-in, and a standard that lands a press. The loop is a step of its own, so a theme
-that wants a two-second pulse says so without making every panel's transition
-two seconds long, and it never sits below the floor below which an endless
-animation reads as a strobe. The loop is not a transition: `duration-loop` is
-not a class, because a transition that takes as long as a pulse is not what a
-transition is. The endless animations spend the loop directly.
+**Good.** A ladder measured in `em`, so a glyph tracks the control it sits in,
+with steps that are real jumps. A step of an eighth of an em against sixteen
+pixel prose is two pixels, which is nothing.
 
-**Lazy.** A sheet of near-identical durations, or one duration for everything. A
-bounce on a control that should land. A loop faster than a quarter of a second.
-A slow transition carrying the loop, so every page that uses `duration-slow`
-inherits a pulse.
+**Lazy.** Three sizes that differ by two pixels, so the ladder is invisible and
+every icon is nudged by hand where it is used.
+
+### avatar
+
+**For.** The size ladder of a face.
+
+**Good.** Three sizes with jobs: in a list or a comment, beside a name, and as
+the subject of a page. The ratios are chosen so the face does not lead the row
+it sits in.
+
+**Lazy.** One size for everything, so the profile header is the same size as the
+avatar in a comment and the page has no scale.
+
+### element
+
+**For.** The contract knows this group; nothing here says what it is for yet.
+
+### link
+
+**For.** The rule under a link in prose.
+
+**Good.** A hair at the width of the rule the rest of the theme draws with, or
+none at all when the colour alone carries it. A link is a word on the page, not
+a sticker on it.
+
+**Lazy.** The browser's default underline, which is thicker than the theme's
+rules and in a colour the theme never chose.
 
 ### button
 
@@ -273,87 +322,9 @@ hard offset, or a fill that deepens.
 next to it. Or every value left at the fallback, so the control is whatever the
 platform draws.
 
-### border
+### stat
 
-**For.** The stroke weight every control and surface draws with.
-
-**Good.** One hairline as the default, and two or three heavier steps that mean
-something: the edge of a selected control, the frame of a block. The colour
-matters as much as the width, because a hairline that is too strong turns every
-surface into a box.
-
-**Lazy.** One width everywhere, so a divider and a field's edge read the same
-and the page has no hierarchy of lines.
-
-### focus
-
-**For.** The ring every interactive element shares: buttons, links, fields,
-summaries, dialogs.
-
-**Good.** A width that is visible, because a one pixel ring reads as a rendering
-artifact rather than a decision. An offset that separates the ring from the
-control it is on. A colour that does not mean anything else, usually the accent
-or the link colour, and never the destructive red.
-
-**Lazy.** The ring inherits the control's own colour and disappears on the
-coloured control it is drawn on. Or the ring is dropped in favour of a colour
-change, which nobody using a keyboard can follow.
-
-### icon
-
-**For.** The glyph sizes.
-
-**Good.** A ladder measured in `em`, so a glyph tracks the control it sits in,
-with steps that are real jumps. A step of an eighth of an em against sixteen
-pixel prose is two pixels, which is nothing.
-
-**Lazy.** Three sizes that differ by two pixels, so the ladder is invisible and
-every icon is nudged by hand where it is used.
-
-### badge
-
-**For.** The small tag, and what shape it is.
-
-**Good.** A decision about the shape, a square tag or a pill, and about the
-edge, so the tag holds apart from the page it sits on. A pill says a soft word;
-a square tag says a label. The badge is where a theme's radius language shows at
-its smallest size, so it is worth deciding.
-
-**Lazy.** Left at the fallback, so the badge is a rounded rectangle of unknown
-provenance, or made a pill because pills are in fashion.
-
-### checkbox
-
-**For.** How physical the box is: one scalar, driving three inset shadows.
-
-**Good.** A decision, and it is a real one. Zero is flat and drawn, an outline
-with a tick in it. Higher is lit and raised, a surface catching the light. The
-scalar is one decision, so it cannot half happen.
-
-**Lazy.** A depth nobody chose, so the box is half embossed and half flat and
-reads as neither.
-
-### switch
-
-**For.** The same question as the checkbox, asked of a different control.
-
-**Good.** The switch answers with the same depth the checkbox does, so the two
-controls in one form look like they came from the same machine. A lit switch
-beside a drawn checkbox is a bug the theme can prevent.
-
-**Lazy.** The default depth, so the switch floats above the surface while the
-checkbox beside it is drawn onto it.
-
-### avatar
-
-**For.** The size ladder of a face.
-
-**Good.** Three sizes with jobs: in a list or a comment, beside a name, and as
-the subject of a page. The ratios are chosen so the face does not lead the row
-it sits in.
-
-**Lazy.** One size for everything, so the profile header is the same size as the
-avatar in a comment and the page has no scale.
+**For.** The contract knows this group; nothing here says what it is for yet.
 
 ### card
 
@@ -391,6 +362,18 @@ field that is only as strong as a rule is a hole in the page.
 **Lazy.** The page's hairline, so the field reads as a row of text rather than
 as something you can put a cursor in.
 
+### badge
+
+**For.** The small tag, and what shape it is.
+
+**Good.** A decision about the shape, a square tag or a pill, and about the
+edge, so the tag holds apart from the page it sits on. A pill says a soft word;
+a square tag says a label. The badge is where a theme's radius language shows at
+its smallest size, so it is worth deciding.
+
+**Lazy.** Left at the fallback, so the badge is a rounded rectangle of unknown
+provenance, or made a pill because pills are in fashion.
+
 ### table
 
 **For.** The data grid, and the reading of it.
@@ -404,16 +387,41 @@ stripes becoming a pattern to look at.
 decision rather than as help, and a header that is only separated by weight in a
 face too small to carry it.
 
-### link
+### checkbox
 
-**For.** The rule under a link in prose.
+**For.** How physical the box is: one scalar, driving three inset shadows.
 
-**Good.** A hair at the width of the rule the rest of the theme draws with, or
-none at all when the colour alone carries it. A link is a word on the page, not
-a sticker on it.
+**Good.** A decision, and it is a real one. Zero is flat and drawn, an outline
+with a tick in it. Higher is lit and raised, a surface catching the light. The
+scalar is one decision, so it cannot half happen.
 
-**Lazy.** The browser's default underline, which is thicker than the theme's
-rules and in a colour the theme never chose.
+**Lazy.** A depth nobody chose, so the box is half embossed and half flat and
+reads as neither.
+
+### switch
+
+**For.** The same question as the checkbox, asked of a different control.
+
+**Good.** The switch answers with the same depth the checkbox does, so the two
+controls in one form look like they came from the same machine. A lit switch
+beside a drawn checkbox is a bug the theme can prevent.
+
+**Lazy.** The default depth, so the switch floats above the surface while the
+checkbox beside it is drawn onto it.
+
+### shadow
+
+**For.** The elevation ladder. Either a ladder, or nothing.
+
+**Good.** A ladder with meanings: resting, raised, and the overlay that sits
+above everything. Each step says what height is in this theme. Or `none` at
+every step, with the separation carried by hairlines and air, which is a
+decision and often the better one. A hard offset with no blur reads as print; a
+diffuse shadow reads as light. Pick one and stay in it.
+
+**Lazy.** The same shadow at every step, so every box is a box. A shadow on
+every surface, so nothing is a surface. Three shadows stacked on a card that
+never has to float.
 
 ## Filling the document
 

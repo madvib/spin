@@ -97,6 +97,10 @@ document.
 
 **Wears it.** `<h3>` reads this by default.
 
+### type-subtitle
+
+**For.** The theme declares this style; nothing here says what it is for yet.
+
 ### type-lead
 
 **For.** The lede paragraph: the standfirst under a title, larger than the
@@ -128,12 +132,6 @@ measure.
 `<span class="type-code">` where code must sit inside running text on a
 non-code element.
 
-### type-link
-
-**For.** Links: the one ink that says "this goes somewhere."
-
-**Wears it.** `<a>` reads this by default.
-
 ### type-label
 
 **For.** Form labels and control captions: small, tracked open, the voice
@@ -163,6 +161,10 @@ that says what the title is about.
 
 **Wears it.** Nothing reads this by default — name it where the number sits.
 
+### type-badge
+
+**For.** The theme declares this style; nothing here says what it is for yet.
+
 ### type-body-strong
 
 **For.** Strong body: the emphasized run inside the reading voice.
@@ -176,6 +178,10 @@ that says what the title is about.
 headers, figure labels that must hold their weight at small sizes.
 
 **Wears it.** `<figcaption>` reads this by default.
+
+### type-card-title
+
+**For.** The theme declares this style; nothing here says what it is for yet.
 
 ## The one question
 
