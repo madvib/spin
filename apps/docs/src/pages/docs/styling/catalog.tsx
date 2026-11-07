@@ -244,7 +244,7 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
       <>
         Write <code>type-&lt;name&gt;</code> to spend a whole named style at
         once, and the single-decision utilities below for everything around
-        it. The voices, their element defaults, and live specimens live in
+        it. The type styles, their element defaults, and live specimens live in
         the <A href="/docs/styling/prose">Typography guide</A>; every ladder
         behind them lives on{" "}
         <A href="/docs/themes/reference#groups">Token Reference</A>.
@@ -295,7 +295,7 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
           <>
             Static <code>text-decoration</code> utilities.{" "}
             <code>overline</code> the utility draws a line above a run of
-            text; <code>type-overline</code> the style is the eyebrow voice
+            text; <code>type-overline</code> the style is the eyebrow style
             — same word, different jobs.
           </>
         ),

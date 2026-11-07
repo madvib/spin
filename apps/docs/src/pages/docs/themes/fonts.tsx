@@ -71,7 +71,7 @@ export default function ThemesFonts(): JSX.Element {
           <Code
             code={THEMES_SNIPPETS.compositeStyle}
             lang="json"
-            title="One style in spin/<name>.json"
+            title="One style in spin/<brand>/tokens.json"
           />
         </div>
         <p class="max-w-prose">
@@ -104,9 +104,9 @@ export default function ThemesFonts(): JSX.Element {
         </p>
         <div class="my-3">
           <Code
-            code={THEMES_SNIPPETS.fontMap}
+            code={THEMES_SNIPPETS.typeAlias}
             lang="json"
-            title="Re-pointing styles in spin/<name>.json"
+            title="Type aliases in spin/<brand>/elements.json and primitives/card.json"
           />
         </div>
         <p class="max-w-prose">

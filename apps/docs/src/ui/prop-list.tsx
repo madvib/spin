@@ -20,7 +20,7 @@ export function PropList(props: {
 }): JSX.Element {
   return (
     <div
-      class={`flex flex-col divide-y divide-border overflow-hidden rounded-lg border bg-surface ${
+      class={`flex flex-col divide-y overflow-hidden rounded-lg border bg-surface ${
         props.class ?? ""
       }`}
     >

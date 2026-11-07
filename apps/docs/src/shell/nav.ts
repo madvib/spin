@@ -90,7 +90,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Overview",
         href: "/docs/themes/overview",
-        summary: "Designing your brand theme in the Studio, previewing starters, and configuring spin/*.json.",
+        summary: "Designing your brand theme in the Studio, previewing starters, and configuring spin/<brand>/.",
       },
       {
         title: "Tokens & Customization",
@@ -103,7 +103,7 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
         summary: "Light and dark mode resolution, subtree scoping with data-mode, mode invariance, and mode pickers.",
       },
       {
-        title: "Fonts & Voices",
+        title: "Fonts & Type Styles",
         href: "/docs/themes/fonts",
         summary: "Loading web fonts with @font-face generation, font family roles, and the monotonic type scale.",
       },

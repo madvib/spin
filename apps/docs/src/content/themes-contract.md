@@ -6,7 +6,9 @@ A theme is one JSON document in the DTCG shape: groups of tokens, each token a
 `$value` and, when the group does not already say it, a `$type`. Types inherit
 down the group tree — declare `$type: "color"` on `color` once and every token
 inside it is a color until a token says otherwise. In a Spin project the
-document lives at `spin/<name>.json`, and the name is the file stem.
+brand's document lives at `spin/<brand>/tokens.json`; the directory name is the
+theme name, and the optional files beside it are overlay layers, not more
+themes.
 
 An alias names another token in braces: `"{color.neutral.50}"`. The build
 resolves it through a CSS `var(--color-neutral-50)` reference, not by copying

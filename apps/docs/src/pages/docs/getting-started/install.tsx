@@ -200,7 +200,7 @@ const initFlags = (): readonly PropEntry[] => [
     description: (
       <>
         The name of the first theme — written to{" "}
-        <code>spin/&lt;name&gt;.json</code>.
+        <code>spin/&lt;brand&gt;/tokens.json</code>.
       </>
     ),
   },
@@ -317,7 +317,7 @@ export default function Install(): JSX.Element {
         <PropList
           items={[
             {
-              name: "spin/*.json",
+              name: "spin/<brand>/",
               badge: "themes",
               description:
                 "DTCG theme documents declaring your palette, scales, modes, and element overrides.",

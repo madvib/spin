@@ -4,7 +4,7 @@
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Markdown } from "../../../markdown.tsx";
+import { Markdown } from "../../../markdown/markdown.tsx";
 import { PageHeader, PlaygroundEmbed, Section } from "../../../ui/index.ts";
 import startMd from "../../../content/start.md?raw";
 

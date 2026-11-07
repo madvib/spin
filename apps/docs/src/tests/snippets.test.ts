@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { spin } from "../../../packages/spin/src/plugin/plugin.ts";
-import { describeCatalog, spinPreset } from "../../../packages/spin/src/compiler/index.ts";
+import { spin } from "../../../../packages/spin/src/plugin/plugin.ts";
+import { describeCatalog, spinPreset } from "../../../../packages/spin/src/compiler/index.ts";
 import {
   indexTree,
   ownedStyleNames,
@@ -10,13 +10,13 @@ import {
   resolveAliases,
   starterThemes,
   themeGates,
-} from "../../../packages/spin/src/theme/index.ts";
-import { parseArgs } from "../../../packages/spin/src/diagnostics/cli.ts";
-import { mountSpinApp } from "../../../packages/spin/src/api/index.ts";
-import { GETTING_STARTED_SNIPPETS } from "./pages/docs/getting-started/getting-started.snippets.ts";
-import { THEMES_SNIPPETS } from "./pages/docs/themes/themes.snippets.ts";
-import { AUTHORING_SNIPPETS } from "./pages/docs/authoring/authoring.snippets.ts";
-import { TOOLING_SNIPPETS } from "./pages/docs/tooling/tooling.snippets.ts";
+} from "../../../../packages/spin/src/theme/index.ts";
+import { parseArgs } from "../../../../packages/spin/src/diagnostics/cli.ts";
+import { mountSpinApp } from "../../../../packages/spin/src/api/index.ts";
+import { GETTING_STARTED_SNIPPETS } from "../pages/docs/getting-started/getting-started.snippets.ts";
+import { THEMES_SNIPPETS } from "../pages/docs/themes/themes.snippets.ts";
+import { AUTHORING_SNIPPETS } from "../pages/docs/authoring/authoring.snippets.ts";
+import { TOOLING_SNIPPETS } from "../pages/docs/tooling/tooling.snippets.ts";
 
 const ALL_SNIPPETS = {
   ...GETTING_STARTED_SNIPPETS,
@@ -25,7 +25,7 @@ const ALL_SNIPPETS = {
   ...TOOLING_SNIPPETS,
 } as const;
 
-const ROOT = resolve(import.meta.dir, "../../..");
+const ROOT = resolve(import.meta.dir, "../../../..");
 const PACKAGES: Readonly<Record<string, string>> = {
   "@spinjs/spin": "packages/spin",
   "@spinjs/runtime": "packages/runtime",
@@ -124,7 +124,7 @@ describe("Per-subgroup docs snippets", () => {
   });
 });
 
-const STYLING_DIR = resolve(import.meta.dir, "pages/docs/styling");
+const STYLING_DIR = resolve(import.meta.dir, "../pages/docs/styling");
 
 /**
  * The `type-<name>` classes the docs actually wear: `class="..."` and
@@ -157,7 +157,7 @@ function wornTypeClasses(sources: readonly string[]): ReadonlySet<string> {
 /**
  * Token paths a snippet or page states: `group.name` dotted paths under a
  * known theme group, inside backtick literals or prose code. Bare words
- * (`compact.spacing.json` filenames, `spin/<name>.json` paths) are excluded
+ * (`compact.spacing.json` filenames, `spin/<brand>/tokens.json` paths) are excluded
  * by requiring a real group root.
  */
 function statedTokenPaths(sources: readonly string[]): ReadonlySet<string> {
@@ -178,7 +178,7 @@ function statedTokenPaths(sources: readonly string[]): ReadonlySet<string> {
 }
 
 describe("docs-to-catalog currency", () => {
-  test("every worn type-<name> is an owned voice in the live catalog", () => {
+  test("every worn type-<name> is an owned type style in the live catalog", () => {
     const pages = readdirSync(STYLING_DIR)
       .filter((file) => file.endsWith(".tsx"))
       .map((file) => readFileSync(join(STYLING_DIR, file), "utf8"));
@@ -200,7 +200,7 @@ describe("docs-to-catalog currency", () => {
       const name = cls.slice("type-".length);
       if (!owned.has(name)) {
         throw new Error(
-          `${cls} is worn by the docs but is not an owned voice (${[...owned].join(", ")})`,
+          `${cls} is worn by the docs but is not an owned type style (${[...owned].join(", ")})`,
         );
       }
       expect(catalog.has(cls)).toBe(true);
@@ -223,7 +223,7 @@ describe("docs-to-catalog currency", () => {
     if (!parsed.ok) throw new Error(parsed.error);
     const index = indexTree(resolveAliases(parsed.tree).tree);
     for (const path of stated) {
-      // Voice targets (`card.title`, `stat.value`) are token groups now:
+      // Type-style targets (`card.title`, `stat.value`) are token groups now:
       // the `.type` tuples live under them, so they resolve in the tree.
       // A stated prefix of a deeper leaf (color.neutral, font.size) counts:
       // the docs name families as well as leaves.

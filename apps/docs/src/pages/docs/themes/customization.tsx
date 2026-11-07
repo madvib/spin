@@ -5,7 +5,7 @@ import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { Chip, Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
-import { elementGroups, elementTokens } from "../../../theme-docs.ts";
+import { elementGroups, elementTokens } from "../../../markdown/theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
 const MAPPING_ITEMS: readonly PropEntry[] = [
@@ -197,9 +197,9 @@ export default function ThemesCustomization(): JSX.Element {
         </div>
         <div class="my-3">
           <Code
-            code={THEMES_SNIPPETS.fontMap}
+            code={THEMES_SNIPPETS.typeAlias}
             lang="json"
-            title="Re-pointing styles in spin/<name>.json"
+            title="Type aliases in spin/<brand>/elements.json and primitives/card.json"
           />
         </div>
         <p class="max-w-prose text-muted">

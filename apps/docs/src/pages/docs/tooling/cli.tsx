@@ -105,7 +105,7 @@ const pluginOptions = (): readonly PropEntry[] => [
       <>
         Explicit theme documents to serve verbatim. When omitted, the plugin
         serves <code>extends.themes</code> overlaid with{" "}
-        <code>spin/*.json</code> from the project root.
+        <code>spin/&lt;brand&gt;/</code> from the project root.
       </>
     ),
   },
@@ -113,7 +113,7 @@ const pluginOptions = (): readonly PropEntry[] => [
     name: "extends",
     badge: "{ themes?, componentsDir? }",
     description:
-      "Shared brand layer imported as values, overlaid by the project's local spin/*.json and src/lib/components/*.html.",
+      "Shared brand layer imported as values, overlaid by the project's local spin/<brand>/ and src/lib/components/*.html.",
   },
   {
     name: "presets",

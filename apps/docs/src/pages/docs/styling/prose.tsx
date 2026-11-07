@@ -53,7 +53,7 @@ export default function StylingProse(): JSX.Element {
           <code>font.style.*</code>; nothing in your markup names a scale
           step directly. Sizing or weighing by hand names no style the theme
           can remake, so the build fails and names the style to write
-          instead. Move a scale step in <code>spin/&lt;name&gt;.json</code>{" "}
+          instead. Move a scale step in <code>spin/&lt;brand&gt;/tokens.json</code>{" "}
           (or the <A href="/studio">Studio</A> Fonts section) and every style
           built on it moves together.
         </p>
@@ -128,7 +128,7 @@ export default function StylingProse(): JSX.Element {
         <Code
           code={FONT_MAP_SNIPPET}
           lang="json"
-          title="Re-pointing styles in spin/<name>.json"
+          title="Re-pointing an element's type in spin/<brand>/elements.json"
         />
         <p class="max-w-prose">
           While elements carry a style, <code>&lt;a&gt;</code> and{" "}

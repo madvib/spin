@@ -8,12 +8,12 @@ import { A } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { CodeFrame } from "./code-frame.tsx";
-import { ExamplePreview } from "../example-preview.tsx";
+import { ExamplePreview } from "../playground/example-preview.tsx";
 import {
   activeFileForFramework,
   SpinEmbed,
   type PlaygroundFramework,
-} from "../jibe-playground.tsx";
+} from "../playground/jibe-playground.tsx";
 import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export interface PlaygroundRecipe {

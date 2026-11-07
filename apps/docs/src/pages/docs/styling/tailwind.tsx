@@ -112,7 +112,7 @@ const ABSENCE_ITEMS: readonly AbsenceItem[] = [
     reason: () => (
       <>
         Write <code>type-body</code> or a bare <code>&lt;p&gt;</code> when you
-        want the body voice. The theme declares one named style per voice, so
+        want the body style. The theme declares one named style per role, so
         a paragraph reads the same in every theme without guessing which size
         step the active theme calls body.
       </>
@@ -158,7 +158,7 @@ const ABSENCE_ITEMS: readonly AbsenceItem[] = [
         Reach for semantic color roles (<code>bg-surface</code>,{" "}
         <code>bg-primary</code>, <code>text-muted</code>) and a declared{" "}
         type style (<code>type-body</code>, <code>type-caption</code>), or add
-        a token to <code>spin/&lt;name&gt;.json</code>. Default numbered color
+        a token to <code>spin/&lt;brand&gt;/tokens.json</code>. Default numbered color
         palettes and bracketed color or font-size literals are omitted so
         switching themes never leaves unthemed colors or off-scale type
         behind.
@@ -263,7 +263,7 @@ export default function StylingTailwind(): JSX.Element {
       >
         <p class="max-w-prose">
           Write a utility class and it resolves against the tokens your theme
-          declares in <code>spin/&lt;name&gt;.json</code> — <code>p-4</code>{" "}
+          declares in <code>spin/&lt;brand&gt;/tokens.json</code> — <code>p-4</code>{" "}
           spends <code>spacing.4</code>, <code>bg-surface-raised</code> spends{" "}
           <code>color.surface-raised</code>, and <code>rounded-md</code> spends{" "}
           <code>radius.md</code>. Because a closed vocabulary that fails
@@ -545,7 +545,7 @@ export default function StylingTailwind(): JSX.Element {
           Apply a named type style such as <code>type-label</code>,{" "}
           <code>type-caption</code>, or <code>type-code</code> when a custom
           surface needs to spend the exact typographic decision your theme
-          made for that voice. Instead of guessing whether the active theme
+          made for that role. Instead of guessing whether the active theme
           styles labels in semibold wide or medium tight, your custom
           trigger reads the named style directly and follows every theme
           change (see <A href="/docs/themes/customization">Customization</A>{" "}

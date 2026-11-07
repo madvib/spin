@@ -7,7 +7,7 @@ import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { setTheme, theme } from "@spinjs/kit";
 import { Chip, Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
-import { themeSummaries, type ThemeSummary } from "../../../theme-docs.ts";
+import { themeSummaries, type ThemeSummary } from "../../../markdown/theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
 const STUDIO_STEPS: readonly PropEntry[] = [
@@ -30,10 +30,10 @@ const STUDIO_STEPS: readonly PropEntry[] = [
       "Every fill-and-ink pair displays its live WCAG contrast ratio and offers a one-click fix whenever a token drops below its legibility floor.",
   },
   {
-    name: "4. Save to spin/<name>.json",
+    name: "4. Save to spin/<brand>/tokens.json",
     badge: "git-diffable",
     description:
-      "Changes preview in memory first. Pressing Save writes spin/<name>.json and updates spin/config.json in your repository.",
+      "Changes preview in memory first. Pressing Save writes spin/<brand>/tokens.json and updates spin/config.json in your repository.",
   },
 ];
 
@@ -75,7 +75,7 @@ const SEATING_ITEMS: readonly PropEntry[] = [
     name: "3. First theme in themeOrder",
     badge: "Fallback",
     description:
-      "If no activeTheme is set, Spin seats the first theme in themeOrder (or the first alphabetical file in spin/*.json).",
+      "If no activeTheme is set, Spin seats the first theme in themeOrder (or the first brand directory in spin/, sorted by name).",
   },
 ];
 
@@ -255,7 +255,7 @@ export default function ThemesOverview(): JSX.Element {
           Pass <code>--vendor</code> to <code>npx spin init</code> only when
           you need a standalone snapshot you can edit in full. When you fork
           a starter in the Studio and hit <strong>Save</strong>, it writes a
-          copy into <code>spin/&lt;name&gt;.json</code> that your project
+          copy into <code>spin/&lt;brand&gt;/tokens.json</code> that your project
           owns.
         </p>
       </Section>
@@ -263,7 +263,7 @@ export default function ThemesOverview(): JSX.Element {
       <Section id="project" title="Project files and seating order">
         <p class="max-w-prose">
           A Spin project stores its themes in the <code>spin/</code> directory
-          at the project root. Each <code>spin/&lt;name&gt;.json</code> file
+          at the project root. Each <code>spin/&lt;brand&gt;/tokens.json</code> file
           defines one named theme (<code>spin/acme.json</code> registers{" "}
           <code>data-theme="acme"</code>), and <code>spin/config.json</code>{" "}
           controls which theme is seated by default and the order themes appear
@@ -329,13 +329,13 @@ export default function ThemesOverview(): JSX.Element {
         <p class="max-w-prose">
           One theme with two modes covers most applications. When your app
           offers user-selectable color skins — seasonal palettes, team colors,
-          white-label variants — add more files to <code>spin/*.json</code>{" "}
+          white-label variants — add more files to <code>spin/&lt;brand&gt;/</code>{" "}
           and list them in <code>themeOrder</code>. Multi-app teams can also
           publish a shared brand package exporting{" "}
           <code>{"{ themes: { ... } }"}</code> and pass it to any bundler
           adapter (<code>spin.vite()</code>, <code>spin.rspack()</code>,{" "}
           <code>spin.webpack()</code>, <code>spin.bun()</code>). Local files in{" "}
-          <code>spin/*.json</code> layer on top of <code>extends</code>: a
+          <code>spin/&lt;brand&gt;/</code> layer on top of <code>extends</code>: a
           local theme with the same name overrides the shared one, and saving
           a shared theme in the Studio forks it into <code>spin/</code>.
         </p>

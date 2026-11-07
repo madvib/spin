@@ -182,7 +182,7 @@ export default function StylingSpace(): JSX.Element {
           padding, margin, gap, and step-sized width or height (
           <code>w-4</code>, <code>h-4</code>) reads the same scale, tightening
           or loosening your theme in the Studio or in{" "}
-          <code>spin/&lt;name&gt;.json</code> rescales the whole page at once.
+          <code>spin/&lt;brand&gt;/tokens.json</code> rescales the whole page at once.
           Write a step your theme never declared and it renders nothing —{" "}
           <A href="/docs/tooling/lints">the build and lint</A> name the missing
           class before you ship; for half-steps the scale omits, reach for the

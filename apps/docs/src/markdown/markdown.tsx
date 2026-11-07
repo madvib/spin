@@ -4,7 +4,7 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { CodeFrame } from "./ui/code-frame.tsx";
+import { CodeFrame } from "../ui/code-frame.tsx";
 
 type Block =
   | {

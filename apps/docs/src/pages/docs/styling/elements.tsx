@@ -218,7 +218,7 @@ const PROMISE_EXHIBITS: readonly PromiseExhibit[] = [
         Change how a control is painted or sized by choosing one of its
         variants (<code>.primary</code>, <code>.ghost</code>,{" "}
         <code>.danger</code>, <code>.s-sm</code>, <code>.s-lg</code>) or by
-        updating its tokens in <code>spin/&lt;name&gt;.json</code>; when a
+        updating its tokens in <code>spin/&lt;brand&gt;/tokens.json</code>; when a
         utility class overrides an element&apos;s fill, size, or typography for
         a one-off, <code>spin/prefer-theme-value</code> flags the collision and
         names the variants or theme value to use instead.
@@ -368,7 +368,7 @@ export default function StylingElements(): JSX.Element {
           <code>&lt;input&gt;</code> directly in your template and get a
           finished control with its padding, border, corner radius, focus ring,
           and interactive states already in place. Because your theme decides
-          how a control looks once in <code>spin/&lt;name&gt;.json</code>,
+          how a control looks once in <code>spin/&lt;brand&gt;/tokens.json</code>,
           every <code>&lt;button&gt;</code>, <code>&lt;card&gt;</code>, and{" "}
           <code>&lt;input&gt;</code> across your application agrees without a
           utility list repeated on every tag. Switch starter themes or toggle
@@ -622,7 +622,7 @@ export default function StylingElements(): JSX.Element {
         <p class="max-w-prose">
           Reach for a variant when one button on a screen plays a different
           role; reach for component tokens in{" "}
-          <code>spin/&lt;name&gt;.json</code> (<code>button.radius</code>,{" "}
+          <code>spin/&lt;brand&gt;/tokens.json</code> (<code>button.radius</code>,{" "}
           <code>button.shadow</code>, <code>card.radius</code>,{" "}
           <code>card.padding</code>, <code>field.radius</code>) when you want
           to change what <em>your</em> button, card, or field looks like
@@ -634,7 +634,7 @@ export default function StylingElements(): JSX.Element {
           </A>
           ). Every UI surface in Spin climbs one three-step staircase so no
           layer pretends the others don&apos;t exist: your{" "}
-          <strong>theme</strong> (<code>spin/*.json</code>) sets the palette,
+          <strong>theme</strong> (<code>spin/&lt;brand&gt;/</code>) sets the palette,
           scales, and per-element tokens; <strong>primitives</strong> (
           <code>&lt;button&gt;</code>, <code>&lt;card&gt;</code>,{" "}
           <code>&lt;input&gt;</code>, <code>&lt;field&gt;</code>) turn single

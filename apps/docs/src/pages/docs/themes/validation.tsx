@@ -4,7 +4,7 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
-import { FLOORS } from "../../../theme-docs.ts";
+import { FLOORS } from "../../../markdown/theme-docs.ts";
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
 const CHECK_ITEMS: readonly PropEntry[] = [
@@ -57,7 +57,7 @@ export default function ThemesValidation(): JSX.Element {
       <Section id="cli" title="Lint and CLI analysis">
         <p class="max-w-prose">
           Run <code>npx spin lint .</code> in CI or locally to validate{" "}
-          <code>spin/*.json</code> themes together with your source files: a
+          <code>spin/&lt;brand&gt;/</code> themes together with your source files: a
           contrast pair below its floor or a missing required role surfaces as
           a lint diagnostic with the exact token path. To inspect themes on
           their own, <code>npx spin theme list</code> prints every resolved

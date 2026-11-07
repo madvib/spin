@@ -2,7 +2,7 @@ import { describe, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
-const ROOT = resolve(import.meta.dir, "../../..");
+const ROOT = resolve(import.meta.dir, "../../../..");
 
 interface Manifest {
   readonly name: string;
@@ -51,7 +51,7 @@ function mentions(text: string): readonly Mention[] {
 describe("docs content package mentions", () => {
   test("every named package and subpath exists in the workspace", () => {
     const available = manifests();
-    const dir = resolve(import.meta.dir, "content");
+    const dir = resolve(import.meta.dir, "../content");
     for (const file of readdirSync(dir)) {
       if (!file.endsWith(".md")) continue;
       const text = readFileSync(resolve(dir, file), "utf8");

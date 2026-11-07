@@ -4,7 +4,7 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { firefox, type Browser, type Page } from "playwright-core";
-import { DOCS_GROUPS, TOP_SECTIONS } from "./nav.ts";
+import { DOCS_GROUPS, TOP_SECTIONS } from "../shell/nav.ts";
 
 const PORT = Number(process.env.DOCS_PORT ?? "5221");
 const URL = `http://localhost:${PORT}`;
@@ -46,7 +46,7 @@ beforeAll(async () => {
   server = Bun.spawn(
     ["bun", "--bun", "vite", "dev", "--port", String(PORT), "--strictPort"],
     {
-      cwd: `${import.meta.dir}/..`,
+      cwd: `${import.meta.dir}/../..`,
       stdout: "ignore",
       stderr: "ignore",
     },

@@ -103,6 +103,13 @@ function buildStyleTuple(
     for (const field of STYLE_FIELDS) aliased[field] = `{${target}.${field}}`;
     return buildStyleGroup(raw, path, description, aliased);
   }
+  if (!isPlainObject(value)) {
+    return {
+      ok: false,
+      error:
+        `token "${here}" declares $type "typography" with a $value that is neither a five-field object nor a whole-style alias like "{font.style.body}"`,
+    };
+  }
   const composite = value as Record<string, unknown>;
   const keys = Object.keys(composite);
   const complete = STYLE_FIELDS.every((field) =>

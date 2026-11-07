@@ -53,7 +53,7 @@ export default function Studio(): JSX.Element {
           Either way the editing model is the same. Your keystrokes update an
           in-memory overlay that the preview repaints from immediately; nothing
           touches disk until you press <strong>Save</strong>, which writes{" "}
-          <code>spin/&lt;name&gt;.json</code>. A broken edit can never corrupt
+          <code>spin/&lt;brand&gt;/tokens.json</code>. A broken edit can never corrupt
           the file — the last saved document is always what reload restores.
         </p>
       </Section>
@@ -85,7 +85,7 @@ export default function Studio(): JSX.Element {
           (or Blank, which scaffolds the required roles), choose the primary,
           secondary, and accent fills plus the body and heading faces, name
           the theme, and the Studio writes the new{" "}
-          <code>spin/&lt;name&gt;.json</code> beside the others.
+          <code>spin/&lt;brand&gt;/tokens.json</code> beside the others.
         </p>
       </Section>
 

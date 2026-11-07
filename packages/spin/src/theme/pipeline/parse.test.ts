@@ -385,3 +385,14 @@ test("expandExtends throws on an unknown starter", () => {
   // studio's job is to say what is wrong.
   deepStrictEqual(parseTokens({ $extends: "nope" }).ok, false);
 });
+
+test("a composite typography token with a null $value is reported, not thrown", () => {
+  const result = parseTokens({
+    element: { h1: { $type: "typography", $value: null } },
+  });
+  deepStrictEqual(result.ok, false);
+  assert.match(
+    result.ok ? "" : result.error,
+    /declares \$type "typography" with a \$value that is neither a five-field object/,
+  );
+});

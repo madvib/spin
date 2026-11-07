@@ -11,7 +11,7 @@
  * rather than from a scanned source tree: feeding a whole examples corpus to
  * the generator is what took this box down.
  *
- * Usage: `bun run build-examples.ts [--only=<step>]`.
+ * Usage: `bun run tooling/build-examples.ts [--only=<step>]`.
  */
 import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -19,7 +19,7 @@ import { resolve } from "node:path";
 import { build } from "vite";
 import { SUBJECT_HTML } from "./examples/shared.ts";
 
-const docs = import.meta.dirname;
+const docs = resolve(import.meta.dirname, "..");
 const repo = resolve(docs, "../..");
 const out = resolve(docs, "public/examples");
 
@@ -153,7 +153,7 @@ const steps: Record<string, () => Promise<void>> = {
 function runStep(name: string): void {
   const child = spawnSync(
     process.execPath,
-    ["run", "build-examples.ts", `--only=${name}`],
+    ["run", "tooling/build-examples.ts", `--only=${name}`],
     { cwd: docs, stdio: "inherit" },
   );
   if (child.status !== 0) {

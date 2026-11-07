@@ -22,8 +22,8 @@ import { DocsRail } from "./layouts/docs-layout.tsx";
 import {
   LEGACY_DOCS_REDIRECTS,
   TOP_SECTIONS,
-} from "./nav.ts";
-import { SearchDialog } from "./search.tsx";
+} from "./shell/nav.ts";
+import { SearchDialog } from "./shell/search.tsx";
 import "@spinjs/components/mode-picker/examples/basic.html";
 import "@spinjs/components/theme-picker/examples/basic.html";
 

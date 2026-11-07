@@ -115,7 +115,7 @@ export default function ThemesModes(): JSX.Element {
           <strong>Color</strong> view, light and dark render side by side:
           editing a role while the dark preview is active writes the{" "}
           <code>$modes.dark</code> override into{" "}
-          <code>spin/&lt;name&gt;.json</code> for you. The JSON below is what
+          <code>spin/&lt;brand&gt;/tokens.json</code> for you. The JSON below is what
           the Studio saves — the same document you can edit by hand when you
           prefer an editor:
         </p>

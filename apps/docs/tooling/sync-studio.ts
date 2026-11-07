@@ -8,13 +8,13 @@
  * studio's modules load.
  *
  * Development does not run this: the docs Vite server serves both straight
- * from `apps/studio/dist` and `src/studio-bridge.js`.
+ * from `apps/studio/dist` and `src/shell/studio-bridge.js`.
  */
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const docs = import.meta.dirname;
+const docs = resolve(import.meta.dirname, "..");
 const source = resolve(docs, "../studio/dist");
 const target = resolve(docs, "public/__spin/jibe-studio");
 const bridge = resolve(docs, "public/studio-bridge.js");
@@ -23,7 +23,7 @@ await mkdir(resolve(target), { recursive: true });
 await cp(source, target, { recursive: true });
 
 const index = await readFile(resolve(target, "index.html"), "utf8");
-const bridgeSource = await readFile(resolve(docs, "src/studio-bridge.js"));
+const bridgeSource = await readFile(resolve(docs, "src/shell/studio-bridge.js"));
 const bridgeVersion = createHash("sha256")
   .update(bridgeSource)
   .digest("hex")
@@ -38,4 +38,4 @@ if (!index.includes("/studio-bridge.js")) {
   );
 }
 
-await cp(resolve(docs, "src/studio-bridge.js"), bridge);
+await cp(resolve(docs, "src/shell/studio-bridge.js"), bridge);

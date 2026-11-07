@@ -5,7 +5,7 @@
 import { A, useLocation } from "@solidjs/router";
 import { createSignal, onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { docsPageContext } from "../nav.ts";
+import { docsPageContext } from "../shell/nav.ts";
 import { mode, Section as SharedSection, theme } from "@spinjs/kit";
 import { starterThemes } from "@spinjs/spin/theme";
 

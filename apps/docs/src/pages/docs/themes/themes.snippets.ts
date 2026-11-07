@@ -48,7 +48,7 @@ export const THEMES_SNIPPETS = {
     }
   }
 }`,
-  fontMap: `{
+  typeAlias: `{
   "element": {
     "h1": {
       "type": { "$type": "typography", "$value": "{font.style.title}" }
@@ -160,7 +160,7 @@ export const plugins = [
     "elevation": { "$type": "shadow", "$value": "{shadow.md}" }
   }
 }`,
-  cliAnalyze: `# Lint source files AND spin/*.json themes together
+  cliAnalyze: `# Lint source files AND spin/<brand>/ themes together
 npx spin lint .
 
 # Or inspect themes directly from the CLI

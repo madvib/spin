@@ -56,7 +56,7 @@ import { defineConfig } from "unocss";
 import { spinPreset } from "@spinjs/spin/preset";
 
 const spinTheme = JSON.parse(
-  readFileSync(new URL("./spin/<name>.json", import.meta.url), "utf8"),
+  readFileSync(new URL("./spin/<brand>/tokens.json", import.meta.url), "utf8"),
 );
 
 export default defineConfig({
@@ -90,5 +90,5 @@ export default defineConfig({
     }
   }
 }`,
-  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/*.json tokens, bare-tag elements (<card>, <button class="primary">, <input>), and project-declared compositions (spin.vite({ shortcuts })); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
+  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/<brand>/ tokens, bare-tag elements (<card>, <button class="primary">, <input>), and project-declared compositions (spin.vite({ shortcuts })); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
 } as const;

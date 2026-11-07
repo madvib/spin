@@ -5,7 +5,7 @@
 import { createSignal } from "solid-js";
 import type { JSX } from "solid-js";
 import { computed, effect, signal } from "@spinjs/runtime";
-import { Markdown } from "../../../markdown.tsx";
+import { Markdown } from "../../../markdown/markdown.tsx";
 import { PageHeader, Section } from "../../../ui/index.ts";
 import machinesMd from "../../../content/machines.md?raw";
 

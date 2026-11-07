@@ -7,7 +7,7 @@ import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index
 
 const layerItems = (): readonly PropEntry[] => [
   {
-    name: "1. Theme (spin/*.json)",
+    name: "1. Theme (spin/<brand>/)",
     badge: "themeGates",
     description: (
       <>

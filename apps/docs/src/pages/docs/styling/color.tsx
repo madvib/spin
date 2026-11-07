@@ -327,19 +327,19 @@ export default function StylingColor(): JSX.Element {
         <p class="max-w-prose">
           Append an <code>/0</code>–<code>/100</code> alpha suffix such as{" "}
           <code>bg-surface/80</code>, <code>bg-primary/60</code>, or{" "}
-          <code>border/50</code> to mix any color role toward
+          <code>border-strong/50</code> to mix any color role toward
           transparency via <code>color-mix(in srgb, …)</code> so the color stays
           the theme&apos;s while only the strength is yours:
         </p>
 
         <div class="my-2 flex flex-col gap-3 rounded-lg border bg-surface-raised p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border/50 bg-surface/80 px-3 py-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border-strong/50 bg-surface/80 px-3 py-2">
             <span class="type-body-strong">
               Floating bar thinned over raised canvas
             </span>
             <div class="flex flex-wrap items-center gap-1">
               <code>bg-surface/80</code>
-              <code>border/50</code>
+              <code>border-strong/50</code>
             </div>
           </div>
 
@@ -348,7 +348,7 @@ export default function StylingColor(): JSX.Element {
               {(item) => (
                 <div class="flex min-w-0 flex-col gap-2 rounded-md border bg-surface p-2">
                   <div
-                    class={`h-12 w-full rounded-sm border/50 ${item.swatchClass}`}
+                    class={`h-12 w-full rounded-sm border-strong/50 ${item.swatchClass}`}
                   />
                   <div class="flex min-w-0 flex-wrap items-center justify-between gap-1">
                     <code class="break-all">{item.utility}</code>
@@ -368,7 +368,7 @@ export default function StylingColor(): JSX.Element {
           <code>border-[red]</code> and the stylesheet emits nothing for it,
           because a color written in a class is a value the theme never chose;
           use a semantic role or declare a token under <code>color.*</code> in{" "}
-          <code>spin/&lt;name&gt;.json</code> instead.
+          <code>spin/&lt;brand&gt;/tokens.json</code> instead.
         </p>
 
         <p class="max-w-prose">

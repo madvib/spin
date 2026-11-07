@@ -2,7 +2,7 @@
 
 Six rules read your source. They run in three places — oxlint, ESLint, and the
 standalone CLI — and all three read the same facts about your project: its
-`spin/*.json` themes, its shortcuts, the primitives' owned decisions. A rule
+`spin/<brand>/` themes, its shortcuts, the primitives' owned decisions. A rule
 cannot flag what the theme does not know, and two linters cannot disagree.
 
 ## The six rules

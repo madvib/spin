@@ -2,7 +2,7 @@
 
 ## The closed vocabulary
 
-Every utility class in Spin maps to a declared token in your `spin/*.json` theme (`p-4` → `var(--spacing-4)`, `bg-surface-raised` → `var(--color-surface-raised)`, `rounded-md` → `var(--radius-md)`). If a token step is not declared in your theme — or if you write an arbitrary bracket value (`w-[320px]`, `bg-[#ff0000]`) or a misspelled role (`bg-success` instead of `bg-semantic-success`) — the preset emits **no CSS rule**, and the build fails telling you which class, in which file, and what to write instead.
+Every utility class in Spin maps to a declared token in your `spin/<brand>/` theme (`p-4` → `var(--spacing-4)`, `bg-surface-raised` → `var(--color-surface-raised)`, `rounded-md` → `var(--radius-md)`). If a token step is not declared in your theme — or if you write an arbitrary bracket value (`w-[320px]`, `bg-[#ff0000]`) or a misspelled role (`bg-success` instead of `bg-semantic-success`) — the preset emits **no CSS rule**, and the build fails telling you which class, in which file, and what to write instead.
 
 The lint reads your project's themes and enforces the closed vocabulary in your editor and CI — the same rules everywhere, no `uno.config.ts` required. See [Lints & Verification](/docs/tooling/lints) for the rule table and setup.
 

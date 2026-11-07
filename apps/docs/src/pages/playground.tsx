@@ -4,12 +4,12 @@
  */
 import { createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { ExamplePreview } from "../example-preview.tsx";
+import { ExamplePreview } from "../playground/example-preview.tsx";
 import {
   activeFileForFramework,
   SpinEmbed,
   type PlaygroundFramework,
-} from "../jibe-playground.tsx";
+} from "../playground/jibe-playground.tsx";
 import type { Subject } from "../../examples/shared.ts";
 
 interface Preset {

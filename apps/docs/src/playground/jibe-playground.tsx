@@ -18,7 +18,7 @@ import { spinPreset } from "@spinjs/preset";
 import { mode, theme } from "@spinjs/kit";
 import { resolveTheme, type ThemeDocument } from "@spinjs/spin/theme";
 import { starterThemes } from "@spinjs/spin/theme/themes";
-import { SUBJECT_HTML, type Subject } from "../examples/shared.ts";
+import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export type PlaygroundFramework =
   | "vanilla"
@@ -231,25 +231,25 @@ export default { env, platform, cwd, versions };
     case "solid":
       return {
         ...common,
-        [entry]: `${markRuntime}import { render } from "solid-js/web";\nimport { App } from "./App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) render(() => <App />, root);\n`,
+        [entry]: `${markRuntime}import { render } from "solid-js/web";\nimport { App } from "../App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) render(() => <App />, root);\n`,
         "src/App.tsx": `export function App() {\n  return (\n${jsxMarkup(markup, "solid")}\n  );\n}\n`,
       };
     case "react":
       return {
         ...common,
-        [entry]: `${markRuntime}import { createRoot } from "react-dom/client";\nimport { App } from "./App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) createRoot(root).render(<App />);\n`,
+        [entry]: `${markRuntime}import { createRoot } from "react-dom/client";\nimport { App } from "../App.tsx";\n\nconst root = document.getElementById("app");\nif (root !== null) createRoot(root).render(<App />);\n`,
         "src/App.tsx": `export function App() {\n  return (\n${jsxMarkup(markup, "react")}\n  );\n}\n`,
       };
     case "vue":
       return {
         ...common,
-        [entry]: `${markRuntime}import { createApp } from "vue";\nimport App from "./App.vue";\n\nconst root = document.getElementById("app");\nif (root !== null) createApp(App).mount(root);\n`,
+        [entry]: `${markRuntime}import { createApp } from "vue";\nimport App from "../App.vue";\n\nconst root = document.getElementById("app");\nif (root !== null) createApp(App).mount(root);\n`,
         "src/App.vue": `<template>\n${indentMarkup(markup, 2)}\n</template>\n`,
       };
     case "svelte":
       return {
         ...common,
-        [entry]: `${markRuntime}import { mount } from "svelte";\nimport App from "./App.svelte";\n\nconst root = document.getElementById("app");\nif (root !== null) mount(App, { target: root });\n`,
+        [entry]: `${markRuntime}import { mount } from "svelte";\nimport App from "../App.svelte";\n\nconst root = document.getElementById("app");\nif (root !== null) mount(App, { target: root });\n`,
         "src/App.svelte": `${markup.trim()}\n`,
       };
     case "vanilla":

@@ -13,19 +13,19 @@ const ENTRY_PATHS: readonly PropEntry[] = [
     name: "spin.vite() / spin.<bundler>()",
     badge: "Full app + Studio",
     description:
-      "Provides the token stylesheet, bare-tag primitives, spin/*.json discovery, project src/lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
+      "Provides the token stylesheet, bare-tag primitives, spin/<brand>/ discovery, project src/lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
   },
   {
     name: "spin.vite({ extends: brand })",
     badge: "Multi-app brand",
     description:
-      "Layers a shared brand package's themes and components beneath local spin/*.json and src/lib/components/*.html overrides.",
+      "Layers a shared brand package's themes and components beneath local spin/<brand>/ and src/lib/components/*.html overrides.",
   },
   {
     name: "spinPreset({ themes })",
     badge: "Stylesheet only",
     description:
-      "Drops into an existing uno.config.ts for token CSS, utilities, and element rules from explicit theme objects. Does not transform .html components or auto-discover spin/*.json.",
+      "Drops into an existing uno.config.ts for token CSS, utilities, and element rules from explicit theme objects. Does not transform .html components or auto-discover spin/<brand>/.",
   },
   {
     name: "npx spin studio",
@@ -60,7 +60,7 @@ export default function Paths(): JSX.Element {
           <code>spin.rspack()</code>, <code>spin.webpack()</code>,{" "}
           <code>spin.rollup()</code>, <code>spin.rolldown()</code>,{" "}
           <code>spin.esbuild()</code>, and <code>spin.bun()</code>. It compiles{" "}
-          <code>spin/styles.css</code>, discovers <code>spin/*.json</code>,
+          <code>spin/styles.css</code>, discovers <code>spin/&lt;brand&gt;/</code>,
           transforms <code>src/lib/components/**/*.html</code> into custom elements,
           and mounts the Studio in development.
         </p>
@@ -88,7 +88,7 @@ export default function Paths(): JSX.Element {
           <code>{"{ themes, componentsDir }"}</code> and pass it to{" "}
           <code>{"spin.vite({ extends: brand })"}</code> (or any{" "}
           <code>{"spin.<bundler>({ extends: brand })"}</code>). Local{" "}
-          <code>spin/&lt;name&gt;.json</code> themes and{" "}
+          <code>spin/&lt;brand&gt;/tokens.json</code> themes and{" "}
           <code>src/lib/components/&lt;name&gt;.html</code> components take
           precedence over brand entries of the same name, and un-forked brand
           themes open read-only in the Studio with a one-click copy into local{" "}
@@ -119,7 +119,7 @@ export default function Paths(): JSX.Element {
         </alert>
         <p class="max-w-prose">
           Themes are passed explicitly in the <code>themes</code> map. Because{" "}
-          <code>spinPreset</code> does not scan <code>spin/*.json</code> on
+          <code>spinPreset</code> does not scan <code>spin/&lt;brand&gt;/</code> on
           disk, register each theme in <code>uno.config.ts</code> directly:
         </p>
         <div class="my-3">
@@ -135,7 +135,7 @@ export default function Paths(): JSX.Element {
         <p class="max-w-prose">
           <code>spin studio</code> starts the daemon and serves the editor at{" "}
           <code>http://localhost:7463/studio/</code> for editing{" "}
-          <code>spin/*.json</code> themes independent of your app server.
+          <code>spin/&lt;brand&gt;/</code> themes independent of your app server.
         </p>
         <div class="my-3">
           <Code

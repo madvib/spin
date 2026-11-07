@@ -3,7 +3,7 @@
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Markdown } from "../../../markdown.tsx";
+import { Markdown } from "../../../markdown/markdown.tsx";
 import { Chip, PageHeader, Section } from "../../../ui/index.ts";
 import checkMd from "../../../content/check.md?raw";
 

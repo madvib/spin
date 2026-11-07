@@ -16,7 +16,7 @@ import {
 import type { JSX } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { toc, type TocRow } from "@spinjs/components/toc";
-import { DOCS_GROUPS, docsPageContext } from "../nav.ts";
+import { DOCS_GROUPS, docsPageContext } from "../shell/nav.ts";
 
 export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
   const location = useLocation();

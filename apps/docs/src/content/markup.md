@@ -1,6 +1,6 @@
 ## Tags arrive finished
 
-Write `<button>`, `<card>`, or `<input>` directly in your template and get a finished control with its padding, border, corner radius, focus ring, and interactive states already in place. Because your theme decides how a control looks once in `spin/<name>.json`, every `<button>`, `<card>`, and `<input>` across your application agrees without a utility list repeated on every tag.
+Write `<button>`, `<card>`, or `<input>` directly in your template and get a finished control with its padding, border, corner radius, focus ring, and interactive states already in place. Because your theme decides how a control looks once in `spin/<brand>/tokens.json`, every `<button>`, `<card>`, and `<input>` across your application agrees without a utility list repeated on every tag.
 
 ```html
 <div class="flex flex-wrap items-center gap-2">
@@ -67,7 +67,7 @@ Add `.primary`, `.secondary`, `.outline`, `.ghost`, `.contrast`, or `.danger` (o
 </div>
 ```
 
-Reach for a variant when one button on a screen plays a different role; reach for component tokens in `spin/<name>.json` (`button.radius`, `button.shadow`, `card.radius`, `card.padding`, `field.radius`) when you want to change what *your* button, card, or field looks like everywhere (see [Theme Customization](/docs/themes/customization#elements) and [Per-Element Token Overrides](/docs/themes/reference#elements)). Every UI surface in Spin climbs one three-step staircase so no layer pretends the others don't exist: your **theme** (`spin/*.json`) sets the palette, scales, and per-element tokens; **primitives** (`<button>`, `<card>`, `<input>`, `<field>`) turn single HTML and custom tags into finished controls for static and native interactions; and when a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — you **vendor a state-machine component** into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup the same way shadcn/ui vendors templates while the theme and primitives still style every part inside it (see the [Components catalog](/components)).
+Reach for a variant when one button on a screen plays a different role; reach for component tokens in `spin/<brand>/tokens.json` (`button.radius`, `button.shadow`, `card.radius`, `card.padding`, `field.radius`) when you want to change what *your* button, card, or field looks like everywhere (see [Theme Customization](/docs/themes/customization#elements) and [Per-Element Token Overrides](/docs/themes/reference#elements)). Every UI surface in Spin climbs one three-step staircase so no layer pretends the others don't exist: your **theme** (`spin/<brand>/`) sets the palette, scales, and per-element tokens; **primitives** (`<button>`, `<card>`, `<input>`, `<field>`) turn single HTML and custom tags into finished controls for static and native interactions; and when a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — you **vendor a state-machine component** into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup the same way shadcn/ui vendors templates while the theme and primitives still style every part inside it (see the [Components catalog](/components)).
 
 ## How the system reasons about your markup
 
@@ -84,7 +84,7 @@ Write markup against primitives and utilities and run `npx spin lint .` (see [Li
 <button type="button">Save changes</button>
 ```
 
-2. **Recurring look changes belong to variants or the theme.** Change how a control is painted or sized by choosing one of its variants (`.primary`, `.ghost`, `.danger`, `.s-sm`, `.s-lg`) or by updating its tokens in `spin/<name>.json`; when a utility class overrides an element's fill, size, or typography for a one-off, `spin/prefer-theme-value` flags the collision and names the variants or theme value to use instead:
+2. **Recurring look changes belong to variants or the theme.** Change how a control is painted or sized by choosing one of its variants (`.primary`, `.ghost`, `.danger`, `.s-sm`, `.s-lg`) or by updating its tokens in `spin/<brand>/tokens.json`; when a utility class overrides an element's fill, size, or typography for a one-off, `spin/prefer-theme-value` flags the collision and names the variants or theme value to use instead:
 
 ```html
 <!-- Flagged by spin/prefer-theme-value: -->

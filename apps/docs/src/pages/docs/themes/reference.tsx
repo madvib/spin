@@ -25,7 +25,7 @@ import {
   schemaFacts,
   statedValue,
   TYPES,
-} from "../../../theme-docs.ts";
+} from "../../../markdown/theme-docs.ts";
 
 const RESERVED_KEYS: readonly PropEntry[] = [
   {

@@ -6,7 +6,7 @@ import { A } from "@solidjs/router";
 import type { RouteSectionProps } from "@solidjs/router";
 import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
-import { COMPONENT_GROUPS } from "../nav.ts";
+import { COMPONENT_GROUPS } from "../shell/nav.ts";
 
 export type ComponentKindFilter = "all" | "primitive" | "machine";
 

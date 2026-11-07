@@ -3,7 +3,7 @@
  */
 import type { JSX } from "solid-js";
 import { For } from "solid-js";
-import { Markdown } from "../../../markdown.tsx";
+import { Markdown } from "../../../markdown/markdown.tsx";
 import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import lintsMd from "../../../content/lints.md?raw";
 
