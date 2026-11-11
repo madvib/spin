@@ -25,7 +25,7 @@ import { componentExamples } from "../src/rules/primitives/examples-index.ts";
  * styling accident and is really a typo.
  */
 
-const LUCIDE = lucide.icons as Record<string, unknown>;
+const LUCIDE = { ...(lucide.icons as Record<string, unknown>), ...((lucide as { aliases?: Record<string, unknown> }).aliases ?? {}) };
 
 /** The collection name a glyph class spends. */
 const LUCIDE_CLASS = "i-lucide-";

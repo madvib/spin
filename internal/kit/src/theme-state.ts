@@ -313,12 +313,32 @@ export const setWant: ThemeState["setWant"] = (m) => defaultStateOf().setWant(m)
 export const mode: ThemeState["mode"] = () => defaultStateOf().mode();
 export const setMode: ThemeState["setMode"] = (m) => defaultStateOf().setMode(m);
 export const palettes: ThemeState["palettes"] = new Proxy([] as unknown as ThemeState["palettes"], {
-  get: (_target, key) => Reflect.get(defaultStateOf().palettes, key as never),
+  get: (_target, key) => {
+    const value = Reflect.get(defaultStateOf().palettes, key as never);
+    return typeof value === "function" ? (value as (...args: never[]) => unknown).bind(defaultStateOf().palettes) : value;
+  },
+  has: (_target, key) => Reflect.has(defaultStateOf().palettes, key as never),
+  ownKeys: () => Reflect.ownKeys(defaultStateOf().palettes),
+  getOwnPropertyDescriptor: (_target, key) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(defaultStateOf().palettes, key as never);
+    if (descriptor === undefined) return undefined;
+    return { ...descriptor, configurable: true };
+  },
 });
 export const palette: ThemeState["palette"] = () => defaultStateOf().palette();
 export const setPalette: ThemeState["setPalette"] = (name) => defaultStateOf().setPalette(name);
 export const spacings: ThemeState["spacings"] = new Proxy([] as unknown as ThemeState["spacings"], {
-  get: (_target, key) => Reflect.get(defaultStateOf().spacings, key as never),
+  get: (_target, key) => {
+    const value = Reflect.get(defaultStateOf().spacings, key as never);
+    return typeof value === "function" ? (value as (...args: never[]) => unknown).bind(defaultStateOf().spacings) : value;
+  },
+  has: (_target, key) => Reflect.has(defaultStateOf().spacings, key as never),
+  ownKeys: () => Reflect.ownKeys(defaultStateOf().spacings),
+  getOwnPropertyDescriptor: (_target, key) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(defaultStateOf().spacings, key as never);
+    if (descriptor === undefined) return undefined;
+    return { ...descriptor, configurable: true };
+  },
 });
 export const spacing: ThemeState["spacing"] = () => defaultStateOf().spacing();
 export const setSpacing: ThemeState["setSpacing"] = (name) => defaultStateOf().setSpacing(name);
