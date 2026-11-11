@@ -12,6 +12,11 @@ const here = import.meta.dirname!;
 const STUDIO_ROOT = resolve(here, "../studio/dist");
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@spinjs/kit": resolve(here, "../../internal/kit/src/index.ts"),
+    },
+  },
   plugins: [
     jibeIsolation(),
     jibeStudio({ docsRoot: here, studioRoot: STUDIO_ROOT }),

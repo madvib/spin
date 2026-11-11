@@ -16,7 +16,8 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build:jibe": "bun build ../../packages/preset/src/index.ts --external @unocss/core --minify --outfile public/jibe/spin-preset.js && bun build ../../packages/components/src/runtime/index.ts --minify --outfile public/jibe/spin-runtime.js",
+    "build": "bun run build:jibe && vite build",
     "preview": "vite preview",
     "test": "bun test src",
     "check": "tsc --noEmit"

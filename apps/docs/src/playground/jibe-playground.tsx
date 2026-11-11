@@ -15,8 +15,16 @@ import {
   type JibeEmbedHandle,
 } from "@jibe/embed/sdk";
 import { spinPreset } from "@spinjs/preset";
-import { mode, theme } from "@spinjs/kit";
-import { designLanguages, isDesignLanguage, resolveTheme, type ThemeDocument } from "@spinjs/theme";
+import { mode, palette, spacing, theme } from "@spinjs/kit";
+import {
+  demoPalettes,
+  demoSpacings,
+  designLanguages,
+  isDesignLanguage,
+  mergeThemeDocuments,
+  resolveTheme,
+  type ThemeDocument,
+} from "@spinjs/theme";
 import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export type PlaygroundFramework =
@@ -78,7 +86,7 @@ const FRAMEWORK_WIRING: Readonly<Record<PlaygroundFramework, FrameworkWiring>> =
     },
   };
 
-function ventConfig(framework: PlaygroundFramework): string {
+function ventConfig(framework: PlaygroundFramework, themeJson: string): string {
   const wiring = FRAMEWORK_WIRING[framework];
   const pluginImport = wiring.plugin?.statement ?? "";
   const pluginCall =
@@ -86,7 +94,12 @@ function ventConfig(framework: PlaygroundFramework): string {
   return `import { defineVentConfig } from "vent/config";
 ${pluginImport}import { createGenerator } from "@unocss/core";
 import { spinPreset } from "@spinjs/preset";
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+
+// Baked at generation time: the transform must not read theme.json from
+// the workspace at bundle time (stale across applies). New theme bytes
+// mean new config bytes, so the config cache cannot serve a stale closure.
+const SPIN_THEME = ${themeJson};
 
 const read = (path: string): string => String(readFileSync(path, "utf8"));
 
@@ -100,20 +113,16 @@ function collect(dir: string, out: string[]): void {
     if (/\\.(ts|tsx|js|jsx|vue|svelte|html)$/.test(path)) out.push(read(path));
   }
 }
-
-let generator = null;
-let generatorTheme = "";
+let generator: Awaited<ReturnType<typeof createGenerator>> | null = null;
 const stylesheet = {
   name: "spin:stylesheet",
   async transform(code: string, id: string) {
-    if (!/(^|\\/)src\\/main\\.(tsx|ts|jsx|js)$/.test(id)) return null;
+    if (!/(^|\\/)src\\/main(\\.[^\\/]+)?\\.(tsx|ts|jsx|js)$/.test(id)) return null;
     const sources = [read("index.html")];
     collect("src", sources);
-    const themeText = read("theme.json");
-    if (generator === null || generatorTheme !== themeText) {
-      generatorTheme = themeText;
+    if (generator === null) {
       generator = await createGenerator({
-        presets: [spinPreset({ theme: JSON.parse(themeText) })],
+        presets: [spinPreset({ theme: SPIN_THEME })],
       });
     }
     const { css } = await generator.generate(sources.join("\\n"), {
@@ -149,7 +158,7 @@ function spinModules(): Promise<Record<string, string>> {
 }
 
 const STUDIO_ORIGIN =
-  typeof window === "undefined" ? "http://localhost:5173" : window.location.origin;
+  typeof window === "undefined" ? "" : window.location.origin;
 
 interface StudioCall {
   readonly id: number;
@@ -199,12 +208,18 @@ function jsxMarkup(markup: string, framework: "solid" | "react"): string {
   return indentMarkup(out, 4);
 }
 
+function themeSuffix(themeName: string, modeName: string): string {
+  const clean = (part: string): string =>
+    part.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return `${clean(themeName)}--${clean(modeName)}`;
+}
+
 function workspaceFiles(
   framework: PlaygroundFramework,
   subject: Subject,
+  entry: string,
 ): Record<string, string> {
   const wiring = FRAMEWORK_WIRING[framework];
-  const entry = `src/main.${wiring.ext}`;
   const markup = SUBJECT_HTML[subject];
   const markRuntime = `document.documentElement.dataset.runtime = ${JSON.stringify(framework)};\n`;
   const common = {
@@ -259,13 +274,15 @@ export default { env, platform, cwd, versions };
   }
 }
 
-function hostSeedFiles(): Record<string, string> {
+async function hostSeedFiles(): Promise<Record<string, string>> {
+  const modules = await spinModules();
   return {
     "vent.json": `${JSON.stringify(
       {
         importMap: {
           process: "/src/process-shim.ts",
         },
+        __embed_modules__: modules,
       },
       null,
       2,
@@ -273,36 +290,40 @@ function hostSeedFiles(): Record<string, string> {
   };
 }
 
-export function resolveSpinJibeTheme(activeTheme: string, activeMode: string) {
-  const doc = isDesignLanguage(activeTheme)
+export function resolveSpinJibeTheme(
+  activeTheme: string,
+  activeMode: string,
+  activePalette = "",
+  activeSpacing = "",
+) {
+  let doc = isDesignLanguage(activeTheme)
     ? designLanguages[activeTheme]
     : designLanguages.editorial;
+  if (activePalette !== "") {
+    const facet = demoPalettes[activePalette];
+    if (facet !== undefined) doc = mergeThemeDocuments(doc, facet);
+  }
+  if (activeSpacing !== "") {
+    const facet = demoSpacings[activeSpacing];
+    if (facet !== undefined) doc = mergeThemeDocuments(doc, facet);
+  }
+  const fallback = resolveTheme(designLanguages.editorial, activeMode).values;
   const resolved = resolveTheme(doc, activeMode);
-  const str = (key: string, fallback: string): string => {
+  const str = (key: string): string => {
     const val = resolved.values[key];
-    return typeof val === "string" && val.length > 0 ? val : fallback;
+    if (typeof val === "string" && val.length > 0) return val;
+    const base = fallback[key];
+    return typeof base === "string" && base.length > 0 ? base : "";
   };
   return {
     preset: (activeMode === "dark" ? "dark" : "light") as "dark" | "light",
-    bg: str("color.surface", activeMode === "dark" ? "#141312" : "#f7f4ee"),
-    surface: str(
-      "color.surface-raised",
-      activeMode === "dark" ? "#1d1b19" : "#efeae0",
-    ),
-    fg: str("color.text", activeMode === "dark" ? "#f0ebe3" : "#161513"),
-    muted: str(
-      "color.text-muted",
-      activeMode === "dark" ? "#a39c91" : "#5e5a52",
-    ),
-    border: str(
-      "color.border",
-      activeMode === "dark" ? "#2e2b27" : "#d9d2c5",
-    ),
-    accent: str("color.primary", "#c8102e"),
-    previewBg: str(
-      "color.surface",
-      activeMode === "dark" ? "#141312" : "#f7f4ee",
-    ),
+    bg: str("color.surface"),
+    surface: str("color.surface-raised"),
+    fg: str("color.text"),
+    muted: str("color.text-muted"),
+    border: str("color.border"),
+    accent: str("color.primary"),
+    previewBg: str("color.surface"),
   };
 }
 
@@ -335,6 +356,7 @@ export interface SpinEmbedProps {
   readonly framework?: PlaygroundFramework;
   readonly subject?: Subject;
   readonly height?: string;
+  readonly onUpdating?: (updating: boolean) => void;
 }
 
 export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
@@ -487,28 +509,41 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     subject: Subject,
     themeName: string,
     modeName: string,
+    paletteName: string,
+    spacingName: string,
   ): Record<string, string> => {
     const wiring = FRAMEWORK_WIRING[framework];
-    const themeJson = JSON.stringify(
-      isDesignLanguage(themeName) ? designLanguages[themeName] : designLanguages.editorial,
-      null,
-      2,
-    );
+    let doc = isDesignLanguage(themeName)
+      ? designLanguages[themeName]
+      : designLanguages.editorial;
+    const activePalette = demoPalettes[paletteName];
+    if (activePalette !== undefined) doc = mergeThemeDocuments(doc, activePalette);
+    const activeSpacing = demoSpacings[spacingName];
+    if (activeSpacing !== undefined) doc = mergeThemeDocuments(doc, activeSpacing);
+    const themeJson = JSON.stringify(doc, null, 2);
     const inner =
       framework === "vanilla"
         ? `\n${indentMarkup(SUBJECT_HTML[subject], 6)}\n    `
         : "";
+    // The entry path rotates per appearance: vent caches config-transform
+    // output by module path, so an appearance-only apply that keeps the path
+    // re-serves stale CSS. A new path forces a fresh transform; the
+    // update diff removes the previous entry.
+    const entryKey = `src/main.${themeSuffix(`${themeName}-${paletteName}-${spacingName}`, modeName)}.${wiring.ext}`;
+    const generated = workspaceFiles(framework, subject, entryKey);
+    const paletteAttr = paletteName === "" ? "" : ` data-palette="${paletteName}"`;
+    const spacingAttr = spacingName === "" ? "" : ` data-spacing="${spacingName}"`;
     return {
-      ...workspaceFiles(framework, subject),
+      ...generated,
       ...props.files,
-      "vent.config.ts": ventConfig(framework),
+      "vent.config.ts": ventConfig(framework, themeJson),
       "theme.json": themeJson,
       "spin/spin.json": themeJson,
       "index.html": `<!doctype html>
-<html lang="en" data-theme="${themeName}" data-mode="${modeName}">
+<html lang="en" data-theme="${themeName}" data-mode="${modeName}"${paletteAttr}${spacingAttr}>
   <body>
     <div id="app" class="min-h-dvh bg-surface p-6 type-body">${inner}</div>
-    <script type="module" src="/src/main.${wiring.ext}"></script>
+    <script type="module" src="/${entryKey}"></script>
   </body>
 </html>
 `,
@@ -518,6 +553,12 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
   let appliedSignature = "";
   let disposed = false;
   let updateTail: Promise<void> = Promise.resolve();
+  let updateDepth = 0;
+  const setUpdating = (on: boolean): void => {
+    updateDepth += on ? 1 : -1;
+    if (updateDepth < 0) updateDepth = 0;
+    props.onUpdating?.(updateDepth > 0);
+  };
   onCleanup(() => {
     disposed = true;
     const handle = activeHandle;
@@ -532,18 +573,22 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     files: Record<string, string>,
     signature: string,
   ): Promise<void> => {
+    setUpdating(true);
     setReady(false);
     setStudioOpen(false);
     studioConnected = false;
-    const modules = await spinModules();
-    if (disposed) return;
+    const seed = await hostSeedFiles();
+    if (disposed) {
+      setUpdating(false);
+      return;
+    }
     const fw = props.framework ?? "solid";
     const defaultActive = activeFileForFramework(fw);
     const mounted = await createJibeEmbed(node, {
       embedOrigin,
-      files: { ...files, ...hostSeedFiles() },
+      files: { ...files, ...seed },
       ...(props.chrome === "ide" ? { chrome: "studio" as const } : {}),
-      theme: resolveSpinJibeTheme(theme(), mode()),
+      theme: resolveSpinJibeTheme(theme(), mode(), palette(), spacing()),
       activeFile: props.activeFile ?? defaultActive,
       visibleFiles: props.visibleFiles ?? [defaultActive, "spin/spin.json"],
       ...(props.view === undefined ? {} : { view: props.view }),
@@ -551,13 +596,15 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     });
     if (disposed) {
       mounted.destroy();
+      setUpdating(false);
       return;
     }
     activeHandle = mounted;
     setLiveHandle(mounted);
-    appliedFiles = files;
+    appliedFiles = { ...files, ...seed };
     appliedSignature = signature;
     setReady(true);
+    setUpdating(false);
   };
 
   const run = async (
@@ -579,15 +626,23 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       await mount(node, files, signature);
       return;
     }
+    const seed = await hostSeedFiles();
+    if (disposed) return;
+    const full = { ...files, ...seed };
     const remove = Object.keys(appliedFiles).filter(
-      (path) => files[path] === undefined,
+      (path) => full[path] === undefined,
     );
     const changed =
       remove.length > 0 ||
-      Object.keys(files).some((path) => appliedFiles[path] !== files[path]);
+      Object.keys(full).some((path) => appliedFiles[path] !== full[path]);
     if (!changed) return;
-    await activeHandle.client.apply({ write: files, remove });
-    appliedFiles = files;
+    setUpdating(true);
+    try {
+      await activeHandle.client.apply({ write: full, remove });
+      appliedFiles = full;
+    } finally {
+      setUpdating(false);
+    }
   };
 
   createEffect(() => {
@@ -598,6 +653,8 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       props.subject ?? "card",
       theme(),
       mode(),
+      palette(),
+      spacing(),
     );
     const signature = JSON.stringify([props.visibleFiles ?? null]);
     updateTail = updateTail
@@ -613,7 +670,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     const view = props.view ?? "split";
     const chrome = props.chrome === "ide" ? "studio" : (props.chrome ?? "studio");
     const activeFile = props.activeFile;
-    const nextTheme = resolveSpinJibeTheme(theme(), mode());
+    const nextTheme = resolveSpinJibeTheme(theme(), mode(), palette(), spacing());
     const configure = h === undefined ? undefined : h.configure;
     if (typeof configure !== "function") return;
     void configure({
